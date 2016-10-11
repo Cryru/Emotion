@@ -2,7 +2,7 @@
 
 # What is this?
 
-SoulEngine is a game engine coded in C#, based on the MonoGame framework, it includes badic objects essential to any game, in addition to a library of useful functions.
+SoulEngine is a game engine coded in C#, based on the MonoGame framework, it includes basic objects essential to any game, in addition to a library of useful functions.
 
 # External Projects
 
