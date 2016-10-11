@@ -1,0 +1,19 @@
+﻿<Properties StartupConfiguration="{9A70E13C-1AA0-49D7-87CF-BED03657AF6B}|Default">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.Workbench ActiveDocument="User\Screens\MasterScreen.cs">
+    <Files>
+      <File FileName="Engine\Core\Core.cs" Line="30" Column="64" />
+      <File FileName="User\Screens\MasterScreen.cs" Line="24" Column="43" />
+    </Files>
+    <Pads>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.SoulEngine PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>
