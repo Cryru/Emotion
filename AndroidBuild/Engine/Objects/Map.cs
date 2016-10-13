@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using TiledSharp;
-using System.IO;
 
 namespace SoulEngine
 {
@@ -79,24 +78,16 @@ namespace SoulEngine
             }
 #endif
             //TODO
-            //            
-            //            System.IO.StreamReader mapReader = new System.IO.StreamReader(mapfile, System.Text.Encoding.UTF8);
-            //            string data = mapReader.ReadToEnd();
-            //#if ANDROID
-            //            mapsContentPath = "SNCon/Maps/";
-            //            mapsContentPath = "file:///android_asset/SNCon/Maps/";
-            //#endif
-
-            //Start a stream
-#if WINDOWS
-            Stream mapData = System.IO.File.Open(mapsContentPath + mapName + ".tmx", FileMode.Open);
-#endif
-#if ANDROID
-            Stream mapData = Core.androidHost.Assets.Open("SNCon/Maps/" + mapName + ".tmx");
-#endif
+//            System.IO.Stream mapfile = Core.androidHost.Assets.Open("SNCon/Maps/" + mapName + ".tmx");
+//            System.IO.StreamReader mapReader = new System.IO.StreamReader(mapfile, System.Text.Encoding.UTF8);
+//            string data = mapReader.ReadToEnd();
+//#if ANDROID
+//            mapsContentPath = "SNCon/Maps/";
+//            mapsContentPath = "file:///android_asset/SNCon/Maps/";
+//#endif
 
             //Load the map file.
-            map = new TmxMap(mapData);
+            map = new TmxMap(mapsContentPath + mapName + ".tmx");
             //Load tilesets.
             for (int i = 0; i < map.Tilesets.Count; i++)
             {
