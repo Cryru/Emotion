@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace SoulEngine
 {
+#if !ANDROID
+
+namespace SoulEngine
+{
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
@@ -20,7 +24,7 @@ namespace SoulEngine
     //////////////////////////////////////////////////////////////////////////////
     class Animation
     {
-        #region "Declarations"
+    #region "Declarations"
         //Public Fields
         public Texture textureAtlas = new Texture(); //The spritesheet to be cut into individual frames.
         public List<Texture2D> Frames
@@ -127,7 +131,7 @@ namespace SoulEngine
         private int fRows; //The number of rows of frames the spritesheet contains. This is calculated.
         private int fColumns; //The number of columns of frames the spritesheet contains. This is calculated.
         private List<Texture2D> frames = new List<Texture2D>(); //All the frames from the atlas cut.
-        #endregion
+    #endregion
 
         //The constructor.
         public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10, bool Reverse = false)
@@ -210,20 +214,22 @@ namespace SoulEngine
         {
             for (int i = 0; i < FramesCountTotal; i++)
             {
-                Texture2D curFrame;
-
-                int Row = (int)(i / (float)fColumns);  //Calculate the row and column of the image.
+                //Calculate the location of the current sprite within the image.
+                int Row = (int)(i / (float)fColumns);
                 int Column = i % fColumns;
 
-                //Calculate the position within the spritesheet.
+                //Transform into a rectangle.
                 Rectangle FrameRect = new Rectangle(fWidth * Column, fHeight * Row, fWidth, fHeight);
 
-                //Load the texture of the current frame. In a try catch so invalid animations don't crash the game.
-                curFrame = new Texture2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
+                //Create a new texture object with the dimensions of the sprite.
+                Texture2D curFrame = new Texture2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
+                //Create a color array to hold the color data of the sprite.
                 Color[] FrameData = new Color[FrameRect.Width * FrameRect.Height];
+                //Get the color data from the spritesheet.
                 textureAtlas.Image.GetData(0, FrameRect, FrameData, 0, FrameData.Length);
-                curFrame.SetData(FrameData);
-
+                //Set the colors we extracted to the texture object.
+                curFrame.SetData<Color>(FrameData);
+                //Add the texture to the array.
                 frames.Add(curFrame);
             }
         }
@@ -333,4 +339,180 @@ namespace SoulEngine
             _Frame = startingFrame + relativeFrame;
         }
     }
+}
+
+#endif
+#if ANDROID
+    //////////////////////////////////////////////////////////////////////////////
+    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    //                                                                          //
+    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+    //                                                                          //
+    // Used for animating textures from a spritesheet.                          //
+    //                                                                          //
+    // Refer to the documentation for any questions, or                         //
+    // to TheCryru@gmail.com                                                    //
+    //////////////////////////////////////////////////////////////////////////////
+    class Animation
+    {
+        #region "Declarations"
+        //Public Fields
+        public Texture textureAtlas = new Texture(); //The spritesheet to be cut into individual frames.
+        public List<Texture2D> Frames
+        {
+            get
+            {
+                return frames;
+            }
+        } //The list of frames.
+
+        //Settings
+        public LoopType Loop; //The type of loop to use.
+        public enum LoopType //Types of loops.
+        {
+            None, //Disabled looping, animation will play once.
+            Normal, //Animation will loop normally, after the last frame is the first frame.
+            NormalThenReverse //The animation will play in reverse after reaching then last frame.
+        }
+
+        //Events
+        public Action onFrameChange; //The event for when the frame changes.
+        public Action onFinished; //The event for when the animation has finished.
+        public Action onLoop; //The event for when the animation loops back.
+
+        //State
+        public AnimationState State //The state of the timer, readonly for user reading.
+        {
+            get
+            {
+                return _State;
+            }
+        }
+        private AnimationState _State = AnimationState.None; //The state of the timer, private for editing within the object. 
+        public enum AnimationState  //The possible states.
+        {
+            None, //Not setup.
+            Paused, //For when the animation is paused.
+            Playing, //For when the animation is playing.
+            PlayingReverse, //For when the animation is playing in reverse.
+            WaitingForEvent, //When waiting to execute the onFinished event.
+            Done //When the animation is done. For instance when loop is false and it has played once.
+        }
+
+        //Public Accessors
+        public int Frame //The current frame's number, counting the first frame as zero.
+        {
+            get
+            {
+                return _Frame - startingFrame;
+            }
+        }
+        public int FramesTotal //The total number of frames for the animation.
+        {
+            get
+            {
+                return FramesCount;
+            }
+        }
+        public int FPS //The frames per second of the animation, essentially the speed.
+        {
+            get
+            {
+                return _FPS;
+            }
+            set
+            {
+                //The delay (since it's in miliseconds) is equal to the fps divided by a second, or 1000 miliseconds.
+                AnimationTimer.Delay = 1000f / (float)value;
+                _FPS = value;
+            }
+        }
+
+        //Private Workings
+        private int startingFrame = 0; //The frame to start from, from all the frames in the spritesheet.
+        private int endingFrame //The frame to end at, from all the frames in the spritesheet. This is the accessor that will return the last frame when the ending frame is -1.
+        {
+            get
+            {
+                if (_endingFrame == -1)
+                {
+                    return FramesCountTotal - 1;
+                }
+
+                return _endingFrame;
+            }
+            set
+            {
+                _endingFrame = value;
+            }
+        }
+        private int _endingFrame = 0; //The frame to end at, from all the frames in the spritesheet.
+        private int _Frame = 0; //The current frame's number, from the total frame count.
+
+        private int FramesCount = 0; //The total number of frames in the animation. This is calculated.
+        private int FramesCountTotal = 0; //The total number of frames on the spritesheet.
+
+        //Timing
+        private int _FPS = 0; //The frames per second of the animation. This is inputed.
+        private Timer AnimationTimer = new Timer(); //The timer that handles frame timing.
+
+        //Atlas Variables
+        private int fWidth; //The width of each individual frame. This is inputed.
+        private int fHeight; //The height of each individual frame. This is inputed.
+        private int fRows; //The number of rows of frames the spritesheet contains. This is calculated.
+        private int fColumns; //The number of columns of frames the spritesheet contains. This is calculated.
+        private List<Texture2D> frames = new List<Texture2D>(); //All the frames from the atlas cut.
+        #endregion
+
+        //The constructor.
+        public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10, bool Reverse = false)
+        {
+
+        }
+
+        //Is run every frame.
+        public void Run()
+        {
+
+        }
+        //Get the texture of the current frame.
+        public Texture2D GetFrameTexture()
+        {
+            return Core.missingimg;
+        }
+
+        public void SplitSheet()
+        {
+        }
+
+        //Is run on timer tick.
+        private void TimerTick()
+        {
+
+        }
+
+        //The play state preserved when paused.
+        private AnimationState pausedStateHolder = AnimationState.None;
+        //Pause if running.
+        public void Pause()
+        {
+
+        }
+        //Start if pausing.
+        public void Play()
+        {
+
+        }
+        //Resets the animation.
+        public void Reset()
+        {
+
+        }
+        //Changes to waiting for the event.
+        private void WaitForEvent()
+        {
+
+        }
+    }
+#endif
 }

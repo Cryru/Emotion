@@ -39,7 +39,6 @@ namespace SoulEngine
         public static MouseState lastFrameMouseState; //The keyboard state of the last frame. Used for mouse events.
 #if __ANDROID__
         public static TouchCollection currentTouchState; //The touch screen state of the current frame.
-        public static GestureType enabledGestures = GestureType.Tap; //The gestures we will be using.
 #endif
 
         //Internal Objects
@@ -85,7 +84,7 @@ namespace SoulEngine
             host.Window.Title = Settings.Name;
 #endif
 #if __ANDROID__ //Enable the gestures we want, on Android.
-            TouchPanel.EnabledGestures = enabledGestures;
+            TouchPanel.EnabledGestures = Settings.enabledGestures;
 #endif
             //Check if a settings file exists.
             if(File.Exists("settings.ini"))

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Input.Touch;
 
 namespace SoulEngine
 {
@@ -14,7 +15,7 @@ namespace SoulEngine
     {
         //Info Declarations
         public static string Name = "Soul Engine"; //The name of the engine.
-        public static string Ver = "1.0"; //The version of the engine.
+        public static string Ver = "0.71"; //The version of the engine.
         public static string GUID = "130F150C-0000-0000-0000-050E07090E05"; //The guid of the application. (Default Soul Engine - 130F150C-0000-0000-0000-050E07090E05)
 
         //Window Settings
@@ -41,6 +42,6 @@ namespace SoulEngine
         public static bool sound = true; //Whether sound is on or off.
         public static Keys keyClosing = Keys.Escape; //The key used to close the application.
         public static bool displayFPS = true; //Whether to draw the current fps on the screen.
-
+        public static GestureType enabledGestures = GestureType.Tap; //The touch gestures the panel should track.
     }
 }
