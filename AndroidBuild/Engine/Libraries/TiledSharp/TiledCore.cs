@@ -18,11 +18,6 @@ namespace TiledSharp
     {
         public string TmxDirectory {get; private set;}
 
-        public TmxDocument()
-        {
-            TmxDirectory = string.Empty;
-        }
-
         protected XDocument ReadXml(string filepath)
         {
             XDocument xDoc;
@@ -41,11 +36,14 @@ namespace TiledSharp
             // Otherwise, assume filepath is an explicit path
             if (fileRes != null)
             {
-                using (Stream xmlStream = asm.GetManifestResourceStream(fileRes)) {
-                    using (XmlReader reader = XmlReader.Create(xmlStream)) {
+                using (Stream xmlStream = asm.GetManifestResourceStream(fileRes))
+                {
+                    using (XmlReader reader = XmlReader.Create(xmlStream))
+                    {
                         xDoc = XDocument.Load(reader);
                     }
                 }
+
                 TmxDirectory = String.Empty;
             }
             else
