@@ -18,7 +18,7 @@ namespace Soul
         //Module Properties
         public static string fr_name = "Log";
         public static string fr_ver = "0.1";
-        public static string fr_linkedApp = Settings.Name;
+        public static string fr_linkedApp = Core.Name;
 
         //Logging Variables
         public static List<string> log = new List<string>(); //The current log stored in memory.

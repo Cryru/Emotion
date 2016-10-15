@@ -59,38 +59,38 @@
     <Compile Include="Engine\Core\Core.cs" />
     <Compile Include="Engine\Core\Engine.cs" />
     <Compile Include="Engine\Core\Start.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\BoxingViewportAdapter.cs" />
-    <Compile Include="Engine\Libraries\Camera.cs" />
-    <Compile Include="Engine\Libraries\Log\Log.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\Camera2D.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\DefaultViewportAdapter.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\IMovable.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\IRotatable.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\RectangleF.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\ShapeF.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\Size.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\SizeF.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\ViewportAdapter.cs" />
-    <Compile Include="Engine\Libraries\ScreenObjectBase.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\ImageLayer.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\Layer.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\Map.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\ObjectGroup.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\TiledCore.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\Tileset.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\CRC32.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\Deflate.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\DeflateStream.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\GZipStream.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\Inflate.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\InfTree.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\ParallelDeflateOutputStream.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\Tree.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\Zlib.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\ZlibBaseStream.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\ZlibCodec.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\ZlibConstants.cs" />
-    <Compile Include="Engine\Libraries\TiledSharp\zlib\ZlibStream.cs" />
+    <Compile Include="Engine\Libraries\Input.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\BoxingViewportAdapter.cs" />
+    <Compile Include="Engine\Libraries\Soul\Log\Log.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\Camera2D.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\DefaultViewportAdapter.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\IMovable.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\IRotatable.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\RectangleF.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\ShapeF.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\Size.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\SizeF.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\ViewportAdapter.cs" />
+    <Compile Include="Engine\Objects\ScreenObjectBase.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\ImageLayer.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\Layer.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\Map.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\ObjectGroup.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\TiledCore.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\Tileset.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\CRC32.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\Deflate.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\DeflateStream.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\GZipStream.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\Inflate.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\InfTree.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\ParallelDeflateOutputStream.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\Tree.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\Zlib.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\ZlibBaseStream.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\ZlibCodec.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\ZlibConstants.cs" />
+    <Compile Include="Engine\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Engine\Objects\Effects\Move.cs" />
     <Compile Include="Engine\Objects\Effects\Scale.cs" />
     <Compile Include="Engine\Objects\Effects\Wait.cs" />
@@ -99,7 +99,7 @@
     <Compile Include="Engine\Objects\Texture.cs" />
     <Compile Include="Engine\Objects\UIObjectBase.cs" />
     <Compile Include="Engine\Objects\ObjectBase.cs" />
-    <Compile Include="Engine\Objects\Screen.cs" />
+    <Compile Include="Engine\Templates\Screen.cs" />
     <Compile Include="Engine\Objects\Sound.cs" />
     <Compile Include="Engine\Objects\TextObject.cs" />
     <Compile Include="Engine\Objects\Animation.cs" />
@@ -107,7 +107,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="User\Settings.cs" />
     <Compile Include="User\Screens\MasterScreen.cs" />
-    <Compile Include="Engine\Libraries\MG.Ext\ScalingViewPortAdapter.cs" />
+    <Compile Include="Engine\Libraries\External\MG.Ext\ScalingViewPortAdapter.cs" />
     <Compile Include="Engine\Objects\MissingImage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -125,10 +125,10 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Engine\Libraries\TiledSharp\zlib\License.txt" />
-    <Content Include="Engine\Libraries\TiledSharp\zlib\License.zlib.txt" />
+    <Content Include="Engine\Libraries\External\TiledSharp\zlib\License.txt" />
+    <Content Include="Engine\Libraries\External\TiledSharp\zlib\License.zlib.txt" />
     <Content Include="SoulEngine.ico" />
-    <Content Include="Engine\Libraries\Log\Log Documentation.txt" />
+    <Content Include="Engine\Libraries\Soul\Log\Log Documentation.txt" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
@@ -146,9 +146,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Folder Include="Engine\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

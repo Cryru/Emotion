@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+    // Copyright © 2016 Vlad Abadzhiev                                          //
     //                                                                          //
     // The base for UI objects.                                                 //
     //                                                                          //
@@ -160,7 +160,7 @@ namespace SoulEngine
             if (Enabled == false) return;
 
             //Get the mouse location.
-            Rectangle mouse = new Rectangle(Core.WorldMousePos().ToPoint(), new Point(1, 1));
+            Rectangle mouse = new Rectangle(Input.getMousePos().ToPoint(), new Point(1, 1));
 
             bool touchMode = false;
 #if ANDROID
@@ -185,7 +185,7 @@ namespace SoulEngine
                 }
 
                 //Check if the mouse button is pressed.
-                if (Core.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed || touchMode == true)
+                if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed || touchMode == true)
                 {
                     //Check if the object is toggleable.
                     if (Toggleable == false) _Status = Mode.Clicked;
@@ -202,7 +202,7 @@ namespace SoulEngine
                 }
 
                 //Check if the buton is released, and was pressed last frame, AKA was just let go.
-                if (Core.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && trigger_mousewasdown == true)
+                if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && trigger_mousewasdown == true)
                 {
                     trigger_mousewasdown = false;
 
@@ -226,13 +226,13 @@ namespace SoulEngine
                 }
 
                 //Check if right click is down.
-                if (Core.currentFrameMouseState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && trigger_mouserightclickwasup == true)
+                if (Input.currentFrameMouseState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && trigger_mouserightclickwasup == true)
                 {
                     onMouseRightClickDown?.Invoke();
                     trigger_mouserightclickwasup = false;
                     trigger_mouserightclickwasdown = true;
                 }
-                else if(Core.currentFrameMouseState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
+                else if(Input.currentFrameMouseState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
                 {
                     if(trigger_mouserightclickwasdown == true)
                     {

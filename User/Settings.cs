@@ -13,11 +13,6 @@ namespace SoulEngine
     //////////////////////////////////////////////////////////////////////////////
     public class Settings
     {
-        //Info Declarations
-        public static string Name = "Soul Engine"; //The name of the engine.
-        public static string Ver = "0.71"; //The version of the engine.
-        public static string GUID = "130F150C-0000-0000-0000-050E07090E05"; //The guid of the application. (Default Soul Engine - 130F150C-0000-0000-0000-050E07090E05)
-
         //Window Settings
         public static int win_width = 960; //The width of the window.
         public static int win_height = 540; //The height of the window.

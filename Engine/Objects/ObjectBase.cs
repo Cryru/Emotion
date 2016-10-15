@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+    // Copyright © 2016 Vlad Abadzhiev                                          //
     //                                                                          //
     // The base for game objects.                                               //
     //                                                                          //

@@ -6,18 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
 #if !ANDROID
-
-namespace SoulEngine
-{
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+    // Copyright © 2016 Vlad Abadzhiev                                          //
     //                                                                          //
     // Used for animating textures from a spritesheet.                          //
+    // Can also be used to split a spritesheet into it's individual frames.     //
     //                                                                          //
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
@@ -339,8 +337,6 @@ namespace SoulEngine
             _Frame = startingFrame + relativeFrame;
         }
     }
-}
-
 #endif
 #if ANDROID
     //////////////////////////////////////////////////////////////////////////////

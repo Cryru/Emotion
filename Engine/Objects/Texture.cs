@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+    // Copyright © 2016 Vlad Abadzhiev                                          //
     //                                                                          //
     // An active texture object for loading and storing                         //
     // 2DTextures in various ways including interfacing with                    //
