@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Audio;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame, TiledSharp                    //
+    // Copyright © 2016 Vlad Abadzhiev                                          //
     //                                                                          //
     // A sound object. Uses the SoundEffect importer and OpenAL.                //
     //                                                                          //

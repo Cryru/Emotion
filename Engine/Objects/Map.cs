@@ -5,15 +5,16 @@ using System.Collections.Generic;
 using TiledSharp;
 using System.IO;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame, TiledSharp                    //
+    // Copyright © 2016 Vlad Abadzhiev, The TiledSharp Project                  //
+    // https://github.com/marshallward/TiledSharp                               //
     //                                                                          //
-    // An object to load maps from Tiled (.tmx) files and                       //
-    // control them. Uses the TiledSharp library.                               //
+    // An object that using the TiledSharp library allows the                   //
+    // easy rendering and control of .tmx maps from the Tiled application.      //
     //                                                                          //
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
@@ -73,23 +74,15 @@ namespace SoulEngine
 
             //Check if the map file exists.
 #if !ANDROID
-            if(System.IO.File.Exists(mapsContentPath + mapName + ".tmx") == false)
+            if(File.Exists(mapsContentPath + mapName + ".tmx") == false)
             {
                 return;
             }
 #endif
-            //TODO
-            //            
-            //            System.IO.StreamReader mapReader = new System.IO.StreamReader(mapfile, System.Text.Encoding.UTF8);
-            //            string data = mapReader.ReadToEnd();
-            //#if ANDROID
-            //            mapsContentPath = "SNCon/Maps/";
-            //            mapsContentPath = "file:///android_asset/SNCon/Maps/";
-            //#endif
-
-            //Start a stream
+     
+            //Create a stream
 #if WINDOWS
-            Stream mapData = System.IO.File.Open(mapsContentPath + mapName + ".tmx", FileMode.Open);
+            Stream mapData = File.Open(mapsContentPath + mapName + ".tmx", FileMode.Open);
 #endif
 #if ANDROID
             Stream mapData = Core.androidHost.Assets.Open("SNCon/Maps/" + mapName + ".tmx");

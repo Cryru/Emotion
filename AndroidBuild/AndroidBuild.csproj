@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Common.props')" />
   <PropertyGroup>
@@ -54,175 +54,10 @@
   <ItemGroup>
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\User\Settings.cs">
-      <Link>User\Settings.cs</Link>
-    </Compile>
-    <Compile Include="..\User\Screens\MasterScreen.cs">
-      <Link>User\Screens\MasterScreen.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Core\Core.cs">
-      <Link>Engine\Core\Core.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Core\Engine.cs">
-      <Link>Engine\Core\Engine.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Core\Start.cs">
-      <Link>Engine\Core\Start.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\Camera.cs">
-      <Link>Engine\Libraries\Camera.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\ScreenObjectBase.cs">
-      <Link>Engine\Libraries\ScreenObjectBase.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\Log\Log.cs">
-      <Link>Engine\Libraries\Log\Log.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\BoxingViewportAdapter.cs">
-      <Link>Engine\Libraries\MG.Ext\BoxingViewportAdapter.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\Camera2D.cs">
-      <Link>Engine\Libraries\MG.Ext\Camera2D.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\DefaultViewportAdapter.cs">
-      <Link>Engine\Libraries\MG.Ext\DefaultViewportAdapter.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\IMovable.cs">
-      <Link>Engine\Libraries\MG.Ext\IMovable.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\IRotatable.cs">
-      <Link>Engine\Libraries\MG.Ext\IRotatable.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\RectangleF.cs">
-      <Link>Engine\Libraries\MG.Ext\RectangleF.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\ScalingViewPortAdapter.cs">
-      <Link>Engine\Libraries\MG.Ext\ScalingViewPortAdapter.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\ShapeF.cs">
-      <Link>Engine\Libraries\MG.Ext\ShapeF.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\Size.cs">
-      <Link>Engine\Libraries\MG.Ext\Size.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\SizeF.cs">
-      <Link>Engine\Libraries\MG.Ext\SizeF.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\MG.Ext\ViewportAdapter.cs">
-      <Link>Engine\Libraries\MG.Ext\ViewportAdapter.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\ImageLayer.cs">
-      <Link>Engine\Libraries\TiledSharp\ImageLayer.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\Layer.cs">
-      <Link>Engine\Libraries\TiledSharp\Layer.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\Map.cs">
-      <Link>Engine\Libraries\TiledSharp\Map.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\ObjectGroup.cs">
-      <Link>Engine\Libraries\TiledSharp\ObjectGroup.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\TiledCore.cs">
-      <Link>Engine\Libraries\TiledSharp\TiledCore.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\Tileset.cs">
-      <Link>Engine\Libraries\TiledSharp\Tileset.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\CRC32.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\CRC32.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\Deflate.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\Deflate.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\DeflateStream.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\DeflateStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\GZipStream.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\GZipStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\Inflate.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\Inflate.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\InfTree.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\InfTree.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\ParallelDeflateOutputStream.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\ParallelDeflateOutputStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\Tree.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\Tree.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\Zlib.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\Zlib.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\ZlibBaseStream.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\ZlibBaseStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\ZlibCodec.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\ZlibCodec.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\ZlibConstants.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\ZlibConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Libraries\TiledSharp\zlib\ZlibStream.cs">
-      <Link>Engine\Libraries\TiledSharp\zlib\ZlibStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Animation.cs">
-      <Link>Engine\Objects\Animation.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Map.cs">
-      <Link>Engine\Objects\Map.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\MissingImage.cs">
-      <Link>Engine\Objects\MissingImage.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\ObjectBase.cs">
-      <Link>Engine\Objects\ObjectBase.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Screen.cs">
-      <Link>Engine\Objects\Screen.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Sound.cs">
-      <Link>Engine\Objects\Sound.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\TextObject.cs">
-      <Link>Engine\Objects\TextObject.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Texture.cs">
-      <Link>Engine\Objects\Texture.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Timer.cs">
-      <Link>Engine\Objects\Timer.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\UIObjectBase.cs">
-      <Link>Engine\Objects\UIObjectBase.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Effects\Fade.cs">
-      <Link>Engine\Objects\Effects\Fade.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Effects\Move.cs">
-      <Link>Engine\Objects\Effects\Move.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Effects\Scale.cs">
-      <Link>Engine\Objects\Effects\Scale.cs</Link>
-    </Compile>
-    <Compile Include="..\Engine\Objects\Effects\Wait.cs">
-      <Link>Engine\Objects\Effects\Wait.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml" />
-    <None Include="..\Engine\Libraries\Log\Log Documentation.txt">
-      <Link>Engine\Libraries\Log\Log Documentation.txt</Link>
-    </None>
-    <None Include="..\Engine\Libraries\TiledSharp\zlib\License.txt">
-      <Link>Engine\Libraries\TiledSharp\zlib\License.txt</Link>
-    </None>
-    <None Include="..\Engine\Libraries\TiledSharp\zlib\License.zlib.txt">
-      <Link>Engine\Libraries\TiledSharp\zlib\License.zlib.txt</Link>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\Icon.png" />
@@ -236,7 +71,7 @@
     <AndroidAsset Include="Assets\AboutAssets.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Assets\Content\" />
+    <Folder Include="Assets\Content\SNCon\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

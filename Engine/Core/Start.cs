@@ -18,7 +18,7 @@ using Soul;
 using AppKit;
 using Foundation;
 #endif
-#if __ANDROID__ //Android needs these references to run.
+#if ANDROID //Android needs these references to run.
 using Android.App;
 using Android.Content;
 using Android.Runtime;
@@ -30,7 +30,7 @@ using Android.OS;
 
 namespace SoulEngine
 {
-#if __ANDROID__ //The Android starting method is different from other platforms.
+#if ANDROID //The Android starting method is different from other platforms.
 
 	[Activity(Label = "Soul Engine (Android)",
 			   MainLauncher = true,
@@ -63,11 +63,11 @@ namespace SoulEngine
 	}
 #endif
 
-#if !__ANDROID__ //Skip the normal starting class on Android.
+#if !ANDROID //Skip the normal starting class on Android.
     public static class Program
     {
 #if WINDOWS //On Windows we use a mutex GUID system to prevent multiple instances.
-        static Mutex mutex = new Mutex(true, "{" + Settings.GUID + "}");
+        static Mutex mutex = new Mutex(true, "{" + Core.GUID + "}");
 #endif
 #if !__UNIFIED__ //On Linux and Windows we need to specify single threadedness.
         [STAThread]
@@ -86,7 +86,7 @@ namespace SoulEngine
                     Log.NewLog();
                     Log.maxLog = 5;
                     //Add suffix to engine.
-                    Settings.Name += " (OpenGL-Win)";
+                    Core.Name += " (OpenGL-Win)";
 #endif
 #if __UNIFIED__ //On Mac we need to initialize the application through this.
 			//Add suffix to engine.
@@ -106,7 +106,7 @@ namespace SoulEngine
             Settings.Name += " (OpenGL-Lin)";
 #endif
 #if WINDOWS //On Windows we need to start the logging system.
-                    Log.fr_linkedApp = Settings.Name + " " + Settings.Ver;
+                    Log.fr_linkedApp = Core.Name + " " + Core.Ver;
 #endif
                     //Run the engine.
                     Core.Setup();

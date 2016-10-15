@@ -4,10 +4,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.IO;
-using System.Threading;
-#if __ANDROID__
 using Microsoft.Xna.Framework.Input.Touch;
-#endif
+using SoulEngine.Objects;
 
 namespace SoulEngine
 {
@@ -24,6 +22,11 @@ namespace SoulEngine
     class Core
     {
         #region "Declarations"
+        //Engine Information
+        public static string Name = "Soul Engine"; //The name of the engine.
+        public static string Ver = "0.72"; //The version of the engine.
+        public static string GUID = "130F150C-0000-0000-0000-050E07090E05"; //The guid of the application. (Default Soul Engine - 130F150C-0000-0000-0000-050E07090E05)
+
         //Debug Variables and Objects
         public static TextObject debugText; //The debug information to be printed.
         public static bool loaded = false; //Whether the engine has loaded.
@@ -32,15 +35,6 @@ namespace SoulEngine
         //Frame data.
         public static float frametime; //The time it took in ms to render the last frame.
 
-        //Input
-        public static KeyboardState currentFrameKeyState; //The keyboard state of the current frame. Used for button events.
-        public static KeyboardState lastFrameKeyState; //The keyboard state of the last frame. Used for button events.
-        public static MouseState currentFrameMouseState; //The keyboard state of the current frame. Used for mouse events.
-        public static MouseState lastFrameMouseState; //The keyboard state of the last frame. Used for mouse events.
-#if __ANDROID__
-        public static TouchCollection currentTouchState; //The touch screen state of the current frame.
-#endif
-
         //Internal Objects
         public static GraphicsDeviceManager graphics; //Manages the graphics devices. Viewports, windows etc...
         public static SpriteBatch ink; //The drawing object.
@@ -48,7 +42,7 @@ namespace SoulEngine
         public static Camera2D maincam; //The main camera.
         public static BoxingViewportAdapter ScreenAdapter; //The screen boxed.
         public static MasterScreen master; //The master screen that is drawn on top of everything else.
-#if __ANDROID__
+#if ANDROID
         public static Android.Content.Context androidHost; //Hosts the Android Context Wrapper.
 #endif
 
@@ -58,7 +52,7 @@ namespace SoulEngine
 
         public static void Setup()
         {
-#if !__ANDROID__ //Android sets the host in the start class.
+#if !ANDROID //Android sets the host in the start class.
             //Setup the host.
             //The content, ink and graphics device are initalized here.
             host = new Engine();
@@ -66,7 +60,7 @@ namespace SoulEngine
             //Start the host.
             host.Run();
 
-#if !__ANDROID__ //Android runs past the .Run().
+#if !ANDROID //Android runs past the .Run().
             //The code after run is executed after the game is closed.
             host.Dispose();
 #endif
@@ -75,15 +69,15 @@ namespace SoulEngine
         public static void StartSequence()
         {
 
-#if !__ANDROID__ //Android doesn't have a mouse, and doesn't have window properties.
+#if !ANDROID //Android doesn't have a mouse, and doesn't have window properties.
             //Show mouse according to settings.
             host.IsMouseVisible = Settings.win_renderMouse;
             //Allow fast exit.
             host.Window.AllowAltF4 = true;
             //Set the window's name.
-            host.Window.Title = Settings.Name;
+            host.Window.Title = Core.Name;
 #endif
-#if __ANDROID__ //Enable the gestures we want, on Android.
+#if ANDROID //Enable the gestures we want, on Android.
             TouchPanel.EnabledGestures = Settings.enabledGestures;
 #endif
             //Check if a settings file exists.
@@ -121,24 +115,16 @@ namespace SoulEngine
 
         public static void Update(GameTime gameTime)
         {
-#if !__ANDROID__ //Android doesn't have a mouse and doesn't use a keyboard in the traditional sense.
-            //Record the frame's keyboard and mouse states.
-            currentFrameKeyState = Keyboard.GetState();
-            currentFrameMouseState = Mouse.GetState();
+            //Update the input for the current frame.
+            Input.UpdateInput();
 
-            //Check if closing.
-            if (isKeyDown(Keys.Escape)) host.Exit();
-#endif
-#if __ANDROID__ //On Android we get the touch state.
-            currentTouchState = TouchPanel.GetState();
-#endif
             //Write the debug text.
             if (Settings.debug == true && Settings.debugUpdate == true)
             {
                 //Write the FPS and framework info to the debug text.
-                debugText.Text = Settings.Name + " " + Settings.Ver + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
+                debugText.Text = Core.Name + " " + Core.Ver + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
                     + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" +
-#if !__ANDROID__ //Android doesn't have a window position.
+#if !ANDROID //Android doesn't have a window position.
                     "Window Position: " + host.Window.Position.X + "x" + host.Window.Position.Y + "\r\n" +
 #endif
                     "Camera Zoom: " + maincam.Zoom + "\r\n";
@@ -168,11 +154,8 @@ namespace SoulEngine
         }
         public static void Update_End(GameTime gameTime)
         {
-#if !__ANDROID__ //Android doesn't have a mouse and doesn't use a keyboard in the traditional sense.
-            //Assign this frame's code to be used as the last frame's code.
-            lastFrameKeyState = currentFrameKeyState;
-            lastFrameMouseState = currentFrameMouseState;
-#endif
+            //Prepare the input for the next frame.
+            Input.UpdateInput_End();
         }
         public static void Draw(GameTime gameTime)
         {
@@ -230,9 +213,9 @@ namespace SoulEngine
         {
             //Load the missing image file.
 			Color[] missingimgdata = new Color[10000];
-			String[] missingimgStringData = MissingImage.data;
+			String[] missingimgStringData = Content.MissingImage.data;
 			missingimg = new Texture2D(graphics.GraphicsDevice, 100, 100); //Create the texture.
-			missingimg.SetData<Color>(MissingImage.colordata);
+			missingimg.SetData<Color>(Content.MissingImage.colordata);
 			missingimg.Name = "missingimg";
 
 
@@ -251,7 +234,7 @@ namespace SoulEngine
             }
 
             //Load the FPS display background.
-            FPSBG = new ObjectBase(new Texture(blankTexture));
+            FPSBG = new ObjectBase(new Objects.Texture(blankTexture));
             FPSBG.Color = Color.Black;
             FPSBG.Opacity = 0.5f;
         }
@@ -265,9 +248,9 @@ namespace SoulEngine
         //Checks for when the fullscreen key is being toggled.
         public static void FullScreenKeyToggle()
         {
-#if !__ANDROID__ //Android doesn't have a fullscreen and non-fullscreen mode per say.
+#if !ANDROID //Android doesn't have a fullscreen and non-fullscreen mode per say.
             //Check for fullcreen switching. (Default hotkey is Alt+Enter).
-            if (isKeyDown(Keys.LeftAlt) && isKeyDown(Keys.Enter))
+            if (Input.isKeyDown(Keys.LeftAlt) && Input.isKeyDown(Keys.Enter))
             {
                 //Tell the trigger that the button has been pressed.
                 win_fullscreen_oldstateDown = true;
@@ -287,7 +270,7 @@ namespace SoulEngine
         //Applies the current fullscreen variable.
         public static void ScreenSettingsRefresh()
         {
-#if !__ANDROID__ //Android doesn't have a fullscreen and non-fullscreen mode per say.
+#if !ANDROID //Android doesn't have a fullscreen and non-fullscreen mode per say.
             //Check if fullscreen is on.
             if (Settings.win_fullscreen == true)
             {
@@ -319,7 +302,7 @@ namespace SoulEngine
             graphics.PreferredBackBufferHeight = Settings.win_height;
             graphics.ApplyChanges();
 #endif
-#if __ANDROID__
+#if ANDROID
             graphics.IsFullScreen = Settings.win_hidebar;
             graphics.SupportedOrientations = Settings.win_orientation;
 #endif
@@ -451,7 +434,7 @@ namespace SoulEngine
                             Settings.win_height = int.Parse(data[1]);
                             break;
                         case "Win_Name": //Window's Name
-                            Settings.Name = data[1];
+                            Settings.win_name = data[1];
                             break;
                         case "Debug": //Debug Mode.
                             Settings.debug = bool.Parse(data[1]);
@@ -476,33 +459,7 @@ namespace SoulEngine
         /// thought to be more primary.
         /// </summary>
 
-        //Returns a bool based on whether the specified key is pressed or not.
-        public static bool isKeyDown(Keys key)
-        {
-            return currentFrameKeyState.IsKeyDown(key);
-        }
-        public static bool isKeyUp(Keys key)
-        {
-            return !currentFrameKeyState.IsKeyDown(key);
-        }
-
-        //Triggers return true only when the button is pressed.
-        public static bool trigger_KeyDown(Keys key)
-        {
-            if (currentFrameKeyState.IsKeyDown(key) == true && lastFrameKeyState.IsKeyDown(key) == false)
-            {
-                return true;
-            }
-            return false;
-        }
-        public static bool trigger_KeyUp(Keys key)
-        {
-            if (currentFrameKeyState.IsKeyUp(key) == true && lastFrameKeyState.IsKeyUp(key) == false)
-            {
-                return true;
-            }
-            return false;
-        }
+      
 
         //Returns the resolution of the screen of the device currently running.
         public static int GetScreenWidth()
@@ -512,16 +469,6 @@ namespace SoulEngine
         public static int GetScreenHeight()
         {
             return GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-        }
-
-        //Returns the location of the mouse pointer warped through the camera.
-        public static Vector2 WorldMousePos()
-        {
-#if __ANDROID__
-            if(TouchPanel.IsGestureAvailable)
-            return maincam.ScreenToWorld(TouchPanel.ReadGesture().Position);
-#endif
-            return maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
         }
 
         //Converts degrees to radians.
@@ -594,7 +541,7 @@ namespace SoulEngine
         //Returns a boolean based on whether the content file exists.
         public static bool GetContentExist(string name)
         {
-#if __ANDROID__ //On android checking if files exist is done through the assets module.
+#if ANDROID //On android checking if files exist is done through the assets module.
             string assetpath = "Content/SCon"; //First we get the root of the assets where the content is stored.
             if (name.Contains("/")) assetpath += "/" + name.Substring(0, name.LastIndexOf('/')); //Next we append any folders from the name.
             string filename; //Then we remove the folders from the name if any.
@@ -769,7 +716,7 @@ namespace SoulEngine
             try
             {
 
-#if __ANDROID__
+#if ANDROID
                 Stream mapfile = androidHost.Assets.Open(filepath);
                 StreamReader reader = new StreamReader(mapfile, System.Text.Encoding.UTF8);
 #endif
