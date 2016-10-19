@@ -72,7 +72,7 @@ namespace SoulEngine
 #if !__UNIFIED__ //On Linux and Windows we need to specify single threadedness.
         [STAThread]
 #endif
-        static void Main()
+        static void Main(string[] args)
         {
 #if WINDOWS //The extension of the Windows' multi instance mutex system.
             //Check for multi instancing.
@@ -90,16 +90,10 @@ namespace SoulEngine
 #endif
 #if __UNIFIED__ //On Mac we need to initialize the application through this.
 			//Add suffix to engine.
-			Settings.Name += " (OpenGL-Mac)";
+			Core.Name += " (OpenGL-Mac)";
 
 			//Mac application initialization.
 			NSApplication.Init ();
-
-			//using (var p = new NSAutoreleasePool ()) 
-			//{
-			//NSApplication.SharedApplication.Delegate = new AppDelegate();
-			//NSApplication.Main(args);
-			//}
 #endif
 #if LINUX //Linux requires no additional initialization.
             //Add suffix to engine.
@@ -124,28 +118,6 @@ namespace SoulEngine
 #endif
         }
     } //Program class ender.
-#endif
-
-#if __UNIFIED__ //Mac applications require these functions to work with their initialization system.
-//class AppDelegate : NSApplicationDelegate
-//{
-//	public override void FinishedLaunching (MonoMac.Foundation.NSObject notification)
-//	{
-//		AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs a) =>  {
-//		if (a.Name.StartsWith("MonoMac")) 
-//		{
-//			return typeof(MonoMac.AppKit.AppKitFramework).Assembly;
-//		}
-//			return null;
-//		};
-//		Core.Setup();
-//	}
-
-//	public override bool ApplicationShouldTerminateAfterLastWindowClosed (NSApplication sender)
-//	{
-//		return true;
-//	}
-//}  
 #endif
 
 } //Namespace ender.

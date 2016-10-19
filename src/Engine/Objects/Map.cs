@@ -87,7 +87,9 @@ namespace SoulEngine.Objects
 #if ANDROID
             Stream mapData = Core.androidHost.Assets.Open("SNCon/Maps/" + mapName + ".tmx");
 #endif
-
+#if __UNIFIED__ //Not actually tested. TODO
+             Stream mapData = File.Open(mapsContentPath + mapName + ".tmx", FileMode.Open);
+#endif
             //Load the map file.
             map = new TmxMap(mapData);
             //Load tilesets.

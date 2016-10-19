@@ -75,7 +75,7 @@ namespace SoulEngine
             //Allow fast exit.
             host.Window.AllowAltF4 = true;
             //Set the window's name.
-            host.Window.Title = Core.Name;
+            host.Window.Title = Settings.win_name;
 #endif
 #if ANDROID //Enable the gestures we want, on Android.
             TouchPanel.EnabledGestures = Settings.enabledGestures;
@@ -557,7 +557,9 @@ namespace SoulEngine
             }
             return false;
 #endif
-
+#if __UNIFIED__
+            return true;
+#endif
             //Assign the path of the file.
             string contentpath = "Content\\SCon\\" + name.Replace("/", "\\") + ".xnb";
             //Check if the file exists.
@@ -568,7 +570,7 @@ namespace SoulEngine
             return false;
         }
 
-        #region "Object Position and Size"
+#region "Object Position and Size"
         //Centers the object within the window.
         public static void CenterObject(ObjectBase obj)
         {
@@ -612,7 +614,7 @@ namespace SoulEngine
             obj.Width = tarObj.Width;
             obj.Height = tarObj.Height;
         }
-        #endregion
+#endregion
 
         //Returns the distance between two points.
         public static float getDistance(Vector2 p1, Vector2 p2)
@@ -664,8 +666,8 @@ namespace SoulEngine
             return newTexture;
         }
 
-        #endregion
-        #region "Soul Library Functions"
+#endregion
+#region "Soul Library Functions"
         //---------------------------------------------------------------------------------------------------------------------------
         //Writes the specified string to the specified file, if it doesn't exist it will be created.
         public static void IO_WriteFile(string filepath, string datatowrite)
