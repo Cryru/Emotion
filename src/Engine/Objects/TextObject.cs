@@ -128,6 +128,11 @@ namespace SoulEngine.Objects
         }
         public void Render()
         {
+            //Check if debugging.
+            if (Settings.debug == true)
+            {
+                Core.ink.Draw(Core.blankTexture, Bounds, Color.Red * 0.1f);
+            }
             //First we render the outlines.
             RenderPass_Outlines();
             //Then we render the text.
