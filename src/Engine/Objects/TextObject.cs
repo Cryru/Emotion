@@ -31,7 +31,7 @@ namespace SoulEngine.Objects
         public bool Outline = false; //Whether to outline the text.
         public Color outlineColor = Color.Black; //The color of the outline.
         public int outlineSize = 1; //The size of the outline.
-        public bool CenterText = false; //Whether the text should be centered. (UNTESTED)
+        public bool CenterText = false; //Whether the text should be centered.
 
         //Other.
         public bool noEffects = false; //Whether to skip rendering effect tags.
@@ -522,11 +522,12 @@ namespace SoulEngine.Objects
                     //Draw the outline.
                     if (outline == true)
                     {
-                        int centerOffset = 0;
+                        //Check for centering.
+                        float centerOffset = 0;
 
-                        if(CenterText == true && autoSizeX == false)
+                        if (CenterText == true && autoSizeX == false)
                         {
-                            centerOffset = Width - (int) Font.MeasureString(processedText[l]).X / 2;
+                            centerOffset = (Width - Font.MeasureString(processedText[l]).X) / 2;
                         }
 
                         DrawOutline(outlineSize, outlineColor, new Vector2(centerOffset + X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
@@ -585,12 +586,13 @@ namespace SoulEngine.Objects
                         } catch { }
 
                     }
-                    //Draw the outline.
-                    int centerOffset = 0;
+
+                    //Check for centering.
+                    float centerOffset = 0;
 
                     if (CenterText == true && autoSizeX == false)
                     {
-                        centerOffset = Width - (int)Font.MeasureString(processedText[l]).X / 2;
+                        centerOffset = (Width - Font.MeasureString(processedText[l]).X) / 2;
                     }
 
                     Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(centerOffset + X + Xoffset + ts_spaceX[l], Y + Yoffset), color * Opacity);
