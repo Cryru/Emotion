@@ -463,7 +463,43 @@ namespace SoulEngine.Objects
         //The constructor.
         public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10, bool Reverse = false)
         {
+			//Assign variables
+			textureAtlas.Image = SpriteSheet;
+			fWidth = frameWidth;
+			fHeight = frameHeight;
+			Loop = AnimationLoop;
 
+			//Calculate columns and rows.
+			fColumns = textureAtlas.Image.Width / fWidth;
+			fRows = textureAtlas.Image.Height / fHeight;
+
+			//Setup the timer.
+			AnimationTimer = new Timer();
+			AnimationTimer.onTick = TimerTick;
+
+			//Assign frame variables
+			FramesCountTotal = fColumns * fRows;
+			FramesCount = endingFrame - startingFrame;
+			this.FPS = FPS;
+
+			//Setup the starting and ending frames.
+			this.startingFrame = startingFrame;
+			this.endingFrame = endingFrame;
+			_Frame = startingFrame - 1; //We remove one because we are going to load a single tick to get the first frame loaded.
+
+			//Check if playing in reverse.
+			if (Reverse == true && Loop == LoopType.None)
+			{
+				_State = AnimationState.PlayingReverse;
+				_Frame = endingFrame;
+			}
+			else
+			{
+				_State = AnimationState.Playing;
+			}
+
+			//Split frames.
+			SplitSheet();
         }
 
         //Is run every frame.
@@ -479,6 +515,26 @@ namespace SoulEngine.Objects
 
         public void SplitSheet()
         {
+			for (int i = 0; i < FramesCountTotal; i++)
+			{
+				//Calculate the location of the current sprite within the image.
+				int Row = (int)(i / (float)fColumns);
+				int Column = i % fColumns;
+
+				//Transform into a rectangle.
+				Rectangle FrameRect = new Rectangle(fWidth * Column, fHeight * Row, fWidth, fHeight);
+
+				//Create a new texture object with the dimensions of the sprite.
+				Texture2D curFrame = new Texture2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
+				//Create a color array to hold the color data of the sprite.
+				Color[] FrameData = new Color[FrameRect.Width * FrameRect.Height];
+				//Get the color data from the spritesheet.
+				//textureAtlas.Image.GetData(0, FrameRect, FrameData, 0, FrameData.Length);
+				//Set the colors we extracted to the texture object.
+				curFrame.SetData<Color>(FrameData);
+				//Add the texture to the array.
+				frames.Add(curFrame);
+			}
         }
 
         //Is run on timer tick.

@@ -56,7 +56,7 @@ namespace SoulEngine
 			SetContentView(Core.host.Services.GetService<View>());
 
             //Add the affix.
-            Settings.Name += " (Android)";
+            Core.Name += " (Android)";
 			//Setup the Engine Core.
 			Core.Setup();
 		}
