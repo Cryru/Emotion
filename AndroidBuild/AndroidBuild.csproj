@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidSupportedAbis>armeabi-v7a;armeabi;x86;arm64-v8a;x86_64</AndroidSupportedAbis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -54,10 +55,65 @@
   <ItemGroup>
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Engine\Core\Core.cs" />
+    <Compile Include="src\Engine\Core\Engine.cs" />
+    <Compile Include="src\Engine\Core\Start.cs" />
+    <Compile Include="src\Engine\Libraries\Content.cs" />
+    <Compile Include="src\Engine\Libraries\Input.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\BoxingViewportAdapter.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\Camera2D.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\DefaultViewportAdapter.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\IMovable.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\IRotatable.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\RectangleF.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\ScalingViewPortAdapter.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\ShapeF.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\Size.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\SizeF.cs" />
+    <Compile Include="src\Engine\Libraries\External\MG.Ext\ViewportAdapter.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\ImageLayer.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\Layer.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\Map.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\ObjectGroup.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\TiledCore.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\Tileset.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\CRC32.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Deflate.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\DeflateStream.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\GZipStream.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Inflate.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\InfTree.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ParallelDeflateOutputStream.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Tree.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Zlib.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibBaseStream.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibCodec.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibConstants.cs" />
+    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
+    <Compile Include="src\Engine\Libraries\Soul\Log\Log.cs" />
+    <Compile Include="src\Engine\Objects\Animation.cs" />
+    <Compile Include="src\Engine\Objects\Map.cs" />
+    <Compile Include="src\Engine\Objects\ObjectBase.cs" />
+    <Compile Include="src\Engine\Objects\ScreenObjectBase.cs" />
+    <Compile Include="src\Engine\Objects\Sound.cs" />
+    <Compile Include="src\Engine\Objects\TextObject.cs" />
+    <Compile Include="src\Engine\Objects\Texture.cs" />
+    <Compile Include="src\Engine\Objects\Timer.cs" />
+    <Compile Include="src\Engine\Objects\UIObjectBase.cs" />
+    <Compile Include="src\Engine\Objects\Effects\Fade.cs" />
+    <Compile Include="src\Engine\Objects\Effects\Move.cs" />
+    <Compile Include="src\Engine\Objects\Effects\Scale.cs" />
+    <Compile Include="src\Engine\Objects\Effects\Wait.cs" />
+    <Compile Include="src\Engine\Templates\Screen.cs" />
+    <Compile Include="src\User\Settings.cs" />
+    <Compile Include="src\User\Screens\MasterScreen.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml" />
+    <None Include="src\Engine\Libraries\External\TiledSharp\zlib\License.txt" />
+    <None Include="src\Engine\Libraries\External\TiledSharp\zlib\License.zlib.txt" />
+    <None Include="src\Engine\Libraries\Soul\Log\Log Documentation.txt" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\Icon.png" />

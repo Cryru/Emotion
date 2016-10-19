@@ -1,0 +1,17 @@
+﻿using Microsoft.Xna.Framework;
+
+namespace SoulEngine
+{
+    public interface IShapeF
+    {
+        float Left { get; }
+        float Top { get; }
+        float Right { get; }
+        float Bottom { get; }
+
+        RectangleF GetBoundingRectangle();
+
+        bool Contains(float x, float y);
+        bool Contains(Vector2 point);
+    }
+}

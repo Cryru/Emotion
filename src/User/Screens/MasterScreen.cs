@@ -16,10 +16,11 @@ namespace SoulEngine
     //////////////////////////////////////////////////////////////////////////////
     public class MasterScreen : ScreenObjectBase
     {
+		Animation test;
         //This is run when the screen is loaded.
         public override void LoadObjects()
         {
-
+			test = new Animation(Core.missingimg, 10, 10);
 
         }
         //This is run every frame on the CPU.

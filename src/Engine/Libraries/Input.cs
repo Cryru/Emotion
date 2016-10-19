@@ -123,7 +123,7 @@ namespace SoulEngine
                 if(ges.GestureType == GestureType.Tap)
                 {
                     //If it is, then warp it through the camera and return it.
-                    return maincam.ScreenToWorld(ges.Position);
+                    return Core.maincam.ScreenToWorld(ges.Position);
                 }
             }  
 #endif
