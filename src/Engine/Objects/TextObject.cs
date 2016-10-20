@@ -131,7 +131,11 @@ namespace SoulEngine.Objects
             //Check if debugging.
             if (Settings.debug == true)
             {
-                Core.ink.Draw(Core.blankTexture, Bounds, Color.Red * 0.1f);
+                //We don't want to draw a box around the debug text.
+                if(Tags.Count == 0 || Tags[0] != "debugText")
+                {
+                    Core.ink.Draw(Core.blankTexture, Bounds, Color.Red * 0.1f);
+                }
             }
             //First we render the outlines.
             RenderPass_Outlines();

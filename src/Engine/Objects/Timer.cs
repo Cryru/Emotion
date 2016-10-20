@@ -29,6 +29,7 @@ namespace SoulEngine.Objects
             }
         }
         public int Limit; //The limit of how many times the timer should tick.
+        public bool globalTimer; //Whether the timer is part of the global timers.
 
         //Information
         public bool isLastTick
@@ -42,6 +43,7 @@ namespace SoulEngine.Objects
         //Events
         public Action onTick; //The event for when a tick occurs.
         public Action onTickLimitReached; //The event for when the maximum ticks has been reached.
+        protected Action internalTick; //An internal tick event for the children of the timer. Is invoked before onTick.
 
         //State
         public TimerState State //The state of the timer, readonly for user reading.
@@ -51,7 +53,8 @@ namespace SoulEngine.Objects
                 return _State;
             }
         }
-        private TimerState _State = TimerState.None; //The state of the timer, private for editing.
+        protected TimerState _State = TimerState.None; //The state of the timer, private for editing.
+        protected TimerState pausedStateHolder; //The state of the timer when paused.
         public enum TimerState  //The possible states.
         {
             None, //Not setup.
@@ -66,13 +69,24 @@ namespace SoulEngine.Objects
         private int timerTicks; //The number of times the timer has ticked, private variable for editing.
         #endregion
 
-        //The constructor.
-        public Timer(double _Delay = 100, int _Limit = -1)
+        /// <summary>
+        /// Creates a timer with the specified parameters.
+        /// By default the timer is added to the global timer list paused, and must be started with a call to the "Start" method.
+        /// </summary>
+        /// <param name="Delay">The delay between ticks.</param>
+        /// <param name="Limit">The number of times the timer should tick. If below 0 it will go on forever.</param>
+        /// <param name="addGlobal">True by default, if enabled the timer will be added to the list of global timers that are run every frame.</param>
+        public Timer(double Delay = 100, int Limit = -1, bool addGlobal = true)
         {
-            Delay = _Delay;
-            Limit = _Limit;
+            this.Delay = Delay;
+            this.Limit = Limit;
 
             _State = TimerState.Paused;
+            pausedStateHolder = TimerState.Running;
+
+            //If the timer should be added to the global running timers.
+            if (addGlobal) Core.Timers.Add(this);
+            globalTimer = addGlobal;
         }
 
         //Is run every frame.
@@ -95,6 +109,7 @@ namespace SoulEngine.Objects
                     {
                         timerValue -= Delay;
                         timerTicks++;
+                        internalTick?.Invoke();
                         onTick?.Invoke();
                     }
 
@@ -117,28 +132,35 @@ namespace SoulEngine.Objects
                     break;
             }
         }
-
         //Pause if running.
-        public void Pause()
+        public virtual void Pause()
         {
-            if (_State == TimerState.Running)
+            if (_State != TimerState.Paused)
             {
+                pausedStateHolder = _State;
                 _State = TimerState.Paused;
             }
         }
         //Start if pausing.
-        public void Start()
+        public virtual void Start()
         {
             if(_State == TimerState.Paused)
             {
-                _State = TimerState.Running;
+                _State = pausedStateHolder;
             }
         }
         //Resets the timer.
-        public void Reset()
+        public virtual void Reset()
         {
+            //Check if in the global timers.
+            if(Core.Timers.IndexOf(this) == -1 && globalTimer == true)
+            {
+                Core.Timers.Add(this);
+            }
+
             timerTicks = 0;
             _State = TimerState.Paused;
+            pausedStateHolder = TimerState.None;
         }
     }
 }

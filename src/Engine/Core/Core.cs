@@ -24,13 +24,14 @@ namespace SoulEngine
         #region "Declarations"
         //Engine Information
         public static string Name = "Soul Engine"; //The name of the engine.
-        public static string Ver = "0.74"; //The version of the engine.
+        public static string Ver = "0.75"; //The version of the engine.
         public static string GUID = "130F150C-0000-0000-0000-050E07090E05"; //The guid of the application. (Default Soul Engine - 130F150C-0000-0000-0000-050E07090E05)
 
         //Debug Variables and Objects
         public static TextObject debugText; //The debug information to be printed.
         public static bool loaded = false; //Whether the engine has loaded.
         public static ObjectBase FPSBG; //The background of the fps text.
+        public static ObjectBase debugTextBG; //The background of the debugText.
 
         //Frame data.
         public static float frametime; //The time it took in ms to render the last frame.
@@ -101,6 +102,7 @@ namespace SoulEngine
 
             //Setup the debugText object.
             debugText = new TextObject(fontDebug);
+            debugText.Tags.Add("debugText");
             debugText.Color = Color.Yellow;
             debugText.Outline = true;
             debugText.autoSizeX = true;
@@ -127,7 +129,7 @@ namespace SoulEngine
 #if !ANDROID //Android doesn't have a window position.
                     "Window Position: " + host.Window.Position.X + "x" + host.Window.Position.Y + "\r\n" +
 #endif
-                    "Camera Zoom: " + maincam.Zoom + "\r\n";
+                    "Camera Zoom: " + maincam.Zoom + "\r\n" + "Global Timers Running: " + Timers.Count;
             }
 
             //Record the render time for the last frame.
@@ -186,6 +188,11 @@ namespace SoulEngine
             //Check if we are drawing the debug string.
             if (Settings.debug == true)
             {
+                debugTextBG.Width = debugText.Width;
+                debugTextBG.Height = debugText.Height;
+                debugTextBG.Location = debugText.Location;
+                debugTextBG.Draw();
+
                 debugText.Draw();
             }
             ink.End();
@@ -237,6 +244,11 @@ namespace SoulEngine
             FPSBG = new ObjectBase(new Objects.Texture(blankTexture));
             FPSBG.Color = Color.Black;
             FPSBG.Opacity = 0.5f;
+
+            //Load the debugtext background.
+            debugTextBG = new ObjectBase(new Objects.Texture(blankTexture));
+            debugTextBG.Color = Color.Black;
+            debugTextBG.Opacity = 0.5f;
         }
 
         //---------------------------------------------------------------------------------
@@ -458,8 +470,6 @@ namespace SoulEngine
         /// Some functions are exceptions to this rule, like the "LoadScreen" function as they are
         /// thought to be more primary.
         /// </summary>
-
-      
 
         //Returns the resolution of the screen of the device currently running.
         public static int GetScreenWidth()
