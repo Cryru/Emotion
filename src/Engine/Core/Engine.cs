@@ -19,10 +19,6 @@ namespace SoulEngine
         {
             //Setup the graphics device.
             Core.graphics = new GraphicsDeviceManager(this);
-#if SOMETHING //TO DO: Research which platforms needs this. Linux doesn't, Windows doesn't either, they also error on this.
-            //Create a device for the graphics.
-            //Core.graphics.CreateDevice();
-#endif
             
             //Setup the Content root folder. The root for this folder is the exe.
             Content.RootDirectory = "Content";

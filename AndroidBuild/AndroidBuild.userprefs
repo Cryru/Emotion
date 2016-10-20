@@ -1,0 +1,13 @@
+﻿<Properties StartupConfiguration="{2D103AE4-0893-4AE5-BEAB-2C34D139BE34}|Default">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.ItemProperties.AndroidBuild PreferredExecutionTarget="Android.F5AZFG23V362" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="src\Engine\Objects\Animation.cs">
+    <Files>
+      <File FileName="src\Engine\Objects\Animation.cs" Line="332" Column="25" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+</Properties>

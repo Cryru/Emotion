@@ -41,7 +41,7 @@ namespace SoulEngine.Objects
                 //Check if animation is linked.
                 if (Animation != null)
                 {
-                    return Animation.GetFrameTexture();
+                    return Animation.FrameTexture;
                 }
 
                 //Check if the image is empty.
@@ -84,7 +84,7 @@ namespace SoulEngine.Objects
                 //Check if an animation is linked.
                 if (Animation != null)
                 {
-                    return Animation.textureAtlas.ImageName + " on frame " + Animation.Frame;
+                    return Animation.SheetName + " on frame " + Animation.Frame;
                 }
 
                 if (_ImageName == "" || _ImageName == null)

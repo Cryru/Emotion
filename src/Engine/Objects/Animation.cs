@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace SoulEngine.Objects
 {
-#if !ANDROID
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
@@ -20,51 +19,86 @@ namespace SoulEngine.Objects
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
     //////////////////////////////////////////////////////////////////////////////
-    class Animation
+    class Animation : Timer
     {
     #region "Declarations"
-        //Public Fields
-        public Texture textureAtlas = new Texture(); //The spritesheet to be cut into individual frames.
+        //Textures
+        /// <summary>
+        /// A list of all cut frames. This includes even the ones outside of the starting-ending frame scope.
+        /// </summary>
         public List<Texture2D> Frames
         {
             get
             {
                 return frames;
             }
-        } //The list of frames.
-
-        //Settings
-        public LoopType Loop; //The type of loop to use.
-        public enum LoopType //Types of loops.
-        {
-            None, //Disabled looping, animation will play once.
-            Normal, //Animation will loop normally, after the last frame is the first frame.
-            NormalThenReverse //The animation will play in reverse after reaching then last frame.
         }
+        /// <summary>
+        /// A list of all frames that are part of the animation. This scope is defined by the starting and ending frame.
+        /// </summary>
+        public List<Texture2D> IncludedFrames
+        {
+            get
+            {
+                return frames.GetRange(startingFrame, endingFrame - 1);
+            }
+        }
+        /// <summary>
+        /// Returns the current frame's texture.
+        /// </summary>
+        public Texture2D FrameTexture
+        {
+            get
+            {
+                //Check if the frame we are trying to access is beyond the cut frames.
+                if (_Frame > frames.Count)
+                {
+                    //In which case we return a missing image.
+                    return Core.missingimg;
+                }
+
+                return frames[_Frame];
+            }
+        }
+        /// <summary>
+        /// The name of the spritesheet texture.
+        /// </summary>
+        public string SheetName = "";
+
+        //Settings and Loop
+        public LoopType Loop; //The type of loop to use.
+        /// <summary>
+        /// The type of animation loop.
+        /// </summary>
+        public enum LoopType 
+        {
+            /// <summary>
+            /// Disabled looping, animation will play once.
+            /// </summary>
+            None,
+            /// <summary>
+            /// Animation will loop normally, after the last frame is the first frame.
+            /// </summary>
+            Normal,
+            /// <summary>
+            /// The animation will play in reverse after reaching then last frame.
+            /// </summary>
+            NormalThenReverse,
+            /// <summary>
+            /// The animation will play in reverse.
+            /// </summary>
+            Reverse,
+            /// <summary>
+            /// Disabled looping, animation will play once, in reverse.
+            /// </summary>
+            NoneReverse
+        }
+        private bool flagReverse = false; //Used for NormalThenReverse, is true once reverse.
 
         //Events
         public Action onFrameChange; //The event for when the frame changes.
         public Action onFinished; //The event for when the animation has finished.
         public Action onLoop; //The event for when the animation loops back.
-
-        //State
-        public AnimationState State //The state of the timer, readonly for user reading.
-        {
-            get
-            {
-                return _State;
-            }
-        }
-        private AnimationState _State = AnimationState.None; //The state of the timer, private for editing within the object. 
-        public enum AnimationState  //The possible states.
-        {
-            None, //Not setup.
-            Paused, //For when the animation is paused.
-            Playing, //For when the animation is playing.
-            PlayingReverse, //For when the animation is playing in reverse.
-            WaitingForEvent, //When waiting to execute the onFinished event.
-            Done //When the animation is done. For instance when loop is false and it has played once.
-        }
 
         //Public Accessors
         public int Frame //The current frame's number, counting the first frame as zero.
@@ -72,6 +106,10 @@ namespace SoulEngine.Objects
             get
             {
                 return _Frame - startingFrame;
+            }
+            set
+            {
+                _Frame = startingFrame + value;
             }
         }
         public int FramesTotal //The total number of frames for the animation.
@@ -90,7 +128,7 @@ namespace SoulEngine.Objects
             set
             {
                 //The delay (since it's in miliseconds) is equal to the fps divided by a second, or 1000 miliseconds.
-                AnimationTimer.Delay = 1000f / (float)value; 
+                Delay = 1000f / (float)value; 
                 _FPS = value;
             }
         }
@@ -115,13 +153,11 @@ namespace SoulEngine.Objects
         }
         private int _endingFrame = 0; //The frame to end at, from all the frames in the spritesheet.
         private int _Frame = 0; //The current frame's number, from the total frame count.
-       
         private int FramesCount = 0; //The total number of frames in the animation. This is calculated.
         private int FramesCountTotal = 0; //The total number of frames on the spritesheet.
 
         //Timing
         private int _FPS = 0; //The frames per second of the animation. This is inputed.
-        private Timer AnimationTimer = new Timer(); //The timer that handles frame timing.
 
         //Atlas Variables
         private int fWidth; //The width of each individual frame. This is inputed.
@@ -129,87 +165,92 @@ namespace SoulEngine.Objects
         private int fRows; //The number of rows of frames the spritesheet contains. This is calculated.
         private int fColumns; //The number of columns of frames the spritesheet contains. This is calculated.
         private List<Texture2D> frames = new List<Texture2D>(); //All the frames from the atlas cut.
-    #endregion
+        #endregion
 
-        //The constructor.
-        public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10, bool Reverse = false)
+        /// <summary>
+        /// An animation object that automatically cuts a spritesheet into it's individual frames and animates them.
+        /// </summary>
+        /// <param name="SpriteSheet">The spritesheet that holds the animation frames.</param>
+        /// <param name="frameWidth">The width of each individual frame.</param>
+        /// <param name="frameHeight">The height of each individual frame.</param>
+        /// <param name="startingFrame">The first frame to animate from.</param>
+        /// <param name="endingFrame">The frame to end the animation at. Set to -1 to play until the last frame.</param>
+        /// <param name="AnimationLoop">The type of animation, Reverse, NormalThenReverse etc.</param>
+        /// <param name="FPS">The frames per second, AKA speed at which frames should be animated.</param>
+        public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10) : base()
         {
             //Assign variables
-            textureAtlas.Image = SpriteSheet;
             fWidth = frameWidth;
             fHeight = frameHeight;
-            Loop = AnimationLoop;
-
-            //Calculate columns and rows.
-            fColumns = textureAtlas.Image.Width / fWidth;
-            fRows = textureAtlas.Image.Height / fHeight;
-
-            //Setup the timer.
-            AnimationTimer = new Timer();
-            AnimationTimer.onTick = TimerTick;
-
-            //Assign frame variables
-            FramesCountTotal = fColumns * fRows;
-            FramesCount = endingFrame - startingFrame;
             this.FPS = FPS;
+            SheetName = SpriteSheet.Name;
 
+            //Setup the timer tick call.
+            internalTick = Tick;
+
+            //Split frames and assign variables.
+            SplitSheet(SpriteSheet);
+            
             //Setup the starting and ending frames.
             this.startingFrame = startingFrame;
             this.endingFrame = endingFrame;
             _Frame = startingFrame - 1; //We remove one because we are going to load a single tick to get the first frame loaded.
 
+            //Set loop variables.
+            Loop = AnimationLoop;
+            InitLoop();
+
+            //We run one frame here.
+            //TimerTick(); 
+
+        }
+        #region "Initialization Functions"
+        /// <summary>
+        /// Initializes the loop type variables.
+        /// </summary>
+        private void InitLoop()
+        {
             //Check if playing in reverse.
-            if(Reverse == true && Loop == LoopType.None)
+            if (Loop == LoopType.None)
             {
-                _State = AnimationState.PlayingReverse;
+                Limit = -1;
+                _Frame = startingFrame;
+            }
+            else if (Loop == LoopType.Normal || Loop == LoopType.NormalThenReverse)
+            {
+                Limit = -1;
+                _Frame = startingFrame;
+            }
+            else if (Loop == LoopType.Reverse)
+            {
+                Limit = -1;
                 _Frame = endingFrame;
             }
-            else
+            else if(Loop == LoopType.NoneReverse)
             {
-                _State = AnimationState.Playing;
+                Limit = -1;
+                _Frame = endingFrame;  
             }
 
-            //Split frames.
-            SplitSheet();
-
-            TimerTick(); //We run one frame here.
-
-            Pause();
+           // _State = TimerState.Paused;
         }
-
-        //Is run every frame.
-        public void Run()
+        /// <summary>
+        /// Cuts the spritesheet into it's individual frames and stores them in the frames variable.
+        /// Also sets all the frame variables based on the provided sheet.
+        /// </summary>
+        public void SplitSheet(Texture2D spriteSheet)
         {
-            //Check the animation's state.
-            switch (_State)
-            {
-                case AnimationState.None:
-                case AnimationState.Done:
-                case AnimationState.Paused:
-                    return;
-                case AnimationState.WaitingForEvent:
-                    _State = AnimationState.Done;
-                    onFinished?.Invoke();
-                    return;
-            }
+            //Clear the frames list, just in case.
+            frames.Clear();
 
-            //Update the timer.
-            AnimationTimer.Run();           
-        }
-        //Get the texture of the current frame.
-        public Texture2D GetFrameTexture()
-        {
-            //Check if the frame we are trying to access is beyond the cut frames.
-            if(_Frame > frames.Count)
-            {
-                return Core.missingimg;
-            }
+            //Calculate columns and rows.
+            fColumns = spriteSheet.Width / fWidth;
+            fRows = spriteSheet.Height / fHeight;
 
-            return frames[_Frame];
-        }
+            //Count frames.
+            FramesCountTotal = fColumns * fRows;
+            FramesCount = endingFrame - startingFrame;
 
-        public void SplitSheet()
-        {
             for (int i = 0; i < FramesCountTotal; i++)
             {
                 //Calculate the location of the current sprite within the image.
@@ -221,350 +262,116 @@ namespace SoulEngine.Objects
 
                 //Create a new texture object with the dimensions of the sprite.
                 Texture2D curFrame = new Texture2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
-                //Create a color array to hold the color data of the sprite.
-                Color[] FrameData = new Color[FrameRect.Width * FrameRect.Height];
-                //Get the color data from the spritesheet.
-                textureAtlas.Image.GetData(0, FrameRect, FrameData, 0, FrameData.Length);
-                //Set the colors we extracted to the texture object.
-                curFrame.SetData<Color>(FrameData);
-                //Add the texture to the array.
+
+                //Define a render target.
+                RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
+
+                //Set the graphics device to the render target and clear it.
+                Core.graphics.GraphicsDevice.SetRenderTarget(tempTarget);
+                Core.graphics.GraphicsDevice.Clear(Color.Transparent);
+
+                //Draw the part of the texture we need onto the target.
+                Core.ink.Begin();
+                Core.ink.Draw(spriteSheet, new Rectangle(0, 0, fWidth, fHeight), FrameRect, Color.White);
+                Core.ink.End();
+
+                //Assign the target to a texture.
+                curFrame = tempTarget;
+
+                //Return to the default render target.
+                Core.graphics.GraphicsDevice.SetRenderTarget(null);
+
+                //Add the frame to the list of frames.
                 frames.Add(curFrame);
             }
         }
+        #endregion
 
         //Is run on timer tick.
-        private void TimerTick()
+        private void Tick()
         {
-
-            //If animation state is playing then we continue with the code below.
-
-            if (_Frame + 1 > endingFrame && _State != AnimationState.PlayingReverse) //Check if this is the last frame.
+            switch(Loop)
             {
-                //If looping start from the first frame.
-                if(Loop == LoopType.Normal)
-                {
-                     onLoop?.Invoke(); //Call on loop event.
-                    _Frame = startingFrame;
-                }
-                else if(Loop == LoopType.NormalThenReverse)
-                {
-                    onLoop?.Invoke(); //Call on loop event.
-                    _Frame--; //Start counting back.
-                    _State = AnimationState.PlayingReverse; //Start playing in reverse.
-                }
-                else
-                {
-                    WaitForEvent();
-                }
-            }
-            else if(_State == AnimationState.PlayingReverse) //If playing in reverse.
-            {
-                //Check if this is the first frame.
-                if(_Frame - 1 < startingFrame)
-                {
-                    if(Loop == LoopType.NormalThenReverse) //Check if reversed by a loop.
+                case LoopType.None:
+                    if(_Frame == endingFrame) //If the global frame is the last frame.
                     {
-                        onLoop?.Invoke(); //Call on loop event.
-                        _State = AnimationState.Playing; //Start playing towards the end.
-                        _Frame++; //Start counting forward.
+                        _State = TimerState.WaitingForEvent; //Set the event to waiting for an event.
+                        onFinished?.Invoke(); //Invoke the finished event.
                     }
                     else
                     {
-                        WaitForEvent();
+                        _Frame++; //Increment the frame.
+                        onFrameChange?.Invoke(); //Invoke the frame change event.
                     }
-                }
-                else
-                {
-                    _Frame--; //Subtract from the current frame variable.
-                }
-            }
-            else
-            {
-                
-                _Frame++; //Increment the current frame variable.
-            }
+                    break;
+                case LoopType.Normal:
+                    if (_Frame == endingFrame) //If the global frame is the last frame.
+                    {
+                        _Frame = startingFrame; //Set the frame to the starting frame.
+                        onLoop?.Invoke(); //Invoke the loop event.
+                    }
+                    else
+                    {
+                        _Frame++; //Increment the frame.
+                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                    }
+                    break;
+                case LoopType.NormalThenReverse:
+                    if ((_Frame == endingFrame && flagReverse == false) || (_Frame == startingFrame && flagReverse == true)) //If the global frame is the last frame.
+                    {
+                        flagReverse = !flagReverse; //Change the reverse flag.
 
-            //Call on frame change event.
-            onFrameChange?.Invoke();
+                        if (flagReverse)
+                            _Frame = endingFrame; //Set the frame to the last frame. It should be already, but w/e.
+                        else
+                            _Frame = startingFrame; //Set the frame to the start frame. It should be already, but w/e.
+
+                        onLoop?.Invoke(); //Invoke the loop event.
+                    }
+                    else
+                    {
+                        if (flagReverse)
+                            _Frame--; //Decrement the frame.
+                        else
+                            _Frame++; //Increment the frame.
+
+                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                    }
+                    break;
+                case LoopType.Reverse:
+                    if (_Frame == startingFrame) //If the global frame is the first frame.
+                    {
+                        _Frame = endingFrame; //Set the frame to the starting frame.
+                        onLoop?.Invoke(); //Invoke the loop event.
+                    }
+                    else
+                    {
+                        _Frame--; //Increment the frame.
+                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                    }
+                    break;
+                case LoopType.NoneReverse:
+                    if (_Frame == startingFrame) //If the global frame is the first frame.
+                    {
+                        _State = TimerState.WaitingForEvent; //Set the event to waiting for an event.
+                        onFinished?.Invoke(); //Invoke the finished event.
+                    }
+                    else
+                    {
+                        _Frame--; //Increment the frame.
+                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                    }
+                    break;
+            }
         }
 
-        //The play state preserved when paused.
-        private AnimationState pausedStateHolder = AnimationState.None; 
-        //Pause if running.
-        public void Pause()
-        {
-            if (_State == AnimationState.Playing || _State == AnimationState.PlayingReverse)
-            {
-                pausedStateHolder = _State;
-                _State = AnimationState.Paused;
-                AnimationTimer.Pause();
-            }
-        }
-        //Start if pausing.
-        public void Play()
-        {
-            if(_State == AnimationState.Paused)
-            {
-                _State = pausedStateHolder;
-                AnimationTimer.Start();
-            }
-        }
         //Resets the animation.
-        public void Reset()
+        public override void Reset()
         {
-            if(pausedStateHolder == AnimationState.PlayingReverse)
-            {
-                _State = pausedStateHolder;
-                _Frame = endingFrame;
-                Pause();
-            }
-            if(pausedStateHolder == AnimationState.Playing)
-            {
-                _State = pausedStateHolder;
-                _Frame = startingFrame;
-                Pause();
-            }
-        }
-        //Changes to waiting for the event.
-        private void WaitForEvent()
-        {
-            pausedStateHolder = _State;
-            _State = AnimationState.WaitingForEvent;
-        }
-        //Change the current frame to a specified relative frame.
-        public void SetCurrentFrame(int relativeFrame)
-        {
-            _Frame = startingFrame + relativeFrame;
+            //Reset the loop variables.
+            InitLoop();
+            //Execute the Timer's Reset method.
+            base.Reset();
         }
     }
-#endif
-#if ANDROID
-    //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
-    //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
-    //                                                                          //
-    // Used for animating textures from a spritesheet.                          //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
-    //////////////////////////////////////////////////////////////////////////////
-    class Animation
-    {
-        #region "Declarations"
-        //Public Fields
-        public Texture textureAtlas = new Texture(); //The spritesheet to be cut into individual frames.
-        public List<Texture2D> Frames
-        {
-            get
-            {
-                return frames;
-            }
-        } //The list of frames.
-
-        //Settings
-        public LoopType Loop; //The type of loop to use.
-        public enum LoopType //Types of loops.
-        {
-            None, //Disabled looping, animation will play once.
-            Normal, //Animation will loop normally, after the last frame is the first frame.
-            NormalThenReverse //The animation will play in reverse after reaching then last frame.
-        }
-
-        //Events
-        public Action onFrameChange; //The event for when the frame changes.
-        public Action onFinished; //The event for when the animation has finished.
-        public Action onLoop; //The event for when the animation loops back.
-
-        //State
-        public AnimationState State //The state of the timer, readonly for user reading.
-        {
-            get
-            {
-                return _State;
-            }
-        }
-        private AnimationState _State = AnimationState.None; //The state of the timer, private for editing within the object. 
-        public enum AnimationState  //The possible states.
-        {
-            None, //Not setup.
-            Paused, //For when the animation is paused.
-            Playing, //For when the animation is playing.
-            PlayingReverse, //For when the animation is playing in reverse.
-            WaitingForEvent, //When waiting to execute the onFinished event.
-            Done //When the animation is done. For instance when loop is false and it has played once.
-        }
-
-        //Public Accessors
-        public int Frame //The current frame's number, counting the first frame as zero.
-        {
-            get
-            {
-                return _Frame - startingFrame;
-            }
-        }
-        public int FramesTotal //The total number of frames for the animation.
-        {
-            get
-            {
-                return FramesCount;
-            }
-        }
-        public int FPS //The frames per second of the animation, essentially the speed.
-        {
-            get
-            {
-                return _FPS;
-            }
-            set
-            {
-                //The delay (since it's in miliseconds) is equal to the fps divided by a second, or 1000 miliseconds.
-                AnimationTimer.Delay = 1000f / (float)value;
-                _FPS = value;
-            }
-        }
-
-        //Private Workings
-        private int startingFrame = 0; //The frame to start from, from all the frames in the spritesheet.
-        private int endingFrame //The frame to end at, from all the frames in the spritesheet. This is the accessor that will return the last frame when the ending frame is -1.
-        {
-            get
-            {
-                if (_endingFrame == -1)
-                {
-                    return FramesCountTotal - 1;
-                }
-
-                return _endingFrame;
-            }
-            set
-            {
-                _endingFrame = value;
-            }
-        }
-        private int _endingFrame = 0; //The frame to end at, from all the frames in the spritesheet.
-        private int _Frame = 0; //The current frame's number, from the total frame count.
-
-        private int FramesCount = 0; //The total number of frames in the animation. This is calculated.
-        private int FramesCountTotal = 0; //The total number of frames on the spritesheet.
-
-        //Timing
-        private int _FPS = 0; //The frames per second of the animation. This is inputed.
-        private Timer AnimationTimer = new Timer(); //The timer that handles frame timing.
-
-        //Atlas Variables
-        private int fWidth; //The width of each individual frame. This is inputed.
-        private int fHeight; //The height of each individual frame. This is inputed.
-        private int fRows; //The number of rows of frames the spritesheet contains. This is calculated.
-        private int fColumns; //The number of columns of frames the spritesheet contains. This is calculated.
-        private List<Texture2D> frames = new List<Texture2D>(); //All the frames from the atlas cut.
-        #endregion
-
-        //The constructor.
-        public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10, bool Reverse = false)
-        {
-			//Assign variables
-			textureAtlas.Image = SpriteSheet;
-			fWidth = frameWidth;
-			fHeight = frameHeight;
-			Loop = AnimationLoop;
-
-			//Calculate columns and rows.
-			fColumns = textureAtlas.Image.Width / fWidth;
-			fRows = textureAtlas.Image.Height / fHeight;
-
-			//Setup the timer.
-			AnimationTimer = new Timer();
-			AnimationTimer.onTick = TimerTick;
-
-			//Assign frame variables
-			FramesCountTotal = fColumns * fRows;
-			FramesCount = endingFrame - startingFrame;
-			this.FPS = FPS;
-
-			//Setup the starting and ending frames.
-			this.startingFrame = startingFrame;
-			this.endingFrame = endingFrame;
-			_Frame = startingFrame - 1; //We remove one because we are going to load a single tick to get the first frame loaded.
-
-			//Check if playing in reverse.
-			if (Reverse == true && Loop == LoopType.None)
-			{
-				_State = AnimationState.PlayingReverse;
-				_Frame = endingFrame;
-			}
-			else
-			{
-				_State = AnimationState.Playing;
-			}
-
-			//Split frames.
-			SplitSheet();
-        }
-
-        //Is run every frame.
-        public void Run()
-        {
-
-        }
-        //Get the texture of the current frame.
-        public Texture2D GetFrameTexture()
-        {
-            return Core.missingimg;
-        }
-
-        public void SplitSheet()
-        {
-			for (int i = 0; i < FramesCountTotal; i++)
-			{
-				//Calculate the location of the current sprite within the image.
-				int Row = (int)(i / (float)fColumns);
-				int Column = i % fColumns;
-
-				//Transform into a rectangle.
-				Rectangle FrameRect = new Rectangle(fWidth * Column, fHeight * Row, fWidth, fHeight);
-
-				//Create a new texture object with the dimensions of the sprite.
-				Texture2D curFrame = new Texture2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
-				//Create a color array to hold the color data of the sprite.
-				Color[] FrameData = new Color[FrameRect.Width * FrameRect.Height];
-				//Get the color data from the spritesheet.
-				textureAtlas.Image.GetData(0, FrameRect, FrameData, 0, FrameData.Length);
-				//Set the colors we extracted to the texture object.
-				curFrame.SetData<Color>(FrameData);
-				//Add the texture to the array.
-				frames.Add(curFrame);
-			}
-        }
-
-        //Is run on timer tick.
-        private void TimerTick()
-        {
-
-        }
-
-        //The play state preserved when paused.
-        private AnimationState pausedStateHolder = AnimationState.None;
-        //Pause if running.
-        public void Pause()
-        {
-
-        }
-        //Start if pausing.
-        public void Play()
-        {
-
-        }
-        //Resets the animation.
-        public void Reset()
-        {
-
-        }
-        //Changes to waiting for the event.
-        private void WaitForEvent()
-        {
-
-        }
-    }
-#endif
 }
