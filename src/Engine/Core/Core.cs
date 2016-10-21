@@ -24,21 +24,31 @@ namespace SoulEngine
     class Core
     {
         #region "Declarations"
-        //Engine Information
-        public static string Name = "Soul Engine"; //The name of the engine.
-        public static string Ver = "0.75"; //The version of the engine.
-        public static string GUID = "130F150C-0000-0000-0000-050E07090E05"; //The guid of the application. (Default Soul Engine - 130F150C-0000-0000-0000-050E07090E05)
-
-        //Debug Variables and Objects
+        #region "Engine Information"
+        /// <summary>
+        /// The name of the engine.
+        /// </summary>
+        public static string Name = "SoulEngine";
+        /// <summary>
+        /// The version of the engine.
+        /// </summary>
+        public static string Version = "0.76";
+        /// <summary>
+        /// The GUID of the application. Used on windows to prevent multi-instancing.
+        /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
+        /// </summary>
+        public static string GUID = "130F150C-0000-0000-0000-050E07090E05";
+        #endregion
+        #region "Debug Variables and Objects"
         public static TextObject debugText; //The debug information to be printed.
         public static bool loaded = false; //Whether the engine has loaded.
         public static ObjectBase FPSBG; //The background of the fps text.
         public static ObjectBase debugTextBG; //The background of the debugText.
-
-        //Frame data.
+        #endregion
+        #region "Frame Data"
         public static float frametime; //The time it took in ms to render the last frame.
-
-        //Internal Objects
+        #endregion
+        #region "Internal Objects"
         public static GraphicsDeviceManager graphics; //Manages the graphics devices. Viewports, windows etc...
         public static SpriteBatch ink; //The drawing object.
         public static Engine host; //The instance of the "Game" class.
@@ -47,7 +57,7 @@ namespace SoulEngine
 #if ANDROID
         public static Android.Content.Context androidHost; //Hosts the Android Context Wrapper.
 #endif
-
+        #endregion
         #region "Systems"
         /// <summary>
         /// Timers that will be run every frame.
@@ -128,6 +138,9 @@ namespace SoulEngine
         }
         #endregion
 
+        /// <summary>
+        /// Is executed every frame on the CPU.
+        /// </summary>
         public static void Update(GameTime gameTime)
         {
             //Update the input for the current frame.
@@ -167,11 +180,17 @@ namespace SoulEngine
                 }
             }
         }
+        /// <summary>
+        /// Is run when the frame ends, before we go on to the next one.
+        /// </summary>
         public static void Update_End(GameTime gameTime)
         {
             //Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
+        /// <summary>
+        /// Is executed every frame on the GPU.
+        /// </summary>
         public static void Draw(GameTime gameTime)
         {
             //Color everything in the fillcolor.
@@ -183,6 +202,9 @@ namespace SoulEngine
             //End drawing.
             ink.End();
         }
+        /// <summary>
+        /// Is run when the frame ends, before we go on to the next one.
+        /// </summary>
         public static void Draw_End(GameTime gameTime)
         {
             DrawScreen();
