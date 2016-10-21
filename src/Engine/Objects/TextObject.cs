@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // A text rendering object.                                                 //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// An object used to render text.
+    /// </summary>
     class TextObject : ObjectBase
     {
         #region "Declarations"
@@ -33,11 +33,6 @@ namespace SoulEngine.Objects
         public int outlineSize = 1; //The size of the outline.
         public bool CenterText = false; //Whether the text should be centered.
 
-        //Other.
-        public bool noEffects = false; //Whether to skip rendering effect tags.
-        public bool autoSizeX = false; //Whether to automatically set the width of the object to the text's size.
-        public bool autoSizeY = false; //Whether to automatically set the height of the object based on the text's size.
-
         //Render Modes
         public enum RenderMode
         {
@@ -47,8 +42,20 @@ namespace SoulEngine.Objects
             Justified
         }
         public RenderMode TextStyle = RenderMode.Left; //The way to render the text.
-        private int ts_offsetX = 0; //The offset for rendering the text.
         private List<int> ts_spaceX = new List<int>(); //The offset for space between letters. Each line corresponds to a line within the processedtext.
+
+        //Background
+        public bool Background = false;
+        public Texture backgroundImage;
+        public Color backgroundColor = Color.White;
+        public float backgroundOpacity = 1f;
+        private ObjectBase bgObject;
+        public int backgroundMargin = 5;
+
+        //Other.
+        public bool noEffects = false; //Whether to skip rendering effect tags.
+        public bool autoSizeX = false; //Whether to automatically set the width of the object to the text's size.
+        public bool autoSizeY = false; //Whether to automatically set the height of the object based on the text's size.
         #endregion
 
         //Initializer
@@ -70,6 +77,14 @@ namespace SoulEngine.Objects
             this.Width = Width;
             this.Height = Height;
         }
+        public void SetupBackground(Texture image, Color Color, float Opacity)
+        {
+            Background = true;
+            bgObject = new ObjectBase(image);
+            bgObject.Color = Color;
+            bgObject.Opacity = Opacity;
+        }
+
         //Is called every frame to draw the object.
         public override void Draw()
         {
@@ -128,14 +143,16 @@ namespace SoulEngine.Objects
         }
         public void Render()
         {
-            //Check if debugging.
-            if (Settings.debug == true)
+            //Render a background if enabled.
+            if(Background)
             {
-                //We don't want to draw a box around the debug text.
-                if(Tags.Count == 0 || Tags[0] != "debugText")
-                {
-                    Core.ink.Draw(Core.blankTexture, Bounds, Color.Red * 0.1f);
-                }
+                if (bgObject == null) bgObject = new ObjectBase(backgroundImage);
+                bgObject.Bounds = new Rectangle(new Point(Bounds.X - backgroundMargin, Bounds.Y - backgroundMargin), 
+                    new Point(Bounds.Width + (backgroundMargin * 2), Bounds.Height + (backgroundMargin * 2)));
+                bgObject.Image = backgroundImage;
+                bgObject.Color = backgroundColor;
+                bgObject.Opacity = backgroundOpacity;
+                bgObject.Draw();
             }
             //First we render the outlines.
             RenderPass_Outlines();
@@ -327,7 +344,6 @@ namespace SoulEngine.Objects
         //Decides on the offsets of the text based on the text style.
         private void TextStyleCalculate()
         {
-            ts_offsetX = 0;
             ts_spaceX.Clear();
             switch(TextStyle)
             {

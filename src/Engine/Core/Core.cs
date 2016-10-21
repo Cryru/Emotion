@@ -40,22 +40,47 @@ namespace SoulEngine
         public static string GUID = "130F150C-0000-0000-0000-050E07090E05";
         #endregion
         #region "Debug Variables and Objects"
-        public static TextObject debugText; //The debug information to be printed.
-        public static bool loaded = false; //Whether the engine has loaded.
-        public static ObjectBase FPSBG; //The background of the fps text.
-        public static ObjectBase debugTextBG; //The background of the debugText.
+        /// <summary>
+        /// The debug information text object.
+        /// </summary>
+        public static TextObject debugText;
+        /// <summary>
+        /// The FPS text object.
+        /// </summary>
+        public static TextObject fpsText;
         #endregion
         #region "Frame Data"
-        public static float frametime; //The time it took in ms to render the last frame.
+        /// <summary>
+        /// The time it took in ms to render the last frame.
+        /// </summary>
+        public static float frametime;
         #endregion
         #region "Internal Objects"
-        public static GraphicsDeviceManager graphics; //Manages the graphics devices. Viewports, windows etc...
-        public static SpriteBatch ink; //The drawing object.
-        public static Engine host; //The instance of the "Game" class.
-        public static Camera2D maincam; //The main camera.
-        public static BoxingViewportAdapter ScreenAdapter; //The screen boxed.
+        /// <summary>
+        /// The graphics device.
+        /// </summary>
+        public static GraphicsDeviceManager graphics;
+        /// <summary>
+        /// The drawing object.
+        /// </summary>
+        public static SpriteBatch ink;
+        /// <summary>
+        /// The game instance for use by the engine.
+        /// </summary>
+        public static Engine host;
+        /// <summary>
+        /// The main camera.
+        /// </summary>
+        public static Camera2D maincam;
+        /// <summary>
+        /// The screen's boxing adapter.
+        /// </summary>
+        public static BoxingViewportAdapter ScreenAdapter;
 #if ANDROID
-        public static Android.Content.Context androidHost; //Hosts the Android Context Wrapper.
+        /// <summary>
+        /// Hosts the Android's context host.
+        /// </summary>
+        public static Android.Content.Context androidHost;
 #endif
         #endregion
         #region "Systems"
@@ -94,7 +119,6 @@ namespace SoulEngine
         /// </summary>
         public static void StartSequence()
         {
-
 #if !ANDROID //Android doesn't have a mouse, and doesn't have window properties.
             //Show mouse according to settings.
             host.IsMouseVisible = Settings.win_renderMouse;
@@ -129,15 +153,33 @@ namespace SoulEngine
             debugText.Outline = true;
             debugText.autoSizeX = true;
             debugText.autoSizeY = true;
+            debugText.Background = true;
 
-            //Set the loaded variable to true.
-            loaded = true;
+            //Load the debugtext background.
+            debugText.backgroundImage = blankTexture;
+            debugText.backgroundColor = Color.Black;
+            debugText.backgroundOpacity = 0.5f;
+
+            //Setup the fps text object.
+            fpsText = new TextObject(fontDebug);
+            fpsText.Tags.Add("fpsText");
+            fpsText.Color = Color.Yellow;
+            fpsText.Outline = true;
+            fpsText.autoSizeX = true;
+            fpsText.autoSizeY = true;
+            fpsText.Background = true;
+
+            //Load the FPS display background.
+            fpsText.backgroundImage = blankTexture;
+            fpsText.backgroundColor = Color.Black;
+            fpsText.backgroundOpacity = 0.5f;
+
 
             //Load the starting screen.
-            if(Settings.StartScreen != null) LoadScreen(Settings.StartScreen, 0);
+            if (Settings.StartScreen != null) LoadScreen(Settings.StartScreen, 0);
         }
         #endregion
-
+        #region "Loops"
         /// <summary>
         /// Is executed every frame on the CPU.
         /// </summary>
@@ -146,11 +188,11 @@ namespace SoulEngine
             //Update the input for the current frame.
             Input.UpdateInput();
 
-            //Write the debug text.
+            //Update the debug text.
             if (Settings.debug == true && Settings.debugUpdate == true)
             {
                 //Write the FPS and framework info to the debug text.
-                debugText.Text = Core.Name + " " + Core.Ver + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
+                debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
                     + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" +
 #if !ANDROID //Android doesn't have a window position.
                     "Window Position: " + host.Window.Position.X + "x" + host.Window.Position.Y + "\r\n" +
@@ -158,7 +200,14 @@ namespace SoulEngine
                     "Camera Zoom: " + maincam.Zoom + "\r\n" + "Global Timers Running: " + Timers.Count;
             }
 
-            //Record the render time for the last frame.
+            //Update the fps counter.
+            if(Settings.displayFPS)
+            {
+                fpsText.Text = "FPS: " + lastFrames;
+                fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
+            }
+
+            //Update the render time for the last frame.
             frametime = gameTime.ElapsedGameTime.Milliseconds;
 
             //Run the fullscreen key toggling code.
@@ -198,7 +247,7 @@ namespace SoulEngine
             //Start a draw sequence on the screen. As opposed to in the world.
             DrawScreen();
             //Draw the render space color.
-            ink.Draw(blankTexture, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
+            ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
             //End drawing.
             ink.End();
         }
@@ -211,23 +260,11 @@ namespace SoulEngine
             //Check if we are drawing the FPS counter.
             if (Settings.displayFPS == true)
             {
-                //FPS Text Draw.
-                string fpsString = "FPS: " + lastFrames;
-                FPSBG.Width = (int)fontDebug.MeasureString(fpsString).X;
-                FPSBG.Height = (int)fontDebug.MeasureString(fpsString).Y - 3;
-                FPSBG.Location = new Vector2(Settings.game_width - fontDebug.MeasureString(fpsString).X + 1, 0);
-                FPSBG.Draw();
-
-                ink.DrawString(fontDebug, fpsString, new Vector2(Settings.game_width - fontDebug.MeasureString(fpsString).X, 0), Color.Yellow * 0.8f);
+                fpsText.Draw();
             }
             //Check if we are drawing the debug string.
             if (Settings.debug == true)
             {
-                debugTextBG.Width = debugText.Width;
-                debugTextBG.Height = debugText.Height;
-                debugTextBG.Location = debugText.Location;
-                debugTextBG.Draw();
-
                 debugText.Draw();
             }
             ink.End();
@@ -235,7 +272,7 @@ namespace SoulEngine
             //Update the FPS counter. This is done here as the draw loops are run on the GPU.
             FPSCounterUpdate(gameTime);
         }
-
+        #endregion
         #region "Meta Functions"
         /// <summary>
         /// Meta Functions are the primary functions of the engine and it's modules.
@@ -246,7 +283,7 @@ namespace SoulEngine
         /// </summary>
         //---------------------------------------------------------------------------------
         //Loads the global content into the content pipeline.
-        public static Texture2D blankTexture; //A blank square texture.
+        public static Objects.Texture blankTexture; //A blank square texture.
         public static SpriteFont fontDebug; //The font to be used by the debug font rendering.
         public static List<SpriteFont> fontMain = new List<SpriteFont>(); //The main font of the application. (5-100 at Step 5)
         public static Texture2D missingimg; //The texture to display when a texture is missing.
@@ -262,10 +299,10 @@ namespace SoulEngine
 
 
             //Create the blank texture.
-            blankTexture = new Texture2D(graphics.GraphicsDevice, 1, 1); //Create texture.
+            blankTexture = new Objects.Texture(new Texture2D(graphics.GraphicsDevice, 1, 1));
             Color[] data = new Color[] { Color.White, Color.White }; //Fill texture.
-            blankTexture.SetData<Color>(data); //Assign data to texture.
-            blankTexture.Name = "blank"; //Set a name for the texture.
+            blankTexture.Image.SetData<Color>(data); //Assign data to texture.
+            blankTexture.Image.Name = "blank"; //Set a name for the texture.
 
             //Load default fonts
             fontDebug = LoadFont("Font_DEBUG");
@@ -274,16 +311,6 @@ namespace SoulEngine
             {
                 fontMain.Add(LoadFont("Main/Font_Main" + i));
             }
-
-            //Load the FPS display background.
-            FPSBG = new ObjectBase(new Objects.Texture(blankTexture));
-            FPSBG.Color = Color.Black;
-            FPSBG.Opacity = 0.5f;
-
-            //Load the debugtext background.
-            debugTextBG = new ObjectBase(new Objects.Texture(blankTexture));
-            debugTextBG.Color = Color.Black;
-            debugTextBG.Opacity = 0.5f;
         }
 
         //---------------------------------------------------------------------------------
@@ -811,7 +838,6 @@ namespace SoulEngine
             return new Vector2(float.Parse(split[0]), float.Parse(split[1]));
         }
         #endregion
-
         #region "Screens"
         /// <summary>
         /// Loads a screen.

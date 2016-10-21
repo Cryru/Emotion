@@ -105,7 +105,7 @@ namespace SoulEngine.Objects
                 if (value == "blank" || value == "" || value == null)
                 {
                     _ImageName = value; //Assign the name from variable.
-                    _Image = Core.blankTexture; //Assign the blank texture.
+                    _Image = Core.blankTexture.Image; //Assign the blank texture.
                 }
                 else
                 {

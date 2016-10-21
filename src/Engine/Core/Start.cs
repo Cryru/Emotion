@@ -1,13 +1,13 @@
 //////////////////////////////////////////////////////////////////////////////
-// Soul Engine - A game engine based on the MonoGame Framework.             //
+// SoulEngine - A game engine based on the MonoGame Framework.              //
 //                                                                          //
-// Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+// Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
 //                                                                          //
-// The 'Start.cs" class is the file that controls the startup.              //
-//                                                                          //
-// Refer to the documentation for any questions, or                         //
-// to TheCryru@gmail.com                                                    //
+// For any questions and issues: https://github.com/Cryru/SoulEngine        //
 //////////////////////////////////////////////////////////////////////////////
+/// <summary>
+/// The engine's boot code for several platforms is here.
+/// </summary>
 using System;
 using System.Threading;
 using Microsoft.Xna.Framework;
@@ -100,7 +100,7 @@ namespace SoulEngine
             Settings.Name += " (OpenGL-Lin)";
 #endif
 #if WINDOWS //On Windows we need to start the logging system.
-                    Log.fr_linkedApp = Core.Name + " " + Core.Ver;
+                    Log.fr_linkedApp = Core.Name + " " + Core.Version;
 #endif
                     //Run the engine.
                     Core.Setup();
