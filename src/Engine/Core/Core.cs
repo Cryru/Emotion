@@ -203,11 +203,7 @@ namespace SoulEngine
             {
                 //Write the FPS and framework info to the debug text.
                 debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
-                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" +
-#if !ANDROID //Android doesn't have a window position.
-                    "Window Position: " + host.Window.Position.X + "x" + host.Window.Position.Y + "\r\n" +
-#endif
-                    "Camera Zoom: " + maincam.Zoom + "\r\n" + "Global Timers Running: " + Timers.Count;
+                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" + "Global Timers Running: " + Timers.Count;
             }
 
             //Update the fps counter.

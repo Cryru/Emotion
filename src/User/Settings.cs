@@ -29,7 +29,6 @@ namespace SoulEngine
         //Debug Settings
         public static bool debug = true; //Enables debug mode.
         public static bool debugUpdate = true; //Toggles updating the debug text.
-        public static bool debugLogging = true; //Enables the Soul "Log" module.
 
         //Other Settings
         public static Color fillcolor = Color.Black; //The color that the dummy area will be filled in.
