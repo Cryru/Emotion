@@ -52,7 +52,7 @@ namespace SoulEngine.Objects
                 if (_Frame > frames.Count)
                 {
                     //In which case we return a missing image.
-                    return Core.missingimg;
+                    return Core.missingTexture.Image;
                 }
 
                 return frames[_Frame];

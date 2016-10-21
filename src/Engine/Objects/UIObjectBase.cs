@@ -126,11 +126,11 @@ namespace SoulEngine.Objects
                 case Mode.Clicked:
                 case Mode.Selected:
                     Image = ImageMouseClick;
-                    if (ImageMouseClick.Image == Core.missingimg) Image = ImageNone;
+                    if (ImageMouseClick.Image == Core.missingTexture.Image) Image = ImageNone;
                     break;
                 case Mode.Mouseovered:
                     Image = ImageMouseOver;
-                    if (ImageMouseOver.Image == Core.missingimg) Image = ImageNone;
+                    if (ImageMouseOver.Image == Core.missingTexture.Image) Image = ImageNone;
                     break;
                 case Mode.None:
                     Image = ImageNone;

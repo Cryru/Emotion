@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Objects;
 
 namespace SoulEngine
 {
@@ -23,13 +24,15 @@ namespace SoulEngine
         internal int Priority = 0;
         #endregion
 
+        ObjectBase test;
         /// <summary>
         /// Is run when the screen is first loaded.
         /// It is recommended that you initialize your objects here.
         /// </summary>
         public override void LoadObjects()
         {
-
+            test = new ObjectBase();
+            Core.ObjectFullscreen(test);
         }
         /// <summary>
         /// Is run every frame on the CPU.
@@ -45,7 +48,9 @@ namespace SoulEngine
         /// </summary>
         public override void Draw()
         {
-
+            Core.DrawScreen();
+            test.Draw();
+            Core.ink.End();
         }
     }
 }

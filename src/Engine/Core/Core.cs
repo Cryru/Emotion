@@ -83,6 +83,20 @@ namespace SoulEngine
         public static Android.Content.Context androidHost;
 #endif
         #endregion
+        #region "Internal Content"
+        /// <summary>
+        /// A blank texture.
+        /// </summary>
+        public static Objects.Texture blankTexture;
+        /// <summary>
+        /// A texture to display when attempting to load a missing texture.
+        /// </summary>
+        public static Objects.Texture missingTexture;
+        /// <summary>
+        /// The default font for when a font is missing, or when rendering debug text.
+        /// </summary>
+        public static SpriteFont fontDebug;
+        #endregion
         #region "Systems"
         /// <summary>
         /// Timers that will be run every frame.
@@ -101,38 +115,28 @@ namespace SoulEngine
         /// </summary>
         public static void Setup()
         {
-#if !ANDROID //Android sets the host in the start class.
-            //Setup the host.
-            //The content, ink and graphics device are initalized here.
+            //Setup the host. The content, ink and graphics device are initalized here.
             host = new Engine();
-#endif
+
             //Start the host.
             host.Run();
 
-#if !ANDROID //Android runs past the .Run().
             //The code after run is executed after the game is closed.
             host.Dispose();
-#endif
         }
         /// <summary>
         /// Setups the engine.
         /// </summary>
         public static void StartSequence()
         {
-#if !ANDROID //Android doesn't have a mouse, and doesn't have window properties.
+            //Load setings file.
+            Settings.ReadSettings();
+
             //Allow fast exit.
             host.Window.AllowAltF4 = true;
+
             //Set the window's name.
             host.Window.Title = Settings.win_name;
-#endif
-#if ANDROID //Enable the gestures we want, on Android.
-            TouchPanel.EnabledGestures = Settings.enabledGestures;
-#endif
-            //Check if a settings file exists.
-            if (File.Exists("settings.ini"))
-            {
-                ReadSettings();
-            }
 
             //Setup the screen, and the screen adapter.
             ScreenSettingsRefresh();
@@ -149,6 +153,25 @@ namespace SoulEngine
 
             //Load the starting screen.
             if (Settings.StartScreen != null) LoadScreen(Settings.StartScreen, 0);
+        }
+        /// <summary>
+        /// Loads and setups global content.
+        /// </summary>
+        public static void LoadGlobalContent()
+        {
+            //Load the missingTexture from its color array.
+            missingTexture = new Objects.Texture(new Texture2D(graphics.GraphicsDevice, 100, 100));
+            missingTexture.Image.SetData<Color>(Content.MissingTexture.data);
+            missingTexture.ImageName = "missing";
+
+            //Create the blank texture.
+            blankTexture = new Objects.Texture(new Texture2D(graphics.GraphicsDevice, 1, 1));
+            Color[] data = new Color[] { Color.White, Color.White }; //Fill texture.
+            blankTexture.Image.SetData<Color>(data); //Assign data to texture.
+            blankTexture.Image.Name = "blank"; //Set a name for the texture.
+
+            //Load default fonts
+            fontDebug = LoadFont("Font_DEBUG");
         }
         /// <summary>
         /// Loads and setups the global objects.
@@ -288,36 +311,6 @@ namespace SoulEngine
         /// varriable block above as they are expected to be used by the user.
         /// </summary>
         //---------------------------------------------------------------------------------
-        //Loads the global content into the content pipeline.
-        public static Objects.Texture blankTexture; //A blank square texture.
-        public static SpriteFont fontDebug; //The font to be used by the debug font rendering.
-        public static List<SpriteFont> fontMain = new List<SpriteFont>(); //The main font of the application. (5-100 at Step 5)
-        public static Texture2D missingimg; //The texture to display when a texture is missing.
-
-        public static void LoadGlobalContent()
-        {
-            //Load the missing image file.
-            Color[] missingimgdata = new Color[10000];
-            String[] missingimgStringData = Content.MissingImage.data;
-            missingimg = new Texture2D(graphics.GraphicsDevice, 100, 100); //Create the texture.
-            missingimg.SetData<Color>(Content.MissingImage.colordata);
-            missingimg.Name = "missingimg";
-
-
-            //Create the blank texture.
-            blankTexture = new Objects.Texture(new Texture2D(graphics.GraphicsDevice, 1, 1));
-            Color[] data = new Color[] { Color.White, Color.White }; //Fill texture.
-            blankTexture.Image.SetData<Color>(data); //Assign data to texture.
-            blankTexture.Image.Name = "blank"; //Set a name for the texture.
-
-            //Load default fonts
-            fontDebug = LoadFont("Font_DEBUG");
-
-            for (int i = 5; i < 100; i += 5)
-            {
-                fontMain.Add(LoadFont("Main/Font_Main" + i));
-            }
-        }
 
         //---------------------------------------------------------------------------------
         //Fullscreen management.
@@ -463,51 +456,6 @@ namespace SoulEngine
         }
 
         //---------------------------------------------------------------------------------
-        //Read the settings file.
-        public static void ReadSettings()
-        {
-            string[] fileData = IO_ReadFile_Array("settings.ini");
-
-            for (int i = 0; i < fileData.Length; i++)
-            {
-                try //In a try-catch in case something is not formatted properly.
-                {
-                    //Get the data of the settings file. Key:Value
-                    string[] data = fileData[i].Split(':');
-
-                    //Check the key and assign the value.
-                    switch (data[0])
-                    {
-                        case "Width": //Resolution's Width
-                            Settings.game_width = int.Parse(data[1]);
-                            break;
-                        case "Height": //Resolution's Height
-                            Settings.game_height = int.Parse(data[1]);
-                            break;
-                        case "Win_Width": //Window's Width
-                            Settings.win_width = int.Parse(data[1]);
-                            break;
-                        case "Win_Height": //Window's Height
-                            Settings.win_height = int.Parse(data[1]);
-                            break;
-                        case "Win_Name": //Window's Name
-                            Settings.win_name = data[1];
-                            break;
-                        case "Debug": //Debug Mode.
-                            Settings.debug = bool.Parse(data[1]);
-                            break;
-                        case "FPSDisplay": //Resolution's Width
-                            Settings.displayFPS = bool.Parse(data[1]);
-                            break;
-                    }
-
-                }
-                catch
-                { }
-            }
-        }
-
-        //---------------------------------------------------------------------------------
         #endregion
         #region "Library Functions"
         /// <summary>
@@ -564,12 +512,12 @@ namespace SoulEngine
                 }
                 catch
                 {
-                    return missingimg;
+                    return missingTexture.Image;
                 }
             }
             else
             {
-                return missingimg;
+                return missingTexture.Image;
             }
         }
 
