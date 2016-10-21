@@ -123,8 +123,8 @@ namespace SoulEngine.Objects
             //Set up the timer.
             fadeTimer = new Timer(timeMilliseconds / 100, 100);
             fadeTimer.Start();
-            fadeTimer.onTick = fadeTick_Out;
-            fadeTimer.onTickLimitReached = onFadeDone;
+            fadeTimer.onTick.Add(fadeTick_Out);
+            fadeTimer.onTickLimitReached.Add(onFadeDone);
 
             //Hook the timer to the Core.
             Core.Timers.Add(fadeTimer);
@@ -137,8 +137,8 @@ namespace SoulEngine.Objects
             //Set up the timer.
             fadeTimer = new Timer(timeMilliseconds / 100, 100);
             fadeTimer.Start();
-            fadeTimer.onTick = fadeTick_In;
-            fadeTimer.onTickLimitReached = onFadeDone;
+            fadeTimer.onTick.Add(fadeTick_In);
+            fadeTimer.onTickLimitReached.Add(onFadeDone);
 
             //Hook the timer to the Core.
             Core.Timers.Add(fadeTimer);
