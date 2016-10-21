@@ -37,11 +37,7 @@ namespace SoulEngine
 
             //Setup the timer.
             WaitTimer = new Timer(timeMilliseconds, 1); //Setup the fade.
-            WaitTimer.onTickLimitReached = TimerDone;
-            WaitTimer.Start();
-
-            //Attach the timer to the global timer runs.
-            Core.Timers.Add(WaitTimer);
+            WaitTimer.onTickLimitReached.Add(TimerDone);
         }
         
         //Is run when the timer ends.

@@ -54,12 +54,8 @@ namespace SoulEngine.Objects
 
             //Setup the timer.
             MoveTimer = new Timer(timeMilliseconds / smoothness, smoothness); //Setup the timer.
-            MoveTimer.onTick = MoveTick;
-            MoveTimer.onTickLimitReached = TimerDone;
-            MoveTimer.Start();
-
-            //Attach the timer to the global timer runs.
-            Core.Timers.Add(MoveTimer);
+            MoveTimer.onTick.Add(MoveTick);
+            MoveTimer.onTickLimitReached.Add(TimerDone);
         }
         
         //Is run every frame.

@@ -59,9 +59,8 @@ namespace SoulEngine.Objects
             _Type = Type; //Set the fade type.
 
             FadeTimer = new Timer(timeMilliseconds / 100, 100); //Setup the timer.
-            FadeTimer.onTick = TimerFadeTick;
-            FadeTimer.onTickLimitReached = TimerFadeDone;
-            FadeTimer.Start();
+            FadeTimer.onTick.Add(TimerFadeTick);
+            FadeTimer.onTickLimitReached.Add(TimerFadeDone);
 
             if(_fadingObject == null)
             {
@@ -88,9 +87,6 @@ namespace SoulEngine.Objects
             {
                 fadingObject.Opacity = 1f;
             }
-
-            //Hook up to the object.
-            Core.Timers.Add(FadeTimer);
         }
       
         //Is run when the timer ticks.

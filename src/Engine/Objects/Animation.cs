@@ -2,9 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SoulEngine.Objects.Internal;
 
 namespace SoulEngine.Objects
 {
@@ -96,9 +94,9 @@ namespace SoulEngine.Objects
         private bool flagReverse = false; //Used for NormalThenReverse, is true once reverse.
 
         //Events
-        public Action onFrameChange; //The event for when the frame changes.
-        public Action onFinished; //The event for when the animation has finished.
-        public Action onLoop; //The event for when the animation loops back.
+        public Event<Animation> onFrameChange = new Event<Animation>(); //The event for when the frame changes.
+        public Event<Animation> onFinished = new Event<Animation>(); //The event for when the animation has finished.
+        public Event<Animation> onLoop = new Event<Animation>(); //The event for when the animation loops back.
 
         //Public Accessors
         public int Frame //The current frame's number, counting the first frame as zero.
@@ -186,7 +184,7 @@ namespace SoulEngine.Objects
             SheetName = SpriteSheet.Name;
 
             //Setup the timer tick call.
-            internalTick = Tick;
+            onTick.Add(Tick);
 
             //Split frames and assign variables.
             SplitSheet(SpriteSheet);
@@ -296,24 +294,24 @@ namespace SoulEngine.Objects
                     if(_Frame == endingFrame) //If the global frame is the last frame.
                     {
                         _State = TimerState.WaitingForEvent; //Set the event to waiting for an event.
-                        onFinished?.Invoke(); //Invoke the finished event.
+                        onFinished.Trigger(this); //Invoke the finished event.
                     }
                     else
                     {
                         _Frame++; //Increment the frame.
-                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                        onFrameChange.Trigger(this); //Invoke the frame change event.
                     }
                     break;
                 case LoopType.Normal:
                     if (_Frame == endingFrame) //If the global frame is the last frame.
                     {
                         _Frame = startingFrame; //Set the frame to the starting frame.
-                        onLoop?.Invoke(); //Invoke the loop event.
+                        onLoop.Trigger(this); //Invoke the loop event.
                     }
                     else
                     {
                         _Frame++; //Increment the frame.
-                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                        onFrameChange.Trigger(this); //Invoke the frame change event.
                     }
                     break;
                 case LoopType.NormalThenReverse:
@@ -326,7 +324,7 @@ namespace SoulEngine.Objects
                         else
                             _Frame = startingFrame; //Set the frame to the start frame. It should be already, but w/e.
 
-                        onLoop?.Invoke(); //Invoke the loop event.
+                        onLoop.Trigger(this); //Invoke the loop event.
                     }
                     else
                     {
@@ -335,31 +333,31 @@ namespace SoulEngine.Objects
                         else
                             _Frame++; //Increment the frame.
 
-                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                        onFrameChange.Trigger(this); //Invoke the frame change event.
                     }
                     break;
                 case LoopType.Reverse:
                     if (_Frame == startingFrame) //If the global frame is the first frame.
                     {
                         _Frame = endingFrame; //Set the frame to the starting frame.
-                        onLoop?.Invoke(); //Invoke the loop event.
+                        onLoop.Trigger(this); //Invoke the loop event.
                     }
                     else
                     {
                         _Frame--; //Increment the frame.
-                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                        onFrameChange.Trigger(this); //Invoke the frame change event.
                     }
                     break;
                 case LoopType.NoneReverse:
                     if (_Frame == startingFrame) //If the global frame is the first frame.
                     {
                         _State = TimerState.WaitingForEvent; //Set the event to waiting for an event.
-                        onFinished?.Invoke(); //Invoke the finished event.
+                        onFinished.Trigger(this); //Invoke the finished event.
                     }
                     else
                     {
                         _Frame--; //Increment the frame.
-                        onFrameChange?.Invoke(); //Invoke the frame change event.
+                        onFrameChange.Trigger(this); //Invoke the frame change event.
                     }
                     break;
             }

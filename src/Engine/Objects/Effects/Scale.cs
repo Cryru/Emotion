@@ -68,12 +68,8 @@ namespace SoulEngine.Objects
 
             //Setup the timer.
             ScaleTimer = new Timer(timeMilliseconds / smoothness, smoothness); //Setup the timer.
-            ScaleTimer.onTick = ScaleTick;
-            ScaleTimer.onTickLimitReached = TimerDone;
-            ScaleTimer.Start();
-
-            //Attach the timer to the global timer runs.
-            Core.Timers.Add(ScaleTimer);
+            ScaleTimer.onTick.Add(ScaleTick);
+            ScaleTimer.onTickLimitReached.Add(TimerDone);
         }
         
         //Is run every frame.

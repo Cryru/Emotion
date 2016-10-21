@@ -11,20 +11,29 @@ namespace SoulEngine.Objects
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // The base for game objects.                                               //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// A basis for game objects.
+    /// </summary>
     class ObjectBase
     {
         #region "Declarations"
-        //Location, size, and rotation.
-        public float X = 0; //The X axis location of the object.
-        public float Y = 0; //The Y axis location of the object.
-        public Vector2 Location //The location of the object as a Vector2.
+            #region "Location, size, and rotation."
+        /// <summary>
+        /// The location of the object on the X axis.
+        /// </summary>
+        public float X = 0;
+        /// <summary>
+        /// The location of the object on the Y axis.
+        /// </summary>
+        public float Y = 0;
+        /// <summary>
+        /// The location of the object as a Vector2.
+        /// </summary>
+        public Vector2 Location 
         {
             get
             {
@@ -36,9 +45,33 @@ namespace SoulEngine.Objects
                 Y = value.Y;
             }
         }
-        public int Width = 10; //The width of the object.
-        public int Height = 10; //The height of the object.
-        public Rectangle Bounds
+        /// <summary>
+        /// The width of the object.
+        /// </summary>
+        public int Width = 10;
+        /// <summary>
+        /// The height of the object.
+        /// </summary>
+        public int Height = 10;
+        /// <summary>
+        /// The size of the object as a Vector2.
+        /// </summary>
+        public Vector2 Size 
+        {
+            get
+            {
+                return new Vector2(Width, Height);
+            }
+            set
+            {
+                Width = (int) value.X;
+                Height = (int) value.Y;
+            }
+        }
+        /// <summary>
+        /// The rectangle that represents the object.
+        /// </summary>
+        public Rectangle Bounds 
         {
             get
             {
@@ -51,9 +84,15 @@ namespace SoulEngine.Objects
                 Width = value.Size.X;
                 Height = value.Size.Y;
             }
-        } //The rectangle that represents the object.
-        public float RotationRadians = 0; //The rotation of the object in radians.
-        public int RotationDegrees //The rotation to of the object in degrees. 
+        }
+        /// <summary>
+        /// The rotation of the object in radians.
+        /// </summary>
+        public float RotationRadians = 0;
+        /// <summary>
+        /// The rotation of the object in degrees.
+        /// </summary>
+        public int RotationDegrees 
         //This value is stored as radians when entered as the drawing required for the rotation to be in radians.
         {
             get
@@ -65,6 +104,9 @@ namespace SoulEngine.Objects
                 RotationRadians = Core.DegreesToRadians(value);
             }
         }
+        /// <summary>
+        /// The center of the object.
+        /// </summary>
         public Vector2 Center
         {
             get
@@ -76,20 +118,42 @@ namespace SoulEngine.Objects
                 X = value.X - Width / 2;
                 Y = value.Y - Height / 2;
             }
-        } //The center point of the object.
-
-        //Texture and drawing variables.
-        public Texture Image; //The texture of the object.
-        public Color Color = Color.White; //The color hue of the image.
-        public bool Visible = true; //Whether the object should be displayed.
-        public float Opacity = 1f; //The opacity of the object. This value can range from 0 to 1.
-        public SpriteEffects MirrorEffects = SpriteEffects.None; //Mirroring the texture.
-
-        //Other
-        public List<string> Tags = new List<string>(); //A list of strings you can use to store values inside the object.
+        }
+        #endregion
+            #region "Texture and drawing variables."
+        /// <summary>
+        /// The texture object the object should be drawn as.
+        /// </summary>
+            public Texture Image;
+        /// <summary>
+        /// The hue of the object.
+        /// </summary>
+            public Color Color = Color.White;
+        /// <summary>
+        /// The object's visibiliy.
+        /// </summary>
+            public bool Visible = true;
+        /// <summary>
+        /// The opacity of the object. (0-1)
+        /// </summary>
+            public float Opacity = 1f;
+        /// <summary>
+        /// SpriteEffects for horizontal and/or vertical flipping.
+        /// </summary>
+            public SpriteEffects MirrorEffects = SpriteEffects.None;
+            #endregion
+            #region "Other"
+            /// <summary>
+            /// //A list of strings you can use to store values inside the object.
+            /// </summary>
+            public List<string> Tags = new List<string>(); 
+            #endregion
         #endregion
 
-        //The initializer.
+        /// <summary>
+        /// Initializes an object.
+        /// </summary>
+        /// <param name="Image">The texture object that represents the object.</param>
         public ObjectBase(Texture Image = null)
         {
             //Check if image is null.
@@ -101,7 +165,17 @@ namespace SoulEngine.Objects
             //Assign the texture to the property.
             this.Image = Image;
         }
-        //Draws the object according to it's specified variables, or according to the object's variables.
+        /// <summary>
+        /// Draws the object according to it's specified variables, or according to the object's variables.
+        /// By default these are the properties of the object.
+        /// </summary>
+        /// <param name="DrawImage">The image.</param>
+        /// <param name="DrawBounds">The size and location.</param>
+        /// <param name="DrawTint">The color.</param>
+        /// <param name="DrawOpacity">The opacity.</param>
+        /// <param name="Rotation">The rotation in radians.</param>
+        /// <param name="DrawOrigin">The origin point for rotation, by default this is the center.</param>
+        /// <param name="DrawEffects">Flipping and mirroring effects.</param>
         protected void DrawObject(Texture2D DrawImage = null, Rectangle DrawBounds = new Rectangle(), Color DrawTint = new Color(), float DrawOpacity = -1f, 
             float Rotation = -1f, Vector2 DrawOrigin = new Vector2(), SpriteEffects DrawEffects = SpriteEffects.None)
         {
@@ -150,7 +224,9 @@ namespace SoulEngine.Objects
             //Draw the object. To understand how this works read the documentation on objects.
             Core.ink.Draw(DrawImage, DrawBounds, null, DrawTint * DrawOpacity, Rotation, DrawOrigin, DrawEffects, 1.0f);
         }
-        //The draw function that can be overriden by children of this object.
+        /// <summary>
+        /// A draw function that can be overriden by children of this object.
+        /// </summary>
         public virtual void Draw()
         {
             DrawObject();

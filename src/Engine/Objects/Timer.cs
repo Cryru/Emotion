@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Objects.Internal;
 
 namespace SoulEngine.Objects
 {
@@ -41,9 +42,8 @@ namespace SoulEngine.Objects
         } //Returns a true if the current tick is the last.
 
         //Events
-        public Action onTick; //The event for when a tick occurs.
-        public Action onTickLimitReached; //The event for when the maximum ticks has been reached.
-        protected Action internalTick; //An internal tick event for the children of the timer. Is invoked before onTick.
+        public Event<Timer> onTick = new Event<Timer>(); //The event for when a tick occurs.
+        public Event<Timer> onTickLimitReached = new Event<Timer>(); //The event for when the maximum ticks has been reached.
 
         //State
         public TimerState State //The state of the timer, readonly for user reading.
@@ -109,8 +109,7 @@ namespace SoulEngine.Objects
                     {
                         timerValue -= Delay;
                         timerTicks++;
-                        internalTick?.Invoke();
-                        onTick?.Invoke();
+                        onTick.Trigger(this);
                     }
 
                     //Check if above limit.
@@ -127,7 +126,7 @@ namespace SoulEngine.Objects
 
                 case TimerState.WaitingForEvent: //If finishing up.
 
-                    onTickLimitReached?.Invoke();
+                    onTickLimitReached.Trigger(this);
                     _State = TimerState.Done;
                     break;
             }

@@ -16,10 +16,11 @@ namespace SoulEngine
     //////////////////////////////////////////////////////////////////////////////
     public class MasterScreen : ScreenObjectBase
     {
+
         //This is run when the screen is loaded.
         public override void LoadObjects()
         {
-			
+
         }
         //This is run every frame on the CPU.
         public override void Update(GameTime gameTime)
