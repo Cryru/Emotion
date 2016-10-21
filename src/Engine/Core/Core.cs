@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.76";
+        public static string Version = "0.80";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -120,8 +120,6 @@ namespace SoulEngine
         public static void StartSequence()
         {
 #if !ANDROID //Android doesn't have a mouse, and doesn't have window properties.
-            //Show mouse according to settings.
-            host.IsMouseVisible = Settings.win_renderMouse;
             //Allow fast exit.
             host.Window.AllowAltF4 = true;
             //Set the window's name.
@@ -136,16 +134,27 @@ namespace SoulEngine
                 ReadSettings();
             }
 
-            //Setup the screen.
+            //Setup the screen, and the screen adapter.
             ScreenSettingsRefresh();
             ScreenAdapter = new BoxingViewportAdapter(host.Window, host.GraphicsDevice, Settings.game_width, Settings.game_height);
 
             //Setup the camera.
-            maincam = new Camera2D(ScreenAdapter); //This is using the ripped MonoGame.Extended Camera.
+            maincam = new Camera2D(ScreenAdapter);
 
             //Load the global resources
             LoadGlobalContent();
 
+            //Load the global objects.
+            LoadGlobalObjects();
+
+            //Load the starting screen.
+            if (Settings.StartScreen != null) LoadScreen(Settings.StartScreen, 0);
+        }
+        /// <summary>
+        /// Loads and setups the global objects.
+        /// </summary>
+        public static void LoadGlobalObjects()
+        {
             //Setup the debugText object.
             debugText = new TextObject(fontDebug);
             debugText.Tags.Add("debugText");
@@ -173,10 +182,6 @@ namespace SoulEngine
             fpsText.backgroundImage = blankTexture;
             fpsText.backgroundColor = Color.Black;
             fpsText.backgroundOpacity = 0.5f;
-
-
-            //Load the starting screen.
-            if (Settings.StartScreen != null) LoadScreen(Settings.StartScreen, 0);
         }
         #endregion
         #region "Loops"
@@ -187,6 +192,11 @@ namespace SoulEngine
         {
             //Update the input for the current frame.
             Input.UpdateInput();
+
+            //Update the showing mouse setting.
+#if WINDOWS
+            host.IsMouseVisible = Settings.win_renderMouse;
+#endif
 
             //Update the debug text.
             if (Settings.debug == true && Settings.debugUpdate == true)
