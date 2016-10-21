@@ -103,7 +103,7 @@
     <Compile Include="src\Engine\Objects\Effects\Wait.cs" />
     <Compile Include="src\Engine\Objects\Map.cs" />
     <Compile Include="src\Engine\Objects\ObjectBase.cs" />
-    <Compile Include="src\Engine\Objects\ScreenObjectBase.cs" />
+    <Compile Include="src\Engine\Objects\Screen.cs" />
     <Compile Include="src\Engine\Objects\Sound.cs" />
     <Compile Include="src\Engine\Objects\TextObject.cs" />
     <Compile Include="src\Engine\Objects\Texture.cs" />

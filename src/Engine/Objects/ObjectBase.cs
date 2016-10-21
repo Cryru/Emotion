@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
     // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //

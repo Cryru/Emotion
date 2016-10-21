@@ -1,24 +1,26 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.IO;
 using Microsoft.Xna.Framework.Input.Touch;
+using Microsoft.Xna.Framework.Graphics;
 using SoulEngine.Objects;
+
 
 namespace SoulEngine
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, MonoGame                                //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // The engine's core.                                                       //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// The engine's core. Most of the stuff required for everything to run is here.
+    /// </summary>
     class Core
     {
         #region "Declarations"
@@ -42,15 +44,26 @@ namespace SoulEngine
         public static Engine host; //The instance of the "Game" class.
         public static Camera2D maincam; //The main camera.
         public static BoxingViewportAdapter ScreenAdapter; //The screen boxed.
-        public static MasterScreen master; //The master screen that is drawn on top of everything else.
 #if ANDROID
         public static Android.Content.Context androidHost; //Hosts the Android Context Wrapper.
 #endif
 
-        //Systems
-        public static List<Timer> Timers = new List<Timer>(); //This is a list of timers that will be run every frame, hooked up other objects.
+        #region "Systems"
+        /// <summary>
+        /// Timers that will be run every frame.
+        /// </summary>
+        public static List<Timer> Timers = new List<Timer>();
+        /// <summary>
+        /// The screens that are rendered.
+        /// </summary>
+        public static List<Screen> Screens = new List<Screen>();
+        #endregion
         #endregion
 
+        #region "Boot"
+        /// <summary>
+        /// Creates the "Game" class instance.
+        /// </summary>
         public static void Setup()
         {
 #if !ANDROID //Android sets the host in the start class.
@@ -66,7 +79,9 @@ namespace SoulEngine
             host.Dispose();
 #endif
         }
-
+        /// <summary>
+        /// Setups the engine.
+        /// </summary>
         public static void StartSequence()
         {
 
@@ -82,7 +97,7 @@ namespace SoulEngine
             TouchPanel.EnabledGestures = Settings.enabledGestures;
 #endif
             //Check if a settings file exists.
-            if(File.Exists("settings.ini"))
+            if (File.Exists("settings.ini"))
             {
                 ReadSettings();
             }
@@ -114,6 +129,7 @@ namespace SoulEngine
             //Set the loaded variable to true.
             loaded = true;
         }
+        #endregion
 
         public static void Update(GameTime gameTime)
         {
@@ -178,8 +194,8 @@ namespace SoulEngine
             {
                 //FPS Text Draw.
                 string fpsString = "FPS: " + lastFrames;
-                FPSBG.Width = (int) fontDebug.MeasureString(fpsString).X;
-                FPSBG.Height = (int) fontDebug.MeasureString(fpsString).Y - 3;
+                FPSBG.Width = (int)fontDebug.MeasureString(fpsString).X;
+                FPSBG.Height = (int)fontDebug.MeasureString(fpsString).Y - 3;
                 FPSBG.Location = new Vector2(Settings.game_width - fontDebug.MeasureString(fpsString).X + 1, 0);
                 FPSBG.Draw();
 
@@ -219,11 +235,11 @@ namespace SoulEngine
         public static void LoadGlobalContent()
         {
             //Load the missing image file.
-			Color[] missingimgdata = new Color[10000];
-			String[] missingimgStringData = Content.MissingImage.data;
-			missingimg = new Texture2D(graphics.GraphicsDevice, 100, 100); //Create the texture.
-			missingimg.SetData<Color>(Content.MissingImage.colordata);
-			missingimg.Name = "missingimg";
+            Color[] missingimgdata = new Color[10000];
+            String[] missingimgStringData = Content.MissingImage.data;
+            missingimg = new Texture2D(graphics.GraphicsDevice, 100, 100); //Create the texture.
+            missingimg.SetData<Color>(Content.MissingImage.colordata);
+            missingimg.Name = "missingimg";
 
 
             //Create the blank texture.
@@ -336,29 +352,6 @@ namespace SoulEngine
                 curFrames = 0;
             }
             curFrames += 1;
-        }
-
-        //---------------------------------------------------------------------------------
-        //Changes the current screen.
-        public static Action<GameTime> ScreenUpdate; //The current screen's update method.
-        public static Action<GameTime> ScreenDraw; //The current screen's draw method.
-        public static ScreenObjectBase currentScreen; //The current screen.    
-
-        public static void LoadScreen(ScreenObjectBase screenClass)
-        {
-            //Reset camera.
-            maincam.Position = new Vector2(0, 0);
-            maincam.Zoom = 1;
-            maincam.Origin = new Vector2(0, 0);
-            //Tell the current screen it is no longer active.
-            if (currentScreen != null)
-            {
-                currentScreen.Active = false;
-            }
-            //Assign the specified screen as the current.
-            currentScreen = screenClass;
-            //Activate the screen.
-            currentScreen.Activate();
         }
 
         //---------------------------------------------------------------------------------
@@ -580,7 +573,7 @@ namespace SoulEngine
             return false;
         }
 
-#region "Object Position and Size"
+        #region "Object Position and Size"
         //Centers the object within the window.
         public static void CenterObject(ObjectBase obj)
         {
@@ -624,7 +617,7 @@ namespace SoulEngine
             obj.Width = tarObj.Width;
             obj.Height = tarObj.Height;
         }
-#endregion
+        #endregion
 
         //Returns the distance between two points.
         public static float getDistance(Vector2 p1, Vector2 p2)
@@ -676,8 +669,8 @@ namespace SoulEngine
             return newTexture;
         }
 
-#endregion
-#region "Soul Library Functions"
+        #endregion
+        #region "Soul Library Functions"
         //---------------------------------------------------------------------------------------------------------------------------
         //Writes the specified string to the specified file, if it doesn't exist it will be created.
         public static void IO_WriteFile(string filepath, string datatowrite)
@@ -798,6 +791,37 @@ namespace SoulEngine
             string[] split = s.Split(separator);
             return new Vector2(float.Parse(split[0]), float.Parse(split[1]));
         }
-#endregion
+        #endregion
+
+        #region "Screens"
+
+        //public static Action<GameTime> ScreenUpdate; //The current screen's update method.
+        //public static Action<GameTime> ScreenDraw; //The current screen's draw method.
+        //public static ScreenObjectBase currentScreen; //The current screen.    
+
+        public static void LoadScreen(Screen Screen, int Priority)
+        {
+            Screens.Add(Screen);
+            Screen.Priority = Priority;
+            RefreshScreens();
+            ////Reset camera.
+            //maincam.Position = new Vector2(0, 0);
+            //maincam.Zoom = 1;
+            //maincam.Origin = new Vector2(0, 0);
+            ////Tell the current screen it is no longer active.
+            //if (currentScreen != null)
+            //{
+            //    currentScreen.Active = false;
+            //}
+            ////Assign the specified screen as the current.
+            //currentScreen = screenClass;
+            ////Activate the screen.
+            //currentScreen.Activate();
+        }
+        public static void RefreshScreens()
+        {
+            Screens.OrderBy(x => x.Priority);
+        }
+        #endregion
     }
 }

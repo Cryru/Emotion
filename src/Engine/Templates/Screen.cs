@@ -16,6 +16,8 @@ namespace SoulEngine
     //////////////////////////////////////////////////////////////////////////////
     public class Screen : ScreenObjectBase
     {
+        internal int Priority;
+
         //This is run when the screen is loaded.
         public override void LoadObjects()
         {
