@@ -112,9 +112,6 @@ namespace SoulEngine
             //Load the global resources
             LoadGlobalContent();
 
-            //Run the master screen.
-            master = new MasterScreen();
-
             //Setup the debugText object.
             debugText = new TextObject(fontDebug);
             debugText.Tags.Add("debugText");
@@ -123,11 +120,11 @@ namespace SoulEngine
             debugText.autoSizeX = true;
             debugText.autoSizeY = true;
 
-            //Load the master screen's objects.
-            master.LoadObjects();
-
             //Set the loaded variable to true.
             loaded = true;
+
+            //Load the starting screen.
+            if(Settings.StartScreen != null) LoadScreen(Settings.StartScreen, 0);
         }
         #endregion
 
@@ -794,33 +791,53 @@ namespace SoulEngine
         #endregion
 
         #region "Screens"
-
-        //public static Action<GameTime> ScreenUpdate; //The current screen's update method.
-        //public static Action<GameTime> ScreenDraw; //The current screen's draw method.
-        //public static ScreenObjectBase currentScreen; //The current screen.    
-
+        /// <summary>
+        /// Loads a screen.
+        /// </summary>
+        /// <param name="Screen">The screen to load.</param>
+        /// <param name="Priority">The priority of the screen.</param>
         public static void LoadScreen(Screen Screen, int Priority)
         {
             Screens.Add(Screen);
             Screen.Priority = Priority;
+            Screen.LoadObjects();
             RefreshScreens();
-            ////Reset camera.
-            //maincam.Position = new Vector2(0, 0);
-            //maincam.Zoom = 1;
-            //maincam.Origin = new Vector2(0, 0);
-            ////Tell the current screen it is no longer active.
-            //if (currentScreen != null)
-            //{
-            //    currentScreen.Active = false;
-            //}
-            ////Assign the specified screen as the current.
-            //currentScreen = screenClass;
-            ////Activate the screen.
-            //currentScreen.Activate();
         }
+        /// <summary>
+        /// Unloads the screen.
+        /// </summary>
+        /// <param name="Screen">The screen to unload.</param>
+        public static void UnloadScreen(Screen Screen)
+        {
+            if (Screens.IndexOf(Screen) != -1) Screens.Remove(Screen);
+            RefreshScreens();
+        }
+        /// <summary>
+        /// Reorders the screens based on priority.
+        /// </summary>
         public static void RefreshScreens()
         {
             Screens.OrderBy(x => x.Priority);
+        }
+        /// <summary>
+        /// Runs the update functions of all screens.
+        /// </summary>
+        public static void UpdateScreens()
+        {
+            for (int i = 0; i < Screens.Count; i++)
+            {
+                Screens[i].Update();
+            }
+        }
+        /// <summary>
+        /// Runs the draw functions of all screens.
+        /// </summary>
+        public static void DrawScreens()
+        {
+            for (int i = 0; i < Screens.Count; i++)
+            {
+                Screens[i].Draw();
+            }
         }
         #endregion
     }

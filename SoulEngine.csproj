@@ -58,7 +58,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Engine\Objects\Event.cs" />
-    <Compile Include="src\User\Screens\MasterScreen.cs" />
+    <Compile Include="src\User\Screens\StartScreen.cs" />
     <Compile Include="src\User\Settings.cs" />
     <Compile Include="src\Engine\Core\Core.cs" />
     <Compile Include="src\Engine\Core\Engine.cs" />
@@ -109,7 +109,6 @@
     <Compile Include="src\Engine\Objects\Texture.cs" />
     <Compile Include="src\Engine\Objects\Timer.cs" />
     <Compile Include="src\Engine\Objects\UIObjectBase.cs" />
-    <Compile Include="src\Engine\Templates\Screen.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="OpenTK">

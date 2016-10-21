@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine.Objects
+namespace SoulEngine
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -14,14 +14,7 @@ namespace SoulEngine.Objects
     //                                                                          //
     // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
-    /// <summary>
-    /// A screen object.
-    /// Screens are used to control what objects are loaded and drawn on the scren at the time.
-    /// The order in which the screens will be drawn is determined by the "Priority" variable.
-    /// Screens are the SoulEngine concept of what most engines and frameworks refer to as "scenes".
-    /// All screens created by the user should be children of this object.
-    /// </summary>
-    public abstract class Screen
+    public class StartScreen : Objects.Screen
     {
         #region "Declarations"
         /// <summary>
@@ -34,17 +27,25 @@ namespace SoulEngine.Objects
         /// Is run when the screen is first loaded.
         /// It is recommended that you initialize your objects here.
         /// </summary>
-        public abstract void LoadObjects();
+        public override void LoadObjects()
+        {
+
+        }
         /// <summary>
         /// Is run every frame on the CPU.
         /// Game logic and other stuff go here.
         /// </summary>
-        public abstract void Update();
+        public override void Update()
+        {
+
+        }
         /// <summary>
         /// Is run every frame on the GPU.
         /// Your draw calls go here.
         /// </summary>
-        public abstract void Draw();
+        public override void Draw()
+        {
 
+        }
     }
 }

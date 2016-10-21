@@ -38,5 +38,8 @@ namespace SoulEngine
         public static Keys keyClosing = Keys.Escape; //The key used to close the application.
         public static bool displayFPS = true; //Whether to draw the current fps on the screen.
         public static GestureType enabledGestures = GestureType.Tap; //The touch gestures the panel should track.
+
+        //Screen
+        public static Objects.Screen StartScreen = new StartScreen(); //The screen to load first.
     }
 }
