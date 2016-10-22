@@ -31,7 +31,6 @@ namespace SoulEngine.Objects
         public bool Outline = false; //Whether to outline the text.
         public Color outlineColor = Color.Black; //The color of the outline.
         public int outlineSize = 1; //The size of the outline.
-        public bool CenterText = false; //Whether the text should be centered.
 
         //Render Modes
         public enum RenderMode
@@ -54,6 +53,7 @@ namespace SoulEngine.Objects
 
         //Other.
         public bool noEffects = false; //Whether to skip rendering effect tags.
+        public bool TagRemoval = true; //Whether to skip removing the tags. This does nothing if noEffects is false.
         public bool autoSizeX = false; //Whether to automatically set the width of the object to the text's size.
         public bool autoSizeY = false; //Whether to automatically set the height of the object based on the text's size.
         #endregion
@@ -104,7 +104,6 @@ namespace SoulEngine.Objects
             txt = txt.Replace("\r\n", "<- !<NEWLINE>! ->");
             txt = txt.Replace("<- !<NEWLINE>! ->", "\n");
         }
-
         public void Process()
         {
             //Clear old variables.
@@ -117,7 +116,7 @@ namespace SoulEngine.Objects
             stringInProcess = FindTags();
             if (noEffects)
             {
-                stringInProcess = Text;
+                if(TagRemoval == false) stringInProcess = Text;
                 procEffects.Clear();
             }
 
@@ -158,10 +157,8 @@ namespace SoulEngine.Objects
                 bgObject.Opacity = backgroundOpacity;
                 bgObject.Draw();
             }
-            //First we render the outlines.
-            RenderPass_Outlines();
-            //Then we render the text.
-            RenderPass_Text();
+            //Render the text with the effects stack.
+            RenderText();
         }
         #region "Processing"
         private void CalculateLines(string stringInProcess)
@@ -189,13 +186,6 @@ namespace SoulEngine.Objects
                     continue;
                 }
 
-                //Check if starting with a space on a new line
-                if (characters[i] == ' ' && lineString == "")
-                {
-                    processedText[processedText.Count - 1] += " ";
-                    continue;
-                }
-
                 //Check if a character is a space.
                 if(characters[i] == ' ')
                 {
@@ -211,8 +201,8 @@ namespace SoulEngine.Objects
                         //If the text fits on the current line then go on a new line.
                         if (spaceOnLine <= lineWidth(textToNextSpace))
                         {
-                            processedText.Add(lineString + " ");
-                            lineString = "";
+                            processedText.Add(lineString + "");
+                            lineString = " ";
                             continue;
                         }
                     }
@@ -254,7 +244,7 @@ namespace SoulEngine.Objects
                 //If we find a space return the location of it.
                 if(characters[i] == ' ')
                 {
-                    return i - 1;
+                    return i;
                 }
             }
             //If none found return -1;
@@ -284,7 +274,7 @@ namespace SoulEngine.Objects
         private void CutLines()
         {
             //Remove extra lines.
-            int linesCount = (int)(Height / Font.MeasureString(" ").Y);
+            int linesCount = (int) Math.Round(Height / Font.MeasureString(" ").Y);
             processedText.RemoveRange(Math.Min(linesCount, processedText.Count), processedText.Count - Math.Min(linesCount, processedText.Count));
         }
         //Decides on the offsets of the text based on the text style.
@@ -293,6 +283,22 @@ namespace SoulEngine.Objects
             ts_spaceX.Clear();
             switch(TextStyle)
             {
+                case RenderMode.Center: //In this mode we center the text by subtracting the line's width from the total width and dividing it by two.
+
+                    //Go through all lines.
+                    for (int l = 0; l < processedText.Count; l++)
+                    {
+                        string currentLine = processedText[l];
+                        //If the first character of a line is a space we don't count it.
+                        if (processedText[l].ToCharArray().First() == ' ')
+                        {
+                            currentLine = processedText[l].Substring(1);
+                        }
+                        //Add the offset.
+                        ts_spaceX.Add((int)(Width - Font.MeasureString(currentLine).X) / 2);
+                    }
+
+                    break;
                 case RenderMode.Justified: //In this mode text is stretched to fill the current line as much as possible.
 
                     //Find the longest line.
@@ -435,10 +441,15 @@ namespace SoulEngine.Objects
         //Render passes.
         private void RenderPass_Outlines()
         {
+            
+        }
+        private void RenderText()
+        {
             //The position of the current letter, in the overall text as they are written in the effects list.
             int pointerPosition = 0;
 
             //The default values.
+            Color color = Color;
             bool outline = Outline;
             Color outlineColor = this.outlineColor;
             int outlineSize = this.outlineSize;
@@ -456,91 +467,15 @@ namespace SoulEngine.Objects
                 //Run through all letters.
                 for (int p = 0; p < processedText[l].Length; p++)
                 {
-                    //Updates the effect stack up to the effects of the current position.
-                    UpdateEffectStack(effectsStack, pointerPosition);
 
-                    //Reset to defaults.
-                    outline = Outline;
-                    outlineColor = this.outlineColor;
-                    outlineSize = this.outlineSize;
-
-                    //Go through the effects stack to see if we should have the outline on for the current character.
-                    for (int i = 0; i < effectsStack.Count; i++)
-                    {
-                        //Read effects. This is in a try catch because we might have invalid input.
-                        try
-                        {
-                            //Check if the effect is an outline.
-                            if (GetEffectName(effectsStack[i]).ToLower() == "outline")
-                            {
-                                outline = bool.Parse(GetEffectData(effectsStack[i]));
-                            }
-                            //Check for a outline size effect.
-                            if (GetEffectName(effectsStack[i]).ToLower() == "outlinesize")
-                            {
-                                outlineSize = int.Parse(GetEffectData(effectsStack[i]));
-                            }
-                            //Check for a outline size effect.
-                            if (GetEffectName(effectsStack[i]).ToLower() == "ocolor")
-                            {
-                                int[] color = GetEffectData(effectsStack[i]).Split('-').Select(int.Parse).ToArray();
-                                outlineColor = new Color(color[0], color[1], color[2]);
-                            }
-                        }
-                        catch { }
-                    }
-
-                    //Draw the outline.
-                    if (outline == true)
-                    {
-                        //Check for centering.
-                        float centerOffset = 0;
-
-                        if (CenterText == true && autoSizeX == false)
-                        {
-                            centerOffset = (Width - Font.MeasureString(processedText[l]).X) / 2;
-                        }
-
-                        DrawOutline(outlineSize, outlineColor, new Vector2(centerOffset + X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
-                    }
-
-                    //Add to the X offset.
-                    Xoffset += (int) Font.MeasureString(processedText[l][p].ToString()).X;
-
-                    //Increment the pointer position.
-                    pointerPosition++;
-                }
-                //Reset offsets.
-                Xoffset = 0;
-                Yoffset += (int) Font.MeasureString(" ").Y;
-            }
-        }
-        private void RenderPass_Text()
-        {
-            //The position of the current letter, in the overall text as they are written in the effects list.
-            int pointerPosition = 0;
-
-            //The default values.
-            Color color = Color;
-
-            //The stack of effects.
-            List<string> effectsStack = new List<string>();
-
-            //The offsets of the current letter.
-            int Xoffset = 0;
-            int Yoffset = 0;
-
-            //Run through all lines.
-            for (int l = 0; l < processedText.Count; l++)
-            {
-                //Run through all letters.
-                for (int p = 0; p < processedText[l].Length; p++)
-                {
                     //Updates the effect stack up to the effects of the current position.
                     UpdateEffectStack(effectsStack, pointerPosition);
 
                     //Reset to defaults.
                     color = Color;
+                    outline = Outline;
+                    outlineColor = this.outlineColor;
+                    outlineSize = this.outlineSize;
 
                     //Go through the effects stack to see if we should have the outline on for the current character.
                     for (int i = 0; i < effectsStack.Count; i++)
@@ -554,22 +489,42 @@ namespace SoulEngine.Objects
                                 int[] tempColor = GetEffectData(effectsStack[i]).Split('-').Select(int.Parse).ToArray();
                                 color = new Color(tempColor[0], tempColor[1], tempColor[2]);
                             }
+                            //Check if the effect is an outline.
+                            if (GetEffectName(effectsStack[i]).ToLower() == "outline")
+                            {
+                                outline = bool.Parse(GetEffectData(effectsStack[i]));
+                            }
+                            //Check for a outline size effect.
+                            if (GetEffectName(effectsStack[i]).ToLower() == "outlinesize")
+                            {
+                                outlineSize = int.Parse(GetEffectData(effectsStack[i]));
+                            }
+                            //Check for a outline size effect.
+                            if (GetEffectName(effectsStack[i]).ToLower() == "ocolor")
+                            {
+                                int[] tcolor = GetEffectData(effectsStack[i]).Split('-').Select(int.Parse).ToArray();
+                                outlineColor = new Color(tcolor[0], tcolor[1], tcolor[2]);
+                            }
                         } catch { }
 
                     }
 
-                    //Check for centering.
-                    float centerOffset = 0;
-
-                    if (CenterText == true && autoSizeX == false)
+                    //If the first letter on the line is a space then we don't draw it.
+                    if (!(p == 0 && processedText[l][p] == ' '))
                     {
-                        centerOffset = (Width - Font.MeasureString(processedText[l]).X) / 2;
+                        //Draw outline
+                        if (outline == true)
+                            DrawOutline(outlineSize, outlineColor, new Vector2(ts_spaceX[l] + X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
+
+                        //Draw the letter.
+                        Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(ts_spaceX[l] + X + Xoffset, Y + Yoffset), color * Opacity);
+
+                        //Add to the Xoffset, if justification then add the line's offset to the offset too.
+                        if (TextStyle == RenderMode.Justified)
+                            Xoffset += (int)Font.MeasureString(processedText[l][p].ToString()).X + ts_spaceX[l];
+                        else
+                            Xoffset += (int)Font.MeasureString(processedText[l][p].ToString()).X;
                     }
-
-                    Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(centerOffset + X + Xoffset + ts_spaceX[l], Y + Yoffset), color * Opacity);
-
-                    //Add to the X offset.
-                    Xoffset += (int)Font.MeasureString(processedText[l][p].ToString()).X + ts_spaceX[l];
 
                     //Increment the pointer position.
                     pointerPosition++;

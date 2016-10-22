@@ -31,9 +31,11 @@ namespace SoulEngine
         /// </summary>
         public override void LoadObjects()
         {
-            test = new TextObject(Core.fontDebug, "A list of some of my <color=255-0-0>f</>avorite free programs that you definitely have to check out.", 200, 500);
+            test = new TextObject(Core.fontDebug, "Lorem Ipsum is s<color=255-0-0>i</>mply dummy text of the printing <color=255-0-0>a</>nd typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.", 250, 500);
             test.Background = true;
+            test.TextStyle = TextObject.RenderMode.Center;
             test.backgroundColor = Color.Black;
+            test.backgroundOpacity = 0.5f;
             Core.CenterObject(test);
         }
         /// <summary>
