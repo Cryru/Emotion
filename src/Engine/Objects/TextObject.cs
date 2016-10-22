@@ -99,9 +99,10 @@ namespace SoulEngine.Objects
             txt = txt.Replace("\\n", "\n");
             txt = txt.Replace("\\R", "\r");
             txt = txt.Replace("\\N", "\n");
+            txt = txt.Replace("\r\n", "\n");
+            txt = txt.Replace("\r", "\r\n");
             txt = txt.Replace("\r\n", "<- !<NEWLINE>! ->");
-            txt = txt.Replace("\n", "\r\n");
-            txt = txt.Replace("<- !<NEWLINE>! ->", "\r\n");
+            txt = txt.Replace("<- !<NEWLINE>! ->", "\n");
         }
 
         public void Process()
@@ -114,17 +115,20 @@ namespace SoulEngine.Objects
 
             //Find the tags.
             stringInProcess = FindTags();
+            if (noEffects)
+            {
+                stringInProcess = Text;
+                procEffects.Clear();
+            }
 
             //Fix new line in text.
             FixNewLine(ref stringInProcess);
 
-            //Calculate the lines. This also includes the auto height and width code.
+            //Calculate the lines and sort them in the processedText list. This also includes part of the auto height and width code.
             CalculateLines(stringInProcess);
 
-            //Note: At this point the lines have been separated into the processedText variable.
-
             //Fit the width based on the longest line if auto width is on.
-            if(autoSizeX)
+            if (autoSizeX)
             {
                 AutoWidth();
             }
@@ -162,21 +166,9 @@ namespace SoulEngine.Objects
         #region "Processing"
         private void CalculateLines(string stringInProcess)
         {
-            //If empty string.
-            if(stringInProcess == "")
-            {
-                processedText.Add("");
-                return;
-            }
+            //Get all characters.
+            List<char> characters = stringInProcess.ToCharArray().ToList();
 
-            List<string> words = stringInProcess.Split(' ').ToList(); //A list to hold all words.
-
-            for (int i = 0; i < words.Count; i++)
-            {
-                if (words[i] == "") words[i] = " ";
-            }
-
-            int lineWidth = 0; //The width of the current line which we are checking agaisnt the total available width.
             string lineString = ""; //The current line as a string.
 
             //Check if auto sizing width.
@@ -185,134 +177,88 @@ namespace SoulEngine.Objects
                 Width = int.MaxValue;
             }
 
-            //Note: In earlier versions some infinite loops were created when the width of the object is smaller
-            //than that of a single character. This doesn't seem to be the case anymore, but in case this bug
-            //resurfaces I'm leaving this fix in, commented out.
-            ////Check if width is smaller than one letter.
-            //if (Width < (int)Font.MeasureString(" ").X)
-            //{
-            //    stringInProcess = "";
-            //    return;
-            //}
-
-            for (int i = 0; i < words.Count; i++)
+            //Loop through all characters.
+            for (int i = 0; i < characters.Count; i++)
             {
-                string newLineWord = ""; //The text for a queued new line.
-                bool newLine = false; //The bool that signifies new lines. We need a bool cuz we can't check by newLineWord != "" since empty lines are "".
 
-                //Check if new line.
-                if (words[i].Contains("\r\n"))
+                //Check if we are at the last character.
+                if (i == characters.Count - 1)
                 {
-                    newLine = true;
-                    newLineWord = words[i].Substring(words[i].IndexOf('\n') + 1);
-                    words[i] = words[i].Substring(0, words[i].IndexOf('\n') - 1);
+                    processedText.Add(lineString + characters[i].ToString());
+                    lineString = "";
+                    continue;
+                }
 
-                    if(newLineWord.Contains("\r\n"))
+                //Check if starting with a space on a new line
+                if (characters[i] == ' ' && lineString == "")
+                {
+                    processedText[processedText.Count - 1] += " ";
+                    continue;
+                }
+
+                //Check if a character is a space.
+                if(characters[i] == ' ')
+                {
+                    //Get the space left on the current line.
+                    float spaceOnLine = Width - lineWidth(lineString);
+                    //Find the location of the next space.
+                    int nextSpace = spaceToNextSpace(characters, i) - i;
+                    //Check if the next location of the next space is not too far away.
+                    if(nextSpace > 0)
                     {
-                        words.Insert(i + 1, newLineWord.Substring(newLineWord.IndexOf('\r'), newLineWord.Length - newLineWord.IndexOf('\r')));
-                        newLineWord = newLineWord.Substring(0, newLineWord.IndexOf('\n') - 1);
+                        //Get the text to the next space.
+                        string textToNextSpace = string.Join("", characters.GetRange(i + 1, nextSpace));
+                        //If the text fits on the current line then go on a new line.
+                        if (spaceOnLine <= lineWidth(textToNextSpace))
+                        {
+                            processedText.Add(lineString + " ");
+                            lineString = "";
+                            continue;
+                        }
                     }
                 }
 
-                //Check if the line's width plus the next word are too much to fit on this line.
-                if (lineWidth + (int)Font.MeasureString(" ").X + (int)Font.MeasureString(words[i]).X > Width)
+                //If the current character is a new line character go on a new line.
+                if (characters[i] == '\n')
                 {
-                    //Check if the word is longer than the total width.
-                    if ((int)Font.MeasureString(words[i]).X > Width)
-                    {
-                        string lettersFit = ""; //The letters that fit on this line.
-                        for (int p = 0; p < words[i].Length; p++)
-                        {
-
-                            if (lineWidth - (int)Font.MeasureString(" ").X + Font.MeasureString(words[i][p].ToString()).X > Width)
-                            {
-                                //Check if no letters fit. This is an infinite loop prevention.
-                                if (lettersFit == "" && lineString == "")
-                                {
-                                    return;
-                                }
-                                //Put the letters that fit on this line. A space is present at the end so no need to add one.
-                                processedText.Add(lineString + lettersFit);
-                                lineString = "";
-                                lineWidth = 0;
-                                //Transfer the rest of the world on a new line.
-                                if(newLine == true)
-                                {
-                                    words.Insert(i + 1, words[i].Substring(p) + "\r\n" + newLineWord);
-                                }
-                                else
-                                {
-                                    words.Insert(i + 1, words[i].Substring(p));
-                                }
-                                
-
-                                break;
-                            }
-                            else
-                            {
-                                lettersFit += words[i][p]; //If we can fit more letters add them to the string.
-                                lineWidth += (int)Font.MeasureString(words[i][p].ToString()).X; //Add the fitting letters to the width.
-                            }
-                        }
-                    }
-                    else //If ye just newline.
-                    {
-                        processedText.Add(lineString.Substring(0, lineString.Length)); //Add the current data to the line.
-                        lineString = words[i] + " "; //Transfer the current word.
-                        lineWidth = (int)Font.MeasureString(words[i] + " ").X; //Assign the current line's width.
-
-                        //Check if a newline is queued.
-                        if (newLine == true)
-                        {
-                            processedText.Add(lineString.Substring(0, lineString.Length - 1)); //Add the current data to the line.
-                            lineString = newLineWord + " "; //Transfer the current word.
-                            lineWidth = (int)Font.MeasureString(newLineWord + " ").X; //Assign the current line's width.
-                        }
-
-                        //Check if last.
-                        if (i == words.Count - 1)
-                        {
-                            processedText.Add(lineString.Substring(0, lineString.Length - 1)); //Add the current data to the line.
-
-                            if (newLine == true)
-                            {
-                                processedText.Add(newLineWord);
-                            }
-
-                            break;
-                        }
-                    }
+                    processedText.Add(lineString);
+                    lineString = "";
+                    continue;
                 }
-                else //If not fit it on this line.
+
+                //Check if there is still space on the current line.
+                if (lineWidth(lineString) + lineWidth(characters[i].ToString()) <= Width)
                 {
-                    if(words[i] != "") //Empty new lines create this case.
-                    {
-                        lineWidth += (int)Font.MeasureString(words[i] + " ").X; //Add the width of the word to the current line's.
-                        lineString += words[i] + " "; //Add the word to the string.
-                    }
-
-                    //Check if last.
-                    if (i == words.Count - 1)
-                    {
-                        processedText.Add(lineString.Substring(0, lineString.Length - 1)); //Add the current data to the line.
-
-                        if(newLine == true)
-                        {
-                            processedText.Add(newLineWord);
-                        }
-
-                        break;
-                    }
-
-                    //Check if a newline is queued.
-                    if (newLine == true)
-                    {
-                        processedText.Add(lineString.Substring(0, Math.Max(lineString.Length - 1,0))); //Add the current data to the line. Empty new lines create lengths shorter than 0.
-                        lineString = newLineWord + " "; //Transfer the current word.
-                        lineWidth = (int)Font.MeasureString(newLineWord + " ").X; //Assign the current line's width.
-                    }
+                    lineString += characters[i].ToString();
+                    continue;
+                }
+                else
+                {
+                    //If not enough space then go on the next line.
+                    processedText.Add(lineString);
+                    lineString = "";
+                    i--;
+                    continue;
                 }
             }
+        }
+        private float lineWidth(string line)
+        {
+            return Font.MeasureString(line).X;
+        }
+        private int spaceToNextSpace(List<char> characters, int cur)
+        {
+            //Loop from the current character to the ending.
+            for (int i = cur + 1; i < characters.Count; i++)
+            {
+                //If we find a space return the location of it.
+                if(characters[i] == ' ')
+                {
+                    return i - 1;
+                }
+            }
+            //If none found return -1;
+            return -1;
         }
         private void AutoWidth()
         {
@@ -382,7 +328,7 @@ namespace SoulEngine.Objects
                             temp_offset++;
 
                             //Endless loop escape.
-                            if(temp_offset > 10)
+                            if(temp_offset > 5)
                             {
                                 temp_offset = 0;
                                 break;

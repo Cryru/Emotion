@@ -24,15 +24,17 @@ namespace SoulEngine
         internal int Priority = 0;
         #endregion
 
-        ObjectBase test;
+        TextObject test;
         /// <summary>
         /// Is run when the screen is first loaded.
         /// It is recommended that you initialize your objects here.
         /// </summary>
         public override void LoadObjects()
         {
-            test = new ObjectBase();
-            Core.ObjectFullscreen(test);
+            test = new TextObject(Core.fontDebug, "A list of some of my <color=255-0-0>f</>avorite free programs that you definitely have to check out.", 200, 500);
+            test.Background = true;
+            test.backgroundColor = Color.Black;
+            Core.CenterObject(test);
         }
         /// <summary>
         /// Is run every frame on the CPU.

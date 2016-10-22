@@ -88,5 +88,21 @@ namespace SoulEngine
         /// </summary>
         public static bool loadSettingsFile = true;
         #endregion
+        #region "Android Settings"
+#if ANDROID
+        /// <summary>
+        /// The orientation of the screen.
+        /// </summary>
+        public static DisplayOrientation win_orientation = DisplayOrientation.Portrait;
+        /// <summary>
+        /// Whether to hide the android notification's bar.
+        /// </summary>
+        public static bool win_hidebar = true;
+        /// <summary>
+        /// The touch gestures the panel should track.
+        /// </summary>
+        public static GestureType enabledGestures = GestureType.Tap;
+#endif
+        #endregion
     }
 }
