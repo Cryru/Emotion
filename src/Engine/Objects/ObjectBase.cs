@@ -21,7 +21,7 @@ namespace SoulEngine.Objects
     class ObjectBase
     {
         #region "Declarations"
-        #region "Location, size, and rotation."
+        #region "Location, size, and rotation"
         /// <summary>
         /// The location of the object on the X axis.
         /// </summary>
@@ -120,7 +120,7 @@ namespace SoulEngine.Objects
             }
         }
         #endregion
-        #region "Texture and drawing variables."
+        #region "Texture and drawing variables"
         /// <summary>
         /// The texture object the object should be drawn as.
         /// </summary>

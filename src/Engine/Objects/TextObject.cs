@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,62 +22,160 @@ namespace SoulEngine.Objects
     class TextObject : ObjectBase
     {
         #region "Declarations"
-        //Text Properties.
-        public string Text = ""; //The text of the object.
-        private List<string> processedText = new List<string>(); //The text that has been processed and offloaded to the lists.
-        private List<string> procEffects = new List<string>(); //The effects for the processed symbols.
-        public SpriteFont Font = null; //A list of fonts to use, can be switched using a tag.
-
-        //Effects.
+        #region "Settings"
+        /// <summary>
+        /// The text to display.
+        /// </summary>
+        public string Text = "";
+        /// <summary>
+        /// The default color of the text.
+        /// </summary>
+        public Color TextColor = Color.White;
+        /// <summary>
+        /// The font of the text.
+        /// </summary>
+        public SpriteFont Font = null;
+        /// <summary>
+        /// Whether to draw an outline around the text.
+        /// </summary>
         public bool Outline = false; //Whether to outline the text.
-        public Color outlineColor = Color.Black; //The color of the outline.
-        public int outlineSize = 1; //The size of the outline.
-
-        //Render Modes
+        /// <summary>
+        /// The color of the outline.
+        /// This setting doesn't have any effect if the outline is disabled,
+        /// however it can set the default outline color when tags are placed.
+        /// </summary>
+        public Color outlineColor = Color.Black;
+        /// <summary>
+        /// The size of the outline.
+        /// </summary>
+        public int outlineSize = 1;
+        /// <summary>
+        /// The text style to use when rendering.
+        /// </summary>
         public enum RenderMode
         {
+            /// <summary>
+            /// Default. The text is aligned to the left of the box.
+            /// </summary>
             Left,
+            /// <summary>
+            /// Each line is centered.
+            /// </summary>
             Center,
+            /// <summary>
+            /// The text is aligned to the right of the box.
+            /// </summary>
             Right,
+            /// <summary>
+            /// Each line of text is stretched to be somewhat the same width creating a box effect.
+            /// </summary>
             Justified
         }
-        public RenderMode TextStyle = RenderMode.Left; //The way to render the text.
-        private List<int> ts_spaceX = new List<int>(); //The offset for space between letters. Each line corresponds to a line within the processedtext.
-
-        //Background
+        /// <summary>
+        /// The text style to render the text in.
+        /// </summary>
+        public RenderMode TextStyle = RenderMode.Left;
+        /// <summary>
+        /// Whether to skip rendering effects.
+        /// </summary>
+        public bool noEffects = false;
+        /// <summary>
+        /// whether to remove tags when not rendering effects.
+        /// If set to false tags in the text will be visible.
+        /// </summary>
+        public bool TagRemoval = true;
+        /// <summary>
+        /// Whether to automatically set the width of the text's size according to the text inside.
+        /// </summary>
+        public bool autoSizeX = false;
+        /// <summary>
+        /// Whether to automatically set the height of the text's size according to the text inside.
+        /// </summary>
+        public bool autoSizeY = false;
+        #region "Background"
+        /// <summary>
+        /// Whether to draw a background box around the object.
+        /// </summary>
         public bool Background = false;
+        /// <summary>
+        /// The image of the background. By default this is the missing image.
+        /// </summary>
         public Texture backgroundImage;
+        /// <summary>
+        /// The color tint of the background.
+        /// </summary>
         public Color backgroundColor = Color.White;
+        /// <summary>
+        /// The opacity of the background.
+        /// </summary>
         public float backgroundOpacity = 1f;
-        private ObjectBase bgObject;
+        /// <summary>
+        /// The margin between the text and the borders of the background box.
+        /// </summary>
         public int backgroundMargin = 5;
-
-        //Other.
-        public bool noEffects = false; //Whether to skip rendering effect tags.
-        public bool TagRemoval = true; //Whether to skip removing the tags. This does nothing if noEffects is false.
-        public bool autoSizeX = false; //Whether to automatically set the width of the object to the text's size.
-        public bool autoSizeY = false; //Whether to automatically set the height of the object based on the text's size.
+        #endregion
+        #endregion
+        #region "Processed Text"
+        /// <summary>
+        /// The text processed.
+        /// </summary>
+        private List<string> processedText = new List<string>();
+        /// <summary>
+        /// The effects processed with pointers for locations within the text.
+        /// </summary>
+        private List<string> procEffects = new List<string>();
+        /// <summary>
+        /// The offsets for the text's text style.
+        /// </summary>
+        private List<int> ts_spaceX = new List<int>();
+        #endregion
+        #region "Other"
+        /// <summary>
+        /// The actual background object.
+        /// </summary>
+        private ObjectBase bgObject;
+        #endregion
         #endregion
 
-        //Initializer
-        public TextObject(SpriteFont font = null, string _Text = "Lorem Ipsum", int Width = 100, int Height = 100)
+        /// <summary>
+        /// Creates a text displaying object.
+        /// </summary>
+        /// <param name="Text">The text to display.</param>
+        /// <param name="Font">The font of the text.</param>
+        /// <param name="TextStyle">The text style to render the text in.</param>
+        /// <param name="Width">The width of the object. This is overwritten by the AutoX setting.</param>
+        /// <param name="Height">The height of the object. This is overwritten by the AutoY setting.</param>
+        public TextObject(string Text = "", SpriteFont Font = null, RenderMode TextStyle = RenderMode.Left, int Width = 100, int Height = 100)
         {
             //Check if a font has been assigned.
-            if(font == null)
+            if (Font == null)
             {
-                Font = Core.fontDebug;
+                this.Font = Core.fontDebug;
             }
             else
             {
-                Font = font;
+                this.Font = Font;
             }
-            //Assign the text.
-            Text = _Text;
 
-            //Default Width/Height
+            //Assign the text.
+            this.Text = Text;
+
+            //Assign Width/Height
             this.Width = Width;
             this.Height = Height;
+
+            //Assign render mode.
+            this.TextStyle = TextStyle;
+
+            //Add the object's update method to the global updates.
+            Core.Updates.Add(Update);
         }
+        /// <summary>
+        /// Setups a background for the object. An alternative to setting the "Background" setting.
+        /// </summary>
+        /// <param name="image">The image of the background. By default this is the missing image.</param>
+        /// <param name="Color">The color tint of the background.</param>
+        /// <param name="Opacity">The opacity of the background.</param>
         public void SetupBackground(Texture image, Color Color, float Opacity)
         {
             Background = true;
@@ -85,25 +184,76 @@ namespace SoulEngine.Objects
             bgObject.Opacity = Opacity;
         }
 
-        //Is called every frame to draw the object.
-        public override void Draw()
+        /// <summary>
+        /// Is called by the global update event every frame to update the text.
+        /// The text is drawn on a render target and then rendered using the objectBase's draw method.
+        /// This is so rotation and everything works correctly.
+        /// </summary>
+        private void Update()
         {
+            //Declare location holders.
+            float X_holder;
+            float Y_holder;
+
+            //Hold the location.
+            X_holder = X;
+            Y_holder = Y;
+
+            //Reset location to 0 for the rendertarget.
+            X = 0;
+            Y = 0;
+
             //Process the text.
             Process();
+
+            //Define a render target.
+            RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, Width, Height);
+
+            //Set the graphics device to the render target and clear it.
+            Core.graphics.GraphicsDevice.SetRenderTarget(tempTarget);
+            Core.graphics.GraphicsDevice.Clear(Color.Transparent);
+
+            //Draw the part of the texture we need onto the target.
+            Core.ink.Begin();
+            //Render the text and background.
             Render();
+            Core.ink.End();
+
+            //Assign the render target.
+            Image.Image = tempTarget;
+
+            //Return to the default render target.
+            Core.graphics.GraphicsDevice.SetRenderTarget(null);
+
+            //Return the location.
+            X = X_holder;
+            Y = Y_holder;
         }
-        public void FixNewLine(ref string txt)
+        /// <summary>
+        /// Draws the text object and its background if enabled.
+        /// </summary>
+        public override void Draw()
         {
-            //Fix new line endings.
-            txt = txt.Replace("\\r", "\r");
-            txt = txt.Replace("\\n", "\n");
-            txt = txt.Replace("\\R", "\r");
-            txt = txt.Replace("\\N", "\n");
-            txt = txt.Replace("\r\n", "\n");
-            txt = txt.Replace("\r", "\r\n");
-            txt = txt.Replace("\r\n", "<- !<NEWLINE>! ->");
-            txt = txt.Replace("<- !<NEWLINE>! ->", "\n");
+            //Render a background if enabled.
+            if (Background)
+            {
+                if (bgObject == null) bgObject = new ObjectBase(backgroundImage);
+                bgObject.Bounds = new Rectangle(new Point(Bounds.X - backgroundMargin, Bounds.Y - backgroundMargin),
+                    new Point(Bounds.Width + (backgroundMargin * 2), Bounds.Height + (backgroundMargin * 2)));
+                bgObject.Image = backgroundImage;
+                bgObject.Color = backgroundColor;
+                bgObject.Opacity = backgroundOpacity;
+                bgObject.Draw();
+            }
+
+            //Render the object.
+            base.Draw(); 
         }
+
+        #region "Primary Functions"
+        /// <summary>
+        /// Processes text effects, text lines, text styles, and text size.
+        /// </summary>
         public void Process()
         {
             //Clear old variables.
@@ -116,7 +266,7 @@ namespace SoulEngine.Objects
             stringInProcess = FindTags();
             if (noEffects)
             {
-                if(TagRemoval == false) stringInProcess = Text;
+                if (TagRemoval == false) stringInProcess = Text;
                 procEffects.Clear();
             }
 
@@ -144,23 +294,38 @@ namespace SoulEngine.Objects
             //Calculate the offsets for the selected style.
             TextStyleCalculate();
         }
+        /// <summary>
+        /// Draws text with effects and outline.
+        /// </summary>
         public void Render()
         {
-            //Render a background if enabled.
-            if(Background)
-            {
-                if (bgObject == null) bgObject = new ObjectBase(backgroundImage);
-                bgObject.Bounds = new Rectangle(new Point(Bounds.X - backgroundMargin, Bounds.Y - backgroundMargin), 
-                    new Point(Bounds.Width + (backgroundMargin * 2), Bounds.Height + (backgroundMargin * 2)));
-                bgObject.Image = backgroundImage;
-                bgObject.Color = backgroundColor;
-                bgObject.Opacity = backgroundOpacity;
-                bgObject.Draw();
-            }
             //Render the text with the effects stack.
             RenderText();
         }
-        #region "Processing"
+        #endregion
+        #region "Processing Helper Functions"
+        /// <summary>
+        /// Fixes line endings.
+        /// Replaces all types of line endings, including escaped ones to "\n".
+        /// The reason \n is used instead of \r\n is because it's a single character.
+        /// </summary>
+        /// <param name="txt">The text to fix.</param>
+        private void FixNewLine(ref string txt)
+        {
+            //Fix new line endings.
+            txt = txt.Replace("\\r", "\r");
+            txt = txt.Replace("\\n", "\n");
+            txt = txt.Replace("\\R", "\r");
+            txt = txt.Replace("\\N", "\n");
+            txt = txt.Replace("\r\n", "\n");
+            txt = txt.Replace("\r", "\r\n");
+            txt = txt.Replace("\r\n", "<- !<NEWLINE>! ->");
+            txt = txt.Replace("<- !<NEWLINE>! ->", "\n");
+        }
+        /// <summary>
+        /// Calculates the text lines in order for the text to fit within the required width.
+        /// </summary>
+        /// <param name="stringInProcess"></param>
         private void CalculateLines(string stringInProcess)
         {
             //Get all characters.
@@ -192,7 +357,7 @@ namespace SoulEngine.Objects
                     //Get the space left on the current line.
                     float spaceOnLine = Width - lineWidth(lineString);
                     //Find the location of the next space.
-                    int nextSpace = spaceToNextSpace(characters, i) - i;
+                    int nextSpace = stringInProcess.IndexOf(' ', i + 1) - i;
                     //Check if the next location of the next space is not too far away.
                     if(nextSpace > 0)
                     {
@@ -232,24 +397,18 @@ namespace SoulEngine.Objects
                 }
             }
         }
+        /// <summary>
+        /// Returns the width of a string.
+        /// </summary>
+        /// <param name="line">The line of string in question.</param>
+        /// <returns>float - The width of the input string.</returns>
         private float lineWidth(string line)
         {
             return Font.MeasureString(line).X;
         }
-        private int spaceToNextSpace(List<char> characters, int cur)
-        {
-            //Loop from the current character to the ending.
-            for (int i = cur + 1; i < characters.Count; i++)
-            {
-                //If we find a space return the location of it.
-                if(characters[i] == ' ')
-                {
-                    return i;
-                }
-            }
-            //If none found return -1;
-            return -1;
-        }
+        /// <summary>
+        /// Sets the width to the longest line if automatic width is enabled.
+        /// </summary>
         private void AutoWidth()
         {
             //The biggest line.
@@ -267,20 +426,31 @@ namespace SoulEngine.Objects
             }
             Width = MaxWidth;
         }
+        /// <summary>
+        /// Sets the height to the number of lines if automatic height is enabled.
+        /// </summary>
         private void AutoHeight()
         {
             Height = (int)Font.MeasureString(" ").Y * processedText.Count();
         }
+        /// <summary>
+        /// Cuts lines that go out of the box.
+        /// </summary>
         private void CutLines()
         {
             //Remove extra lines.
             int linesCount = (int) Math.Round(Height / Font.MeasureString(" ").Y);
             processedText.RemoveRange(Math.Min(linesCount, processedText.Count), processedText.Count - Math.Min(linesCount, processedText.Count));
         }
-        //Decides on the offsets of the text based on the text style.
+        /// <summary>
+        /// Calculates the offsets for the current text style.
+        /// </summary>
         private void TextStyleCalculate()
         {
+            //Clears offsets for the last frame.
             ts_spaceX.Clear();
+
+            //Generate offsets depending on the next frame.
             switch(TextStyle)
             {
                 case RenderMode.Center: //In this mode we center the text by subtracting the line's width from the total width and dividing it by two.
@@ -438,18 +608,13 @@ namespace SoulEngine.Objects
         #endregion
         #endregion
         #region "Rendering"
-        //Render passes.
-        private void RenderPass_Outlines()
-        {
-            
-        }
         private void RenderText()
         {
             //The position of the current letter, in the overall text as they are written in the effects list.
             int pointerPosition = 0;
 
             //The default values.
-            Color color = Color;
+            Color color = TextColor;
             bool outline = Outline;
             Color outlineColor = this.outlineColor;
             int outlineSize = this.outlineSize;
@@ -472,7 +637,7 @@ namespace SoulEngine.Objects
                     UpdateEffectStack(effectsStack, pointerPosition);
 
                     //Reset to defaults.
-                    color = Color;
+                    color = TextColor;
                     outline = Outline;
                     outlineColor = this.outlineColor;
                     outlineSize = this.outlineSize;

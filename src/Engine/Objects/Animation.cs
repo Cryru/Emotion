@@ -7,20 +7,20 @@ using SoulEngine.Objects.Internal;
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // Used for animating textures from a spritesheet.                          //
-    // Can also be used to split a spritesheet into it's individual frames.     //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Used for animating textures from a spritesheet.
+    /// Can also be used to split a spritesheet into it's individual frames.
+    /// </summary>
     class Animation : Timer
     {
-    #region "Declarations"
-        //Textures
+        #region "Declarations"
+        #region "Frame Texture"
         /// <summary>
         /// A list of all cut frames. This includes even the ones outside of the starting-ending frame scope.
         /// </summary>
@@ -58,17 +58,127 @@ namespace SoulEngine.Objects
                 return frames[_Frame];
             }
         }
+        #endregion
+        #region "Frame Information"
         /// <summary>
-        /// The name of the spritesheet texture.
+        /// The current frame's number, counting the first frame as zero.
         /// </summary>
-        public string SheetName = "";
+        public int Frame
+        {
+            get
+            {
+                return _Frame - startingFrame;
+            }
+            set
+            {
+                _Frame = startingFrame + value;
+            }
+        }
+        /// <summary>
+        /// The total number of frames for the animation.
+        /// </summary>
+        public int FramesTotal
+        {
+            get
+            {
+                return FramesCount;
+            }
+        }
+        /// <summary>
+        /// The frames per second of the animation, essentially the speed.
+        /// </summary>
+        public int FPS
+        {
+            get
+            {
+                return _FPS;
+            }
+            set
+            {
+                //The delay (since it's in miliseconds) is equal to the fps divided by a second, or 1000 miliseconds.
+                Delay = 1000f / (float)value;
+                _FPS = value;
+            }
+        }
+        #endregion
+        #region "Private Frame Information"
+        /// <summary>
+        /// The frame to start from, or end on if in reverse, from all the frames in the spritesheet.
+        /// </summary>
+        private int startingFrame = 0;
+        /// <summary>
+        /// The frame to end at, or start on if in reverse, from all the frames in the spritesheet. 
+        /// Internal Accessor.
+        /// </summary>
+        private int endingFrame
+        {
+            get
+            {
+                if (_endingFrame == -1)
+                {
+                    return FramesCountTotal - 1;
+                }
 
-        //Settings and Loop
-        public LoopType Loop; //The type of loop to use.
+                return _endingFrame;
+            }
+            set
+            {
+                _endingFrame = value;
+            }
+        }
+        /// <summary>
+        /// The frame to end at, or start on if in reverse, from all the frames in the spritesheet. 
+        /// </summary>
+        private int _endingFrame = 0;
+        /// <summary>
+        /// The current frame, from the total frame coung.
+        /// </summary>
+        private int _Frame = 0;
+        /// <summary>
+        /// The current frame, from the range of frames defined by the first and last frame.
+        /// </summary>
+        private int FramesCount = 0;
+        /// <summary>
+        /// The total amount of frames on the spritesheet.
+        /// </summary>
+        private int FramesCountTotal = 0;
+        /// <summary>
+        /// The frames per second of the animation. Private holder.
+        /// </summary>
+        private int _FPS = 0;
+        /// <summary>
+        /// All the frames from the spritesheet. Private holder.
+        /// </summary>
+        private List<Texture2D> frames = new List<Texture2D>();
+        #endregion
+        #region "Spritesheet Information"
+        /// <summary>
+        /// The width of individual frames.
+        /// </summary>
+        private int fWidth;
+        /// <summary>
+        /// The height of individual frames.
+        /// </summary>
+        private int fHeight;
+        /// <summary>
+        /// The rows of frames the spritesheet contains.
+        /// This is calculated.
+        /// </summary>
+        private int fRows;
+        /// <summary>
+        /// The columns of frames the spritesheet contains.
+        /// This is calculated.
+        private int fColumns;
+        #endregion
+        #region "Loop"
+        /// <summary>
+        /// The type of loop.
+        /// </summary>
+        public LoopType Loop;
         /// <summary>
         /// The type of animation loop.
         /// </summary>
-        public enum LoopType 
+        public enum LoopType
         {
             /// <summary>
             /// Disabled looping, animation will play once.
@@ -91,78 +201,31 @@ namespace SoulEngine.Objects
             /// </summary>
             NoneReverse
         }
-        private bool flagReverse = false; //Used for NormalThenReverse, is true once reverse.
-
-        //Events
-        public Event<Animation> onFrameChange = new Event<Animation>(); //The event for when the frame changes.
-        public Event<Animation> onFinished = new Event<Animation>(); //The event for when the animation has finished.
-        public Event<Animation> onLoop = new Event<Animation>(); //The event for when the animation loops back.
-
-        //Public Accessors
-        public int Frame //The current frame's number, counting the first frame as zero.
-        {
-            get
-            {
-                return _Frame - startingFrame;
-            }
-            set
-            {
-                _Frame = startingFrame + value;
-            }
-        }
-        public int FramesTotal //The total number of frames for the animation.
-        {
-            get
-            {
-                return FramesCount;
-            }
-        }
-        public int FPS //The frames per second of the animation, essentially the speed.
-        {
-            get
-            {
-                return _FPS;
-            }
-            set
-            {
-                //The delay (since it's in miliseconds) is equal to the fps divided by a second, or 1000 miliseconds.
-                Delay = 1000f / (float)value; 
-                _FPS = value;
-            }
-        }
-
-        //Private Workings
-        private int startingFrame = 0; //The frame to start from, from all the frames in the spritesheet.
-        private int endingFrame //The frame to end at, from all the frames in the spritesheet. This is the accessor that will return the last frame when the ending frame is -1.
-        {
-            get
-            {
-                if(_endingFrame == -1)
-                {
-                    return FramesCountTotal - 1;
-                }
-
-                return _endingFrame;
-            }
-            set
-            {
-                _endingFrame = value;
-            }
-        }
-        private int _endingFrame = 0; //The frame to end at, from all the frames in the spritesheet.
-        private int _Frame = 0; //The current frame's number, from the total frame count.
-        private int FramesCount = 0; //The total number of frames in the animation. This is calculated.
-        private int FramesCountTotal = 0; //The total number of frames on the spritesheet.
-
-        //Timing
-        private int _FPS = 0; //The frames per second of the animation. This is inputed.
-
-        //Atlas Variables
-        private int fWidth; //The width of each individual frame. This is inputed.
-        private int fHeight; //The height of each individual frame. This is inputed.
-        private int fRows; //The number of rows of frames the spritesheet contains. This is calculated.
-        private int fColumns; //The number of columns of frames the spritesheet contains. This is calculated.
-        private List<Texture2D> frames = new List<Texture2D>(); //All the frames from the atlas cut.
+        /// <summary>
+        /// Used for NormalThenReverse, is true once reverse.
+        /// </summary>
+        private bool flagReverse = false;
+        #endregion
+        #region "Events"
+        /// <summary>
+        /// When the frame changes.
+        /// </summary>
+        public Event<Animation> onFrameChange = new Event<Animation>();
+        /// <summary>
+        /// When the animation has finished.
+        /// </summary>
+        public Event<Animation> onFinished = new Event<Animation>();
+        /// <summary>
+        /// When the animation loops back.
+        /// </summary>
+        public Event<Animation> onLoop = new Event<Animation>();
+        #endregion
+        #region "Other"
+        /// <summary>
+        /// The name of the spritesheet texture.
+        /// </summary>
+        public string SheetName = "";
+        #endregion
         #endregion
 
         /// <summary>
@@ -175,32 +238,27 @@ namespace SoulEngine.Objects
         /// <param name="endingFrame">The frame to end the animation at. Set to -1 to play until the last frame.</param>
         /// <param name="AnimationLoop">The type of animation, Reverse, NormalThenReverse etc.</param>
         /// <param name="FPS">The frames per second, AKA speed at which frames should be animated.</param>
-        public Animation(Texture2D SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10) : base()
+        public Animation(Texture SpriteSheet, int frameWidth, int frameHeight, int startingFrame = 0, int endingFrame = -1, LoopType AnimationLoop = LoopType.Normal, int FPS = 10) : base()
         {
             //Assign variables
             fWidth = frameWidth;
             fHeight = frameHeight;
             this.FPS = FPS;
-            SheetName = SpriteSheet.Name;
+            SheetName = SpriteSheet.ImageName;
 
             //Setup the timer tick call.
             onTick.Add(Tick);
 
-            //Split frames and assign variables.
-            SplitSheet(SpriteSheet);
-            
             //Setup the starting and ending frames.
             this.startingFrame = startingFrame;
             this.endingFrame = endingFrame;
-            _Frame = startingFrame - 1; //We remove one because we are going to load a single tick to get the first frame loaded.
+
+            //Split frames and assign variables.
+            SplitSheet(SpriteSheet.Image);
 
             //Set loop variables.
             Loop = AnimationLoop;
             InitLoop();
-
-            //We run one frame here.
-            //TimerTick(); 
-
         }
         #region "Initialization Functions"
         /// <summary>
@@ -285,7 +343,10 @@ namespace SoulEngine.Objects
         }
         #endregion
 
-        //Is run on timer tick.
+        /// <summary>
+        /// Is run every tick.
+        /// Changes the frame over to the next one depending on the loop type.
+        /// </summary>
         private void Tick()
         {
             switch(Loop)
@@ -363,7 +424,9 @@ namespace SoulEngine.Objects
             }
         }
 
-        //Resets the animation.
+        /// <summary>
+        /// Resets the animation.
+        /// </summary>
         public override void Reset()
         {
             //Reset the loop variables.

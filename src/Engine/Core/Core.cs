@@ -106,6 +106,14 @@ namespace SoulEngine
         /// The screens that are rendered.
         /// </summary>
         public static List<Screen> Screens = new List<Screen>();
+        /// <summary>
+        /// Methods that are run every frame on the CPU.
+        /// </summary>
+        public static Objects.Internal.Event<string> Updates = new Objects.Internal.Event<string>();
+        /// <summary>
+        /// Methods that are run every frame on the GPU.
+        /// </summary>
+        public static Objects.Internal.Event<string> DrawUpdates = new Objects.Internal.Event<string>();
         #endregion
         #endregion
 
@@ -140,7 +148,7 @@ namespace SoulEngine
 
             //Setup the screen, and the screen adapter.
             ScreenSettingsRefresh();
-            ScreenAdapter = new BoxingViewportAdapter(host.Window, host.GraphicsDevice, Settings.game_width, Settings.game_height);
+            ScreenAdapter = new BoxingViewportAdapter(host.Window, graphics, Settings.game_width, Settings.game_height);
 
             //Setup the camera.
             maincam = new Camera2D(ScreenAdapter);
@@ -179,7 +187,7 @@ namespace SoulEngine
         public static void LoadGlobalObjects()
         {
             //Setup the debugText object.
-            debugText = new TextObject(fontDebug);
+            debugText = new TextObject(Font: fontDebug);
             debugText.Tags.Add("debugText");
             debugText.Color = Color.Yellow;
             debugText.Outline = true;
@@ -193,7 +201,7 @@ namespace SoulEngine
             debugText.backgroundOpacity = 0.5f;
 
             //Setup the fps text object.
-            fpsText = new TextObject(fontDebug);
+            fpsText = new TextObject(Font: fontDebug);
             fpsText.Tags.Add("fpsText");
             fpsText.Color = Color.Yellow;
             fpsText.Outline = true;
@@ -257,6 +265,9 @@ namespace SoulEngine
                     Timers[i].Run();
                 }
             }
+
+            //Update hooked methods.
+            Updates.Trigger("");
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
@@ -279,6 +290,9 @@ namespace SoulEngine
             ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
             //End drawing.
             ink.End();
+
+            //Update hooked methods.
+            DrawUpdates.Trigger("");
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
