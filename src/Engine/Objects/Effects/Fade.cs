@@ -64,7 +64,7 @@ namespace SoulEngine.Objects
 
             if(_fadingObject == null)
             {
-                fadingObject = new ObjectBase(new Texture(Core.blankTexture));
+                fadingObject = new ObjectBase(new Texture(Core.blankTexture.Image));
                 Core.ObjectFullscreen(fadingObject);
             }
             else

@@ -8,65 +8,125 @@ using SoulEngine.Objects.Internal;
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // A timer for timing events independent of FPS.                            //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// A timer for timing events independent of FPS, but on real time.
+    /// Uses rendertime to determine time passing.
+    /// </summary>
     class Timer
     {
         #region "Declarations"
-        //Settings
-        public double Delay; //The time to wait.
-        public int Ticks //The number of times the timer has ticked. A readonly value for the user.
+        #region "Settings"
+        /// <summary>
+        /// The delay between ticks.
+        /// </summary>
+        public float Delay;
+        /// <summary>
+        /// Whether the timer is part of the global timers.
+        /// Global timers are timers that are executed by the engine every frame.
+        /// </summary>
+        public bool globalTimer;
+        #endregion
+        #region "Information"
+        /// <summary>
+        /// The number of times the timer has ticked.
+        /// </summary>
+        public int Ticks
         {
             get
             {
                 return timerTicks;
             }
         }
-        public int Limit; //The limit of how many times the timer should tick.
-        public bool globalTimer; //Whether the timer is part of the global timers.
-
-        //Information
+        /// <summary>
+        /// The limit of how many times the timer should tick.
+        /// If -1 then the timer will tick forever.
+        /// </summary>
+        public int Limit;
+        /// <summary>
+        /// Returns a true if the current tick is the last.
+        /// </summary>
         public bool isLastTick
         {
             get
             {
                 return Ticks == Limit && _State != TimerState.Done;
             }
-        } //Returns a true if the current tick is the last.
-
-        //Events
-        public Event<Timer> onTick = new Event<Timer>(); //The event for when a tick occurs.
-        public Event<Timer> onTickLimitReached = new Event<Timer>(); //The event for when the maximum ticks has been reached.
-
-        //State
-        public TimerState State //The state of the timer, readonly for user reading.
+        }
+        #endregion
+        #region "Events"
+        /// <summary>
+        /// When the timer ticks.
+        /// </summary>
+        public Event<Timer> onTick = new Event<Timer>();
+        /// <summary>
+        /// When the timer's tick limit has been reached.
+        /// This will never be triggered for endless timers.
+        /// </summary>
+        public Event<Timer> onTickLimitReached = new Event<Timer>();
+        #endregion
+        #region "State"
+        /// <summary>
+        /// The state of the timer.
+        /// </summary>
+        public TimerState State
         {
             get
             {
                 return _State;
             }
         }
-        protected TimerState _State = TimerState.None; //The state of the timer, private for editing.
-        protected TimerState pausedStateHolder; //The state of the timer when paused.
+        /// <summary>
+        /// The state of the timer. Private holder.
+        /// </summary>
+        protected TimerState _State = TimerState.None;
+        /// <summary>
+        /// The state of the timer is held here while the timer is paused.
+        /// </summary>
+        protected TimerState pausedStateHolder;
+        /// <summary>
+        /// The timer states.
+        /// </summary>
         public enum TimerState  //The possible states.
         {
-            None, //Not setup.
-            Paused, //For when the timer is paused.
-            Running, //For when the timer is running.
-            WaitingForEvent, //When waiting to execute the onTickLimitReached event.
-            Done //When the limit has been reached.
+            /// <summary>
+            /// Error, or not setup.
+            /// </summary>
+            None,
+            /// <summary>
+            /// The timer is paused.
+            /// Call "Start" to start it.
+            /// </summary>
+            Paused,
+            /// <summary>
+            /// The timer is running.
+            /// </summary>
+            Running,
+            /// <summary>
+            /// The timer has reached its tick limit and is waiting to trigger the event.
+            /// </summary>
+            WaitingForEvent,
+            /// <summary>
+            /// The timer has reached its tick limit and ended operation.
+            /// </summary>
+            Done
         }
-
-        //Private Workings
-        private double timerValue; //The variable that counts.
-        private int timerTicks; //The number of times the timer has ticked, private variable for editing.
+        #endregion
+        #region "Private Workings"
+        /// <summary>
+        /// The variable that records time.
+        /// </summary>
+        private float timerValue;
+        /// <summary>
+        /// The number of time the number has ticked. Private holder.
+        /// </summary>
+        private int timerTicks;
+        #endregion
         #endregion
 
         /// <summary>
@@ -76,7 +136,7 @@ namespace SoulEngine.Objects
         /// <param name="Delay">The delay between ticks.</param>
         /// <param name="Limit">The number of times the timer should tick. If below 0 it will go on forever.</param>
         /// <param name="addGlobal">True by default, if enabled the timer will be added to the list of global timers that are run every frame.</param>
-        public Timer(double Delay = 100, int Limit = -1, bool addGlobal = true)
+        public Timer(float Delay = 100, int Limit = -1, bool addGlobal = true)
         {
             this.Delay = Delay;
             this.Limit = Limit;
@@ -89,7 +149,9 @@ namespace SoulEngine.Objects
             globalTimer = addGlobal;
         }
 
-        //Is run every frame.
+        /// <summary>
+        /// Is run every frame. Calculates the time until the text tick, invokes events and handles ticks.
+        /// </summary>
         public void Run()
         {
 
@@ -126,12 +188,16 @@ namespace SoulEngine.Objects
 
                 case TimerState.WaitingForEvent: //If finishing up.
 
-                    onTickLimitReached.Trigger(this);
                     _State = TimerState.Done;
+                    onTickLimitReached.Trigger(this);
                     break;
             }
         }
-        //Pause if running.
+
+        #region "Operations"
+        /// <summary>
+        /// Pause the timer.
+        /// </summary>
         public virtual void Pause()
         {
             if (_State != TimerState.Paused)
@@ -140,26 +206,32 @@ namespace SoulEngine.Objects
                 _State = TimerState.Paused;
             }
         }
-        //Start if pausing.
+        /// <summary>
+        /// Start the timer if paused.
+        /// </summary>
         public virtual void Start()
         {
-            if(_State == TimerState.Paused)
+            if (_State == TimerState.Paused)
             {
                 _State = pausedStateHolder;
             }
         }
-        //Resets the timer.
+        /// <summary>
+        /// Reset the timer and restart.
+        /// Once reset the timer needs to be started again.
+        /// </summary>
         public virtual void Reset()
         {
             //Check if in the global timers.
-            if(Core.Timers.IndexOf(this) == -1 && globalTimer == true)
+            if (Core.Timers.IndexOf(this) == -1 && globalTimer == true)
             {
                 Core.Timers.Add(this);
             }
 
             timerTicks = 0;
             _State = TimerState.Paused;
-            pausedStateHolder = TimerState.None;
+            pausedStateHolder = TimerState.Running;
         }
+        #endregion
     }
 }

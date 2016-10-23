@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
     // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
@@ -21,7 +21,7 @@ namespace SoulEngine.Objects
     class ObjectBase
     {
         #region "Declarations"
-            #region "Location, size, and rotation."
+        #region "Location, size, and rotation"
         /// <summary>
         /// The location of the object on the X axis.
         /// </summary>
@@ -120,7 +120,7 @@ namespace SoulEngine.Objects
             }
         }
         #endregion
-            #region "Texture and drawing variables."
+        #region "Texture and drawing variables"
         /// <summary>
         /// The texture object the object should be drawn as.
         /// </summary>
@@ -142,7 +142,7 @@ namespace SoulEngine.Objects
         /// </summary>
             public SpriteEffects MirrorEffects = SpriteEffects.None;
             #endregion
-            #region "Other"
+        #region "Other"
             /// <summary>
             /// //A list of strings you can use to store values inside the object.
             /// </summary>
@@ -184,11 +184,11 @@ namespace SoulEngine.Objects
             {
                 return;
             }
-            
 
             //Apply Properties to empty values.
             if (DrawImage == null)
             {
+                if (Image == null) Image = Core.missingTexture;
                 DrawImage = Image.Image;
             }
             if(DrawBounds == new Rectangle())
