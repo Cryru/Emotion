@@ -234,7 +234,8 @@ namespace SoulEngine
             {
                 //Write the FPS and framework info to the debug text.
                 debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
-                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" + "Global Timers Running: " + Timers.Count;
+                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" + 
+                    "Globals (T/U/D): " + Timers.Count + " / " + Updates.Count() + " / " + DrawUpdates.Count();
             }
 
             //Update the fps counter.
@@ -265,15 +266,14 @@ namespace SoulEngine
                     Timers[i].Run();
                 }
             }
-
-            //Update hooked methods.
-            Updates.Trigger("");
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
         /// </summary>
         public static void Update_End(GameTime gameTime)
         {
+            //Update hooked methods.
+            Updates.Trigger("");
             //Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
@@ -290,15 +290,16 @@ namespace SoulEngine
             ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
             //End drawing.
             ink.End();
-
-            //Update hooked methods.
-            DrawUpdates.Trigger("");
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
         /// </summary>
         public static void Draw_End(GameTime gameTime)
         {
+            //Update hooked methods.
+            DrawUpdates.Trigger("");
+
+            //Draw on the screen.
             DrawScreen();
             //Check if we are drawing the FPS counter.
             if (Settings.displayFPS == true)
