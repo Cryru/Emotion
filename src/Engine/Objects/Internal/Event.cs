@@ -76,5 +76,12 @@ namespace SoulEngine.Objects.Internal
                 hookedMethods_NoArg[i].Invoke();
             }
         }
+        /// <summary>
+        /// The number of methods linked to this event.
+        /// </summary>
+        public int Count()
+        {
+            return hookedMethods_Arg.Count + hookedMethods_NoArg.Count;
+        }
     }
 }

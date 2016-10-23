@@ -3,38 +3,55 @@
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // An active texture object for loading and storing                         //
-    // 2DTextures in various ways including interfacing with                    //
-    // the engine's Animation object.                                           //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// A texture object for storing and loading textures in an event free way and 
+    /// interfacing with the engine's Animation object.  
+    /// </summary>
     class Texture
     {
-        //Initializers
+        #region "Initializers"
+        /// <summary>
+        /// Create a new Texture Object by specifying a texture.
+        /// </summary>
         public Texture(Texture2D Image)
         {
             this.Image = Image;
         }
+        /// <summary>
+        /// Create a new Texture Object by specifying a texture name.
+        /// </summary>
         public Texture(string ImageName)
         {
             this.ImageName = ImageName;
         }
+        /// <summary>
+        /// Create a new Texture Object by specifying an animation object.
+        /// </summary>
         public Texture(Animation Animation)
         {
             this.Animation = Animation;
         }
+        /// <summary>
+        /// Create a new Texture Object by not specifying anything.
+        /// This will load the missingTexture from Core.
+        /// </summary>
         public Texture()
         {
-            Image = Core.missingimg;
+            Image = Core.missingTexture.Image;
         }
-
-        public Texture2D Image //The texture's image.
+        #endregion
+        #region "Public Accessors"
+        /// <summary>
+        /// The image texture. If an invalid input is entered the missingTexture from Core will be loaded instead.
+        /// If linked with an animation object, the current frame will be returned.
+        /// </summary>
+        public Texture2D Image
         {
             get
             {
@@ -48,7 +65,7 @@ namespace SoulEngine.Objects
                 if (_Image == null)
                 {
                     //If it is assign the missing image image.
-                    ImageName = "missingimg";
+                    ImageName = "missing";
                 }
                 //Return the private property image.
                 return _Image;
@@ -77,7 +94,11 @@ namespace SoulEngine.Objects
                 }
             }
         }
-        public string ImageName //The texture's name, can also be used to assign a texture by name.
+        /// <summary>
+        /// The image texture's name. If set, the object will load a texture from the Content Pipeline using
+        /// the name as the texture's path. In case of invalid input the missingTexture will be loaded.
+        /// </summary>
+        public string ImageName
         {
             get
             {
@@ -105,7 +126,7 @@ namespace SoulEngine.Objects
                 if (value == "blank" || value == "" || value == null)
                 {
                     _ImageName = value; //Assign the name from variable.
-                    _Image = Core.blankTexture; //Assign the blank texture.
+                    _Image = Core.blankTexture.Image; //Assign the blank texture.
                 }
                 else
                 {
@@ -116,17 +137,34 @@ namespace SoulEngine.Objects
                     }
                     //Assign the image's name.
                     _ImageName = value;
-                    //Lost a texture by the name.
+
+                    //Load a texture by the name.
                     _Image = Core.LoadTexture(_ImageName);
                 }
             }
         }
-        public bool Force = false; //Whether to force loading textures and not check if they are the same texture.
-        public Animation Animation; //The animation object that can be linked with this one to automatically update textures from.
-
-        //Private holders.
-        private string _ImageName = ""; //The texture's name private property.
-        private Texture2D _Image; //The texture's image private property.
-
+        /// <summary>
+        /// If true the object will be forced to load the inputted texture or texture name even 
+        /// if the same texture, or a texture with the same name is inputted.
+        /// </summary>
+        public bool Force = false;
+        /// <summary>
+        /// An animation object that will be linked to this object.
+        /// When linked the current texture will not be returned, but the animation's current frame will be returned.
+        /// Also attempting to set the texture will not work.
+        /// To resume normal operation of the object the animation must be unset.
+        /// </summary>
+        public Animation Animation;
+        #endregion
+        #region "Private Holders"
+        /// <summary>
+        /// The texture's name.
+        /// </summary>
+        private string _ImageName = "";
+        /// <summary>
+        /// The texture.
+        /// </summary>
+        private Texture2D _Image;
+        #endregion
     }
 }

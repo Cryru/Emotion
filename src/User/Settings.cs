@@ -5,38 +5,104 @@ using Microsoft.Xna.Framework.Input.Touch;
 namespace SoulEngine
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // Engine user setings.                                                     //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
-    public class Settings
+    /// <summary>
+    /// The engine's user settings.
+    /// </summary>
+    public partial class Settings
     {
-        //Window Settings
-        public static int win_width = 960; //The width of the window.
-        public static int win_height = 540; //The height of the window.
-        public static int game_width = 1280; //The width the game will be rendered at.
-        public static int game_height = 720; //The height the game will be rendered at.
-        public static string win_name = "NONE"; //The name of the window.
-        public static bool win_fullscreen = false; //Whether the window should cover the whole screen. Functionally this is borderless windowed.
-        public static bool win_renderMouse = true; //Wether the mouse should be rendered.
+        #region "Window Settings"
+        /// <summary>
+        /// The width of the window.
+        /// </summary>
+        public static int win_width = 960;
+        /// <summary>
+        /// The height of the window.
+        /// </summary>
+        public static int win_height = 540;
+        /// <summary>
+        /// The width the game will be rendered at.
+        /// </summary>
+        public static int game_width = 1280;
+        /// <summary>
+        /// The height the game will be rendered at.
+        /// </summary>
+        public static int game_height = 720;
+        /// <summary>
+        /// The name of the window.
+        /// </summary>
+        public static string win_name = "NONE";
+        /// <summary>
+        /// Whether the window should cover the whole screen. Functionally this is borderless windowed.
+        /// </summary>
+        public static bool win_fullscreen = false;
+        /// <summary>
+        /// Whether the mouse should be rendered.
+        /// </summary>
+        public static bool win_renderMouse = true;
+        #endregion
+        #region "Debug Settings"
+        /// <summary>
+        /// Enables debug mode.
+        /// </summary>
+        public static bool debug = true;
+        /// <summary>
+        /// Toggles updating the debug text.
+        /// </summary>
+        public static bool debugUpdate = true;
+        /// <summary>
+        /// Whether to draw the current fps on the screen.
+        /// </summary>
+        public static bool displayFPS = true;
+        #endregion
+        #region "Screen Settings"
+        /// <summary>
+        /// The screen to load first.
+        /// </summary>
+        public static Objects.Screen StartScreen = new StartScreen();
+        #endregion
+        #region "Other Settings"
+        /// <summary>
+        /// The color that the dummy area will be filled in.
+        /// </summary>
+        public static Color fillcolor = Color.Black;
+        /// <summary>
+        /// The color that the drawing area will be filled in.
+        /// </summary>
+        public static Color drawcolor = Color.CornflowerBlue;
+        /// <summary>
+        /// Whether sound is on or off.
+        /// </summary>
+        public static bool sound = true;
+        /// <summary>
+        /// The key to used to close the application, except alt+F4.
+        /// </summary>
+        public static Keys keyClosing = Keys.Escape;
+        /// <summary>
+        /// Enables or disables the ability for the settings file to overwrite settings.
+        /// </summary>
+        public static bool loadSettingsFile = true;
+        #endregion
+        #region "Android Settings"
 #if ANDROID
-        public static DisplayOrientation win_orientation = DisplayOrientation.Portrait; //The orientation of the screen.
-        public static bool win_hidebar = true; //Whether to hide the android notification's bar.
+        /// <summary>
+        /// The orientation of the screen.
+        /// </summary>
+        public static DisplayOrientation win_orientation = DisplayOrientation.Portrait;
+        /// <summary>
+        /// Whether to hide the android notification's bar.
+        /// </summary>
+        public static bool win_hidebar = true;
+        /// <summary>
+        /// The touch gestures the panel should track.
+        /// </summary>
+        public static GestureType enabledGestures = GestureType.Tap;
 #endif
-
-        //Debug Settings
-        public static bool debug = true; //Enables debug mode.
-        public static bool debugUpdate = true; //Toggles updating the debug text.
-        public static bool debugLogging = true; //Enables the Soul "Log" module.
-
-        //Other Settings
-        public static Color fillcolor = Color.Black; //The color that the dummy area will be filled in.
-        public static Color drawcolor = Color.CornflowerBlue; //The color that the drawing area will be filled in.
-        public static bool sound = true; //Whether sound is on or off.
-        public static Keys keyClosing = Keys.Escape; //The key used to close the application.
-        public static bool displayFPS = true; //Whether to draw the current fps on the screen.
-        public static GestureType enabledGestures = GestureType.Tap; //The touch gestures the panel should track.
+        #endregion
     }
 }

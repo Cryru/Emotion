@@ -64,7 +64,7 @@ namespace SoulEngine.Objects
         //Internal
         private Mode _Status = Mode.None; //The status editable declaration.
         private Rectangle offsetBounds; //The offset of the object's location, used when under a parent.
-        private ObjectBase grayingOut = new ObjectBase(new Texture(Core.blankTexture)); //The gray out effect.
+        private ObjectBase grayingOut = new ObjectBase(new Texture(Core.blankTexture.Image)); //The gray out effect.
         private bool trigger_mouseover_done = false;
         private bool trigger_click_done = false;
         private bool trigger_up_done = false;
@@ -126,11 +126,11 @@ namespace SoulEngine.Objects
                 case Mode.Clicked:
                 case Mode.Selected:
                     Image = ImageMouseClick;
-                    if (ImageMouseClick.Image == Core.missingimg) Image = ImageNone;
+                    if (ImageMouseClick.Image == Core.missingTexture.Image) Image = ImageNone;
                     break;
                 case Mode.Mouseovered:
                     Image = ImageMouseOver;
-                    if (ImageMouseOver.Image == Core.missingimg) Image = ImageNone;
+                    if (ImageMouseOver.Image == Core.missingTexture.Image) Image = ImageNone;
                     break;
                 case Mode.None:
                     Image = ImageNone;
