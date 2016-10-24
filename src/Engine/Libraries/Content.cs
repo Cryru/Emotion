@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace SoulEngine.Content
 {
@@ -1270,5 +1271,54 @@ namespace SoulEngine.Content
             new Color(200,53,53,255), new Color(200,53,53,255), new Color(200,53,53,255), new Color(200,53,53,255), new Color(200,53,53,255), new Color(200,53,53,255), new Color(200,53,53,255), new Color(200,53,53,255)}; 
 			
         #endregion
+    }
+    public class Load
+    {
+        /// <summary>
+        /// Loads a texture by name, if the texture doesn't exist it will return the missing texture.
+        /// </summary>
+        /// <param name="name">The name and path of the texture to load.</param>
+        /// <returns>The texture. If it doesn't exist it will return the missing texture.</returns>
+        public static Texture2D Texture(string name)
+        {
+            if (IO.GetContentExist(name))
+            {
+                try
+                {
+                    return Core.host.Content.Load<Texture2D>("SCon/" + name);
+                }
+                catch
+                {
+                    return Core.missingTexture.Image;
+                }
+            }
+            else
+            {
+                return Core.missingTexture.Image;
+            }
+        }
+        /// <summary>
+        /// Loads a font by name, if the font doesn't exist it will return the debug font.
+        /// </summary>
+        /// <param name="name">The name and path of the font to load.</param>
+        /// <returns>The font. If it doesn't exist then the debug font will be loaded.</returns>
+        public static SpriteFont Font(string name)
+        {
+            if (IO.GetContentExist(name))
+            {
+                try
+                {
+                    return Core.host.Content.Load<SpriteFont>("SCon/" + name);
+                }
+                catch
+                {
+                    return Core.fontDebug;
+                }
+            }
+            else
+            {
+                return Core.fontDebug;
+            }
+        }
     }
 }
