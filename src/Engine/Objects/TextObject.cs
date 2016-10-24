@@ -220,6 +220,7 @@ namespace SoulEngine.Objects
             Process();
 
             //Define a render target.
+            Viewport tempPortHolder = Core.graphics.GraphicsDevice.Viewport;
             RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, Width, Height);
             
             //Set the graphics device to the render target and clear it.
@@ -237,6 +238,7 @@ namespace SoulEngine.Objects
 
             //Return to the default render target.
             Core.graphics.GraphicsDevice.SetRenderTarget(null);
+            Core.graphics.GraphicsDevice.Viewport = tempPortHolder;
 
             //Return the location.
             X = X_holder;
