@@ -159,7 +159,7 @@ namespace SoulEngine
         /// <summary>
         /// Loads and setups global content.
         /// </summary>
-        public static void LoadGlobalContent()
+        private static void LoadGlobalContent()
         {
             //Load the missingTexture from its color array.
             missingTexture = new Objects.Texture(new Texture2D(graphics.GraphicsDevice, 100, 100));
@@ -178,7 +178,7 @@ namespace SoulEngine
         /// <summary>
         /// Loads and setups the global objects.
         /// </summary>
-        public static void LoadGlobalObjects()
+        private static void LoadGlobalObjects()
         {
             //Setup the debugText object.
             debugText = new TextObject(Font: fontDebug);
@@ -549,7 +549,6 @@ namespace SoulEngine
         {
             Screens.Add(Screen);
             Screen.Priority = Priority;
-            Screen.LoadObjects();
             RefreshScreens();
         }
         /// <summary>
@@ -586,6 +585,17 @@ namespace SoulEngine
             for (int i = 0; i < Screens.Count; i++)
             {
                 Screens[i].Draw();
+            }
+        }
+        /// <summary>
+        /// Checks if the objects have been loaded.
+        /// </summary>
+        private static void CheckIfObjectsHaveBeenLoaded(int index)
+        {
+            if(Screens[index].ObjectsLoaded == false)
+            {
+                Screens[index].LoadObjects();
+                Screens[index].ObjectsLoaded = true;
             }
         }
         #endregion

@@ -319,6 +319,9 @@ namespace SoulEngine.Objects
                 //Create a new texture object with the dimensions of the sprite.
                 Texture2D curFrame = new Texture2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
 
+                //Save the viewport.
+                Viewport tempPort = Core.graphics.GraphicsDevice.Viewport;
+
                 //Define a render target.
                 RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, FrameRect.Width, FrameRect.Height);
 
@@ -336,6 +339,9 @@ namespace SoulEngine.Objects
 
                 //Return to the default render target.
                 Core.graphics.GraphicsDevice.SetRenderTarget(null);
+
+                //Restore the viewport.
+                Core.graphics.GraphicsDevice.Viewport = tempPort;
 
                 //Add the frame to the list of frames.
                 frames.Add(curFrame);
