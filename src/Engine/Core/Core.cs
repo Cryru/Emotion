@@ -358,9 +358,6 @@ namespace SoulEngine
                 //Set the size of the window to the stored size.
                 Settings.win_width = TEMPwin_width;
                 Settings.win_height = TEMPwin_height;
-
-                //Center window
-                host.Window.Position = new Point((int) GetScreenSize().X / 2 - Settings.win_width / 2, (int) GetScreenSize().Y / 2 - Settings.win_height / 2);
             }
 
             //Setup the screen again with the new values.
@@ -574,6 +571,7 @@ namespace SoulEngine
         {
             for (int i = 0; i < Screens.Count; i++)
             {
+                CheckIfObjectsHaveBeenLoaded(i);
                 Screens[i].Update();
             }
         }
@@ -584,6 +582,7 @@ namespace SoulEngine
         {
             for (int i = 0; i < Screens.Count; i++)
             {
+                CheckIfObjectsHaveBeenLoaded(i);
                 Screens[i].Draw();
             }
         }
