@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.80";
+        public static string Version = "0.82";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -173,7 +173,7 @@ namespace SoulEngine
             blankTexture.Image.Name = "blank"; //Set a name for the texture.
 
             //Load default fonts
-            fontDebug = LoadFont("Font_DEBUG");
+            fontDebug = Content.Load.Font("Fonts/Font_DEBUG");
         }
         /// <summary>
         /// Loads and setups the global objects.
@@ -220,7 +220,6 @@ namespace SoulEngine
 
             //Update the showing mouse setting.
             host.IsMouseVisible = Settings.win_renderMouse;
-
 
             //Update the debug text.
             if (Settings.debug == true && Settings.debugUpdate == true)
@@ -278,7 +277,7 @@ namespace SoulEngine
             //Color everything in the fillcolor.
             graphics.GraphicsDevice.Clear(Settings.fillcolor);
             //Start a draw sequence on the screen. As opposed to in the world.
-            DrawScreen();
+            DrawOnScreen();
             //Draw the render space color.
             ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
             //End drawing.
@@ -293,7 +292,7 @@ namespace SoulEngine
             DrawUpdates.Trigger("");
 
             //Draw on the screen.
-            DrawScreen();
+            DrawOnScreen();
             //Check if we are drawing the FPS counter.
             if (Settings.displayFPS == true)
             {
@@ -310,43 +309,32 @@ namespace SoulEngine
             FPSCounterUpdate(gameTime);
         }
         #endregion
-        #region "Meta Functions"
+        #region "Fullscreen and FPS Counter Functions"
         /// <summary>
-        /// Meta Functions are the primary functions of the engine and it's modules.
-        /// 
-        /// Variables that are used in the functions below but are not separated in this region are
-        /// settings variables like "win_fullscreen", "displayFPS", and such which are present in the
-        /// varriable block above as they are expected to be used by the user.
+        /// The width of the main window kept while in fullscreen.
         /// </summary>
-        //---------------------------------------------------------------------------------
+        public static int TEMPwin_width = Settings.win_width;
+        /// <summary>
+        /// The height of the main window kept while in fullscreen.
+        /// </summary>
+        public static int TEMPwin_height = Settings.win_height;
 
-        //---------------------------------------------------------------------------------
-        //Fullscreen management.
-        public static int TEMPwin_width = Settings.win_width; //The width of the main window kept while in fullscreen.
-        public static int TEMPwin_height = Settings.win_height; //The height of the main window kept while in fullscreen.
-        public static bool win_fullscreen_oldstateDown; //A trigger for the fullscreen key.
-
-        //Checks for when the fullscreen key is being toggled.
+        /// <summary>
+        /// Checks if the fullscreen key is toggled and executes the appropriate code.
+        /// </summary>
         public static void FullScreenKeyToggle()
         {
-            //Check for fullcreen switching. (Default hotkey is Alt+Enter).
-            if (Input.isKeyDown(Keys.LeftAlt) && Input.isKeyDown(Keys.Enter))
+            if(Input.isKeyDown(Keys.LeftAlt) && Input.KeyDownTrigger(Keys.Enter))
             {
-                //Tell the trigger that the button has been pressed.
-                win_fullscreen_oldstateDown = true;
-            }
-            //If the keys have been let go and the trigger claims they were pressed...
-            else if (win_fullscreen_oldstateDown == true)
-            {
-                //Reset trigger.
-                win_fullscreen_oldstateDown = false;
                 //Invert the fullscreen variable.
                 Settings.win_fullscreen = !Settings.win_fullscreen;
                 //Refresh the fullscreen state.
                 ScreenSettingsRefresh();
             }
         }
-        //Applies the current fullscreen variable.
+        /// <summary>
+        /// Applies the screen settings.
+        /// </summary>
         public static void ScreenSettingsRefresh()
         {
             //Check if fullscreen is on.
@@ -355,8 +343,8 @@ namespace SoulEngine
                 //Remove the window borders.
                 host.Window.IsBorderless = true;
                 //Set the size of the window to the screen size.
-                Settings.win_width = GetScreenWidth();
-                Settings.win_height = GetScreenHeight();
+                Settings.win_width = (int) GetScreenSize().X;
+                Settings.win_height = (int) GetScreenSize().Y;
 
                 //Move the window to the top left.
                 host.Window.Position = new Point(0, 0);
@@ -372,7 +360,7 @@ namespace SoulEngine
                 Settings.win_height = TEMPwin_height;
 
                 //Center window
-                host.Window.Position = new Point(GetScreenWidth() / 2 - Settings.win_width / 2, GetScreenHeight() / 2 - Settings.win_height / 2);
+                host.Window.Position = new Point((int) GetScreenSize().X / 2 - Settings.win_width / 2, (int) GetScreenSize().Y / 2 - Settings.win_height / 2);
             }
 
             //Setup the screen again with the new values.
@@ -381,12 +369,22 @@ namespace SoulEngine
             graphics.ApplyChanges();
         }
 
-        //---------------------------------------------------------------------------------
-        //Updates the FPS Counter.
-        public static int curFrames = 0; //The frames rendered in the current frame.
-        public static int lastFrames = 0; //The frames rendered in the last second.
-        public static int curSec = 0; //The current second.
-
+        /// <summary>
+        /// The frames rendered in the current second.
+        /// </summary>
+        public static int curFrames = 0;
+        /// <summary>
+        /// The frames rendered in the last second.
+        /// </summary>
+        public static int lastFrames = 0;
+        /// <summary>
+        /// The current second number.
+        /// </summary>
+        public static int curSec = 0;
+        /// <summary>
+        /// Updates the FPS counter.
+        /// </summary>
+        /// <param name="gameTime">The timestamp.</param>
         public static void FPSCounterUpdate(GameTime gameTime)
         {
             //Check if the current second has passed.
@@ -398,83 +396,21 @@ namespace SoulEngine
             }
             curFrames += 1;
         }
-
-        //---------------------------------------------------------------------------------
-        public enum DrawMode //The available draw modes.
-        {
-            AA,
-            Pixelly,
-            Default
-        }
-
-        //Starts a draw cycle on the screen.
-        public static void DrawScreen(DrawMode drawMode = DrawMode.Default)
-        {
-            switch (drawMode)
-            {
-                case DrawMode.AA:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearClamp, null, RasterizerState.CullNone,
-   null, ScreenAdapter.GetScaleMatrix());
-                    break;
-                case DrawMode.Pixelly:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, RasterizerState.CullNone,
-   null, ScreenAdapter.GetScaleMatrix());
-                    break;
-                case DrawMode.Default:
-                    ink.Begin(SpriteSortMode.Deferred, null, null, null, null, null, ScreenAdapter.GetScaleMatrix());
-                    break;
-            }
-
-            //---------------------------------------------------------------------------------
-        }
-        //Starts a draw cycle on the camera/world.
-        public static void DrawWorld(DrawMode drawMode = DrawMode.Default)
-        {
-            switch (drawMode)
-            {
-                case DrawMode.AA:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearClamp, null, RasterizerState.CullNone,
-   null, maincam.GetViewMatrix());
-                    break;
-                case DrawMode.Pixelly:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, RasterizerState.CullNone,
-   null, maincam.GetViewMatrix());
-                    break;
-                case DrawMode.Default:
-                    ink.Begin(SpriteSortMode.Deferred, null, null, null, null, null, maincam.GetViewMatrix());
-                    break;
-            }
-        }
-
-        //---------------------------------------------------------------------------------
-        //Returns a the point of the screen warped through the scaler.
-        public static Point PointToScreen(Point Point, string renderLayer = "Screen")
-        {
-            if (renderLayer == "Screen") return ScreenAdapter.PointToScreen(Point);
-
-            return Vector2.Transform(Point.ToVector2(), Matrix.Invert(maincam.GetViewMatrix())).ToPoint();
-        }
-
-        //---------------------------------------------------------------------------------
         #endregion
-        #region "Library Functions"
+        #region "Functions"
         /// <summary>
-        /// Library functions are the functions of the engine designed to be used by the user.
-        /// Some functions are exceptions to this rule, like the "LoadScreen" function as they are
-        /// thought to be more primary.
+        /// Returns the resolution of the screen.
         /// </summary>
-
-        //Returns the resolution of the screen of the device currently running.
-        public static int GetScreenWidth()
+        /// <returns></returns>
+        public static Vector2 GetScreenSize()
         {
-            return GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            return new Vector2(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
         }
-        public static int GetScreenHeight()
-        {
-            return GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-        }
-
-        //Converts degrees to radians.
+        /// <summary>
+        /// Converts the angle in degrees to radians.
+        /// </summary>
+        /// <param name="angle">Angle in degrees.</param>
+        /// <returns>The degrees in radians.</returns>
         public static float DegreesToRadians(int angle)
         {
             //Check if the angle is over the maximum.
@@ -495,52 +431,16 @@ namespace SoulEngine
             return (((float)Math.PI) / 180) * angle;
             //Divide Pi by 180 and multiply by the angle.
         }
+        /// <summary>
+        /// Converts the radians to angles.
+        /// </summary>
+        /// <param name="radian">Angle in radians.</param>
+        /// <returns>The radians in degrees</returns>
         public static int RadiansToDegrees(float radian)
         {
             return (int)((180 / ((float)Math.PI)) * radian);
             //Divide 180 by Pi and multiply by the radians. Convert to an integer.
         }
-
-        //Loads a texture by name, if the texture doesn't exist it will return the missing image image.
-        public static Texture2D LoadTexture(string name)
-        {
-            if (IO.GetContentExist(name))
-            {
-                try
-                {
-                    return host.Content.Load<Texture2D>("SCon/" + name);
-                }
-                catch
-                {
-                    return missingTexture.Image;
-                }
-            }
-            else
-            {
-                return missingTexture.Image;
-            }
-        }
-
-        //Loads a font by name, if the font doesn't exist it will return the debug font.
-        public static SpriteFont LoadFont(string name, string folder = "Fonts")
-        {
-            if (IO.GetContentExist(folder + "/" + name))
-            {
-                try
-                {
-                    return host.Content.Load<SpriteFont>("SCon/" + folder + "/" + name);
-                }
-                catch
-                {
-                    return fontDebug;
-                }
-            }
-            else
-            {
-                return fontDebug;
-            }
-        }
-
         /// <summary>
         /// Returns the distance between two points.
         /// </summary>
@@ -568,6 +468,75 @@ namespace SoulEngine
         {
             string[] split = s.Split(separator);
             return new Vector2(float.Parse(split[0]), float.Parse(split[1]));
+        }
+        /// <summary>
+        /// Converts a point in the world to it's location on the screen.
+        /// </summary>
+        /// <param name="Point">The point to transform.</param>
+        /// <returns></returns>
+        public static Vector2 PointToScreen(Vector2 Point)
+        {
+            return Vector2.Transform(Point, Matrix.Invert(maincam.GetViewMatrix()));
+        }
+        /// <summary>
+        /// The drawing modes.
+        /// </summary>
+        public enum DrawMode
+        {
+            /// <summary>
+            /// Anti-Aliasing
+            /// </summary>
+            AA,
+            /// <summary>
+            /// Pixelly
+            /// </summary>
+            Pixelly,
+            /// <summary>
+            /// Some smoothing.
+            /// </summary>
+            Default
+        }
+        /// <summary>
+        /// Starts drawing on the screen..
+        /// </summary>
+        /// <param name="drawMode">The drawing mode.</param>
+        public static void DrawOnScreen(DrawMode drawMode = DrawMode.Default)
+        {
+            switch (drawMode)
+            {
+                case DrawMode.AA:
+                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearClamp, null, RasterizerState.CullNone,
+   null, ScreenAdapter.GetScaleMatrix());
+                    break;
+                case DrawMode.Pixelly:
+                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, RasterizerState.CullNone,
+   null, ScreenAdapter.GetScaleMatrix());
+                    break;
+                case DrawMode.Default:
+                    ink.Begin(SpriteSortMode.Deferred, null, null, null, null, null, ScreenAdapter.GetScaleMatrix());
+                    break;
+            }
+        }
+        /// <summary>
+        /// Starts drawing through the camera.
+        /// </summary>
+        /// <param name="drawMode">The drawing mode.</param>
+        public static void DrawOnWorld(DrawMode drawMode = DrawMode.Default)
+        {
+            switch (drawMode)
+            {
+                case DrawMode.AA:
+                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearClamp, null, RasterizerState.CullNone,
+   null, maincam.GetViewMatrix());
+                    break;
+                case DrawMode.Pixelly:
+                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, RasterizerState.CullNone,
+   null, maincam.GetViewMatrix());
+                    break;
+                case DrawMode.Default:
+                    ink.Begin(SpriteSortMode.Deferred, null, null, null, null, null, maincam.GetViewMatrix());
+                    break;
+            }
         }
         #endregion
         #region "Screens"

@@ -43,7 +43,7 @@ namespace SoulEngine
         /// </summary>
         public override void Draw()
         {
-            Core.DrawScreen();
+            Core.DrawOnScreen();
 
             Core.ink.End();
         }

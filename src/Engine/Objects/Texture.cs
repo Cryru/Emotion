@@ -139,7 +139,7 @@ namespace SoulEngine.Objects
                     _ImageName = value;
 
                     //Load a texture by the name.
-                    _Image = Core.LoadTexture(_ImageName);
+                    _Image = Content.Load.Texture(_ImageName);
                 }
             }
         }
