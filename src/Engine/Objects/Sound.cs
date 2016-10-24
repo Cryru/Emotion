@@ -58,7 +58,7 @@ namespace SoulEngine.Objects
         public Sound(string soundName, float volume = 1f, bool loop = false)
         {
             //Check if the sound exists before loading it.
-            if(Core.GetContentExist(soundName))
+            if(IO.GetContentExist(soundName))
             {
                 _file = Core.host.Content.Load<SoundEffect>(soundName);
             }

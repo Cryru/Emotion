@@ -231,5 +231,45 @@ namespace SoulEngine.Objects
         {
             DrawObject();
         }
+
+        #region "Functions"
+        /// <summary>
+        /// Center the object within the window.
+        /// </summary>
+        public void ObjectCenter()
+        {
+            X = Settings.game_width / 2 - Width / 2;
+            Y = Settings.game_height / 2 - Height / 2;
+        }
+        /// <summary>
+        /// Center the object within another bigger object.
+        /// </summary>
+        /// <param name="obj">The object to center inside.</param>
+        public void ObjectCenterOnObject(ObjectBase obj)
+        {
+            Center = obj.Center;
+            Center = obj.Center;
+        }
+        /// <summary>
+        /// Makes the object fit the whole screen.
+        /// </summary>
+        public void ObjectFullscreen()
+        {
+            Width = Settings.game_width;
+            Height = Settings.game_height;
+            X = 0;
+            Y = 0;
+        }
+        /// <summary>
+        /// Copy the location and size of another object.
+        /// </summary>
+        /// <param name="obj">The object to copy size and location from.</param>
+        public void ObjectCopy(ObjectBase obj)
+        {
+            Location = obj.Location;
+            Size = obj.Size;
+        }
+        #endregion
+
     }
 }

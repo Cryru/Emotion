@@ -29,7 +29,7 @@ namespace SoulEngine
             //Check if a settings file exists.
             if (File.Exists("settings.ini"))
             {
-                string[] fileData = Core.IO_ReadFile_Array("settings.ini");
+                string[] fileData = IO.ReadFile("settings.ini", true);
 
                 for (int i = 0; i < fileData.Length; i++)
                 {

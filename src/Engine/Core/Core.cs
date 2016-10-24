@@ -76,12 +76,6 @@ namespace SoulEngine
         /// The screen's boxing adapter.
         /// </summary>
         public static BoxingViewportAdapter ScreenAdapter;
-#if ANDROID
-        /// <summary>
-        /// Hosts the Android's context host.
-        /// </summary>
-        public static Android.Content.Context androidHost;
-#endif
         #endregion
         #region "Internal Content"
         /// <summary>
@@ -225,9 +219,8 @@ namespace SoulEngine
             Input.UpdateInput();
 
             //Update the showing mouse setting.
-#if WINDOWS
             host.IsMouseVisible = Settings.win_renderMouse;
-#endif
+
 
             //Update the debug text.
             if (Settings.debug == true && Settings.debugUpdate == true)
@@ -336,7 +329,6 @@ namespace SoulEngine
         //Checks for when the fullscreen key is being toggled.
         public static void FullScreenKeyToggle()
         {
-#if !ANDROID //Android doesn't have a fullscreen and non-fullscreen mode per say.
             //Check for fullcreen switching. (Default hotkey is Alt+Enter).
             if (Input.isKeyDown(Keys.LeftAlt) && Input.isKeyDown(Keys.Enter))
             {
@@ -353,12 +345,10 @@ namespace SoulEngine
                 //Refresh the fullscreen state.
                 ScreenSettingsRefresh();
             }
-#endif
         }
         //Applies the current fullscreen variable.
         public static void ScreenSettingsRefresh()
         {
-#if !ANDROID //Android doesn't have a fullscreen and non-fullscreen mode per say.
             //Check if fullscreen is on.
             if (Settings.win_fullscreen == true)
             {
@@ -389,11 +379,6 @@ namespace SoulEngine
             graphics.PreferredBackBufferWidth = Settings.win_width;
             graphics.PreferredBackBufferHeight = Settings.win_height;
             graphics.ApplyChanges();
-#endif
-#if ANDROID
-            graphics.IsFullScreen = Settings.win_hidebar;
-            graphics.SupportedOrientations = Settings.win_orientation;
-#endif
         }
 
         //---------------------------------------------------------------------------------
@@ -519,7 +504,7 @@ namespace SoulEngine
         //Loads a texture by name, if the texture doesn't exist it will return the missing image image.
         public static Texture2D LoadTexture(string name)
         {
-            if (GetContentExist(name))
+            if (IO.GetContentExist(name))
             {
                 try
                 {
@@ -539,7 +524,7 @@ namespace SoulEngine
         //Loads a font by name, if the font doesn't exist it will return the debug font.
         public static SpriteFont LoadFont(string name, string folder = "Fonts")
         {
-            if (GetContentExist(folder + "/" + name))
+            if (IO.GetContentExist(folder + "/" + name))
             {
                 try
                 {
@@ -556,85 +541,12 @@ namespace SoulEngine
             }
         }
 
-        //Returns a boolean based on whether the content file exists.
-        public static bool GetContentExist(string name)
-        {
-#if ANDROID //On android checking if files exist is done through the assets module.
-            string assetpath = "Content/SCon"; //First we get the root of the assets where the content is stored.
-            if (name.Contains("/")) assetpath += "/" + name.Substring(0, name.LastIndexOf('/')); //Next we append any folders from the name.
-            string filename; //Then we remove the folders from the name if any.
-            if (name.Contains("/")) filename = name.Substring(name.LastIndexOf('/') + 1) + ".xnb"; else filename = name + ".xnb";
-
-            string[] allAssets = androidHost.Assets.List(assetpath); //We get a list of all assets in that folder.
-            for (int i = 0; i < allAssets.Length; i++) //And we check if any of the assets in the folder are of the same name.
-            {
-                if(filename == allAssets[i])
-                {
-                    return true;
-                }
-            }
-            return false;
-#endif
-#if __UNIFIED__
-            return true;
-#endif
-            //Assign the path of the file.
-            string contentpath = "Content\\SCon\\" + name.Replace("/", "\\") + ".xnb";
-            //Check if the file exists.
-            if (File.Exists(contentpath))
-            {
-                return true;
-            }
-            return false;
-        }
-
-        #region "Object Position and Size"
-        //Centers the object within the window.
-        public static void CenterObject(ObjectBase obj)
-        {
-            obj.X = Settings.game_width / 2 - obj.Width / 2;
-            obj.Y = Settings.game_height / 2 - obj.Height / 2;
-        }
-
-        //Centers the object within the target object.
-        public static void CenterObjectWithinObject(ObjectBase obj, ObjectBase tarObj)
-        {
-            obj.X = tarObj.Width / 2 - obj.Width / 2;
-            obj.Y = tarObj.Height / 2 - obj.Height / 2;
-        }
-
-        //Resizes the object in a certain way.
-        public static void ObjectFullscreen(ObjectBase obj)
-        {
-            obj.Width = Settings.game_width;
-            obj.Height = Settings.game_height;
-            obj.X = 0;
-            obj.Y = 0;
-        }
-
-        //Copies the location and size of the target object.
-        public static void ObjectCopy(ObjectBase obj, ObjectBase tarObj)
-        {
-            ObjectCopyLocation(obj, tarObj);
-            ObjectCopySize(obj, tarObj);
-        }
-
-        //Copies the location of the target object.
-        public static void ObjectCopyLocation(ObjectBase obj, ObjectBase tarObj)
-        {
-            obj.X = tarObj.X;
-            obj.Y = tarObj.Y;
-        }
-
-        //Copies the size of the target object.
-        public static void ObjectCopySize(ObjectBase obj, ObjectBase tarObj)
-        {
-            obj.Width = tarObj.Width;
-            obj.Height = tarObj.Height;
-        }
-        #endregion
-
-        //Returns the distance between two points.
+        /// <summary>
+        /// Returns the distance between two points.
+        /// </summary>
+        /// <param name="p1">The first point.</param>
+        /// <param name="p2">The second point.</param>
+        /// <returns></returns>
         public static float getDistance(Vector2 p1, Vector2 p2)
         {
             //Subtract the Xs and Ys to get the points of the triangle.
@@ -646,161 +558,12 @@ namespace SoulEngine
 
             return c;
         }
-
-        //Returns an Image as a two dimensional color array.
-        public static Color[,] ImageTo2DArray(Texture2D image)
-        {
-            //Get the one dimensional array.
-            Color[] colorsOne = new Color[image.Width * image.Height];
-            image.GetData(colorsOne);
-
-            //Define a two dimensional array.
-            Color[,] colorsTwo = new Color[image.Width, image.Height];
-            //Load the two dimensional array.
-            for (int x = 0; x < image.Width; x++)
-                for (int y = 0; y < image.Height; y++)
-                    colorsTwo[x, y] = colorsOne[x + y * image.Width];
-
-            //Return it.
-            return colorsTwo;
-        }
-        //Transforms a two dimensional to a image.
-        public static Texture2D ImageFrom2DArray(Color[,] dataTwo)
-        {
-            //Create a new texture.
-            Texture2D newTexture = new Texture2D(Core.graphics.GraphicsDevice, dataTwo.GetLength(0), dataTwo.GetLength(1));
-            List<Color> dataOne = new List<Color>();
-
-            for (int x = 0; x < dataTwo.GetLength(1); x++)
-            {
-                for (int y = 0; y < dataTwo.GetLength(0); y++)
-                {
-                    dataOne.Add(dataTwo[y, x]);
-                }
-            }
-
-            newTexture.SetData(dataOne.ToArray());
-
-            return newTexture;
-        }
-
-        #endregion
-        #region "Soul Library Functions"
-        //---------------------------------------------------------------------------------------------------------------------------
-        //Writes the specified string to the specified file, if it doesn't exist it will be created.
-        public static void IO_WriteFile(string filepath, string datatowrite)
-        {
-            try
-            {
-                StreamWriter writer = File.CreateText(filepath);
-                //Write the contents.
-                writer.Write(datatowrite);
-                //Close the writer to free the file
-                writer.Close();
-                writer.Dispose();
-            }
-            catch { }
-
-        }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //Writes the specified string array to the specified file, if it doesn't exist it will be created.
-        public static void IO_WriteFile_Array(string filepath, string[] datatowrite)
-        {
-            IO_WriteFile(filepath, ArrayToString(datatowrite));
-        }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //Reads the specified file and returns a string holding the contents.
-        public static string IO_ReadFile(string filepath)
-        {
-            string content;
-            //Try to read the file.
-            try
-            {
-                StreamReader reader = File.OpenText(filepath);
-                //Transfer the contents onto the earlier defined variable.
-                content = reader.ReadToEnd();
-                //Close the reader to free the file.
-                reader.Close();
-                reader.Dispose();
-                //Return the contents.
-                return content;
-            }
-            catch { return null; }
-        }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //Reads the specified file and returns a string holding the contents.
-        public static string[] IO_ReadFile_Array(string filepath)
-        {
-            string[] content;
-            //Try to read the file.
-            try
-            {
-
-#if ANDROID
-                Stream mapfile = androidHost.Assets.Open(filepath);
-                StreamReader reader = new StreamReader(mapfile, System.Text.Encoding.UTF8);
-#endif
-#if !ANDROID
-                StreamReader reader = File.OpenText(filepath);
-#endif
-                //Transfer the contents onto the earlier defined variable.
-                content = SplitNewLine(reader.ReadToEnd());
-#if !ANDROID
-                //Close the reader to free the file.
-                reader.Close();
-                reader.Dispose();
-#endif
-                //Return the contents.
-                return content;
-            }
-            catch { return null; }
-        }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //Splits a string at a new line. Might not be needed.
-        public static string[] SplitNewLine(string s)
-        {
-            return s.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-        }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //String Array > Single String
-        public static string ArrayToString(string[] arr, string LineSeparator = "/NEWLINE/")
-        {
-            //Check if the array is empty, not long enough or with an invalid delete index.
-            if (arr == null || arr.Length == 0)
-            {
-                return "Empty Array";
-            }
-            //Convert line separator tags.
-            if (LineSeparator == "/NEWLINE/") LineSeparator = Environment.NewLine;
-            //Declare a variable to hold the line.
-            string singleline = arr[0];
-
-            //Check if the array is longer than one.
-            if (!(arr.Length == 1))
-            {
-                //Look through all lines.
-                for (int i = 1; i <= arr.Length - 1; i++)
-                {
-                    singleline += LineSeparator + arr[i];
-                }
-            }
-            //Return line.
-            return singleline;
-        }
-        //Single String > String Array
-        public static string[] StringToArray(string s, char LineSeparator)
-        {
-            string[] arr;
-
-            //Convert line separator tags.
-            arr = s.Split(LineSeparator);
-            //Remove empty array entries.
-
-            //Return the converter string.
-            return arr;
-        }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //String > Vector2
+        /// <summary>
+        /// Converts a string to a Vector2.
+        /// </summary>
+        /// <param name="s">The string itself.</param>
+        /// <param name="separator">What the two values of the vector are separated by in the string.</param>
+        /// <returns></returns>
         public static Vector2 StringToVector2(string s, char separator = ',')
         {
             string[] split = s.Split(separator);
