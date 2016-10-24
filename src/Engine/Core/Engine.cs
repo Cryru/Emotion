@@ -46,7 +46,7 @@ namespace SoulEngine
             Core.Update(gameTime);
             //Run screen's update code.
             Core.UpdateScreens();
-            //Run the core's update ending code.
+            ////Run the core's update ending code.
             Core.Update_End(gameTime);
         }
         /// <summary>

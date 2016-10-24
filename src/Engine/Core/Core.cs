@@ -142,8 +142,8 @@ namespace SoulEngine
 
             //Setup the screen, and the screen adapter.
             ScreenSettingsRefresh();
-            ScreenAdapter = new BoxingViewportAdapter(host.Window, graphics, Settings.game_width, Settings.game_height);
-
+            ScreenAdapter = new BoxingViewportAdapter(host.Window, host.GraphicsDevice, Settings.game_width, Settings.game_height);
+            
             //Setup the camera.
             maincam = new Camera2D(ScreenAdapter);
 
