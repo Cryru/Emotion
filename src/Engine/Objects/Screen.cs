@@ -28,6 +28,10 @@ namespace SoulEngine.Objects
         /// The screens priority. The higher it is the earlier it will be executed.
         /// </summary>
         internal int Priority = 0;
+        /// <summary>
+        /// Whether the objects have been loaded.
+        /// </summary>
+        internal bool ObjectsLoaded = false;
         #endregion
 
         /// <summary>
