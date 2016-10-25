@@ -60,7 +60,7 @@ namespace SoulEngine.Objects
             //Check if the sound exists before loading it.
             if(IO.GetContentExist(soundName))
             {
-                _file = Core.host.Content.Load<SoundEffect>(soundName);
+                _file = Core.host.Content.Load<SoundEffect>("SCon/" + soundName);
             }
             else
             {
@@ -71,8 +71,17 @@ namespace SoulEngine.Objects
             Volume = volume;
             Loop = loop;
 
+            Core.Updates.Add(Update);
         }
-
+        public void Update()
+        {
+            for (int i = 0; i < soundInstances.Count; i++)
+            {
+                float volumeOffset = Volume;
+                if (Settings.sound == false) volumeOffset = 0;
+                soundInstances[i].Volume = volumeOffset;
+            }
+        }
         //Play the sound, or start the loop.
         public void Play()
         {
