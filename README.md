@@ -1,6 +1,6 @@
 ![Logo](WindowsVer.png)
 
-# This is the windows version.
+# This is the Windows version.
 
 For the Android version go here: https://github.com/Cryru/SoulEngine/tree/Android
 
