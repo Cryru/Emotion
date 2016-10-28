@@ -16,7 +16,7 @@ namespace SoulEngine.Objects.Internal
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
     //////////////////////////////////////////////////////////////////////////////
-    class Event<T>
+    public class Event<T>
     {
         #region "Declarations"
         //A list of events to be invoked when the event is triggered that will return the object that triggered it.

@@ -108,6 +108,10 @@ namespace SoulEngine
         /// Methods that are run every frame on the GPU.
         /// </summary>
         public static Objects.Internal.Event<string> DrawUpdates = new Objects.Internal.Event<string>();
+        /// <summary>
+        /// A seed used for generating random numbers.
+        /// </summary>
+        public static int RandomSeed = 0;
         #endregion
         #endregion
 
@@ -215,6 +219,9 @@ namespace SoulEngine
         /// </summary>
         public static void Update(GameTime gameTime)
         {
+            //Assign the random seed.
+            RandomSeed = gameTime.TotalGameTime.Milliseconds;
+
             //Update the input for the current frame.
             Input.UpdateInput();
 

@@ -17,7 +17,7 @@ namespace SoulEngine.Objects
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
     //////////////////////////////////////////////////////////////////////////////
-    class Sound
+    public class Sound
     {
         #region "Declarations"
         //Properties
@@ -75,11 +75,14 @@ namespace SoulEngine.Objects
         }
         public void Update()
         {
+            //Update any volume and settings changes.
             for (int i = 0; i < soundInstances.Count; i++)
             {
                 float volumeOffset = Volume;
                 if (Settings.sound == false) volumeOffset = 0;
                 soundInstances[i].Volume = volumeOffset;
+                soundInstances[i].Pan = Pan;
+                soundInstances[i].Pitch = Pitch;
             }
         }
         //Play the sound, or start the loop.

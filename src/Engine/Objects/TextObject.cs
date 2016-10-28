@@ -19,7 +19,7 @@ namespace SoulEngine.Objects
     /// <summary>
     /// An object used to render text.
     /// </summary>
-    class TextObject : ObjectBase
+    public class TextObject : ObjectBase
     {
         #region "Declarations"
         #region "Settings"
@@ -235,6 +235,9 @@ namespace SoulEngine.Objects
 
             //Assign the render target.
             Image.Image = tempTarget;
+
+            //Dispose of the 2D render target.
+            tempTarget.Dispose();
 
             //Return to the default render target.
             Core.graphics.GraphicsDevice.SetRenderTarget(null);
