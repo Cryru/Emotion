@@ -13,7 +13,7 @@ namespace SoulEngine.Objects
     /// A texture object for storing and loading textures in an event free way and 
     /// interfacing with the engine's Animation object.  
     /// </summary>
-    class Texture
+    public class Texture
     {
         #region "Initializers"
         /// <summary>

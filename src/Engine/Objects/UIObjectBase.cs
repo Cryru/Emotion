@@ -18,7 +18,7 @@ namespace SoulEngine.Objects
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
     //////////////////////////////////////////////////////////////////////////////
-    class UIObjectBase : ObjectBase
+    public class UIObjectBase : ObjectBase
     {
         #region "Declarations"
         //Settings

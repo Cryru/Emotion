@@ -18,7 +18,7 @@ namespace SoulEngine.Objects
     /// <summary>
     /// A basis for game objects.
     /// </summary>
-    class ObjectBase
+    public class ObjectBase
     {
         #region "Declarations"
         #region "Location, size, and rotation"
@@ -261,13 +261,15 @@ namespace SoulEngine.Objects
             Y = 0;
         }
         /// <summary>
-        /// Copy the location and size of another object.
+        /// Copy the location, size, and image of another object.
         /// </summary>
         /// <param name="obj">The object to copy size and location from.</param>
-        public void ObjectCopy(ObjectBase obj)
+        /// <param name="copyImage">Whether to copy the image too.</param>
+        public void ObjectCopy(ObjectBase obj, bool copyImage = true)
         {
             Location = obj.Location;
             Size = obj.Size;
+            if(copyImage == true) Image = obj.Image;
         }
         #endregion
 

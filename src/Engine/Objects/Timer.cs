@@ -18,7 +18,7 @@ namespace SoulEngine.Objects
     /// A timer for timing events independent of FPS, but on real time.
     /// Uses rendertime to determine time passing.
     /// </summary>
-    class Timer
+    public class Timer
     {
         #region "Declarations"
         #region "Settings"

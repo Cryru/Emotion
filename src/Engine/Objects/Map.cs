@@ -19,7 +19,7 @@ namespace SoulEngine.Objects
     // Refer to the documentation for any questions, or                         //
     // to TheCryru@gmail.com                                                    //
     //////////////////////////////////////////////////////////////////////////////
-    class Map
+    public class Map
     {
         #region "Declarations"
         //Map Data.
@@ -356,7 +356,7 @@ namespace SoulEngine.Objects
     }
 
     //An object to hold tile data.
-    class TileData
+    public class TileData
     {
         private Map originMap; //The map this tile belongs to.
         private int X = -1; //The X coordinate of the tile, in map space.

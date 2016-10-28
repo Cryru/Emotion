@@ -17,7 +17,7 @@ namespace SoulEngine.Objects
     /// Used for animating textures from a spritesheet.
     /// Can also be used to split a spritesheet into it's individual frames.
     /// </summary>
-    class Animation : Timer
+    public class Animation : Timer
     {
         #region "Declarations"
         #region "Frame Texture"
@@ -336,6 +336,9 @@ namespace SoulEngine.Objects
 
                 //Assign the target to a texture.
                 curFrame = tempTarget;
+
+                //Dispose of the 2D render target.
+                tempTarget.Dispose();
 
                 //Return to the default render target.
                 Core.graphics.GraphicsDevice.SetRenderTarget(null);
