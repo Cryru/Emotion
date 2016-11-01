@@ -176,32 +176,6 @@ namespace SoulEngine.Objects
         /// </summary>
         public LoopType Loop;
         /// <summary>
-        /// The type of animation loop.
-        /// </summary>
-        public enum LoopType
-        {
-            /// <summary>
-            /// Disabled looping, animation will play once.
-            /// </summary>
-            None,
-            /// <summary>
-            /// Animation will loop normally, after the last frame is the first frame.
-            /// </summary>
-            Normal,
-            /// <summary>
-            /// The animation will play in reverse after reaching then last frame.
-            /// </summary>
-            NormalThenReverse,
-            /// <summary>
-            /// The animation will play in reverse.
-            /// </summary>
-            Reverse,
-            /// <summary>
-            /// Disabled looping, animation will play once, in reverse.
-            /// </summary>
-            NoneReverse
-        }
-        /// <summary>
         /// Used for NormalThenReverse, is true once reverse.
         /// </summary>
         private bool flagReverse = false;
@@ -443,5 +417,32 @@ namespace SoulEngine.Objects
             //Execute the Timer's Reset method.
             base.Reset();
         }
+    }
+
+    /// <summary>
+    /// The type of animation loop.
+    /// </summary>
+    public enum LoopType
+    {
+        /// <summary>
+        /// Disabled looping, animation will play once.
+        /// </summary>
+        None,
+        /// <summary>
+        /// Animation will loop normally, after the last frame is the first frame.
+        /// </summary>
+        Normal,
+        /// <summary>
+        /// The animation will play in reverse after reaching then last frame.
+        /// </summary>
+        NormalThenReverse,
+        /// <summary>
+        /// The animation will play in reverse.
+        /// </summary>
+        Reverse,
+        /// <summary>
+        /// Disabled looping, animation will play once, in reverse.
+        /// </summary>
+        NoneReverse
     }
 }
