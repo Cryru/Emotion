@@ -483,24 +483,6 @@ namespace SoulEngine
             return Vector2.Transform(Point, Matrix.Invert(maincam.GetViewMatrix()));
         }
         /// <summary>
-        /// The drawing modes.
-        /// </summary>
-        public enum DrawMode
-        {
-            /// <summary>
-            /// Anti-Aliasing
-            /// </summary>
-            AA,
-            /// <summary>
-            /// Pixelly
-            /// </summary>
-            Pixelly,
-            /// <summary>
-            /// Some smoothing.
-            /// </summary>
-            Default
-        }
-        /// <summary>
         /// Starts drawing on the screen..
         /// </summary>
         /// <param name="drawMode">The drawing mode.</param>
@@ -509,11 +491,11 @@ namespace SoulEngine
             switch (drawMode)
             {
                 case DrawMode.AA:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearClamp, null, RasterizerState.CullNone,
+                    ink.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearClamp, null, RasterizerState.CullNone,
    null, ScreenAdapter.GetScaleMatrix());
                     break;
                 case DrawMode.Pixelly:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, RasterizerState.CullNone,
+                    ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
    null, ScreenAdapter.GetScaleMatrix());
                     break;
                 case DrawMode.Default:
@@ -605,5 +587,23 @@ namespace SoulEngine
             }
         }
         #endregion
+    }
+    /// <summary>
+    /// The drawing modes.
+    /// </summary>
+    public enum DrawMode
+    {
+        /// <summary>
+        /// Anti-Aliasing
+        /// </summary>
+        AA,
+        /// <summary>
+        /// Pixelly
+        /// </summary>
+        Pixelly,
+        /// <summary>
+        /// Some smoothing.
+        /// </summary>
+        Default
     }
 }

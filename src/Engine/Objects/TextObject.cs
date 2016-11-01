@@ -50,28 +50,6 @@ namespace SoulEngine.Objects
         /// </summary>
         public int outlineSize = 1;
         /// <summary>
-        /// The text style to use when rendering.
-        /// </summary>
-        public enum RenderMode
-        {
-            /// <summary>
-            /// Default. The text is aligned to the left of the box.
-            /// </summary>
-            Left,
-            /// <summary>
-            /// Each line is centered.
-            /// </summary>
-            Center,
-            /// <summary>
-            /// The text is aligned to the right of the box.
-            /// </summary>
-            Right,
-            /// <summary>
-            /// Each line of text is stretched to be somewhat the same width creating a box effect.
-            /// </summary>
-            Justified
-        }
-        /// <summary>
         /// The text style to render the text in.
         /// </summary>
         public RenderMode TextStyle = RenderMode.Left;
@@ -843,5 +821,27 @@ namespace SoulEngine.Objects
             }
         }
         #endregion
+    }
+    /// <summary>
+    /// The text style to use when rendering.
+    /// </summary>
+    public enum RenderMode
+    {
+        /// <summary>
+        /// Default. The text is aligned to the left of the box.
+        /// </summary>
+        Left,
+        /// <summary>
+        /// Each line is centered.
+        /// </summary>
+        Center,
+        /// <summary>
+        /// The text is aligned to the right of the box.
+        /// </summary>
+        Right,
+        /// <summary>
+        /// Each line of text is stretched to be somewhat the same width creating a box effect.
+        /// </summary>
+        Justified
     }
 }
