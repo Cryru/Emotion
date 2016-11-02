@@ -311,9 +311,6 @@ namespace SoulEngine.Objects
                 //Assign the target to a texture.
                 curFrame = tempTarget;
 
-                //Dispose of the 2D render target.
-                tempTarget.Dispose();
-
                 //Return to the default render target.
                 Core.graphics.GraphicsDevice.SetRenderTarget(null);
 

@@ -512,11 +512,11 @@ namespace SoulEngine
             switch (drawMode)
             {
                 case DrawMode.AA:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearClamp, null, RasterizerState.CullNone,
+                    ink.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearClamp, null, RasterizerState.CullNone,
    null, maincam.GetViewMatrix());
                     break;
                 case DrawMode.Pixelly:
-                    ink.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, RasterizerState.CullNone,
+                    ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
    null, maincam.GetViewMatrix());
                     break;
                 case DrawMode.Default:

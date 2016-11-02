@@ -214,9 +214,6 @@ namespace SoulEngine.Objects
             //Assign the render target.
             Image.Image = tempTarget;
 
-            //Dispose of the 2D render target.
-            tempTarget.Dispose();
-
             //Return to the default render target.
             Core.graphics.GraphicsDevice.SetRenderTarget(null);
             Core.graphics.GraphicsDevice.Viewport = tempPortHolder;
