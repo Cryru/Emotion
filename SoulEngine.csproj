@@ -57,8 +57,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Engine\Libraries\IO.cs" />
     <Compile Include="src\Engine\Libraries\Settings.cs" />
+    <Compile Include="src\Engine\Libraries\Soul_Extension.cs" />
+    <Compile Include="src\Engine\Libraries\Soul.cs" />
     <Compile Include="src\Engine\Objects\Effects\Effect.cs" />
     <Compile Include="src\Engine\Objects\Internal\Event.cs" />
     <Compile Include="src\User\Screens\StartScreen.cs" />
