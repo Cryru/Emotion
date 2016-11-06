@@ -75,7 +75,11 @@ namespace Soul
             //Try to read the file.
             try
             {
+#if __ANDROID__
+                StreamReader reader = new StreamReader(androidHost.Assets.Open(filepath), System.Text.Encoding.UTF8);
+#else
                 StreamReader reader = File.OpenText(filepath);
+#endif
                 //Transfer the contents onto the earlier defined variable.
                 content = reader.ReadToEnd();
                 //Close the reader to free the file.
