@@ -1,15 +1,18 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
-namespace Soul
+namespace SoulEngine
 {
-	//////////////////////////////////////////////////////////////////////////////
-	// Soul - A library of frequently used functions.                           //
-	// Copyright © 2016 Vlad Abadzhiev                                          //
-    // Extension for SoulEngine                                                 //
-	//////////////////////////////////////////////////////////////////////////////
-
-	public partial class IO
+    //////////////////////////////////////////////////////////////////////////////
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
+    //                                                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
+    //                                                                          //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
+    //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// An extension of the SoulLib's IO functions.
+    /// </summary>
+    public class IO : Soul.IO
     {
         /// <summary>
         /// Returns whether the content file exists.

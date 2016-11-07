@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Soul;
 
 namespace SoulEngine.Content
 {
@@ -1282,7 +1281,7 @@ namespace SoulEngine.Content
         /// <returns>The texture. If it doesn't exist it will return the missing texture.</returns>
         public static Texture2D Texture(string name)
         {
-            if (Soul.IO.GetContentExist(name))
+            if (IO.GetContentExist(name))
             {
                 try
                 {
