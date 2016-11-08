@@ -45,7 +45,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\$(MonoGamePlatform)\x86\Release\</OutputPath>
-    <DefineConstants>TRACE;LINUX</DefineConstants>
+    <DefineConstants>TRACE;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -122,8 +122,9 @@
     <Reference Include="MonoGame.Framework">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\MonoGame.Framework.dll</HintPath>
     </Reference>
-    <Reference Include="SoulLib">
-      <HintPath>..\SoulLib\SoulLib\bin\Debug\SoulLib.dll</HintPath>
+    <Reference Include="SoulLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Engine\Libraries\SoulLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -133,6 +134,7 @@
     <Content Include="SoulEngine.ico" />
     <Content Include="src\Engine\Libraries\External\TiledSharp\zlib\License.txt" />
     <Content Include="src\Engine\Libraries\External\TiledSharp\zlib\License.zlib.txt" />
+    <Content Include="src\Engine\Libraries\SoulLib.dll" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
