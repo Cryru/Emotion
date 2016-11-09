@@ -1,8 +1,8 @@
-![Logo](WindowsVer.png)
+<img src="WindowsVer.png" width=50%>
 
 # This is the Windows version.
 
-For the Android version go here: https://github.com/Cryru/SoulEngine/tree/Android
+For the Android version go here: https://github.com/Cryru/SoulEngine_Android
 
 ## What is this?
 
@@ -11,6 +11,8 @@ SoulEngine is a game engine coded in C#, based on the MonoGame framework, it inc
 ## External Projects
 
 This project uses the ["TiledSharp"](https://github.com/marshallward/TiledSharp) library and parts of the ["MonoGame.Extended"](https://github.com/craftworkgames/MonoGame.Extended) library. These are included with this project as there is some modified and additional code, and to ensure that updates to them don't break existing functionality.
+
+The engine also uses ["SoulLib"](https://github.com/Cryru/SoulLib).
 
 ## Where do I start?
 
