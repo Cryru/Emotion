@@ -126,6 +126,8 @@
     <Compile Include="src\Engine\Libraries\Box2D\Common\PhysicsLogic\PhysicsLogic.cs" />
     <Compile Include="src\Engine\Libraries\Box2D\Common\PhysicsLogic\RealExplosion.cs" />
     <Compile Include="src\Engine\Libraries\Box2D\Common\PhysicsLogic\SimpleExplosion.cs" />
+    <Compile Include="src\Engine\Libraries\Box2D\Common\PhysVector2.cs" />
+    <Compile Include="src\Engine\Libraries\Box2D\Common\PhysVector3.cs" />
     <Compile Include="src\Engine\Libraries\Box2D\Common\PolygonManipulation\CuttingTools.cs" />
     <Compile Include="src\Engine\Libraries\Box2D\Common\PolygonManipulation\SimpleCombiner.cs" />
     <Compile Include="src\Engine\Libraries\Box2D\Common\PolygonManipulation\SimplifyTools.cs" />

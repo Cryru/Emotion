@@ -38,13 +38,15 @@ namespace SoulEngine
         /// </summary>
         public override void Update()
         {
-            if(Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed &&
-                Input.lastFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
+            Vector2 test = new Vector2();
+            
+
+            if(Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 //Add new objects.
                 PhysicsObject temp = new PhysicsObject(Core.blankTexture);
-                temp.Location = Input.getMousePos();
                 temp.Size = new Vector2(100, 100);
+                temp.Center = Input.getMousePos();
                 Objects.Add(temp);
             }
         }
