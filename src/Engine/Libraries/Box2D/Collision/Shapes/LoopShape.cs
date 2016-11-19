@@ -1,5 +1,5 @@
 ﻿/*
-* Box2D.XNA port of Box2D:
+* SoulEngine.Physics port of Box2D:
 * Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
 *
 * Original source Box2D:
@@ -23,7 +23,7 @@
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
-namespace Box2D.XNA
+namespace SoulEngine.Physics
 {
     /// A loop Shape is a free form sequence of line segments that form a circular list.
     /// The loop may cross upon itself, but this is not recommended for smooth collision.

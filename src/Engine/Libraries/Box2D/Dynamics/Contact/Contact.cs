@@ -1,5 +1,5 @@
 ﻿/*
-* Box2D.XNA port of Box2D:
+* SoulEngine.Physics port of Box2D:
 * Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
 *
 * Original source Box2D:
@@ -24,7 +24,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 
-namespace Box2D.XNA
+namespace SoulEngine.Physics
 {
     /// A contact edge is used to connect bodies and contacts together
     /// in a contact graph where each body is a node and each contact

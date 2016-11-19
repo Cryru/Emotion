@@ -1,5 +1,5 @@
 ﻿/*
-* Box2D.XNA port of Box2D:
+* SoulEngine.Physics port of Box2D:
 * Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
 *
 * Original source Box2D:
@@ -25,7 +25,7 @@
 /// to other edge Shapes. The connectivity information is used to ensure
 /// correct contact normals.
 using Microsoft.Xna.Framework;
-namespace Box2D.XNA
+namespace SoulEngine.Physics
 {
     public class EdgeShape : Shape
     {

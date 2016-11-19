@@ -1,5 +1,5 @@
 ﻿/*
-* Box2D.XNA port of Box2D:
+* SoulEngine.Physics port of Box2D:
 * Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
 *
 * Original source Box2D:
@@ -23,7 +23,7 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace Box2D.XNA
+namespace SoulEngine.Physics
 {
     /// Weld joint definition. You need to specify local anchor points
     /// where they are attached and the relative body angle. The position

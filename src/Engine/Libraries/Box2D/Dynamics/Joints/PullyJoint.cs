@@ -1,5 +1,5 @@
 ﻿/*
-* Box2D.XNA port of Box2D:
+* SoulEngine.Physics port of Box2D:
 * Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
 *
 * Original source Box2D:
@@ -24,7 +24,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace Box2D.XNA
+namespace SoulEngine.Physics
 {
     /// Pulley joint definition. This requires two ground anchors,
     /// two dynamic body anchor points, max lengths for each side,

@@ -1,5 +1,5 @@
 ﻿/*
-* Box2D.XNA port of Box2D:
+* SoulEngine.Physics port of Box2D:
 * Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
 *
 * Original source Box2D:
@@ -26,7 +26,7 @@ using Microsoft.Xna.Framework;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Box2D.XNA
+namespace SoulEngine.Physics
 {
     /// A dynamic AABB tree broad-phase, inspired by Nathanael Presson's btDbvt.
 
