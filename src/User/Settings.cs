@@ -54,7 +54,7 @@ namespace SoulEngine
         /// <summary>
         /// Toggles updating the debug text.
         /// </summary>
-        public static bool debugUpdate = true;
+        public static bool debugUpdate = false;
         /// <summary>
         /// Whether to draw the current fps on the screen.
         /// </summary>
@@ -63,6 +63,7 @@ namespace SoulEngine
         #region "Screen Settings"
         /// <summary>
         /// The screen to load first.
+        /// Do not initliaze any objects in it.
         /// </summary>
         public static Objects.Screen StartScreen = new StartScreen();
         #endregion

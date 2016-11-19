@@ -61,6 +61,8 @@
     <Compile Include="src\Engine\Libraries\Soul_Extension.cs" />
     <Compile Include="src\Engine\Objects\Effects\Effect.cs" />
     <Compile Include="src\Engine\Objects\Internal\Event.cs" />
+    <Compile Include="src\Engine\Objects\PhysicsObject.cs" />
+    <Compile Include="src\User\Screens\PhysicsTest.cs" />
     <Compile Include="src\User\Screens\StartScreen.cs" />
     <Compile Include="src\User\Settings.cs" />
     <Compile Include="src\Engine\Core\Core.cs" />
@@ -151,7 +153,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Engine\" />
+  </ItemGroup>
   <ItemGroup />
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
