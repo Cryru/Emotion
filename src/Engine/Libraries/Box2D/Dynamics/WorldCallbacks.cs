@@ -1,9 +1,9 @@
 ﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
+* 
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -20,124 +20,44 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using FarseerPhysics.Collision;
+using FarseerPhysics.Controllers;
+using FarseerPhysics.Dynamics.Contacts;
+using FarseerPhysics.Dynamics.Joints;
 
-namespace SoulEngine.Physics
+namespace FarseerPhysics.Dynamics
 {
-    /// Called for each fixture found in the query. You control how the ray cast
-    /// proceeds by returning a float:
-    /// return -1: ignore this fixture and continue
-    /// return 0: terminate the ray cast
-    /// return fraction: clip the ray to this point
-    /// return 1: don't clip the ray and continue
-    /// @param fixture the fixture hit by the ray
-    /// @param point the point of initial intersection
-    /// @param normal the normal vector at the point of intersection
-    /// @return -1 to filter, 0 to terminate, fraction to clip the ray for
-    /// closest hit, 1 to continue
-    public delegate float RayCastCallback(Fixture fixture, Vector2 point, Vector2 normal, float fraction);
+    /// <summary>
+    /// This delegate is called when a contact is deleted
+    /// </summary>
+    public delegate void EndContactDelegate(Contact contact);
 
-    public interface IDestructionListener
-    {
-        void SayGoodbye(Joint joint);
-        void SayGoodbye(Fixture fixture);
-    }
+    /// <summary>
+    /// This delegate is called when a contact is created
+    /// </summary>
+    public delegate bool BeginContactDelegate(Contact contact);
 
-    public interface IContactFilter
-    {
-        bool ShouldCollide(Fixture fixtureA, Fixture fixtureB);
-    }
+    public delegate void PreSolveDelegate(Contact contact, ref Manifold oldManifold);
 
-    public class DefaultContactFilter : IContactFilter
-    {
-        public bool ShouldCollide(Fixture fixtureA, Fixture fixtureB)
-        {
-            Filter filterA;
-            fixtureA.GetFilterData(out filterA);
+    public delegate void PostSolveDelegate(Contact contact, ContactVelocityConstraint impulse);
 
-            Filter filterB;
-            fixtureB.GetFilterData(out filterB);
+    public delegate void FixtureDelegate(Fixture fixture);
 
-	        if (filterA.groupIndex == filterB.groupIndex && filterA.groupIndex != 0)
-	        {
-		        return filterA.groupIndex > 0;
-	        }
+    public delegate void JointDelegate(Joint joint);
 
-	        bool collide = (filterA.maskBits & filterB.categoryBits) != 0 && (filterA.categoryBits & filterB.maskBits) != 0;
-	        
-            return collide;
-        }
-    }
+    public delegate void BodyDelegate(Body body);
 
-    public struct ContactImpulse
-    {
-        public FixedArray2<float> normalImpulses;
-        public FixedArray2<float> tangentImpulses;
-    }
+    public delegate void ControllerDelegate(Controller controller);
 
-    public interface IContactListener
-    {
-        void BeginContact(Contact contact);
-        void EndContact(Contact contact);
-        void PreSolve(Contact contact, ref Manifold oldManifold);
-        void PostSolve(Contact contact, ref ContactImpulse impulse);
-    }
+    public delegate bool CollisionFilterDelegate(Fixture fixtureA, Fixture fixtureB);
 
-    public class DefaultContactListener : IContactListener
-    {
-        public void BeginContact(Contact contact) { }
-        public void EndContact(Contact contact) { }
-        public void PreSolve(Contact contact, ref Manifold oldManifold) { }
-        public void PostSolve(Contact contact, ref ContactImpulse impulse) { }
-    }
+    public delegate void BroadphaseDelegate(ref FixtureProxy proxyA, ref FixtureProxy proxyB);
 
-    [Flags]
-    public enum DebugDrawFlags
-    {
-	    Shape			= (1 << 0), ///< draw shapes
-	    Joint			= (1 << 1), ///< draw joint connections
-	    AABB			= (1 << 2), ///< draw axis aligned bounding boxes
-	    Pair			= (1 << 3), ///< draw broad-phase pairs
-	    CenterOfMass	= (1 << 4), ///< draw center of mass frame
-    };
+    public delegate bool BeforeCollisionEventHandler(Fixture fixtureA, Fixture fixtureB);
 
-    /// Implement and register this class with a World to provide debug drawing of physics
-    /// entities in your game.
-    public abstract class DebugDraw
-    {
-	    public DebugDrawFlags Flags { get; set; }
-    	
-	    /// Append flags to the current flags.
-	    public void AppendFlags(DebugDrawFlags flags)
-        {
-            Flags |= flags;
-        }
+    public delegate bool OnCollisionEventHandler(Fixture fixtureA, Fixture fixtureB, Contact contact);
 
-	    /// Clear flags from the current flags.
-	    public  void ClearFlags(DebugDrawFlags flags)
-        {
-            Flags &= ~flags;
-        }
+    public delegate void AfterCollisionEventHandler(Fixture fixtureA, Fixture fixtureB, Contact contact, ContactVelocityConstraint impulse);
 
-	    /// Draw a closed polygon provided in CCW order.
-	    public abstract void DrawPolygon(ref FixedArray8<Vector2> vertices, int count, Color color);
-
-	    /// Draw a solid closed polygon provided in CCW order.
-        public abstract void DrawSolidPolygon(ref FixedArray8<Vector2> vertices, int count, Color color);
-
-	    /// Draw a circle.
-        public abstract void DrawCircle(Vector2 center, float radius, Color color);
-    	
-	    /// Draw a solid circle.
-        public abstract void DrawSolidCircle(Vector2 center, float radius, Vector2 axis, Color color);
-    	
-	    /// Draw a line segment.
-        public abstract void DrawSegment(Vector2 p1, Vector2 p2, Color color);
-
-	    /// Draw a transform. Choose your own length scale.
-	    /// @param xf a transform.
-        public abstract void DrawTransform(ref Transform xf);
-    }
+    public delegate void OnSeparationEventHandler(Fixture fixtureA, Fixture fixtureB);
 }

@@ -1,9 +1,9 @@
-﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
+/*
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
+* 
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -20,157 +20,233 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-
-/// A line segment (edge) Shape. These can be connected in chains or loops
-/// to other edge Shapes. The connectivity information is used to ensure
-/// correct contact normals.
+using FarseerPhysics.Common;
 using Microsoft.Xna.Framework;
-namespace SoulEngine.Physics
+
+namespace FarseerPhysics.Collision.Shapes
 {
+    /// <summary>
+    /// A line segment (edge) shape. These can be connected in chains or loops
+    /// to other edge shapes.
+    /// The connectivity information is used to ensure correct contact normals.
+    /// </summary>
     public class EdgeShape : Shape
     {
-	    public EdgeShape()
+        /// <summary>
+        /// Edge start vertex
+        /// </summary>
+        internal Vector2 _vertex1;
+
+        /// <summary>
+        /// Edge end vertex
+        /// </summary>
+        internal Vector2 _vertex2;
+
+        internal EdgeShape()
+            : base(0)
         {
             ShapeType = ShapeType.Edge;
-	        _radius = Settings.b2_polygonRadius;
-	        _hasVertex0 = false;
-	        _hasVertex3 = false;
+            _radius = Settings.PolygonRadius;
         }
 
-	    /// Set this as an isolated edge.
-	    public void Set(Vector2 v1, Vector2 v2)
+        /// <summary>
+        /// Create a new EdgeShape with the specified start and end.
+        /// </summary>
+        /// <param name="start">The start of the edge.</param>
+        /// <param name="end">The end of the edge.</param>
+        public EdgeShape(Vector2 start, Vector2 end)
+            : base(0)
         {
-	        _vertex1 = v1;
-	        _vertex2 = v2;
-	        _hasVertex0 = false;
-	        _hasVertex3 = false;
+            ShapeType = ShapeType.Edge;
+            _radius = Settings.PolygonRadius;
+            Set(start, end);
         }
 
-	    /// Implement Shape.
-        public override Shape Clone()
+        public override int ChildCount
         {
-	        var edge = new EdgeShape();
-            edge._hasVertex0 = _hasVertex0;
-            edge._hasVertex3 = _hasVertex3;
-            edge._radius = _radius;
-            edge._vertex0 = _vertex0;
-            edge._vertex1 = _vertex1;
-            edge._vertex2 = _vertex2;
-            edge._vertex3 = _vertex3;
-            return edge;
+            get { return 1; }
         }
 
-	    /// @see Shape::GetChildCount
-        public override int GetChildCount()
+        /// <summary>
+        /// Is true if the edge is connected to an adjacent vertex before vertex 1.
+        /// </summary>
+        public bool HasVertex0 { get; set; }
+
+        /// <summary>
+        /// Is true if the edge is connected to an adjacent vertex after vertex2.
+        /// </summary>
+        public bool HasVertex3 { get; set; }
+
+        /// <summary>
+        /// Optional adjacent vertices. These are used for smooth collision.
+        /// </summary>
+        public Vector2 Vertex0 { get; set; }
+
+        /// <summary>
+        /// Optional adjacent vertices. These are used for smooth collision.
+        /// </summary>
+        public Vector2 Vertex3 { get; set; }
+
+        /// <summary>
+        /// These are the edge vertices
+        /// </summary>
+        public Vector2 Vertex1
         {
-	        return 1;
+            get { return _vertex1; }
+            set
+            {
+                _vertex1 = value;
+                ComputeProperties();
+            }
         }
 
-	    /// @see Shape::TestPoint
-        public override bool TestPoint(ref Transform transform, Vector2 p)
+        /// <summary>
+        /// These are the edge vertices
+        /// </summary>
+        public Vector2 Vertex2
         {
-	        return false;
+            get { return _vertex2; }
+            set
+            {
+                _vertex2 = value;
+                ComputeProperties();
+            }
         }
 
-	    /// Implement Shape.
-        /// 
-        
-        // p = p1 + t * d
-        // v = v1 + s * e
-        // p1 + t * d = v1 + s * e
-        // s * e - t * d = p1 - v1
-        // 
-        public override bool RayCast(out RayCastOutput output, ref RayCastInput input,
-				            ref Transform transform, int childIndex)
+        /// <summary>
+        /// Set this as an isolated edge.
+        /// </summary>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        public void Set(Vector2 start, Vector2 end)
         {
+            _vertex1 = start;
+            _vertex2 = end;
+            HasVertex0 = false;
+            HasVertex3 = false;
+
+            ComputeProperties();
+        }
+
+        public override bool TestPoint(ref Transform transform, ref Vector2 point)
+        {
+            return false;
+        }
+
+        public override bool RayCast(out RayCastOutput output, ref RayCastInput input, ref Transform transform, int childIndex)
+        {
+            // p = p1 + t * d
+            // v = v1 + s * e
+            // p1 + t * d = v1 + s * e
+            // s * e - t * d = p1 - v1
+
             output = new RayCastOutput();
 
-	        // Put the ray into the edge's frame of reference.
-	        Vector2 p1 = MathUtils.MultiplyT(ref transform.R, input.p1 - transform.Position);
-	        Vector2 p2 = MathUtils.MultiplyT(ref transform.R, input.p2 - transform.Position);
-	        Vector2 d = p2 - p1;
+            // Put the ray into the edge's frame of reference.
+            Vector2 p1 = MathUtils.MulT(transform.q, input.Point1 - transform.p);
+            Vector2 p2 = MathUtils.MulT(transform.q, input.Point2 - transform.p);
+            Vector2 d = p2 - p1;
 
-	        Vector2 v1 = _vertex1;
-	        Vector2 v2 = _vertex2;
-	        Vector2 e = v2 - v1;
-	        Vector2 normal = new Vector2(e.Y, -e.X);
-	        normal.Normalize();
+            Vector2 v1 = _vertex1;
+            Vector2 v2 = _vertex2;
+            Vector2 e = v2 - v1;
+            Vector2 normal = new Vector2(e.Y, -e.X); //TODO: Could possibly cache the normal.
+            normal.Normalize();
 
-	        // q = p1 + t * d
-	        // dot(normal, q - v1) = 0
-	        // dot(normal, p1 - v1) + t * dot(normal, d) = 0
-	        float numerator = Vector2.Dot(normal, v1 - p1);
-	        float denominator = Vector2.Dot(normal, d);
+            // q = p1 + t * d
+            // dot(normal, q - v1) = 0
+            // dot(normal, p1 - v1) + t * dot(normal, d) = 0
+            float numerator = Vector2.Dot(normal, v1 - p1);
+            float denominator = Vector2.Dot(normal, d);
 
-	        if (denominator == 0.0f)
-	        {
-		        return false;
-	        }
+            if (denominator == 0.0f)
+            {
+                return false;
+            }
 
-	        float t = numerator / denominator;
-	        if (t < 0.0f || 1.0f < t)
-	        {
-		        return false;
-	        }
+            float t = numerator / denominator;
+            if (t < 0.0f || input.MaxFraction < t)
+            {
+                return false;
+            }
 
-	        Vector2 q = p1 + t * d;
+            Vector2 q = p1 + t * d;
 
-	        // q = v1 + s * r
-	        // s = dot(q - v1, r) / dot(r, r)
-	        Vector2 r = v2 - v1;
-	        float rr = Vector2.Dot(r, r);
-	        if (rr == 0.0f)
-	        {
-		        return false;
-	        }
+            // q = v1 + s * r
+            // s = dot(q - v1, r) / dot(r, r)
+            Vector2 r = v2 - v1;
+            float rr = Vector2.Dot(r, r);
+            if (rr == 0.0f)
+            {
+                return false;
+            }
 
-	        float s = Vector2.Dot(q - v1, r) / rr;
-	        if (s < 0.0f || 1.0f < s)
-	        {
-		        return false;
-	        }
+            float s = Vector2.Dot(q - v1, r) / rr;
+            if (s < 0.0f || 1.0f < s)
+            {
+                return false;
+            }
 
-	        output.fraction = t;
-	        if (numerator > 0.0f)
-	        {
-		        output.normal = -normal;
-	        }
-	        else
-	        {
-		        output.normal = normal;
-	        }
-	        return true;
+            output.Fraction = t;
+            if (numerator > 0.0f)
+            {
+                output.Normal = -normal;
+            }
+            else
+            {
+                output.Normal = normal;
+            }
+            return true;
         }
 
-	    /// @see Shape::ComputeAABB
         public override void ComputeAABB(out AABB aabb, ref Transform transform, int childIndex)
         {
-            aabb = new AABB();
-            Vector2 v1 = MathUtils.Multiply(ref transform, _vertex1);
-            Vector2 v2 = MathUtils.Multiply(ref transform, _vertex2);
+            Vector2 v1 = MathUtils.Mul(ref transform, _vertex1);
+            Vector2 v2 = MathUtils.Mul(ref transform, _vertex2);
 
-	        Vector2 lower = Vector2.Min(v1, v2);
-	        Vector2 upper = Vector2.Max(v1, v2);
+            Vector2 lower = Vector2.Min(v1, v2);
+            Vector2 upper = Vector2.Max(v1, v2);
 
-	        Vector2 r = new Vector2(_radius, _radius);
-	        aabb.lowerBound = lower - r;
-	        aabb.upperBound = upper + r;
+            Vector2 r = new Vector2(Radius, Radius);
+            aabb.LowerBound = lower - r;
+            aabb.UpperBound = upper + r;
         }
 
-	    /// @see Shape::ComputeMass
-        public override void ComputeMass(out MassData massData, float density)
+        protected override void ComputeProperties()
         {
-            massData = new MassData();
-	        massData.mass = 0.0f;
-	        massData.center = 0.5f * (_vertex1 + _vertex2);
-	        massData.I = 0.0f;
+            MassData.Centroid = 0.5f * (_vertex1 + _vertex2);
         }
-    	
-	    /// These are the edge vertices
-	    public Vector2 _vertex1, _vertex2;
 
-	    /// Optional adjacent vertices. These are used for smooth collision.
-	    public Vector2 _vertex0, _vertex3;
-	    public bool _hasVertex0, _hasVertex3;
+        public override float ComputeSubmergedArea(ref Vector2 normal, float offset, ref Transform xf, out Vector2 sc)
+        {
+            sc = Vector2.Zero;
+            return 0;
+        }
+
+        public bool CompareTo(EdgeShape shape)
+        {
+            return (HasVertex0 == shape.HasVertex0 &&
+                    HasVertex3 == shape.HasVertex3 &&
+                    Vertex0 == shape.Vertex0 &&
+                    Vertex1 == shape.Vertex1 &&
+                    Vertex2 == shape.Vertex2 &&
+                    Vertex3 == shape.Vertex3);
+        }
+
+        public override Shape Clone()
+        {
+            EdgeShape clone = new EdgeShape();
+            clone.ShapeType = ShapeType;
+            clone._radius = _radius;
+            clone._density = _density;
+            clone.HasVertex0 = HasVertex0;
+            clone.HasVertex3 = HasVertex3;
+            clone.Vertex0 = Vertex0;
+            clone._vertex1 = _vertex1;
+            clone._vertex2 = _vertex2;
+            clone.Vertex3 = Vertex3;
+            clone.MassData = MassData;
+            return clone;
+        }
     }
 }

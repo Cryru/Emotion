@@ -1,9 +1,9 @@
 ﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
+* 
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -22,19 +22,22 @@
 
 using System;
 using System.Diagnostics;
+using FarseerPhysics.Common;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics
+namespace FarseerPhysics.Collision
 {
+    /// <summary>
     /// Input parameters for CalculateTimeOfImpact
-    public struct TOIInput
+    /// </summary>
+    public class TOIInput
     {
-        public DistanceProxy proxyA;
-        public DistanceProxy proxyB;
-        public Sweep sweepA;
-        public Sweep sweepB;
-        public float tMax; // defines sweep interval [0, tMax]
-    };
+        public DistanceProxy ProxyA = new DistanceProxy();
+        public DistanceProxy ProxyB = new DistanceProxy();
+        public Sweep SweepA;
+        public Sweep SweepB;
+        public float TMax; // defines sweep interval [0, tMax]
+    }
 
     public enum TOIOutputState
     {
@@ -48,28 +51,38 @@ namespace SoulEngine.Physics
     public struct TOIOutput
     {
         public TOIOutputState State;
-        public float t;
+        public float T;
     }
 
     public enum SeparationFunctionType
     {
-	    Points,
-	    FaceA,
-	    FaceB
-    };
+        Points,
+        FaceA,
+        FaceB
+    }
 
-    public struct SeparationFunction
+    public static class SeparationFunction
     {
-        public SeparationFunction(ref SimplexCache cache,
-            ref DistanceProxy proxyA, ref Sweep sweepA,
-            ref DistanceProxy proxyB, ref Sweep sweepB,
-            float t1)
-	    {
+        [ThreadStatic]
+        private static Vector2 _axis;
+        [ThreadStatic]
+        private static Vector2 _localPoint;
+        [ThreadStatic]
+        private static DistanceProxy _proxyA;
+        [ThreadStatic]
+        private static DistanceProxy _proxyB;
+        [ThreadStatic]
+        private static Sweep _sweepA, _sweepB;
+        [ThreadStatic]
+        private static SeparationFunctionType _type;
+
+        public static void Set(ref SimplexCache cache, DistanceProxy proxyA, ref Sweep sweepA, DistanceProxy proxyB, ref Sweep sweepB, float t1)
+        {
             _localPoint = Vector2.Zero;
             _proxyA = proxyA;
             _proxyB = proxyB;
-		    int count = cache.count;
-		    Debug.Assert(0 < count && count < 3);
+            int count = cache.Count;
+            Debug.Assert(0 < count && count < 3);
 
             _sweepA = sweepA;
             _sweepB = sweepB;
@@ -78,413 +91,408 @@ namespace SoulEngine.Physics
             _sweepA.GetTransform(out xfA, t1);
             _sweepB.GetTransform(out xfB, t1);
 
-		    if (count == 1)
-		    {
+            if (count == 1)
+            {
                 _type = SeparationFunctionType.Points;
-                Vector2 localPointA = _proxyA.GetVertex(cache.indexA[0]);
-                Vector2 localPointB = _proxyB.GetVertex(cache.indexB[0]);
-			    Vector2 pointA = MathUtils.Multiply(ref xfA, localPointA);
-			    Vector2 pointB = MathUtils.Multiply(ref xfB, localPointB);
-			    _axis = pointB - pointA;
-			    _axis.Normalize();
-                return;
-		    }
-		    else if (cache.indexA[0] == cache.indexA[1])
-		    {
-			    // Two points on B and one on A.
+                Vector2 localPointA = _proxyA.Vertices[cache.IndexA[0]];
+                Vector2 localPointB = _proxyB.Vertices[cache.IndexB[0]];
+                Vector2 pointA = MathUtils.Mul(ref xfA, localPointA);
+                Vector2 pointB = MathUtils.Mul(ref xfB, localPointB);
+                _axis = pointB - pointA;
+                _axis.Normalize();
+            }
+            else if (cache.IndexA[0] == cache.IndexA[1])
+            {
+                // Two points on B and one on A.
                 _type = SeparationFunctionType.FaceB;
-                Vector2 localPointB1 = proxyB.GetVertex(cache.indexB[0]);
-                Vector2 localPointB2 = proxyB.GetVertex(cache.indexB[1]);
+                Vector2 localPointB1 = proxyB.Vertices[cache.IndexB[0]];
+                Vector2 localPointB2 = proxyB.Vertices[cache.IndexB[1]];
 
-			    _axis = MathUtils.Cross(localPointB2 - localPointB1, 1.0f);
-			    _axis.Normalize();
-                Vector2 normal = MathUtils.Multiply(ref xfB.R, _axis);
+                Vector2 a = localPointB2 - localPointB1;
+                _axis = new Vector2(a.Y, -a.X);
+                _axis.Normalize();
+                Vector2 normal = MathUtils.Mul(ref xfB.q, _axis);
 
                 _localPoint = 0.5f * (localPointB1 + localPointB2);
-			    Vector2 pointB = MathUtils.Multiply(ref xfB, _localPoint);
+                Vector2 pointB = MathUtils.Mul(ref xfB, _localPoint);
 
-                Vector2 localPointA = proxyA.GetVertex(cache.indexA[0]);
-                Vector2 pointA = MathUtils.Multiply(ref xfA, localPointA);
+                Vector2 localPointA = proxyA.Vertices[cache.IndexA[0]];
+                Vector2 pointA = MathUtils.Mul(ref xfA, localPointA);
 
-			    float s = Vector2.Dot(pointA - pointB, normal);
-			    if (s < 0.0f)
-			    {
-				    _axis = -_axis;
-                    s = -s;
-			    }
-                return;
-		    }
-		    else
-		    {
+                float s = Vector2.Dot(pointA - pointB, normal);
+                if (s < 0.0f)
+                {
+                    _axis = -_axis;
+                }
+            }
+            else
+            {
                 // Two points on A and one or two points on B.
-			    _type = SeparationFunctionType.FaceA;
-			    Vector2 localPointA1 = _proxyA.GetVertex(cache.indexA[0]);
-			    Vector2 localPointA2 = _proxyA.GetVertex(cache.indexA[1]);
-    			
-			    _axis = MathUtils.Cross(localPointA2 - localPointA1, 1.0f);
-			    _axis.Normalize();
-			    Vector2 normal = MathUtils.Multiply(ref xfA.R, _axis);
+                _type = SeparationFunctionType.FaceA;
+                Vector2 localPointA1 = _proxyA.Vertices[cache.IndexA[0]];
+                Vector2 localPointA2 = _proxyA.Vertices[cache.IndexA[1]];
 
-			    _localPoint = 0.5f * (localPointA1 + localPointA2);
-			    Vector2 pointA = MathUtils.Multiply(ref xfA, _localPoint);
+                Vector2 a = localPointA2 - localPointA1;
+                _axis = new Vector2(a.Y, -a.X);
+                _axis.Normalize();
+                Vector2 normal = MathUtils.Mul(ref xfA.q, _axis);
 
-			    Vector2 localPointB = _proxyB.GetVertex(cache.indexB[0]);
-			    Vector2 pointB = MathUtils.Multiply(ref xfB, localPointB);
+                _localPoint = 0.5f * (localPointA1 + localPointA2);
+                Vector2 pointA = MathUtils.Mul(ref xfA, _localPoint);
 
-			    float s = Vector2.Dot(pointB - pointA, normal);
-			    if (s < 0.0f)
-			    {
-				    _axis = -_axis;
-				    s = -s;
-			    }
-			    return;
-		    }
-	    }
+                Vector2 localPointB = _proxyB.Vertices[cache.IndexB[0]];
+                Vector2 pointB = MathUtils.Mul(ref xfB, localPointB);
 
-	    public float FindMinSeparation(out int indexA, out int indexB, float t)
-	    {
-		    Transform xfA, xfB;
-		    _sweepA.GetTransform(out xfA, t);
-		    _sweepB.GetTransform(out xfB, t);
+                float s = Vector2.Dot(pointB - pointA, normal);
+                if (s < 0.0f)
+                {
+                    _axis = -_axis;
+                }
+            }
 
-		    switch (_type)
-		    {
-                case SeparationFunctionType.Points:
-			    {
-				    Vector2 axisA = MathUtils.MultiplyT(ref xfA.R,  _axis);
-				    Vector2 axisB = MathUtils.MultiplyT(ref xfB.R, -_axis);
+            //FPE note: the returned value that used to be here has been removed, as it was not used.
+        }
 
-				    indexA = _proxyA.GetSupport(axisA);
-				    indexB = _proxyB.GetSupport(axisB);
-
-				    Vector2 localPointA = _proxyA.GetVertex(indexA);
-				    Vector2 localPointB = _proxyB.GetVertex(indexB);
-    				
-				    Vector2 pointA = MathUtils.Multiply(ref xfA, localPointA);
-				    Vector2 pointB = MathUtils.Multiply(ref xfB, localPointB);
-
-				    float separation = Vector2.Dot(pointB - pointA, _axis);
-				    return separation;
-			    }
-
-                case SeparationFunctionType.FaceA:
-			    {
-				    Vector2 normal = MathUtils.Multiply(ref xfA.R, _axis);
-				    Vector2 pointA = MathUtils.Multiply(ref xfA, _localPoint);
-
-				    Vector2 axisB = MathUtils.MultiplyT(ref xfB.R, -normal);
-    				
-				    indexA = -1;
-				    indexB = _proxyB.GetSupport(axisB);
-
-				    Vector2 localPointB = _proxyB.GetVertex(indexB);
-				    Vector2 pointB = MathUtils.Multiply(ref xfB, localPointB);
-
-				    float separation = Vector2.Dot(pointB - pointA, normal);
-				    return separation;
-			    }
-
-		        case SeparationFunctionType.FaceB:
-			    {
-				    Vector2 normal = MathUtils.Multiply(ref xfB.R, _axis);
-				    Vector2 pointB = MathUtils.Multiply(ref xfB, _localPoint);
-
-				    Vector2 axisA = MathUtils.MultiplyT(ref xfA.R, -normal);
-
-				    indexB = -1;
-				    indexA = _proxyA.GetSupport(axisA);
-
-				    Vector2 localPointA = _proxyA.GetVertex(indexA);
-				    Vector2 pointA = MathUtils.Multiply(ref xfA, localPointA);
-
-				    float separation = Vector2.Dot(pointA - pointB, normal);
-				    return separation;
-			    }
-
-		        default:
-			        Debug.Assert(false);
-			        indexA = -1;
-			        indexB = -1;
-			        return 0.0f;
-		    }
-	    }
-        
-        public float Evaluate(int indexA, int indexB, float t)
-	    {
+        public static float FindMinSeparation(out int indexA, out int indexB, float t)
+        {
             Transform xfA, xfB;
             _sweepA.GetTransform(out xfA, t);
             _sweepB.GetTransform(out xfB, t);
 
-		    switch (_type)
-		    {
+            switch (_type)
+            {
                 case SeparationFunctionType.Points:
-			    {
-                    Vector2 axisA = MathUtils.MultiplyT(ref xfA.R, _axis);
-                    Vector2 axisB = MathUtils.MultiplyT(ref xfB.R, -_axis);
+                    {
+                        Vector2 axisA = MathUtils.MulT(ref xfA.q, _axis);
+                        Vector2 axisB = MathUtils.MulT(ref xfB.q, -_axis);
 
-                    Vector2 localPointA = _proxyA.GetVertex(indexA);
-                    Vector2 localPointB = _proxyB.GetVertex(indexB);
-                    
-                    Vector2 pointA = MathUtils.Multiply(ref xfA, localPointA);
-                    Vector2 pointB = MathUtils.Multiply(ref xfB, localPointB);
-                    float separation = Vector2.Dot(pointB - pointA, _axis);
+                        indexA = _proxyA.GetSupport(axisA);
+                        indexB = _proxyB.GetSupport(axisB);
 
-				    return separation;
-			    }
+                        Vector2 localPointA = _proxyA.Vertices[indexA];
+                        Vector2 localPointB = _proxyB.Vertices[indexB];
+
+                        Vector2 pointA = MathUtils.Mul(ref xfA, localPointA);
+                        Vector2 pointB = MathUtils.Mul(ref xfB, localPointB);
+
+                        float separation = Vector2.Dot(pointB - pointA, _axis);
+                        return separation;
+                    }
 
                 case SeparationFunctionType.FaceA:
-			    {
-                    Vector2 normal = MathUtils.Multiply(ref xfA.R, _axis);
-                    Vector2 pointA = MathUtils.Multiply(ref xfA, _localPoint);
+                    {
+                        Vector2 normal = MathUtils.Mul(ref xfA.q, _axis);
+                        Vector2 pointA = MathUtils.Mul(ref xfA, _localPoint);
 
-                    Vector2 axisB = MathUtils.MultiplyT(ref xfB.R, -normal);
+                        Vector2 axisB = MathUtils.MulT(ref xfB.q, -normal);
 
-                    Vector2 localPointB = _proxyB.GetVertex(indexB);
-                    Vector2 pointB = MathUtils.Multiply(ref xfB, localPointB);
+                        indexA = -1;
+                        indexB = _proxyB.GetSupport(axisB);
 
-				    float separation = Vector2.Dot(pointB - pointA, normal);
-				    return separation;
-			    }
+                        Vector2 localPointB = _proxyB.Vertices[indexB];
+                        Vector2 pointB = MathUtils.Mul(ref xfB, localPointB);
+
+                        float separation = Vector2.Dot(pointB - pointA, normal);
+                        return separation;
+                    }
 
                 case SeparationFunctionType.FaceB:
-			    {
-                    Vector2 normal = MathUtils.Multiply(ref xfB.R, _axis);
-                    Vector2 pointB = MathUtils.Multiply(ref xfB, _localPoint);
+                    {
+                        Vector2 normal = MathUtils.Mul(ref xfB.q, _axis);
+                        Vector2 pointB = MathUtils.Mul(ref xfB, _localPoint);
 
-                    Vector2 axisA = MathUtils.MultiplyT(ref xfA.R, -normal);
+                        Vector2 axisA = MathUtils.MulT(ref xfA.q, -normal);
 
-                    Vector2 localPointA = _proxyA.GetVertex(indexA);
-                    Vector2 pointA = MathUtils.Multiply(ref xfA, localPointA);
+                        indexB = -1;
+                        indexA = _proxyA.GetSupport(axisA);
 
-				    float separation = Vector2.Dot(pointA - pointB, normal);
-				    return separation;
-			    }
+                        Vector2 localPointA = _proxyA.Vertices[indexA];
+                        Vector2 pointA = MathUtils.Mul(ref xfA, localPointA);
 
-		    default:
-			    Debug.Assert(false);
-			    return 0.0f;
-		    }
-	    }
+                        float separation = Vector2.Dot(pointA - pointB, normal);
+                        return separation;
+                    }
 
-        DistanceProxy _proxyA;
-        DistanceProxy _proxyB;
-        Sweep _sweepA, _sweepB; 
-        SeparationFunctionType _type;
-	    Vector2 _localPoint;
-	    Vector2 _axis;
-    };
+                default:
+                    Debug.Assert(false);
+                    indexA = -1;
+                    indexB = -1;
+                    return 0.0f;
+            }
+        }
 
+        public static float Evaluate(int indexA, int indexB, float t)
+        {
+            Transform xfA, xfB;
+            _sweepA.GetTransform(out xfA, t);
+            _sweepB.GetTransform(out xfB, t);
 
+            switch (_type)
+            {
+                case SeparationFunctionType.Points:
+                    {
+                        Vector2 localPointA = _proxyA.Vertices[indexA];
+                        Vector2 localPointB = _proxyB.Vertices[indexB];
+
+                        Vector2 pointA = MathUtils.Mul(ref xfA, localPointA);
+                        Vector2 pointB = MathUtils.Mul(ref xfB, localPointB);
+                        float separation = Vector2.Dot(pointB - pointA, _axis);
+
+                        return separation;
+                    }
+                case SeparationFunctionType.FaceA:
+                    {
+                        Vector2 normal = MathUtils.Mul(ref xfA.q, _axis);
+                        Vector2 pointA = MathUtils.Mul(ref xfA, _localPoint);
+
+                        Vector2 localPointB = _proxyB.Vertices[indexB];
+                        Vector2 pointB = MathUtils.Mul(ref xfB, localPointB);
+
+                        float separation = Vector2.Dot(pointB - pointA, normal);
+                        return separation;
+                    }
+                case SeparationFunctionType.FaceB:
+                    {
+                        Vector2 normal = MathUtils.Mul(ref xfB.q, _axis);
+                        Vector2 pointB = MathUtils.Mul(ref xfB, _localPoint);
+
+                        Vector2 localPointA = _proxyA.Vertices[indexA];
+                        Vector2 pointA = MathUtils.Mul(ref xfA, localPointA);
+
+                        float separation = Vector2.Dot(pointA - pointB, normal);
+                        return separation;
+                    }
+                default:
+                    Debug.Assert(false);
+                    return 0.0f;
+            }
+        }
+    }
 
     public static class TimeOfImpact
     {
         // CCD via the local separating axis method. This seeks progression
         // by computing the largest time at which separation is maintained.
+
+        [ThreadStatic]
+        public static int TOICalls, TOIIters, TOIMaxIters;
+        [ThreadStatic]
+        public static int TOIRootIters, TOIMaxRootIters;
+        [ThreadStatic]
+        private static DistanceInput _distanceInput;
+
+        /// <summary>
         /// Compute the upper bound on time before two shapes penetrate. Time is represented as
         /// a fraction between [0,tMax]. This uses a swept separating axis and may miss some intermediate,
         /// non-tunneling collision. If you change the time interval, you should call this function
         /// again.
-        /// Note: use b2Distance to compute the contact point and normal at the time of impact.
-        public static void CalculateTimeOfImpact(out TOIOutput output, ref TOIInput input)
+        /// Note: use Distance() to compute the contact point and normal at the time of impact.
+        /// </summary>
+        /// <param name="output">The output.</param>
+        /// <param name="input">The input.</param>
+        public static void CalculateTimeOfImpact(out TOIOutput output, TOIInput input)
         {
-	        ++b2_toiCalls;
+            if (Settings.EnableDiagnostics) //FPE: We only gather diagnostics when enabled
+                ++TOICalls;
 
             output = new TOIOutput();
             output.State = TOIOutputState.Unknown;
-            output.t = input.tMax;
+            output.T = input.TMax;
 
-	        Sweep sweepA = input.sweepA;
-	        Sweep sweepB = input.sweepB;
+            Sweep sweepA = input.SweepA;
+            Sweep sweepB = input.SweepB;
 
             // Large rotations can make the root finder fail, so we normalize the
             // sweep angles.
             sweepA.Normalize();
             sweepB.Normalize();
 
-            float tMax = input.tMax;
+            float tMax = input.TMax;
 
-            float totalRadius = input.proxyA._radius + input.proxyB._radius;
-            float target = Math.Max(Settings.b2_linearSlop, totalRadius - 3.0f * Settings.b2_linearSlop);
-            float tolerance = 0.25f * Settings.b2_linearSlop;
+            float totalRadius = input.ProxyA.Radius + input.ProxyB.Radius;
+            float target = Math.Max(Settings.LinearSlop, totalRadius - 3.0f * Settings.LinearSlop);
+            const float tolerance = 0.25f * Settings.LinearSlop;
             Debug.Assert(target > tolerance);
 
             float t1 = 0.0f;
-	        int k_maxIterations = 20;
-	        int iter = 0;
-	        
-	        // Prepare input for distance query.
-            SimplexCache cache;
-	        DistanceInput distanceInput;
-            distanceInput.proxyA = input.proxyA;
-            distanceInput.proxyB = input.proxyB;
-	        distanceInput.useRadii = false;
+            const int k_maxIterations = 20;
+            int iter = 0;
+
+            // Prepare input for distance query.
+            _distanceInput = _distanceInput ?? new DistanceInput();
+            _distanceInput.ProxyA = input.ProxyA;
+            _distanceInput.ProxyB = input.ProxyB;
+            _distanceInput.UseRadii = false;
 
             // The outer loop progressively attempts to compute new separating axes.
             // This loop terminates when an axis is repeated (no progress is made).
-	        for(;;)
-	        {
-		        Transform xfA, xfB;
-		        sweepA.GetTransform(out xfA, t1);
+            for (; ; )
+            {
+                Transform xfA, xfB;
+                sweepA.GetTransform(out xfA, t1);
                 sweepB.GetTransform(out xfB, t1);
 
                 // Get the distance between shapes. We can also use the results
                 // to get a separating axis.
-		        distanceInput.transformA = xfA;
-		        distanceInput.transformB = xfB;
-		        DistanceOutput distanceOutput;
-		        Distance.ComputeDistance(out distanceOutput, out cache, ref distanceInput);
+                _distanceInput.TransformA = xfA;
+                _distanceInput.TransformB = xfB;
+                DistanceOutput distanceOutput;
+                SimplexCache cache;
+                Distance.ComputeDistance(out distanceOutput, out cache, _distanceInput);
 
-	            // If the shapes are overlapped, we give up on continuous collision.
-	            if (distanceOutput.distance <= 0.0f)
-	            {
-		            // Failure!
+                // If the shapes are overlapped, we give up on continuous collision.
+                if (distanceOutput.Distance <= 0.0f)
+                {
+                    // Failure!
                     output.State = TOIOutputState.Overlapped;
-		            output.t = 0.0f;
-		            break;
-	            }
+                    output.T = 0.0f;
+                    break;
+                }
 
-                if (distanceOutput.distance < target + tolerance)
-		        {
-			        // Victory!
-			        output.State = TOIOutputState.Touching;
-			        output.t = t1;
-			        break;
-		        }
+                if (distanceOutput.Distance < target + tolerance)
+                {
+                    // Victory!
+                    output.State = TOIOutputState.Touching;
+                    output.T = t1;
+                    break;
+                }
 
-                SeparationFunction fcn = new SeparationFunction(ref cache, ref input.proxyA, ref sweepA, ref input.proxyB, ref sweepB, t1);
+                SeparationFunction.Set(ref cache, input.ProxyA, ref sweepA, input.ProxyB, ref sweepB, t1);
 
                 // Compute the TOI on the separating axis. We do this by successively
-		        // resolving the deepest point. This loop is bounded by the number of vertices.
-		        bool done = false;
-		        float t2 = tMax;
+                // resolving the deepest point. This loop is bounded by the number of vertices.
+                bool done = false;
+                float t2 = tMax;
                 int pushBackIter = 0;
-		        for (;;)
-		        {
-			        // Find the deepest point at t2. Store the witness point indices.
-			        int indexA, indexB;
-			        float s2 = fcn.FindMinSeparation(out indexA, out indexB, t2);
+                for (; ; )
+                {
+                    // Find the deepest point at t2. Store the witness point indices.
+                    int indexA, indexB;
+                    float s2 = SeparationFunction.FindMinSeparation(out indexA, out indexB, t2);
 
-			        // Is the final configuration separated?
-			        if (s2 > target + tolerance)
-			        {
-				        // Victory!
-				        output.State = TOIOutputState.Seperated;
-				        output.t = tMax;
-				        done = true;
-				        break;
-			        }
+                    // Is the final configuration separated?
+                    if (s2 > target + tolerance)
+                    {
+                        // Victory!
+                        output.State = TOIOutputState.Seperated;
+                        output.T = tMax;
+                        done = true;
+                        break;
+                    }
 
-			        // Has the separation reached tolerance?
-			        if (s2 > target - tolerance)
-			        {
-				        // Advance the sweeps
-				        t1 = t2;
-				        break;
-			        }
+                    // Has the separation reached tolerance?
+                    if (s2 > target - tolerance)
+                    {
+                        // Advance the sweeps
+                        t1 = t2;
+                        break;
+                    }
 
-			        // Compute the initial separation of the witness points.
-			        float s1 = fcn.Evaluate(indexA, indexB, t1);
+                    // Compute the initial separation of the witness points.
+                    float s1 = SeparationFunction.Evaluate(indexA, indexB, t1);
 
-			        // Check for initial overlap. This might happen if the root finder
-			        // runs out of iterations.
-			        if (s1 < target - tolerance)
-			        {
-				        output.State = TOIOutputState.Failed;
-				        output.t = t1;
-				        done = true;
-				        break;
-			        }
+                    // Check for initial overlap. This might happen if the root finder
+                    // runs out of iterations.
+                    if (s1 < target - tolerance)
+                    {
+                        output.State = TOIOutputState.Failed;
+                        output.T = t1;
+                        done = true;
+                        break;
+                    }
 
-			        // Check for touching
-			        if (s1 <= target + tolerance)
-			        {
-				        // Victory! t1 should hold the TOI (could be 0.0).
+                    // Check for touching
+                    if (s1 <= target + tolerance)
+                    {
+                        // Victory! t1 should hold the TOI (could be 0.0).
                         output.State = TOIOutputState.Touching;
-				        output.t = t1;
-				        done = true;
-				        break;
-			        }
+                        output.T = t1;
+                        done = true;
+                        break;
+                    }
 
-			        // Compute 1D root of: f(x) - target = 0
-			        int rootIterCount = 0;
-			        float a1 = t1, a2 = t2;
-			        for (;;)
-			        {
-				        // Use a mix of the secant rule and bisection.
-				        float t;
-				        if ((rootIterCount & 1) != 0)
-				        {
-					        // Secant rule to improve convergence.
-					        t = a1 + (target - s1) * (a2 - a1) / (s2 - s1);
-				        }
-				        else
-				        {
-					        // Bisection to guarantee progress.
-					        t = 0.5f * (a1 + a2);
-				        }
+                    // Compute 1D root of: f(x) - target = 0
+                    int rootIterCount = 0;
+                    float a1 = t1, a2 = t2;
+                    for (; ; )
+                    {
+                        // Use a mix of the secant rule and bisection.
+                        float t;
+                        if ((rootIterCount & 1) != 0)
+                        {
+                            // Secant rule to improve convergence.
+                            t = a1 + (target - s1) * (a2 - a1) / (s2 - s1);
+                        }
+                        else
+                        {
+                            // Bisection to guarantee progress.
+                            t = 0.5f * (a1 + a2);
+                        }
 
-				        float s = fcn.Evaluate(indexA, indexB, t);
+                        ++rootIterCount;
 
-				        if (Math.Abs(s - target) < tolerance)
-				        {
-					        // t2 holds a tentative value for t1
-					        t2 = t;
-					        break;
-				        }
+                        if (Settings.EnableDiagnostics) //FPE: We only gather diagnostics when enabled
+                            ++TOIRootIters;
 
-				        // Ensure we continue to bracket the root.
-				        if (s > target)
-				        {
-					        a1 = t;
-					        s1 = s;
-				        }
-				        else
-				        {
-					        a2 = t;
-					        s2 = s;
-				        }
+                        float s = SeparationFunction.Evaluate(indexA, indexB, t);
 
-				        ++rootIterCount;
-				        ++b2_toiRootIters;
+                        if (Math.Abs(s - target) < tolerance)
+                        {
+                            // t2 holds a tentative value for t1
+                            t2 = t;
+                            break;
+                        }
 
-				        if (rootIterCount == 50)
-				        {
-					        break;
-				        }
-			        }
+                        // Ensure we continue to bracket the root.
+                        if (s > target)
+                        {
+                            a1 = t;
+                            s1 = s;
+                        }
+                        else
+                        {
+                            a2 = t;
+                            s2 = s;
+                        }
 
-			        b2_toiMaxRootIters = Math.Max(b2_toiMaxRootIters, rootIterCount);
+                        if (rootIterCount == 50)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (Settings.EnableDiagnostics) //FPE: We only gather diagnostics when enabled
+                        TOIMaxRootIters = Math.Max(TOIMaxRootIters, rootIterCount);
 
                     ++pushBackIter;
 
-			        if (pushBackIter == Settings.b2_maxPolygonVertices)
-			        {
-				        break;
-			        }
-		        }
+                    if (pushBackIter == Settings.MaxPolygonVertices)
+                    {
+                        break;
+                    }
+                }
 
-		        ++iter;
-		        ++b2_toiIters;
+                ++iter;
 
-		        if (done)
-		        {
-			        break;
-		        }
-                
+                if (Settings.EnableDiagnostics) //FPE: We only gather diagnostics when enabled
+                    ++TOIIters;
+
+                if (done)
+                {
+                    break;
+                }
+
                 if (iter == k_maxIterations)
-		        {
-			        // Root finder got stuck. Semi-victory.
-			        output.State = TOIOutputState.Failed;
-			        output.t = t1;
-			        break;
-		        }
-	        }
+                {
+                    // Root finder got stuck. Semi-victory.
+                    output.State = TOIOutputState.Failed;
+                    output.T = t1;
+                    break;
+                }
+            }
 
-	        b2_toiMaxIters = Math.Max(b2_toiMaxIters, iter);
+            if (Settings.EnableDiagnostics) //FPE: We only gather diagnostics when enabled
+                TOIMaxIters = Math.Max(TOIMaxIters, iter);
         }
-
-        public static int b2_toiCalls, b2_toiIters, b2_toiMaxIters;
-        public static int b2_toiRootIters, b2_toiMaxRootIters;
-        public static int b2_toiMaxOptIters;
     }
 }

@@ -1,9 +1,6 @@
 ﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -20,16 +17,50 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-namespace SoulEngine.Physics
+using Microsoft.Xna.Framework;
+
+namespace FarseerPhysics.Dynamics
 {
+    /// <summary>
     /// This is an internal structure.
+    /// </summary>
     public struct TimeStep
     {
-        public float dt;			// time step
-        public float inv_dt;		// inverse time step (0 if dt == 0).
-        public float dtRatio;	    // dt * inv_dt0
-        public int velocityIterations;
-        public int positionIterations;
-        public bool warmStarting;
-    };
+        /// <summary>
+        /// Time step (Delta time)
+        /// </summary>
+        public float dt;
+
+        /// <summary>
+        /// dt * inv_dt0
+        /// </summary>
+        public float dtRatio;
+
+        /// <summary>
+        /// Inverse time step (0 if dt == 0).
+        /// </summary>
+        public float inv_dt;
+    }
+
+    /// This is an internal structure.
+    public struct Position
+    {
+        public Vector2 c;
+        public float a;
+    }
+
+    /// This is an internal structure.
+    public struct Velocity
+    {
+        public Vector2 v;
+        public float w;
+    }
+
+    /// Solver Data
+    public struct SolverData
+    {
+        public TimeStep step;
+        public Position[] positions;
+        public Velocity[] velocities;
+    }
 }

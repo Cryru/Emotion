@@ -1,9 +1,9 @@
-﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
+/*
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
+* 
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -20,10 +20,11 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
+using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics
+namespace FarseerPhysics.Dynamics.Joints
 {
     public enum JointType
     {
@@ -32,261 +33,221 @@ namespace SoulEngine.Physics
         Prismatic,
         Distance,
         Pulley,
-        Mouse,
+        //Mouse, <- We have fixed mouse
         Gear,
-        Line,
+        Wheel,
         Weld,
         Friction,
-        MaxDistance,
-    };
+        Rope,
+        Motor,
+
+        //FPE note: From here on and down, it is only FPE joints
+        Angle,
+        FixedMouse,
+        FixedRevolute,
+        FixedDistance,
+        FixedLine,
+        FixedPrismatic,
+        FixedAngle,
+        FixedFriction,
+    }
 
     public enum LimitState
     {
-	    Inactive,
-	    AtLower,
-	    AtUpper,
-	    Equal,
-    };
+        Inactive,
+        AtLower,
+        AtUpper,
+        Equal,
+    }
 
-    internal struct Jacobian
-    {
-	    public Vector2 linearA;
-	    public float angularA;
-	    public Vector2 linearB;
-	    public float angularB;
-
-	    public void SetZero()
-        {
-	        linearA = Vector2.Zero; angularA = 0.0f;
-	        linearB = Vector2.Zero; angularB = 0.0f;
-        }
-
-	    public void Set(Vector2 x1, float a1, Vector2 x2, float a2)
-        {
-	        linearA = x1; angularA = a1;
-	        linearB = x2; angularB = a2;
-        }
-
-	    public float Compute(Vector2 x1, float a1, Vector2 x2, float a2)
-        {
-            return Vector2.Dot(linearA, x1) + angularA * a1 + Vector2.Dot(linearB, x2) + angularB * a2;
-        }
-    };
-
-     /// A joint edge is used to connect bodies and joints together
+    /// <summary>
+    /// A joint edge is used to connect bodies and joints together
     /// in a joint graph where each body is a node and each joint
     /// is an edge. A joint edge belongs to a doubly linked list
     /// maintained in each attached body. Each joint has two joint
     /// nodes, one for each attached body.
-    public class JointEdge
+    /// </summary>
+    public sealed class JointEdge
     {
-        /// <summary>
-        /// Provides quick access to the other body attached.
-        /// </summary>
-        public Body Other;
-
         /// <summary>
         /// The joint.
         /// </summary>
         public Joint Joint;
 
         /// <summary>
-        /// The previous joint edge in the body's joint list.
-        /// </summary>
-        public JointEdge Prev;
-
-        /// <summary>
         /// The next joint edge in the body's joint list.
         /// </summary>
         public JointEdge Next;
-    }
 
-    public class JointDef
-    {
-	    /// The joint type is set automatically for concrete joint types.
-        internal JointType type;
+        /// <summary>
+        /// Provides quick access to the other body attached.
+        /// </summary>
+        public Body Other;
 
-	    /// Use this to attach application specific data to your joints.
-        public object userData;
-
-	    /// The first attached body.
-        public Body bodyA;
-
-	    /// The second attached body.
-        public Body bodyB;
-
-	    /// Set this flag to true if the attached bodies should collide.
-	    public bool collideConnected;
+        /// <summary>
+        /// The previous joint edge in the body's joint list.
+        /// </summary>
+        public JointEdge Prev;
     }
 
     public abstract class Joint
     {
-	    /// Get the type of the concrete joint.
-	    public JointType JointType
+        private float _breakpoint;
+        private double _breakpointSquared;
+
+        /// <summary>
+        /// Indicate if this join is enabled or not. Disabling a joint
+        /// means it is still in the simulation, but inactive.
+        /// </summary>
+        public bool Enabled = true;
+
+        internal JointEdge EdgeA = new JointEdge();
+        internal JointEdge EdgeB = new JointEdge();
+        internal bool IslandFlag;
+
+        protected Joint()
         {
-            get
+            Breakpoint = float.MaxValue;
+
+            //Connected bodies should not collide by default
+            CollideConnected = false;
+        }
+
+        protected Joint(Body bodyA, Body bodyB) : this()
+        {
+            //Can't connect a joint to the same body twice.
+            Debug.Assert(bodyA != bodyB);
+
+            BodyA = bodyA;
+            BodyB = bodyB;
+        }
+
+        /// <summary>
+        /// Constructor for fixed joint
+        /// </summary>
+        protected Joint(Body body) : this()
+        {
+            BodyA = body;
+        }
+
+        /// <summary>
+        /// Gets or sets the type of the joint.
+        /// </summary>
+        /// <value>The type of the joint.</value>
+        public JointType JointType { get; protected set; }
+
+        /// <summary>
+        /// Get the first body attached to this joint.
+        /// </summary>
+        public Body BodyA { get; internal set; }
+
+        /// <summary>
+        /// Get the second body attached to this joint.
+        /// </summary>
+        public Body BodyB { get; internal set; }
+
+        /// <summary>
+        /// Get the anchor point on bodyA in world coordinates.
+        /// On some joints, this value indicate the anchor point within the world.
+        /// </summary>
+        public abstract Vector2 WorldAnchorA { get; set; }
+
+        /// <summary>
+        /// Get the anchor point on bodyB in world coordinates.
+        /// On some joints, this value indicate the anchor point within the world.
+        /// </summary>
+        public abstract Vector2 WorldAnchorB { get; set; }
+
+        /// <summary>
+        /// Set the user data pointer.
+        /// </summary>
+        /// <value>The data.</value>
+        public object UserData { get; set; }
+
+        /// <summary>
+        /// Set this flag to true if the attached bodies should collide.
+        /// </summary>
+        public bool CollideConnected { get; set; }
+
+        /// <summary>
+        /// The Breakpoint simply indicates the maximum Value the JointError can be before it breaks.
+        /// The default value is float.MaxValue, which means it never breaks.
+        /// </summary>
+        public float Breakpoint
+        {
+            get { return _breakpoint; }
+            set
             {
-                return _type;
+                _breakpoint = value;
+                _breakpointSquared = _breakpoint * _breakpoint;
             }
         }
 
-	    /// Get the first body attached to this joint.
-	    public Body GetBodyA()
+        /// <summary>
+        /// Fires when the joint is broken.
+        /// </summary>
+        public event Action<Joint, float> Broke;
+
+        /// <summary>
+        /// Get the reaction force on body at the joint anchor in Newtons.
+        /// </summary>
+        /// <param name="invDt">The inverse delta time.</param>
+        public abstract Vector2 GetReactionForce(float invDt);
+
+        /// <summary>
+        /// Get the reaction torque on the body at the joint anchor in N*m.
+        /// </summary>
+        /// <param name="invDt">The inverse delta time.</param>
+        public abstract float GetReactionTorque(float invDt);
+
+        protected void WakeBodies()
         {
-            return _bodyA;
+            if (BodyA != null)
+                BodyA.Awake = true;
+
+            if (BodyB != null)
+                BodyB.Awake = true;
         }
 
-	    /// Get the second body attached to this joint.
-	    public Body GetBodyB()
+        /// <summary>
+        /// Return true if the joint is a fixed type.
+        /// </summary>
+        public bool IsFixedType()
         {
-            return _bodyB;
+            return JointType == JointType.FixedRevolute ||
+                   JointType == JointType.FixedDistance ||
+                   JointType == JointType.FixedPrismatic ||
+                   JointType == JointType.FixedLine ||
+                   JointType == JointType.FixedMouse ||
+                   JointType == JointType.FixedAngle ||
+                   JointType == JointType.FixedFriction;
         }
 
-	    /// Get the anchor point on body1 in world coordinates.
-	    public abstract Vector2 GetAnchorA();
+        internal abstract void InitVelocityConstraints(ref SolverData data);
 
-	    /// Get the anchor point on body2 in world coordinates.
-	    public abstract Vector2 GetAnchorB();
-
-        /// Get the reaction force on body2 at the joint anchor in Newtons.
-	    public abstract Vector2 GetReactionForce(float inv_dt);
-
-        /// Get the reaction torque on body2 in N*m.
-	    public abstract float GetReactionTorque(float inv_dt);
-
-	    /// Get the next joint the world joint list.
-	    public Joint GetNext()
+        internal void Validate(float invDt)
         {
-	        return _next;
+            if (!Enabled)
+                return;
+
+            float jointErrorSquared = GetReactionForce(invDt).LengthSquared();
+
+            if (Math.Abs(jointErrorSquared) <= _breakpointSquared)
+                return;
+
+            Enabled = false;
+
+            if (Broke != null)
+                Broke(this, (float)Math.Sqrt(jointErrorSquared));
         }
 
-	    /// Get the user data pointer.
-	    public object GetUserData()
-        {
-            return _userData;
-        }
+        internal abstract void SolveVelocityConstraints(ref SolverData data);
 
-	    /// Set the user data pointer.
-	    public void SetUserData(object data)
-        {
-            _userData = data;
-        }
-
-        /// Short-cut function to determine if either body is inactive.
-        public bool IsActive()
-        {
-            return _bodyA.IsActive() && _bodyB.IsActive();
-
-        }
-
-	    internal static Joint Create(JointDef def)
-        {
-	        Joint joint = null;
-
-	        switch (def.type)
-	        {
-	        case JointType.Distance:
-		        {
-			        joint = new DistanceJoint((DistanceJointDef)def);
-		        }
-		        break;
-
-	        case JointType.Mouse:
-		        {
-			        joint = new MouseJoint((MouseJointDef)def);
-		        }
-		        break;
-
-	        case JointType.Prismatic:
-		        {
-			        joint = new PrismaticJoint((PrismaticJointDef)def);
-		        }
-		        break;
-
-	        case JointType.Revolute:
-		        {
-			        joint = new RevoluteJoint((RevoluteJointDef)def);
-		        }
-		        break;
-
-	        case JointType.Pulley:
-		        {
-			        joint = new PulleyJoint((PulleyJointDef)def);
-		        }
-		        break;
-
-	        case JointType.Gear:
-		        {
-			        joint = new GearJoint((GearJointDef)def);
-		        }
-		        break;
-
-	        case JointType.Line:
-		        {
-			        joint = new LineJoint((LineJointDef)def);
-		        }
-		        break;
-
-            case JointType.Weld:
-                {
-                    joint = new WeldJoint((WeldJointDef)def);
-                }
-                break;
-            case JointType.Friction:
-                {
-                    joint = new FrictionJoint((FrictionJointDef)def);
-                }
-                break;
-            case JointType.MaxDistance:
-                {
-                    joint = new MaxDistanceJoint((MaxDistanceJointDef)def);
-                }
-                break;
-                
-	        default:
-		        Debug.Assert(false);
-		        break;
-	        }
-
-	        return joint;
-        }
-
-	    protected Joint(JointDef def)
-        {
-            Debug.Assert(def.bodyA != def.bodyB);
-
-	        _type = def.type;
-	        _bodyA = def.bodyA;
-	        _bodyB = def.bodyB;
-	        _collideConnected = def.collideConnected;
-	        _userData = def.userData;
-
-            _edgeA = new JointEdge();
-            _edgeB = new JointEdge();
-        }
-
-	    internal abstract void InitVelocityConstraints(ref TimeStep step);
-	    internal abstract void SolveVelocityConstraints(ref TimeStep step);
-
-	    // This returns true if the position errors are within tolerance.
-	    internal abstract bool SolvePositionConstraints(float baumgarte);
-
-	    internal JointType _type;
-	    internal Joint _prev;
-	    internal Joint _next;
-	    internal JointEdge _edgeA;
-	    internal JointEdge _edgeB;
-	    internal Body _bodyA;
-	    internal Body _bodyB;
-
-	    internal bool _islandFlag;
-	    internal bool _collideConnected;
-
-	    internal object _userData;
-
-	    // Cache here per time step to reduce cache misses.
-	    internal Vector2 _localCenterA, _localCenterB;
-	    internal float _invMassA, _invIA;
-	    internal float _invMassB, _invIB;
+        /// <summary>
+        /// Solves the position constraints.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns>returns true if the position errors are within tolerance.</returns>
+        internal abstract bool SolvePositionConstraints(ref SolverData data);
     }
 }

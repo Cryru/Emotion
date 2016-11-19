@@ -1,9 +1,9 @@
 ﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
+* 
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -22,10 +22,13 @@
 
 using System;
 
-namespace SoulEngine.Physics
+namespace FarseerPhysics.Common
 {
     public struct FixedArray2<T>
     {
+        private T _value0;
+        private T _value1;
+
         public T this[int index]
         {
             get
@@ -55,13 +58,14 @@ namespace SoulEngine.Physics
                 }
             }
         }
-
-        T _value0;
-        T _value1;
     }
 
     public struct FixedArray3<T>
     {
+        private T _value0;
+        private T _value1;
+        private T _value2;
+
         public T this[int index]
         {
             get
@@ -96,14 +100,15 @@ namespace SoulEngine.Physics
                 }
             }
         }
-
-        T _value0;
-        T _value1;
-        T _value2;
     }
 
     public struct FixedArray4<T>
     {
+        private T _value0;
+        private T _value1;
+        private T _value2;
+        private T _value3;
+
         public T this[int index]
         {
             get
@@ -143,15 +148,19 @@ namespace SoulEngine.Physics
                 }
             }
         }
-
-        T _value0;
-        T _value1;
-        T _value2;
-        T _value3;
     }
 
     public struct FixedArray8<T>
     {
+        private T _value0;
+        private T _value1;
+        private T _value2;
+        private T _value3;
+        private T _value4;
+        private T _value5;
+        private T _value6;
+        private T _value7;
+
         public T this[int index]
         {
             get
@@ -211,14 +220,5 @@ namespace SoulEngine.Physics
                 }
             }
         }
-
-        T _value0;
-        T _value1;
-        T _value2;
-        T _value3;
-        T _value4;
-        T _value5;
-        T _value6;
-        T _value7;
     }
 }

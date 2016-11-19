@@ -1,9 +1,9 @@
 ﻿/*
-* SoulEngine.Physics port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
+* 
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.gphysics.com 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -20,77 +20,236 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
+using System;
+using System.Diagnostics;
+using FarseerPhysics.Common;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics
+namespace FarseerPhysics.Collision.Shapes
 {
+    /// <summary>
     /// This holds the mass data computed for a shape.
-    public struct MassData
+    /// </summary>
+    public struct MassData : IEquatable<MassData>
     {
-        /// The mass of the shape, usually in kilograms.
-        public float mass;
+        /// <summary>
+        /// The area of the shape
+        /// </summary>
+        public float Area { get; internal set; }
 
+        /// <summary>
         /// The position of the shape's centroid relative to the shape's origin.
-        public Vector2 center;
+        /// </summary>
+        public Vector2 Centroid { get; internal set; }
 
+        /// <summary>
         /// The rotational inertia of the shape about the local origin.
-        public float I;
-    };
+        /// </summary>
+        public float Inertia { get; internal set; }
+
+        /// <summary>
+        /// The mass of the shape, usually in kilograms.
+        /// </summary>
+        public float Mass { get; internal set; }
+
+        /// <summary>
+        /// The equal operator
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static bool operator ==(MassData left, MassData right)
+        {
+            return (left.Area == right.Area && left.Mass == right.Mass && left.Centroid == right.Centroid && left.Inertia == right.Inertia);
+        }
+
+        /// <summary>
+        /// The not equal operator
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static bool operator !=(MassData left, MassData right)
+        {
+            return !(left == right);
+        }
+
+        public bool Equals(MassData other)
+        {
+            return this == other;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+
+            if (obj.GetType() != typeof(MassData))
+                return false;
+
+            return Equals((MassData)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int result = Area.GetHashCode();
+                result = (result * 397) ^ Centroid.GetHashCode();
+                result = (result * 397) ^ Inertia.GetHashCode();
+                result = (result * 397) ^ Mass.GetHashCode();
+                return result;
+            }
+        }
+    }
 
     public enum ShapeType
-    {   
+    {
         Unknown = -1,
         Circle = 0,
         Edge = 1,
         Polygon = 2,
-        Loop = 3,
+        Chain = 3,
         TypeCount = 4,
-    };
+    }
 
+    /// <summary>
     /// A shape is used for collision detection. You can create a shape however you like.
-    /// Shapes used for simulation in b2World are created automatically when a b2Fixture
+    /// Shapes used for simulation in World are created automatically when a Fixture
     /// is created. Shapes may encapsulate a one or more child shapes.
+    /// </summary>
     public abstract class Shape
     {
-	    public Shape() 
+        internal float _density;
+        internal float _radius;
+        internal float _2radius;
+
+        protected Shape(float density)
         {
-            ShapeType = ShapeType.Unknown; 
+            _density = density;
+            ShapeType = ShapeType.Unknown;
         }
 
-	    /// Clone the concrete shape using the provided allocator.
-	    public abstract Shape Clone();
+        /// <summary>
+        /// Contains the properties of the shape such as:
+        /// - Area of the shape
+        /// - Centroid
+        /// - Inertia
+        /// - Mass
+        /// </summary>
+        public MassData MassData;
 
-	    /// Get the type of this shape. You can use this to down cast to the concrete shape.
-	    /// @return the shape type.
+        /// <summary>
+        /// Get the type of this shape.
+        /// </summary>
+        /// <value>The type of the shape.</value>
         public ShapeType ShapeType { get; internal set; }
 
+        /// <summary>
         /// Get the number of child primitives.
-        public abstract int GetChildCount();
+        /// </summary>
+        /// <value></value>
+        public abstract int ChildCount { get; }
 
-	    /// Test a point for containment in this shape. This only works for convex shapes.
-	    /// @param xf the shape world transform.
-	    /// @param p a point in world coordinates.
-	    public abstract bool TestPoint(ref Transform xf, Vector2 p);
+        /// <summary>
+        /// Gets or sets the density.
+        /// Changing the density causes a recalculation of shape properties.
+        /// </summary>
+        /// <value>The density.</value>
+        public float Density
+        {
+            get { return _density; }
+            set
+            {
+                Debug.Assert(value >= 0);
 
+                _density = value;
+                ComputeProperties();
+            }
+        }
+
+        /// <summary>
+        /// Radius of the Shape
+        /// Changing the radius causes a recalculation of shape properties.
+        /// </summary>
+        public float Radius
+        {
+            get { return _radius; }
+            set
+            {
+                Debug.Assert(value >= 0);
+
+                _radius = value;
+                _2radius = _radius * _radius;
+
+                ComputeProperties();
+            }
+        }
+
+        /// <summary>
+        /// Clone the concrete shape
+        /// </summary>
+        /// <returns>A clone of the shape</returns>
+        public abstract Shape Clone();
+
+        /// <summary>
+        /// Test a point for containment in this shape.
+        /// Note: This only works for convex shapes.
+        /// </summary>
+        /// <param name="transform">The shape world transform.</param>
+        /// <param name="point">A point in world coordinates.</param>
+        /// <returns>True if the point is inside the shape</returns>
+        public abstract bool TestPoint(ref Transform transform, ref Vector2 point);
+
+        /// <summary>
         /// Cast a ray against a child shape.
-	    /// @param output the ray-cast results.
-	    /// @param input the ray-cast input parameters.
-	    /// @param transform the transform to be applied to the shape.
-        /// @param childIndex the child shape index
+        /// </summary>
+        /// <param name="output">The ray-cast results.</param>
+        /// <param name="input">The ray-cast input parameters.</param>
+        /// <param name="transform">The transform to be applied to the shape.</param>
+        /// <param name="childIndex">The child shape index.</param>
+        /// <returns>True if the ray-cast hits the shape</returns>
         public abstract bool RayCast(out RayCastOutput output, ref RayCastInput input, ref Transform transform, int childIndex);
 
+        /// <summary>
+        /// Given a transform, compute the associated axis aligned bounding box for a child shape.
+        /// </summary>
+        /// <param name="aabb">The aabb results.</param>
+        /// <param name="transform">The world transform of the shape.</param>
+        /// <param name="childIndex">The child shape index.</param>
+        public abstract void ComputeAABB(out AABB aabb, ref Transform transform, int childIndex);
 
-	    /// Given a transform, compute the associated axis aligned bounding box for a child shape.
-	    /// @param aabb returns the axis aligned box.
-	    /// @param xf the world transform of the shape.
-	    public abstract void ComputeAABB(out AABB aabb, ref Transform xf, int childIndex);
+        /// <summary>
+        /// Compute the mass properties of this shape using its dimensions and density.
+        /// The inertia tensor is computed about the local origin, not the centroid.
+        /// </summary>
+        protected abstract void ComputeProperties();
 
-	    /// Compute the mass properties of this shape using its dimensions and density.
-	    /// The inertia tensor is computed about the local origin, not the centroid.
-	    /// @param massData returns the mass data for this shape.
-	    /// @param density the density in kilograms per meter squared.
-	    public abstract void ComputeMass(out MassData massData, float density);
+        /// <summary>
+        /// Compare this shape to another shape based on type and properties.
+        /// </summary>
+        /// <param name="shape">The other shape</param>
+        /// <returns>True if the two shapes are the same.</returns>
+        public bool CompareTo(Shape shape)
+        {
+            if (shape is PolygonShape && this is PolygonShape)
+                return ((PolygonShape)this).CompareTo((PolygonShape)shape);
 
-	    public float _radius;
+            if (shape is CircleShape && this is CircleShape)
+                return ((CircleShape)this).CompareTo((CircleShape)shape);
+
+            if (shape is EdgeShape && this is EdgeShape)
+                return ((EdgeShape)this).CompareTo((EdgeShape)shape);
+
+            if (shape is ChainShape && this is ChainShape)
+                return ((ChainShape)this).CompareTo((ChainShape)shape);
+
+            return false;
+        }
+
+        /// <summary>
+        /// Used for the buoyancy controller
+        /// </summary>
+        public abstract float ComputeSubmergedArea(ref Vector2 normal, float offset, ref Transform xf, out Vector2 sc);
     }
 }

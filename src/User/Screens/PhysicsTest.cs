@@ -44,6 +44,7 @@ namespace SoulEngine
                 //Add new objects.
                 PhysicsObject temp = new PhysicsObject(Core.blankTexture);
                 temp.Location = Input.getMousePos();
+                temp.Size = new Vector2(100, 100);
                 Objects.Add(temp);
             }
         }
