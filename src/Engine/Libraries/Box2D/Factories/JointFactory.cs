@@ -1,8 +1,8 @@
-﻿using FarseerPhysics.Dynamics;
-using FarseerPhysics.Dynamics.Joints;
+﻿using SoulEngine.Physics.Dynamics;
+using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Factories
+namespace SoulEngine.Physics.Factories
 {
     /// <summary>
     /// An easy to use factory for using joints.

@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common.PolygonManipulation
+namespace SoulEngine.Physics.Common.PolygonManipulation
 {
     /// <summary>
     /// Combines a list of triangles into a list of convex polygons.

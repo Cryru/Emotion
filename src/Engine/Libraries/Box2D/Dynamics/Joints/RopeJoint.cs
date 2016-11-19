@@ -21,10 +21,10 @@
 */
 
 using System;
-using FarseerPhysics.Common;
+using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics.Joints
+namespace SoulEngine.Physics.Dynamics.Joints
 {
     // Limit:
     // C = norm(pB - pA) - L

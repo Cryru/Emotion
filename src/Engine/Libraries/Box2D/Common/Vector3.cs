@@ -37,7 +37,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace FarseerPhysics
+namespace SoulEngine.Physics
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct Vector3 : IEquatable<Vector3>

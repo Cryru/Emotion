@@ -22,10 +22,10 @@
 
 using System;
 using System.Diagnostics;
-using FarseerPhysics.Common;
+using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Collision.Shapes
+namespace SoulEngine.Physics.Collision.Shapes
 {
     /// <summary>
     /// A circle shape.

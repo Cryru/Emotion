@@ -31,9 +31,9 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using FarseerPhysics.Common.Decomposition.CDT.Delaunay;
+using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay;
 
-namespace FarseerPhysics.Common.Decomposition.CDT
+namespace SoulEngine.Physics.Common.Decomposition.CDT
 {
     internal abstract class TriangulationContext
     {

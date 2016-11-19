@@ -22,10 +22,10 @@
 
 using System;
 using System.Diagnostics;
-using FarseerPhysics.Common;
+using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics.Joints
+namespace SoulEngine.Physics.Dynamics.Joints
 {
     // Pulley:
     // length1 = norm(p1 - s1)

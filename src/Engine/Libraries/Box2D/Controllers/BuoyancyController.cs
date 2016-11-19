@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Collision;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Controllers
+namespace SoulEngine.Physics.Controllers
 {
     public sealed class BuoyancyController : Controller
     {

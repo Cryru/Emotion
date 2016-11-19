@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Common.Decomposition;
-using FarseerPhysics.Common.PolygonManipulation;
-using FarseerPhysics.Dynamics;
-using FarseerPhysics.Factories;
+using SoulEngine.Physics.Collision;
+using SoulEngine.Physics.Common.Decomposition;
+using SoulEngine.Physics.Common.PolygonManipulation;
+using SoulEngine.Physics.Dynamics;
+using SoulEngine.Physics.Factories;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common.TextureTools
+namespace SoulEngine.Physics.Common.TextureTools
 {
     /// <summary>
     /// Simple class to maintain a terrain. It can keep track

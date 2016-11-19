@@ -5,7 +5,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Convert units between display and simulation units.

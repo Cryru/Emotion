@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Common;
-using FarseerPhysics.Common.Decomposition;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Common.Decomposition;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Factories
+namespace SoulEngine.Physics.Factories
 {
     public static class BodyFactory
     {

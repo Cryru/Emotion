@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Controllers
+namespace SoulEngine.Physics.Controllers
 {
     public enum GravityType
     {

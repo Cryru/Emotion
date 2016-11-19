@@ -25,7 +25,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common
+namespace SoulEngine.Physics.Common
 {
     public static class MathUtils
     {

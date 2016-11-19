@@ -24,16 +24,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Common;
-using FarseerPhysics.Common.PhysicsLogic;
-using FarseerPhysics.Controllers;
-using FarseerPhysics.Dynamics.Contacts;
-using FarseerPhysics.Dynamics.Joints;
+using SoulEngine.Physics.Collision;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Common.PhysicsLogic;
+using SoulEngine.Physics.Controllers;
+using SoulEngine.Physics.Dynamics.Contacts;
+using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics
+namespace SoulEngine.Physics.Dynamics
 {
     /// <summary>
     /// The body type.

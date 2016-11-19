@@ -1,7 +1,7 @@
 using System;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 
-namespace FarseerPhysics.Common.PhysicsLogic
+namespace SoulEngine.Physics.Common.PhysicsLogic
 {
     [Flags]
     public enum PhysicsLogicType

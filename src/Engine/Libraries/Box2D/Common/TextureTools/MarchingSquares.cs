@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using FarseerPhysics.Collision;
+using SoulEngine.Physics.Collision;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common.TextureTools
+namespace SoulEngine.Physics.Common.TextureTools
 {
     // Ported by Matthew Bettcher - Feb 2011
 

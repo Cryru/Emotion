@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Common.TextureTools;
+using SoulEngine.Physics.Common.TextureTools;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common
+namespace SoulEngine.Physics.Common
 {
     public static class PolygonTools
     {

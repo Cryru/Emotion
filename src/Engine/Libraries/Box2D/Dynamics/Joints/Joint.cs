@@ -24,7 +24,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics.Joints
+namespace SoulEngine.Physics.Dynamics.Joints
 {
     public enum JointType
     {

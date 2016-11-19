@@ -5,13 +5,13 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Common.Decomposition.CDT;
-using FarseerPhysics.Common.Decomposition.CDT.Delaunay;
-using FarseerPhysics.Common.Decomposition.CDT.Delaunay.Sweep;
-using FarseerPhysics.Common.Decomposition.CDT.Polygon;
+using SoulEngine.Physics.Common.Decomposition.CDT;
+using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay;
+using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep;
+using SoulEngine.Physics.Common.Decomposition.CDT.Polygon;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common.Decomposition
+namespace SoulEngine.Physics.Common.Decomposition
 {
     /// <summary>
     /// 2D constrained Delaunay triangulation algorithm.

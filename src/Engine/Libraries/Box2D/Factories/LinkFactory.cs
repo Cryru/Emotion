@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Common;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Factories
+namespace SoulEngine.Physics.Factories
 {
     public static class LinkFactory
     {

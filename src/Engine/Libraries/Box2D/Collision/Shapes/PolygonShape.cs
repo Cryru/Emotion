@@ -21,11 +21,11 @@
 */
 
 using System.Diagnostics;
-using FarseerPhysics.Common;
-using FarseerPhysics.Common.ConvexHull;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Common.ConvexHull;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Collision.Shapes
+namespace SoulEngine.Physics.Collision.Shapes
 {
     /// <summary>
     /// Represents a simple non-selfintersecting convex polygon.

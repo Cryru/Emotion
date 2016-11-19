@@ -38,7 +38,7 @@ namespace SoulEngine
         /// </summary>
         public override void Update()
         {
-            Vector2 test = new Vector2();
+            SoulEngine.Physics.Vector2 test = new SoulEngine.Physics.Vector2();
             
 
             if(Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)

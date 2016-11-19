@@ -20,12 +20,12 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using FarseerPhysics.Collision;
-using FarseerPhysics.Controllers;
-using FarseerPhysics.Dynamics.Contacts;
-using FarseerPhysics.Dynamics.Joints;
+using SoulEngine.Physics.Collision;
+using SoulEngine.Physics.Controllers;
+using SoulEngine.Physics.Dynamics.Contacts;
+using SoulEngine.Physics.Dynamics.Joints;
 
-namespace FarseerPhysics.Dynamics
+namespace SoulEngine.Physics.Dynamics
 {
     /// <summary>
     /// This delegate is called when a contact is deleted

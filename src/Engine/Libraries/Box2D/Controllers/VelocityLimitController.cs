@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 
-namespace FarseerPhysics.Controllers
+namespace SoulEngine.Physics.Controllers
 {
     /// <summary>
     /// Put a limit on the linear (translation - the movespeed) and angular (rotation) velocity

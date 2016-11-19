@@ -30,9 +30,9 @@
  */
 
 using System;
-using FarseerPhysics.Common.Decomposition.CDT.Polygon;
+using SoulEngine.Physics.Common.Decomposition.CDT.Polygon;
 
-namespace FarseerPhysics.Common.Decomposition.CDT.Util
+namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
 {
     internal class PolygonGenerator
     {

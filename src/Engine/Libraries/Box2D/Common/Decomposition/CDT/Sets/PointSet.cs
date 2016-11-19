@@ -30,9 +30,9 @@
  */
 
 using System.Collections.Generic;
-using FarseerPhysics.Common.Decomposition.CDT.Delaunay;
+using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay;
 
-namespace FarseerPhysics.Common.Decomposition.CDT.Sets
+namespace SoulEngine.Physics.Common.Decomposition.CDT.Sets
 {
     internal class PointSet : Triangulatable
     {

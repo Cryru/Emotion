@@ -23,12 +23,12 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Common;
+using SoulEngine.Physics.Collision;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics.Contacts
+namespace SoulEngine.Physics.Dynamics.Contacts
 {
     /// <summary>
     /// A contact edge is used to connect bodies and contacts together

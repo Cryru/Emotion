@@ -1,7 +1,7 @@
-﻿using FarseerPhysics.Dynamics;
+﻿using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Controllers
+namespace SoulEngine.Physics.Controllers
 {
     /// <summary>
     /// Reference implementation for forces based on AbstractForceController

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Common;
-using FarseerPhysics.Dynamics.Contacts;
-using FarseerPhysics.Factories;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Dynamics.Contacts;
+using SoulEngine.Physics.Factories;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics
+namespace SoulEngine.Physics.Dynamics
 {
     /// <summary>
     /// A type of body that supports multiple fixtures that can break apart.

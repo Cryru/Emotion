@@ -22,10 +22,10 @@
 //#define USE_ACTIVE_CONTACT_SET
 
 using System.Collections.Generic;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Dynamics.Contacts;
+using SoulEngine.Physics.Collision;
+using SoulEngine.Physics.Dynamics.Contacts;
 
-namespace FarseerPhysics.Dynamics
+namespace SoulEngine.Physics.Dynamics
 {
     public class ContactManager
     {

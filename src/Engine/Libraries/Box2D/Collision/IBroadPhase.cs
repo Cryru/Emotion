@@ -1,8 +1,8 @@
 ﻿using System;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Collision
+namespace SoulEngine.Physics.Collision
 {
     public interface IBroadPhase
     {

@@ -1,6 +1,6 @@
-﻿using FarseerPhysics.Dynamics;
+﻿using SoulEngine.Physics.Dynamics;
 
-namespace FarseerPhysics.Common.PhysicsLogic
+namespace SoulEngine.Physics.Common.PhysicsLogic
 {
     /// <summary>
     /// Contains filter data that can determine whether an object should be processed or not.

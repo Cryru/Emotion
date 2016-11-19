@@ -21,9 +21,9 @@
 */
 
 using System;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 
-namespace FarseerPhysics
+namespace SoulEngine.Physics
 {
     public static class Settings
     {

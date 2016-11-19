@@ -21,10 +21,10 @@
 */
 
 using System;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Collision
+namespace SoulEngine.Physics.Collision
 {
     internal struct Pair : IComparable<Pair>
     {

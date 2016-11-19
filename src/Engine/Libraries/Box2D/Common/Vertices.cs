@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using FarseerPhysics.Collision;
+using SoulEngine.Physics.Collision;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common
+namespace SoulEngine.Physics.Common
 {
     public enum PolygonError
     {

@@ -22,12 +22,12 @@
 
 using System;
 using System.Diagnostics;
-using FarseerPhysics.Common;
-using FarseerPhysics.Dynamics.Contacts;
-using FarseerPhysics.Dynamics.Joints;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Dynamics.Contacts;
+using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics
+namespace SoulEngine.Physics.Dynamics
 {
     /// <summary>
     /// This is an internal class.

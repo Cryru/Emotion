@@ -20,10 +20,10 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using FarseerPhysics.Common;
+using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Dynamics.Joints
+namespace SoulEngine.Physics.Dynamics.Joints
 {
     // Point-to-point constraint
     // Cdot = v2 - v1

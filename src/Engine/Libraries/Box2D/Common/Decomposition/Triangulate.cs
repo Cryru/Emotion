@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Common.ConvexHull;
+using SoulEngine.Physics.Common.ConvexHull;
 
-namespace FarseerPhysics.Common.Decomposition
+namespace SoulEngine.Physics.Common.Decomposition
 {
     public enum TriangulationAlgorithm
     {

@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common.Decomposition
+namespace SoulEngine.Physics.Common.Decomposition
 {
     /// <summary>
     /// Convex decomposition algorithm using ear clipping

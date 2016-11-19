@@ -1,8 +1,8 @@
 ﻿using System;
-using FarseerPhysics.Common.PhysicsLogic;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Common.PhysicsLogic;
+using SoulEngine.Physics.Dynamics;
 
-namespace FarseerPhysics.Controllers
+namespace SoulEngine.Physics.Controllers
 {
     [Flags]
     public enum ControllerType

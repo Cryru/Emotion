@@ -22,7 +22,7 @@
 
 using System;
 
-namespace FarseerPhysics.Common
+namespace SoulEngine.Physics.Common
 {
     public struct FixedArray2<T>
     {

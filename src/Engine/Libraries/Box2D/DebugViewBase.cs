@@ -4,11 +4,11 @@
 */
 
 using System;
-using FarseerPhysics.Common;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Common;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics
+namespace SoulEngine.Physics
 {
     [Flags]
     public enum DebugViewFlags

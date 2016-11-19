@@ -1,8 +1,8 @@
 ﻿using System;
-using FarseerPhysics.Dynamics;
+using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Controllers
+namespace SoulEngine.Physics.Controllers
 {
     public abstract class AbstractForceController : Controller
     {

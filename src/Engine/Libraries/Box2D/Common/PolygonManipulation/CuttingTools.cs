@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Dynamics;
-using FarseerPhysics.Factories;
+using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics.Dynamics;
+using SoulEngine.Physics.Factories;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common.PolygonManipulation
+namespace SoulEngine.Physics.Common.PolygonManipulation
 {
     public static class CuttingTools
     {
