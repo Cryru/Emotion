@@ -33,8 +33,9 @@ SOFTWARE.
 #endregion License
 
 using System;
+using Microsoft.Xna.Framework;
 
-namespace Microsoft.Xna.Framework
+namespace SoulEngine.Physics
 {
     public enum CurveLoopType
     {

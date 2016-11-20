@@ -21,7 +21,7 @@ namespace SoulEngine
     /// <summary>
     /// The engine's core. Most of the stuff required for everything to run is here.
     /// </summary>
-    class Core
+    public static class Core
     {
         #region "Declarations"
         #region "Engine Information"
@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.82";
+        public static string Version = "0.90";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05

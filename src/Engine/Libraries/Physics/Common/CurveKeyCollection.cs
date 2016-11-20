@@ -35,8 +35,9 @@ SOFTWARE.
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
-namespace Microsoft.Xna.Framework
+namespace SoulEngine.Physics
 {
     public class CurveKeyCollection : ICollection<CurveKey>, IEnumerable<CurveKey>, IEnumerable
     {
