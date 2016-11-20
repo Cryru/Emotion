@@ -54,7 +54,7 @@ namespace SoulEngine
         /// <summary>
         /// Toggles updating the debug text.
         /// </summary>
-        public static bool debugUpdate = false;
+        public static bool debugUpdate = true;
         /// <summary>
         /// Whether to draw the current fps on the screen.
         /// </summary>

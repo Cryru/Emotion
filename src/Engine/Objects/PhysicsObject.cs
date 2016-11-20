@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Physics;
+using SoulEngine.Physics.Dynamics;
+using SoulEngine.Physics.Collision.Shapes;
 
 namespace SoulEngine.Objects
 {
@@ -23,7 +25,9 @@ namespace SoulEngine.Objects
     public class PhysicsObject : ObjectBase
     {
         #region "Declarations"
-      
+        Body body;
+        Shape shape;
+        Fixture fixture;
         #endregion
 
         /// <summary>
@@ -32,7 +36,31 @@ namespace SoulEngine.Objects
         /// <param name="Image">The texture object that represents the object.</param>
         public PhysicsObject(Texture Image = null) : base(Image)
         {
-           
+            //Define body
+            //Create body
+            //  Type - Dynamic, static, kinematic
+            //Create shape
+            //Create fixture
+            //Attach shape to body with fixture
+            //Add body to world
+            //Attach updater to Core
+
+            Core.Updates.Add(PhysicsUpdate);
+
+
+
+        }
+
+        private void PhysicsUpdate()
+        {
+
+        }
+
+
+        public override void Draw()
+        {
+            Y += 1f;
+            base.Draw();
         }
     }
 }
