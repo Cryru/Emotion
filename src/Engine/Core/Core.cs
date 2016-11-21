@@ -28,7 +28,7 @@ namespace SoulEngine
         /// <summary>
         /// The name of the engine.
         /// </summary>
-        public static string Name = "SoulEngine";
+        public static string Name = "SoulEngine Beta";
         /// <summary>
         /// The version of the engine.
         /// </summary>
@@ -76,6 +76,10 @@ namespace SoulEngine
         /// The screen's boxing adapter.
         /// </summary>
         public static BoxingViewportAdapter ScreenAdapter;
+        /// <summary>
+        /// An object for tracking time.
+        /// </summary>
+        public static GameTime gameTime;
         #endregion
         #region "Internal Content"
         /// <summary>
@@ -221,6 +225,9 @@ namespace SoulEngine
         {
             //Assign the random seed.
             RandomSeed = gameTime.TotalGameTime.Milliseconds;
+
+            //Update the gametime variable.
+            Core.gameTime = gameTime;
 
             //Update the input for the current frame.
             Input.UpdateInput();
@@ -536,6 +543,7 @@ namespace SoulEngine
             Screens.Add(Screen);
             Screen.Priority = Priority;
             RefreshScreens();
+            Screen.PhysicsSetup();
         }
         /// <summary>
         /// Unloads the screen.

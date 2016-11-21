@@ -15,10 +15,23 @@ namespace SoulEngine.Physics
     //                                                                          //
     // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
-    public static class PhysicsEngine
+    public static class Engine
     {
         public static World world;
-
+        /// <summary>
+        /// The ratio of display units to simulation units.
+        /// </summary>
+        public static float Scale = 10f;
+        /// <summary>
+        /// The ratio of simulation units to display units.
+        /// </summary>
+        public static float ScaleReverse
+        {
+            get
+            {
+                return 1 / Scale;
+            }
+        }
 
         public static Vector2 Gravity
         {
@@ -35,7 +48,7 @@ namespace SoulEngine.Physics
             }
         }
         
-        private static Vector2 _gravity = new Vector2(0.0f, -10.0f);
+        private static Vector2 _gravity = new Vector2(0.0f, 20.0f);
 
         public static float transX;// = 320.0f;
         public static float transY;// = 240.0f;
@@ -54,22 +67,21 @@ namespace SoulEngine.Physics
 
 
         #region "Helper Functions"
-        public static void WorldToPixel(float x, float y)
+        public static float PhysicsToPixel(float num)
         {
-
+            return num * Scale;
         }
-        public static void WorldToPixel(Vector2 location)
+        public static Vector2 PhysicsToPixel(Vector2 vec)
         {
-
+            return vec * Scale;
         }
-
-        public static void PixelToWorld(float x, float y)
+        public static float PixelToPhysics(float num)
         {
-
+            return num * ScaleReverse;
         }
-        public static void PixelToWorld(Vector2 location)
+        public static Vector2 PixelToPhysics(Vector2 vec)
         {
-
+            return vec * ScaleReverse;
         }
         #endregion
 

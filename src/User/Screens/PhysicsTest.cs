@@ -23,13 +23,17 @@ namespace SoulEngine
 
         List<PhysicsObject> Objects = new List<PhysicsObject>();
         ObjectBase test = new ObjectBase();
+        PhysicsObject ground;
         /// <summary>
         /// Is run when the screen is first loaded.
         /// It is recommended that you initialize your objects here.
         /// </summary>
         public override void LoadObjects()
         {
-           
+            Physics.Engine.CreateWorld();
+            ground = new PhysicsObject(Core.blankTexture, new Vector2(100, 500), new Vector2(1000, 20));
+            ground.Type = Physics.Dynamics.BodyType.Static;
+
         }
 
         /// <summary>
@@ -38,16 +42,21 @@ namespace SoulEngine
         /// </summary>
         public override void Update()
         {
-            SoulEngine.Physics.Vector2 test = new SoulEngine.Physics.Vector2();
-            
-
-            if(Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+            if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 //Add new objects.
-                PhysicsObject temp = new PhysicsObject(Core.blankTexture);
-                temp.Size = new Vector2(16, 16);
-                temp.Center = Input.getMousePos();
+                Vector2 mouseincenter = Input.getMousePos();
+                mouseincenter.X -= 8;
+                mouseincenter.Y -= 8;
+                PhysicsObject temp = new PhysicsObject(Core.blankTexture, mouseincenter, new Vector2(16,16));
                 Objects.Add(temp);
+            }
+            if(Input.KeyDownTrigger(Microsoft.Xna.Framework.Input.Keys.Space))
+            {
+                for (int i = 0; i < Objects.Count; i++)
+                {
+                    Objects[i].PhysicsBody.ApplyForce(new Physics.Vector2(0, -1500));
+                }
             }
         }
         /// <summary>
@@ -56,11 +65,13 @@ namespace SoulEngine
         /// </summary>
         public override void Draw()
         {
+            Physics.Engine.world.Step(Math.Min((float)Core.gameTime.ElapsedGameTime.TotalSeconds, (1f / 30f)));
             Core.DrawOnScreen();
             for (int i = 0; i < Objects.Count; i++)
             {
                 Objects[i].Draw();
             }
+            ground.Draw();
             Core.ink.Draw(Core.blankTexture.Image, null, new Rectangle(100, 100, 100, 1), color: Color.White, rotation: Core.DegreesToRadians(0));
             Core.ink.End();
         }

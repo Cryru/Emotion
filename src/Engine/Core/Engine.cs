@@ -42,6 +42,8 @@ namespace SoulEngine
         /// </summary>
         protected override void Update(GameTime gameTime)
         {
+            //Run the physics engine.
+            Physics.Engine.Update();
             //Run the core's frame update code.
             Core.Update(gameTime);
             //Run screen's update code.
