@@ -43,6 +43,8 @@ namespace SoulEngine.Physics
         /// </summary>
         public static void Update()
         {
+            if (Core.gameTime == null) return;
+
             //Get the list of screens active.
             for (int i = 0; i < Core.Screens.Count; i++)
             {

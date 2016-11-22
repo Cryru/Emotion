@@ -30,12 +30,14 @@ namespace SoulEngine
         /// </summary>
         public override void LoadObjects()
         {
-            ground = new PhysicsObject(Core.blankTexture);
+            ground = new PhysicsObject(this, Core.blankTexture);
             ground.Location = new Vector2(100, 500);
             ground.Size = new Vector2(1000, 20);
 
             ground.Type = Physics.Dynamics.BodyType.Static;
+            ground.PhysicsEnable(true);
 
+            Gravity = new Physics.Vector2(0, 10);
         }
 
         /// <summary>
@@ -44,20 +46,25 @@ namespace SoulEngine
         /// </summary>
         public override void Update()
         {
+            if(ground.Body.ContactList != null) Core.debugText.Text = string.Join("\n", ground.Body.ContactList);
             if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 //Add new objects.
                 Vector2 mouseincenter = Input.getMousePos();
                 mouseincenter.X -= 8;
                 mouseincenter.Y -= 8;
-                PhysicsObject temp = new PhysicsObject(Core.blankTexture, mouseincenter, new Vector2(16,16));
+                PhysicsObject temp = new PhysicsObject(this, Core.blankTexture);
+                temp.Location = mouseincenter;
+                temp.Size = new Vector2(16, 16);
+                temp.Type = Physics.Dynamics.BodyType.Dynamic;
+                temp.PhysicsEnable(true);
                 Objects.Add(temp);
             }
             if(Input.KeyDownTrigger(Microsoft.Xna.Framework.Input.Keys.Space))
             {
                 for (int i = 0; i < Objects.Count; i++)
                 {
-                    Objects[i].PhysicsBody.ApplyForce(new Physics.Vector2(0, -1500));
+                    Objects[i].Body.ApplyForce(new Physics.Vector2(0, -1500));
                 }
             }
         }

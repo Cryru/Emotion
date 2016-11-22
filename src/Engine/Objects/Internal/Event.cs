@@ -168,7 +168,7 @@ namespace SoulEngine.Objects.Internal
         /// This method can be without a parameter.
         /// </summary>  
         /// <param name="m">The method to be invoked.</param>
-        public void Add(Action<T> m)
+        public void Add(Action<T, T2> m)
         {
             hookedMethods_Arg.Add(m);
         }

@@ -93,7 +93,7 @@ namespace SoulEngine.Objects
         /// <param name="Image">The texture object that represents the object.</param>
         public PhysicsObject(Screen Screen, Texture Image = null) : base(Image)
         {
-
+            parent = Screen;
             //Define body
             //Create body
             //  Type - Dynamic, static, kinematic
@@ -178,9 +178,13 @@ namespace SoulEngine.Objects
         #endregion
         public override void Draw()
         {
-            //Get data from physics calculations.
-            Center = Physics.Engine.PhysicsToPixel(body.Position).ToNorm();
-            RotationRadians = body.Rotation;
+            if(body != null)
+            {
+                //Get data from physics calculations.
+                Center = Physics.Engine.PhysicsToPixel(body.Position).ToNorm();
+                RotationRadians = body.Rotation;
+            }
+
             //Draw the object.
             base.Draw();
         }
