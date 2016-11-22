@@ -182,6 +182,7 @@
     <Compile Include="src\Engine\Objects\Effects\Effect.cs" />
     <Compile Include="src\Engine\Objects\Internal\Event.cs" />
     <Compile Include="src\Engine\Objects\PhysicsObject.cs" />
+    <Compile Include="src\User\Screens\PolygonShapeTest.cs" />
     <Compile Include="src\User\Screens\PhysicsTest.cs" />
     <Compile Include="src\User\Screens\StartScreen.cs" />
     <Compile Include="src\User\Settings.cs" />

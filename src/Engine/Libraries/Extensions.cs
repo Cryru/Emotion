@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,6 +33,15 @@ namespace Microsoft.Xna.Framework
         public static Vector2 ToNorm(this SoulEngine.Physics.Vector2 t)
         {
             return new Vector2(t.X, t.Y);
+        }
+
+        public static void DrawLine(this SpriteBatch s, Color color, Vector2 start, Vector2 end, int Thickness = 1)
+        {
+            //Calculate rotation angle.
+            Vector2 edge = end - start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+            //Draw a stretched blank texture and rotate in the calculated angle.
+            s.Draw(SoulEngine.Core.blankTexture.Image, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), Thickness), null, color, angle, new Vector2(0, 0), SpriteEffects.None, 0);
         }
     }
 }

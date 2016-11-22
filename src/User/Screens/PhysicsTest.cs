@@ -24,6 +24,7 @@ namespace SoulEngine
         List<PhysicsObject> Objects = new List<PhysicsObject>();
         ObjectBase test = new ObjectBase();
         PhysicsObject ground;
+        PhysicsObject shape;
         /// <summary>
         /// Is run when the screen is first loaded.
         /// It is recommended that you initialize your objects here.
@@ -34,10 +35,36 @@ namespace SoulEngine
             ground.Location = new Vector2(100, 500);
             ground.Size = new Vector2(1000, 20);
 
-            ground.Type = Physics.Dynamics.BodyType.Static;
-            ground.PhysicsEnable(true);
+            ground.SimulationType = Physics.Dynamics.BodyType.Static;
+            ground.PhysicsEnable(PhysicsTemplate.Rectangle);
+
+            ground.Tags.Add("ground");
 
             Gravity = new Physics.Vector2(0, 10);
+
+            shape = new PhysicsObject(this, new Texture("shape"));
+            shape.SimulationType = Physics.Dynamics.BodyType.Dynamic;
+            shape.Size = new Vector2(100, 100);
+            Physics.Common.Vertices vert = new Physics.Common.Vertices();
+            vert.Add(new Physics.Vector2(-20, 38));
+            vert.Add(new Physics.Vector2(16, 38));
+            vert.Add(new Physics.Vector2(40, 14));
+            vert.Add(new Physics.Vector2(36, -17));
+            vert.Add(new Physics.Vector2(4, -38));
+            vert.Add(new Physics.Vector2(-20, -30));
+            vert.Add(new Physics.Vector2(-38, 6));
+
+            shape.Vertices = vert;
+            shape.Location = new Vector2(300, 100);
+            shape.PhysicsEnable();
+        }
+
+        public void testcol(PhysicsObject a, PhysicsObject b, Physics.Dynamics.Contacts.Contact c)
+        {
+           if(b != null && b.Tags.Count > 0 && b.Tags[0] == "ground")
+            {
+                //a.PhysicsDisable();
+            }
         }
 
         /// <summary>
@@ -56,8 +83,10 @@ namespace SoulEngine
                 PhysicsObject temp = new PhysicsObject(this, Core.blankTexture);
                 temp.Location = mouseincenter;
                 temp.Size = new Vector2(16, 16);
-                temp.Type = Physics.Dynamics.BodyType.Dynamic;
-                temp.PhysicsEnable(true);
+                temp.SimulationType = Physics.Dynamics.BodyType.Dynamic;
+                temp.PhysicsEnable(PhysicsTemplate.Rectangle);
+                temp.Body.ApplyForce(new Physics.Vector2(0, 2000));
+                temp.onCollision.Add(testcol);
                 Objects.Add(temp);
             }
             if(Input.KeyDownTrigger(Microsoft.Xna.Framework.Input.Keys.Space))
@@ -81,6 +110,7 @@ namespace SoulEngine
                 Objects[i].Draw();
             }
             ground.Draw();
+            shape.Draw();
             Core.ink.Draw(Core.blankTexture.Image, null, new Rectangle(100, 100, 100, 1), color: Color.White, rotation: Core.DegreesToRadians(0));
             Core.ink.End();
         }

@@ -38,7 +38,7 @@ namespace SoulEngine.Objects
         /// The type of physics that should be applied to the object.
         /// By default this is static.
         /// </summary>
-        public BodyType Type
+        public BodyType SimulationType
         {
             get
             {
@@ -57,18 +57,18 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The collection of vertices that form the shape. These need to be in counterclockwise order.
         /// </summary>
-        public Physics.Common.Vertices Shape = new Physics.Common.Vertices();
+        public Physics.Common.Vertices Vertices = new Physics.Common.Vertices();
 
         #region "Events"
         /// <summary>
         /// Triggered when the object collides with another object.
         /// The first fixture is always the event raiser.
         /// </summary>
-        Internal.Event<Fixture, Fixture, Physics.Dynamics.Contacts.Contact> onCollision = new Internal.Event<Fixture, Fixture, Physics.Dynamics.Contacts.Contact>();
+        public Internal.Event<PhysicsObject, PhysicsObject, Physics.Dynamics.Contacts.Contact> onCollision = new Internal.Event<PhysicsObject, PhysicsObject, Physics.Dynamics.Contacts.Contact>();
         /// <summary>
         /// Triggered when a collision has happened, and has ended.
         /// </summary>
-        Internal.Event<Fixture, Fixture> onCollisionEnd = new Internal.Event<Fixture, Fixture>();
+        public Internal.Event<PhysicsObject, PhysicsObject> onCollisionEnd = new Internal.Event<PhysicsObject, PhysicsObject>();
         #endregion
         #region "Private"
         /// <summary>
@@ -87,92 +87,87 @@ namespace SoulEngine.Objects
         #endregion
 
         /// <summary>
-        /// Initializes an object.
+        /// Initializes a physics object.
         /// </summary>
-        /// <param name="Screen">The screen that this object belongs to.</param>
+        /// <param name="Screen">The screen that this object belongs to. Requires for physics simulation context.</param>
         /// <param name="Image">The texture object that represents the object.</param>
         public PhysicsObject(Screen Screen, Texture Image = null) : base(Image)
         {
+            //Get the hosting screen.
             parent = Screen;
-            //Define body
-            //Create body
-            //  Type - Dynamic, static, kinematic
-            //Create shape
-            //Create fixture
-            //Attach shape to body with fixture
-            //Add body to world
-            //Attach updater to Core
-
-            //body = new Body(Physics.Engine.world, StartLocation);
-            //body.BodyType = BodyType.Dynamic;
-
-            //List<Physics.Vector2> edges = new List<Physics.Vector2>();
-
-            ////Generate edges
-            //edges.Add(new Physics.Vector2(0, 0));
-            //edges.Add(new Physics.Vector2(width / 2, 0));
-            //edges.Add(new Physics.Vector2(width / 2, width / 2));
-            //edges.Add(new Physics.Vector2(0, width / 2));
-
-            this.Location = Location;
-            Location = Center;
-
-            //shape = new PolygonShape(new Physics.Common.Vertices(edges.ToArray()), 1);
         }
 
-
-
-        #region "Physics"
+        #region "Physics Fumctions"
         /// <summary>
         /// Enabled physics calculations for the object.
         /// This prevents the object from being resized or moved and will be handled by the physics engine.
         /// </summary>
-        /// <param name="Box">Whether the object should use the polygonal shape defined in the "Shape" field or just a box.</param>
-        public void PhysicsEnable(bool Box = false)
+        /// <param name="Template">The bounding template to use, if any. If set to none a shape will be generated from the Vertices field.</param>
+        public void PhysicsEnable(PhysicsTemplate Template = PhysicsTemplate.None, float Density = 1f, bool ConvertPixelUnits = true)
         {
-            if (Box == false)
+            switch(Template)
             {
-                //Create a body.
-                body = new Body(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Center.ToPhys()), RotationRadians, Tags);
-                //Create a shape.
-                
-                //Link with a fixture.
-            }
-            else
-            {
-                //Create the body from the rectangle preset.
-                body = Physics.Factories.BodyFactory.CreateRectangle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), 1f, Tags);
-                body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
-                
+                case PhysicsTemplate.None:
+                    if(ConvertPixelUnits == true)
+                    {
+                        //Convert vertices from pixel coordinates to physics coordinates.
+                        for (int i = 0; i < Vertices.Count; i++)
+                        {
+                            Physics.Vector2 t;
+                            t.X = Physics.Engine.PixelToPhysics(Vertices[i].X);
+                            t.Y = Physics.Engine.PixelToPhysics(Vertices[i].Y);
+
+                            Vertices[i] = t;
+                        }
+                    }
+                    //Create a body from a the vertices.
+                    body = Physics.Factories.BodyFactory.CreatePolygon(parent.PhysicsWorld, Vertices, Density, this);
+                    //Set it's position.
+                    body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                    break;
+                case PhysicsTemplate.Rectangle:
+                    //Create a body from a rectangle template.
+                    body = Physics.Factories.BodyFactory.CreateRectangle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), Density, this);
+                    //Set it's position.
+                    body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                    break;
+                case PhysicsTemplate.Circle:
+                    //Create a body from a circle template.
+                    body = Physics.Factories.BodyFactory.CreateCircle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X / 2), Density, this);
+                    //Set it's position.
+                    body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                    break;
             }
 
             //Assign the body type.
-            body.BodyType = Type;
+            body.BodyType = SimulationType;
 
             //Attach events.
             body.OnCollision += CollisionEvent;
             body.OnSeparation += CollisionEndEvent;
         }
+        /// <summary>
+        /// Removes the physics object from simulation. Other physics objects will not collide with it, to stop the object from moving but keep collision set the SimulationType to Static.
+        /// </summary>
         public void PhysicsDisable()
         {
-
+            parent.PhysicsWorld.RemoveBody(body);
         }
         #endregion
-
         #region "Event Handling"
         /// <summary>
         /// Triggers the internal event from the body's event.
         /// </summary>
         private void CollisionEndEvent(Fixture fixtureA, Fixture fixtureB)
         {
-            onCollisionEnd.Trigger(fixtureA, fixtureB);
+            onCollisionEnd.Trigger((PhysicsObject) fixtureA.Body.UserData, (PhysicsObject)fixtureB.Body.UserData);
         }
         /// <summary>
         /// Triggers the internal event from the body's event.
         /// </summary>
         private bool CollisionEvent(Fixture fixtureA, Fixture fixtureB, Physics.Dynamics.Contacts.Contact contact)
         {
-            onCollision.Trigger(fixtureA, fixtureB, contact);
+            onCollision.Trigger((PhysicsObject)fixtureA.Body.UserData, (PhysicsObject)fixtureB.Body.UserData, contact);
             return true;
         }
         #endregion
@@ -188,5 +183,12 @@ namespace SoulEngine.Objects
             //Draw the object.
             base.Draw();
         }
+    }
+
+    public enum PhysicsTemplate
+    {
+        None,
+        Rectangle,
+        Circle
     }
 }
