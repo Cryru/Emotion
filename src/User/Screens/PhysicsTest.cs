@@ -30,8 +30,10 @@ namespace SoulEngine
         /// </summary>
         public override void LoadObjects()
         {
-            Physics.Engine.CreateWorld();
-            ground = new PhysicsObject(Core.blankTexture, new Vector2(100, 500), new Vector2(1000, 20));
+            ground = new PhysicsObject(Core.blankTexture);
+            ground.Location = new Vector2(100, 500);
+            ground.Size = new Vector2(1000, 20);
+
             ground.Type = Physics.Dynamics.BodyType.Static;
 
         }
@@ -65,7 +67,7 @@ namespace SoulEngine
         /// </summary>
         public override void Draw()
         {
-            Physics.Engine.world.Step(Math.Min((float)Core.gameTime.ElapsedGameTime.TotalSeconds, (1f / 30f)));
+
             Core.DrawOnScreen();
             for (int i = 0; i < Objects.Count; i++)
             {

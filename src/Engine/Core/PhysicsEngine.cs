@@ -15,9 +15,12 @@ namespace SoulEngine.Physics
     //                                                                          //
     // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Handles physics.
+    /// </summary>
     public static class Engine
     {
-        public static World world;
+        #region "Declarations"
         /// <summary>
         /// The ratio of display units to simulation units.
         /// </summary>
@@ -32,53 +35,47 @@ namespace SoulEngine.Physics
                 return 1 / Scale;
             }
         }
+        #endregion
 
-        public static Vector2 Gravity
+
+        /// <summary>
+        /// Calculate physics for all screens.
+        /// </summary>
+        public static void Update()
         {
-            set
+            //Get the list of screens active.
+            for (int i = 0; i < Core.Screens.Count; i++)
             {
-                //Set the world's gravity, if a world is initialized.
-                if(world != null) world.Gravity = value;
-                //Set the variable.
-                _gravity = value;
-            }
-            get
-            {
-                return _gravity;
+                //Advance simulation by the amount of time that has passed since the last update.
+                Core.Screens[i].PhysicsWorld.Step((float)Core.gameTime.ElapsedGameTime.TotalSeconds);
             }
         }
-        
-        private static Vector2 _gravity = new Vector2(0.0f, 20.0f);
-
-        public static float transX;// = 320.0f;
-        public static float transY;// = 240.0f;
-        public static float scaleFactor;// = 10.0f;
-        public static float yFlip;// = -1.0f; //flip y coordinate
-
-        public static Body groundBody;
-
-
-        public static void CreateWorld()
-        {
-            world = new World(Gravity);
-
-        }
-
-
 
         #region "Helper Functions"
+        /// <summary>
+        /// Converts the physics measurements to pixel measurements.
+        /// </summary>
         public static float PhysicsToPixel(float num)
         {
             return num * Scale;
         }
+        /// <summary>
+        /// Converts the physics measurements to pixel measurements.
+        /// </summary>
         public static Vector2 PhysicsToPixel(Vector2 vec)
         {
             return vec * Scale;
         }
+        /// <summary>
+        /// Converts the pixel measurements to physics measurements.
+        /// </summary>
         public static float PixelToPhysics(float num)
         {
             return num * ScaleReverse;
         }
+        /// <summary>
+        /// Converts the pixel measurements to physics measurements.
+        /// </summary>
         public static Vector2 PixelToPhysics(Vector2 vec)
         {
             return vec * ScaleReverse;

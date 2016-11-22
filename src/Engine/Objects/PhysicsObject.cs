@@ -24,38 +24,75 @@ namespace SoulEngine.Objects
     public class PhysicsObject : ObjectBase
     {
         #region "Declarations"
-        public Body PhysicsBody
+        /// <summary>
+        /// Public accessor for the object's physics body.
+        /// </summary>
+        public Body Body
         {
             get
             {
                 return body;
             }
         }
-
-
-        Body body;
-        ObjectBase outline;
+        /// <summary>
+        /// The type of physics that should be applied to the object.
+        /// By default this is static.
+        /// </summary>
         public BodyType Type
         {
             get
             {
-                return body.BodyType;
+                return type;
             }
             set
             {
-                body.BodyType = value;
+                type = value;
+
+                if(body != null)
+                {
+                    body.BodyType = type;
+                }
             }
         }
+        /// <summary>
+        /// The collection of vertices that form the shape. These need to be in counterclockwise order.
+        /// </summary>
+        public Physics.Common.Vertices Shape = new Physics.Common.Vertices();
+
+        #region "Events"
+        /// <summary>
+        /// Triggered when the object collides with another object.
+        /// The first fixture is always the event raiser.
+        /// </summary>
+        Internal.Event<Fixture, Fixture, Physics.Dynamics.Contacts.Contact> onCollision = new Internal.Event<Fixture, Fixture, Physics.Dynamics.Contacts.Contact>();
+        /// <summary>
+        /// Triggered when a collision has happened, and has ended.
+        /// </summary>
+        Internal.Event<Fixture, Fixture> onCollisionEnd = new Internal.Event<Fixture, Fixture>();
+        #endregion
+        #region "Private"
+        /// <summary>
+        /// The object's physics body.
+        /// </summary>
+        Body body;
+        /// <summary>
+        /// The object's screen parent.
+        /// </summary>
+        private Screen parent;
+        /// <summary>
+        /// The private body type holder.
+        /// </summary>
+        BodyType type;
+        #endregion
         #endregion
 
         /// <summary>
         /// Initializes an object.
         /// </summary>
+        /// <param name="Screen">The screen that this object belongs to.</param>
         /// <param name="Image">The texture object that represents the object.</param>
-        public PhysicsObject(Texture Image, Vector2 Location, Vector2 Size) : base(Image)
+        public PhysicsObject(Screen Screen, Texture Image = null) : base(Image)
         {
-            Width = (int) Size.X;
-            Height = (int)Size.Y;
 
             //Define body
             //Create body
@@ -81,41 +118,70 @@ namespace SoulEngine.Objects
             Location = Center;
 
             //shape = new PolygonShape(new Physics.Common.Vertices(edges.ToArray()), 1);
-
-            body = Physics.Factories.BodyFactory.CreateRectangle(Physics.Engine.world, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), 1f);
-
-            body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
-            body.BodyType = BodyType.Dynamic;
-
-
-
-
-            //Core.Updates.Add(PhysicsUpdate);
-
-            outline = new ObjectBase(Core.blankTexture);
-
         }
 
-        private void PhysicsUpdate()
+
+
+        #region "Physics"
+        /// <summary>
+        /// Enabled physics calculations for the object.
+        /// This prevents the object from being resized or moved and will be handled by the physics engine.
+        /// </summary>
+        /// <param name="Box">Whether the object should use the polygonal shape defined in the "Shape" field or just a box.</param>
+        public void PhysicsEnable(bool Box = false)
         {
-            
+            if (Box == false)
+            {
+                //Create a body.
+                body = new Body(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Center.ToPhys()), RotationRadians, Tags);
+                //Create a shape.
+                
+                //Link with a fixture.
+            }
+            else
+            {
+                //Create the body from the rectangle preset.
+                body = Physics.Factories.BodyFactory.CreateRectangle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), 1f, Tags);
+                body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                
+            }
+
+            //Assign the body type.
+            body.BodyType = Type;
+
+            //Attach events.
+            body.OnCollision += CollisionEvent;
+            body.OnSeparation += CollisionEndEvent;
         }
+        public void PhysicsDisable()
+        {
 
+        }
+        #endregion
 
+        #region "Event Handling"
+        /// <summary>
+        /// Triggers the internal event from the body's event.
+        /// </summary>
+        private void CollisionEndEvent(Fixture fixtureA, Fixture fixtureB)
+        {
+            onCollisionEnd.Trigger(fixtureA, fixtureB);
+        }
+        /// <summary>
+        /// Triggers the internal event from the body's event.
+        /// </summary>
+        private bool CollisionEvent(Fixture fixtureA, Fixture fixtureB, Physics.Dynamics.Contacts.Contact contact)
+        {
+            onCollision.Trigger(fixtureA, fixtureB, contact);
+            return true;
+        }
+        #endregion
         public override void Draw()
         {
+            //Get data from physics calculations.
             Center = Physics.Engine.PhysicsToPixel(body.Position).ToNorm();
             RotationRadians = body.Rotation;
-
-            outline.ObjectCopy(this);
-            outline.Color = Color.Black;
-            outline.RotationRadians = RotationRadians;
-            outline.Size = new Vector2(Width + 5, Height + 5);
-            outline.Center = Center;
-            outline.Draw();
-
-            
-
+            //Draw the object.
             base.Draw();
         }
     }

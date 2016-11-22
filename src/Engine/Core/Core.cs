@@ -106,12 +106,14 @@ namespace SoulEngine
         public static List<Screen> Screens = new List<Screen>();
         /// <summary>
         /// Methods that are run every frame on the CPU.
+        /// These are triggered at the end of the frame, before the frame ending code.
         /// </summary>
-        public static Objects.Internal.Event<string> Updates = new Objects.Internal.Event<string>();
+        public static Objects.Internal.Event Updates = new Objects.Internal.Event();
         /// <summary>
         /// Methods that are run every frame on the GPU.
+        /// These are triggered at the end of the frame, before the frame ending code.
         /// </summary>
-        public static Objects.Internal.Event<string> DrawUpdates = new Objects.Internal.Event<string>();
+        public static Objects.Internal.Event DrawUpdates = new Objects.Internal.Event();
         /// <summary>
         /// A seed used for generating random numbers.
         /// </summary>
@@ -279,7 +281,7 @@ namespace SoulEngine
         public static void Update_End(GameTime gameTime)
         {
             //Update hooked methods.
-            Updates.Trigger("");
+            Updates.Trigger();
             //Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
@@ -303,7 +305,7 @@ namespace SoulEngine
         public static void Draw_End(GameTime gameTime)
         {
             //Update hooked methods.
-            DrawUpdates.Trigger("");
+            DrawUpdates.Trigger();
 
             //Draw on the screen.
             DrawOnScreen();
