@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.ConvexHull
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Andrew's Monotone Chain Convex Hull algorithm.

@@ -1,6 +1,5 @@
-﻿using SoulEngine.Physics.Dynamics;
-
-namespace SoulEngine.Physics.Common.PhysicsLogic
+﻿
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Contains filter data that can determine whether an object should be processed or not.

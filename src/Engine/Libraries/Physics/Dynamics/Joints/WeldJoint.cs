@@ -21,10 +21,10 @@
 */
 
 using System;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     // Point-to-point constraint
     // C = p2 - p1

@@ -34,7 +34,7 @@
 // Future possibilities
 //   Documentation!
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Polygon
+namespace SoulEngine.Physics
 {
     internal class PolygonPoint : TriangulationPoint
     {

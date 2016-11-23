@@ -22,10 +22,8 @@
 //#define USE_ACTIVE_CONTACT_SET
 
 using System.Collections.Generic;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Dynamics.Contacts;
 
-namespace SoulEngine.Physics.Dynamics
+namespace SoulEngine.Physics
 {
     public class ContactManager
     {

@@ -7,10 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using SoulEngine.Physics.Collision;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     public enum PolygonError
     {

@@ -1,8 +1,7 @@
 ﻿using System;
-using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Controllers
+namespace SoulEngine.Physics
 {
     public abstract class AbstractForceController : Controller
     {

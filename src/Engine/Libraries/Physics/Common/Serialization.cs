@@ -5,12 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Dynamics;
-using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Serialize the world into an XML file

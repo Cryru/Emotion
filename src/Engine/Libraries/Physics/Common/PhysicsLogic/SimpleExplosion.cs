@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Dynamics;
+using System.Collections.Generic;                     
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.PhysicsLogic
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Creates a simple explosion that ignores other bodies hiding behind static bodies.

@@ -23,12 +23,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Contacts
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A contact edge is used to connect bodies and contacts together
@@ -248,7 +245,7 @@ namespace SoulEngine.Physics.Dynamics.Contacts
             {
                 Shape shapeA = FixtureA.Shape;
                 Shape shapeB = FixtureB.Shape;
-                touching = Collision.Collision.TestOverlap(shapeA, ChildIndexA, shapeB, ChildIndexB, ref bodyA._xf, ref bodyB._xf);
+                touching = Collision.TestOverlap(shapeA, ChildIndexA, shapeB, ChildIndexB, ref bodyA._xf, ref bodyB._xf);
 
                 // Sensors don't generate manifolds.
                 Manifold.PointCount = 0;
@@ -378,29 +375,29 @@ namespace SoulEngine.Physics.Dynamics.Contacts
             switch (_type)
             {
                 case ContactType.Polygon:
-                    Collision.Collision.CollidePolygons(ref manifold, (PolygonShape)FixtureA.Shape, ref transformA, (PolygonShape)FixtureB.Shape, ref transformB);
+                    Collision.CollidePolygons(ref manifold, (PolygonShape)FixtureA.Shape, ref transformA, (PolygonShape)FixtureB.Shape, ref transformB);
                     break;
                 case ContactType.PolygonAndCircle:
-                    Collision.Collision.CollidePolygonAndCircle(ref manifold, (PolygonShape)FixtureA.Shape, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
+                    Collision.CollidePolygonAndCircle(ref manifold, (PolygonShape)FixtureA.Shape, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
                     break;
                 case ContactType.EdgeAndCircle:
-                    Collision.Collision.CollideEdgeAndCircle(ref manifold, (EdgeShape)FixtureA.Shape, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
+                    Collision.CollideEdgeAndCircle(ref manifold, (EdgeShape)FixtureA.Shape, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
                     break;
                 case ContactType.EdgeAndPolygon:
-                    Collision.Collision.CollideEdgeAndPolygon(ref manifold, (EdgeShape)FixtureA.Shape, ref transformA, (PolygonShape)FixtureB.Shape, ref transformB);
+                    Collision.CollideEdgeAndPolygon(ref manifold, (EdgeShape)FixtureA.Shape, ref transformA, (PolygonShape)FixtureB.Shape, ref transformB);
                     break;
                 case ContactType.ChainAndCircle:
                     ChainShape chain = (ChainShape)FixtureA.Shape;
                     chain.GetChildEdge(_edge, ChildIndexA);
-                    Collision.Collision.CollideEdgeAndCircle(ref manifold, _edge, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
+                    Collision.CollideEdgeAndCircle(ref manifold, _edge, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
                     break;
                 case ContactType.ChainAndPolygon:
                     ChainShape loop2 = (ChainShape)FixtureA.Shape;
                     loop2.GetChildEdge(_edge, ChildIndexA);
-                    Collision.Collision.CollideEdgeAndPolygon(ref manifold, _edge, ref transformA, (PolygonShape)FixtureB.Shape, ref transformB);
+                    Collision.CollideEdgeAndPolygon(ref manifold, _edge, ref transformA, (PolygonShape)FixtureB.Shape, ref transformB);
                     break;
                 case ContactType.Circle:
-                    Collision.Collision.CollideCircles(ref manifold, (CircleShape)FixtureA.Shape, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
+                    Collision.CollideCircles(ref manifold, (CircleShape)FixtureA.Shape, ref transformA, (CircleShape)FixtureB.Shape, ref transformB);
                     break;
             }
         }

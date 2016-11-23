@@ -24,7 +24,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     public enum JointType
     {

@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Dynamics.Contacts;
-using SoulEngine.Physics.Factories;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A type of body that supports multiple fixtures that can break apart.

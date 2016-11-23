@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using SoulEngine.Physics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,11 +36,11 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The world object for physics simulations.
         /// </summary>
-        private Physics.Dynamics.World World;
+        private World World;
         /// <summary>
         /// The world screen's gravity.
         /// </summary>
-        public Physics.Vector2 Gravity
+        public Vector2 Gravity
         {
             get
             {
@@ -53,7 +54,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Public accessor for the world object.
         /// </summary>
-        public Physics.Dynamics.World PhysicsWorld
+        public World PhysicsWorld
         {
             get
             {
@@ -82,7 +83,7 @@ namespace SoulEngine.Objects
         /// </summary>
         public void PhysicsSetup()
         {
-            World = new Physics.Dynamics.World(new Physics.Vector2(0, 0));
+            World = new World(new Vector2(0, 0));
         }
     }
 }

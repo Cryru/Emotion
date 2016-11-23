@@ -22,10 +22,10 @@
 
 using System;
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     // 1-D rained system
     // m (v2 - v1) = lambda

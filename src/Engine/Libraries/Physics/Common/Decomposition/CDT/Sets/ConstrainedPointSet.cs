@@ -31,7 +31,7 @@
 
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Sets
+namespace SoulEngine.Physics.Sets
 {
     /*
      * Extends the PointSet by adding some Constraints on how it will be triangulated<br>

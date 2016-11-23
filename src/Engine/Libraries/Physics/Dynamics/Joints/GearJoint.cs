@@ -21,10 +21,10 @@
 */
 
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     // Gear Joint:
     // C0 = (coordinate1 + ratio * coordinate2)_initial

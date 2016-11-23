@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.Seidel
+namespace SoulEngine.Physics
 {
     internal class Triangulator
     {

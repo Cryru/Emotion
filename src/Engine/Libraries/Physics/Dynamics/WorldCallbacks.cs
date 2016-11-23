@@ -20,12 +20,7 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Controllers;
-using SoulEngine.Physics.Dynamics.Contacts;
-using SoulEngine.Physics.Dynamics.Joints;
-
-namespace SoulEngine.Physics.Dynamics
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// This delegate is called when a contact is deleted

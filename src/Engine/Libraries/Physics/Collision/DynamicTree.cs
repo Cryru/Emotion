@@ -23,10 +23,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A node in the dynamic tree. The client does not interact with this directly.

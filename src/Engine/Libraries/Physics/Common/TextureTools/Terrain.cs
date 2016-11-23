@@ -1,12 +1,7 @@
 ﻿using System.Collections.Generic;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Common.Decomposition;
-using SoulEngine.Physics.Common.PolygonManipulation;
-using SoulEngine.Physics.Dynamics;
-using SoulEngine.Physics.Factories;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.TextureTools
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Simple class to maintain a terrain. It can keep track

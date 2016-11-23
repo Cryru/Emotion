@@ -21,10 +21,10 @@
 */
 
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     // p = attached point, m = mouse point
     // C = p - m

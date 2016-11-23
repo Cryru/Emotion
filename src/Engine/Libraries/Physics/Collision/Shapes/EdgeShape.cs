@@ -20,10 +20,10 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision.Shapes
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A line segment (edge) shape. These can be connected in chains or loops

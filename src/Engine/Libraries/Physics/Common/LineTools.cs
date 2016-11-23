@@ -1,8 +1,7 @@
 ﻿using System;
-using SoulEngine.Physics.Collision;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Collection of helper methods for misc collisions.

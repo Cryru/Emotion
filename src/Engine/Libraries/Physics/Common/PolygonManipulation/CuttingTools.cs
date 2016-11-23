@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Dynamics;
-using SoulEngine.Physics.Factories;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.PolygonManipulation
+namespace SoulEngine.Physics
 {
     public static class CuttingTools
     {

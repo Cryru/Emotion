@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Controllers
+namespace SoulEngine.Physics
 {
     public sealed class BuoyancyController : Controller
     {

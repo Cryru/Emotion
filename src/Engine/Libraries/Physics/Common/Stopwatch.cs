@@ -1,7 +1,7 @@
 #if SILVERLIGHT
 using System;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     // Source: http://www.wiredprairie.us/blog/index.php/archives/723
 

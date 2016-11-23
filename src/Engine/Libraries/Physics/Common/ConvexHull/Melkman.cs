@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.ConvexHull
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Creates a convex hull.

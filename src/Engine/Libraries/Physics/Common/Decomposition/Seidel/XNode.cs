@@ -1,4 +1,4 @@
-﻿namespace SoulEngine.Physics.Common.Decomposition.Seidel
+﻿namespace SoulEngine.Physics
 {
     internal class XNode : Node
     {

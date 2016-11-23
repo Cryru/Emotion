@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
+namespace SoulEngine.Physics
 {
     internal class PointGenerator
     {

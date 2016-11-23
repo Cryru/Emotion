@@ -22,12 +22,9 @@
 
 using System;
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Dynamics.Contacts;
-using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// This is an internal class.

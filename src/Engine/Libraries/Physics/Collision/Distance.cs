@@ -22,11 +22,9 @@
 
 using System;
 using System.Diagnostics;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A distance proxy is used by the GJK algorithm.

@@ -33,7 +33,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
+namespace SoulEngine.Physics
 {
     internal struct FixedBitArray3 : IEnumerable<bool>
     {

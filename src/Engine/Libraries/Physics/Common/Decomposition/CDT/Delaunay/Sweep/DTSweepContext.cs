@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep
+namespace SoulEngine.Physics
 {
     /**
      * 

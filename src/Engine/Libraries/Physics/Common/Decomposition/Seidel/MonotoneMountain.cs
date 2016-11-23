@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace SoulEngine.Physics.Common.Decomposition.Seidel
+namespace SoulEngine.Physics
 {
     internal class MonotoneMountain
     {

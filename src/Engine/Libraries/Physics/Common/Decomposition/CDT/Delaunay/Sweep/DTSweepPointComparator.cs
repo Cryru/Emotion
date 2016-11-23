@@ -31,7 +31,7 @@
 
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep
+namespace SoulEngine.Physics
 {
     internal class DTSweepPointComparator : IComparer<TriangulationPoint>
     {

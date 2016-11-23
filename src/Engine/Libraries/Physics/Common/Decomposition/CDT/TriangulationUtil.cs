@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT
+namespace SoulEngine.Physics
 {
     /**
      * @author Thomas Åhlén, thahlen@gmail.com

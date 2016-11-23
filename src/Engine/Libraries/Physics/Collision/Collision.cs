@@ -24,11 +24,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
+
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision
+namespace SoulEngine.Physics
 {
     internal enum ContactFeatureType : byte
     {

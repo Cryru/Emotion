@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.Seidel
+namespace SoulEngine.Physics
 {
     // Node for a Directed Acyclic graph (DAG)
     internal abstract class Node

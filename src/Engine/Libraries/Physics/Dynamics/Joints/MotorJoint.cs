@@ -21,10 +21,10 @@
 */
 
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A motor joint is used to control the relative motion

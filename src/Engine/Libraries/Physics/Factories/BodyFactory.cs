@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Common.Decomposition;
-using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Factories
+namespace SoulEngine.Physics
 {
     public static class BodyFactory
     {

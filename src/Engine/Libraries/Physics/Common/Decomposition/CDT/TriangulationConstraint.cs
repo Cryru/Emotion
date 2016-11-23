@@ -36,7 +36,7 @@
  * 
  * @author Thomas Åhlén, thahlen@gmail.com
  */
-namespace SoulEngine.Physics.Common.Decomposition.CDT
+namespace SoulEngine.Physics
 {
     internal class TriangulationConstraint
     {

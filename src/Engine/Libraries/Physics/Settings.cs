@@ -21,7 +21,6 @@
 */
 
 using System;
-using SoulEngine.Physics.Dynamics;
 
 namespace SoulEngine.Physics
 {

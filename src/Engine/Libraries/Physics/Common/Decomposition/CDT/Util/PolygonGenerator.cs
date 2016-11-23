@@ -30,9 +30,8 @@
  */
 
 using System;
-using SoulEngine.Physics.Common.Decomposition.CDT.Polygon;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
+namespace SoulEngine.Physics
 {
     internal class PolygonGenerator
     {
@@ -40,7 +39,7 @@ namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
 
         private static double PI_2 = 2.0*Math.PI;
 
-        public static Polygon.Polygon RandomCircleSweep(double scale, int vertexCount)
+        public static Polygon RandomCircleSweep(double scale, int vertexCount)
         {
             PolygonPoint point;
             PolygonPoint[] points;
@@ -70,10 +69,10 @@ namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
                                          radius*Math.Sin((PI_2*i)/vertexCount));
                 points[i] = point;
             }
-            return new Polygon.Polygon(points);
+            return new Polygon(points);
         }
 
-        public static Polygon.Polygon RandomCircleSweep2(double scale, int vertexCount)
+        public static Polygon RandomCircleSweep2(double scale, int vertexCount)
         {
             PolygonPoint point;
             PolygonPoint[] points;
@@ -92,7 +91,7 @@ namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
                                          radius*Math.Sin((PI_2*i)/vertexCount));
                 points[i] = point;
             }
-            return new Polygon.Polygon(points);
+            return new Polygon(points);
         }
     }
 }

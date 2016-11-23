@@ -24,16 +24,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Common.PhysicsLogic;
-using SoulEngine.Physics.Controllers;
-using SoulEngine.Physics.Dynamics.Contacts;
-using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// The body type.

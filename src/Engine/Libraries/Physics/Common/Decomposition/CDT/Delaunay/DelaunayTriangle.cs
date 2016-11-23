@@ -41,10 +41,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep;
-using SoulEngine.Physics.Common.Decomposition.CDT.Util;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay
+namespace SoulEngine.Physics
 {
     internal class DelaunayTriangle
     {
@@ -55,11 +53,11 @@ namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay
 
         /** Flags to determine if an edge is a Constrained edge */
         public FixedBitArray3 EdgeIsDelaunay;
-        public Util.FixedArray3<DelaunayTriangle> Neighbors;
+        public IenumFixedArray3<DelaunayTriangle> Neighbors;
 
         /** Has this triangle been marked as an interior triangle? */
 
-        public Util.FixedArray3<TriangulationPoint> Points;
+        public IenumFixedArray3<TriangulationPoint> Points;
 
         public DelaunayTriangle(TriangulationPoint p1, TriangulationPoint p2, TriangulationPoint p3)
         {

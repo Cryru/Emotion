@@ -30,9 +30,8 @@
  */
 
 using System.Collections.Generic;
-using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT
+namespace SoulEngine.Physics
 {
     internal interface Triangulatable
     {

@@ -27,9 +27,8 @@ namespace SoulEngine
         /// </summary>
         public override void LoadObjects()
         {
-            Core.LoadScreen(new PhysicsTest(), 0);
-        }
 
+        }
         /// <summary>
         /// Is run every frame on the CPU.
         /// Game logic and other stuff go here.

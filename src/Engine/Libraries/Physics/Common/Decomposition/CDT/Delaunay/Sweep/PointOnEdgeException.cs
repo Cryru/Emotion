@@ -31,7 +31,7 @@
 
 using System;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep
+namespace SoulEngine.Physics
 {
     internal class PointOnEdgeException : NotImplementedException
     {

@@ -1,7 +1,6 @@
 using System;
-using SoulEngine.Physics.Dynamics;
 
-namespace SoulEngine.Physics.Common.PhysicsLogic
+namespace SoulEngine.Physics
 {
     [Flags]
     public enum PhysicsLogicType

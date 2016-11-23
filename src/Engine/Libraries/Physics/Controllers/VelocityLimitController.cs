@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using SoulEngine.Physics.Dynamics;
 
-namespace SoulEngine.Physics.Controllers
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Put a limit on the linear (translation - the movespeed) and angular (rotation) velocity

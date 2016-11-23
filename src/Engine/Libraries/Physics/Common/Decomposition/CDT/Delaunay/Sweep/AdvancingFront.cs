@@ -38,7 +38,7 @@
 using System;
 using System.Text;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep
+namespace SoulEngine.Physics
 {
     /**
      * @author Thomas Åhlen (thahlen@gmail.com)

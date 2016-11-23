@@ -1,8 +1,6 @@
 ﻿using System;
-using SoulEngine.Physics.Common.PhysicsLogic;
-using SoulEngine.Physics.Dynamics;
 
-namespace SoulEngine.Physics.Controllers
+namespace SoulEngine.Physics
 {
     [Flags]
     public enum ControllerType

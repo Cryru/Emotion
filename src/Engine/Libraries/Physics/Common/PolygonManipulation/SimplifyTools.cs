@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.PolygonManipulation
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Provides a set of tools to simplify polygons in various ways.

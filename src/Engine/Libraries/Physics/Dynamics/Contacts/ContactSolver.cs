@@ -22,12 +22,9 @@
 
 using System;
 using System.Diagnostics;
-using SoulEngine.Physics.Collision;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Contacts
+namespace SoulEngine.Physics
 {
     public sealed class ContactPositionConstraint
     {

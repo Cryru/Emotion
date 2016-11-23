@@ -28,7 +28,7 @@ namespace SoulEngine
         /// <summary>
         /// The name of the engine.
         /// </summary>
-        public static string Name = "SoulEngine Beta";
+        public static string Name = "SoulEngine";
         /// <summary>
         /// The version of the engine.
         /// </summary>

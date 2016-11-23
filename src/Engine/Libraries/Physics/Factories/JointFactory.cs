@@ -1,8 +1,6 @@
-﻿using SoulEngine.Physics.Dynamics;
-using SoulEngine.Physics.Dynamics.Joints;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Factories
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// An easy to use factory for using joints.

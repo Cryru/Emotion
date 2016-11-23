@@ -35,7 +35,7 @@
 // Future possibilities
 //   Comments!
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep
+namespace SoulEngine.Physics
 {
     internal class AdvancingFrontNode
     {

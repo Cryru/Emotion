@@ -21,10 +21,10 @@
 */
 
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision.Shapes
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// A chain shape is a free form sequence of line segments.

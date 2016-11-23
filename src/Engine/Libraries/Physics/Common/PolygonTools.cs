@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Common.TextureTools;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     public static class PolygonTools
     {

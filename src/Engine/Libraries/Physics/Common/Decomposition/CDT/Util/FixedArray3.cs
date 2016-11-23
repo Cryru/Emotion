@@ -33,9 +33,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Util
+namespace SoulEngine.Physics
 {
-    internal struct FixedArray3<T> : IEnumerable<T> where T : class
+    internal struct IenumFixedArray3<T> : IEnumerable<T> where T : class
     {
         public T _0, _1, _2;
 

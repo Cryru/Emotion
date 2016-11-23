@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using SoulEngine.Physics.Collision;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.TextureTools
+namespace SoulEngine.Physics
 {
     // Ported by Matthew Bettcher - Feb 2011
 

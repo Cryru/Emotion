@@ -7,7 +7,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Maintains a fixed angle between two bodies

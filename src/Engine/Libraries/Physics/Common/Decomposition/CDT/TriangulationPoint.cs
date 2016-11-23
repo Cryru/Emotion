@@ -30,9 +30,9 @@
  */
 
 using System.Collections.Generic;
-using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT
+
+namespace SoulEngine.Physics
 {
     internal class TriangulationPoint
     {

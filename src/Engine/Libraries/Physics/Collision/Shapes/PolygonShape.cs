@@ -21,11 +21,9 @@
 */
 
 using System.Diagnostics;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Common.ConvexHull;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision.Shapes
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Represents a simple non-selfintersecting convex polygon.

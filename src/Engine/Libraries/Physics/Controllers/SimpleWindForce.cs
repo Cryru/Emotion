@@ -1,7 +1,6 @@
-﻿using SoulEngine.Physics.Dynamics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Controllers
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Reference implementation for forces based on AbstractForceController

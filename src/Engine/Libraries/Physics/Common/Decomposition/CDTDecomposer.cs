@@ -5,13 +5,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Common.Decomposition.CDT;
-using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay;
-using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay.Sweep;
-using SoulEngine.Physics.Common.Decomposition.CDT.Polygon;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common.Decomposition
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// 2D constrained Delaunay triangulation algorithm.

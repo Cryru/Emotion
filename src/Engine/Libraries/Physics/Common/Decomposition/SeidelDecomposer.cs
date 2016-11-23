@@ -5,11 +5,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Common.Decomposition.Seidel;
 using Microsoft.Xna.Framework;
-using Point = SoulEngine.Physics.Common.Decomposition.Seidel.Point;
 
-namespace SoulEngine.Physics.Common.Decomposition
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// Convex decomposition algorithm created by Raimund Seidel

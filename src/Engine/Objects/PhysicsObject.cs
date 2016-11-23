@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SoulEngine.Physics.Dynamics;
-using SoulEngine.Physics.Collision.Shapes;
+using SoulEngine.Physics;
 
 namespace SoulEngine.Objects
 {
@@ -57,14 +56,14 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The collection of vertices that form the shape. These need to be in counterclockwise order.
         /// </summary>
-        public Physics.Common.Vertices Vertices = new Physics.Common.Vertices();
+        public Vertices Vertices = new Vertices();
 
         #region "Events"
         /// <summary>
         /// Triggered when the object collides with another object.
         /// The first fixture is always the event raiser.
         /// </summary>
-        public Internal.Event<PhysicsObject, PhysicsObject, Physics.Dynamics.Contacts.Contact> onCollision = new Internal.Event<PhysicsObject, PhysicsObject, Physics.Dynamics.Contacts.Contact>();
+        public Internal.Event<PhysicsObject, PhysicsObject, Contact> onCollision = new Internal.Event<PhysicsObject, PhysicsObject, Contact>();
         /// <summary>
         /// Triggered when a collision has happened, and has ended.
         /// </summary>
@@ -113,7 +112,7 @@ namespace SoulEngine.Objects
                         //Convert vertices from pixel coordinates to physics coordinates.
                         for (int i = 0; i < Vertices.Count; i++)
                         {
-                            Physics.Vector2 t;
+                            Vector2 t;
                             t.X = Physics.Engine.PixelToPhysics(Vertices[i].X);
                             t.Y = Physics.Engine.PixelToPhysics(Vertices[i].Y);
 
@@ -121,21 +120,21 @@ namespace SoulEngine.Objects
                         }
                     }
                     //Create a body from a the vertices.
-                    body = Physics.Factories.BodyFactory.CreatePolygon(parent.PhysicsWorld, Vertices, Density, this);
+                    body = BodyFactory.CreatePolygon(parent.PhysicsWorld, Vertices, Density, this);
                     //Set it's position.
-                    body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                    body.Position = Physics.Engine.PixelToPhysics(Center);
                     break;
                 case PhysicsTemplate.Rectangle:
                     //Create a body from a rectangle template.
-                    body = Physics.Factories.BodyFactory.CreateRectangle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), Density, this);
+                    body = BodyFactory.CreateRectangle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), Density, this);
                     //Set it's position.
-                    body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                    body.Position = Physics.Engine.PixelToPhysics(Center);
                     break;
                 case PhysicsTemplate.Circle:
                     //Create a body from a circle template.
-                    body = Physics.Factories.BodyFactory.CreateCircle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X / 2), Density, this);
+                    body = BodyFactory.CreateCircle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X / 2), Density, this);
                     //Set it's position.
-                    body.Position = Physics.Engine.PixelToPhysics(Center.ToPhys());
+                    body.Position = Physics.Engine.PixelToPhysics(Center);
                     break;
             }
 
@@ -152,6 +151,7 @@ namespace SoulEngine.Objects
         public void PhysicsDisable()
         {
             parent.PhysicsWorld.RemoveBody(body);
+            body = null;
         }
         #endregion
         #region "Event Handling"
@@ -165,7 +165,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Triggers the internal event from the body's event.
         /// </summary>
-        private bool CollisionEvent(Fixture fixtureA, Fixture fixtureB, Physics.Dynamics.Contacts.Contact contact)
+        private bool CollisionEvent(Fixture fixtureA, Fixture fixtureB, Contact contact)
         {
             onCollision.Trigger((PhysicsObject)fixtureA.Body.UserData, (PhysicsObject)fixtureB.Body.UserData, contact);
             return true;
@@ -173,10 +173,11 @@ namespace SoulEngine.Objects
         #endregion
         public override void Draw()
         {
+            //Check if physics is enabled.
             if(body != null)
             {
                 //Get data from physics calculations.
-                Center = Physics.Engine.PhysicsToPixel(body.Position).ToNorm();
+                Center = Physics.Engine.PhysicsToPixel(body.Position);
                 RotationRadians = body.Rotation;
             }
 

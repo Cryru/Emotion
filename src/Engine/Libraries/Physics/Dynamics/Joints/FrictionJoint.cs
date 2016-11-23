@@ -20,10 +20,10 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     // Point-to-point constraint
     // Cdot = v2 - v1

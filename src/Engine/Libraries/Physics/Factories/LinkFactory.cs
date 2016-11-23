@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Factories
+namespace SoulEngine.Physics
 {
     public static class LinkFactory
     {

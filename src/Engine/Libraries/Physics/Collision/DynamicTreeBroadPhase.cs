@@ -21,10 +21,9 @@
 */
 
 using System;
-using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Collision
+namespace SoulEngine.Physics
 {
     internal struct Pair : IComparable<Pair>
     {

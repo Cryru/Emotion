@@ -3,7 +3,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     public class HashSet<T> : ICollection<T>
     {

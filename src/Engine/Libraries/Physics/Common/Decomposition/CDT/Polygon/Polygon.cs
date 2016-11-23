@@ -41,9 +41,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SoulEngine.Physics.Common.Decomposition.CDT.Delaunay;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Polygon
+namespace SoulEngine.Physics
 {
     internal class Polygon : Triangulatable
     {

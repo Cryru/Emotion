@@ -37,7 +37,7 @@
 
 using System.Collections.Generic;
 
-namespace SoulEngine.Physics.Common.Decomposition.CDT.Polygon
+namespace SoulEngine.Physics
 {
     internal class PolygonSet
     {

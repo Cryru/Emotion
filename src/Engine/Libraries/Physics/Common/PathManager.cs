@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using SoulEngine.Physics.Collision.Shapes;
-using SoulEngine.Physics.Common.Decomposition;
-using SoulEngine.Physics.Dynamics;
-using SoulEngine.Physics.Dynamics.Joints;
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Common
+namespace SoulEngine.Physics
 {
     /// <summary>
     /// An easy to use manager for creating paths.

@@ -21,10 +21,10 @@
 */
 
 using System;
-using SoulEngine.Physics.Common;
+
 using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Physics.Dynamics.Joints
+namespace SoulEngine.Physics
 {
     // Linear constraint (point-to-line)
     // d = pB - pA = xB + rB - xA - rA

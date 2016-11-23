@@ -4,8 +4,6 @@
 */
 
 using System;
-using SoulEngine.Physics.Common;
-using SoulEngine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
 namespace SoulEngine.Physics
