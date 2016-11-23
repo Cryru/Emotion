@@ -96,7 +96,7 @@ namespace SoulEngine
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns></returns>
-        public static bool trigger_KeyUp(Keys key)
+        public static bool KeyUpTrigger(Keys key)
         {
             if (currentFrameKeyState.IsKeyUp(key) == true && lastFrameKeyState.IsKeyUp(key) == false)
             {
@@ -106,29 +106,98 @@ namespace SoulEngine
         }
         #endregion
         #region "Mouse"
-        //Returns the location of the mouse pointer warped through the camera.
         /// <summary>
         /// Returns a Vector2 of the location of the mouse pointer on the game's window.
-        /// On Android this returns the position of a tap gesture. For this Tap gestures need to be enabled.
         /// </summary>
         /// <returns></returns>
         public static Vector2 getMousePos()
         {
-#if ANDROID
-            //Check if the TouchPanel has a gesture for us to process.
-            if(TouchPanel.IsGestureAvailable)
-            {
-                //Read the gesture and check if it's a tap.
-                GestureSample ges = TouchPanel.ReadGesture();
-                if(ges.GestureType == GestureType.Tap)
-                {
-                    //If it is, then warp it through the camera and return it.
-                    return Core.maincam.ScreenToWorld(ges.Position);
-                }
-            }  
-#endif
             return Core.maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
         }
+        #region "Left Button"
+        /// <summary>
+        /// Returns a bool based on whether the left mouse button is held down or not.
+        /// </summary>
+        /// <returns>bool</returns>
+        public static bool isLeftClickDown()
+        {
+            return currentFrameMouseState.LeftButton == ButtonState.Pressed;
+        }
+        /// <summary>
+        /// Inverse of the isLeftClickDown function.
+        /// </summary>
+        /// <returns>bool</returns>
+        public static bool isLeftClickUp(Keys key)
+        {
+            return currentFrameMouseState.LeftButton == ButtonState.Released;
+        }
+        /// <summary>
+        /// Returns true only on the frame that the left mouse button is pressed and not when held.
+        /// </summary>
+        public static bool LeftClickDownTrigger()
+        {
+            if (currentFrameMouseState.LeftButton == ButtonState.Pressed && lastFrameMouseState.LeftButton == ButtonState.Released)
+            {
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true only on the frame that the left mouse button is let go after being held down.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <returns></returns>
+        public static bool LeftClickUpTrigger()
+        {
+            if (currentFrameMouseState.LeftButton == ButtonState.Released && lastFrameMouseState.LeftButton == ButtonState.Pressed)
+            {
+                return true;
+            }
+            return false;
+        }
+        #endregion
+        #region "Right Button"
+        /// <summary>
+        /// Returns a bool based on whether the right mouse button is held down or not.
+        /// </summary>
+        /// <returns>bool</returns>
+        public static bool isRightClickDown()
+        {
+            return currentFrameMouseState.RightButton == ButtonState.Pressed;
+        }
+        /// <summary>
+        /// Inverse of the isRightClickDown function.
+        /// </summary>
+        /// <returns>bool</returns>
+        public static bool isRightClickUp(Keys key)
+        {
+            return currentFrameMouseState.RightButton == ButtonState.Released;
+        }
+        /// <summary>
+        /// Returns true only on the frame that the right mouse button is pressed and not when held.
+        /// </summary>
+        public static bool RightClickDownTrigger()
+        {
+            if (currentFrameMouseState.RightButton == ButtonState.Pressed && lastFrameMouseState.RightButton == ButtonState.Released)
+            {
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true only on the frame that the right mouse button is let go after being held down.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <returns></returns>
+        public static bool RightClickUpTrigger()
+        {
+            if (currentFrameMouseState.RightButton == ButtonState.Released && lastFrameMouseState.RightButton == ButtonState.Pressed)
+            {
+                return true;
+            }
+            return false;
+        }
+        #endregion
         #endregion
         #endregion
     }

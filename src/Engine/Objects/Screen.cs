@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using SoulEngine.Physics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,34 @@ namespace SoulEngine.Objects
         /// Whether the objects have been loaded.
         /// </summary>
         internal bool ObjectsLoaded = false;
+        /// <summary>
+        /// The world object for physics simulations.
+        /// </summary>
+        private World World;
+        /// <summary>
+        /// The world screen's gravity.
+        /// </summary>
+        public Vector2 Gravity
+        {
+            get
+            {
+                return World.Gravity;
+            }
+            set
+            {
+                World.Gravity = value;
+            }
+        }
+        /// <summary>
+        /// Public accessor for the world object.
+        /// </summary>
+        public World PhysicsWorld
+        {
+            get
+            {
+                return World;
+            }
+        }
         #endregion
 
         /// <summary>
@@ -49,6 +78,12 @@ namespace SoulEngine.Objects
         /// Your draw calls go here.
         /// </summary>
         public abstract void Draw();
-
+        /// <summary>
+        /// Setup the screen for physics calculation.
+        /// </summary>
+        public void PhysicsSetup()
+        {
+            World = new World(new Vector2(0, 0));
+        }
     }
 }

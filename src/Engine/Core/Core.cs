@@ -21,7 +21,7 @@ namespace SoulEngine
     /// <summary>
     /// The engine's core. Most of the stuff required for everything to run is here.
     /// </summary>
-    class Core
+    public static class Core
     {
         #region "Declarations"
         #region "Engine Information"
@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.82";
+        public static string Version = "0.90";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -76,6 +76,10 @@ namespace SoulEngine
         /// The screen's boxing adapter.
         /// </summary>
         public static BoxingViewportAdapter ScreenAdapter;
+        /// <summary>
+        /// An object for tracking time.
+        /// </summary>
+        public static GameTime gameTime;
         #endregion
         #region "Internal Content"
         /// <summary>
@@ -102,12 +106,14 @@ namespace SoulEngine
         public static List<Screen> Screens = new List<Screen>();
         /// <summary>
         /// Methods that are run every frame on the CPU.
+        /// These are triggered at the end of the frame, before the frame ending code.
         /// </summary>
-        public static Objects.Internal.Event<string> Updates = new Objects.Internal.Event<string>();
+        public static Objects.Internal.Event Updates = new Objects.Internal.Event();
         /// <summary>
         /// Methods that are run every frame on the GPU.
+        /// These are triggered at the end of the frame, before the frame ending code.
         /// </summary>
-        public static Objects.Internal.Event<string> DrawUpdates = new Objects.Internal.Event<string>();
+        public static Objects.Internal.Event DrawUpdates = new Objects.Internal.Event();
         /// <summary>
         /// A seed used for generating random numbers.
         /// </summary>
@@ -222,6 +228,9 @@ namespace SoulEngine
             //Assign the random seed.
             RandomSeed = gameTime.TotalGameTime.Milliseconds;
 
+            //Update the gametime variable.
+            Core.gameTime = gameTime;
+
             //Update the input for the current frame.
             Input.UpdateInput();
 
@@ -272,7 +281,7 @@ namespace SoulEngine
         public static void Update_End(GameTime gameTime)
         {
             //Update hooked methods.
-            Updates.Trigger("");
+            Updates.Trigger();
             //Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
@@ -296,7 +305,7 @@ namespace SoulEngine
         public static void Draw_End(GameTime gameTime)
         {
             //Update hooked methods.
-            DrawUpdates.Trigger("");
+            DrawUpdates.Trigger();
 
             //Draw on the screen.
             DrawOnScreen();
@@ -536,6 +545,7 @@ namespace SoulEngine
             Screens.Add(Screen);
             Screen.Priority = Priority;
             RefreshScreens();
+            Screen.PhysicsSetup();
         }
         /// <summary>
         /// Unloads the screen.

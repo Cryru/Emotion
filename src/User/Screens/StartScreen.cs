@@ -18,7 +18,7 @@ namespace SoulEngine
     public class StartScreen : Screen
     {
         #region "Declarations"
-        
+
         #endregion
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace SoulEngine
         /// </summary>
         public override void LoadObjects()
         {
-            
+
         }
         /// <summary>
         /// Is run every frame on the CPU.
@@ -35,6 +35,7 @@ namespace SoulEngine
         /// </summary>
         public override void Update()
         {
+
 
         }
         /// <summary>
@@ -44,7 +45,7 @@ namespace SoulEngine
         public override void Draw()
         {
             Core.DrawOnScreen();
-
+            
             Core.ink.End();
         }
     }
