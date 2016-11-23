@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.90";
+        public static string Version = "0.91";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05

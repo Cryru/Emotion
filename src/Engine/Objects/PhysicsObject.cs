@@ -60,7 +60,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Whether Physics are enabled.
         /// </summary>
-        public bool PhysicsEnabked
+        public bool PhysicsEnabled
         {
             get
             {
@@ -116,7 +116,7 @@ namespace SoulEngine.Objects
         /// This prevents the object from being resized or moved and will be handled by the physics engine.
         /// </summary>
         /// <param name="Template">The bounding template to use, if any. If set to none a shape will be generated from the Vertices field.</param>
-        public void PhysicsEnable(PhysicsTemplate Template = PhysicsTemplate.None, float Density = 1f, bool ConvertPixelUnits = true)
+        public void EnablePhysics(PhysicsTemplate Template = PhysicsTemplate.None, float Density = 1f, bool ConvertPixelUnits = true)
         {
             switch(Template)
             {
@@ -165,7 +165,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Removes the physics object from simulation. Other physics objects will not collide with it, to stop the object from moving but keep collision set the SimulationType to Static.
         /// </summary>
-        public void PhysicsDisable()
+        public void DisablePhysics()
         {
             if(body != null && body.FixtureList != null) body.DestroyFixture(body.FixtureList[0]);
             parent.PhysicsWorld.RemoveBody(body);
