@@ -23,10 +23,7 @@ namespace SoulEngine
         {
             //Check for multi instancing.
             if (mutex.WaitOne(TimeSpan.Zero, true))
-            {
-                    //Add suffix to engine.
-                    Core.Name += " (OpenGL-Win)";
-
+            { 
                     //Run the engine.
                     Core.Setup();
             }
