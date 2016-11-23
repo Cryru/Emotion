@@ -57,6 +57,16 @@ namespace SoulEngine.Objects
         /// The collection of vertices that form the shape. These need to be in counterclockwise order.
         /// </summary>
         public Vertices Vertices = new Vertices();
+        /// <summary>
+        /// Whether Physics are enabled.
+        /// </summary>
+        public bool PhysicsEnabked
+        {
+            get
+            {
+                return physics;
+            }
+        }
 
         #region "Events"
         /// <summary>
@@ -82,6 +92,10 @@ namespace SoulEngine.Objects
         /// The private body type holder.
         /// </summary>
         BodyType type;
+        /// <summary>
+        /// The private accessor for the physics being enabled.
+        /// </summary>
+        private bool physics = false;
         #endregion
         #endregion
 
@@ -144,14 +158,20 @@ namespace SoulEngine.Objects
             //Attach events.
             body.OnCollision += CollisionEvent;
             body.OnSeparation += CollisionEndEvent;
+
+            //Set the flag to true.
+            physics = true;
         }
         /// <summary>
         /// Removes the physics object from simulation. Other physics objects will not collide with it, to stop the object from moving but keep collision set the SimulationType to Static.
         /// </summary>
         public void PhysicsDisable()
         {
+            if(body != null && body.FixtureList != null) body.DestroyFixture(body.FixtureList[0]);
             parent.PhysicsWorld.RemoveBody(body);
-            body = null;
+
+            //Set the flag to false.
+            physics = false;
         }
         #endregion
         #region "Event Handling"
@@ -174,7 +194,7 @@ namespace SoulEngine.Objects
         public override void Draw()
         {
             //Check if physics is enabled.
-            if(body != null)
+            if(physics == true)
             {
                 //Get data from physics calculations.
                 Center = Physics.Engine.PhysicsToPixel(body.Position);
