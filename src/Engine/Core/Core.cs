@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.91";
+        public static string Version = "0.92";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -231,9 +231,6 @@ namespace SoulEngine
             //Update the gametime variable.
             Core.gameTime = gameTime;
 
-            //Update the input for the current frame.
-            Input.UpdateInput();
-
             //Update the showing mouse setting.
             host.IsMouseVisible = Settings.win_renderMouse;
 
@@ -259,6 +256,9 @@ namespace SoulEngine
             //Run the fullscreen key toggling code.
             FullScreenKeyToggle();
 
+            //Update the input for the current frame.
+            Input.UpdateInput();
+
             //Run the hooked timers.
             for (int i = Timers.Count - 1; i >= 0; i--)
             {
@@ -274,14 +274,15 @@ namespace SoulEngine
                     Timers[i].Run();
                 }
             }
+
+            //Update hooked methods.
+            Updates.Trigger();
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
         /// </summary>
         public static void Update_End(GameTime gameTime)
         {
-            //Update hooked methods.
-            Updates.Trigger();
             //Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
@@ -298,15 +299,14 @@ namespace SoulEngine
             ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
             //End drawing.
             ink.End();
+            //Update hooked methods.
+            DrawUpdates.Trigger();
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
         /// </summary>
         public static void Draw_End(GameTime gameTime)
         {
-            //Update hooked methods.
-            DrawUpdates.Trigger();
-
             //Draw on the screen.
             DrawOnScreen();
             //Check if we are drawing the FPS counter.

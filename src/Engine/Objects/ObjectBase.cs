@@ -141,12 +141,34 @@ namespace SoulEngine.Objects
         /// SpriteEffects for horizontal and/or vertical flipping.
         /// </summary>
             public SpriteEffects MirrorEffects = SpriteEffects.None;
-            #endregion
+        #endregion
+        #region "Parenting"
+        /// <summary>
+        /// Children of this object.
+        /// </summary>
+        public List<ObjectBase> Children = new List<ObjectBase>();
+        /// <summary>
+        /// Whether children of the object should fill in the full size of the object.
+        /// </summary>
+        public bool ChildrenFill = true;
+        /// <summary>
+        /// If the children are filling the parent they will be offset by the padding.
+        /// </summary>
+        public Vector2 Padding = Vector2.Zero;
+        /// <summary>
+        /// Whether children should inherit the visibility of the object.
+        /// </summary>
+        public bool ChildrenInheritVisibiity = true;
+        /// <summary>
+        /// Whether to draw the children above the parent.
+        /// </summary>
+        public bool ChildrenOnTop = false;
+        #endregion
         #region "Other"
-            /// <summary>
-            /// //A list of strings you can use to store values inside the object.
-            /// </summary>
-            public List<string> Tags = new List<string>(); 
+        /// <summary>
+        /// //A list of strings you can use to store values inside the object.
+        /// </summary>
+        public List<string> Tags = new List<string>(); 
             #endregion
         #endregion
 
@@ -177,11 +199,16 @@ namespace SoulEngine.Objects
         /// <param name="DrawOrigin">The origin point for rotation, by default this is the center.</param>
         /// <param name="DrawEffects">Flipping and mirroring effects.</param>
         protected void DrawObject(Texture2D DrawImage = null, Rectangle DrawBounds = new Rectangle(), Color DrawTint = new Color(), float DrawOpacity = -1f, 
-            float Rotation = -1f, Vector2 DrawOrigin = new Vector2(), SpriteEffects DrawEffects = SpriteEffects.None)
+            float Rotation = -1f, Vector2 DrawOrigin = new Vector2(), SpriteEffects DrawEffects = SpriteEffects.None, bool ignoreChildren = false)
         {
+            //Process parenting, for when the children are on top.
+            if(ignoreChildren == false && ChildrenOnTop == false) ProcessParenting();
+
             //Check if not visible, in which case we are skipping drawing.
-            if(Visible == false)
+            if (Visible == false)
             {
+                //Process parenting for when the children are on top.
+                if (ignoreChildren == false && ChildrenOnTop == true) ProcessParenting();
                 return;
             }
 
@@ -223,6 +250,46 @@ namespace SoulEngine.Objects
 
             //Draw the object. To understand how this works read the documentation on objects.
             Core.ink.Draw(DrawImage, DrawBounds, null, DrawTint * DrawOpacity, Rotation, DrawOrigin, DrawEffects, 1.0f);
+
+            //Process parenting.
+            if (ignoreChildren == false && ChildrenOnTop == true) ProcessParenting();
+        }
+        /// <summary>
+        /// Processes parenting.
+        /// </summary>
+        private void ProcessParenting()
+        {
+            //For each child object.
+            foreach (var child in Children)
+            {
+                //Check if the child is null.
+                if (child == null) continue;
+
+                //Store the location of the child.
+                Rectangle tempHolder = child.Bounds;
+
+                //Check if filling, or not and assign the offset location and appropriate size.
+                if(ChildrenFill == true)
+                {
+                    child.Bounds = new Rectangle((int)(X + child.X - Padding.X), (int)(Y + child.Y - Padding.Y), Width + (int) (Padding.X * 2), Height + (int)(Padding.Y * 2));
+                }
+                else
+                {
+                    child.Bounds = new Rectangle((int)(X + child.X), (int)(Y + child.Y), child.Width, child.Height);
+                }
+                
+                //Check if inheriting visibility.
+                if(ChildrenInheritVisibiity == true)
+                {
+                    child.Visible = Visible;
+                }
+
+                //Draw the child.
+                child.Draw();
+
+                //Restore the location of the child.
+                child.Bounds = tempHolder;
+            }
         }
         /// <summary>
         /// A draw function that can be overriden by children of this object.

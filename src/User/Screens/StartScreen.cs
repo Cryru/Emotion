@@ -18,7 +18,7 @@ namespace SoulEngine
     public class StartScreen : Screen
     {
         #region "Declarations"
-
+   
         #endregion
 
         /// <summary>
@@ -35,7 +35,6 @@ namespace SoulEngine
         /// </summary>
         public override void Update()
         {
-
 
         }
         /// <summary>
