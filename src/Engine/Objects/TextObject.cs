@@ -107,12 +107,6 @@ namespace SoulEngine.Objects
         /// </summary>
         private List<int> ts_spaceX = new List<int>();
         #endregion
-        #region "Other"
-        /// <summary>
-        /// The actual background object.
-        /// </summary>
-        private ObjectBase bgObject;
-        #endregion
         #region "Changes Tracker"
         private string oldtxt;
         private RenderMode oldStyle;
@@ -164,9 +158,9 @@ namespace SoulEngine.Objects
         public void SetupBackground(Texture image, Color Color, float Opacity)
         {
             Background = true;
-            bgObject = new ObjectBase(image);
-            bgObject.Color = Color;
-            bgObject.Opacity = Opacity;
+            Children.Add(new ObjectBase(image));
+            Children[0].Color = Color;
+            Children[0].Opacity = Opacity;
         }
 
         /// <summary>
@@ -237,19 +231,28 @@ namespace SoulEngine.Objects
             //Render a background if enabled.
             if (Background)
             {
-                if (bgObject == null) bgObject = new ObjectBase(backgroundImage);
-                bgObject.Bounds = new Rectangle(new Point(Bounds.X - backgroundMargin, Bounds.Y - backgroundMargin),
-                    new Point(Bounds.Width + (backgroundMargin * 2), Bounds.Height + (backgroundMargin * 2)));
-                bgObject.Image = backgroundImage;
-                bgObject.Color = backgroundColor;
-                bgObject.Opacity = backgroundOpacity;
-                bgObject.Draw();
+                if (Children.Count == 0)
+                {
+                    //Setup parenting
+                    ChildrenOnTop = false;
+
+                    //Setup the background object.
+                    Children.Add(new ObjectBase(backgroundImage));
+                }
+
+                Padding = new Vector2(backgroundMargin, backgroundMargin);
+                Children[0].Image = backgroundImage;
+                Children[0].Color = backgroundColor;
+                Children[0].Opacity = backgroundOpacity;
+            }
+            else
+            {
+                if(Children.Count > 0) Children.RemoveAt(0);
             }
 
             //Render the object.
             base.Draw(); 
         }
-
         #region "Primary Functions"
         /// <summary>
         /// Processes text effects, text lines, text styles, and text size.

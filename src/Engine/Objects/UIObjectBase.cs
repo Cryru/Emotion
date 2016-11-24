@@ -9,62 +9,90 @@ using System.Threading.Tasks;
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // The base for UI objects.                                                 //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// A base for UI based objects.
+    /// </summary>
     public class UIObjectBase : ObjectBase
     {
         #region "Declarations"
-        //Settings
-        public bool Toggleable = false; //When on the object will be toggled between clicked and not.
-        public bool Enabled = true; //Whether the object is enabled and can send/receive events.
-
-        //Images
-        public Texture ImageNone; //The image to be displayed when nothing is happening to the object.
-        public Texture ImageMouseOver; //The image to be displayed when the object is mouse overed.
-        public Texture ImageMouseClick; //The image to be displayed when the object is clicked.
-
-        //Events
-        public Action onMouseEnter; //When the mouse pointer enters the object.
-        public Action onMouseLeave; //When the mouse pointer exits the object.
-        public Action onMouseDown; //When the mouse clicks on the object.
-        public Action onMouseUp; //When the mouse is let go on the object.
-        public Action onMouseRightClickDown; //When the mouse right clicks on the object.
-        public Action onMouseRightClickUp; //When the mouse's right click is let go on the object.
-
-        //Status
-        public enum Mode
-        {
-            None,
-            Clicked,
-            Mouseovered,
-            Selected
-        }
-        public Mode Status
+        #region "Settings"
+        /// <summary>
+        /// Whether the object is toggleable.
+        /// </summary>
+        public bool Toggleable = false;
+        /// <summary>
+        /// Whether the object is enabled - can send events.
+        /// </summary>
+        public bool Enabled = true;
+        #endregion
+        #region "Images"
+        /// <summary>
+        /// The image to be displayed when nothing is happening to the object.
+        /// </summary>
+        public Texture ImageNone;
+        /// <summary>
+        /// The image to be displayed when the object is mouse overed.
+        /// </summary>
+        public Texture ImageMouseOver;
+        /// <summary>
+        /// The image to be displayed when the object is clicked.
+        /// </summary>
+        public Texture ImageMouseClick;
+        #endregion
+        #region "Events"
+        /// <summary>
+        /// When the mouse pointer enters the object.
+        /// </summary>
+        public Internal.Event<UIObjectBase> onMouseEnter = new Internal.Event<UIObjectBase>();
+        /// <summary>
+        /// When the mouse pointer exits the object.
+        /// </summary>
+        public Internal.Event<UIObjectBase> onMouseLeave = new Internal.Event<UIObjectBase>();
+        /// <summary>
+        /// When the mouse clicks on the object.
+        /// </summary>
+        public Internal.Event<UIObjectBase> onMouseDown = new Internal.Event<UIObjectBase>();
+        /// <summary>
+        /// When the mouse is let go on the object.
+        /// </summary>
+        public Internal.Event<UIObjectBase> onMouseUp = new Internal.Event<UIObjectBase>();
+        /// <summary>
+        /// When the mouse right clicks on the object.
+        /// </summary>
+        public Internal.Event<UIObjectBase> onMouseRightClickDown = new Internal.Event<UIObjectBase>();
+        /// <summary>
+        /// When the mouse's right click is let go on the object.
+        /// </summary>
+        public Internal.Event<UIObjectBase> onMouseRightClickUp = new Internal.Event<UIObjectBase>();
+        #endregion
+        #region "Other"
+        /// <summary>
+        /// UI object status
+        /// </summary>
+        public Status Status
         {
             get
             {
                 return _Status;
             }
-
         }
-
-        //Parenting
-        public ObjectBase Parent; //The parent of the object within which this object will be rendered.
-
-        //Text
-        public TextObject Text; //The text object that will be rendered within.
-
-        //Internal
-        private Mode _Status = Mode.None; //The status editable declaration.
-        private Rectangle offsetBounds; //The offset of the object's location, used when under a parent.
-        private ObjectBase grayingOut = new ObjectBase(new Texture(Core.blankTexture.Image)); //The gray out effect.
+        /// <summary>
+        /// The private status property.
+        /// </summary>
+        private Status _Status = Status.None;
+        #endregion
+        #region "Internal"
+        /// <summary>
+        /// The gray out effect.
+        /// </summary>
+        private ObjectBase grayingOut = new ObjectBase(new Texture(Core.blankTexture.Image));
+        #region "Triggers"
         private bool trigger_mouseover_done = false;
         private bool trigger_click_done = false;
         private bool trigger_up_done = false;
@@ -74,8 +102,15 @@ namespace SoulEngine.Objects
         private bool trigger_mouserightclickwasup = false;
         private bool trigger_mouserightclickwasdown = false;
         #endregion
+        #endregion
+        #endregion
 
-        //The initializer.
+        /// <summary>
+        /// The initializer.
+        /// </summary>
+        /// <param name="Image">The image to display at all times.</param>
+        /// <param name="ImageMouseOver">The image to display when the object is being mouseovered.</param>
+        /// <param name="ImageMouseClick">The image to display when the object is clicked.</param>
         public UIObjectBase(Texture Image = null, Texture ImageMouseOver = null, Texture ImageMouseClick = null)
         {
             //Check if image is null.
@@ -98,21 +133,22 @@ namespace SoulEngine.Objects
             this.ImageMouseClick = ImageMouseClick;
         }
 
-        //Draws the object using the ObjectBase's drawing method.
-        //The object's updating can be skipped. This could be done when optimizing and
-        //the user wishes to separate the update from the drawing call.
+        /// <summary>
+        /// Draws the object and updates its status.
+        /// </summary>
+        /// <param name="skipUpdate">Skips updating the status.</param>
         public void Draw(bool skipUpdate = false)
         {
             //Check if update is to be skipped.
             if(skipUpdate == false) Update();
 
             //Check not enabled in which case we want to draw a graying out effect.
-            if(Enabled == true)
+            if(Enabled == false)
             {
-                grayingOut.X = offsetBounds.X;
-                grayingOut.Y = offsetBounds.Y;
-                grayingOut.Width = offsetBounds.Width;
-                grayingOut.Height = offsetBounds.Height;
+                grayingOut.X = Bounds.X;
+                grayingOut.Y = Bounds.Y;
+                grayingOut.Width = Bounds.Width;
+                grayingOut.Height = Bounds.Height;
 
                 grayingOut.Color = Color.Gray;
                 grayingOut.Opacity = 0.8f;
@@ -123,38 +159,27 @@ namespace SoulEngine.Objects
             //Set the image based on the state.
             switch(_Status)
             {
-                case Mode.Clicked:
-                case Mode.Selected:
+                case Status.Clicked:
+                case Status.Selected:
                     Image = ImageMouseClick;
                     if (ImageMouseClick.Image == Core.missingTexture.Image) Image = ImageNone;
                     break;
-                case Mode.Mouseovered:
+                case Status.Mouseovered:
                     Image = ImageMouseOver;
                     if (ImageMouseOver.Image == Core.missingTexture.Image) Image = ImageNone;
                     break;
-                case Mode.None:
+                case Status.None:
                     Image = ImageNone;
                     break;
             }
 
-            //Assign offset variable from actual
-            offsetBounds = Bounds;
-
-            //Check for parent
-            if (Parent != null)
-            {
-                //Offset the object's location from the parent's location.
-                offsetBounds = new Rectangle(Bounds.X + (int)Parent.X, Bounds.Y + (int)Parent.Y,
-                    Bounds.Width, Bounds.Height);
-                //Get the parent's visibility.
-                Visible = Parent.Visible;
-            }
-
             //Draw the object.
-            DrawObject(DrawBounds: offsetBounds);
+            DrawObject();
         }
 
-        //Updates the status of the object and such.
+        /// <summary>
+        /// Updates the status of the object.
+        /// </summary>
         public void Update()
         {
             if (Enabled == false) return;
@@ -162,16 +187,11 @@ namespace SoulEngine.Objects
             //Get the mouse location.
             Rectangle mouse = new Rectangle(Input.getMousePos().ToPoint(), new Point(1, 1));
 
-            bool touchMode = false;
-#if ANDROID
-            touchMode = true;
-#endif
-
             //Check if mouse is within the object.
-            if (offsetBounds.Intersects(mouse))
+            if (Bounds.Intersects(mouse))
             {
                 //Set the status to mouseovered.
-                if (Toggleable == false || _Status == Mode.None) _Status = Mode.Mouseovered;
+                if (Toggleable == false || _Status == Status.None) _Status = Status.Mouseovered;
 
                 //Reset the exit trigger.
                 trigger_out_done = false;
@@ -181,20 +201,20 @@ namespace SoulEngine.Objects
                 {
                     //If not, then invoke the event.
                     trigger_mouseover_done = true;
-                    onMouseEnter?.Invoke();
+                    onMouseDown.Trigger(this);
                 }
 
                 //Check if the mouse button is pressed.
-                if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed || touchMode == true)
+                if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 {
                     //Check if the object is toggleable.
-                    if (Toggleable == false) _Status = Mode.Clicked;
+                    if (Toggleable == false) _Status = Status.Clicked;
 
                     //Check if the mouse up event has been triggered.
                     if (trigger_click_done == false)
                     {
                         trigger_click_done = true;
-                        onMouseDown?.Invoke();
+                        onMouseDown.Trigger(this);
                     }
 
                     //Activate the trigger that the mouse was held down.
@@ -210,17 +230,17 @@ namespace SoulEngine.Objects
                     if (trigger_up_done == false)
                     {
                         trigger_up_done = true;
-                        onMouseUp?.Invoke();
+                        onMouseUp.Trigger(this);
                     }
 
                     if (Toggleable == true && toggleable_status_on == false)
                     {
-                        _Status = Mode.Selected;
+                        _Status = Status.Selected;
                         toggleable_status_on = true;
                     }
                     else if (Toggleable == true && toggleable_status_on == true)
                     {
-                        _Status = Mode.None;
+                        _Status = Status.None;
                         toggleable_status_on = false;
                     }
                 }
@@ -228,7 +248,7 @@ namespace SoulEngine.Objects
                 //Check if right click is down.
                 if (Input.currentFrameMouseState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && trigger_mouserightclickwasup == true)
                 {
-                    onMouseRightClickDown?.Invoke();
+                    onMouseRightClickDown.Trigger(this);
                     trigger_mouserightclickwasup = false;
                     trigger_mouserightclickwasdown = true;
                 }
@@ -236,7 +256,7 @@ namespace SoulEngine.Objects
                 {
                     if(trigger_mouserightclickwasdown == true)
                     {
-                        onMouseRightClickUp?.Invoke();
+                        onMouseRightClickUp.Trigger(this);
                         trigger_mouserightclickwasdown = false;
                     }
                     trigger_mouserightclickwasup = true;
@@ -251,7 +271,7 @@ namespace SoulEngine.Objects
                 if(trigger_mouseover_done == true && trigger_out_done == false)
                 {
                     trigger_out_done = true;
-                    onMouseLeave?.Invoke();
+                    onMouseLeave.Trigger(this);
                 }
 
                 //Reset triggers.
@@ -259,9 +279,20 @@ namespace SoulEngine.Objects
                 trigger_click_done = false;
                 trigger_mouseover_done = false;
 
-                if (toggleable_status_on == false) _Status = Mode.None;
+                if (toggleable_status_on == false) _Status = Status.None;
             }
 
         }
+    }
+
+    /// <summary>
+    /// The status of a UI object.
+    /// </summary>
+    public enum Status
+    {
+        None,
+        Clicked,
+        Mouseovered,
+        Selected
     }
 }
