@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.92";
+        public static string Version = "0.93";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -235,7 +235,7 @@ namespace SoulEngine
             host.IsMouseVisible = Settings.win_renderMouse;
 
             //Update the debug text.
-            if (Settings.debug == true && Settings.debugUpdate == true)
+            if (Settings.debug && Settings.debugUpdate)
             {
                 //Write the FPS and framework info to the debug text.
                 debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
@@ -246,7 +246,7 @@ namespace SoulEngine
             //Update the fps counter.
             if(Settings.displayFPS)
             {
-                fpsText.Text = "FPS: " + lastFrames;
+                if(Settings.fpsUpdate) fpsText.Text = "FPS: " + lastFrames;
                 fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
             }
 
@@ -283,8 +283,7 @@ namespace SoulEngine
         /// </summary>
         public static void Update_End(GameTime gameTime)
         {
-            //Prepare the input for the next frame.
-            Input.UpdateInput_End();
+
         }
         /// <summary>
         /// Is executed every frame on the GPU.
@@ -323,6 +322,9 @@ namespace SoulEngine
 
             //Update the FPS counter. This is done here as the draw loops are run on the GPU.
             FPSCounterUpdate(gameTime);
+
+            //Prepare the input for the next frame.
+            Input.UpdateInput_End();
         }
         #endregion
         #region "Fullscreen and FPS Counter Functions"
@@ -530,6 +532,27 @@ namespace SoulEngine
                     break;
                 case DrawMode.Default:
                     ink.Begin(SpriteSortMode.Deferred, null, null, null, null, null, maincam.GetViewMatrix());
+                    break;
+            }
+        }
+        /// <summary>
+        /// Starts drawing, warped through no matrix.
+        /// </summary>
+        /// <param name="drawMode">The drawing mode.</param>
+        public static void DrawOnNone(DrawMode drawMode = DrawMode.Default)
+        {
+            switch (drawMode)
+            {
+                case DrawMode.AA:
+                    ink.Begin(SpriteSortMode.Deferred, null, SamplerState.LinearClamp, null, RasterizerState.CullNone,
+   null, null);
+                    break;
+                case DrawMode.Pixelly:
+                    ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
+   null, null);
+                    break;
+                case DrawMode.Default:
+                    ink.Begin(SpriteSortMode.Deferred, null, null, null, null, null, null);
                     break;
             }
         }

@@ -4,29 +4,38 @@ using System;
 using System.Collections.Generic;
 using TiledSharp;
 using System.IO;
+using System.Linq;
 
 namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
     //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev, The TiledSharp Project                  //
-    // https://github.com/marshallward/TiledSharp                               //
+    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
+    // Copyright TiledSharp - https://github.com/marshallward/TiledSharp        //
     //                                                                          //
-    // An object that using the TiledSharp library allows the                   //
-    // easy rendering and control of .tmx maps from the Tiled application.      //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
-    public class Map
+    /// <summary>
+    /// An object for rendering Tiled maps, using TiledSharp.
+    /// </summary>
+    public class Map : ObjectBase
     {
         #region "Declarations"
-        //Map Data.
-        private TmxMap map; //The map as loaded by TiledSharp.
-        private List<Texture> tileSets = new List<Texture>(); //The list of loaded textures to be used as tilesets.
-
-        //Read-Only Accessors.
+        #region "Map Data"
+        /// <summary>
+        /// The TiledSharp object that holds the map.
+        /// </summary>
+        private TmxMap map;
+        /// <summary>
+        /// The list of load tileset textures.
+        /// </summary>
+        private List<Texture> tileSets = new List<Texture>();
+        #endregion
+        #region "ReadOnly"
+        /// <summary>
+        /// The TiledSharp map object.
+        /// </summary>
         public TmxMap TiledMap
         {
             get
@@ -34,6 +43,9 @@ namespace SoulEngine.Objects
                 return map;
             }
         }
+        /// <summary>
+        /// The number of loaded tileset textures.
+        /// </summary>
         public int LoadedTileSets
         {
             get
@@ -41,91 +53,83 @@ namespace SoulEngine.Objects
                 return tileSets.Count;
             }
         }
-        public float Width
-        {
-            get
-            {
-                return map.Width * map.TileWidth * tileScale;
-            }
-        }
-        public float Height
-        {
-            get
-            {
-                return map.Height * map.TileHeight * tileScale;
-            }
-        }
-
-        //Settings
-        public string tilesetsContentPath = "Tilesets/"; //This path's root is the Content folder.
-        public string mapsContentPath = "Content/SNcon/Maps/"; //This path's root is the .exe.
-        public float tileScale = 1; //The scale at which the tiles should be rendered.
-        public Vector2 Location = new Vector2(0, 0); //The origin location to draw the map from.
+        #endregion
+        #region "Internal"
+        /// <summary>
+        /// The path to the map files.
+        /// </summary>
+        private string mapsContentPath = "Content/SNcon/";
+        /// <summary>
+        /// The map layers as composed to textures.
+        /// </summary>
+        private List<Texture> mapLayers = new List<Texture>();
+        #endregion
         #endregion
 
-        //Initializer
-        public Map(string mapName, float tileScale = 1)
+        /// <summary>
+        /// Initializes a new map object, loading the .tmx from the specified path.
+        /// </summary>
+        /// <param name="mapPath">The map file, pathed from Content/SNCon/</param>
+        /// <param name="tilesetContentPath">The path to the tileset images, pathed from Content/SCon/</param>
+        public Map(string mapPath, string tilesetContentPath = "Tilesets/", DrawMode ComposeMode = DrawMode.Default)
         {
-            //Check if empty.
-            if(mapName == "")
-            {
-                return;
-            }
-
             //Check if the map file exists.
-#if !ANDROID
-            if(File.Exists(mapsContentPath + mapName + ".tmx") == false)
+            if(File.Exists(mapsContentPath + mapPath + ".tmx") == false)
             {
                 return;
             }
-#endif
      
             //Create a stream
-#if WINDOWS
-            Stream mapData = File.Open(mapsContentPath + mapName + ".tmx", FileMode.Open);
-#endif
-#if ANDROID
-            Stream mapData = Core.androidHost.Assets.Open("SNCon/Maps/" + mapName + ".tmx");
-#endif
-#if __UNIFIED__ //Not actually tested. TODO
-             Stream mapData = File.Open(mapsContentPath + mapName + ".tmx", FileMode.Open);
-#endif
+            Stream mapData = File.Open(mapsContentPath + mapPath + ".tmx", FileMode.Open);
+
             //Load the map file.
             map = new TmxMap(mapData);
+
             //Load tilesets.
             for (int i = 0; i < map.Tilesets.Count; i++)
             {
-                tileSets.Add(new Texture(tilesetsContentPath + map.Tilesets[i].Name.ToString()));
+                tileSets.Add(new Texture(tilesetContentPath + map.Tilesets[i].Name.ToString()));
             }
-            //Set the tile's scale.
-            this.tileScale = tileScale;
+
+            //Compose the map.
+            ComposeMap(ComposeMode);
+
+            //Set the image to first layer.
+            Image = mapLayers[0];
         }
 
-        //Draws the specified layers of the map.
-        public void Draw(int StartLayer = 0, int EndingLayer = -1, Rectangle Limit = new Rectangle())
+        /// <summary>
+        /// Draws all layers and tiles into layer images.
+        /// </summary>
+        /// <param name="ComposeMode"></param>
+        private void ComposeMap(DrawMode ComposeMode)
         {
+            //Check if no map is loaded.
             if (map == null) return;
 
-            //Check if invalid ending layer.
-            if(EndingLayer < 0 || EndingLayer > map.Layers.Count - 1)
-            {
-                EndingLayer = map.Layers.Count - 1;
-            }
-            //Check if invalid starting layer.
-            if(StartLayer < 0 || StartLayer > map.Layers.Count - 1)
-            {
-                StartLayer = 0;
-            }
+            //Save the viewport.
+            Viewport tempPort = Core.graphics.GraphicsDevice.Viewport;
 
-            //Iterate through each layer.
-            for (int layer = StartLayer; layer <= EndingLayer; layer++)
+            //Define a render target to draw the layers to.
+            RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, map.Width * map.TileWidth, map.Height * map.TileHeight);
+            //Set the graphics to draw to the render target.
+            Core.graphics.GraphicsDevice.SetRenderTarget(tempTarget);
+
+            //Iterate through each layer, composing them and saving them.
+            for (int layer = 0; layer < map.Layers.Count; layer++)
             {
+                //Clear the render target.
+                Core.graphics.GraphicsDevice.Clear(Color.Red);
+
                 //Check if visible.
-                if(map.Layers[layer].Visible == false)
+                if (map.Layers[layer].Visible == false)
                 {
                     continue;
-
                 }
+
+                //Start drawing.
+                Core.DrawOnNone(ComposeMode);
+
                 //Iterate through each tile on the layer.
                 for (int i = 0; i < map.Layers[layer].Tiles.Count; i++)
                 {
@@ -136,22 +140,11 @@ namespace SoulEngine.Objects
                     float offsetX = (i % map.Width) * map.TileWidth;
                     float offsetY = (float)Math.Floor(i / (double)map.Width) * map.TileHeight;
 
-                    //If out of view skip.
-                    Rectangle tileBound = new Rectangle((int) offsetX, (int) offsetY, map.TileWidth, map.TileHeight);
-                    if(Limit.Intersects(tileBound) == false)
-                    {
-                        if(Limit != new Rectangle())
-                        {
-                            continue;
-                        }
-                    }
-
                     //If empty tile then skip.
                     if (gID == 0)
                     {
                         continue;
                     }
-
 
                     //Get the tileset for this layer. This isn't in the layer method for reasons.
                     int tilesetID = 0;
@@ -159,7 +152,6 @@ namespace SoulEngine.Objects
                     int tilesetLoopLast = 0;
                     for (int t = 0; t < map.Tilesets.Count; t++)
                     {
-                        
                         //Check if the current tile is beyond the first tileset.
                         if (gID > map.Tilesets[t].FirstGid)
                         {
@@ -177,20 +169,25 @@ namespace SoulEngine.Objects
                         gID_offset -= map.Tilesets[tilesetLoopLast].FirstGid - 1;
                     }
 
+                    //Define the sizes of the tiles.
                     int tWidth = map.Tilesets[tilesetID].TileWidth;
                     int tHeight = map.Tilesets[tilesetID].TileHeight;
 
-                    int tilesetColumns = (int) map.Tilesets[tilesetID].Columns;
+                    //Get the number of columns in the tileset.
+                    int tilesetColumns = (int)map.Tilesets[tilesetID].Columns;
 
+                    //Define the size of the tile set.
                     int tilesetWidth = (int)map.Tilesets[tilesetID].Image.Width;
                     int tilesetHeight = (int)map.Tilesets[tilesetID].Image.Height;
 
-                    //Find the current tile.
+                    //Find the current tile within the tileset, according to the id we calculated.
                     int tileFrame = gID_offset - 1;
                     int column = tileFrame % tilesetColumns;
                     int row = (int)(tileFrame / (double)tilesetColumns);
 
+                    //The rectangle that holds the location of the tile.
                     Rectangle tilesetRec = new Rectangle(tWidth * column, tHeight * row, tWidth, tHeight);
+
                     //Add margins
                     tilesetRec.X += map.Tilesets[tilesetID].Margin;
                     tilesetRec.Y += map.Tilesets[tilesetID].Margin;
@@ -201,109 +198,158 @@ namespace SoulEngine.Objects
 
                     //Location of the map plus the offset of the current tile multiplied by the scale.
                     Core.ink.Draw(tileSets[tilesetID].Image, new Rectangle(
-                        (int) (Location.X + offsetX * tileScale), 
-                        (int) (Location.Y + offsetY * tileScale), 
-                        (int) (tWidth * tileScale), 
-                        (int) (tHeight * tileScale)), 
-                        tilesetRec, Color.White); 
+                        (int)(Location.X + offsetX),
+                        (int)(Location.Y + offsetY ),
+                        (int)(tWidth),
+                        (int)(tHeight)),
+                        tilesetRec, Color.White);
                 }
+
+                //End drawing.
+                Core.ink.End();
+
+                //Save the layer to an image.
+                mapLayers.Add(new Texture(tempTarget));
             }
+
+
+            //Return to the default render target.
+            Core.graphics.GraphicsDevice.SetRenderTarget(null);
+
+            //Restore the viewport.
+            Core.graphics.GraphicsDevice.Viewport = tempPort;
         }
 
-        //Draw helpers.
+        /// <summary>
+        /// Draws the specified layer of the map.
+        /// </summary>
+        public void Draw(int DrawLayer)
+        {
+            //If no map loaded return;
+            if (map == null) return;
+
+            //Load the specified layer as an image.
+            Image = mapLayers[DrawLayer];
+
+            //Draw the image through the objectbase draw method.
+            base.Draw();
+
+            //Return the image to the first layer.
+            Image = mapLayers[0];
+        }
+
+        #region "Drawing Helpers"
+        /// <summary>
+        /// Draw all layers up to the specified one.
+        /// </summary>
         public void DrawUpTo(int LayerToStopAt)
         {
-            Draw(0, LayerToStopAt);
+            for (int i = 0; i < Math.Min(mapLayers.Count, LayerToStopAt + 1); i++)
+            {
+                Draw(i);
+            }
         }
+        /// <summary>
+        /// Draw all layers from the specified one to the final one.
+        /// </summary>
+        /// <param name="LayerToStartAt"></param>
         public void DrawFrom(int LayerToStartAt)
         {
-            Draw(LayerToStartAt);
+            for (int i = LayerToStartAt; i < mapLayers.Count; i++)
+            {
+                Draw(i);
+            }
         }
-
-        //Converts a tile coordinate to a coordinate in pixel world space.
+        /// <summary>
+        /// Draw all layers from the specified one to the other specified one.
+        /// </summary>
+        public void DrawLayers(int LayerToStartAt, int LayerToStopAt)
+        {
+            for (int i = LayerToStartAt; i < Math.Min(mapLayers.Count, LayerToStopAt + 1); i++)
+            {
+                Draw(i);
+            }
+        }
+        #endregion
+        #region "Coordinate Locators"
+        /// <summary>
+        /// Returns a pixel location of a tile coordinate.
+        /// </summary>
         public Vector2 TileCoordinateToWorldLocation(int TileCoordinate)
         {
+            //Check if no map.
+            if (map == null) return Vector2.Zero;
 
-            float offsetX = (TileCoordinate % map.Width) * map.TileWidth; //Calculate the X space.
-            float offsetY = (float)Math.Floor(TileCoordinate / (double)map.Width) * map.TileHeight; //Calculate the Y space.
+            if (TileCoordinate >= map.Layers[0].Tiles.Count) return Vector2.Zero;
 
-            return new Vector2(offsetX, offsetY); 
+            //Get the X and Y of the tile.
+            float XTile = X + map.Layers[0].Tiles[TileCoordinate].X * GetWarpedTileSize().X;
+            float YTile = Y + map.Layers[0].Tiles[TileCoordinate].Y * GetWarpedTileSize().Y;
+            //The location of the object, plus the tile's actual size warped through the scale.
+
+            return new Vector2(XTile, YTile);
         }
-        public Vector2 TileCoordinateToWorldLocation(Vector2 TileCoordinate)
-        {
-            return TileCoordinateToWorldLocation(TileLocationAsInt(TileCoordinate));
-        }
 
-        //Converts a coordinate in pixel world space to a tile coordinate.
+        /// <summary>
+        /// Converts a pixel location of a tile coordinate.
+        /// </summary>
         public int WorldLocationToTileCoordinate(Vector2 WorldCoordinate)
         {
+            //Check if no map.
+            if (map == null) return -1;
+
+            //Assign a selector.
             Rectangle selector = new Rectangle(WorldCoordinate.ToPoint(), new Point(1, 1));
+
+            //Run through all tiles until the selector is hit by a tile.
             for (int i = 0; i < map.Layers[0].Tiles.Count; i++)
             {
                 Vector2 TileWorldLocation = TileCoordinateToWorldLocation(i);
 
-                if (selector.Intersects(new Rectangle(TileWorldLocation.ToPoint(), new Point(map.TileWidth, map.TileHeight))))
+                if (selector.Intersects(new Rectangle(TileWorldLocation.ToPoint(), GetWarpedTileSize().ToPoint())))
                 {
                     return i;
                 }
 
             }
 
-            ////If not return an invalid value.
+            //If not return an invalid value.
             return -1;
         }
-        public Vector2 WorldLocationToTileCoordinate(Vector2 WorldCoordinate, bool ReturnVectorPos = true)
-        {
-            return TileLocationAsVector2(WorldLocationToTileCoordinate(WorldCoordinate));
-        }
-
-        //Returns a two dimensional vector from a one dimensional tile coordinate.
+        #endregion
+        #region "Tile Convertors"
+        /// <summary>
+        /// Returns the single dimension coordinate of a tile from its two dimensional coordinate.
+        /// </summary>
         public Vector2 TileLocationAsVector2(int TileCoordinate)
         {
-            //Check for invalid values.
-            if(TileCoordinate == -1)
-            {
-                return new Vector2(-1, -1);
-            }
+            //Check if no map.
+            if (map == null) return Vector2.Zero;
 
-            int X = 1;
-            int Y = 1;
+            //Check if out of range.
+            if (TileCoordinate >= map.Layers[0].Tiles.Count) return Vector2.Zero;
 
-            //Go through all tiles.
-            for (int i = 0; i < TileCoordinate; i++)
-            {
-                //If the current tile we are counting is the last one on the line, increment the line.
-                if(X == map.Width)
-                {
-                    Y++;
-                    X = 1;
-                }
-                else
-                {
-                    X++;
-                }
-            }
-
-            return new Vector2(X, Y);
+            return new Vector2(map.Layers[0].Tiles[TileCoordinate].X, map.Layers[0].Tiles[TileCoordinate].Y);
         }
 
-        //Returns an int location of a tile from a two dimensional vector.
+        /// <summary>
+        /// Returns the two dimensional coordinate of a tile from its single dimensional coordinate.
+        /// </summary>
         public int TileLocationAsInt(Vector2 TileCoordinate)
         {
-            //Check for invalid values.
-            if(TileCoordinate.X < 0 || TileCoordinate.Y < 0)
-            {
-                return -1;
-            }
-            if((int)(TileCoordinate.X - 1 + (TileCoordinate.Y - 1) * map.Width) > map.Layers[0].Tiles.Count)
-            {
-                return -1;
-            }
-            //Get the tile id by merging the X and Y into a single dimension.
-            return (int)(TileCoordinate.X - 1 + (TileCoordinate.Y - 1) * map.Width);
-        }
+            //Check if invalid map.
+            if (map == null) return -1;
 
-        //Returns the data for the selected tile coordinate.
+            //Find the index of the item that has the same X and Y values as the ones we are looking for.
+            return map.Layers[0].Tiles.IndexOf(map.Layers[0].Tiles.ToList().Find(x => x.X == TileCoordinate.X && x.Y == TileCoordinate.Y));
+        }
+        #endregion
+        #region "Data Getters"
+        /// <summary>
+        /// Returns the data for the selected tile coordinate.
+        /// </summary>
+        /// <param name="TileCoordinate">The one dimensional coordinate of the tile.</param>
+        /// <param name="Layer">The layer of the tile.</param>
         public TileData GetTileDataFromCoordinate(int TileCoordinate, int Layer)
         {
 
@@ -345,29 +391,78 @@ namespace SoulEngine.Objects
 
             return new TileData(this, Location, WorldLocation, tilesetID, imageID, Layer);
         }
+        /// <summary>
+        /// Returns the data for the selected tile coordinate.
+        /// </summary>
+        /// <param name="TileCoordinate">The two dimensional coordinate of the tile.</param>
+        /// <param name="Layer">The layer of the tile.</param>
         public TileData GetTileDataFromCoordinate(Vector2 TileCoordinate, int Layer)
         {
             return GetTileDataFromCoordinate(TileLocationAsInt(TileCoordinate), Layer);
         }
+        #endregion
 
-        //Note: The tile X,Y locations are present within the map.layers[l].Tiles[t].X and Y properties while their int locations
-        //are their index in the Tiles list. This information was uncovered after the writing of these functions, but if something breaks
-        //the conversion functions and such should be switched out for these findings.
+        /// <summary>
+        /// Returns the size of tiles as warped through the current size of the map object.
+        /// </summary>
+        /// <returns></returns>
+        public Vector2 GetWarpedTileSize()
+        {
+            //Check if invalid map.
+            if(map == null) return Vector2.Zero;
+
+            //Calculate warp scale.
+            float XScale =  Width / (map.Width * map.TileWidth);
+            float YScale =  Height / (map.Height * map.TileHeight);
+
+            //Get the X and Y of the tile.
+            float WarpedWidth = map.TileWidth * XScale;
+            float WarpedHeight = map.TileHeight * YScale;
+
+            return new Vector2(WarpedWidth, WarpedHeight);
+        }
     }
 
-    //An object to hold tile data.
+    /// <summary>
+    /// An object that holds tile data.
+    /// </summary>
     public class TileData
     {
-        private Map originMap; //The map this tile belongs to.
-        private int X = -1; //The X coordinate of the tile, in map space.
-        private int Y = -1; //The Y coordinate of the tile, in map space.
-        private int XWorld = -1; //The X coordinate of the tile in world space.
-        private int YWorld = -1; //The Y coordinate of the tile in world space.
-        private int tileSet = -1; //The tileset this tile uses, from the map's tilesets.
-        private int tileImage = -1; //The image of the tile, not as Tiled reports it, but as relative to the tileset.
-        private int layer = -1; //The layer on which the tile is located.
-
-        //Read-Only Accessors.
+        #region "Privates ;)"
+        /// <summary>
+        /// The map object this tile belongs to.
+        /// </summary>
+        private Map originMap;
+        /// <summary>
+        /// The X coordinate of the tile in map space.
+        /// </summary>
+        private int X = -1;
+        /// <summary>
+        /// The Y coordinate of the tile, in map space.
+        /// </summary>
+        private int Y = -1;
+        /// <summary>
+        /// The X coordinate of the tile in world space.
+        /// </summary>
+        private int XWorld = -1;
+        /// <summary>
+        /// The Y coordinate of the tile in world space.
+        /// </summary>
+        private int YWorld = -1;
+        /// <summary>
+        /// The tileset this tile belongs to.
+        /// </summary>
+        private int tileSet = -1;
+        /// <summary>
+        /// The ID of the tile image within the tileset.
+        /// </summary>
+        private int tileImage = -1;
+        /// <summary>
+        /// The layer the tile is on.
+        /// </summary>
+        private int layer = -1;
+        #endregion
+        #region "Accessors"
         public Map OriginMap
         {
             get
@@ -410,8 +505,17 @@ namespace SoulEngine.Objects
                 return new Vector2(XWorld, YWorld);
             }
         }
+        #endregion
 
-        //Constructor.
+        /// <summary>
+        /// Initializes a tiledata object.
+        /// </summary>
+        /// <param name="_originMap">The map the tile is from.</param>
+        /// <param name="_Location">The location in tile space.</param>
+        /// <param name="_WLocation">The location in world space.</param>
+        /// <param name="_tileSet">The tileset this tile is from.</param>
+        /// <param name="_tileImage">The image id within the tileset.</param>
+        /// <param name="_layer">The layer the tile is on.</param>
         public TileData(Map _originMap, Vector2 _Location, Vector2 _WLocation, int _tileSet, int _tileImage, int _layer)
         {
             originMap = _originMap;
@@ -424,6 +528,10 @@ namespace SoulEngine.Objects
             layer = _layer;
         }
 
+        /// <summary>
+        /// Prints all data properties as a string.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return "[TileData]\nTileLoc:" + Location.ToString() + "\r\nWLoc:" + WorldLocation.ToString() + "\r\nLayer:" + layer + "\r\nImage: " + tileImage + " on tileSet: " + tileSet;
