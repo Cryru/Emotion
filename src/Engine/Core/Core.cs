@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.93";
+        public static string Version = "0.94";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -197,12 +197,9 @@ namespace SoulEngine
             debugText.Outline = true;
             debugText.autoSizeX = true;
             debugText.autoSizeY = true;
-            debugText.Background = true;
 
             //Load the debugtext background.
-            debugText.backgroundImage = blankTexture;
-            debugText.backgroundColor = Color.Black;
-            debugText.backgroundOpacity = 0.5f;
+            debugText.EnableBackground(blankTexture, Color.Black, 0.5f, 0);
 
             //Setup the fps text object.
             fpsText = new TextObject(Font: fontDebug);
@@ -211,12 +208,9 @@ namespace SoulEngine
             fpsText.Outline = true;
             fpsText.autoSizeX = true;
             fpsText.autoSizeY = true;
-            fpsText.Background = true;
 
             //Load the FPS display background.
-            fpsText.backgroundImage = blankTexture;
-            fpsText.backgroundColor = Color.Black;
-            fpsText.backgroundOpacity = 0.5f;
+            fpsText.EnableBackground(blankTexture, Color.Black, 0.5f, 0);
         }
         #endregion
         #region "Loops"
@@ -253,11 +247,11 @@ namespace SoulEngine
             //Update the render time for the last frame.
             frametime = gameTime.ElapsedGameTime.Milliseconds;
 
-            //Run the fullscreen key toggling code.
-            FullScreenKeyToggle();
-
             //Update the input for the current frame.
             Input.UpdateInput();
+
+            //Run the fullscreen key toggling code.
+            FullScreenKeyToggle();
 
             //Run the hooked timers.
             for (int i = Timers.Count - 1; i >= 0; i--)
@@ -322,8 +316,8 @@ namespace SoulEngine
 
             //Update the FPS counter. This is done here as the draw loops are run on the GPU.
             FPSCounterUpdate(gameTime);
-
-            //Prepare the input for the next frame.
+			
+			//Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
         #endregion
@@ -342,7 +336,7 @@ namespace SoulEngine
         /// </summary>
         public static void FullScreenKeyToggle()
         {
-            if(Input.isKeyDown(Keys.LeftAlt) && Input.KeyDownTrigger(Keys.Enter))
+            if (Input.isKeyDown(Keys.LeftAlt) && Input.KeyDownTrigger(Keys.Enter))
             {
                 //Invert the fullscreen variable.
                 Settings.win_fullscreen = !Settings.win_fullscreen;

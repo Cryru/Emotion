@@ -70,28 +70,6 @@ namespace SoulEngine.Objects
         /// Whether to automatically set the height of the text's size according to the text inside.
         /// </summary>
         public bool autoSizeY = false;
-        #region "Background"
-        /// <summary>
-        /// Whether to draw a background box around the object.
-        /// </summary>
-        public bool Background = false;
-        /// <summary>
-        /// The image of the background. By default this is the missing image.
-        /// </summary>
-        public Texture backgroundImage;
-        /// <summary>
-        /// The color tint of the background.
-        /// </summary>
-        public Color backgroundColor = Color.White;
-        /// <summary>
-        /// The opacity of the background.
-        /// </summary>
-        public float backgroundOpacity = 1f;
-        /// <summary>
-        /// The margin between the text and the borders of the background box.
-        /// </summary>
-        public int backgroundMargin = 5;
-        #endregion
         #endregion
         #region "Processed Text"
         /// <summary>
@@ -105,7 +83,11 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The offsets for the text's text style.
         /// </summary>
-        private List<int> ts_spaceX = new List<int>();
+        private List<int> ts_spacingWord = new List<int>();
+        /// <summary>
+        /// The push offsets to center text.
+        /// </summary>
+        private List<int> ts_spacingTab = new List<int>();
         #endregion
         #region "Changes Tracker"
         private string oldtxt;
@@ -113,6 +95,10 @@ namespace SoulEngine.Objects
         private Vector2 oldSize;
         private Vector2 oldLocation;
         private SpriteFont oldFont;
+        #endregion
+        #region "Other"
+        Texture textPass = new Texture();
+        Texture outlinePass = new Texture();
         #endregion
         #endregion
 
@@ -155,12 +141,24 @@ namespace SoulEngine.Objects
         /// <param name="image">The image of the background. By default this is the missing image.</param>
         /// <param name="Color">The color tint of the background.</param>
         /// <param name="Opacity">The opacity of the background.</param>
-        public void SetupBackground(Texture image, Color Color, float Opacity)
+        /// <param name="vertOffset">The offset to move the background a bit down, since some fonts have extra space on top which makes the background look wrong.</param>
+        public void EnableBackground(Texture image, Color Color, float Opacity, float vertOffset = 10)
         {
-            Background = true;
+            //First try to remove the background, to prevent multiple children ghosts forming.
+            DisableBackground();
             Children.Add(new ObjectBase(image));
+
             Children[0].Color = Color;
             Children[0].Opacity = Opacity;
+            Children[0].Y = vertOffset;
+            Padding = new Vector2(10, 10);
+        }
+        /// <summary>
+        /// Removes the background, if any.
+        /// </summary>
+        public void DisableBackground()
+        {
+            if (Children.Count > 0) Children.RemoveAt(0);
         }
 
         /// <summary>
@@ -191,22 +189,37 @@ namespace SoulEngine.Objects
             //Process the text.
             Process();
 
-            //Define a render target.
+            //Hold the viewport as rendertargets reset it.
             Viewport tempPortHolder = Core.graphics.GraphicsDevice.Viewport;
-            RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, Width, Height);
+
+            //Define a render target for the outline pass.
+            RenderTarget2D tempTargetText = new RenderTarget2D(Core.graphics.GraphicsDevice, Width + 10, Height + 10);
             
-            //Set the graphics device to the render target and clear it.
-            Core.graphics.GraphicsDevice.SetRenderTarget(tempTarget);
+            //Set the graphics device to the rendertarget and clear it.
+            Core.graphics.GraphicsDevice.SetRenderTarget(tempTargetText);
             Core.graphics.GraphicsDevice.Clear(Color.Transparent);
 
-            //Draw the part of the texture we need onto the target.
+            //Render the outline.
             Core.ink.Begin();
-            //Render the text and background.
-            Render();
+            Render(true);
             Core.ink.End();
 
-            //Assign the render target.
-            Image.Image = tempTarget;
+            //Store the outline pass.
+            outlinePass.Image = tempTargetText;
+
+            //Define a new rendertarget for the outline.
+            RenderTarget2D tempTargetOutline = new RenderTarget2D(Core.graphics.GraphicsDevice, Width + 10, Height + 10);
+            //Clear it and set the graphics device to it.
+            Core.graphics.GraphicsDevice.SetRenderTarget(tempTargetOutline);
+            Core.graphics.GraphicsDevice.Clear(Color.Transparent);
+
+            //Render the text.
+            Core.ink.Begin();
+            Render(false);
+            Core.ink.End();
+
+            //Store the text pass.
+            textPass.Image = tempTargetOutline;
 
             //Return to the default render target.
             Core.graphics.GraphicsDevice.SetRenderTarget(null);
@@ -222,33 +235,6 @@ namespace SoulEngine.Objects
             oldLocation = Location;
             oldSize = Size;
             oldFont = Font;
-        }
-        /// <summary>
-        /// Draws the text object and its background if enabled.
-        /// </summary>
-        public override void Draw()
-        {
-            //Render a background if enabled.
-            if (Background)
-            {
-                if (Children.Count == 0)
-                {
-                    //Setup the background object.
-                    Children.Add(new ObjectBase(backgroundImage));
-                }
-
-                Padding = new Vector2(backgroundMargin, backgroundMargin);
-                Children[0].Image = backgroundImage;
-                Children[0].Color = backgroundColor;
-                Children[0].Opacity = backgroundOpacity;
-            }
-            else
-            {
-                if(Children.Count > 0) Children.RemoveAt(0);
-            }
-
-            //Render the object.
-            base.Draw(); 
         }
         #region "Primary Functions"
         /// <summary>
@@ -297,7 +283,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Draws text with effects and outline.
         /// </summary>
-        public void Render()
+        public void Render(bool outlinePass)
         {
             //The position of the current letter, in the overall text as they are written in the effects list.
             int pointerPosition = 0;
@@ -364,19 +350,25 @@ namespace SoulEngine.Objects
 
                     }
 
+                    //Add tab space.
+                    if (p == 0)
+                    {
+                        Xoffset += ts_spacingTab[l];
+                    }
+
                     //If the first letter on the line is a space then we don't draw it.
                     if (!(p == 0 && processedText[l][p] == ' '))
                     {
                         //Draw outline
-                        if (outline == true)
-                            DrawOutline(outlineSize, outlineColor, new Vector2(ts_spaceX[l] + X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
+                        if (outline == true && outlinePass == true)
+                            DrawOutline(outlineSize, outlineColor * Opacity, new Vector2(X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
 
                         //Draw the letter.
-                        Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(ts_spaceX[l] + X + Xoffset, Y + Yoffset), color * Opacity);
+                        if(outlinePass == false) Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(X + Xoffset, Y + Yoffset), color * Opacity);
 
                         //Add to the Xoffset, if justification then add the line's offset to the offset too.
-                        if (TextStyle == RenderMode.Justified)
-                            Xoffset += (int)Font.MeasureString(processedText[l][p].ToString()).X + ts_spaceX[l];
+                        if (processedText[l][p] == ' ')
+                            Xoffset += (int)Font.MeasureString(processedText[l][p].ToString()).X + ts_spacingWord[l];
                         else
                             Xoffset += (int)Font.MeasureString(processedText[l][p].ToString()).X;
                     }
@@ -388,6 +380,34 @@ namespace SoulEngine.Objects
                 Xoffset = 0;
                 Yoffset += (int)Font.MeasureString(" ").Y;
             }
+        }
+        /// <summary>
+        /// Draws the object.
+        /// </summary>
+        public override void Draw()
+        {
+            //First we draw the object with a black texture at 0 opacity, to draw the background only.
+            Image = Core.blankTexture;
+            float OpacityHolder = Opacity;
+            Opacity = 0f;
+            DrawObject();
+            Opacity = OpacityHolder;
+
+            //We set the offset that allows for outlines that extend past the height and width of the object.
+            Width += 10;
+            Height += 10;
+
+            //Draw the outline.
+            Image = outlinePass;
+            DrawObject(DrawTint: outlineColor, ignoreChildren: true);
+
+            //Draw the text.
+            Image = textPass;
+            DrawObject(DrawTint: Color, ignoreChildren: true);
+
+            //Restore original dimensions.
+            Width -= 10;
+            Height -= 10;
         }
         #endregion
         #region "Processing Helper Functions"
@@ -535,10 +555,11 @@ namespace SoulEngine.Objects
         private void TextStyleCalculate()
         {
             //Clears offsets for the last frame.
-            ts_spaceX.Clear();
+            ts_spacingWord.Clear();
+            ts_spacingTab.Clear();
 
             //Generate offsets depending on the next frame.
-            switch(TextStyle)
+            switch (TextStyle)
             {
                 case RenderMode.Center: //In this mode we center the text by subtracting the line's width from the total width and dividing it by two.
 
@@ -552,7 +573,8 @@ namespace SoulEngine.Objects
                             currentLine = processedText[l].Substring(1);
                         }
                         //Add the offset.
-                        ts_spaceX.Add((int)(Width - Font.MeasureString(currentLine).X) / 2);
+                        ts_spacingWord.Add(0);
+                        ts_spacingTab.Add((int)(Width - Font.MeasureString(currentLine).X) / 2);
                     }
 
                     break;
@@ -568,63 +590,107 @@ namespace SoulEngine.Objects
                             currentLine = processedText[l].Substring(1);
                         }
                         //Add the offset.
-                        ts_spaceX.Add((int)(Width - Font.MeasureString(currentLine).X - backgroundMargin));
+                        ts_spacingWord.Add(0);
+                        ts_spacingTab.Add((int)(Width - Font.MeasureString(currentLine).X));
                     }
 
                     break;
                 case RenderMode.Justified: //In this mode text is stretched to fill the current line as much as possible.
+                case RenderMode.JustifiedCenter:
 
-                    //Find the longest line.
-                    float temp_width = 0;
-                    for (int l = 0; l < processedText.Count; l++)
+                    List<string> processedTextcleand = new List<string>();
+
+                    //Clean text with starting space.
+                    for (int i = 0; i < processedText.Count; i++)
                     {
-                        if(Font.MeasureString(processedText[l]).X > temp_width)
+                        if(processedText[i][0] == ' ')
                         {
-                            temp_width = Font.MeasureString(processedText[l]).X;
+                            processedTextcleand.Add(processedText[i].Substring(1));
+                        }
+                        else
+                        {
+                            processedTextcleand.Add(processedText[i]);
                         }
                     }
+
+                    //Calculate the width of all lines.
+                    List<float> lineWidth = new List<float>();
+
+                    for (int i = 0; i < processedTextcleand.Count; i++)
+                    {
+                        lineWidth.Add(Font.MeasureString(processedTextcleand[i]).X);
+                    }
+
+                    //Find the longest line.
+                    float temp_width = lineWidth[0];
+                    for (int l = 1; l < lineWidth.Count; l++)
+                    {
+                        if(lineWidth[l] > temp_width)
+                        {
+                            temp_width = lineWidth[l];
+                        }
+                    }
+
                     //Go through all lines and make their offsets big enough to approximate this line.
-                    for (int l = 0; l < processedText.Count; l++)
+                    for (int l = 0; l < processedTextcleand.Count; l++)
                     {
                         //Check if the current line is the longest one.
-                        if (Font.MeasureString(processedText[l]).X == temp_width)
+                        if (Font.MeasureString(processedTextcleand[l]).X == temp_width)
                         {
-                            ts_spaceX.Add(0);
+                            ts_spacingWord.Add(0);
                             continue;
                         }
                         //Check for very short lines.
-                        if(Font.MeasureString(processedText[l]).X < temp_width / 2)
+                        if(Font.MeasureString(processedTextcleand[l]).X < temp_width / 2)
                         {
-                            ts_spaceX.Add(0);
+                            ts_spacingWord.Add(0);
                             continue;
                         }
 
                         //Else start incrementing.
                         int temp_offset = 0;
-                        while(Font.MeasureString(processedText[l]).X + (temp_offset * processedText[l].Length) <= temp_width
-                            && Font.MeasureString(processedText[l]).X + (temp_offset * processedText[l].Length) < Width)
+                        while(Font.MeasureString(processedTextcleand[l]).X + (temp_offset * processedTextcleand[l].Count(x => x == ' ')) <= temp_width)
                         {
                             temp_offset++;
 
                             //Endless loop escape.
-                            if(temp_offset > 4)
+                            if(temp_offset > 666)
                             {
                                 temp_offset = 0;
                                 break;
                             }
                         }
                         if(temp_offset != 0)
-                        ts_spaceX.Add(temp_offset - 1);
+                            ts_spacingWord.Add(temp_offset - 1);
                         else
-                        ts_spaceX.Add(temp_offset);
+                            ts_spacingWord.Add(temp_offset);
                     }
+
+                    if(TextStyle == RenderMode.JustifiedCenter)
+                    {
+                        //Center justified text.
+                        for (int l = 0; l < processedTextcleand.Count; l++)
+                        {
+                            float centeringoffet = Width - (Font.MeasureString(processedTextcleand[l]).X + (ts_spacingWord[l] * processedTextcleand[l].Count(x => x == ' ')));
+                            ts_spacingTab.Add((int)centeringoffet / 2);
+                        }
+                    }
+                    else
+                    {
+                        for (int l = 0; l < processedTextcleand.Count; l++)
+                        {
+                            ts_spacingTab.Add(0);
+                        }
+                    }
+
                     break;
 
                 default:
                     //If invalid or non implemented just add an empty array.
                     for (int l = 0; l < processedText.Count; l++)
                     {
-                        ts_spaceX.Add(0);
+                        ts_spacingTab.Add(0);
+                        ts_spacingWord.Add(0);
                     }
                     break;
             }
@@ -811,10 +877,10 @@ namespace SoulEngine.Objects
             //Draws an outline.
             for (int i = 1; i <= size; i++)
             {
-                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X - i, offsetLocation.Y), color * Opacity);
-                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X + i, offsetLocation.Y), color * Opacity);
-                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X, offsetLocation.Y - i), color * Opacity);
-                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X, offsetLocation.Y + i), color * Opacity);
+                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X - i, offsetLocation.Y), color);
+                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X + i, offsetLocation.Y), color);
+                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X, offsetLocation.Y - i), color);
+                Core.ink.DrawString(font, text, new Vector2(offsetLocation.X, offsetLocation.Y + i), color);
             }
         }
         #endregion
@@ -839,6 +905,10 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Each line of text is stretched to be somewhat the same width creating a box effect.
         /// </summary>
-        Justified
+        Justified,
+        /// <summary>
+        /// Each line of text is stretched to be somewhat the same width creating a box effect in addition to being centered.
+        /// </summary>
+        JustifiedCenter
     }
 }
