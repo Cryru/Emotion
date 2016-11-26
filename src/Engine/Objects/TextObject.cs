@@ -233,9 +233,6 @@ namespace SoulEngine.Objects
             {
                 if (Children.Count == 0)
                 {
-                    //Setup parenting
-                    ChildrenOnTop = false;
-
                     //Setup the background object.
                     Children.Add(new ObjectBase(backgroundImage));
                 }

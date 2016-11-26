@@ -59,6 +59,10 @@ namespace SoulEngine
         /// Whether to draw the current fps on the screen.
         /// </summary>
         public static bool displayFPS = true;
+        /// <summary>
+        /// Whether to update the fps text.
+        /// </summary>
+        public static bool fpsUpdate = true;
         #endregion
         #region "Screen Settings"
         /// <summary>

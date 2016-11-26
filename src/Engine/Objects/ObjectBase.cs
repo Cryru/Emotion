@@ -338,6 +338,14 @@ namespace SoulEngine.Objects
             Size = obj.Size;
             if(copyImage == true) Image = obj.Image;
         }
+        /// <summary>
+        /// Sets the size of the object to the size of its image.
+        /// </summary>
+        public void ObjectSizeFromImage()
+        {
+            Width = Image.Image.Width;
+            Height = Image.Image.Height;
+        }
         #endregion
 
     }

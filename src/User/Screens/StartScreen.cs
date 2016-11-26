@@ -15,10 +15,13 @@ namespace SoulEngine
     //                                                                          //
     // For any questions and issues: https://github.com/Cryru/SoulEngine        //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// The default first screen.
+    /// </summary>
     public class StartScreen : Screen
     {
         #region "Declarations"
-   
+
         #endregion
 
         /// <summary>
@@ -44,7 +47,7 @@ namespace SoulEngine
         public override void Draw()
         {
             Core.DrawOnScreen();
-            
+
             Core.ink.End();
         }
     }
