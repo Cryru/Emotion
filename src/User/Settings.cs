@@ -103,10 +103,6 @@ namespace SoulEngine
         /// Whether to hide the android notification's bar.
         /// </summary>
         public static bool win_hidebar = true;
-        /// <summary>
-        /// The touch gestures the panel should track.
-        /// </summary>
-        public static GestureType enabledGestures = GestureType.Tap;
 #endif
         #endregion
     }
