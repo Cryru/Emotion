@@ -73,7 +73,7 @@ namespace SoulEngine.Objects
             Volume = volume;
             Loop = loop;
 
-            Core.Updates.Add(Update);
+            Core.onUpdate.Add(Update);
         }
         public void Update()
         {

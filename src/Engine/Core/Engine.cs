@@ -24,6 +24,8 @@ namespace SoulEngine
             Core.graphics = new GraphicsDeviceManager(this);        
             //Setup the Content root folder. The root for this folder is the exe.
             Content.RootDirectory = "Content";
+            //Attach event for when closing.
+            Exiting += Engine_Exiting;
         }
         /// <summary>
         /// Setups the spritebatch and starts the start sequence.
@@ -42,6 +44,9 @@ namespace SoulEngine
         /// </summary>
         protected override void Update(GameTime gameTime)
         {
+            //If the game is not focused, don't update.
+            if (IsActive == false) return;
+
             //Run the physics engine.
             Physics.Engine.Update();
             //Run the core's frame update code.
@@ -51,11 +56,12 @@ namespace SoulEngine
             ////Run the core's update ending code.
             Core.Update_End(gameTime);
         }
+
         /// <summary>
         /// Is executed every frame on the GPU.
         /// </summary>
         protected override void Draw(GameTime gameTime)
-        {
+        { 
             //Run the core's drawing code.
             Core.Draw(gameTime);
             //Run screen's draw code.
@@ -64,6 +70,14 @@ namespace SoulEngine
             Core.Draw_End(gameTime);
         }
         #endregion
+
+        /// <summary>
+        /// Is executed before the game is closed.
+        /// </summary>
+        private void Engine_Exiting(object sender, System.EventArgs e)
+        {
+            Core.onClosing.Trigger();
+        }
     }
 }
 

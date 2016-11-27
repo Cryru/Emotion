@@ -133,7 +133,7 @@ namespace SoulEngine.Objects
             this.TextStyle = TextStyle;
 
             //Add the object's update method to the global updates.
-            Core.Updates.Add(Update);
+            Core.onUpdate.Add(Update);
         }
         /// <summary>
         /// Setups a background for the object. An alternative to setting the "Background" setting.
@@ -625,8 +625,8 @@ namespace SoulEngine.Objects
                     }
 
                     //Find the longest line.
-                    float temp_width = lineWidth[0];
-                    for (int l = 1; l < lineWidth.Count; l++)
+                    float temp_width = 0;
+                    for (int l = 0; l < lineWidth.Count; l++)
                     {
                         if(lineWidth[l] > temp_width)
                         {
