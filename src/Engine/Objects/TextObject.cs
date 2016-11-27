@@ -386,6 +386,9 @@ namespace SoulEngine.Objects
         /// </summary>
         public override void Draw()
         {
+            //Check if the images are not loaded yet, this is to prevent flickering missing image.
+            if (textPass.ImageName == "missing" || outlinePass.ImageName == "missing") return;
+
             //First we draw the object with a black texture at 0 opacity, to draw the background only.
             Image = Core.blankTexture;
             float OpacityHolder = Opacity;
@@ -603,7 +606,7 @@ namespace SoulEngine.Objects
                     //Clean text with starting space.
                     for (int i = 0; i < processedText.Count; i++)
                     {
-                        if(processedText[i][0] == ' ')
+                        if(processedText[i].Length > 0 && processedText[i][0] == ' ')
                         {
                             processedTextcleand.Add(processedText[i].Substring(1));
                         }
@@ -640,8 +643,8 @@ namespace SoulEngine.Objects
                             ts_spacingWord.Add(0);
                             continue;
                         }
-                        //Check for very short lines.
-                        if(Font.MeasureString(processedTextcleand[l]).X < temp_width / 2)
+                        //Check for very short lines, or the last line, which should not be justified.
+                        if(Font.MeasureString(processedTextcleand[l]).X < temp_width / 3 || l == processedTextcleand.Count - 1)
                         {
                             ts_spacingWord.Add(0);
                             continue;
@@ -672,7 +675,16 @@ namespace SoulEngine.Objects
                         for (int l = 0; l < processedTextcleand.Count; l++)
                         {
                             float centeringoffet = Width - (Font.MeasureString(processedTextcleand[l]).X + (ts_spacingWord[l] * processedTextcleand[l].Count(x => x == ' ')));
-                            ts_spacingTab.Add((int)centeringoffet / 2);
+
+                            //If the line is the last line, we don't want to center it fully, but only push it so it's below the previous line.
+                            if (l != processedTextcleand.Count - 1)
+                            {
+                                ts_spacingTab.Add((int)centeringoffet / 2);
+                            }
+                            else
+                            {
+                                if (l > 0) ts_spacingTab.Add(ts_spacingTab[l - 1]); else ts_spacingTab.Add((int)centeringoffet / 2);
+                            }
                         }
                     }
                     else

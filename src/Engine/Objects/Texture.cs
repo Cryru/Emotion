@@ -44,6 +44,7 @@ namespace SoulEngine.Objects
         public Texture()
         {
             Image = Core.missingTexture.Image;
+            ImageName = Core.missingTexture.ImageName;
         }
         #endregion
         #region "Public Accessors"
