@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.94a";
+        public static string Version = "0.94b";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -105,19 +105,23 @@ namespace SoulEngine
         /// </summary>
         public static List<Screen> Screens = new List<Screen>();
         /// <summary>
-        /// Methods that are run every frame on the CPU.
-        /// These are triggered at the end of the frame, before the frame ending code.
-        /// </summary>
-        public static Objects.Internal.Event Updates = new Objects.Internal.Event();
-        /// <summary>
-        /// Methods that are run every frame on the GPU.
-        /// These are triggered at the end of the frame, before the frame ending code.
-        /// </summary>
-        public static Objects.Internal.Event DrawUpdates = new Objects.Internal.Event();
-        /// <summary>
         /// A seed used for generating random numbers.
         /// </summary>
         public static int RandomSeed = 0;
+        #endregion
+        #region "Events"
+        /// <summary>
+        /// These are triggered at the end of every tick, before the tick ending code.
+        /// </summary>
+        public static Objects.Internal.Event onUpdate = new Objects.Internal.Event();
+        /// <summary>
+        /// These are triggered at the end of every frame, before the frame ending code.
+        /// </summary>
+        public static Objects.Internal.Event onDraw = new Objects.Internal.Event();
+        /// <summary>
+        /// Triggered just before the window closes.
+        /// </summary>
+        public static Objects.Internal.Event onClosing = new Objects.Internal.Event();
         #endregion
         #endregion
 
@@ -234,7 +238,7 @@ namespace SoulEngine
                 //Write the FPS and framework info to the debug text.
                 debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
                     + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" + 
-                    "Globals (T/U/D): " + Timers.Count + " / " + Updates.Count() + " / " + DrawUpdates.Count();
+                    "Globals (T/U/D): " + Timers.Count + " / " + onUpdate.Count() + " / " + onDraw.Count();
             }
 
             //Update the fps counter.
@@ -270,7 +274,7 @@ namespace SoulEngine
             }
 
             //Update hooked methods.
-            Updates.Trigger();
+            onUpdate.Trigger();
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
@@ -293,7 +297,7 @@ namespace SoulEngine
             //End drawing.
             ink.End();
             //Update hooked methods.
-            DrawUpdates.Trigger();
+            onDraw.Trigger();
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.
