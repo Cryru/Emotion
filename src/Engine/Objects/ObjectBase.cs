@@ -305,7 +305,21 @@ namespace SoulEngine.Objects
         /// </summary>
         public void ObjectCenter()
         {
+            ObjectCenterX();
+            ObjectCenterY();
+        }
+        /// <summary>
+        /// Center the object within the window on the X axis.
+        /// </summary>
+        public void ObjectCenterX()
+        {
             X = Settings.game_width / 2 - Width / 2;
+        }
+        /// <summary>
+        /// Center the object within the window on the Y axis.
+        /// </summary>
+        public void ObjectCenterY()
+        {
             Y = Settings.game_height / 2 - Height / 2;
         }
         /// <summary>
