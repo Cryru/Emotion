@@ -201,11 +201,11 @@ namespace SoulEngine.Objects
                 {
                     //If not, then invoke the event.
                     trigger_mouseover_done = true;
-                    onMouseDown.Trigger(this);
+                    onMouseEnter.Trigger(this);
                 }
 
                 //Check if the mouse button is pressed.
-                if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+                if (Input.isLeftClickDown())
                 {
                     //Check if the object is toggleable.
                     if (Toggleable == false) _Status = Status.Clicked;
@@ -222,7 +222,7 @@ namespace SoulEngine.Objects
                 }
 
                 //Check if the buton is released, and was pressed last frame, AKA was just let go.
-                if (Input.currentFrameMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && trigger_mousewasdown == true)
+                if (Input.isLeftClickUp() && trigger_mousewasdown == true)
                 {
                     trigger_mousewasdown = false;
 

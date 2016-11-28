@@ -34,28 +34,18 @@ namespace SoulEngine
 
         public static void UpdateInput()
         {
-#if !ANDROID //Android doesn't have a mouse and doesn't use a keyboard in the traditional sense.
-
             //Record the frame's keyboard and mouse states for the current frame.
             currentFrameKeyState = Keyboard.GetState();
             currentFrameMouseState = Mouse.GetState();
 
             //Check if closing.
             if (isKeyDown(Keys.Escape)) Core.host.Exit();
-
-#else //On Android we get the touchstate instead.
-            currentTouchState = TouchPanel.GetState();
-#endif
         }
         public static void UpdateInput_End()
         {
-#if !ANDROID //For the same reason as in the other method we skip this on Android.
-
             //Assign this frame's code to be used as the last frame's code.
             lastFrameKeyState = currentFrameKeyState;
             lastFrameMouseState = currentFrameMouseState;
-
-#endif
         }
 
         #region "Functions"
@@ -127,7 +117,7 @@ namespace SoulEngine
         /// Inverse of the isLeftClickDown function.
         /// </summary>
         /// <returns>bool</returns>
-        public static bool isLeftClickUp(Keys key)
+        public static bool isLeftClickUp()
         {
             return currentFrameMouseState.LeftButton == ButtonState.Released;
         }
@@ -169,7 +159,7 @@ namespace SoulEngine
         /// Inverse of the isRightClickDown function.
         /// </summary>
         /// <returns>bool</returns>
-        public static bool isRightClickUp(Keys key)
+        public static bool isRightClickUp()
         {
             return currentFrameMouseState.RightButton == ButtonState.Released;
         }
