@@ -4,14 +4,16 @@ function start()
 {
 	let canvas = $("#drawarea");
 	canvas.css('background', 'lightgray');
-	canvas.css('width', '1000');
-	canvas.css('height', '500');
+	canvas.css('width', '1000px');
+	canvas.css('height', '500px');
 	canvas.click(addPoint);
-	canvas.attr('width', 1000);
-	canvas.attr('height', 500);
+	canvas.attr('width', '500px');
+	canvas.attr('height', '250px');
 
 	$("#backbutton").click(undo);
 	$("#resetbutton").click(resetlist);
+	$("#file").change(updateImage);
+	$(document).keyup(buttonEvent);
 
 	let list = [];
 	let listOffset = [];
@@ -49,6 +51,10 @@ function start()
         let canvas = document.getElementById("drawarea");
 		ctx.drawImage(bgimg, canvas.width / 2 - bgimg.width / 2, canvas.height / 2 - bgimg.height / 2)
 		
+		ctx.fillStyle = "rgb(200,0,0)";
+		ctx.fillRect(list[0].x, list[0].y, 3, 3);
+		ctx.fillStyle = "rgb(0,0,0)";
+
 		for (var i = 1; i < list.length; i++) 
 		{
 			ctx.fillRect(list[i].x, list[i].y, 3, 3);
@@ -57,7 +63,7 @@ function start()
 			{
 				ctx.beginPath();
       			ctx.moveTo(list[i - 1].x + 1, list[i - 1].y + 1);
-      			ctx.lineTo(list[i].x +1, list[i].y + 1);
+      			ctx.lineTo(list[i].x + 1, list[i].y + 1);
       			ctx.stroke();
 			}
 
@@ -109,5 +115,33 @@ function start()
         	x: Math.round((evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width),
         	y: Math.round((evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height)
     	};
+	}
+
+	function updateImage()
+	{
+		let file = $("#file")[0].files[0];
+
+		let reader = new FileReader();
+  		reader.addEventListener("load", createFileLoader);
+  		reader.readAsDataURL(file);
+
+  		//Sends a request to imgur to upload the image.
+  		function createFileLoader(d)
+  		{
+  			let image64 = d.target.result.slice(d.target.result.indexOf(",") + 1);
+  			let imageData = {image: image64};
+
+  			$('#image').attr("src", d.target.result);
+
+  			update();
+  		}
+	}
+
+	function buttonEvent(e)
+	{
+		if(e.key == "z" && e.ctrlKey == true)
+		{
+			undo();
+		}
 	}
 }
