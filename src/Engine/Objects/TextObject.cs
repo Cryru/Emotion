@@ -361,10 +361,10 @@ namespace SoulEngine.Objects
                     {
                         //Draw outline
                         if (outline == true && outlinePass == true)
-                            DrawOutline(outlineSize, outlineColor * Opacity, new Vector2(X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
+                            DrawOutline(outlineSize, outlineColor, new Vector2(X + Xoffset, Y + Yoffset), Font, processedText[l][p].ToString());
 
                         //Draw the letter.
-                        if(outlinePass == false) Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(X + Xoffset, Y + Yoffset), color * Opacity);
+                        if(outlinePass == false) Core.ink.DrawString(Font, processedText[l][p].ToString(), new Vector2(X + Xoffset, Y + Yoffset), color);
 
                         //Add to the Xoffset, if justification then add the line's offset to the offset too.
                         if (processedText[l][p] == ' ')
@@ -676,15 +676,8 @@ namespace SoulEngine.Objects
                         {
                             float centeringoffet = Width - (Font.MeasureString(processedTextcleand[l]).X + (ts_spacingWord[l] * processedTextcleand[l].Count(x => x == ' ')));
 
-                            //If the line is the last line, we don't want to center it fully, but only push it so it's below the previous line.
-                            if (l != processedTextcleand.Count - 1)
-                            {
-                                ts_spacingTab.Add((int)centeringoffet / 2);
-                            }
-                            else
-                            {
-                                if (l > 0) ts_spacingTab.Add(ts_spacingTab[l - 1]); else ts_spacingTab.Add((int)centeringoffet / 2);
-                            }
+                            //We want to center the first line, while placing the others below it.
+                            if (l > 0) ts_spacingTab.Add(ts_spacingTab[l - 1]); else ts_spacingTab.Add((int)centeringoffet / 2);
                         }
                     }
                     else

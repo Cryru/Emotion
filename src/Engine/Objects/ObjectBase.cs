@@ -144,6 +144,10 @@ namespace SoulEngine.Objects
         #endregion
         #region "Parenting"
         /// <summary>
+        /// The parent of this object.
+        /// </summary>
+        ObjectBase Parent;
+        /// <summary>
         /// Children of this object.
         /// </summary>
         public List<ObjectBase> Children = new List<ObjectBase>();
@@ -168,8 +172,8 @@ namespace SoulEngine.Objects
         /// <summary>
         /// //A list of strings you can use to store values inside the object.
         /// </summary>
-        public List<string> Tags = new List<string>(); 
-            #endregion
+        public Dictionary<string, string> Tags = new Dictionary<string, string>(); 
+        #endregion
         #endregion
 
         /// <summary>
@@ -265,30 +269,31 @@ namespace SoulEngine.Objects
                 //Check if the child is null.
                 if (child == null) continue;
 
-                //Store the location of the child.
-                Rectangle tempHolder = child.Bounds;
+                //Check if the child doesn't have the parent added as being this object.
+                if (child.Parent != this) child.Parent = this;
+
+                //Offset the location, but only if it wasn't offet already.
+                if(!child.Tags.ContainsKey("Parenting_LocOffsetR") || child.Tags["Parenting_LocOffsetR"] != "Complete")
+                {
+                    child.Location = new Vector2(X + child.X, Y + child.Y);
+                    child.Tags.Add("Parenting_LocOffsetR", "Complete");
+                }
 
                 //Check if filling, or not and assign the offset location and appropriate size.
-                if(ChildrenFill == true)
+                if (ChildrenFill == true)
                 {
-                    child.Bounds = new Rectangle((int)(X + child.X - Padding.X), (int)(Y + child.Y - Padding.Y), Width + (int) (Padding.X * 2), Height + (int)(Padding.Y * 2));
-                }
-                else
-                {
-                    child.Bounds = new Rectangle((int)(X + child.X), (int)(Y + child.Y), child.Width, child.Height);
+                   child.Size = new Vector2(Width + Padding.X * 2, Height + Padding.Y * 2);
                 }
                 
                 //Check if inheriting visibility.
                 if(ChildrenInheritVisibiity == true)
                 {
                     child.Visible = Visible;
+                    child.Opacity = Opacity;
                 }
 
                 //Draw the child.
                 child.Draw();
-
-                //Restore the location of the child.
-                child.Bounds = tempHolder;
             }
         }
         /// <summary>
