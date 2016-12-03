@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.94c";
+        public static string Version = "0.94d";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -196,7 +196,7 @@ namespace SoulEngine
         {
             //Setup the debugText object.
             debugText = new TextObject(Font: fontDebug);
-            debugText.Tags.Add("debugText");
+            debugText.Tags.Add("debugText", "");
             debugText.Color = Color.Yellow;
             debugText.Outline = true;
             debugText.autoSizeX = true;
@@ -207,7 +207,7 @@ namespace SoulEngine
 
             //Setup the fps text object.
             fpsText = new TextObject(Font: fontDebug);
-            fpsText.Tags.Add("fpsText");
+            fpsText.Tags.Add("fpsText", "");
             fpsText.Color = Color.Yellow;
             fpsText.Outline = true;
             fpsText.autoSizeX = true;
@@ -237,12 +237,12 @@ namespace SoulEngine
             {
                 //Write the FPS and framework info to the debug text.
                 debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
-                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" + 
+                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" +
                     "Globals (T/U/D): " + Timers.Count + " / " + onUpdate.Count() + " / " + onDraw.Count();
             }
 
             //Update the fps counter.
-            if(Settings.displayFPS)
+            if (Settings.displayFPS)
             {
                 if(Settings.fpsUpdate) fpsText.Text = "FPS: " + lastFrames;
                 fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
@@ -307,12 +307,12 @@ namespace SoulEngine
             //Draw on the screen.
             DrawOnScreen();
             //Check if we are drawing the FPS counter.
-            if (Settings.displayFPS == true)
+            if (Settings.displayFPS)
             {
                 fpsText.Draw();
             }
             //Check if we are drawing the debug string.
-            if (Settings.debug == true)
+            if (Settings.debug)
             {
                 debugText.Draw();
             }

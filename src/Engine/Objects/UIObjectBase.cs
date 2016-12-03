@@ -131,17 +131,18 @@ namespace SoulEngine.Objects
             ImageNone = Image;
             this.ImageMouseOver = ImageMouseOver;
             this.ImageMouseClick = ImageMouseClick;
+
+            //Add the update function to the update event.
+            Core.onUpdate.Add(Update);
         }
 
         /// <summary>
         /// Draws the object and updates its status.
         /// </summary>
         /// <param name="skipUpdate">Skips updating the status.</param>
-        public void Draw(bool skipUpdate = false)
+        public override void Draw()
         {
-            //Check if update is to be skipped.
-            if(skipUpdate == false) Update();
-
+            
             //Check not enabled in which case we want to draw a graying out effect.
             if(Enabled == false)
             {
