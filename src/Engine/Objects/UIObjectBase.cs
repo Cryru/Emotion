@@ -131,9 +131,6 @@ namespace SoulEngine.Objects
             ImageNone = Image;
             this.ImageMouseOver = ImageMouseOver;
             this.ImageMouseClick = ImageMouseClick;
-
-            //Add the update function to the update event.
-            Core.onUpdate.Add(Update);
         }
 
         /// <summary>
@@ -183,7 +180,7 @@ namespace SoulEngine.Objects
         /// </summary>
         public void Update()
         {
-            if (Enabled == false) return;
+            if (Enabled == false || Visible == false) return;
 
             //Get the mouse location.
             Rectangle mouse = new Rectangle(Input.getMousePos().ToPoint(), new Point(1, 1));

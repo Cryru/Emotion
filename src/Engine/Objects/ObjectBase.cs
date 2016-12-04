@@ -146,7 +146,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The parent of this object.
         /// </summary>
-        ObjectBase Parent;
+        public ObjectBase Parent;
         /// <summary>
         /// Children of this object.
         /// </summary>

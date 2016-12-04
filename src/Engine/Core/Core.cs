@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.94d";
+        public static string Version = "0.94d_1";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -201,6 +201,7 @@ namespace SoulEngine
             debugText.Outline = true;
             debugText.autoSizeX = true;
             debugText.autoSizeY = true;
+            debugText.ChildrenInheritVisibiity = false;
 
             //Load the debugtext background.
             debugText.EnableBackground(blankTexture, Color.Black, 0.5f, 0);
@@ -212,6 +213,7 @@ namespace SoulEngine
             fpsText.Outline = true;
             fpsText.autoSizeX = true;
             fpsText.autoSizeY = true;
+            fpsText.ChildrenInheritVisibiity = false;
 
             //Load the FPS display background.
             fpsText.EnableBackground(blankTexture, Color.Black, 0.5f, 0);
