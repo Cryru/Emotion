@@ -113,16 +113,16 @@ namespace SoulEngine.Objects
             //Save the viewport.
             Viewport tempPort = Core.graphics.GraphicsDevice.Viewport;
 
-            //Define a render target to draw the layers to.
-            RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, map.Width * map.TileWidth, map.Height * map.TileHeight);
-            //Set the graphics to draw to the render target.
-            Core.graphics.GraphicsDevice.SetRenderTarget(tempTarget);
-
             //Iterate through each layer, composing them and saving them.
             for (int layer = 0; layer < map.Layers.Count; layer++)
             {
+                //Define a render target to draw the layers to.
+                RenderTarget2D tempTarget = new RenderTarget2D(Core.graphics.GraphicsDevice, map.Width * map.TileWidth, map.Height * map.TileHeight);
+                //Set the graphics to draw to the render target.
+                Core.graphics.GraphicsDevice.SetRenderTarget(tempTarget);
+
                 //Clear the render target.
-                Core.graphics.GraphicsDevice.Clear(Color.Red);
+                Core.graphics.GraphicsDevice.Clear(Color.Transparent);
 
                 //Check if visible.
                 if (map.Layers[layer].Visible == false)
@@ -241,6 +241,12 @@ namespace SoulEngine.Objects
             Image = mapLayers[0];
         }
 
+        //Draw all layers.
+        public override void Draw()
+        {
+            DrawLayers(0, map.Layers.Count - 1);
+        }
+
         #region "Drawing Helpers"
         /// <summary>
         /// Draw all layers up to the specified one.
@@ -268,7 +274,7 @@ namespace SoulEngine.Objects
         /// </summary>
         public void DrawLayers(int LayerToStartAt, int LayerToStopAt)
         {
-            for (int i = LayerToStartAt; i < Math.Min(mapLayers.Count, LayerToStopAt + 1); i++)
+            for (int i = Math.Max(Math.Min(map.Layers.Count, LayerToStartAt), 0); i <= Math.Min(mapLayers.Count - 1, LayerToStopAt); i++)
             {
                 Draw(i);
             }
