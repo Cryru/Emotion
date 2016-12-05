@@ -272,11 +272,17 @@ namespace SoulEngine.Objects
                 //Check if the child doesn't have the parent added as being this object.
                 if (child.Parent != this) child.Parent = this;
 
-                //Offset the location, but only if it wasn't offet already.
-                if(!child.Tags.ContainsKey("Parenting_LocOffsetR") || child.Tags["Parenting_LocOffsetR"] != "Complete")
+                //Check if the original location of the children has been recorded.
+                if(!child.Tags.ContainsKey("Parenting_OriginalLocationX") || !child.Tags.ContainsKey("Parenting_OriginalLocationY"))
                 {
-                    child.Location = new Vector2(X + child.X, Y + child.Y);
-                    child.Tags.Add("Parenting_LocOffsetR", "Complete");
+                    child.Tags["Parenting_OriginalLocationX"] = child.X.ToString();
+                    child.Tags["Parenting_OriginalLocationY"] = child.X.ToString();
+                }
+                //Check if the parenting offset is set properly.
+                if (!child.Tags.ContainsKey("Parenting_Offset") || child.Tags["Parenting_Offset"] != Width + "/" + Height + "/" + X + "/" + Y)
+                {
+                    child.Location = new Vector2(X - Padding.X + float.Parse(child.Tags["Parenting_OriginalLocationX"]), Y - Padding.Y + float.Parse(child.Tags["Parenting_OriginalLocationY"]));
+                    child.Tags["Parenting_Offset"] = (Width + "/" + Height + "/" + X + "/" + Y);
                 }
 
                 //Check if filling, or not and assign the offset location and appropriate size.

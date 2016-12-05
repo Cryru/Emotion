@@ -142,7 +142,7 @@ namespace SoulEngine.Objects
         /// <param name="Color">The color tint of the background.</param>
         /// <param name="Opacity">The opacity of the background.</param>
         /// <param name="vertOffset">The offset to move the background a bit down, since some fonts have extra space on top which makes the background look wrong.</param>
-        public void EnableBackground(Texture image, Color Color, float Opacity, float vertOffset = 10)
+        public void EnableBackground(Texture image, Color Color, float Opacity, float vertOffset = 5)
         {
             //First try to remove the background, to prevent multiple children ghosts forming.
             DisableBackground();
@@ -151,7 +151,7 @@ namespace SoulEngine.Objects
             Children[0].Color = Color;
             Children[0].Opacity = Opacity;
             Children[0].Y = vertOffset;
-            Padding = new Vector2(10, 10);
+            Padding = new Vector2(5, 5);
         }
         /// <summary>
         /// Removes the background, if any.
