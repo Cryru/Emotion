@@ -85,6 +85,9 @@ namespace SoulEngine.Objects
             //Load the map file.
             map = new TmxMap(mapData);
 
+            //Close the stream.
+            mapData.Close();
+
             //Load tilesets.
             for (int i = 0; i < map.Tilesets.Count; i++)
             {
