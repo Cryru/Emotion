@@ -87,7 +87,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The object's screen parent.
         /// </summary>
-        private Screen parent;
+        private Screen screenhost;
         /// <summary>
         /// The private body type holder.
         /// </summary>
@@ -107,7 +107,7 @@ namespace SoulEngine.Objects
         public PhysicsObject(Screen Screen, Texture Image = null) : base(Image)
         {
             //Get the hosting screen.
-            parent = Screen;
+            screenhost = Screen;
         }
 
         #region "Physics Fumctions"
@@ -134,19 +134,19 @@ namespace SoulEngine.Objects
                         }
                     }
                     //Create a body from a the vertices.
-                    body = BodyFactory.CreatePolygon(parent.PhysicsWorld, Vertices, Density, this);
+                    body = BodyFactory.CreatePolygon(screenhost.PhysicsWorld, Vertices, Density, this);
                     //Set it's position.
                     body.Position = Physics.Engine.PixelToPhysics(Center);
                     break;
                 case PhysicsTemplate.Rectangle:
                     //Create a body from a rectangle template.
-                    body = BodyFactory.CreateRectangle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), Density, this);
+                    body = BodyFactory.CreateRectangle(screenhost.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X), Physics.Engine.PixelToPhysics(Size.Y), Density, this);
                     //Set it's position.
                     body.Position = Physics.Engine.PixelToPhysics(Center);
                     break;
                 case PhysicsTemplate.Circle:
                     //Create a body from a circle template.
-                    body = BodyFactory.CreateCircle(parent.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X / 2), Density, this);
+                    body = BodyFactory.CreateCircle(screenhost.PhysicsWorld, Physics.Engine.PixelToPhysics(Size.X / 2), Density, this);
                     //Set it's position.
                     body.Position = Physics.Engine.PixelToPhysics(Center);
                     break;
@@ -168,7 +168,7 @@ namespace SoulEngine.Objects
         public void DisablePhysics()
         {
             if(body != null && body.FixtureList != null) body.DestroyFixture(body.FixtureList[0]);
-            parent.PhysicsWorld.RemoveBody(body);
+            screenhost.PhysicsWorld.RemoveBody(body);
 
             //Set the flag to false.
             physics = false;

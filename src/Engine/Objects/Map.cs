@@ -287,7 +287,7 @@ namespace SoulEngine.Objects
         public Vector2 TileCoordinateToWorldLocation(int TileCoordinate)
         {
             //Check if no map.
-            if (map == null) return Vector2.Zero;
+            if (map == null || TileCoordinate < 0) return Vector2.Zero;
 
             if (TileCoordinate >= map.Layers[0].Tiles.Count) return Vector2.Zero;
 
@@ -333,7 +333,7 @@ namespace SoulEngine.Objects
         public Vector2 TileLocationAsVector2(int TileCoordinate)
         {
             //Check if no map.
-            if (map == null) return Vector2.Zero;
+            if (map == null || TileCoordinate < 0) return Vector2.Zero;
 
             //Check if out of range.
             if (TileCoordinate >= map.Layers[0].Tiles.Count) return Vector2.Zero;

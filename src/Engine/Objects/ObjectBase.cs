@@ -33,7 +33,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The location of the object as a Vector2.
         /// </summary>
-        public Vector2 Location 
+        public Vector2 Location
         {
             get
             {
@@ -56,7 +56,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The size of the object as a Vector2.
         /// </summary>
-        public Vector2 Size 
+        public Vector2 Size
         {
             get
             {
@@ -64,18 +64,18 @@ namespace SoulEngine.Objects
             }
             set
             {
-                Width = (int) value.X;
-                Height = (int) value.Y;
+                Width = (int)value.X;
+                Height = (int)value.Y;
             }
         }
         /// <summary>
         /// The rectangle that represents the object.
         /// </summary>
-        public Rectangle Bounds 
+        public Rectangle Bounds
         {
             get
             {
-                return new Rectangle(Location.ToPoint(), new Point(Width,Height));
+                return new Rectangle(Location.ToPoint(), new Point(Width, Height));
             }
             set
             {
@@ -92,7 +92,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The rotation of the object in degrees.
         /// </summary>
-        public int RotationDegrees 
+        public int RotationDegrees
         //This value is stored as radians when entered as the drawing required for the rotation to be in radians.
         {
             get
@@ -124,23 +124,23 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The texture object the object should be drawn as.
         /// </summary>
-            public Texture Image;
+        public Texture Image;
         /// <summary>
         /// The hue of the object.
         /// </summary>
-            public Color Color = Color.White;
+        public Color Color = Color.White;
         /// <summary>
         /// The object's visibiliy.
         /// </summary>
-            public bool Visible = true;
+        public bool Visible = true;
         /// <summary>
         /// The opacity of the object. (0-1)
         /// </summary>
-            public float Opacity = 1f;
+        public float Opacity = 1f;
         /// <summary>
         /// SpriteEffects for horizontal and/or vertical flipping.
         /// </summary>
-            public SpriteEffects MirrorEffects = SpriteEffects.None;
+        public SpriteEffects MirrorEffects = SpriteEffects.None;
         #endregion
         #region "Parenting"
         /// <summary>
@@ -168,11 +168,39 @@ namespace SoulEngine.Objects
         /// </summary>
         public bool ChildrenOnTop = false;
         #endregion
+        #region "Effects"
+        #region "Move"
+        /// <summary>
+        /// The location the object is moving towards.
+        /// </summary>
+        protected Vector2 Effect_Move_TargetLocation;
+        /// <summary>
+        /// The total time the moving should take.
+        /// </summary>
+        protected float Effect_Move_Duration;
+        /// <summary>
+        /// The elapsed time.
+        /// </summary>
+        protected float Effect_Move_TimePassed;
+        /// <summary>
+        /// Whether the object is moving.
+        /// </summary>
+        protected bool Effect_Move_Running;
+        #endregion
+        /// <summary>
+        /// Triggered when a move starts.
+        /// </summary>
+        public Internal.Event<ObjectBase> onMoveStart = new Internal.Event<ObjectBase>();
+        /// <summary>
+        /// Triggered when a move is complete.
+        /// </summary>
+        public Internal.Event<ObjectBase> onMoveComplete = new Internal.Event<ObjectBase>();
+        #endregion
         #region "Other"
         /// <summary>
         /// //A list of strings you can use to store values inside the object.
         /// </summary>
-        public Dictionary<string, string> Tags = new Dictionary<string, string>(); 
+        public Dictionary<string, string> Tags = new Dictionary<string, string>();
         #endregion
         #endregion
 
@@ -202,11 +230,14 @@ namespace SoulEngine.Objects
         /// <param name="Rotation">The rotation in radians.</param>
         /// <param name="DrawOrigin">The origin point for rotation, by default this is the center.</param>
         /// <param name="DrawEffects">Flipping and mirroring effects.</param>
-        protected void DrawObject(Texture2D DrawImage = null, Rectangle DrawBounds = new Rectangle(), Color DrawTint = new Color(), float DrawOpacity = -1f, 
+        protected void DrawObject(Texture2D DrawImage = null, Rectangle DrawBounds = new Rectangle(), Color DrawTint = new Color(), float DrawOpacity = -1f,
             float Rotation = -1f, Vector2 DrawOrigin = new Vector2(), SpriteEffects DrawEffects = SpriteEffects.None, bool ignoreChildren = false)
         {
+            //Process object effects.
+            ProcessEffects();
+
             //Process parenting, for when the children are on top.
-            if(ignoreChildren == false && ChildrenOnTop == false) ProcessParenting();
+            if (ignoreChildren == false && ChildrenOnTop == false) ProcessParenting();
 
             //Check if not visible, in which case we are skipping drawing.
             if (Visible == false)
@@ -222,7 +253,7 @@ namespace SoulEngine.Objects
                 if (Image == null) Image = Core.missingTexture;
                 DrawImage = Image.Image;
             }
-            if(DrawBounds == new Rectangle())
+            if (DrawBounds == new Rectangle())
             {
                 //Offset the drawing location by half the object so the object's origin point is it's center, and it rotates around it.
                 DrawBounds = new Rectangle(new Point((int)(X + Width / 2), (int)(Y + Height / 2)), new Point((int)Width, (int)Height));
@@ -231,23 +262,23 @@ namespace SoulEngine.Objects
             {
                 DrawBounds = new Rectangle(new Point((int)(DrawBounds.X + DrawBounds.Width / 2), (int)(DrawBounds.Y + DrawBounds.Height / 2)), new Point((int)DrawBounds.Width, (int)DrawBounds.Height));
             }
-            if(DrawTint == new Color())
+            if (DrawTint == new Color())
             {
                 DrawTint = Color;
             }
-            if(DrawOpacity == -1f)
+            if (DrawOpacity == -1f)
             {
                 DrawOpacity = Opacity;
             }
-            if(Rotation == -1f)
+            if (Rotation == -1f)
             {
                 Rotation = RotationRadians;
             }
-            if(DrawOrigin == new Vector2())
+            if (DrawOrigin == new Vector2())
             {
                 DrawOrigin = new Vector2((float)DrawImage.Width / 2, (float)DrawImage.Height / 2);
             }
-            if(DrawEffects == SpriteEffects.None)
+            if (DrawEffects == SpriteEffects.None)
             {
                 DrawEffects = MirrorEffects;
             }
@@ -258,6 +289,7 @@ namespace SoulEngine.Objects
             //Process parenting.
             if (ignoreChildren == false && ChildrenOnTop == true) ProcessParenting();
         }
+
         /// <summary>
         /// Processes parenting.
         /// </summary>
@@ -273,7 +305,7 @@ namespace SoulEngine.Objects
                 if (child.Parent != this) child.Parent = this;
 
                 //Check if the original location of the children has been recorded.
-                if(!child.Tags.ContainsKey("Parenting_OriginalLocationX") || !child.Tags.ContainsKey("Parenting_OriginalLocationY"))
+                if (!child.Tags.ContainsKey("Parenting_OriginalLocationX") || !child.Tags.ContainsKey("Parenting_OriginalLocationY"))
                 {
                     child.Tags["Parenting_OriginalLocationX"] = child.X.ToString();
                     child.Tags["Parenting_OriginalLocationY"] = child.X.ToString();
@@ -288,11 +320,11 @@ namespace SoulEngine.Objects
                 //Check if filling, or not and assign the offset location and appropriate size.
                 if (ChildrenFill == true)
                 {
-                   child.Size = new Vector2(Width + Padding.X * 2, Height + Padding.Y * 2);
+                    child.Size = new Vector2(Width + Padding.X * 2, Height + Padding.Y * 2);
                 }
-                
+
                 //Check if inheriting visibility.
-                if(ChildrenInheritVisibiity == true)
+                if (ChildrenInheritVisibiity == true)
                 {
                     child.Visible = Visible;
                     child.Opacity = Opacity;
@@ -302,6 +334,7 @@ namespace SoulEngine.Objects
                 child.Draw();
             }
         }
+
         /// <summary>
         /// A draw function that can be overriden by children of this object.
         /// </summary>
@@ -361,7 +394,7 @@ namespace SoulEngine.Objects
         {
             Location = obj.Location;
             Size = obj.Size;
-            if(copyImage == true) Image = obj.Image;
+            if (copyImage == true) Image = obj.Image;
         }
         /// <summary>
         /// Sets the size of the object to the size of its image.
@@ -370,6 +403,52 @@ namespace SoulEngine.Objects
         {
             Width = Image.Image.Width;
             Height = Image.Image.Height;
+        }
+        #endregion
+        #region "Effects"
+        /// <summary>
+        /// Smoothly moves the object to the specified location over the specified time.
+        /// </summary>
+        /// <param name="Duration">The time to move the object in.</param>
+        /// <param name="TargetLocation">The location to move the object to.</param>
+        public void MoveTo(int Duration, Vector2 TargetLocation)
+        {
+            //Assign properties.
+            Effect_Move_TargetLocation = TargetLocation;
+            Effect_Move_TimePassed = 0;
+            Effect_Move_Running = true;
+            Effect_Move_Duration = Duration;
+
+            //Trigger movement starting event.
+            onMoveStart.Trigger(this);
+        }
+        /// <summary>
+        /// Processes running effects.
+        /// </summary>
+        private void ProcessEffects()
+        {
+            //Check if a movement effect is in use.
+            if(Effect_Move_Running)
+            {
+                //Calculate the increments and add them.
+                //Targetlocation minus current location divided by the total time minus the time that has passed. All of this multiplied by the milliseconds that passed since the last frame.
+                X += ((Effect_Move_TargetLocation.X - X) / (Effect_Move_Duration - Effect_Move_TimePassed)) * Core.frametime;
+                Y += ((Effect_Move_TargetLocation.Y - Y) / (Effect_Move_Duration - Effect_Move_TimePassed)) * Core.frametime;
+
+                //Add the time passed.
+                Effect_Move_TimePassed += Core.frametime;
+
+                //Check if the movement time has passed.
+                if (Effect_Move_TimePassed >= Effect_Move_Duration)
+                {
+                    //Set the location to the target location, this is to prevent fractions from messing up the positioning.
+                    Location = Effect_Move_TargetLocation;
+                    //Run the completion event.
+                    Effect_Move_Running = false;
+                    onMoveComplete.Trigger(this);
+                }
+            }
+           
         }
         #endregion
 
