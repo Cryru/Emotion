@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public static string Version = "0.94d_4";
+        public static string Version = "0.94e";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 130F150C-0000-0000-0000-050E07090E05
@@ -234,22 +234,6 @@ namespace SoulEngine
             //Update the showing mouse setting.
             host.IsMouseVisible = Settings.win_renderMouse;
 
-            //Update the debug text.
-            if (Settings.debug && Settings.debugUpdate)
-            {
-                //Write the FPS and framework info to the debug text.
-                debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
-                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" +
-                    "Globals (T/U/D): " + Timers.Count + " / " + onUpdate.Count() + " / " + onDraw.Count();
-            }
-
-            //Update the fps counter.
-            if (Settings.displayFPS)
-            {
-                if(Settings.fpsUpdate) fpsText.Text = "FPS: " + lastFrames;
-                fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
-            }
-
             //Update the render time for the last frame.
             frametime = gameTime.ElapsedGameTime.Milliseconds;
 
@@ -277,6 +261,23 @@ namespace SoulEngine
 
             //Update hooked methods.
             onUpdate.Trigger();
+
+
+            //Update the debug text.
+            if (Settings.debug && Settings.debugUpdate)
+            {
+                //Write the FPS and framework info to the debug text.
+                debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
+                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" +
+                    "Globals (T/U/D): " + Timers.Count + " / " + onUpdate.Count() + " / " + onDraw.Count();
+            }
+
+            //Update the fps counter.
+            if (Settings.displayFPS)
+            {
+                if (Settings.fpsUpdate) fpsText.Text = "FPS: " + lastFrames;
+                fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
+            }
         }
         /// <summary>
         /// Is run when the frame ends, before we go on to the next one.

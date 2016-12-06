@@ -135,15 +135,25 @@ namespace SoulEngine.Objects
         /// </summary>
         /// <param name="Delay">The delay between ticks.</param>
         /// <param name="Limit">The number of times the timer should tick. If below 0 it will go on forever.</param>
+        /// <param name="startNow">Whether the timer should start ticking from the moment it is initialized or after Resume is called.</param>
         /// <param name="addGlobal">True by default, if enabled the timer will be added to the list of global timers that are run every frame.</param>
-        public Timer(float Delay = 100, int Limit = -1, bool addGlobal = true)
+        public Timer(float Delay = 100, int Limit = -1, bool startNow = false, bool addGlobal = true)
         {
             this.Delay = Delay;
             this.Limit = Limit;
 
-            _State = TimerState.Paused;
-            pausedStateHolder = TimerState.Running;
-
+            //Check if we should start now.
+            if(startNow)
+            {
+                _State = TimerState.Running;
+                pausedStateHolder = TimerState.Paused;
+            }
+            else
+            {
+                _State = TimerState.Paused;
+                pausedStateHolder = TimerState.Running;
+            }
+           
             //If the timer should be added to the global running timers.
             if (addGlobal) Core.Timers.Add(this);
             globalTimer = addGlobal;
@@ -174,8 +184,8 @@ namespace SoulEngine.Objects
                         onTick.Trigger(this);
                     }
 
-                    //Check if above limit.
-                    if (timerTicks > Limit && Limit > 0)
+                    //Check if at limit.
+                    if (timerTicks == Limit && Limit > 0)
                     {
                         //Set the ticks to the limit, in case they are higher.
                         timerTicks = Limit;

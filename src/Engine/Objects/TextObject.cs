@@ -189,6 +189,10 @@ namespace SoulEngine.Objects
             //Process the text.
             Process();
 
+            //Dispose of previous render passes.
+            if (outlinePass.Image != null) outlinePass.Image.Dispose();
+            if (textPass.Image != null) textPass.Image.Dispose();
+
             //Hold the viewport as rendertargets reset it.
             Viewport tempPortHolder = Core.graphics.GraphicsDevice.Viewport;
 
