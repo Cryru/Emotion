@@ -31,6 +31,8 @@ namespace SoulEngine.Objects
         /// The list of load tileset textures.
         /// </summary>
         private List<Texture> tileSets = new List<Texture>();
+
+        private List<TileObject> tileObjects = new List<TileObject>();
         #endregion
         #region "ReadOnly"
         /// <summary>
@@ -96,6 +98,9 @@ namespace SoulEngine.Objects
 
             //Compose the map.
             ComposeMap(ComposeMode);
+
+            //Add objects.
+            ProcessObjects();
 
             //Set the image to first layer.
             Image = mapLayers[0];
@@ -221,6 +226,22 @@ namespace SoulEngine.Objects
 
             //Restore the viewport.
             Core.graphics.GraphicsDevice.Viewport = tempPort;
+        }
+
+        /// <summary>
+        /// Extracts all tmx objects and converts them to tile objects.
+        /// </summary>
+        private void ProcessObjects()
+        {
+            for (int i = 0; i < TiledMap.ObjectGroups.Count; i++)
+            {
+                for (int o = 0; o < TiledMap.ObjectGroups[i].Objects.Count; o++)
+                {
+                    var b = TiledMap.ObjectGroups[i].Objects[o];
+                    tileObjects.Add(new TileObject(b.Name, b.Properties, b.Type, (int) b.X, (int) b.Y, 
+                        new Vector2(map.TileWidth, map.TileHeight), map.Width));
+                }
+            }
         }
 
         /// <summary>
@@ -365,7 +386,7 @@ namespace SoulEngine.Objects
             //Check if layer is out of bounds.
             if (Layer > map.Layers.Count - 1 || TileCoordinate > map.Layers[Layer].Tiles.Count || TileCoordinate < 0)
             {
-                return new TileData(this, new Vector2(), new Vector2(), -1, -1, -1);
+                return new TileData(this, new Vector2(), new Vector2(), -1, -1, -1, new List<TileObject>());
             }
 
             //Get the GID of the tile.
@@ -398,7 +419,17 @@ namespace SoulEngine.Objects
             Vector2 Location = TileLocationAsVector2(TileCoordinate);
             Vector2 WorldLocation = TileCoordinateToWorldLocation(TileCoordinate);
 
-            return new TileData(this, Location, WorldLocation, tilesetID, imageID, Layer);
+            //Get the tile objects on the tile.
+            List<TileObject> objList = new List<TileObject>();
+            for (int i = 0; i < tileObjects.Count; i++)
+            {
+                if(tileObjects[i].Location == TileCoordinate)
+                {
+                    objList.Add(tileObjects[i]);
+                }
+            }
+
+            return new TileData(this, Location, WorldLocation, tilesetID, imageID, Layer, objList);
         }
         /// <summary>
         /// Returns the data for the selected tile coordinate.
@@ -470,6 +501,10 @@ namespace SoulEngine.Objects
         /// The layer the tile is on.
         /// </summary>
         private int layer = -1;
+        /// <summary>
+        /// A list of all objects on this tile.
+        /// </summary>
+        private List<TileObject> tileObjects;
         #endregion
         #region "Accessors"
         public Map OriginMap
@@ -514,6 +549,13 @@ namespace SoulEngine.Objects
                 return new Vector2(XWorld, YWorld);
             }
         }
+        public List<TileObject> TileObjects
+        {
+            get
+            {
+                return tileObjects;
+            }
+        }
         #endregion
 
         /// <summary>
@@ -525,7 +567,8 @@ namespace SoulEngine.Objects
         /// <param name="_tileSet">The tileset this tile is from.</param>
         /// <param name="_tileImage">The image id within the tileset.</param>
         /// <param name="_layer">The layer the tile is on.</param>
-        public TileData(Map _originMap, Vector2 _Location, Vector2 _WLocation, int _tileSet, int _tileImage, int _layer)
+        /// <param name="_tileObjects">A list of objects on this tile.</param>
+        public TileData(Map _originMap, Vector2 _Location, Vector2 _WLocation, int _tileSet, int _tileImage, int _layer, List<TileObject> _tileObjects)
         {
             originMap = _originMap;
             X = (int) _Location.X;
@@ -535,6 +578,7 @@ namespace SoulEngine.Objects
             tileSet = _tileSet;
             tileImage = _tileImage;
             layer = _layer;
+            tileObjects = _tileObjects;
         }
 
         /// <summary>
@@ -543,7 +587,46 @@ namespace SoulEngine.Objects
         /// <returns></returns>
         public override string ToString()
         {
-            return "[TileData]\nTileLoc:" + Location.ToString() + "\r\nWLoc:" + WorldLocation.ToString() + "\r\nLayer:" + layer + "\r\nImage: " + tileImage + " on tileSet: " + tileSet;
+            return "[TileData]\nTileLoc:" + Location.ToString() +
+                "\nWLoc:" + WorldLocation.ToString() +
+                "\nLayer:" + layer +
+                "\nImage: " + tileImage +
+                " on tileSet: " + tileSet +
+                "\n{Objects:}\n" + string.Join("\n", tileObjects); 
+        }
+    }
+
+    /// <summary>
+    /// A tile data object.
+    /// </summary>
+    public class TileObject
+    {
+        #region "Declarations"
+        public string Name;
+        public string Type;
+        public Dictionary<string, string> Properties = new Dictionary<string, string>();
+        public int Location;
+        #endregion
+
+        /// <summary>
+        /// Initializes a tile object.
+        /// </summary>
+        /// <param name="Name">The name of the object.</param>
+        /// <param name="Properties">The object's properties.</param>
+        /// <param name="X">The X location, will be used to calculate tile coordinate.</param>
+        /// <param name="Y">The Y location, will be used to calculate tile coordinate.</param>
+        public TileObject(string Name, Dictionary<string, string> Properties, string Type, int X, int Y, Vector2 TileSize, int mapWidth)
+        {
+            //Assign properties.
+            this.Name = Name;
+            this.Properties = Properties;
+            this.Type = Type;
+
+            //Calculate location.
+            X /= (int) TileSize.X;
+            Y /= (int) TileSize.Y;
+
+            Location = Y * mapWidth + X % mapWidth;
         }
     }
 }

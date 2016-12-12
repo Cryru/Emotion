@@ -171,6 +171,10 @@ namespace SoulEngine.Objects
         #region "Effects"
         #region "Move"
         /// <summary>
+        /// The location the object started from.
+        /// </summary>
+        protected Vector2 Effect_Move_StartLocation;
+        /// <summary>
         /// The location the object is moving towards.
         /// </summary>
         protected Vector2 Effect_Move_TargetLocation;
@@ -411,9 +415,13 @@ namespace SoulEngine.Objects
         /// </summary>
         /// <param name="Duration">The time to move the object in.</param>
         /// <param name="TargetLocation">The location to move the object to.</param>
-        public void MoveTo(int Duration, Vector2 TargetLocation)
+        public void MoveTo(int Duration, Vector2 TargetLocation, bool OverwritePrevious = false)
         {
+            //Check if moving already.
+            if (Effect_Move_Running && OverwritePrevious == false) return;
+
             //Assign properties.
+            Effect_Move_StartLocation = Location;
             Effect_Move_TargetLocation = TargetLocation;
             Effect_Move_TimePassed = 0;
             Effect_Move_Running = true;
@@ -421,6 +429,8 @@ namespace SoulEngine.Objects
 
             //Trigger movement starting event.
             onMoveStart.Trigger(this);
+
+            
         }
         /// <summary>
         /// Processes running effects.
@@ -432,8 +442,12 @@ namespace SoulEngine.Objects
             {
                 //Calculate the increments and add them.
                 //Targetlocation minus current location divided by the total time minus the time that has passed. All of this multiplied by the milliseconds that passed since the last frame.
-                X += ((Effect_Move_TargetLocation.X - X) / (Effect_Move_Duration - Effect_Move_TimePassed)) * Core.frametime;
-                Y += ((Effect_Move_TargetLocation.Y - Y) / (Effect_Move_Duration - Effect_Move_TimePassed)) * Core.frametime;
+                //X += ((Effect_Move_TargetLocation.X - X) / (Effect_Move_Duration - Effect_Move_TimePassed)) * Core.frametime;
+                //Y += ((Effect_Move_TargetLocation.Y - Y) / (Effect_Move_Duration - Effect_Move_TimePassed)) * Core.frametime;
+
+                X = MathHelper.Lerp(Effect_Move_StartLocation.X, Effect_Move_TargetLocation.X, (Effect_Move_TimePassed / Effect_Move_Duration));
+                Y = MathHelper.Lerp(Effect_Move_StartLocation.Y, Effect_Move_TargetLocation.Y, (Effect_Move_TimePassed / Effect_Move_Duration));
+                //Vector2.Lerp(Location, Effect_Move_TargetLocation, )
 
                 //Add the time passed.
                 Effect_Move_TimePassed += Core.frametime;
