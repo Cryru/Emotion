@@ -62,11 +62,11 @@ namespace SoulEngine
         /// <summary>
         /// Inverse of the isKeyDown function.
         /// </summary>
-        /// <param name="key">The key to check..</param>
+        /// <param name="key">The key to check.</param>
         /// <returns>bool</returns>
         public static bool isKeyUp(Keys key)
         {
-            return !currentFrameKeyState.IsKeyDown(key);
+            return !isKeyDown(key);
         }
         /// <summary>
         /// Returns true only on the frame that the button is pressed and not when held.
@@ -91,6 +91,62 @@ namespace SoulEngine
             if (currentFrameKeyState.IsKeyUp(key) == true && lastFrameKeyState.IsKeyUp(key) == false)
             {
                 return true;
+            }
+            return false;
+        }
+        #endregion
+        #region "Keyboard MultiKey"
+        /// <summary>
+        /// Returns a bool based on whether any of the specified keys is held down or not.
+        /// </summary>
+        /// <param name="key">The keys to check.</param>
+        /// <returns>bool</returns>
+        public static bool isKeyDown(Keys[] key)
+        {
+            for (int i = 0; i < key.Length; i++)
+            {
+                if(currentFrameKeyState.IsKeyDown(key[i]) == true) return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Inverse of the isKeyDown function.
+        /// </summary>
+        /// <param name="key">The keys to check.</param>
+        /// <returns>bool</returns>
+        public static bool isKeyUp(Keys[] key)
+        {
+            return !isKeyDown(key);
+        }
+        /// <summary>
+        /// Returns true only on the frame that one of the buttons is pressed and not when held.
+        /// </summary>
+        /// <param name="key">The keys to check.</param>
+        /// <returns></returns>
+        public static bool KeyDownTrigger(Keys[] key)
+        {
+            for (int i = 0; i < key.Length; i++)
+            {
+                if(currentFrameKeyState.IsKeyDown(key[i]) == true && lastFrameKeyState.IsKeyDown(key[i]) == false)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true only on the frame that one of the buttons is let go after being held down.
+        /// </summary>
+        /// <param name="key">The keys to check.</param>
+        /// <returns></returns>
+        public static bool KeyUpTrigger(Keys[] key)
+        {
+            for (int i = 0; i < key.Length; i++)
+            {
+                if (currentFrameKeyState.IsKeyUp(key[i]) == true && lastFrameKeyState.IsKeyUp(key[i]) == false)
+                {
+                    return true;
+                }
             }
             return false;
         }

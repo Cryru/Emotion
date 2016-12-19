@@ -100,6 +100,9 @@ namespace SoulEngine.Objects
             {
                 fadingObject.Opacity -= 0.01f;
             }
+
+            if (fadingObject.Opacity < 0) fadingObject.Opacity = 0;
+            if (fadingObject.Opacity > 1) fadingObject.Opacity = 1;
         }
         
         //Is run when the timer ends.

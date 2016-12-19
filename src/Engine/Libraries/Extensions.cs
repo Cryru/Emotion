@@ -23,11 +23,10 @@ namespace Microsoft.Xna.Framework
         /// <summary>
         /// Draws a line between two points.
         /// </summary>
-        /// <param name="s"></param>
-        /// <param name="color"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="Thickness"></param>
+        /// <param name="color">The line's color.</param>
+        /// <param name="start">The index to start at.</param>
+        /// <param name="end">The index to stop at.</param>
+        /// <param name="Thickness">How thick the line should be.</param>
         public static void DrawLine(this SpriteBatch s, Color color, Vector2 start, Vector2 end, int Thickness = 1)
         {
             //Calculate rotation angle.
@@ -35,6 +34,21 @@ namespace Microsoft.Xna.Framework
             float angle = (float)Math.Atan2(edge.Y, edge.X);
             //Draw a stretched blank texture and rotate in the calculated angle.
             s.Draw(SoulEngine.Core.blankTexture.Image, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), Thickness), null, color, angle, new Vector2(0, 0), SpriteEffects.None, 0);
+        }
+        /// <summary>
+        /// Gets a range from within an array.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data">The array.</param>
+        /// <param name="index">The starting location, included.</param>
+        /// <param name="length">The length of the range, if -1 then until the length is until the end array.</param>
+        public static T[] GetRange<T>(this T[] data, int index, int length = -1)
+        {
+            if (length == -1) length = data.Length - index;
+
+            T[] result = new T[length];
+            Array.Copy(data, index, result, 0, length);
+            return result;
         }
     }
 }
