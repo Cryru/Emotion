@@ -16,12 +16,12 @@ namespace SoulEngine
     //                                                                          //
     // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
     //                                                                          //
-    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
     /// The engine's core. Most of the stuff required for everything to run is here.
     /// </summary>
-    public static class Core
+    public class Core
     {
         #region "Declarations"
         #region "Engine Information"
@@ -152,12 +152,12 @@ namespace SoulEngine
             host.Window.AllowAltF4 = true;
 
             //Set the window's name.
-            host.Window.Title = Settings.win_name;
+            //host.Window.Title = Settings.win_name;
 
             //Setup the screen, and the screen adapter.
             ScreenSettingsRefresh();
-            ScreenAdapter = new BoxingViewportAdapter(host.Window, host.GraphicsDevice, Settings.game_width, Settings.game_height);
-            
+            ScreenAdapter = new BoxingViewportAdapter(host.Window, host.GraphicsDevice, Settings.Width, Settings.Height);
+
             //Setup the camera.
             maincam = new Camera2D(ScreenAdapter);
 
@@ -232,7 +232,7 @@ namespace SoulEngine
             Core.gameTime = gameTime;
 
             //Update the showing mouse setting.
-            host.IsMouseVisible = Settings.win_renderMouse;
+            //host.IsMouseVisible = Settings.win_renderMouse;
 
             //Update the render time for the last frame.
             frametime = gameTime.ElapsedGameTime.Milliseconds;
@@ -267,16 +267,16 @@ namespace SoulEngine
             if (Settings.debug && Settings.debugUpdate)
             {
                 //Write the FPS and framework info to the debug text.
-                debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
-                    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" +
-                    "Globals (T/U/D): " + Timers.Count + " / " + onUpdate.Count() + " / " + onDraw.Count();
+                //debugText.Text = Core.Name + " " + Core.Version + "\r\n" + "Window Resolution: " + Settings.win_width + "x" + Settings.win_height + "\r\n"
+                //    + "Render Resolution: " + Settings.game_width + "x" + Settings.game_height + "\r\n" + "Camera Zoom: " + maincam.Zoom + "\r\n" +
+                //    "Globals (T/U/D): " + Timers.Count + " / " + onUpdate.Count() + " / " + onDraw.Count();
             }
 
             //Update the fps counter.
             if (Settings.displayFPS)
             {
                 if (Settings.fpsUpdate) fpsText.Text = "FPS: " + lastFrames;
-                fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
+                //fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
             }
         }
         /// <summary>
@@ -296,7 +296,7 @@ namespace SoulEngine
             //Start a draw sequence on the screen. As opposed to in the world.
             DrawOnScreen();
             //Draw the render space color.
-            ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.game_width, Settings.game_height), Settings.drawcolor);
+            ink.Draw(blankTexture.Image, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.drawcolor);
             //End drawing.
             ink.End();
             //Update hooked methods.
@@ -323,8 +323,8 @@ namespace SoulEngine
 
             //Update the FPS counter. This is done here as the draw loops are run on the GPU.
             FPSCounterUpdate(gameTime);
-			
-			//Prepare the input for the next frame.
+
+            //Prepare the input for the next frame.
             Input.UpdateInput_End();
         }
         #endregion
@@ -332,11 +332,11 @@ namespace SoulEngine
         /// <summary>
         /// The width of the main window kept while in fullscreen.
         /// </summary>
-        public static int TEMPwin_width = Settings.win_width;
+        public static int TEMPwin_width = 0;
         /// <summary>
         /// The height of the main window kept while in fullscreen.
         /// </summary>
-        public static int TEMPwin_height = Settings.win_height;
+        public static int TEMPwin_height = 0;
 
         /// <summary>
         /// Checks if the fullscreen key is toggled and executes the appropriate code.
@@ -346,7 +346,7 @@ namespace SoulEngine
             if (Input.isKeyDown(Keys.LeftAlt) && Input.KeyDownTrigger(Keys.Enter))
             {
                 //Invert the fullscreen variable.
-                Settings.win_fullscreen = !Settings.win_fullscreen;
+                //Settings.win_fullscreen = !Settings.win_fullscreen;
                 //Refresh the fullscreen state.
                 ScreenSettingsRefresh();
             }
@@ -356,33 +356,33 @@ namespace SoulEngine
         /// </summary>
         public static void ScreenSettingsRefresh()
         {
-            //Check if fullscreen is on.
-            if (Settings.win_fullscreen == true)
-            {
-                //Remove the window borders.
-                host.Window.IsBorderless = true;
-                //Set the size of the window to the screen size.
-                Settings.win_width = (int) GetScreenSize().X;
-                Settings.win_height = (int) GetScreenSize().Y;
+            ////Check if fullscreen is on.
+            //if (Settings.win_fullscreen == true)
+            //{
+            //    //Remove the window borders.
+            //    host.Window.IsBorderless = true;
+            //    //Set the size of the window to the screen size.
+            //    Settings.win_width = (int)GetScreenSize().X;
+            //    Settings.win_height = (int)GetScreenSize().Y;
 
-                //Move the window to the top left.
-                host.Window.Position = new Point(0, 0);
-            }
+            //    //Move the window to the top left.
+            //    host.Window.Position = new Point(0, 0);
+            //}
 
-            //If fullscreen is off.
-            if (Settings.win_fullscreen == false)
-            {
-                //Show the window borders.
-                host.Window.IsBorderless = false;
-                //Set the size of the window to the stored size.
-                Settings.win_width = TEMPwin_width;
-                Settings.win_height = TEMPwin_height;
-            }
+            ////If fullscreen is off.
+            //if (Settings.win_fullscreen == false)
+            //{
+            //    //Show the window borders.
+            //    host.Window.IsBorderless = false;
+            //    //Set the size of the window to the stored size.
+            //    Settings.win_width = TEMPwin_width;
+            //    Settings.win_height = TEMPwin_height;
+            //}
 
-            //Setup the screen again with the new values.
-            graphics.PreferredBackBufferWidth = Settings.win_width;
-            graphics.PreferredBackBufferHeight = Settings.win_height;
-            graphics.ApplyChanges();
+            ////Setup the screen again with the new values.
+            //graphics.PreferredBackBufferWidth = Settings.win_width;
+            //graphics.PreferredBackBufferHeight = Settings.win_height;
+            //graphics.ApplyChanges();
         }
 
         /// <summary>
@@ -614,7 +614,7 @@ namespace SoulEngine
         /// </summary>
         private static void CheckIfObjectsHaveBeenLoaded(int index)
         {
-            if(Screens[index].ObjectsLoaded == false)
+            if (Screens[index].ObjectsLoaded == false)
             {
                 Screens[index].LoadObjects();
                 Screens[index].ObjectsLoaded = true;

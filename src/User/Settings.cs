@@ -1,51 +1,80 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Input.Touch;
+using SoulEngine.Enums;
 
 namespace SoulEngine
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
-    //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
-    //                                                                          //
-    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
     /// The engine's user settings.
     /// </summary>
     public partial class Settings
     {
+        #region "Engine Settings"
+        /// <summary>
+        /// Whether to cap the FPS.
+        /// </summary>
+        public static bool capFPS = true;
+        /// <summary>
+        /// The FPS limit.
+        /// </summary>
+        public static float FPS = 60;
+        /// <summary>
+        /// Whether to synchronize the FPS to the screen's refresh rate. 
+        /// Overwrites the 'capFPS' setting. 
+        /// </summary>
+        public static bool vSync = false;
+        /// <summary>
+        /// Whether the window can be resized.
+        /// </summary>
+        public static bool ResizableWindow = false;
+        #endregion
+        #region "Security Settings"
+        /// <summary>
+        /// The key that will be used to encrypt and decrypt files.
+        /// </summary>
+        public static string SecurityKey = "defaultsecurity";
+        /// <summary>
+        /// If true, the engine will not run unless the meta.soul file exists and is correct.
+        /// </summary>
+        public static bool EnforceAssetIntegrity = true;
+        #endregion
         #region "Window Settings"
         /// <summary>
         /// The width of the window.
         /// </summary>
-        public static int win_width = 960;
+        public static int WWidth = 960;
         /// <summary>
         /// The height of the window.
         /// </summary>
-        public static int win_height = 540;
+        public static int WHeight = 540;
         /// <summary>
         /// The width the game will be rendered at.
         /// </summary>
-        public static int game_width = 1280;
+        public static int Width = 1280;
         /// <summary>
         /// The height the game will be rendered at.
         /// </summary>
-        public static int game_height = 720;
+        public static int Height = 720;
         /// <summary>
         /// The name of the window.
         /// </summary>
-        public static string win_name = "NONE";
+        public static string WName = "SoulEngine Game";
         /// <summary>
-        /// Whether the window should cover the whole screen. Functionally this is borderless windowed.
+        /// The way the engine should be displayed, the RefreshScreenSettings function must be used to apply changes.
         /// </summary>
-        public static bool win_fullscreen = false;
+        public static ScreenMode ScreenMode = ScreenMode.Windowed;
         /// <summary>
         /// Whether the mouse should be rendered.
         /// </summary>
-        public static bool win_renderMouse = true;
+        public static bool RenderMouse = true;
         #endregion
+
+        //TODO
+
         #region "Debug Settings"
         /// <summary>
         /// Enables debug mode.
