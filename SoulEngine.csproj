@@ -62,8 +62,13 @@
     <Compile Include="src\Engine\Core\Context.cs" />
     <Compile Include="src\Engine\Core\Enums.cs" />
     <Compile Include="src\Engine\Core\Functions.cs" />
-    <Compile Include="src\Engine\Core\Info.cs" />
-    <Compile Include="src\Engine\Core\PhysicsEngine.cs" />
+    <Compile Include="src\Engine\Meta\Info.cs" />
+    <Compile Include="src\Engine\Objects\Internal\Trigger.cs" />
+    <Compile Include="src\Engine\Objects\Internal\ActiveTexture.cs" />
+    <Compile Include="src\Engine\Objects\Main\Scene.cs" />
+    <Compile Include="src\Engine\Objects\GameObjectBase.cs" />
+    <Compile Include="src\Engine\Objects\ObjectBase.cs" />
+    <Compile Include="src\Legacy\PhysicsEngine.cs" />
     <Compile Include="src\Engine\Libraries\Physics\Collision\Collision.cs" />
     <Compile Include="src\Engine\Libraries\Physics\Collision\Distance.cs" />
     <Compile Include="src\Engine\Libraries\Physics\Collision\DynamicTree.cs" />
@@ -184,8 +189,8 @@
     <Compile Include="src\Engine\Libraries\Physics\Settings.cs" />
     <Compile Include="src\Engine\Libraries\Settings.cs" />
     <Compile Include="src\Engine\Libraries\Extensions.cs" />
-    <Compile Include="src\Engine\Objects\Internal\Event.cs" />
-    <Compile Include="src\Engine\Objects\PhysicsObject.cs" />
+    <Compile Include="src\Legacy\Internal\Event.cs" />
+    <Compile Include="src\Legacy\PhysicsObject.cs" />
     <Compile Include="src\User\Screens\StartScreen.cs" />
     <Compile Include="src\User\Settings.cs" />
     <Compile Include="src\Engine\Core\Core.cs" />
@@ -223,18 +228,18 @@
     <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibConstants.cs" />
     <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="src\Engine\Libraries\Input.cs" />
-    <Compile Include="src\Engine\Objects\Animation.cs" />
-    <Compile Include="src\Engine\Objects\Effects\Fade.cs" />
-    <Compile Include="src\Engine\Objects\Effects\Scale.cs" />
-    <Compile Include="src\Engine\Objects\Effects\Wait.cs" />
-    <Compile Include="src\Engine\Objects\Map.cs" />
-    <Compile Include="src\Engine\Objects\ObjectBase.cs" />
-    <Compile Include="src\Engine\Objects\Screen.cs" />
-    <Compile Include="src\Engine\Objects\Sound.cs" />
-    <Compile Include="src\Engine\Objects\TextObject.cs" />
-    <Compile Include="src\Engine\Objects\Texture.cs" />
-    <Compile Include="src\Engine\Objects\Timer.cs" />
-    <Compile Include="src\Engine\Objects\UIObjectBase.cs" />
+    <Compile Include="src\Legacy\Animation.cs" />
+    <Compile Include="src\Legacy\Effects\Fade.cs" />
+    <Compile Include="src\Legacy\Effects\Scale.cs" />
+    <Compile Include="src\Legacy\Effects\Wait.cs" />
+    <Compile Include="src\Legacy\Map.cs" />
+    <Compile Include="src\Legacy\ObjectBase.cs" />
+    <Compile Include="src\Legacy\Screen.cs" />
+    <Compile Include="src\Legacy\Sound.cs" />
+    <Compile Include="src\Legacy\TextObject.cs" />
+    <Compile Include="src\Legacy\Texture.cs" />
+    <Compile Include="src\Legacy\Timer.cs" />
+    <Compile Include="src\Legacy\UIObjectBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="OpenTK">

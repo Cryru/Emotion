@@ -6,7 +6,7 @@ using TiledSharp;
 using System.IO;
 using System.Linq;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Legacy.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects;
+using SoulEngine;
 
 namespace SoulEngine.Legacy.Objects
 {
@@ -125,7 +126,7 @@ namespace SoulEngine.Legacy.Objects
         /// <summary>
         /// The texture object the object should be drawn as.
         /// </summary>
-        public Texture Image;
+        public SoulEngine.Legacy.Objects.Texture Image;
         /// <summary>
         /// The hue of the object.
         /// </summary>
@@ -195,11 +196,11 @@ namespace SoulEngine.Legacy.Objects
         /// <summary>
         /// Triggered when a move starts.
         /// </summary>
-        public Internal.Event<ObjectBase> onMoveStart = new Internal.Event<ObjectBase>();
+        public SoulEngine.Legacy.Objects.Internal.Event<ObjectBase> onMoveStart = new SoulEngine.Legacy.Objects.Internal.Event<ObjectBase>();
         /// <summary>
         /// Triggered when a move is complete.
         /// </summary>
-        public Internal.Event<ObjectBase> onMoveComplete = new Internal.Event<ObjectBase>();
+        public SoulEngine.Legacy.Objects.Internal.Event<ObjectBase> onMoveComplete = new SoulEngine.Legacy.Objects.Internal.Event<ObjectBase>();
         #endregion
         #region "Other"
         /// <summary>
@@ -213,12 +214,12 @@ namespace SoulEngine.Legacy.Objects
         /// Initializes an object.
         /// </summary>
         /// <param name="Image">The texture object that represents the object.</param>
-        public ObjectBase(Texture Image = null)
+        public ObjectBase(SoulEngine.Legacy.Objects.Texture Image = null)
         {
             //Check if image is null.
             if (Image == null)
             {
-                Image = new Texture();
+                Image = new SoulEngine.Legacy.Objects.Texture();
             }
 
             //Assign the texture to the property.

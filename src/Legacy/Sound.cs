@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Audio;
 using Soul;
 using SoulEngine;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Legacy.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //

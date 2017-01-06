@@ -7,9 +7,9 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 using Microsoft.Xna.Framework.Graphics;
 using SoulEngine.Objects;
+using SoulEngine.Legacy.Objects;
 
-
-namespace SoulEngine
+namespace SoulEngine.Legacy
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //

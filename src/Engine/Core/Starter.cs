@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Threading;
 
@@ -57,6 +58,9 @@ namespace SoulEngine
 
             //Setup the Core context.
             //TODO
+
+            //Loading has finished.
+            Loading = false;
         }
     } 
 } 

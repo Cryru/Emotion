@@ -33,7 +33,7 @@ namespace Microsoft.Xna.Framework
             Vector2 edge = end - start;
             float angle = (float)Math.Atan2(edge.Y, edge.X);
             //Draw a stretched blank texture and rotate in the calculated angle.
-            s.Draw(SoulEngine.Core.blankTexture.Image, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), Thickness), null, color, angle, new Vector2(0, 0), SpriteEffects.None, 0);
+            s.Draw(SoulEngine.Legacy.Core.blankTexture.Image, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), Thickness), null, color, angle, new Vector2(0, 0), SpriteEffects.None, 0);
         }
         /// <summary>
         /// Gets a range from within an array.

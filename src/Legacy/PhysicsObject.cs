@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Physics;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Legacy.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //

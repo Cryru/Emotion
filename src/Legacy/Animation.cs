@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using SoulEngine.Objects.Internal;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Legacy.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -184,15 +184,15 @@ namespace SoulEngine.Objects
         /// <summary>
         /// When the frame changes.
         /// </summary>
-        public Event<Animation> onFrameChange = new Event<Animation>();
+        public SoulEngine.Legacy.Objects.Internal.Event<Animation> onFrameChange = new SoulEngine.Legacy.Objects.Internal.Event<Animation>();
         /// <summary>
         /// When the animation has finished.
         /// </summary>
-        public Event<Animation> onFinished = new Event<Animation>();
+        public SoulEngine.Legacy.Objects.Internal.Event<Animation> onFinished = new SoulEngine.Legacy.Objects.Internal.Event<Animation>();
         /// <summary>
         /// When the animation loops back.
         /// </summary>
-        public Event<Animation> onLoop = new Event<Animation>();
+        public SoulEngine.Legacy.Objects.Internal.Event<Animation> onLoop = new SoulEngine.Legacy.Objects.Internal.Event<Animation>();
         #endregion
         #region "Other"
         /// <summary>

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects.Internal;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Legacy.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -63,12 +63,12 @@ namespace SoulEngine.Objects
         /// <summary>
         /// When the timer ticks.
         /// </summary>
-        public Event<Timer> onTick = new Event<Timer>();
+        public SoulEngine.Legacy.Objects.Internal.Event<Timer> onTick = new SoulEngine.Legacy.Objects.Internal.Event<Timer>();
         /// <summary>
         /// When the timer's tick limit has been reached.
         /// This will never be triggered for endless timers.
         /// </summary>
-        public Event<Timer> onTickLimitReached = new Event<Timer>();
+        public SoulEngine.Legacy.Objects.Internal.Event<Timer> onTickLimitReached = new SoulEngine.Legacy.Objects.Internal.Event<Timer>();
         #endregion
         #region "State"
         /// <summary>

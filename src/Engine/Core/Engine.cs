@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Threading;
 
 namespace SoulEngine
 {
@@ -50,8 +51,9 @@ namespace SoulEngine
             //Refresh the screen settings.
             Functions.RefreshScreenSettings();
 
-            //Load loading screen assets.
-            LoadingLogo = Content.Load<Texture2D>("Engine/loadingLogo");
+            //Load loading screen stuff.
+            LoadingLogo = new Objects.ObjectBase();
+            //Context.Engine.LoadingLogo = Context.Engine.Content.Load<Texture2D>("Engine/loadingLogo");
 
             //Continue the start sequence.
             Starter.ContinueStart();
@@ -79,13 +81,13 @@ namespace SoulEngine
             if (IsActive == false) return;
 
             //Run the physics engine.
-            Physics.Engine.Update();
-            //Run the core's frame update code.
-            Core.Update(gameTime);
-            //Run screen's update code.
-            Core.UpdateScreens();
-            ////Run the core's update ending code.
-            Core.Update_End(gameTime);
+            //Physics.Engine.Update();
+            ////Run the core's frame update code.
+            //Core.Update(gameTime);
+            ////Run screen's update code.
+            //Core.UpdateScreens();
+            //////Run the core's update ending code.
+            //Core.Update_End(gameTime);
         }
 
         /// <summary>
@@ -93,6 +95,9 @@ namespace SoulEngine
         /// </summary>
         protected override void Draw(GameTime gameTime)
         {
+            Context.graphics.GraphicsDevice.Clear(Color.Black);
+
+
             //Check if loading, in which case we want to run the loading cycle.
             if (Starter.Loading) { Loading_Draw(gameTime); return; }
 
@@ -100,17 +105,18 @@ namespace SoulEngine
             if (Context.Core == null) return;
           
             //Run the core's drawing code.
-            Core.Draw(gameTime);
-            //Run screen's draw code.
-            Core.DrawScreens();
-            //Run the core's drawing ending code.
-            Core.Draw_End(gameTime);
+            //Core.Draw(gameTime);
+            ////Run screen's draw code.
+            //Core.DrawScreens();
+            ////Run the core's drawing ending code.
+            //Core.Draw_End(gameTime);
         }
         #endregion
 
         #region "Loading Screen Loops"
         #region "Loading Screen Assets"
-        Texture2D LoadingLogo;
+        Objects.ObjectBase LoadingLogo = new Objects.ObjectBase();
+
         float LoadingLogoOpacity = 0.1f;
         bool LoadingLogoGlowFadeOut = false;
         int LoadingLogoFadeTimer = 0;
@@ -149,10 +155,11 @@ namespace SoulEngine
         public void Loading_Draw(GameTime gameTime)
         {
             Context.graphics.GraphicsDevice.Clear(new Color(56, 56, 56));
-            Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
-   null, Context.Screen.GetScaleMatrix());
-            Context.ink.Draw(LoadingLogo, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White * LoadingLogoOpacity);
-            Context.ink.End();
+            //         Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
+            //null, Context.Screen.GetScaleMatrix());
+            //         Context.ink.Draw(LoadingLogo, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White * LoadingLogoOpacity);
+            //         Context.ink.End();
+            LoadingLogo.Draw();
         }
         #endregion
 
@@ -161,7 +168,7 @@ namespace SoulEngine
         /// </summary>
         private void Engine_Exiting(object sender, System.EventArgs e)
         {
-            Core.onClosing.Trigger();
+            Legacy.Core.onClosing.Trigger();
         }
     }
 }

@@ -98,7 +98,7 @@ namespace SoulEngine
         /// The screen to load first.
         /// Do not initliaze any objects in it.
         /// </summary>
-        public static Objects.Screen StartScreen = new StartScreen();
+        public static Legacy.Objects.Screen StartScreen = new Legacy.StartScreen();
         #endregion
         #region "Other Settings"
         /// <summary>

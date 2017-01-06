@@ -13,7 +13,7 @@ namespace SoulEngine
     {
 
         public static Engine Engine { get; set; }
-        public static Core Core { get; set; }
+        public static Legacy.Core Core { get; set; }
 
         public static SpriteBatch ink { get; set; }
         public static GraphicsDeviceManager graphics { get; set; }
