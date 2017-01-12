@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
 namespace SoulEngine.Objects
@@ -42,6 +43,38 @@ namespace SoulEngine.Objects
                 X = value.X;
                 Y = value.Y;
                 Z = value.Z;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Vector2 Position
+        {
+            get
+            {
+                return new Vector2(X, Y);
+            }
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Vector2 Center
+        {
+            get
+            {
+                return new Vector2(X + Width / 2, Y + Height / 2);
+            }
+            set
+            {
+                X = value.X - Width / 2;
+                Y = value.Y - Height / 2;
             }
         }
         #endregion
@@ -130,6 +163,11 @@ namespace SoulEngine.Objects
         /// 
         /// </summary>
         Color Tint = Color.White;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public SpriteEffects MirrorEffects = SpriteEffects.None;
         #endregion
 
         //Events of the object.

@@ -67,7 +67,7 @@ namespace SoulEngine.Legacy
         /// <summary>
         /// The game instance for use by the engine.
         /// </summary>
-        public static Engine host;
+        public static Game host;
         /// <summary>
         /// The main camera.
         /// </summary>
@@ -132,7 +132,7 @@ namespace SoulEngine.Legacy
         public static void Setup()
         {
             //Setup the host. The content, ink and graphics device are initalized here.
-            host = new Engine();
+            host = new Game();
 
             //Start the host.
             host.Run();

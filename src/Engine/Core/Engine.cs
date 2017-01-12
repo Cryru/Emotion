@@ -12,13 +12,13 @@ namespace SoulEngine
     /// <summary>
     /// The game instance for use by the engine.
     /// </summary>
-    public class Engine : Game
+    public class Core : Game
     {
         #region "Initialization"
         /// <summary>
         /// The initializer.
         /// </summary>
-        public Engine()
+        public Core()
         {
             //Setup the graphics device.
             Context.graphics = new GraphicsDeviceManager(this);
@@ -95,14 +95,11 @@ namespace SoulEngine
         /// </summary>
         protected override void Draw(GameTime gameTime)
         {
+            //Start drawing frame by first clearing the screen.
             Context.graphics.GraphicsDevice.Clear(Color.Black);
-
 
             //Check if loading, in which case we want to run the loading cycle.
             if (Starter.Loading) { Loading_Draw(gameTime); return; }
-
-            //Check if a core has been loaded, and if not do nothing.
-            if (Context.Core == null) return;
           
             //Run the core's drawing code.
             //Core.Draw(gameTime);
@@ -168,7 +165,7 @@ namespace SoulEngine
         /// </summary>
         private void Engine_Exiting(object sender, System.EventArgs e)
         {
-            Legacy.Core.onClosing.Trigger();
+            //Legacy.Core.onClosing.Trigger();
         }
     }
 }

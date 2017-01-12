@@ -36,12 +36,12 @@ namespace SoulEngine
                 //Check if an external settings file exists, and load it's data if it does.
                 if(System.IO.File.Exists("\\settings.soul")) Settings.ReadExternalSettings("\\settings.soul");
 
-                //Setup the engine context, which also initializes the content manager, graphics device, and spritebatch.
-                Context.Engine = new Engine();
-                Context.Engine.Run();
+                //Setup a core instance.
+                Context.Core = new Core();
+                Context.Core.Run();
 
-                //Dispose of the engine context once it stops running.
-                Context.Engine.Dispose();
+                //Dispose of the core if it stops running.
+                Context.Core.Dispose();
             }
         }
 

@@ -39,7 +39,7 @@ namespace SoulEngine.Legacy
             currentFrameMouseState = Mouse.GetState();
 
             //Check if closing.
-            if (isKeyDown(Keys.Escape)) Core.host.Exit();
+            //if (isKeyDown(Keys.Escape)) Core.host.Exit();
         }
         public static void UpdateInput_End()
         {
@@ -158,7 +158,8 @@ namespace SoulEngine.Legacy
         /// <returns></returns>
         public static Vector2 getMousePos()
         {
-            return Core.maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
+            //return Core.maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
+            return new Vector2();
         }
         #region "Left Button"
         /// <summary>

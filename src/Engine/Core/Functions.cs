@@ -26,7 +26,7 @@ namespace SoulEngine
         public static void RefreshScreenSettings()
         {
             //Reset some settings.
-            Context.Engine.Window.IsBorderless = false;
+            Context.Core.Window.IsBorderless = false;
             Context.graphics.IsFullScreen = false;
 
             //Check which screen mode we want to apply.
@@ -38,13 +38,14 @@ namespace SoulEngine
                     Context.graphics.PreferredBackBufferHeight = Settings.WHeight;
                     Context.graphics.ApplyChanges();
 
-                    //Center window.
-                    Context.Engine.Window.Position = new Point((int)GetScreenSize().X / 2 - Settings.WWidth / 2, (int)GetScreenSize().Y / 2 - Settings.WHeight / 2);
+                    //Center window, but only if not at boot.
+                    if(!Starter.Loading)
+                    Context.Core.Window.Position = new Point((int)GetScreenSize().X / 2 - Settings.WWidth / 2, (int)GetScreenSize().Y / 2 - Settings.WHeight / 2);
                     break;
 
                 case Enums.ScreenMode.Borderless:
                     //Remove the window borders.
-                    Context.Engine.Window.IsBorderless = true;
+                    Context.Core.Window.IsBorderless = true;
 
                     //Setup the screen with the screen's size as width and height.
                     Context.graphics.PreferredBackBufferWidth = (int)GetScreenSize().X;
@@ -52,7 +53,7 @@ namespace SoulEngine
                     Context.graphics.ApplyChanges();
 
                     //Move the window to the top left.
-                    Context.Engine.Window.Position = new Point(0, 0);
+                    Context.Core.Window.Position = new Point(0, 0);
                     break;
 
                 case Enums.ScreenMode.Fullscreen:
@@ -68,7 +69,7 @@ namespace SoulEngine
 
 
             //Set up the screen adapter.
-            Context.Screen = new BoxingViewportAdapter(Context.Engine.Window, Context.graphics.GraphicsDevice, Settings.Width, Settings.Height);
+            Context.Screen = new BoxingViewportAdapter(Context.Core.Window, Context.graphics.GraphicsDevice, Settings.Width, Settings.Height);
             //Set up the camera.
             Context.Camera = new Camera2D(Context.Screen);        
         }

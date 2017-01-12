@@ -1281,20 +1281,21 @@ namespace SoulEngine.Legacy.Content
         /// <returns>The texture. If it doesn't exist it will return the missing texture.</returns>
         public static Texture2D Texture(string name)
         {
+            return new Texture2D(Context.graphics.GraphicsDevice, 1, 1);
             if (IO.GetContentExist(name))
             {
                 try
                 {
-                    return Core.host.Content.Load<Texture2D>("SCon/" + name);
+                    //return Core.host.Content.Load<Texture2D>("SCon/" + name);
                 }
                 catch
                 {
-                    return Core.missingTexture.Image;
+                    //return Core.missingTexture.Image;
                 }
             }
             else
             {
-                return Core.missingTexture.Image;
+                //return Core.missingTexture.Image;
             }
         }
         /// <summary>
@@ -1302,22 +1303,22 @@ namespace SoulEngine.Legacy.Content
         /// </summary>
         /// <param name="name">The name and path of the font to load.</param>
         /// <returns>The font. If it doesn't exist then the debug font will be loaded.</returns>
-        public static SpriteFont Font(string name)
+        public static void Font(string name)
         {
             if (IO.GetContentExist(name))
             {
                 try
                 {
-                    return Core.host.Content.Load<SpriteFont>("SCon/" + name);
+                    //return Core.host.Content.Load<SpriteFont>("SCon/" + name);
                 }
                 catch
                 {
-                    return Core.fontDebug;
+                    //return Core.fontDebug;
                 }
             }
             else
             {
-                return Core.fontDebug;
+                //return Core.fontDebug;
             }
         }
     }
