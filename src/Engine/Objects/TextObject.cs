@@ -77,6 +77,16 @@ namespace SoulEngine.Objects
         /// </summary>
         private List<string> processedText = new List<string>();
         /// <summary>
+        /// The text string without tags.
+        /// </summary>
+        public string TextPure
+        {
+            get
+            {
+                return string.Join("\r\n", processedText);
+            }
+        }
+        /// <summary>
         /// The effects processed with pointers for locations within the text.
         /// </summary>
         private List<string> procEffects = new List<string>();
@@ -95,6 +105,28 @@ namespace SoulEngine.Objects
         private Vector2 oldSize;
         private Vector2 oldLocation;
         private SpriteFont oldFont;
+        #endregion
+        #region "Effects"
+        private bool scrollEnabled = false;
+        private int scrollPosition = 0;
+        private Timer scrollTimer;
+        /// <summary>
+        /// Whether text is being scrolled.
+        /// </summary>
+        public bool Scrolling
+        {
+            get
+            {
+                if(scrollEnabled == false || (scrollTimer != null && scrollTimer.State == Timer.TimerState.Done))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
         #endregion
         #region "Other"
         Texture textPass = new Texture();
@@ -172,7 +204,7 @@ namespace SoulEngine.Objects
             //Check if changes.
             //We need to check changes because calling setrendertarget too often causes a memory leak.
             if (oldtxt == Text && oldStyle == TextStyle && oldLocation == Location
-                && oldSize == Size && oldFont == Font) return;
+                && oldSize == Size && oldFont == Font && Scrolling == false) return;
 
             //Declare location holders.
             float X_holder;
@@ -197,10 +229,10 @@ namespace SoulEngine.Objects
             Viewport tempPortHolder = Core.graphics.GraphicsDevice.Viewport;
 
             //Define a render target for the outline pass.
-            RenderTarget2D tempTargetText = new RenderTarget2D(Core.graphics.GraphicsDevice, Width + 10, Height + 10);
+            RenderTarget2D tempTargetOutline = new RenderTarget2D(Core.graphics.GraphicsDevice, Width + 10, Height + 10);
             
             //Set the graphics device to the rendertarget and clear it.
-            Core.graphics.GraphicsDevice.SetRenderTarget(tempTargetText);
+            Core.graphics.GraphicsDevice.SetRenderTarget(tempTargetOutline);
             Core.graphics.GraphicsDevice.Clear(Color.Transparent);
 
             //Render the outline.
@@ -209,12 +241,12 @@ namespace SoulEngine.Objects
             Core.ink.End();
 
             //Store the outline pass.
-            outlinePass.Image = tempTargetText;
+            outlinePass.Image = tempTargetOutline;
 
-            //Define a new rendertarget for the outline.
-            RenderTarget2D tempTargetOutline = new RenderTarget2D(Core.graphics.GraphicsDevice, Width + 10, Height + 10);
+            //Define a new rendertarget for the text.
+            RenderTarget2D tempTargetText = new RenderTarget2D(Core.graphics.GraphicsDevice, Width + 10, Height + 10);
             //Clear it and set the graphics device to it.
-            Core.graphics.GraphicsDevice.SetRenderTarget(tempTargetOutline);
+            Core.graphics.GraphicsDevice.SetRenderTarget(tempTargetText);
             Core.graphics.GraphicsDevice.Clear(Color.Transparent);
 
             //Render the text.
@@ -223,7 +255,7 @@ namespace SoulEngine.Objects
             Core.ink.End();
 
             //Store the text pass.
-            textPass.Image = tempTargetOutline;
+            textPass.Image = tempTargetText;
 
             //Return to the default render target.
             Core.graphics.GraphicsDevice.SetRenderTarget(null);
@@ -311,7 +343,7 @@ namespace SoulEngine.Objects
                 //Run through all letters.
                 for (int p = 0; p < processedText[l].Length; p++)
                 {
-
+                    
                     //Updates the effect stack up to the effects of the current position.
                     UpdateEffectStack(effectsStack, pointerPosition);
 
@@ -351,8 +383,10 @@ namespace SoulEngine.Objects
                             }
                         }
                         catch { }
-
                     }
+
+                    //Check if scrolling and past scroll point.
+                    if (scrollEnabled == true && scrollPosition == pointerPosition) return;
 
                     //Add tab space.
                     if (p == 0)
@@ -891,6 +925,65 @@ namespace SoulEngine.Objects
                 Core.ink.DrawString(font, text, new Vector2(offsetLocation.X, offsetLocation.Y - i), color);
                 Core.ink.DrawString(font, text, new Vector2(offsetLocation.X, offsetLocation.Y + i), color);
             }
+        }
+        #endregion
+        #region "Effects"
+        /// <summary>
+        /// Renders the text letter by letter.
+        /// </summary>
+        /// <param name="time">The time the whole scroll effect should take.</param>
+        public void Scroll(int time)
+        {
+            //Make sure text has been processed.
+            Process();
+            //Trip scrolling flag, and reset position.
+            scrollEnabled = true;
+            scrollPosition = 0;
+            //Setup scroll timer.
+            scrollTimer = new Timer(time / TextPure.Length, TextPure.Length, true);
+            scrollTimer.onTick.Add(ScrollTimerTick);
+            scrollTimer.onTickLimitReached.Add(ScrollTimerReady);
+        }
+        /// <summary>
+        /// Stops scrolling.
+        /// </summary>
+        public void ScrollEnd()
+        {
+            //Emulate full scroll.
+            scrollPosition = TextPure.Length;
+            //Update the image to display the whole text.
+            Update();
+            //Stop the scroll timer, and run ready code.
+            scrollTimer.Pause();
+            ScrollTimerReady();
+        }
+        /// <summary>
+        /// Pauses scrolling.
+        /// </summary>
+        public void ScrollPause()
+        {
+            scrollTimer.Pause();
+        }
+        /// <summary>
+        /// Resumes scrolling.
+        /// </summary>
+        public void ScrollResume()
+        {
+            scrollTimer.Start();
+        }
+        /// <summary>
+        /// Is triggered by the scrolling timer, increments the text position by one.
+        /// </summary>
+        private void ScrollTimerTick()
+        {
+            scrollPosition++;
+        }
+        /// <summary>
+        /// Is triggered when the scrolling has finished, used to clean up.
+        /// </summary>
+        private void ScrollTimerReady()
+        {
+            scrollEnabled = false;
         }
         #endregion
     }
