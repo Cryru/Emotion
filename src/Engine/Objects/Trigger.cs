@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine.Objects.Internal
+namespace SoulEngine.Objects
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -16,7 +16,7 @@ namespace SoulEngine.Objects.Internal
     /// <summary>
     /// An object for handling events.
     /// </summary>
-    public class Event
+    public class Trigger
     {
         #region "Declarations"
         //A list of events to be invoked when the event is triggered that will not return anything.
@@ -48,7 +48,7 @@ namespace SoulEngine.Objects.Internal
         /// Trigger the event.
         /// </summary>
         /// <param name="obj">The object that triggered the event.</param>
-        public void Trigger()
+        public void Invoke()
         {
             //Trigger events that are hooked without arguments.
             for (int i = 0; i < hookedMethods_NoArg.Count; i++)
@@ -65,9 +65,9 @@ namespace SoulEngine.Objects.Internal
         }
     }
     /// <summary>
-    /// Event with an argument. Can still accept no argument links.
+    /// Trigger with an argument. Can still accept no argument links.
     /// </summary>
-    public class Event<T>
+    public class Trigger<T>
     {
         #region "Declarations"
         //A list of events to be invoked when the event is triggered that will return the object that triggered it.
@@ -118,7 +118,7 @@ namespace SoulEngine.Objects.Internal
         /// Trigger the event.
         /// </summary>
         /// <param name="obj">The object that triggered the event.</param>
-        public void Trigger(T obj)
+        public void Invoke(T obj)
         {
             //Trigger events that are hooked with arguments first.
             for (int i = 0; i < hookedMethods_Arg.Count; i++)
@@ -140,11 +140,11 @@ namespace SoulEngine.Objects.Internal
         }
     }
     /// <summary>
-    /// Event with two argument. Can still accept no argument links.
+    /// Trigger with two argument. Can still accept no argument links.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="T2"></typeparam>
-    public class Event<T, T2>
+    public class Trigger<T, T2>
     {
         #region "Declarations"
         //A list of events to be invoked when the event is triggered that will return the object that triggered it.
@@ -195,7 +195,7 @@ namespace SoulEngine.Objects.Internal
         /// Trigger the event.
         /// </summary>
         /// <param name="obj">The object that triggered the event.</param>
-        public void Trigger(T obj, T2 objTwo)
+        public void Invoke(T obj, T2 objTwo)
         {
             //Trigger events that are hooked with arguments first.
             for (int i = 0; i < hookedMethods_Arg.Count; i++)
@@ -217,11 +217,11 @@ namespace SoulEngine.Objects.Internal
         }
     }
     /// <summary>
-    /// Event with three argument. Can still accept no argument links.
+    /// Trigger with three argument. Can still accept no argument links.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="T2"></typeparam>
-    public class Event<T, T2, T3>
+    public class Trigger<T, T2, T3>
     {
         #region "Declarations"
         //A list of events to be invoked when the event is triggered that will return the object that triggered it.
@@ -272,7 +272,7 @@ namespace SoulEngine.Objects.Internal
         /// Trigger the event.
         /// </summary>
         /// <param name="obj">The object that triggered the event.</param>
-        public void Trigger(T obj, T2 objTwo, T3 objThree)
+        public void Invoke(T obj, T2 objTwo, T3 objThree)
         {
             //Trigger events that are hooked with arguments first.
             for (int i = 0; i < hookedMethods_Arg.Count; i++)

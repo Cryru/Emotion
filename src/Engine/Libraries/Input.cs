@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Legacy
 {
     //////////////////////////////////////////////////////////////////////////////
     // Soul Engine - A game engine based on the MonoGame Framework.             //
@@ -39,7 +39,7 @@ namespace SoulEngine
             currentFrameMouseState = Mouse.GetState();
 
             //Check if closing.
-            if (isKeyDown(Keys.Escape)) Core.host.Exit();
+            //if (isKeyDown(Keys.Escape)) Core.host.Exit();
         }
         public static void UpdateInput_End()
         {
@@ -158,7 +158,8 @@ namespace SoulEngine
         /// <returns></returns>
         public static Vector2 getMousePos()
         {
-            return Core.maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
+            //return Core.maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
+            return new Vector2();
         }
         #region "Left Button"
         /// <summary>

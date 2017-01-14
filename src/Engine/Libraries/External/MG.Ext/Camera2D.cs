@@ -204,7 +204,7 @@ namespace SoulEngine
 
         public Vector2 GetCenter()
         {
-            return new Vector2(Position.X + Settings.game_width / 2, Position.Y + Settings.game_height / 2);
+            return new Vector2(Position.X + Settings.Width / 2, Position.Y + Settings.Height / 2);
         }
     }
 }
