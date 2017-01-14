@@ -1,32 +1,32 @@
-﻿using Microsoft.Xna.Framework;
+﻿//using Microsoft.Xna.Framework;
 
-namespace SoulEngine.Objects
-{
-    //////////////////////////////////////////////////////////////////////////////
-    // SoulEngine - A game engine based on the MonoGame Framework.              //
-    // Public Repository: https://github.com/Cryru/SoulEngine                   //
-    //////////////////////////////////////////////////////////////////////////////
-    /// <summary>
-    /// The base for game objects.
-    /// </summary>
-    class GameObjectBase : ObjectBase
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public override void Update()
-        {
+//namespace SoulEngine.Objects
+//{
+//    //////////////////////////////////////////////////////////////////////////////
+//    // SoulEngine - A game engine based on the MonoGame Framework.              //
+//    // Public Repository: https://github.com/Cryru/SoulEngine                   //
+//    //////////////////////////////////////////////////////////////////////////////
+//    /// <summary>
+//    /// The base for game objects.
+//    /// </summary>
+//    class GameObjectBase : ObjectBase
+//    {
+//        /// <summary>
+//        /// 
+//        /// </summary>
+//        public override void Update()
+//        {
 
-            base.Update();
-        }
+//            base.Update();
+//        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public override void Draw()
-        {
+//        /// <summary>
+//        /// 
+//        /// </summary>
+//        public override void Draw()
+//        {
 
-            base.Draw();
-        }
-    }
-}
+//            base.Draw();
+//        }
+//    }
+//}

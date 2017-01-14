@@ -1,19 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Components
 {
-    //////////////////////////////////////////////////////////////////////////////
-    // SoulEngine - A game engine based on the MonoGame Framework.              //
-    // Public Repository: https://github.com/Cryru/SoulEngine                   //
-    //////////////////////////////////////////////////////////////////////////////
-    /// <summary>
-    /// The base for engine objects.
-    /// </summary>
-    public class ObjectBase
+    public class Transform : Component
     {
-        #region "Variables"
         //The position of the object within the scene.
         #region "Positional"
         /// <summary>
@@ -32,7 +27,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// 
         /// </summary>
-        Vector3 Location
+        Vector3 PositionFull
         {
             get
             {
@@ -107,24 +102,6 @@ namespace SoulEngine.Objects
         }
         #endregion
 
-        /// <summary>
-        /// The box wrapping the object.
-        /// </summary>
-        Rectangle Bounds
-        {
-            get
-            {
-                return new Rectangle((int) X, (int) Y, (int) Width, (int) Height);
-            }
-            set
-            {
-                X = value.X;
-                Y = value.Y;
-                Width = value.Width;
-                Height = value.Height;
-            }
-        }
-
         //The rotation of the object.
         #region "Rotation"
         /// <summary>
@@ -147,72 +124,57 @@ namespace SoulEngine.Objects
         }
         #endregion
 
-        //Display properties of the object.
-        #region "Display"
         /// <summary>
-        /// 
+        /// The box wrapping the object.
         /// </summary>
-        Internal.ActiveTexture Texture { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        float Opacity = 1f;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        Color Tint = Color.White;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public SpriteEffects MirrorEffects = SpriteEffects.None;
-        #endregion
-
-        //Events of the object.
-        #region "Triggers"
-        /// <summary>
-        /// 
-        /// </summary>
-        Internal.Trigger onUpdate = new Internal.Trigger();
-        /// <summary>
-        /// 
-        /// </summary>
-        Internal.Trigger onDraw = new Internal.Trigger();
-        #endregion
-
-        //Ways for the object to link with parental objects.
-        #region "Hooks"
-        /// <summary>
-        /// 
-        /// </summary>
-        Main.Scene Scene { get; set; }
-        #endregion
-
-        //Other
-        #region "Others"
-        /// <summary>
-        /// Tags used to store information within the object.
-        /// </summary>
-        Dictionary<string, string> Tags = new Dictionary<string, string>();
-        #endregion
-        #endregion
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual void Update()
+        Rectangle Bounds
         {
-
+            get
+            {
+                return new Rectangle((int)X, (int)Y, (int)Width, (int)Height);
+            }
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+                Width = value.Width;
+                Height = value.Height;
+            }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual void Draw()
-        {
 
+        #region "Initialization"
+        public Transform()
+        {
+            PositionFull = new Vector3(0, 0, 0);
+            Size = new Vector2(100, 100);
         }
+        public Transform(Vector3 Position, Vector2 Size)
+        {
+            PositionFull = Position;
+            this.Size = Size;
+        }
+        public Transform(Vector2 Position, Vector2 Size)
+        {
+            this.Position = Position;
+            this.Size = Size;
+        }
+        public Transform(Vector3 Position)
+        {
+            PositionFull = Position;
+        }
+        public Transform(Vector2 Position)
+        {
+            this.Position = Position;
+        }
+        #endregion
+
+        #region "Private Helpers"
+
+        #endregion
+
+        #region "Functions"
+
+        #endregion
     }
 }

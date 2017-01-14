@@ -52,7 +52,7 @@ namespace SoulEngine
             Functions.RefreshScreenSettings();
 
             //Load loading screen stuff.
-            LoadingLogo = new Objects.ObjectBase();
+            //LoadingLogo = new ObjectBase();
             //Context.Engine.LoadingLogo = Context.Engine.Content.Load<Texture2D>("Engine/loadingLogo");
 
             //Continue the start sequence.
@@ -112,38 +112,34 @@ namespace SoulEngine
 
         #region "Loading Screen Loops"
         #region "Loading Screen Assets"
-        Objects.ObjectBase LoadingLogo = new Objects.ObjectBase();
 
-        float LoadingLogoOpacity = 0.1f;
-        bool LoadingLogoGlowFadeOut = false;
-        int LoadingLogoFadeTimer = 0;
         #endregion
-        int X = 0;
-        int Y = 0;
+        //int X = 0;
+        //int Y = 0;
         /// <summary>
         /// The update cycle of the loading screen.
         /// </summary>
         public void Loading_Update(GameTime gameTime)
         {
-            LoadingLogoFadeTimer += gameTime.ElapsedGameTime.Milliseconds;
+            //LoadingLogoFadeTimer += gameTime.ElapsedGameTime.Milliseconds;
 
-            if (LoadingLogoFadeTimer < 150) return;
+            //if (LoadingLogoFadeTimer < 150) return;
 
-            LoadingLogoFadeTimer = 0;
+            //LoadingLogoFadeTimer = 0;
 
-            //Glow effect.
-            if (LoadingLogoGlowFadeOut)
-            {
-                LoadingLogoOpacity -= 0.01f;
+            ////Glow effect.
+            //if (LoadingLogoGlowFadeOut)
+            //{
+            //    LoadingLogoOpacity -= 0.01f;
 
-                if (LoadingLogoOpacity < 0.05f) LoadingLogoGlowFadeOut = false;
-            }
-            else
-            {
-                LoadingLogoOpacity += 0.01f;
+            //    if (LoadingLogoOpacity < 0.05f) LoadingLogoGlowFadeOut = false;
+            //}
+            //else
+            //{
+            //    LoadingLogoOpacity += 0.01f;
 
-                if (LoadingLogoOpacity > 0.1f) LoadingLogoGlowFadeOut = true;
-            }
+            //    if (LoadingLogoOpacity > 0.1f) LoadingLogoGlowFadeOut = true;
+            //}
             
         }
         /// <summary>
@@ -156,7 +152,7 @@ namespace SoulEngine
             //null, Context.Screen.GetScaleMatrix());
             //         Context.ink.Draw(LoadingLogo, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White * LoadingLogoOpacity);
             //         Context.ink.End();
-            LoadingLogo.Draw();
+            //LoadingLogo.Draw();
         }
         #endregion
 
