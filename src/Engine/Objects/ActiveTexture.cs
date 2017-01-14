@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine.Objects.Internal
+namespace SoulEngine.Objects
 {
-    class Trigger
+    class ActiveTexture
     {
     }
 }

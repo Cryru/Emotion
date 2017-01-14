@@ -411,6 +411,7 @@ namespace SoulEngine.Legacy.Objects
             Height = Image.Image.Height;
         }
         #endregion
+
         #region "Effects"
         /// <summary>
         /// Smoothly moves the object to the specified location over the specified time.

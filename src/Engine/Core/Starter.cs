@@ -56,9 +56,6 @@ namespace SoulEngine
                 throw new Exception("The assets meta file is missing, or file tampering detected.");
             }
 
-            //Setup the Core context.
-            //TODO
-
             //Loading has finished.
             Loading = false;
         }

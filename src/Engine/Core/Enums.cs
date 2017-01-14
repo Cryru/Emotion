@@ -16,4 +16,14 @@ namespace SoulEngine.Enums
         Fullscreen, //Graphics exclusive mode, fullscreened.
         Borderless //The window is without a border and fullscreened.
     }
+
+    /// <summary>
+    /// The ticker's state.
+    /// </summary>
+    public enum TickerState
+    {
+        Running, //Ticking.
+        Done, //Done ticking.
+        Paused //Paused.
+    }
 }

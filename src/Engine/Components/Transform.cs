@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using SoulEngine.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,14 @@ using System.Threading.Tasks;
 
 namespace SoulEngine.Components
 {
-    public class Transform : Component
+    //////////////////////////////////////////////////////////////////////////////
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
+    //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Location, Size, and Rotation.
+    /// </summary>
+    public class Transform
     {
         //The position of the object within the scene.
         #region "Positional"
@@ -142,7 +150,6 @@ namespace SoulEngine.Components
             }
         }
 
-
         #region "Initialization"
         public Transform()
         {
@@ -170,11 +177,85 @@ namespace SoulEngine.Components
         #endregion
 
         #region "Private Helpers"
-
+        private bool _moveRunning = false;
+        private Vector3 _moveStartPosition;
+        private Vector3 _moveEndPosition;
+        private Ticker _moveTicker;
         #endregion
 
         #region "Functions"
+        /// <summary>
+        /// Is run every tick.
+        /// </summary>
+        public void Update()
+        {
 
+        }
+        /// <summary>
+        /// Moves the object to the desired location over the desired duration.
+        /// </summary>
+        /// <param name="Duration">The time the movement should take.</param>
+        /// <param name="TargetLocation">The location to move to.</param>
+        /// <param name="Force">Whether to force movement, which means it will overwrite any current movement.</param>
+        public void MoveTo(int Duration, Vector3 TargetLocation, bool Force = false)
+        {
+            //Check if the effect is already running, and if we are not forcing.
+            if (_moveRunning && !Force) return;
+
+            _moveStartPosition = PositionFull;
+            _moveEndPosition = TargetLocation;
+
+            _moveTicker = new Ticker(1, Duration, true);
+            _moveTicker.onTick.Add(moveApply);
+            _moveTicker.onDone.Add(moveOver);
+        }
+        #region "Positioning"
+        /// <summary>
+        /// Center the object within the window.
+        /// </summary>
+        public void ObjectCenter()
+        {
+            ObjectCenterX();
+            ObjectCenterY();
+        }
+        /// <summary>
+        /// Center the object within the window on the X axis.
+        /// </summary>
+        public void ObjectCenterX()
+        {
+            X = Settings.Width / 2 - Width / 2;
+        }
+        /// <summary>
+        /// Center the object within the window on the Y axis.
+        /// </summary>
+        public void ObjectCenterY()
+        {
+            Y = Settings.Height / 2 - Height / 2;
+        }
+        /// <summary>
+        /// Makes the object fit the whole screen.
+        /// </summary>
+        public void ObjectFullscreen()
+        {
+            Width = Settings.Width;
+            Height = Settings.Height;
+            X = 0;
+            Y = 0;
+        }
+        #endregion
+        #endregion
+
+        #region "Internal Functions"
+        private void moveApply()
+        {
+            X = MathHelper.Lerp(_moveStartPosition.X, _moveEndPosition.X, (_moveTicker.TimeSinceStart / _moveTicker.TotalTime));
+            Y = MathHelper.Lerp(_moveStartPosition.Y, _moveEndPosition.Y, (_moveTicker.TimeSinceStart / _moveTicker.TotalTime));
+        }
+        private void moveOver()
+        {
+            _moveRunning = false;
+            _moveTicker = null;
+        }
         #endregion
     }
 }

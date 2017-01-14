@@ -57,7 +57,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Engine\Components\Component.cs" />
     <Compile Include="src\Engine\Components\Transform.cs" />
     <Compile Include="src\Engine\Core\AssetManager.cs" />
     <Compile Include="src\Engine\Core\Assets.cs" />
@@ -65,10 +64,9 @@
     <Compile Include="src\Engine\Core\Enums.cs" />
     <Compile Include="src\Engine\Core\Functions.cs" />
     <Compile Include="src\Engine\Meta\Info.cs" />
-    <Compile Include="src\Engine\Objects\Internal\Trigger.cs" />
-    <Compile Include="src\Engine\Objects\Internal\ActiveTexture.cs" />
-    <Compile Include="src\Engine\Objects\Main\Scene.cs" />
-    <Compile Include="src\Engine\Objects\GameObjectBase.cs" />
+    <Compile Include="src\Engine\Objects\Trigger.cs" />
+    <Compile Include="src\Engine\Objects\ActiveTexture.cs" />
+    <Compile Include="src\Engine\Objects\Scene.cs" />
     <Compile Include="src\Engine\Core\GameObject.cs" />
     <None Include="src\Legacy\PhysicsEngine.cs" />
     <Compile Include="src\Engine\Libraries\Physics\Collision\Collision.cs" />
@@ -194,11 +192,12 @@
     <None Include="src\Legacy\Internal\Event.cs" />
     <None Include="src\Legacy\PhysicsObject.cs" />
     <None Include="src\User\Screens\StartScreen.cs" />
+    <Compile Include="src\Engine\Objects\Ticker.cs" />
     <Compile Include="src\User\Settings.cs" />
-    <None Include="src\Engine\Core\Core.cs" />
-    <Compile Include="src\Engine\Core\Engine.cs" />
+    <None Include="src\Legacy\Core.cs" />
+    <Compile Include="src\Engine\Core\Core.cs" />
     <Compile Include="src\Engine\Core\Starter.cs" />
-    <Compile Include="src\Engine\Libraries\Content.cs" />
+    <Compile Include="src\Legacy\Content.cs" />
     <Compile Include="src\Engine\Libraries\External\MG.Ext\BoxingViewportAdapter.cs" />
     <Compile Include="src\Engine\Libraries\External\MG.Ext\Camera2D.cs" />
     <Compile Include="src\Engine\Libraries\External\MG.Ext\DefaultViewportAdapter.cs" />

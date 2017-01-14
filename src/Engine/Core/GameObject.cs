@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using SoulEngine.Components;
 
 namespace SoulEngine
 {
@@ -18,7 +19,7 @@ namespace SoulEngine
         /// <summary>
         /// 
         /// </summary>
-        private List<Components.Component> Components = new List<Components.Component>();
+
 
 
 
@@ -76,29 +77,27 @@ namespace SoulEngine
         //#endregion
         #endregion
 
+        #region "Components"
         /// <summary>
-        /// 
+        /// Location, Size, and Rotation.
+        /// </summary>
+        public Transform Transform = new Transform();
+        #endregion
+
+        /// <summary>
+        /// Is run every tick.
         /// </summary>
         public virtual void Update()
         {
-
+            Transform.Update();
         }
 
         /// <summary>
-        /// 
+        /// Is run every frame.
         /// </summary>
         public virtual void Draw()
         {
 
         }
-
-        #region "Component System"
-        public void AddComponent(Components.Component Component)
-        {
-            //Check if the component's dependencies are attached.
-            if (Component.CheckDependencies(this)) throw new Exception("ERROR C01: Failed adding component " + Component.GetType() + " due to missing dependencies.");
-            Components.Add(Component);
-        }
-        #endregion
     }
 }
