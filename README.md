@@ -1,19 +1,33 @@
-<img src="WindowsVer.png" width=50%>
+<img src="windowslogo.png" width=30%>
 
-# This is the Windows version.
+This version of SoulEngine is not ready to be used, for a more feature complete version refer to last year's version - ["SoulEngine 2016"](https://github.com/Cryru/SoulEngine-2016)
 
-For the Android version go here: https://github.com/Cryru/SoulEngine_Android
+# SoulEngine
 
-## What is this?
+SoulEngine is a XNA/MonoGame based game engine for creating 2D games. This is the main development repo of the Windows version, for the Android version refer to the ["SoulEngine Android repo"](https://github.com/Cryru/SoulEngine-Android)
 
-SoulEngine is a game engine coded in C#, based on the MonoGame framework, it includes basic objects essential to any game, in addition to a library of useful functions.
+## Features
+
+- Animated Textures
+- Easy Asset Loading
+- Scene System
+- Event System
+- Tiled Integration
+- FPS Independant Timing
+- Anti-Tampering Asset System
+- Camera System
+- Easy Settings System
+and many more.
+
 
 ## External Projects
 
-This project uses the ["TiledSharp"](https://github.com/marshallward/TiledSharp) library and parts of the ["MonoGame.Extended"](https://github.com/craftworkgames/MonoGame.Extended) library. These are included with this project as there is some modified and additional code, and to ensure that updates to them don't break existing functionality.
+["TiledSharp"](https://github.com/marshallward/TiledSharp) - For reading .tmx files.
 
-The engine also uses ["SoulLib"](https://github.com/Cryru/SoulLib).
+["SoulLib"](https://github.com/Cryru/SoulLib) - Various functionality.
 
-## Where do I start?
+["Polygon-Tool"](https://github.com/Cryru/Polygon-Tool) - Creating polygon collision boxes.
 
-Head over to the wiki to learn more about how things work. [NYI]
+["Asset-Meta-Generator"](https://github.com/Cryru/Asset-Meta-Generator) - Creating meta files for game assets.
+
+["Farseer Physics"](https://github.com/tinco/Farseer-Physics) - Physics engine.

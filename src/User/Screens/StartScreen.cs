@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects;
 
-namespace SoulEngine
+namespace SoulEngine.Legacy
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -18,7 +18,7 @@ namespace SoulEngine
     /// <summary>
     /// The default first screen.
     /// </summary>
-    public class StartScreen : Screen
+    public class StartScreen : Objects.Screen
     {
         #region "Declarations"
 
