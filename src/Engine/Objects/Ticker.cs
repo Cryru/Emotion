@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SoulEngine.Objects.Internal;
 using SoulEngine.Enums;
 
 namespace SoulEngine.Objects

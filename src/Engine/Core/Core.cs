@@ -41,7 +41,7 @@ namespace SoulEngine
         public Core()
         {
             //Setup the graphics device.
-            Context.graphics = new GraphicsDeviceManager(this);
+            Context.GraphicsManager = new GraphicsDeviceManager(this);
 
             //Setup the Content root folder for the master scene. The root for this folder is the exe.
             Content.RootDirectory = "Content";
@@ -49,7 +49,7 @@ namespace SoulEngine
             //Apply relevant settings.
             IsFixedTimeStep = Settings.capFPS;
             TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Settings.FPS);
-            Context.graphics.SynchronizeWithVerticalRetrace = Settings.vSync;
+            Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
             Window.AllowUserResizing = Settings.ResizableWindow;
 
             //Apply hardcoded settings.
@@ -106,7 +106,7 @@ namespace SoulEngine
             UpdateTickers();
 
             //Start drawing frame by first clearing the screen.
-            Context.graphics.GraphicsDevice.Clear(Color.Black);
+            Context.Graphics.Clear(Color.Black);
 
             //Check if loading, in which case we want to run the loading cycle.
             if (Starter.Loading) { Loading_Draw(gameTime); return; }
@@ -171,7 +171,7 @@ namespace SoulEngine
         /// </summary>
         public void Loading_Draw(GameTime gameTime)
         {
-            Context.graphics.GraphicsDevice.Clear(new Color(56, 56, 56));
+            Context.Graphics.Clear(new Color(56, 56, 56));
             //         Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
             //null, Context.Screen.GetScaleMatrix());
             //         Context.ink.Draw(LoadingLogo, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White * LoadingLogoOpacity);

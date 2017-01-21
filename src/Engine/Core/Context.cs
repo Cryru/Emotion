@@ -11,12 +11,37 @@ namespace SoulEngine
 {
     static class Context
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public static Core Core { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static SpriteBatch ink { get; set; }
-        public static GraphicsDeviceManager graphics { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public static GraphicsDeviceManager GraphicsManager { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public static GraphicsDevice Graphics
+        {
+            get
+            {
+                return Core.GraphicsDevice;
+            }
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static Camera2D Camera;
+        /// <summary>
+        /// 
+        /// </summary>
         public static BoxingViewportAdapter Screen;
     }
 }
