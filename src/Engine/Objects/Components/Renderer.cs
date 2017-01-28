@@ -14,17 +14,13 @@ namespace SoulEngine.Objects.Components
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Hosts and handles textures and drawing.
+    /// Hosts and handles textures and drawing. XNA Integrated.
     /// </summary>
     public class Renderer : Component
     {
         #region "Variables"
         //Main variables.
         #region "Primary"
-        /// <summary>
-        /// 
-        /// </summary>
-        ActiveTexture Texture { get; set; }
         #endregion
         //Private variables.
         #region "Private"
@@ -34,18 +30,57 @@ namespace SoulEngine.Objects.Components
 
         #region "Initialization"
         /// <summary>
-        /// 
+        /// Component used to render a game object in 2D space. Requires an ActiveTexture and a Transform component.
         /// </summary>
-        /// <param name="Texture"></param>
-        public Renderer(ActiveTexture Texture)
+        public Renderer()
         {
-            this.Texture = Texture;
+
         }
         #endregion
 
         //Main functions.
         #region "Functions"
+        /// <summary>
+        /// Draws the object based on parameters specified by its other components.
+        /// </summary>
+        public override void Draw()
+        {
+            //Define drawing properties.
+            Texture2D DrawImage = AssetManager.MissingTexture;
+            Color DrawTint = Color.White;
+            float DrawOpacity = 1f;
+            SpriteEffects DrawEffects = SpriteEffects.None;
+            Rectangle DrawBounds = new Rectangle(0,0,50,50);
+            float Rotation = 0f;
+            
 
+            //Check for components to overwrite default drawing properties.
+            if (attachedObject.HasComponent<ActiveTexture>())
+            {
+                DrawImage = attachedObject.Component<ActiveTexture>().Texture;
+                DrawTint = attachedObject.Component<ActiveTexture>().Tint;
+                DrawOpacity = attachedObject.Component<ActiveTexture>().Opacity;
+                DrawEffects = attachedObject.Component<ActiveTexture>().MirrorEffects;
+            }
+            if (attachedObject.HasComponent<Transform>())
+            {
+                DrawBounds = attachedObject.Component<Transform>().Bounds;
+                Rotation = attachedObject.Component<Transform>().Rotation;
+            }
+
+            //Correct bounds to center origin.
+            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2), 
+                (DrawBounds.Y + DrawBounds.Height / 2)), 
+                new Point(DrawBounds.Width, DrawBounds.Height));
+
+            //Draw the object through XNA's SpriteBatch.
+            Context.ink.Draw(DrawImage, DrawBounds, null, DrawTint * DrawOpacity, Rotation, new Vector2(DrawBounds.X, DrawBounds.Y), DrawEffects, 1.0f);
+        }
+
+        public override void Update()
+        {
+
+        }
         #endregion
         //Private functions.
         #region "Internal Functions"

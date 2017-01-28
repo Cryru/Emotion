@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,9 @@ namespace SoulEngine
     /// </summary>
     static class AssetManager
     {
+
+        public static Texture2D MissingTexture;
+
         /// <summary>
         /// Reads the assets meta file, and applies checks for validity.
         /// If true is returned then files are as they should be, otherwise false is returned.

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine.Objects
+namespace SoulEngine.Objects.Components
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -15,11 +15,11 @@ namespace SoulEngine.Objects
     /// <summary>
     /// A managed texture object.
     /// </summary>
-    public class ActiveTexture
+    public class ActiveTexture : Component
     {
         #region "Variables"
         /// <summary>
-        /// 
+        /// Internal XNA Texture holder.
         /// </summary>
         public Texture2D Texture
         {
@@ -27,7 +27,25 @@ namespace SoulEngine.Objects
             {
                 return _texture as Texture2D;
             }
+            set
+            {
+                Redefine(value);
+            }
         }
+        #region "Variables for the Renderer Component"
+        /// <summary>
+        /// Used to mirror textures horizontally or vertically. Used by the renderer component.
+        /// </summary>
+        public SpriteEffects MirrorEffects = SpriteEffects.None;
+        /// <summary>
+        /// Used to decide the texture opacity. Used by the renderer component.
+        /// </summary>
+        public float Opacity = 1f;
+        /// <summary>
+        /// Used to color the texture. Used by the renderer component.
+        /// </summary>
+        public Color Tint = Color.White;
+        #endregion
         #region "Private"
         private RenderTarget2D _texture;
         private Viewport _tempPortHolder;
@@ -38,33 +56,32 @@ namespace SoulEngine.Objects
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="Texture"></param>
-        public ActiveTexture(Texture2D Texture)
+        public ActiveTexture()
         {
             Generate();
-            Regenerate(Texture);
         }
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="TextureName"></param>
-        public ActiveTexture(string TextureName)
+        /// <param name="Texture"></param>
+        public ActiveTexture(Texture2D Texture, Rectangle Bounds = new Rectangle())
         {
             Generate();
-            Regenerate(TextureName);
+            Redefine(Texture, Bounds);
         }
         #endregion
 
         //Main functions.
         #region "Functions"
-
-        #region "Regeneration"
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Texture"></param>
-        public void Regenerate(Texture2D Texture, Rectangle Bounds = new Rectangle())
+        public void Redefine(Texture2D Texture, Rectangle Bounds = new Rectangle())
         {
+            //Check if no bounds specified, in which case texture bounds are taken.
+            if(Bounds == new Rectangle()) Bounds = Texture.Bounds;
+
             //Check if regenerating with a differently sized texture, in which case we want to generate a new render target.
             if (Bounds.Size.X != _texture.Bounds.Size.X ||
                 Bounds.Size.X != _texture.Bounds.Size.Y) Generate(Bounds.Size.X, Bounds.Size.Y);
@@ -76,21 +93,14 @@ namespace SoulEngine.Objects
             Context.ink.Draw(Texture, new Rectangle(0, 0, Bounds.Width, Bounds.Height), Bounds, Color.White);
             Context.ink.End();
 
+            //Stop drawing.
             EndTextureDraw();
         }
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="TextureName"></param>
-        public void Regenerate(string TextureName, Rectangle Bounds = new Rectangle())
-        {
-            //TODO: ASSET LOADING CODE
-        }
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="Size"></param>
-        public void Regenerate(Vector2 Size)
+        public void Resize(Vector2 Size)
         {
             Generate((int) Size.X, (int) Size.Y);
         }
@@ -99,11 +109,10 @@ namespace SoulEngine.Objects
         /// </summary>
         /// <param name="Width"></param>
         /// <param name="Height"></param>
-        public void Regenerate(int Width, int Height)
+        public void Resize(int Width, int Height)
         {
-            Regenerate(new Vector2(Width, Height));
+            Resize(new Vector2(Width, Height));
         }
-        #endregion
         /// <summary>
         /// 
         /// </summary>
@@ -132,6 +141,11 @@ namespace SoulEngine.Objects
         #endregion
         //Private functions.
         #region "Internal Functions"
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Width"></param>
+        /// <param name="Height"></param>
         private void Generate(int Width = 0, int Height = 0)
         {
             //Destroy previous render target safely, if any.
@@ -142,5 +156,10 @@ namespace SoulEngine.Objects
         }
         #endregion
 
+        //Other
+        #region "Component Interface"
+        public override void Update(){}
+        public override void Draw(){}
+        #endregion
     }
 }

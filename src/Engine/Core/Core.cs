@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using SoulEngine.Objects;
+using SoulEngine.Objects.Components;
 
 namespace SoulEngine
 {
@@ -69,12 +70,16 @@ namespace SoulEngine
             //Refresh the screen settings.
             Functions.RefreshScreenSettings();
 
-            //Load loading screen object.
-            LoadingLogo = new GameObject();//Content.Load<Texture2D>("Engine/loadingLogo");
-            LoadingLogo.Transform.ObjectCenter();
-
             //Continue the start sequence.
             Starter.ContinueStart();
+
+            //Cont here
+
+            GameObject a = new GameObject();
+            //a.AddComponent(new Transform());
+            a.AddComponent(new ActiveTexture());
+            a.AddComponent(new Renderer());
+            a.Draw();
         }
         #endregion
 
@@ -83,12 +88,11 @@ namespace SoulEngine
         /// Is executed every tick.
         /// </summary>
         protected override void Update(GameTime gameTime)
-        {        
+        {
             //If the game is not focused, don't update.
             if (IsActive == false) return;
 
-            //Check if loading, in which case we want to run the loading cycle.
-            if (Starter.Loading) { Loading_Update(gameTime); return; }
+            //Cont here
         }
 
         /// <summary>
@@ -107,10 +111,8 @@ namespace SoulEngine
 
             //Start drawing frame by first clearing the screen.
             Context.Graphics.Clear(Color.Black);
-
-            //Check if loading, in which case we want to run the loading cycle.
-            if (Starter.Loading) { Loading_Draw(gameTime); return; }
-          
+            
+            //Cont here          
         }
         #endregion
 
@@ -134,49 +136,6 @@ namespace SoulEngine
                     Tickers[i].Update();
                 }
             }
-        }
-        #endregion
-
-        #region "Loading Screen"
-        GameObject LoadingLogo;
-
-        /// <summary>
-        /// The update cycle of the loading screen.
-        /// </summary>
-        public void Loading_Update(GameTime gameTime)
-        {
-            //LoadingLogoFadeTimer += gameTime.ElapsedGameTime.Milliseconds;
-
-            //if (LoadingLogoFadeTimer < 150) return;
-
-            //LoadingLogoFadeTimer = 0;
-
-            ////Glow effect.
-            //if (LoadingLogoGlowFadeOut)
-            //{
-            //    LoadingLogoOpacity -= 0.01f;
-
-            //    if (LoadingLogoOpacity < 0.05f) LoadingLogoGlowFadeOut = false;
-            //}
-            //else
-            //{
-            //    LoadingLogoOpacity += 0.01f;
-
-            //    if (LoadingLogoOpacity > 0.1f) LoadingLogoGlowFadeOut = true;
-            //}
-            
-        }
-        /// <summary>
-        /// The draw cycle of the loading screen.
-        /// </summary>
-        public void Loading_Draw(GameTime gameTime)
-        {
-            Context.Graphics.Clear(new Color(56, 56, 56));
-            //         Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
-            //null, Context.Screen.GetScaleMatrix());
-            //         Context.ink.Draw(LoadingLogo, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White * LoadingLogoOpacity);
-            //         Context.ink.End();
-            //LoadingLogo.Draw();
         }
         #endregion
 

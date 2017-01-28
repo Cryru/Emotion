@@ -211,7 +211,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Is run every tick.
         /// </summary>
-        public void Update()
+        public override void Update()
         {
 
         }
@@ -280,6 +280,11 @@ namespace SoulEngine.Objects.Components
             _moveRunning = false;
             _moveTicker = null;
         }
+        #endregion
+
+        //Other
+        #region "Component Interface"
+        public override void Draw() { }
         #endregion
     }
 }
