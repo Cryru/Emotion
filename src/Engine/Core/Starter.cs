@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Threading;
+using System.Diagnostics;
 
 namespace SoulEngine
 {
@@ -22,6 +23,10 @@ namespace SoulEngine
         /// Whether we are loading something.
         /// </summary>
         public static bool Loading = true;
+        /// <summary>
+        /// A stopwatch used to track boot performance.
+        /// </summary>
+        public static Stopwatch bootPerformance;
         #endregion
 
         /// <summary>
@@ -33,8 +38,11 @@ namespace SoulEngine
             //Check if an instance of the game is running, and exit if it is.
             if (mutex.WaitOne(TimeSpan.Zero, true))
             {
+                //Start measuring boot performance.
+                bootPerformance = Stopwatch.StartNew();
+
                 //Check if an external settings file exists, and load it's data if it does.
-                if(System.IO.File.Exists("\\settings.soul")) Settings.ReadExternalSettings("\\settings.soul");
+                if (System.IO.File.Exists("\\settings.soul")) Settings.ReadExternalSettings("\\settings.soul");
 
                 //Setup a core instance.
                 Context.Core = new Core();

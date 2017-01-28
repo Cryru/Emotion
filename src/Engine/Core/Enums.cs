@@ -26,4 +26,10 @@ namespace SoulEngine.Enums
         Done, //Done ticking.
         Paused //Paused.
     }
+
+    public enum TextureMode
+    {
+        Tile,
+        Stretch
+    }
 }

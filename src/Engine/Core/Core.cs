@@ -73,16 +73,15 @@ namespace SoulEngine
             //Continue the start sequence.
             Starter.ContinueStart();
 
-            //Cont here
+            //Load global resources.
+            AssetManager.LoadGlobal();
 
-            GameObject a = new GameObject();
-            //a.AddComponent(new Transform());
-            a.AddComponent(new ActiveTexture());
-            a.AddComponent(new Renderer());
-            a.Draw();
+            //Measure boot time.
+            Starter.bootPerformance.Stop();
+            Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
         }
         #endregion
-
+        List<GameObject> a = new List<GameObject>();
         #region "Loops"
         /// <summary>
         /// Is executed every tick.
@@ -93,6 +92,19 @@ namespace SoulEngine
             if (IsActive == false) return;
 
             //Cont here
+            GameObject testc = new GameObject();
+            testc.AddComponent(new Renderer());
+            testc.AddComponent(new ActiveTexture());
+            testc.AddComponent(new Transform());
+            a.Add(testc);
+
+            for (int i = 0; i < a.Count; i++)
+            {
+                a[i].Update();
+                if (a[i].Component<Transform>().X > 500) a[i].Component<Transform>().X = 0; else a[i].Component<Transform>().X += 1;
+            }
+
+            Console.WriteLine(a.Count);
         }
 
         /// <summary>
@@ -111,8 +123,14 @@ namespace SoulEngine
 
             //Start drawing frame by first clearing the screen.
             Context.Graphics.Clear(Color.Black);
-            
-            //Cont here          
+
+            //Cont here
+            Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, null);
+            for (int i = 0; i < a.Count; i++)
+            {
+                a[i].Draw();
+            }
+            Context.ink.End();
         }
         #endregion
 

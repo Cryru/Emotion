@@ -16,13 +16,10 @@ namespace SoulEngine.Objects.Components
     public abstract class Component : IDisposable
     {
         #region "Variables"
-        //Main variables.
-        #region "Primary"
         /// <summary>
         /// The object this component is attached to.
         /// </summary>
         public GameObject attachedObject;
-        #endregion
         #endregion
 
         //Main functions.

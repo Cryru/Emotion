@@ -59,6 +59,7 @@ namespace SoulEngine.Objects.Components
         public ActiveTexture()
         {
             Generate();
+            Redefine(AssetManager.MissingTexture, AssetManager.MissingTexture.Bounds);
         }
         /// <summary>
         /// 
@@ -160,6 +161,38 @@ namespace SoulEngine.Objects.Components
         #region "Component Interface"
         public override void Update(){}
         public override void Draw(){}
+        #endregion
+        #region "Disposing"
+        /// <summary>
+        /// Disposing flag to detect redundant calls.
+        /// </summary>
+        private bool disposedValue = false;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    base.Dispose();
+                }
+
+                //Free resources.
+                Texture = null;
+                _texture = null;
+
+                //Set disposing flag.
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
         #endregion
     }
 }

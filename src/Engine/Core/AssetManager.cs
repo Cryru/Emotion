@@ -12,12 +12,17 @@ namespace SoulEngine
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Manages asset integrity.
+    /// Manages asset integrity. XNA Integrated.
     /// </summary>
     static class AssetManager
     {
 
         public static Texture2D MissingTexture;
+
+        public static void LoadGlobal()
+        {
+            MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
+        }
 
         /// <summary>
         /// Reads the assets meta file, and applies checks for validity.

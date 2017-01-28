@@ -41,7 +41,7 @@ namespace SoulEngine.Objects.Components
         //Main functions.
         #region "Functions"
         /// <summary>
-        /// Draws the object based on parameters specified by its other components.
+        /// Draws the object based on parameters specified by its other components. Make sure to call ink.Begin() first.
         /// </summary>
         public override void Draw()
         {
@@ -50,9 +50,8 @@ namespace SoulEngine.Objects.Components
             Color DrawTint = Color.White;
             float DrawOpacity = 1f;
             SpriteEffects DrawEffects = SpriteEffects.None;
-            Rectangle DrawBounds = new Rectangle(0,0,50,50);
+            Rectangle DrawBounds = new Rectangle(0, 0, 50, 50);
             float Rotation = 0f;
-            
 
             //Check for components to overwrite default drawing properties.
             if (attachedObject.HasComponent<ActiveTexture>())
@@ -74,7 +73,14 @@ namespace SoulEngine.Objects.Components
                 new Point(DrawBounds.Width, DrawBounds.Height));
 
             //Draw the object through XNA's SpriteBatch.
-            Context.ink.Draw(DrawImage, DrawBounds, null, DrawTint * DrawOpacity, Rotation, new Vector2(DrawBounds.X, DrawBounds.Y), DrawEffects, 1.0f);
+            Context.ink.Draw(DrawImage,
+                DrawBounds,
+                null,
+                DrawTint * DrawOpacity,
+                Rotation,
+                new Vector2((float)DrawImage.Width / 2, (float)DrawImage.Height / 2),
+                DrawEffects,
+                1.0f);
         }
 
         public override void Update()
