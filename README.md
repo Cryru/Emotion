@@ -8,6 +8,7 @@ SoulEngine is a XNA/MonoGame based game engine for creating 2D games. This is th
 
 ## Features
 
+- Object-Component System
 - Animated Textures
 - Easy Asset Loading
 - Scene System
@@ -17,6 +18,7 @@ SoulEngine is a XNA/MonoGame based game engine for creating 2D games. This is th
 - Anti-Tampering Asset System
 - Camera System
 - Easy Settings System
+- Error Prevention System
 and many more.
 
 
