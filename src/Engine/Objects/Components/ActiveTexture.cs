@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Enums;
 
 namespace SoulEngine.Objects.Components
 {
@@ -29,9 +30,28 @@ namespace SoulEngine.Objects.Components
             }
             set
             {
-                Redefine(value);
+                _xnaTexture = value;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        public Rectangle Bounds
+        {
+            get
+            {
+                return _bounds;
+            }
+            set
+            {
+                if (value == new Rectangle()) _bounds = _xnaTexture.Bounds;
+                else _bounds = value;
+            }
+        }
+        /// <summary>
+        /// The way to texture should be rendered to fill its bounds.
+        /// </summary>
+        public TextureMode TextureMode = 0;
         #region "Variables for the Renderer Component"
         /// <summary>
         /// Used to mirror textures horizontally or vertically. Used by the renderer component.
@@ -49,6 +69,8 @@ namespace SoulEngine.Objects.Components
         #region "Private"
         private RenderTarget2D _texture;
         private Viewport _tempPortHolder;
+        private Texture2D _xnaTexture;
+        private Rectangle _bounds;
         #endregion
         #endregion
 
@@ -56,19 +78,25 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public ActiveTexture()
+        public ActiveTexture(TextureMode TextureMode = 0)
         {
-            Generate();
-            Redefine(AssetManager.MissingTexture, AssetManager.MissingTexture.Bounds);
+            this.TextureMode = TextureMode;
+            Texture = AssetManager.MissingTexture;
+            Bounds = _xnaTexture.Bounds;
+            DefineTexture();
+            GenerateTexture();
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Texture"></param>
-        public ActiveTexture(Texture2D Texture, Rectangle Bounds = new Rectangle())
+        public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0, Rectangle Bounds = new Rectangle())
         {
-            Generate();
-            Redefine(Texture, Bounds);
+            this.TextureMode = TextureMode;
+            this.Texture = Texture;
+            this.Bounds = Bounds;
+            DefineTexture();
+            GenerateTexture();
         }
         #endregion
 
@@ -78,41 +106,41 @@ namespace SoulEngine.Objects.Components
         /// 
         /// </summary>
         /// <param name="Texture"></param>
-        public void Redefine(Texture2D Texture, Rectangle Bounds = new Rectangle())
+        private void GenerateTexture()
         {
-            //Check if no bounds specified, in which case texture bounds are taken.
-            if(Bounds == new Rectangle()) Bounds = Texture.Bounds;
-
             //Check if regenerating with a differently sized texture, in which case we want to generate a new render target.
-            if (Bounds.Size.X != _texture.Bounds.Size.X ||
-                Bounds.Size.X != _texture.Bounds.Size.Y) Generate(Bounds.Size.X, Bounds.Size.Y);
+            if (_texture == null ||
+                Bounds.X != _texture.Bounds.Size.X ||
+                Bounds.Y != _texture.Bounds.Size.Y) DefineTexture(Bounds.Size.X, Bounds.Size.Y);
 
             //Start drawing on internal target.
             BeginTextureDraw();
 
-            Context.ink.Begin();
-            Context.ink.Draw(Texture, new Rectangle(0, 0, Bounds.Width, Bounds.Height), Bounds, Color.White);
+            Context.ink.Start();
+
+            //Draw the texture depending on how we are stretching.
+            switch(TextureMode)
+            {
+                case TextureMode.Stretch:
+                    Context.ink.Draw(_xnaTexture, new Rectangle(0, 0, Bounds.Width, Bounds.Height), Bounds, Color.White);
+                    break;
+
+                case TextureMode.Tile:
+                    for (int x = 0; x < Bounds.Width / _xnaTexture.Width; x++)
+                    {
+                        for (int y = 0; y < Bounds.Height / _xnaTexture.Height; y++)
+                        {
+                            Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y, _xnaTexture.Width, _xnaTexture.Height), Bounds, Color.White);
+                        }
+                    }
+
+                    break;
+            }
+
             Context.ink.End();
 
             //Stop drawing.
             EndTextureDraw();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Size"></param>
-        public void Resize(Vector2 Size)
-        {
-            Generate((int) Size.X, (int) Size.Y);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Width"></param>
-        /// <param name="Height"></param>
-        public void Resize(int Width, int Height)
-        {
-            Resize(new Vector2(Width, Height));
         }
         /// <summary>
         /// 
@@ -147,7 +175,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         /// <param name="Width"></param>
         /// <param name="Height"></param>
-        private void Generate(int Width = 0, int Height = 0)
+        private void DefineTexture(int Width = 0, int Height = 0)
         {
             //Destroy previous render target safely, if any.
             if (_texture != null) _texture.Dispose();

@@ -94,14 +94,13 @@ namespace SoulEngine
             //Cont here
             GameObject testc = new GameObject();
             testc.AddComponent(new Renderer());
-            testc.AddComponent(new ActiveTexture());
+            testc.AddComponent(new ActiveTexture(0));
             testc.AddComponent(new Transform());
             a.Add(testc);
 
             for (int i = 0; i < a.Count; i++)
             {
                 a[i].Update();
-                if (a[i].Component<Transform>().X > 500) a[i].Component<Transform>().X = 0; else a[i].Component<Transform>().X += 1;
             }
 
             Console.WriteLine(a.Count);

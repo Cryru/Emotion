@@ -27,9 +27,12 @@ namespace SoulEngine.Enums
         Paused //Paused.
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public enum TextureMode
     {
-        Tile,
-        Stretch
+        Stretch, //xxxx
+        Tile //xxxx
     }
 }
