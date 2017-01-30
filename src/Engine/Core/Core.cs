@@ -3,6 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using SoulEngine.Objects;
+using SoulEngine.Objects.Components;
+using SoulEngine.Triggers;
+using SoulEngine.Enums;
 
 namespace SoulEngine
 {
@@ -25,12 +28,10 @@ namespace SoulEngine
         /// The tickers running.
         /// </summary>
         public List<Ticker> Tickers = new List<Ticker>();
-        #endregion
-        #region "Triggers"
         /// <summary>
-        /// Is triggered when the game is closed.
+        /// 
         /// </summary>
-        public Trigger onClose = new Trigger();
+        public Scene Scene;
         #endregion
         #endregion
 
@@ -41,7 +42,7 @@ namespace SoulEngine
         public Core()
         {
             //Setup the graphics device.
-            Context.graphics = new GraphicsDeviceManager(this);
+            Context.GraphicsManager = new GraphicsDeviceManager(this);
 
             //Setup the Content root folder for the master scene. The root for this folder is the exe.
             Content.RootDirectory = "Content";
@@ -49,46 +50,71 @@ namespace SoulEngine
             //Apply relevant settings.
             IsFixedTimeStep = Settings.capFPS;
             TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Settings.FPS);
-            Context.graphics.SynchronizeWithVerticalRetrace = Settings.vSync;
+            Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
             Window.AllowUserResizing = Settings.ResizableWindow;
 
             //Apply hardcoded settings.
             Window.AllowAltF4 = true;
+            Window.Title = Settings.WName;
 
-            //Attach trigger
+            //Connect the C# native events to the SE trigger system.
             Exiting += Engine_Exiting;
+            Window.TextInput += Window_TextInput;
         }
+
         /// <summary>
         /// Setups the spritebatch and starts the start sequence.
         /// </summary>
         protected override void LoadContent()
         {
-            //Setup the brush for drawing.
+            //Setup the brush for drawing, and the brush for texture setup.
             Context.ink = new SpriteBatch(GraphicsDevice);
+            Context.preInk = new SpriteBatch(GraphicsDevice);
 
             //Refresh the screen settings.
             Functions.RefreshScreenSettings();
 
-            //Load loading screen object.
-            LoadingLogo = new GameObject();//Content.Load<Texture2D>("Engine/loadingLogo");
-            LoadingLogo.Transform.ObjectCenter();
-
             //Continue the start sequence.
             Starter.ContinueStart();
+
+            //Load global resources.
+            AssetManager.LoadGlobal();
+
+            //Measure boot time.
+            Starter.bootPerformance.Stop();
+            Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
+
+            TriggerSystem.Listen(TriggerType.TRIGGER_GAME_CLOSED, test);
         }
         #endregion
-
+        private void test(Trigger a)
+        {
+            bool traktor = true;
+        }
+        List<GameObject> a = new List<GameObject>();
         #region "Loops"
         /// <summary>
         /// Is executed every tick.
         /// </summary>
         protected override void Update(GameTime gameTime)
-        {        
+        {
             //If the game is not focused, don't update.
             if (IsActive == false) return;
 
-            //Check if loading, in which case we want to run the loading cycle.
-            if (Starter.Loading) { Loading_Update(gameTime); return; }
+            //Update event system.
+            TriggerSystem.Update();
+
+            //Cont here
+            GameObject testc = new GameObject();
+            testc.AddComponent(new Renderer());
+            testc.AddComponent(new ActiveTexture(AssetManager.MissingTexture, Enums.TextureMode.Tile, new Rectangle(0, 0, 1, 1)));
+            testc.AddComponent(new Transform(new Vector2(5, 5), new Vector2(100, 100)));
+            a.Add(testc);
+
+            for (int i = 0; i < a.Count; i++)
+            {
+                a[i].Update();
+            }
         }
 
         /// <summary>
@@ -106,11 +132,15 @@ namespace SoulEngine
             UpdateTickers();
 
             //Start drawing frame by first clearing the screen.
-            Context.graphics.GraphicsDevice.Clear(Color.Black);
+            Context.Graphics.Clear(Color.Black);
 
-            //Check if loading, in which case we want to run the loading cycle.
-            if (Starter.Loading) { Loading_Draw(gameTime); return; }
-          
+            //Cont here
+            Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, null);
+            for (int i = 0; i < a.Count; i++)
+            {
+                a[i].Draw();
+            }
+            Context.ink.End();
         }
         #endregion
 
@@ -137,59 +167,24 @@ namespace SoulEngine
         }
         #endregion
 
-        #region "Loading Screen"
-        GameObject LoadingLogo;
-
-        /// <summary>
-        /// The update cycle of the loading screen.
-        /// </summary>
-        public void Loading_Update(GameTime gameTime)
-        {
-            //LoadingLogoFadeTimer += gameTime.ElapsedGameTime.Milliseconds;
-
-            //if (LoadingLogoFadeTimer < 150) return;
-
-            //LoadingLogoFadeTimer = 0;
-
-            ////Glow effect.
-            //if (LoadingLogoGlowFadeOut)
-            //{
-            //    LoadingLogoOpacity -= 0.01f;
-
-            //    if (LoadingLogoOpacity < 0.05f) LoadingLogoGlowFadeOut = false;
-            //}
-            //else
-            //{
-            //    LoadingLogoOpacity += 0.01f;
-
-            //    if (LoadingLogoOpacity > 0.1f) LoadingLogoGlowFadeOut = true;
-            //}
-            
-        }
-        /// <summary>
-        /// The draw cycle of the loading screen.
-        /// </summary>
-        public void Loading_Draw(GameTime gameTime)
-        {
-            Context.graphics.GraphicsDevice.Clear(new Color(56, 56, 56));
-            //         Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone,
-            //null, Context.Screen.GetScaleMatrix());
-            //         Context.ink.Draw(LoadingLogo, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White * LoadingLogoOpacity);
-            //         Context.ink.End();
-            //LoadingLogo.Draw();
-        }
-        #endregion
-
         #region "Triggers"
         /// <summary>
         /// Is executed before the game is closed, used to trigger the internal event.
         /// </summary>
         private void Engine_Exiting(object sender, System.EventArgs e)
         {
-            onClose.Invoke();
+            TriggerSystem.AddInstant(new Trigger(TriggerType.TRIGGER_GAME_CLOSED, this, e));
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Window_TextInput(object sender, TextInputEventArgs e)
+        {
+            Console.WriteLine(e.ToString());
         }
         #endregion
-
     }
 }
 

@@ -50,6 +50,15 @@ namespace Microsoft.Xna.Framework
             Array.Copy(data, index, result, 0, length);
             return result;
         }
+
+        /// <summary>
+        /// ink.Begin() with AA off.
+        /// </summary>
+        /// <param name="ink"></param>
+        public static void Start(this SpriteBatch ink, Matrix? transformationMatrix = null)
+        {
+            ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, transformationMatrix);
+        }
     }
 }
 namespace SoulEngine
