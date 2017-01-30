@@ -232,7 +232,7 @@ namespace SoulEngine.Objects.Components
 
             _moveTicker = new Ticker(1, Duration, true);
             TriggerSystem.Listen(TriggerType.TRIGGER_TICKER_TICK, moveApply, _moveTicker);
-            TriggerSystem.Listen(TriggerType.TRIGGER_TICKER_TICK, moveApply, _moveTicker);
+            TriggerSystem.Listen(TriggerType.TRIGGER_TICKER_DONE, moveOver, _moveTicker);
         }
         #region "Positioning"
         /// <summary>

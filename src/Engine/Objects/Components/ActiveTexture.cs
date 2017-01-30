@@ -14,7 +14,7 @@ namespace SoulEngine.Objects.Components
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// A managed texture object. XNA Integrated
+    /// A managed texture object.
     /// </summary>
     public class ActiveTexture : Component
     {

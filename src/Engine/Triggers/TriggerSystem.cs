@@ -85,7 +85,7 @@ namespace SoulEngine.Triggers
         /// <param name="targetedSender">The sender the trigger should be from.</param>
         public static void Listen(string triggerType, Action<Trigger> listenerAction, object targetedSender)
         {
-            //TODO
+            
         }
 
         /// <summary>

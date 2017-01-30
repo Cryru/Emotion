@@ -13,7 +13,7 @@ namespace SoulEngine
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Manages asset integrity. XNA Integrated.
+    /// Manages asset integrity.
     /// </summary>
     static class AssetManager
     {

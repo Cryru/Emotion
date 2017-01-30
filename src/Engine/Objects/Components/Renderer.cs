@@ -14,7 +14,7 @@ namespace SoulEngine.Objects.Components
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Hosts and handles textures and drawing. XNA Integrated.
+    /// Hosts and handles textures and drawing.
     /// </summary>
     public class Renderer : Component
     {
