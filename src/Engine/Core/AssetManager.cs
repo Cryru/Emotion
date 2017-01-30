@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,39 @@ namespace SoulEngine
         public static void LoadGlobal()
         {
             MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="textureName"></param>
+        /// <returns></returns>
+        public static Texture2D Texture(string textureName)
+        {
+            if (GetAssetExist(textureName))
+                if (Context.Core.Scene != null)
+                    return Context.Core.Content.Load<Texture2D>(textureName);
+                else
+                    return Context.Core.Scene.Assets.Content.Load<Texture2D>(textureName);
+            else
+                return MissingTexture;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static bool GetAssetExist(string name)
+        {
+            //Assign the path of the file.
+            string contentpath = "Content\\" + name.Replace("/", "\\") + ".xnb";
+            //Check if the file exists.
+            if (File.Exists(contentpath))
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -47,7 +81,7 @@ namespace SoulEngine
 
             //Check if the file is encrypted, and if it is, decrypt it using the internal security key.
             bool encrypted = bool.Parse(file[0].Substring("Encryption=".Length));
-            if (encrypted == true) Soul.Encryption.Decrypt(string.Join("\r\n", file), Settings.SecurityKey);
+            if (encrypted == true) Soul.Encryption.Decrypt(file[1], Settings.SecurityKey);
 
             //The last file we checked.
             string lastPath = "";

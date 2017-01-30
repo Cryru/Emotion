@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace SoulEngine.Objects
 {
-    class Scene
+    public class Scene
     {
+        public Assets Assets;
     }
 }

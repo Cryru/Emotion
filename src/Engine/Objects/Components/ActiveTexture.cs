@@ -14,7 +14,7 @@ namespace SoulEngine.Objects.Components
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// A managed texture object.
+    /// A managed texture object. XNA Integrated
     /// </summary>
     public class ActiveTexture : Component
     {
@@ -26,6 +26,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
+                if(Active) GenerateTexture();
                 return _texture as Texture2D;
             }
             set
@@ -36,22 +37,16 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public Rectangle Bounds
-        {
-            get
-            {
-                return _bounds;
-            }
-            set
-            {
-                if (value == new Rectangle()) _bounds = _xnaTexture.Bounds;
-                else _bounds = value;
-            }
-        }
+        public Rectangle DrawArea;
         /// <summary>
         /// The way to texture should be rendered to fill its bounds.
         /// </summary>
         public TextureMode TextureMode = 0;
+        /// <summary>
+        /// Whether to regenerate the texture everytime it is requested. 
+        /// Must be set to false if managing the internal rendertarget yourself.
+        /// </summary>
+        public bool Active = true;
         #region "Variables for the Renderer Component"
         /// <summary>
         /// Used to mirror textures horizontally or vertically. Used by the renderer component.
@@ -78,25 +73,24 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="TextureMode"></param>
         public ActiveTexture(TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
             Texture = AssetManager.MissingTexture;
-            Bounds = _xnaTexture.Bounds;
-            DefineTexture();
-            GenerateTexture();
+            DrawArea = _xnaTexture.Bounds; //Render whole texture if area not specified.
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Texture"></param>
-        public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0, Rectangle Bounds = new Rectangle())
+        /// <param name="TextureMode"></param>
+        /// <param name="DrawArea"></param>
+        public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0, Rectangle DrawArea = new Rectangle())
         {
             this.TextureMode = TextureMode;
             this.Texture = Texture;
-            this.Bounds = Bounds;
-            DefineTexture();
-            GenerateTexture();
+            this.DrawArea = DrawArea;
         }
         #endregion
 
@@ -105,24 +99,30 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="Texture"></param>
         private void GenerateTexture()
         {
-            //Check if regenerating with a differently sized texture, in which case we want to generate a new render target.
+            //Get the size of the object, if a Transform component is attached.
+            Rectangle Bounds = DrawArea;
+            if (attachedObject.HasComponent<Transform>())
+            {
+                Bounds = attachedObject.Component<Transform>().Bounds;
+            }
+
+            //Check if the render target is the same size as the draw area, because if it's not we need to redefine it.
             if (_texture == null ||
-                Bounds.X != _texture.Bounds.Size.X ||
-                Bounds.Y != _texture.Bounds.Size.Y) DefineTexture(Bounds.Size.X, Bounds.Size.Y);
+                Bounds.Width != _texture.Bounds.Size.X ||
+                Bounds.Height != _texture.Bounds.Size.Y) DefineTarget(Bounds.Width, Bounds.Height);
 
             //Start drawing on internal target.
-            BeginTextureDraw();
+            BeginTargetDraw();
 
-            Context.ink.Start();
+            Context.preInk.Start();
 
             //Draw the texture depending on how we are stretching.
-            switch(TextureMode)
+            switch (TextureMode)
             {
                 case TextureMode.Stretch:
-                    Context.ink.Draw(_xnaTexture, new Rectangle(0, 0, Bounds.Width, Bounds.Height), Bounds, Color.White);
+                    Context.preInk.Draw(_xnaTexture, new Rectangle(0, 0, DrawArea.Width, DrawArea.Height), DrawArea, Color.White);
                     break;
 
                 case TextureMode.Tile:
@@ -130,22 +130,22 @@ namespace SoulEngine.Objects.Components
                     {
                         for (int y = 0; y < Bounds.Height / _xnaTexture.Height; y++)
                         {
-                            Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y, _xnaTexture.Width, _xnaTexture.Height), Bounds, Color.White);
+                            Context.preInk.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y, _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);
                         }
                     }
 
                     break;
             }
 
-            Context.ink.End();
+            Context.preInk.End();
 
             //Stop drawing.
-            EndTextureDraw();
+            EndTargetDraw();
         }
         /// <summary>
         /// 
         /// </summary>
-        public void BeginTextureDraw()
+        public void BeginTargetDraw()
         {
             //Record the viewport of the current graphics device, as the rendertarget switching resets it.
             _tempPortHolder = Context.Graphics.Viewport;
@@ -159,7 +159,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public void EndTextureDraw()
+        public void EndTargetDraw()
         {
             //Return to the default render target.
             Context.Graphics.SetRenderTarget(null);
@@ -175,7 +175,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         /// <param name="Width"></param>
         /// <param name="Height"></param>
-        private void DefineTexture(int Width = 0, int Height = 0)
+        private void DefineTarget(int Width = 0, int Height = 0)
         {
             //Destroy previous render target safely, if any.
             if (_texture != null) _texture.Dispose();

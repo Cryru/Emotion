@@ -59,11 +59,11 @@ namespace SoulEngine
         public static void ContinueStart()
         {
             //Check if we are enforcing asset integrity, and check it.
-            if (Settings.EnforceAssetIntegrity == true && AssetManager.AssertAssets() == false)
+            if (Settings.EnforceAssetIntegrity == true && AssetManager.AssertAssets() == false) //TODO make encryption not part of the generator and make the gen not error when no exception file
             {
                 throw new Exception("The assets meta file is missing, or file tampering detected.");
             }
-
+            
             //Loading has finished.
             Loading = false;
         }

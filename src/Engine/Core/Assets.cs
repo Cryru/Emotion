@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace SoulEngine
 {
-    class Assets
+    public class Assets
     {
-        ContentManager Content;
+        public ContentManager Content;
 
     }
 }

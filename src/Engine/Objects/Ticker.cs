@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Enums;
+using SoulEngine.Triggers;
 
 namespace SoulEngine.Objects
 {
@@ -85,12 +86,12 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Triggers each time the ticker ticks.
         /// </summary>
-        public Trigger<Ticker> onTick = new Trigger<Ticker>();
+        //public Trigger<Ticker> onTick = new Trigger<Ticker>();
         /// <summary>
         /// When the timer's tick limit has been reached.
         /// This will never be triggered for endless timers.
         /// </summary>
-        public Trigger<Ticker> onDone = new Trigger<Ticker>();
+        //public Trigger<Ticker> onDone = new Trigger<Ticker>();
         #endregion
         #region "State"
         /// <summary>
@@ -163,9 +164,9 @@ namespace SoulEngine.Objects
                     //If enough time has passed then tick.
                     if (time > Delay)
                     {
+                        TriggerSystem.Add(new Trigger(Triggers.TriggerType.TRIGGER_TICKER_TICK, this, _Ticks));
                         time -= Delay;
                         _Ticks++;
-                        onTick.Invoke(this);
                     }
 
                     //Check if at limit.
@@ -176,7 +177,7 @@ namespace SoulEngine.Objects
 
                         //In which case run the ending event.
                         _State = TickerState.Done;
-                        onDone.Invoke(this);
+                        TriggerSystem.Add(new Trigger(Triggers.TriggerType.TRIGGER_TICKER_DONE, this));
                     }
 
                     break;

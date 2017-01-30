@@ -55,9 +55,9 @@ namespace Microsoft.Xna.Framework
         /// ink.Begin() with AA off.
         /// </summary>
         /// <param name="ink"></param>
-        public static void Start(this SpriteBatch ink)
+        public static void Start(this SpriteBatch ink, Matrix? transformationMatrix = null)
         {
-            ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, null);
+            ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, transformationMatrix);
         }
     }
 }
