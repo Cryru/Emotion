@@ -27,16 +27,16 @@ namespace SoulEngine
         {
             //Reset some settings.
             Context.Core.Window.IsBorderless = false;
-            Context.graphics.IsFullScreen = false;
+            Context.GraphicsManager.IsFullScreen = false;
 
             //Check which screen mode we want to apply.
             switch (Settings.ScreenMode)
             {
                 case Enums.ScreenMode.Windowed:
                     //Setup the screen with the screen's size as the settings specified size.
-                    Context.graphics.PreferredBackBufferWidth = Settings.WWidth;
-                    Context.graphics.PreferredBackBufferHeight = Settings.WHeight;
-                    Context.graphics.ApplyChanges();
+                    Context.GraphicsManager.PreferredBackBufferWidth = Settings.WWidth;
+                    Context.GraphicsManager.PreferredBackBufferHeight = Settings.WHeight;
+                    Context.GraphicsManager.ApplyChanges();
 
                     //Center window, but only if not at boot.
                     if(!Starter.Loading)
@@ -48,9 +48,9 @@ namespace SoulEngine
                     Context.Core.Window.IsBorderless = true;
 
                     //Setup the screen with the screen's size as width and height.
-                    Context.graphics.PreferredBackBufferWidth = (int)GetScreenSize().X;
-                    Context.graphics.PreferredBackBufferHeight = (int)GetScreenSize().Y;
-                    Context.graphics.ApplyChanges();
+                    Context.GraphicsManager.PreferredBackBufferWidth = (int)GetScreenSize().X;
+                    Context.GraphicsManager.PreferredBackBufferHeight = (int)GetScreenSize().Y;
+                    Context.GraphicsManager.ApplyChanges();
 
                     //Move the window to the top left.
                     Context.Core.Window.Position = new Point(0, 0);
@@ -58,21 +58,22 @@ namespace SoulEngine
 
                 case Enums.ScreenMode.Fullscreen:
                     //Set the graphics device to fullscreen.
-                    Context.graphics.IsFullScreen = true;
+                    Context.GraphicsManager.IsFullScreen = true;
 
                     //Setup the screen with the screen's size as width and height.
-                    Context.graphics.PreferredBackBufferWidth = (int)GetScreenSize().X;
-                    Context.graphics.PreferredBackBufferHeight = (int)GetScreenSize().Y;
-                    Context.graphics.ApplyChanges();
+                    Context.GraphicsManager.PreferredBackBufferWidth = (int)GetScreenSize().X;
+                    Context.GraphicsManager.PreferredBackBufferHeight = (int)GetScreenSize().Y;
+                    Context.GraphicsManager.ApplyChanges();
                     break;
             }
 
 
             //Set up the screen adapter.
-            Context.Screen = new BoxingViewportAdapter(Context.Core.Window, Context.graphics.GraphicsDevice, Settings.Width, Settings.Height);
+            Context.Screen = new BoxingViewportAdapter(Context.Core.Window, Context.Graphics, Settings.Width, Settings.Height);
             //Set up the camera.
             Context.Camera = new Camera2D(Context.Screen);        
         }
         #endregion
     }
 }
+//TODO: EXTENSION FOR GENRENDERTARGET ON THE GRAPHICSDEVICE

@@ -40,7 +40,7 @@ namespace SoulEngine
         /// <summary>
         /// If true, the engine will not run unless the meta.soul file exists and is correct.
         /// </summary>
-        public static bool EnforceAssetIntegrity = true;
+        public static bool EnforceAssetIntegrity = false;
         #endregion
         #region "Window Settings"
         /// <summary>
