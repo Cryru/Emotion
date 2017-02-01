@@ -11,7 +11,7 @@ namespace SoulEngine.Triggers
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Custom implementation of an event system for SE.
+    /// A trigger object for SE's custom trigger system.
     /// </summary>
     public class Trigger
     {

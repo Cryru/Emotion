@@ -101,6 +101,8 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void GenerateTexture()
         {
+            if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
+
             //Get the size of the object, if a Transform component is attached.
             Rectangle Bounds = DrawArea;
             if (attachedObject.HasComponent<Transform>())
@@ -116,13 +118,14 @@ namespace SoulEngine.Objects.Components
             //Start drawing on internal target.
             BeginTargetDraw();
 
-            Context.preInk.Start();
+            Context.ink.End();
+            Context.ink.Start();
 
             //Draw the texture depending on how we are stretching.
             switch (TextureMode)
             {
                 case TextureMode.Stretch:
-                    Context.preInk.Draw(_xnaTexture, new Rectangle(0, 0, DrawArea.Width, DrawArea.Height), DrawArea, Color.White);
+                    Context.ink.Draw(_xnaTexture, new Rectangle(0, 0, DrawArea.Width, DrawArea.Height), DrawArea, Color.White);
                     break;
 
                 case TextureMode.Tile:
@@ -130,15 +133,15 @@ namespace SoulEngine.Objects.Components
                     {
                         for (int y = 0; y < Bounds.Height / _xnaTexture.Height; y++)
                         {
-                            Context.preInk.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y, _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);
+                            Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y, _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);
                         }
                     }
 
                     break;
             }
 
-            Context.preInk.End();
-
+            Context.ink.End();
+            Context.ink.Start();
             //Stop drawing.
             EndTargetDraw();
         }

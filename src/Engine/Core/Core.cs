@@ -60,6 +60,7 @@ namespace SoulEngine
             //Connect the C# native events to the SE trigger system.
             Exiting += Engine_Exiting;
             Window.TextInput += Window_TextInput;
+            Window.ClientSizeChanged += Window_SizeChanged;
         }
 
         /// <summary>
@@ -83,14 +84,9 @@ namespace SoulEngine
             //Measure boot time.
             Starter.bootPerformance.Stop();
             Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
-
-            TriggerSystem.Listen(TriggerType.TRIGGER_GAME_CLOSED, test);
         }
         #endregion
-        private void test(Trigger a)
-        {
-            bool traktor = true;
-        }
+
         List<GameObject> a = new List<GameObject>();
         #region "Loops"
         /// <summary>
@@ -105,11 +101,15 @@ namespace SoulEngine
             TriggerSystem.Update();
 
             //Cont here
-            GameObject testc = new GameObject();
-            testc.AddComponent(new Renderer());
-            testc.AddComponent(new ActiveTexture(AssetManager.MissingTexture, Enums.TextureMode.Tile, new Rectangle(0, 0, 1, 1)));
-            testc.AddComponent(new Transform(new Vector2(5, 5), new Vector2(100, 100)));
-            a.Add(testc);
+
+
+            if (a.Count < 1) {
+                GameObject testc = new GameObject();
+                testc.AddComponent(new Renderer());
+                testc.AddComponent(new ActiveTexture(AssetManager.MissingTexture, TextureMode.Tile));
+                testc.AddComponent(new Transform(new Vector2(5, 5), new Vector2(100, 100)));
+                testc.Component<Transform>().MoveTo(5000, new Vector3(500, 500, 0));
+                a.Add(testc); }
 
             for (int i = 0; i < a.Count; i++)
             {
@@ -125,6 +125,9 @@ namespace SoulEngine
             //If the game is not focused, don't update.
             if (IsActive == false) return;
 
+            //Trigger frame start trigger.
+            TriggerSystem.Trigger(new Trigger("GAME_FRAMESTART", this, gameTime));
+
             //Record frametime.
             frameTime = gameTime.ElapsedGameTime.Milliseconds;
 
@@ -132,10 +135,10 @@ namespace SoulEngine
             UpdateTickers();
 
             //Start drawing frame by first clearing the screen.
-            Context.Graphics.Clear(Color.Black);
+            Context.Graphics.Clear(Color.CornflowerBlue);
 
             //Cont here
-            Context.ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, null);
+            Context.ink.Begin();
             for (int i = 0; i < a.Count; i++)
             {
                 a[i].Draw();
@@ -173,16 +176,21 @@ namespace SoulEngine
         /// </summary>
         private void Engine_Exiting(object sender, System.EventArgs e)
         {
-            TriggerSystem.AddInstant(new Trigger(TriggerType.TRIGGER_GAME_CLOSED, this, e));
+            TriggerSystem.Trigger(new Trigger(TriggerType.GAME_CLOSED, this, null));
         }
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
-            Console.WriteLine(e.ToString());
+            TriggerSystem.Add(new Trigger(TriggerType.INPUT_TEXT, this, e.Character));
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Window_SizeChanged(object sender, EventArgs e)
+        {
+            TriggerSystem.Add(new Trigger(TriggerType.GAME_SIZECHANGED, this, null));
         }
         #endregion
     }

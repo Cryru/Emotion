@@ -27,10 +27,6 @@ namespace SoulEngine
         /// Overwrites the 'capFPS' setting. 
         /// </summary>
         public static bool vSync = false;
-        /// <summary>
-        /// Whether the window can be resized.
-        /// </summary>
-        public static bool ResizableWindow = false;
         #endregion
         #region "Security Settings"
         /// <summary>
@@ -71,6 +67,10 @@ namespace SoulEngine
         /// Whether the mouse should be rendered.
         /// </summary>
         public static bool RenderMouse = true;
+        /// <summary>
+        /// Whether the window can be resized.
+        /// </summary>
+        public static bool ResizableWindow = true;
         #endregion
 
         //TODO
