@@ -13,7 +13,7 @@ namespace SoulEngine
     /// <summary>
     /// The base for engine objects.
     /// </summary>
-    public class GameObject
+    public class GameObject : IDisposable
     {
         #region "Variables"
         #endregion
@@ -138,6 +138,39 @@ namespace SoulEngine
                     return i;
 
             return -1;
+        }
+        #endregion
+
+        //Other
+        #region "Disposing"
+        /// <summary>
+        /// Disposing flag to detect redundant calls.
+        /// </summary>
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    for (int i = 0; i < Components.Count; i++)
+                    {
+                        Components[i].Dispose();
+                    }
+                }
+
+                //Set disposing flag.
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
         }
         #endregion
     }

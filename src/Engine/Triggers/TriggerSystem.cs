@@ -24,7 +24,7 @@ namespace SoulEngine.Triggers
         /// <summary>
         /// 
         /// </summary>
-        private static Dictionary<Action<Trigger>, string> ListenerQueue = new Dictionary<Action<Trigger>, string>();
+        private static List<Listen> ListenerQueue = new List<Listen>();
         #endregion
 
         /// <summary>
@@ -39,62 +39,67 @@ namespace SoulEngine.Triggers
             Trigger currentTrigger = TriggerQueue[0];
             TriggerQueue.RemoveAt(0);
 
-            //Trigger the trigger by adding it as an instant.
-            AddInstant(currentTrigger);
+            //Trigger the trigger.
+            Trigger(currentTrigger);
         }
 
         /// <summary>
         /// Add a trigger to the trigger queue, to be triggered when ready.
         /// </summary>
-        /// <param name="Trigger"The trigger to trigger.></param>
+        /// <param name="Trigger">The trigger to trigger.</param>
         public static void Add(Trigger Trigger)
         {
             TriggerQueue.Add(Trigger);
         }
 
         /// <summary>
-        /// Instantly triggers a trigger.
+        /// Adds a listener for triggers.
         /// </summary>
         /// <param name="Trigger">The trigger to trigger.</param>
-        public static void AddInstant(Trigger Trigger)
+        public static void Add(Listen Listen)
+        {
+            ListenerQueue.Add(Listen);
+        }
+
+        /// <summary>
+        /// Triggers a trigger instantly, without adding it to the queue.
+        /// </summary>
+        /// <param name="Trigger">The trigger to trigger.</param>
+        public static void Trigger(Trigger Trigger)
         {
             //Get listeners for the current event type.
-            List<Action<Trigger>> matches = ListenerQueue.Where((x, y) => x.Value == Trigger.Type).ToList().Select(x => x.Key).ToList();
+            List<Listen> matches = ListenerQueue.Where((x, y) => x.Type == Trigger.Type).ToList().ToList();
             //Invoke them.
             for (int i = 0; i < matches.Count; i++)
             {
                 matches[i].Invoke(Trigger);
             }
+
+            //Report trigger.
+            Console.WriteLine(">>>> Trigger " + Trigger.Type + " from " + Trigger.Sender.ToString() + " got to " + matches.Count + " listeners.");
         }
 
-        /// <summary>
-        /// Adds a listener for particular trigger type.
-        /// </summary>
-        /// <param name="triggerType">The type of trigger to listen for.</param>
-        /// <param name="listenerAction">The action to execute when the trigger is triggered.</param>
-        public static void Listen(string triggerType, Action<Trigger> listenerAction)
-        {
-            ListenerQueue.Add(listenerAction, triggerType);
-        }
-
-        /// <summary>
-        /// Adds a listener for particular trigger type from a particular sender.
-        /// </summary>
-        /// <param name="triggerType">The type of trigger to listen for.</param>
-        /// <param name="listenerAction">The action to execute when the trigger is triggered.</param>
-        /// <param name="targetedSender">The sender the trigger should be from.</param>
-        public static void Listen(string triggerType, Action<Trigger> listenerAction, object targetedSender)
-        {
-            
-        }
-
+        #region "Stopping"
         /// <summary>
         /// Removes a listener.
         /// </summary>
-        /// <param name="listenerAction">The listener action to remove.</param>
+        /// <param name="Listen">The listener action to remove.</param>
+        public static void StopListening(Listen Listen)
+        {
+            ListenerQueue.Remove(Listen);
+        }
+        /// <summary>
+        /// Removes all listeners hooked to a specific action.
+        /// </summary>
+        /// <param name="listenerAction">The listener action to remove listeners by.</param>
         public static void StopListening(Action<Trigger> listenerAction)
         {
-            ListenerQueue.Remove(listenerAction);
+            List<Listen> matches = ListenerQueue.Where(x => x.ListenerAction == listenerAction).ToList();
+            for (int i = 0; i < matches.Count; i++)
+            {
+                ListenerQueue.Remove(matches[i]);
+            }
         }
+        #endregion
     }
 }

@@ -58,7 +58,7 @@ namespace SoulEngine.Objects
             get
             {
                 if (Limit == -1) return -1;
-                return Ticks * (int)Delay;
+                return Limit * (int)Delay;
             }
         }
         /// <summary>
@@ -78,7 +78,7 @@ namespace SoulEngine.Objects
         {
             get
             {
-                return DateTime.Now.Subtract(_TimeStarted).Milliseconds;
+                return (float) DateTime.Now.Subtract(_TimeStarted).TotalMilliseconds;
             }
         }
         #endregion
@@ -164,7 +164,7 @@ namespace SoulEngine.Objects
                     //If enough time has passed then tick.
                     if (time > Delay)
                     {
-                        TriggerSystem.Add(new Trigger(Triggers.TriggerType.TRIGGER_TICKER_TICK, this, _Ticks));
+                        TriggerSystem.Add(new Trigger(TriggerType.TICKER_TICK, this, _Ticks));
                         time -= Delay;
                         _Ticks++;
                     }
@@ -177,7 +177,7 @@ namespace SoulEngine.Objects
 
                         //In which case run the ending event.
                         _State = TickerState.Done;
-                        TriggerSystem.Add(new Trigger(Triggers.TriggerType.TRIGGER_TICKER_DONE, this));
+                        TriggerSystem.Add(new Trigger(TriggerType.TICKER_DONE, this));
                     }
 
                     break;

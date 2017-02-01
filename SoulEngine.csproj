@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Engine\Core\Tools\Meter.cs" />
+    <Compile Include="src\Engine\Triggers\Listen.cs" />
     <Compile Include="src\Engine\Triggers\TriggerType.cs" />
     <Compile Include="src\Engine\Triggers\TriggerSystem.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
