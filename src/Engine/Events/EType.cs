@@ -4,17 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
-namespace SoulEngine.Triggers
+namespace SoulEngine.Events
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// The types of triggers used by SE.
+    /// The types of events used by SE's custom event system.
     /// </summary>
-    public static class TriggerType
+    public static class EType
     {
         #region "PRIMARY"
         /// <summary>
@@ -47,6 +46,22 @@ namespace SoulEngine.Triggers
         /// Triggered when the size of the game changes.
         /// </summary>
         public const string GAME_SIZECHANGED = "GAME_SIZECHANGED";
+        /// <summary>
+        /// Triggered when a tick update cycle begins.
+        /// </summary>
+        public const string GAME_TICKSTART = "GAME_TICKSTART";
+        /// <summary>
+        /// Triggered when a tick update cycle ends.
+        /// </summary>
+        public const string GAME_TICKEND = "GAME_TICKEND";
+        /// <summary>
+        /// Triggered at the start of a new frame.
+        /// </summary>
+        public const string GAME_FRAMESTART = "GAME_FRAMESTART";
+        /// <summary>
+        /// Triggered at the end of a new frame.
+        /// </summary>
+        public const string GAME_FRAMEEND = "GAME_FRAMEEND";
         #endregion
     }
 }

@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using SoulEngine.Objects;
 using SoulEngine.Objects.Components;
-using SoulEngine.Triggers;
 using SoulEngine.Enums;
+using SoulEngine.Events;
 
 namespace SoulEngine
 {
@@ -24,10 +24,6 @@ namespace SoulEngine
         /// </summary>
         public float frameTime = 0;
         #region "Systems"
-        /// <summary>
-        /// The tickers running.
-        /// </summary>
-        public List<Ticker> Tickers = new List<Ticker>();
         /// <summary>
         /// 
         /// </summary>
@@ -87,7 +83,6 @@ namespace SoulEngine
         }
         #endregion
 
-        List<GameObject> a = new List<GameObject>();
         #region "Loops"
         /// <summary>
         /// Is executed every tick.
@@ -97,24 +92,13 @@ namespace SoulEngine
             //If the game is not focused, don't update.
             if (IsActive == false) return;
 
-            //Update event system.
-            TriggerSystem.Update();
+            //Trigger tick start event.
+            ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
 
-            //Cont here
+            
 
-
-            if (a.Count < 1) {
-                GameObject testc = new GameObject();
-                testc.AddComponent(new Renderer());
-                testc.AddComponent(new ActiveTexture(AssetManager.MissingTexture, TextureMode.Tile));
-                testc.AddComponent(new Transform(new Vector2(5, 5), new Vector2(100, 100)));
-                testc.Component<Transform>().MoveTo(5000, new Vector3(500, 500, 0));
-                a.Add(testc); }
-
-            for (int i = 0; i < a.Count; i++)
-            {
-                a[i].Update();
-            }
+            //Trigger tick end event.
+            ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
         }
 
         /// <summary>
@@ -124,50 +108,23 @@ namespace SoulEngine
         {
             //If the game is not focused, don't update.
             if (IsActive == false) return;
-
-            //Trigger frame start trigger.
-            TriggerSystem.Trigger(new Trigger("GAME_FRAMESTART", this, gameTime));
+            FPSCounterUpdate(gameTime);
+            //Trigger frame start event.
+            ESystem.Add(new Event(EType.GAME_FRAMESTART, this, gameTime));
 
             //Record frametime.
             frameTime = gameTime.ElapsedGameTime.Milliseconds;
 
-            //Update tickers.
-            UpdateTickers();
-
             //Start drawing frame by first clearing the screen.
             Context.Graphics.Clear(Color.CornflowerBlue);
 
-            //Cont here
-            Context.ink.Begin();
-            for (int i = 0; i < a.Count; i++)
-            {
-                a[i].Draw();
-            }
-            Context.ink.End();
+            //Trigger frame end event.
+            ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
         }
         #endregion
 
         #region "Functions"
-        /// <summary>
-        /// Updates tickers.
-        /// </summary>
-        private void UpdateTickers()
-        {
-            for (int i = Tickers.Count - 1; i >= 0; i--)
-            {
-                //Check if the timer has finished running.
-                if (Tickers[i].State == Enums.TickerState.Done)
-                {
-                    //If finished, purge it.
-                    Tickers.RemoveAt(i);
-                }
-                else
-                {
-                    //if not finished, update it.
-                    Tickers[i].Update();
-                }
-            }
-        }
+
         #endregion
 
         #region "Triggers"
@@ -176,23 +133,48 @@ namespace SoulEngine
         /// </summary>
         private void Engine_Exiting(object sender, System.EventArgs e)
         {
-            TriggerSystem.Trigger(new Trigger(TriggerType.GAME_CLOSED, this, null));
+            ESystem.Add(new Event(EType.GAME_CLOSED, this, null));
         }
         /// <summary>
         /// 
         /// </summary>
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
-            TriggerSystem.Add(new Trigger(TriggerType.INPUT_TEXT, this, e.Character));
+            ESystem.Add(new Event(EType.INPUT_TEXT, this, e.Character));
         }
         /// <summary>
         /// 
         /// </summary>
         private void Window_SizeChanged(object sender, EventArgs e)
         {
-            TriggerSystem.Add(new Trigger(TriggerType.GAME_SIZECHANGED, this, null));
+            ESystem.Add(new Event(EType.GAME_SIZECHANGED, this, null));
         }
         #endregion
+
+
+        /// <summary>
+        /// The frames rendered in the current second.
+        /// </summary>
+        public static int curFrames = 0;
+        /// <summary>
+        /// The frames rendered in the last second.
+        /// </summary>
+        public static int lastFrames = 0;
+        /// <summary>
+        /// The current second number.
+        /// </summary>
+        public static int curSec = 0;
+        public static void FPSCounterUpdate(GameTime gameTime)
+        {
+            //Check if the current second has passed.
+            if (!(curSec == gameTime.TotalGameTime.Seconds))
+            {
+                curSec = gameTime.TotalGameTime.Seconds; //Assign the current second to a variable.
+                lastFrames = curFrames; //Set the current second's frames to the last second's frames as a second has passed.
+                curFrames = 0;
+            }
+            curFrames += 1;
+        }
     }
 }
 

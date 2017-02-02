@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SoulEngine.Triggers;
+using SoulEngine.Events;
 
 namespace SoulEngine.Objects.Components
 {
@@ -231,8 +231,8 @@ namespace SoulEngine.Objects.Components
             _moveEndPosition = TargetLocation;
 
             _moveTicker = new Ticker(1, Duration, true);
-            TriggerSystem.Add(new Listen(TriggerType.TICKER_TICK, moveApply, _moveTicker));
-            TriggerSystem.Add(new Listen(TriggerType.TICKER_DONE, moveOver, _moveTicker));
+            ESystem.Add(new Listen(EType.TICKER_TICK, moveApply, _moveTicker));
+            ESystem.Add(new Listen(EType.TICKER_DONE, moveOver, _moveTicker));
         }
         #region "Positioning"
         /// <summary>
@@ -271,17 +271,15 @@ namespace SoulEngine.Objects.Components
         #endregion
         //Private functions.
         #region "Internal Functions"
-        private void moveApply(Triggers.Trigger t)
+        private void moveApply(Event t)
         {
             X = MathHelper.Lerp(_moveStartPosition.X, _moveEndPosition.X, (_moveTicker.TimeSinceStart / _moveTicker.TotalTime));
             Y = MathHelper.Lerp(_moveStartPosition.Y, _moveEndPosition.Y, (_moveTicker.TimeSinceStart / _moveTicker.TotalTime));
         }
-        private void moveOver(Triggers.Trigger t)
+        private void moveOver(Event t)
         {
             _moveRunning = false;
             _moveTicker = null;
-            TriggerSystem.StopListening(moveApply);
-            TriggerSystem.StopListening(moveOver);
         }
         #endregion
 
