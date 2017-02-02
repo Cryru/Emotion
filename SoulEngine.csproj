@@ -57,10 +57,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Engine\Core\Tools\Meter.cs" />
+    <Compile Include="src\Engine\Core\SystemEvents.cs" />
     <Compile Include="src\Engine\Events\Listen.cs" />
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\ESystem.cs" />
+    <Compile Include="src\Engine\Objects\ViewAdapter.cs" />
+    <Compile Include="src\Engine\Objects\Camera.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
     <Compile Include="src\Engine\Objects\Components\Renderer.cs" />
     <Compile Include="src\Engine\Objects\Components\Transform.cs" />

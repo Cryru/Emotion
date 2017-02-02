@@ -173,5 +173,23 @@ namespace SoulEngine
             // GC.SuppressFinalize(this);
         }
         #endregion
+
+        #region "Templates"
+        /// <summary>
+        /// Generic object with positioning and rendering.
+        /// </summary>
+        public static GameObject GenericDrawObject
+        {
+            get
+            {
+                GameObject a = new GameObject();
+                a.AddComponent(new Transform());
+                a.AddComponent(new ActiveTexture());
+                a.AddComponent(new Renderer());
+                return a;
+            }
+        }
+
+        #endregion
     }
 }
