@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Enums;
+using SoulEngine.Events;
 
 namespace SoulEngine.Objects.Components
 {
@@ -26,7 +27,8 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if(Active) GenerateTexture();
+                shouldUpdate = true;
+                if (_texture == null) return AssetManager.MissingTexture;
                 return _texture as Texture2D;
             }
             set
@@ -43,10 +45,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public TextureMode TextureMode = 0;
         /// <summary>
-        /// Whether to regenerate the texture everytime it is requested. 
-        /// Must be set to false if managing the internal rendertarget yourself.
+        /// Whether to regenerate the texture at the beginning of the next frame.
         /// </summary>
-        public bool Active = true;
+        public bool shouldUpdate = true;
         #region "Variables for the Renderer Component"
         /// <summary>
         /// Used to mirror textures horizontally or vertically. Used by the renderer component.
@@ -79,6 +80,9 @@ namespace SoulEngine.Objects.Components
             this.TextureMode = TextureMode;
             Texture = AssetManager.MissingTexture;
             DrawArea = _xnaTexture.Bounds; //Render whole texture if area not specified.
+
+            //Hook to the event frame start event where we will generate the texture.
+            ESystem.Add(new Listen(EType.GAME_FRAMESTART, GenerateTexture));
         }
         /// <summary>
         /// 
@@ -91,6 +95,9 @@ namespace SoulEngine.Objects.Components
             this.TextureMode = TextureMode;
             this.Texture = Texture;
             this.DrawArea = DrawArea;
+
+            //Hook to the event frame start event where we will generate the texture.
+            ESystem.Add(new Listen(EType.GAME_FRAMESTART, GenerateTexture));
         }
         #endregion
 
@@ -99,8 +106,12 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        private void GenerateTexture()
+        private void GenerateTexture(Event t)
         {
+            //Check if we should update the texture.
+            if (shouldUpdate == false) return;
+
+            //Check empty draw area.
             if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
 
             //Get the size of the object, if a Transform component is attached.
@@ -118,14 +129,12 @@ namespace SoulEngine.Objects.Components
             //Start drawing on internal target.
             BeginTargetDraw();
 
-            Context.ink.End();
             Context.ink.Start();
-
             //Draw the texture depending on how we are stretching.
             switch (TextureMode)
             {
                 case TextureMode.Stretch:
-                    Context.ink.Draw(_xnaTexture, new Rectangle(0, 0, DrawArea.Width, DrawArea.Height), DrawArea, Color.White);
+                    Context.ink.Draw(_xnaTexture, new Rectangle(0, 0, Bounds.Width, Bounds.Height), DrawArea, Color.White);
                     break;
 
                 case TextureMode.Tile:
@@ -133,17 +142,19 @@ namespace SoulEngine.Objects.Components
                     {
                         for (int y = 0; y < Bounds.Height / _xnaTexture.Height; y++)
                         {
-                            Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y, _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);
+                            Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y,
+                                _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);
                         }
                     }
-
                     break;
             }
-
             Context.ink.End();
-            Context.ink.Start();
+
             //Stop drawing.
             EndTargetDraw();
+
+            //Reset update flag.
+            shouldUpdate = false;
         }
         /// <summary>
         /// 
@@ -157,7 +168,7 @@ namespace SoulEngine.Objects.Components
             Context.Graphics.SetRenderTarget(_texture);
 
             //Clear the rendertarget.
-            Context.Graphics.Clear(Color.Transparent);
+            Context.Graphics.Clear(Color.Blue);
         }
         /// <summary>
         /// 
@@ -171,6 +182,7 @@ namespace SoulEngine.Objects.Components
             Context.Graphics.Viewport = _tempPortHolder;
         }
         #endregion
+
         //Private functions.
         #region "Internal Functions"
         /// <summary>
@@ -205,6 +217,8 @@ namespace SoulEngine.Objects.Components
             {
                 if (disposing)
                 {
+                    //Unhook event.
+                    ESystem.Remove(GenerateTexture);
                     base.Dispose();
                 }
 

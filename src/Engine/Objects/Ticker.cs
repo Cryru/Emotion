@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Enums;
-using SoulEngine.Triggers;
+using SoulEngine.Events;
 
 namespace SoulEngine.Objects
 {
@@ -78,7 +78,7 @@ namespace SoulEngine.Objects
         {
             get
             {
-                return (float) DateTime.Now.Subtract(_TimeStarted).TotalMilliseconds;
+                return Ticks * Delay;
             }
         }
         #endregion
@@ -142,13 +142,13 @@ namespace SoulEngine.Objects
             if (startNow) _State = TickerState.Running; else _State = TickerState.Paused;
 
             //Add the ticker to the global list.
-            Context.Core.Tickers.Add(this);
+            ESystem.Add(new Listen(EType.GAME_FRAMESTART, Update, Context.Core));
         }
 
         /// <summary>
         /// Is run every tick by the Core. Invokes triggers and calculates time passing.
         /// </summary>
-        public void Update()
+        public void Update(Event e)
         {
             switch(_State) //Check which state we are in.
             {
@@ -164,7 +164,7 @@ namespace SoulEngine.Objects
                     //If enough time has passed then tick.
                     if (time > Delay)
                     {
-                        TriggerSystem.Add(new Trigger(TriggerType.TICKER_TICK, this, _Ticks));
+                        ESystem.Add(new Event(EType.TICKER_TICK, this, _Ticks));
                         time -= Delay;
                         _Ticks++;
                     }
@@ -177,7 +177,11 @@ namespace SoulEngine.Objects
 
                         //In which case run the ending event.
                         _State = TickerState.Done;
-                        TriggerSystem.Add(new Trigger(TriggerType.TICKER_DONE, this));
+                        ESystem.Add(new Event(EType.TICKER_DONE, this));
+                        //Unhook listeners from the object.
+                        ESystem.Remove(this);
+                        //Unhook object listener from core.
+                        ESystem.Remove(Update);
                     }
 
                     break;
@@ -204,16 +208,6 @@ namespace SoulEngine.Objects
             {
                 _State = TickerState.Running;
             }
-        }
-        /// <summary>
-        /// Reset and start the ticker.
-        /// </summary>
-        public virtual void Reset()
-        {
-            Context.Core.Tickers.Add(this);
-
-            _Ticks = 0;
-            _State = TickerState.Paused;
         }
         #endregion
     }
