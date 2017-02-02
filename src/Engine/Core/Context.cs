@@ -44,10 +44,10 @@ namespace SoulEngine
         /// <summary>
         /// 
         /// </summary>
-        public static Camera2D Camera;
+        public static Camera Camera;
         /// <summary>
         /// 
         /// </summary>
-        public static BoxingViewportAdapter Screen;
+        public static ViewAdapter Screen;
     }
 }

@@ -20,7 +20,8 @@ namespace SoulEngine
     {
         public static void ReadExternalSettings(string filePath)
         {
-
+            //Check if we should read the file.
+            if (settingsLoad == false) return;
         }
 
         /// <summary>
