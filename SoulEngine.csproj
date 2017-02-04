@@ -61,6 +61,7 @@
     <Compile Include="src\Engine\Events\Listen.cs" />
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\ESystem.cs" />
+    <Compile Include="src\Engine\FilesManager\File.cs" />
     <Compile Include="src\Engine\Objects\ViewAdapter.cs" />
     <Compile Include="src\Engine\Objects\Camera.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
