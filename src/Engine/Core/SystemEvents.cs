@@ -26,7 +26,7 @@ namespace SoulEngine
         {
             //Check if forcing an update.
             bool force = false;
-            if (e.Data != null && ((string) e.Data).ToLower() == "Force") force = true;
+            if (e.Data != null && ((string) e.Data).ToLower() == "force") force = true;
 
             //Reset some settings.
             Context.Core.Window.IsBorderless = false;
@@ -88,7 +88,7 @@ namespace SoulEngine
             //Set up the screen adapter.
             Context.Screen.Update();
             //Set up the camera.
-            Context.Camera = new Camera(Context.Screen);
+            //Context.Camera = new Camera(Context.Screen);
         }
     }
 }

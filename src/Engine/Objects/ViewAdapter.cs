@@ -4,66 +4,47 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace SoulEngine
 {
-    public class ViewAdapter : ScalingViewportAdapter
+    public enum BoxingMode
+    {
+        None, Letterbox, Pillarbox
+    }
+
+    public class ViewAdapter
     {
         private readonly GraphicsDeviceManager _graphicsDeviceManager;
         private readonly GameWindow _window;
 
-        /// <summary>
-        /// Size of horizontal bleed areas (from left and right edges) which can be safely cut off
-        /// </summary>
-        public int HorizontalBleed { get; }
+        public int VirtualWidth { get; }
+        public int VirtualHeight { get; }
+        public int ViewportWidth => GraphicsDevice.Viewport.Width;
+        public int ViewportHeight => GraphicsDevice.Viewport.Height;
+        public GraphicsDevice GraphicsDevice { get; }
+
+        public Viewport Viewport => GraphicsDevice.Viewport;
+
+        public Rectangle BoundingRectangle => new Rectangle(0, 0, VirtualWidth, VirtualHeight);
+        public Point Center => BoundingRectangle.Center;
 
         /// <summary>
-        /// Size of vertical bleed areas (from top and bottom edges) which can be safely cut off
+        /// 
         /// </summary>
-        public int VerticalBleed { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoxingViewportAdapter"/>. 
-        /// Note: If you're using DirectX please use the other constructor due to a bug in MonoGame.
-        /// https://github.com/mono/MonoGame/issues/4018
-        /// </summary>
-        public ViewAdapter(GameWindow window, GraphicsDevice graphicsDevice, int virtualWidth, int virtualHeight, int horizontalBleed, int verticalBleed)
-            : base(graphicsDevice, virtualWidth, virtualHeight)
+        /// <param name="window"></param>
+        /// <param name="graphicsDevice"></param>
+        /// <param name="virtualWidth"></param>
+        /// <param name="virtualHeight"></param>
+        public ViewAdapter(GameWindow window, GraphicsDevice graphicsDevice, int virtualWidth, int virtualHeight)
         {
             _window = window;
-            //window.ClientSizeChanged += OnClientSizeChanged;
-            HorizontalBleed = horizontalBleed;
-            VerticalBleed = verticalBleed;
+            VirtualWidth = virtualWidth;
+            VirtualHeight = virtualHeight;
+            GraphicsDevice = graphicsDevice;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoxingViewportAdapter"/>. 
-        /// Note: If you're using DirectX please use the other constructor due to a bug in MonoGame.
-        /// https://github.com/mono/MonoGame/issues/4018
-        /// </summary>
-        public ViewAdapter(GameWindow window, GraphicsDevice graphicsDevice, int virtualWidth, int virtualHeight)
-            : this(window, graphicsDevice, virtualWidth, virtualHeight, 0, 0)
+        public Matrix GetScaleMatrix()
         {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoxingViewportAdapter"/>. 
-        /// Use this constructor only if you're using DirectX due to a bug in MonoGame.
-        /// https://github.com/mono/MonoGame/issues/4018
-        /// This constructor will be made obsolete and eventually removed once the bug has been fixed.
-        /// </summary>
-        public ViewAdapter(GameWindow window, GraphicsDeviceManager graphicsDeviceManager, int virtualWidth, int virtualHeight, int horizontalBleed, int verticalBleed)
-            : this(window, graphicsDeviceManager.GraphicsDevice, virtualWidth, virtualHeight, horizontalBleed, verticalBleed)
-        {
-            _graphicsDeviceManager = graphicsDeviceManager;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoxingViewportAdapter"/>. 
-        /// Use this constructor only if you're using DirectX due to a bug in MonoGame.
-        /// https://github.com/mono/MonoGame/issues/4018
-        /// This constructor will be made obsolete and eventually removed once the bug has been fixed.
-        /// </summary>
-        public ViewAdapter(GameWindow window, GraphicsDeviceManager graphicsDeviceManager, int virtualWidth, int virtualHeight)
-            : this(window, graphicsDeviceManager, virtualWidth, virtualHeight, 0, 0)
-        {
+            var scaleX = (float)ViewportWidth / VirtualWidth;
+            var scaleY = (float)ViewportHeight / VirtualHeight;
+            return Matrix.CreateScale(scaleX, scaleY, 1.0f);
         }
 
         public BoxingMode BoxingMode { get; private set; }
@@ -75,8 +56,8 @@ namespace SoulEngine
             var worldScaleX = (float)viewport.Width / VirtualWidth;
             var worldScaleY = (float)viewport.Height / VirtualHeight;
 
-            var safeScaleX = (float)viewport.Width / (VirtualWidth - HorizontalBleed);
-            var safeScaleY = (float)viewport.Height / (VirtualHeight - VerticalBleed);
+            var safeScaleX = (float)viewport.Width / (VirtualWidth);
+            var safeScaleY = (float)viewport.Height / (VirtualHeight);
 
             float worldScale = MathHelper.Max(worldScaleX, worldScaleY);
             float safeScale = MathHelper.Min(safeScaleX, safeScaleY);
@@ -114,16 +95,17 @@ namespace SoulEngine
             }
         }
 
-        public override void Reset()
-        {
-            base.Reset();
-            //OnClientSizeChanged(this, EventArgs.Empty);
-        }
-
-        public override Point PointToScreen(int x, int y)
+        public Point PointToScreen(int x, int y)
         {
             var viewport = GraphicsDevice.Viewport;
-            return base.PointToScreen(x - viewport.X, y - viewport.Y);
+            return PointToScreenHelper(x - viewport.X, y - viewport.Y);
+        }
+
+        public Point PointToScreenHelper(int x, int y)
+        {
+            var scaleMatrix = GetScaleMatrix();
+            var invertedMatrix = Matrix.Invert(scaleMatrix);
+            return Vector2.Transform(new Vector2(x, y), invertedMatrix).ToPoint();
         }
     }
 }

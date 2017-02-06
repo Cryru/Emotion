@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Objects;
 
 namespace SoulEngine
 {
@@ -92,44 +93,19 @@ namespace SoulEngine
              * as hashed by SoulLib. If encrypted the key from the settings file is used.
              */
 
-            //Check if the file exists.
-            if (!(System.IO.File.Exists("Content\\meta.soul"))) return false;
-
-            //Read the file.
-            string file = Soul.IO.ReadFile("Content\\meta.soul");
-
-            //Check if the file is empty.
-            if (file.Length <= 1) return false;
-
-            //Try to decrypt the file using the internal security key, if this fails it might mean it's not encrypted, or wrong key.
-            try
-            {
-                file = Soul.Encryption.Decrypt(file, Settings.SecurityKey);
-            }
-            catch (Exception e)
-            {
-                //SystemFormatException - When not encrypted
-                //CryptographicException - When wrong key.
-
-                if (e is System.Security.Cryptography.CryptographicException) return false;
-                if (!(e is System.FormatException))
-                    throw new Exception("Unknown error when reading meta.soul");
-            }
+            MFile file = new MFile("Content\\meta.soul");
 
             try
             {
-                //Convert JSON to a dictionary.
-                Dictionary<string, string> JSON = Soul.JSON.fromJSON<Dictionary<string, string>>(file);
-
                 //Iterate through each file.
-                for (int i = 0; i < JSON.Keys.Count; i++)
+                for (int i = 0; i < file.Content.Keys.Count; i++)
                 {
                     //Get the path of the file.
-                    string path = JSON.Keys.ToArray()[i];
+                    string path = file.Content.Keys.ToArray()[i];
                     //Get the hash of the current file.
                     string currentFile = Soul.Encryption.GetMD5("Content\\" + path);
                     //Check against the meta stored hash, if it doesn't match return false.
-                    if (currentFile != JSON[path]) return false;
+                    if (currentFile != (string) file.Content[path]) return false;
                 }
             }
             catch (Exception)
