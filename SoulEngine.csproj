@@ -61,7 +61,7 @@
     <Compile Include="src\Engine\Events\Listen.cs" />
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\ESystem.cs" />
-    <Compile Include="src\Engine\FilesManager\File.cs" />
+    <Compile Include="src\Engine\Objects\MFile.cs" />
     <Compile Include="src\Engine\Objects\ViewAdapter.cs" />
     <Compile Include="src\Engine\Objects\Camera.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
@@ -235,6 +235,10 @@
     <Compile Include="src\Engine\Libraries\Input.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Engine\Libraries\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\OpenTK.dll</HintPath>
     </Reference>
@@ -256,6 +260,7 @@
     <Content Include="SoulEngine.ico" />
     <Content Include="src\Engine\Libraries\External\TiledSharp\zlib\License.txt" />
     <Content Include="src\Engine\Libraries\External\TiledSharp\zlib\License.zlib.txt" />
+    <Content Include="src\Engine\Libraries\Newtonsoft.Json.dll" />
     <Content Include="src\Engine\Libraries\SoulLib.dll" />
   </ItemGroup>
   <ItemGroup>

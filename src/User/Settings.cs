@@ -33,7 +33,7 @@ namespace SoulEngine
         /// <summary>
         /// The key that will be used to encrypt and decrypt files.
         /// </summary>
-        public static string SecurityKey = "defaultsecurity";
+        public static string SecurityKey = "standardkey";
         /// <summary>
         /// If true, the engine will not run unless the meta.soul file exists and is correct. About 100ms slowdown.
         /// </summary>
