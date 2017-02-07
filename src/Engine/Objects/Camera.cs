@@ -2,210 +2,174 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
-    public class Camera //: IMovable, IRotatable
+    //////////////////////////////////////////////////////////////////////////////
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
+    //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// A camera object.
+    /// </summary>
+    public class Camera
     {
-        //    private readonly ViewportAdapter _viewportAdapter;
+        #region "Declarations"
+        /// <summary>
+        /// The position of the camera.
+        /// </summary>
+        public Vector2 Position = new Vector2(0, 0);
+        /// <summary>
+        /// The object's rotation in radians.
+        /// </summary>
+        public float Rotation { get; set; }
+        /// <summary>
+        /// The object's rotation in degrees.
+        /// </summary>
+        public int RotationDegree
+        {
+            get
+            {
+                return (int)MathHelper.ToDegrees(Rotation);
+            }
+            set
+            {
+                Rotation = MathHelper.ToRadians(value);
+            }
+        }
+        #endregion
 
-        //    public Camera(GraphicsDevice graphicsDevice)
-        //        : this(new DefaultViewportAdapter(graphicsDevice))
-        //    {
-        //    }
 
-        //    public Camera(ViewportAdapter viewportAdapter)
-        //    {
-        //        _viewportAdapter = viewportAdapter;
 
-        //        Rotation = 0;
-        //        Zoom = 1;
-        //        Origin = new Vector2(viewportAdapter.VirtualWidth / 2f, viewportAdapter.VirtualHeight / 2f);
-        //        Position = Vector2.Zero;
-        //    }
+        public Vector2 Origin = new Vector2(Settings.Width / 2f, Settings.Height / 2f);
 
-        //    public Vector2 Position { get; set; }
-        //    public float Rotation { get; set; }
-        //    public Vector2 Origin { get; set; }
+        private float _zoom = 1;
+        public float Zoom
+        {
+            get { return _zoom; }
+            set
+            {
+                if (value < 0)
+                    value = 0;
 
-        //    private float _zoom;
-        //    public float Zoom
-        //    {
-        //        get { return _zoom; }
-        //        set
-        //        {
-        //            if (value < MinimumZoom || value > MaximumZoom)
-        //                throw new ArgumentException("Zoom must be between MinimumZoom and MaximumZoom");
+                _zoom = value;
+            }
+        }
+       
 
-        //            _zoom = value;
-        //        }
-        //    }
+        public void Move(Vector2 direction)
+        {
+            Position += Vector2.Transform(direction, Matrix.CreateRotationZ(-Rotation));
+        }
 
-        //    private float _minimumZoom;
-        //    public float MinimumZoom
-        //    {
-        //        get { return _minimumZoom; }
-        //        set
-        //        {
-        //            if (value < 0)
-        //                throw new ArgumentException("MinimumZoom must be greater than zero");
+        public void Rotate(float deltaRadians)
+        {
+            Rotation += deltaRadians;
+        }
 
-        //            if (Zoom < value)
-        //                Zoom = MinimumZoom;
+        public void LookAt(Vector2 position)
+        {
+            Position = position - new Vector2(Settings.Width / 2f, Settings.Height / 2f);
+        }
 
-        //            _minimumZoom = value;
-        //        }
-        //    }
+        public Vector2 WorldToScreen(float x, float y)
+        {
+            return WorldToScreen(new Vector2(x, y));
+        }
 
-        //    private float _maximumZoom = float.MaxValue;
-        //    public float MaximumZoom
-        //    {
-        //        get { return _maximumZoom; }
-        //        set
-        //        {
-        //            if (value < 0)
-        //                throw new ArgumentException("MaximumZoom must be greater than zero");
+        public Vector2 WorldToScreen(Vector2 worldPosition)
+        {
+            var viewport = Context.Graphics.Viewport;
+            return Vector2.Transform(worldPosition + new Vector2(viewport.X, viewport.Y), GetViewMatrix());
+        }
 
-        //            if (Zoom > value)
-        //                Zoom = value;
+        public Vector2 ScreenToWorld(float x, float y)
+        {
+            return ScreenToWorld(new Vector2(x, y));
+        }
 
-        //            _maximumZoom = value;
-        //        }
-        //    }
+        public Vector2 ScreenToWorld(Vector2 screenPosition)
+        {
+            var viewport = Context.Graphics.Viewport;
+            return Vector2.Transform(screenPosition - new Vector2(viewport.X, viewport.Y), Matrix.Invert(GetViewMatrix()));
+        }
 
-        //    public void Move(Vector2 direction)
-        //    {
-        //        Position += Vector2.Transform(direction, Matrix.CreateRotationZ(-Rotation));
-        //    }
+        public Matrix GetViewMatrix(Vector2 parallaxFactor)
+        {
+            return GetVirtualViewMatrix(parallaxFactor) * Context.Screen.Matrix;
+        }
 
-        //    public void Rotate(float deltaRadians)
-        //    {
-        //        Rotation += deltaRadians;
-        //    }
+        private Matrix GetVirtualViewMatrix(Vector2 parallaxFactor)
+        {
+            return
+                Matrix.CreateTranslation(new Vector3(-Position * parallaxFactor, 0.0f)) *
+                Matrix.CreateTranslation(new Vector3(-Origin, 0.0f)) *
+                Matrix.CreateRotationZ(Rotation) *
+                Matrix.CreateScale(Zoom, Zoom, 1) *
+                Matrix.CreateTranslation(new Vector3(Origin, 0.0f));
+        }
 
-        //    public void ZoomIn(float deltaZoom)
-        //    {
-        //        ClampZoom(Zoom + deltaZoom);
-        //    }
+        private Matrix GetVirtualViewMatrix()
+        {
+            return GetVirtualViewMatrix(Vector2.One);
+        }
 
-        //    public void ZoomOut(float deltaZoom)
-        //    {
-        //        ClampZoom(Zoom - deltaZoom);
-        //    }
+        public Matrix GetViewMatrix()
+        {
+            return GetViewMatrix(Vector2.One);
+        }
 
-        //    private void ClampZoom(float value)
-        //    {
-        //        if (value < MinimumZoom)
-        //            Zoom = MinimumZoom;
-        //        else if (value > MaximumZoom)
-        //            Zoom = MaximumZoom;
-        //        else
-        //            Zoom = value;
-        //    }
+        public Matrix GetInverseViewMatrix()
+        {
+            return Matrix.Invert(GetViewMatrix());
+        }
 
-        //    public void LookAt(Vector2 position)
-        //    {
-        //        Position = position - new Vector2(_viewportAdapter.VirtualWidth / 2f, _viewportAdapter.VirtualHeight / 2f);
-        //    }
+        private Matrix GetProjectionMatrix(Matrix viewMatrix)
+        {
+            var projection = Matrix.CreateOrthographicOffCenter(0, Settings.Width, Settings.Height, 0, -1, 0);
+            Matrix.Multiply(ref viewMatrix, ref projection, out projection);
+            return projection;
+        }
 
-        //    public Vector2 WorldToScreen(float x, float y)
-        //    {
-        //        return WorldToScreen(new Vector2(x, y));
-        //    }
+        public BoundingFrustum GetBoundingFrustum()
+        {
+            var viewMatrix = GetVirtualViewMatrix();
+            var projectionMatrix = GetProjectionMatrix(viewMatrix);
+            return new BoundingFrustum(projectionMatrix);
+        }
 
-        //    public Vector2 WorldToScreen(Vector2 worldPosition)
-        //    {
-        //        var viewport = _viewportAdapter.Viewport;
-        //        return Vector2.Transform(worldPosition + new Vector2(viewport.X, viewport.Y), GetViewMatrix());
-        //    }
+        public Rectangle GetBoundingRectangle()
+        {
+            //todo
+            var frustum = GetBoundingFrustum();
+            var corners = frustum.GetCorners();
+            var topLeft = corners[0];
+            var bottomRight = corners[2];
+            var width = bottomRight.X - topLeft.X;
+            var height = bottomRight.Y - topLeft.Y;
+            return new Rectangle((int) topLeft.X, (int)topLeft.Y, (int)width, (int)height);
+        }
 
-        //    public Vector2 ScreenToWorld(float x, float y)
-        //    {
-        //        return ScreenToWorld(new Vector2(x, y));
-        //    }
+        public ContainmentType Contains(Point point)
+        {
+            return Contains(point.ToVector2());
+        }
 
-        //    public Vector2 ScreenToWorld(Vector2 screenPosition)
-        //    {
-        //        var viewport = _viewportAdapter.Viewport;
-        //        return Vector2.Transform(screenPosition - new Vector2(viewport.X, viewport.Y), Matrix.Invert(GetViewMatrix()));
-        //    }
+        public ContainmentType Contains(Vector2 vector2)
+        {
+            return GetBoundingFrustum().Contains(new Vector3(vector2.X, vector2.Y, 0));
+        }
 
-        //    public Matrix GetViewMatrix(Vector2 parallaxFactor)
-        //    {
-        //        return GetVirtualViewMatrix(parallaxFactor) * _viewportAdapter.GetScaleMatrix();
-        //    }
+        public ContainmentType Contains(Rectangle rectangle)
+        {
+            var max = new Vector3(rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height, 0.5f);
+            var min = new Vector3(rectangle.X, rectangle.Y, 0.5f);
+            var boundingBox = new BoundingBox(min, max);
+            return GetBoundingFrustum().Contains(boundingBox);
+        }
 
-        //    private Matrix GetVirtualViewMatrix(Vector2 parallaxFactor)
-        //    {
-        //        return
-        //            Matrix.CreateTranslation(new Vector3(-Position * parallaxFactor, 0.0f)) *
-        //            Matrix.CreateTranslation(new Vector3(-Origin, 0.0f)) *
-        //            Matrix.CreateRotationZ(Rotation) *
-        //            Matrix.CreateScale(Zoom, Zoom, 1) *
-        //            Matrix.CreateTranslation(new Vector3(Origin, 0.0f));
-        //    }
-
-        //    private Matrix GetVirtualViewMatrix()
-        //    {
-        //        return GetVirtualViewMatrix(Vector2.One);
-        //    }
-
-        //    public Matrix GetViewMatrix()
-        //    {
-        //        return GetViewMatrix(Vector2.One);
-        //    }
-
-        //    public Matrix GetInverseViewMatrix()
-        //    {
-        //        return Matrix.Invert(GetViewMatrix());
-        //    }
-
-        //    private Matrix GetProjectionMatrix(Matrix viewMatrix)
-        //    {
-        //        var projection = Matrix.CreateOrthographicOffCenter(0, _viewportAdapter.VirtualWidth, _viewportAdapter.VirtualHeight, 0, -1, 0);
-        //        Matrix.Multiply(ref viewMatrix, ref projection, out projection);
-        //        return projection;
-        //    }
-
-        //    public BoundingFrustum GetBoundingFrustum()
-        //    {
-        //        var viewMatrix = GetVirtualViewMatrix();
-        //        var projectionMatrix = GetProjectionMatrix(viewMatrix);
-        //        return new BoundingFrustum(projectionMatrix);
-        //    }
-
-        //    public RectangleF GetBoundingRectangle()
-        //    {
-        //        var frustum = GetBoundingFrustum();
-        //        var corners = frustum.GetCorners();
-        //        var topLeft = corners[0];
-        //        var bottomRight = corners[2];
-        //        var width = bottomRight.X - topLeft.X;
-        //        var height = bottomRight.Y - topLeft.Y;
-        //        return new RectangleF(topLeft.X, topLeft.Y, width, height);
-        //    }
-
-        //    public ContainmentType Contains(Point point)
-        //    {
-        //        return Contains(point.ToVector2());
-        //    }
-
-        //    public ContainmentType Contains(Vector2 vector2)
-        //    {
-        //        return GetBoundingFrustum().Contains(new Vector3(vector2.X, vector2.Y, 0));
-        //    }
-
-        //    public ContainmentType Contains(Rectangle rectangle)
-        //    {
-        //        var max = new Vector3(rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height, 0.5f);
-        //        var min = new Vector3(rectangle.X, rectangle.Y, 0.5f);
-        //        var boundingBox = new BoundingBox(min, max);
-        //        return GetBoundingFrustum().Contains(boundingBox);
-        //    }
-
-        //    public Vector2 GetCenter()
-        //    {
-        //        return new Vector2(Position.X + Settings.Width / 2, Position.Y + Settings.Height / 2);
-        //    }
-        //}
+        public Vector2 GetCenter()
+        {
+            return new Vector2(Position.X + Settings.Width / 2, Position.Y + Settings.Height / 2);
+        }
     }
 }

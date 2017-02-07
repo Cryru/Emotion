@@ -85,10 +85,8 @@ namespace SoulEngine
                 }
             }
 
-            //Set up the screen adapter.
+            //Update the screen adapter, as this event fucks with the viewport.
             Context.Screen.Update();
-            //Set up the camera.
-            //Context.Camera = new Camera(Context.Screen);
         }
     }
 }
