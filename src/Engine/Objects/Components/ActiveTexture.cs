@@ -138,9 +138,13 @@ namespace SoulEngine.Objects.Components
                     break;
 
                 case TextureMode.Tile:
-                    for (int x = 0; x < Bounds.Width / _xnaTexture.Width; x++)
+                    //Calculate the limit of the texture tile, we go higher as the rendertarget will not allow out of bounds drawing anyway.
+                    int xLimit = (int) Math.Ceiling((double) Bounds.Width / _xnaTexture.Width);
+                    int yLimit = (int) Math.Ceiling((double) Bounds.Height / _xnaTexture.Height);
+
+                    for (int x = 0; x < xLimit; x++)
                     {
-                        for (int y = 0; y < Bounds.Height / _xnaTexture.Height; y++)
+                        for (int y = 0; y < yLimit; y++)
                         {
                             Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y,
                                 _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);

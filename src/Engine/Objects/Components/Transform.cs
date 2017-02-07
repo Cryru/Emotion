@@ -50,7 +50,6 @@ namespace SoulEngine.Objects.Components
                 Z = value.Z;
             }
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -66,7 +65,6 @@ namespace SoulEngine.Objects.Components
                 Y = value.Y;
             }
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -74,7 +72,8 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                return new Vector2(X + Width / 2, Y + Height / 2);
+                return Bounds.Center.ToVector2();
+                //return new Vector2(X + Width / 2, Y + Height / 2); <-- Custom Implementation
             }
             set
             {
@@ -113,21 +112,21 @@ namespace SoulEngine.Objects.Components
         //The rotation of the object.
         #region "Rotation"
         /// <summary>
-        /// 
+        /// The object's rotation in radians.
         /// </summary>
         public float Rotation { get; set; }
         /// <summary>
-        /// 
+        /// The object's rotation in degrees.
         /// </summary>
         public int RotationDegree
         {
             get
             {
-                return Soul.Convert.RadiansToDegrees(Rotation);
+                return (int) MathHelper.ToDegrees(Rotation);
             }
             set
             {
-                Rotation = Soul.Convert.DegreesToRadians(value);
+                Rotation = MathHelper.ToRadians(value);
             }
         }
         #endregion

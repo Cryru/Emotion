@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Objects;
 
 namespace SoulEngine
 {
@@ -48,6 +49,6 @@ namespace SoulEngine
         /// <summary>
         /// 
         /// </summary>
-        public static ViewAdapter Screen;
+        public static ScreenAdapter Screen;
     }
 }

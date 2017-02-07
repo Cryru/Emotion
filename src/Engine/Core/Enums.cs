@@ -12,9 +12,18 @@ namespace SoulEngine.Enums
     /// </summary>
     public enum ScreenMode
     {
-        Windowed, //In a window the size of which is specified by the settings.
-        Fullscreen, //Graphics exclusive mode, fullscreened.
-        Borderless //The window is without a border and fullscreened.
+        /// <summary>
+        /// In a window the size of which is specified by the settings.
+        /// </summary>
+        Windowed,
+        /// <summary>
+        /// Graphics exclusive mode, fullscreened.
+        /// </summary>
+        Fullscreen,
+        /// <summary>
+        /// The window is without a border and fullscreened.
+        /// </summary>
+        Borderless
     }
 
     /// <summary>
@@ -22,9 +31,18 @@ namespace SoulEngine.Enums
     /// </summary>
     public enum TickerState
     {
-        Running, //Ticking.
-        Done, //Done ticking.
-        Paused //Paused.
+        /// <summary>
+        /// Ticking.
+        /// </summary>
+        Running,
+        /// <summary>
+        /// Done ticking.
+        /// </summary>
+        Done,
+        /// <summary>
+        /// Paused.
+        /// </summary>
+        Paused
     }
 
     /// <summary>
@@ -32,7 +50,13 @@ namespace SoulEngine.Enums
     /// </summary>
     public enum TextureMode
     {
-        Stretch, //xxxx
-        Tile //xxxx
+        /// <summary>
+        /// The texture is stretched to fit the size it is supposed to be.
+        /// </summary>
+        Stretch,
+        /// <summary>
+        /// The texture is tiled as many times as needed to fit the size it is supposed to be.
+        /// </summary>
+        Tile
     }
 }

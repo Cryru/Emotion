@@ -62,7 +62,7 @@
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\ESystem.cs" />
     <Compile Include="src\Engine\Objects\MFile.cs" />
-    <Compile Include="src\Engine\Objects\ViewAdapter.cs" />
+    <Compile Include="src\Engine\Objects\ScreenAdapter.cs" />
     <Compile Include="src\Engine\Objects\Camera.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
     <Compile Include="src\Engine\Objects\Components\Renderer.cs" />
@@ -202,17 +202,6 @@
     <Compile Include="src\User\Settings.cs" />
     <Compile Include="src\Engine\Core\Core.cs" />
     <Compile Include="src\Engine\Core\Starter.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\BoxingViewportAdapter.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\Camera2D.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\DefaultViewportAdapter.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\IMovable.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\IRotatable.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\RectangleF.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\ScalingViewPortAdapter.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\ShapeF.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\Size.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\SizeF.cs" />
-    <Compile Include="src\Engine\Libraries\External\MG.Ext\ViewportAdapter.cs" />
     <Compile Include="src\Engine\Libraries\External\TiledSharp\ImageLayer.cs" />
     <Compile Include="src\Engine\Libraries\External\TiledSharp\Layer.cs" />
     <Compile Include="src\Engine\Libraries\External\TiledSharp\Map.cs" />

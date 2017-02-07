@@ -75,7 +75,9 @@ namespace SoulEngine
             Context.preInk = new SpriteBatch(GraphicsDevice);
 
             //Setup the Screen adapter.
-            Context.Screen = new ViewAdapter(Context.Core.Window, Context.Graphics, Settings.Width, Settings.Height);
+            Context.Screen = new ScreenAdapter();
+            //Setup the camera.
+            Context.Camera = new Camera();
 
             //Continue the start sequence.
             Starter.ContinueStart();
@@ -92,6 +94,36 @@ namespace SoulEngine
             t.Component<Transform>().Size = new Vector2(10, 10);
             t.Component<Transform>().RotationDegree = 45;
             t.Component<Transform>().ObjectCenter();
+            t.Component<ActiveTexture>().TextureMode = TextureMode.Tile;
+
+            ESystem.Add(new Listen(EType.INPUT_TEXT, cameradebug));
+        }
+        private void cameradebug(Event e)
+        {
+            switch ((string)e.Data)
+            {
+                case "a":
+                    Context.Camera.Move(new Vector2(-0.5f, 0));
+                    break;
+                case "d":
+                    Context.Camera.Move(new Vector2(0.5f, 0));
+                    break;
+                case "w":
+                    Context.Camera.Move(new Vector2(0, -0.5f));
+                    break;
+                case "s":
+                    Context.Camera.Move(new Vector2(0, 0.5f));
+                    break;
+                case "v":
+                    Context.Camera.Zoom += 0.5f;
+                    break;
+                case "b":
+                    Context.Camera.Zoom -= 0.5f;
+                    break;
+                default:
+                    Console.WriteLine(e.Data);
+                    break;
+            }
         }
         #endregion
         GameObject t;
@@ -109,7 +141,8 @@ namespace SoulEngine
 
             t.Update(); //temp debug
             t.Component<Transform>().Rotation += 0.01f; //temp
-
+            //Context.Camera.ZoomIn(1f);
+            //Context.Camera.Move(new Vector2(0.1f, 0));
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
         }
@@ -130,14 +163,18 @@ namespace SoulEngine
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
-            Context.ink.Begin(transformMatrix: Context.Screen.GetScaleMatrix());
+            Context.ink.Begin(transformMatrix: Context.Screen.Matrix);
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
             //Draw the current scene. (NYI)
             //Draw debug objects on top. (NYI)
 
-            Context.ink.Start(Context.Screen.GetScaleMatrix());
+            Context.ink.Start(Context.Camera.GetViewMatrix());
+            //Context.ink.Draw();
+            t.Draw(); //temp debug
+            Context.ink.End();
+            Context.ink.Start(Context.Screen.Matrix);
             //Context.ink.Draw();
             t.Draw(); //temp debug
             Context.ink.End();
@@ -160,11 +197,12 @@ namespace SoulEngine
         }
         /// <summary>
         /// Is triggered when text input is detected to the game.
-        /// This returns the character as input, for instance capital letters etc.
+        /// This returns the character as input, for instance capital letters etc. 
+        /// and doesn't capture non text characters.
         /// </summary>
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
-            ESystem.Add(new Event(EType.INPUT_TEXT, this, e.Character));
+            ESystem.Add(new Event(EType.INPUT_TEXT, this, e.Character.ToString()));
         }
         /// <summary>
         /// Triggered when the size of the window changes. If Settings.ResizableWindow is true
