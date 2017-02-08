@@ -69,6 +69,18 @@ namespace SoulEngine.Events
             }
         }
         /// <summary>
+        /// Removes all listeners hooked to a specific action.
+        /// </summary>
+        /// <param name="listenerAction">The listener action to remove listeners by.</param>
+        public static void Remove(Action listenerAction)
+        {
+            List<Listen> matches = ListenerQueue.Where(x => x.ListenerActionWithNoEvent == listenerAction).ToList();
+            for (int i = 0; i < matches.Count; i++)
+            {
+                ListenerQueue.Remove(matches[i]);
+            }
+        }
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="TargetedSender"></param>
