@@ -11,7 +11,7 @@ namespace SoulEngine.Objects
     /// <summary>
     /// A camera object.
     /// </summary>
-    public class Camera
+    public class Camera : GameObject
     {
         #region "Declarations"
         /// <summary>

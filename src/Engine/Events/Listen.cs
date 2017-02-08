@@ -22,10 +22,6 @@ namespace SoulEngine.Events
         /// </summary>
         public string Type;
         /// <summary>
-        /// The action to execute when the event is triggered.
-        /// </summary>
-        public Action<Event> ListenerAction;
-        /// <summary>
         /// The sender the event should be from.
         /// </summary>
         public object TargetedSender;
@@ -43,6 +39,14 @@ namespace SoulEngine.Events
                 return _timesTriggered;
             }
         }
+        /// <summary>
+        /// The action to execute when the event is triggered.
+        /// </summary>
+        public Action<Event> ListenerAction { private set; get; }
+        /// <summary>
+        /// The action to execute when the event is triggered that doesn't require an event object.
+        /// </summary>
+        public Action ListenerActionWithNoEvent { private set; get; }
         #endregion
         #region "Privates"
         /// <summary>
@@ -68,22 +72,36 @@ namespace SoulEngine.Events
         }
 
         /// <summary>
+        /// Creates a new event listener object, which will execute an action if an event is triggered.
+        /// </summary>
+        /// <param name="type">The type of event to listen for.</param>
+        /// <param name="listenerAction">The action to execute when the event is triggered.</param>
+        /// <param name="targetedSender">The sender the event should be from.</param>
+        /// <param name="triggerCount">The number of times the listener should trigger.</param>
+        public Listen(string type, Action listenerAction, object targetedSender = null, int triggerCount = -1)
+        {
+            Type = type;
+            ListenerActionWithNoEvent = listenerAction;
+            TargetedSender = targetedSender;
+            TriggerCount = triggerCount;
+        }
+
+        /// <summary>
         /// Triggers the listener using the specified event.
         /// </summary>
         /// <param name="Event">The event that has been triggered and delegated to this listener.</param>
         public void Invoke(Event Event)
         {
+            //Check if broken listener.
+            if (ListenerAction != null && ListenerActionWithNoEvent != null) throw new Exception("Invalid event listener, ");
+
             //Check if reached trigger limit.
             if (_timesTriggered >= TriggerCount && TriggerCount != -1) return;
 
             //Check if waiting for a specific sender.
-            if(TargetedSender != null && TargetedSender == Event.Sender)
+            if((TargetedSender != null && TargetedSender == Event.Sender) || (TargetedSender == null && Type == Event.Type))
             {
-                ListenerAction.Invoke(Event);
-            }
-            else if(TargetedSender == null && Type == Event.Type)
-            {
-                ListenerAction.Invoke(Event);
+                if (ListenerActionWithNoEvent == null) ListenerAction.Invoke(Event); else ListenerActionWithNoEvent.Invoke();
             }
 
             //Increment trigger count.
