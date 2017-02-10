@@ -30,7 +30,7 @@ namespace SoulEngine.Objects.Components
 
         #region "Initialization"
         /// <summary>
-        /// Component used to render a game object in 2D space. Requires an ActiveTexture and a Transform component.
+        /// Component used to render a game object in 2D space. For best results add an ActiveTexture and a Transform component.
         /// </summary>
         public Renderer()
         {
@@ -60,6 +60,8 @@ namespace SoulEngine.Objects.Components
                 DrawTint = attachedObject.Component<ActiveTexture>().Tint;
                 DrawOpacity = attachedObject.Component<ActiveTexture>().Opacity;
                 DrawEffects = attachedObject.Component<ActiveTexture>().MirrorEffects;
+                //In case there is no transform attached, we will take the texture's bounds.
+                DrawBounds = attachedObject.Component<ActiveTexture>().Texture.Bounds;
             }
             if (attachedObject.HasComponent<Transform>())
             {

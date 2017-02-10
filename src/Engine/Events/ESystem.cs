@@ -30,6 +30,9 @@ namespace SoulEngine.Events
         /// <param name="Event">The event to trigger.</param>
         public static void Add(Event Event)
         {
+            //If event without sender then the sender was probably disposed or something.
+            if (Event.Sender == null) return;
+
             //Get listeners for the current event type.
             List<Listen> matches = ListenerQueue.Where((x, y) => x.Type == Event.Type).ToList().ToList();
             //Invoke them.

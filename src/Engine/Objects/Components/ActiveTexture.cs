@@ -114,7 +114,7 @@ namespace SoulEngine.Objects.Components
             //Check empty draw area.
             if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
 
-            //Get the size of the object, if a Transform component is attached.
+            //Get the size of the object, or if a Transform component is attached get the bounds from it.
             Rectangle Bounds = DrawArea;
             if (attachedObject.HasComponent<Transform>())
             {

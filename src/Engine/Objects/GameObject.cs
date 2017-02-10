@@ -16,6 +16,18 @@ namespace SoulEngine
     public class GameObject : IDisposable
     {
         #region "Variables"
+        /// <summary>
+        /// Whether component adding should be disabled.
+        /// </summary>
+        protected bool lockComponentAdding = false;
+        /// <summary>
+        /// Whether component removing should be disabled.
+        /// </summary>
+        protected bool lockComponentRemoving = false;
+        /// <summary>
+        /// Priority of the object.
+        /// </summary>
+        public float Priority = 0;
         #endregion
 
         #region "Components"
@@ -73,9 +85,15 @@ namespace SoulEngine
         /// <param name="ComponentObject">The component object.</param>
         public void AddComponent(Component ComponentObject)
         {
+            //Check if adding components is forbidden.
+            if (lockComponentAdding) return;
+
+            //Check if the component is already added.
             if (HasComponent(ComponentObject.GetType().Name))
+                //If not add it.
             { Components[IdComponent(ComponentObject.GetType().Name)] = ComponentObject; ComponentObject.attachedObject = this; }
             else
+                //If it is then ovewrite the existing one.
             { Components.Add(ComponentObject); ComponentObject.attachedObject = this; }
         }
 
@@ -93,6 +111,10 @@ namespace SoulEngine
         /// <param name="componentName">The name of the component. Case insensitive.</param>
         public void RemoveComponent(string componentName)
         {
+            //Check if removing components is forbidden.
+            if (lockComponentRemoving) return;
+
+            //Get the ID of the component and use IT to remove the component.
             int id = IdComponent(componentName);
             if (id != -1) { Components[id].Dispose(); Components.RemoveAt(id); }
         }

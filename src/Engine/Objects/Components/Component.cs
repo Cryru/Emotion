@@ -45,6 +45,7 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //Free resources.
+                SoulEngine.Events.ESystem.Remove(this);
                 attachedObject = null;
 
                 //Set disposing flag.
