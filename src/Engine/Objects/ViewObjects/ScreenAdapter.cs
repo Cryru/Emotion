@@ -18,7 +18,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The transformation matrix to render through.
         /// </summary>
-        public Matrix Matrix
+        public Matrix View
         {
             get
             {

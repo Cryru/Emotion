@@ -29,10 +29,6 @@ namespace SoulEngine.Objects.Components
         /// 
         /// </summary>
         public float Y { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public float Z { get; set; }
 
         /// <summary>
         /// 
@@ -41,13 +37,13 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                return new Vector3(X, Y, Z);
+                return new Vector3(X, Y, attachedObject.Priority);
             }
             set
             {
                 X = value.X;
                 Y = value.Y;
-                Z = value.Z;
+                attachedObject.Priority = value.Z;
             }
         }
         /// <summary>
@@ -152,9 +148,16 @@ namespace SoulEngine.Objects.Components
         #endregion
         //Private variables.
         #region "Private"
-        private bool _moveRunning = false;
-        private Vector3 _moveStartPosition;
-        private Vector3 _moveEndPosition;
+        private bool _moveRunning
+        {
+            get
+            {
+                if (_moveTicker != null && _moveTicker.State == Enums.TickerState.Running) return true;
+                return false;
+            }
+        }
+        private Vector2 _moveStartPosition;
+        private Vector2 _moveEndPosition;
         private Ticker _moveTicker;
         #endregion
         #endregion
@@ -221,17 +224,30 @@ namespace SoulEngine.Objects.Components
         /// <param name="Duration">The time the movement should take.</param>
         /// <param name="TargetLocation">The location to move to.</param>
         /// <param name="Force">Whether to force movement, which means it will overwrite any current movement.</param>
-        public void MoveTo(int Duration, Vector3 TargetLocation, bool Force = false)
+        public void MoveTo(int Duration, Vector2 TargetLocation, bool Force = false)
         {
             //Check if the effect is already running, and if we are not forcing.
-            if (_moveRunning && !Force) return;
+            if (Force) if (_moveRunning) moveOver(); else if (_moveRunning) return;
 
-            _moveStartPosition = PositionFull;
+            _moveStartPosition = Position;
             _moveEndPosition = TargetLocation;
 
             _moveTicker = new Ticker(1, Duration, true);
             ESystem.Add(new Listen(EType.TICKER_TICK, moveApply, _moveTicker));
             ESystem.Add(new Listen(EType.TICKER_DONE, moveOver, _moveTicker));
+        }
+        /// <summary>
+        /// Moves the object towards the desired direction.
+        /// </summary>
+        /// <param name="direction">A normalized vector as a direction.</param>
+        /// <param name="Force">Whether to force movement, which means it will overwrite any current movement.</param>
+        public void MoveIn(Vector2 direction, bool Force = false)
+        {
+            //Check if the effect is already running, and if we are not forcing.
+            if (Force) if (_moveRunning) moveOver(); else if (_moveRunning) return;
+
+            direction.Normalize();
+            Position += Vector2.Transform(direction, Matrix.CreateRotationZ(Rotation));
         }
         #region "Positioning"
         /// <summary>
@@ -270,15 +286,15 @@ namespace SoulEngine.Objects.Components
         #endregion
         //Private functions.
         #region "Internal Functions"
-        private void moveApply(Event t)
+        private void moveApply()
         {
             X = MathHelper.Lerp(_moveStartPosition.X, _moveEndPosition.X, (_moveTicker.TimeSinceStart / _moveTicker.TotalTime));
             Y = MathHelper.Lerp(_moveStartPosition.Y, _moveEndPosition.Y, (_moveTicker.TimeSinceStart / _moveTicker.TotalTime));
         }
-        private void moveOver(Event t)
+        private void moveOver()
         {
-            _moveRunning = false;
-            _moveTicker = null;
+            //Remove the ticker.
+            _moveTicker.Dispose();       
         }
         #endregion
 

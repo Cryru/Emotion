@@ -89,41 +89,8 @@ namespace SoulEngine
             Starter.bootPerformance.Stop();
             Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
-            //temp debug initialization here
-            t = GameObject.GenericDrawObject;
-            t.Component<Transform>().Size = new Vector2(10, 10);
-            t.Component<Transform>().RotationDegree = 45;
-            t.Component<Transform>().ObjectCenter();
-            t.Component<ActiveTexture>().TextureMode = TextureMode.Tile;
-
-            ESystem.Add(new Listen(EType.INPUT_TEXT, cameradebug));
-        }
-        private void cameradebug(Event e)
-        {
-            switch ((string)e.Data)
-            {
-                case "a":
-                    Context.Camera.Move(new Vector2(-0.5f, 0));
-                    break;
-                case "d":
-                    Context.Camera.Move(new Vector2(0.5f, 0));
-                    break;
-                case "w":
-                    Context.Camera.Move(new Vector2(0, -0.5f));
-                    break;
-                case "s":
-                    Context.Camera.Move(new Vector2(0, 0.5f));
-                    break;
-                case "v":
-                    Context.Camera.Zoom += 0.5f;
-                    break;
-                case "b":
-                    Context.Camera.Zoom -= 0.5f;
-                    break;
-                default:
-                    Console.WriteLine(e.Data);
-                    break;
-            }
+            //Load the starting scene.
+            Scene = new ScenePrim();
         }
         #endregion
         GameObject t;
@@ -139,10 +106,6 @@ namespace SoulEngine
             //Trigger tick start event.
             ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
 
-            t.Update(); //temp debug
-            t.Component<Transform>().Rotation += 0.01f; //temp
-            //Context.Camera.ZoomIn(1f);
-            //Context.Camera.Move(new Vector2(0.1f, 0));
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
         }
@@ -163,21 +126,14 @@ namespace SoulEngine
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
-            Context.ink.Begin(transformMatrix: Context.Screen.Matrix);
+            Context.ink.Begin(transformMatrix: Context.Screen.View);
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
             //Draw the current scene. (NYI)
             //Draw debug objects on top. (NYI)
 
-            Context.ink.Start(Context.Camera.GetViewMatrix());
-            //Context.ink.Draw();
-            t.Draw(); //temp debug
-            Context.ink.End();
-            Context.ink.Start(Context.Screen.Matrix);
-            //Context.ink.Draw();
-            t.Draw(); //temp debug
-            Context.ink.End();
+
             //Trigger frame end event.
             ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
         }

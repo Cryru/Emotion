@@ -37,7 +37,7 @@ namespace SoulEngine
         /// <summary>
         /// If true, the engine will not run unless the meta.soul file exists and is correct. About 100ms slowdown.
         /// </summary>
-        public static bool EnforceAssetIntegrity = true;
+        public static bool EnforceAssetIntegrity = false;
         #endregion
         #region "Window Settings"
         /// <summary>
@@ -51,11 +51,11 @@ namespace SoulEngine
         /// <summary>
         /// The width the game will be rendered at.
         /// </summary>
-        public static int Width = 160;
+        public static int Width = 100;
         /// <summary>
         /// The height the game will be rendered at.
         /// </summary>
-        public static int Height = 90;
+        public static int Height = 50;
         /// <summary>
         /// The name of the window.
         /// </summary>
@@ -113,15 +113,7 @@ namespace SoulEngine
         /// Whether to update the fps text.
         /// </summary>
         public static bool fpsUpdate = true;
-        #endregion
-        #region "Screen Settings"
-        /// <summary>
-        /// The screen to load first.
-        /// Do not initliaze any objects in it.
-        /// </summary>
-        //public static Legacy.Objects.Screen StartScreen = new Legacy.StartScreen();
-        #endregion
-       
+        #endregion      
         #region "Android Settings"
 #if ANDROID
         /// <summary>

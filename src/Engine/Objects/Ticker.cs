@@ -15,7 +15,7 @@ namespace SoulEngine.Objects
     /// <summary>
     /// Used for timing events independent of FPS, but on real time.
     /// </summary>
-    public class Ticker
+    public class Ticker : IDisposable
     {
         #region "Variables"
         #region "Settings"
@@ -81,17 +81,6 @@ namespace SoulEngine.Objects
                 return Ticks * Delay;
             }
         }
-        #endregion
-        #region "Triggers"
-        /// <summary>
-        /// Triggers each time the ticker ticks.
-        /// </summary>
-        //public Trigger<Ticker> onTick = new Trigger<Ticker>();
-        /// <summary>
-        /// When the timer's tick limit has been reached.
-        /// This will never be triggered for endless timers.
-        /// </summary>
-        //public Trigger<Ticker> onDone = new Trigger<Ticker>();
         #endregion
         #region "State"
         /// <summary>
@@ -210,5 +199,38 @@ namespace SoulEngine.Objects
             }
         }
         #endregion
+
+        //Other
+        #region "Disposing"
+        /// <summary>
+        /// Disposing flag to detect redundant calls.
+        /// </summary>
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                //Free resources.
+                ESystem.Remove(this);
+
+                //Set disposing flag.
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
-}
+};

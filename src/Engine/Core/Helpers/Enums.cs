@@ -46,7 +46,7 @@ namespace SoulEngine.Enums
     }
 
     /// <summary>
-    /// 
+    /// The way to render a texture.
     /// </summary>
     public enum TextureMode
     {
@@ -58,5 +58,24 @@ namespace SoulEngine.Enums
         /// The texture is tiled as many times as needed to fit the size it is supposed to be.
         /// </summary>
         Tile
+    }
+
+    /// <summary>
+    /// The channel to draw on.
+    /// </summary>
+    public enum DrawChannel
+    {
+        /// <summary>
+        /// Can be used to draw outside out of the screen space, like the black bars.
+        /// </summary>
+        Terminus,
+        /// <summary>
+        /// UI and other stuff goes on this channel.
+        /// </summary>
+        Screen,
+        /// <summary>
+        /// Game objects and such are here, this space is viewed through a camera.
+        /// </summary>
+        World
     }
 }
