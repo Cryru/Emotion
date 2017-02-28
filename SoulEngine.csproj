@@ -61,12 +61,12 @@
     <Compile Include="src\Engine\Events\Listen.cs" />
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\ESystem.cs" />
-    <Compile Include="src\Engine\Objects\Components\Text.cs" />
+    <Compile Include="src\Engine\Objects\Components\Transform.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ScreenAdapter.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\Camera.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
     <Compile Include="src\Engine\Objects\Components\Renderer.cs" />
-    <Compile Include="src\Engine\Objects\Components\Transform.cs" />
+    <Compile Include="src\Engine\Objects\Components\Text.cs" />
     <Compile Include="src\Engine\Core\AssetManager.cs" />
     <Compile Include="src\Engine\Core\Assets.cs" />
     <Compile Include="src\Engine\Core\Context.cs" />
