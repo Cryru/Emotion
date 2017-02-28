@@ -41,6 +41,6 @@ and more...
 
 ["Polygon-Tool"](https://github.com/Cryru/Polygon-Tool) - Polygon collision boxes for physics engine.
 
-["Farseer Physics"](https://github.com/tinco/Farseer-Physics) - Physics engine.
+["Farseer Physics for SoulEngine"](https://github.com/Cryru/SoulEngine-Farseer) - Physics engine.
 
 ["Asset-Meta-Generator"](https://github.com/Cryru/Asset-Meta-Generator) - Generating Meta files for asset validation.
