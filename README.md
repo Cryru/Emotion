@@ -17,29 +17,30 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 ## Features and Progress
 
 - Object-Component System [&#10003;]
-- Animated Textures
-- Easy Asset Loading
+- Simple Animated Textures
+- Asset Loading and Unloading Manager
 - Scene System
-- Event System [&#10003;]
+- Unified Event System [&#10003;]
 - Tiled Integration
 - FPS Independent Timing [&#10003;]
-- Anti-Tampering Asset System [&#10003;]
-- Camera System
-- Settings and Save File JSON System
-- Error Prevention System
-- Text Rendering and Styling with Markup
+- Asset and Save File Tamper Prevention [&#10003;]
+- Camera System [&#10003;]
+- Resolution Adaptation with Boxing [&#10003;]
+- JSON Based File Management (For Settings, Save Files etc.)
+- Error Logging
+- Custom Text Rendering with Markup
 
 and more...
 
 
 ## External Projects
 
-["TiledSharp"](https://github.com/marshallward/TiledSharp) - For reading .tmx files.
+["TiledSharp"](https://github.com/marshallward/TiledSharp) - Parsing .tmx files.
 
-["SoulLib"](https://github.com/Cryru/SoulLib) - Encryption, JSON, and IO.
+["SoulLib"](https://github.com/Cryru/SoulLib) - Encryption, JSON, Managed Files, and IO.
 
 ["Polygon-Tool"](https://github.com/Cryru/Polygon-Tool) - Polygon collision boxes for physics engine.
 
-["Asset-Meta-Generator"](https://github.com/Cryru/Asset-Meta-Generator) - Meta files for asset tampering.
-
 ["Farseer Physics"](https://github.com/tinco/Farseer-Physics) - Physics engine.
+
+["Asset-Meta-Generator"](https://github.com/Cryru/Asset-Meta-Generator) - Generating Meta files for asset validation.
