@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects;
+using Soul.IO;
 
 namespace SoulEngine
 {
@@ -88,29 +89,29 @@ namespace SoulEngine
         public static bool AssertAssets()
         {
             /*
-             * The meta.soul file is expected to be in a JSON format where the keys are the
-             * file paths relative to the Content folder and the value is the hash of the file, 
+             * The meta.soul file is expected to a Soul Managed File with each key being a
+             * file path relative to the Content folder and each value a hash of the file, 
              * as hashed by SoulLib. If encrypted the key from the settings file is used.
              */
 
-            MFile file = new MFile("Content\\meta.soul");
+            MFile file = new MFile("Content\\meta.soul", null, Settings.SecurityKey);
 
             try
             {
                 //Iterate through each file.
-                for (int i = 0; i < file.Content.Keys.Count; i++)
+                for (int i = 0; i < file.Keys.Count; i++)
                 {
                     //Get the path of the file.
-                    string path = file.Content.Keys.ToArray()[i];
+                    string path = file.Content<string>(file.Keys[i]);
                     //Get the hash of the current file.
                     string currentFile = Soul.Encryption.GetMD5("Content\\" + path);
                     //Check against the meta stored hash, if it doesn't match return false.
-                    if (currentFile != (string) file.Content[path]) return false;
+                    if (currentFile != file.Content<string>(path)) return false;
                 }
             }
             catch (Exception)
             {
-                throw new Exception("Corrupt meta.soul data.");
+                throw new Exception("The meta.soul is corrupted or incorrect.");
             }
 
             //If everything went smoothly, return true.

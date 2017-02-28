@@ -2,29 +2,52 @@
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 using System.IO;
-using Soul;
+using Soul.IO;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SoulEngine
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
-    //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev - TheCryru@gmail.com                     //
-    //                                                                          //
-    // For any questions and issues: https://github.com/Cryru/SoulEngine        //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
     /// The engine's user settings.
     /// </summary>
     public partial class Settings
     {
+        #region "Variables"
+        /// <summary>
+        /// The default settings file to be used when one doesn't exist or is corrupted.
+        /// </summary>
+        private static Dictionary<string, object> defaultFile = new Dictionary<string, object>();
+        #endregion
+
+        /// <summary>
+        /// Populates the default file variable.
+        /// </summary>
+        public static void GenerateDefaultFile()
+        {
+            defaultFile.Add("Window Width", WWidth);
+        }
+
         public static void ReadExternalSettings(string filePath)
         {
             //Check if we should read the file.
             if (settingsLoad == false) return;
+
+            //The settings file is expected to a non encrypted Soul Managed File.
+            MFile settingsFile = new MFile("Content\\settings.soul", defaultFile);
+
+            //Read settings.
+            settingsFile.AssignContent(ref WWidth, "Window Width");
+            
+            bool traktor = true;
         }
 
         /// <summary>
+        /// LEGACY
         /// Read the settings file if any and load the settings from it.
         /// The settings file by default should be in the same folder as the application and be named "settings.ini".
         /// </summary>

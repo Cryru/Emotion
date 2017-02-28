@@ -41,8 +41,11 @@ namespace SoulEngine
                 //Start measuring boot performance.
                 bootPerformance = Stopwatch.StartNew();
 
+                //Generate the default settings file to be used in case an external one is missing.
+                Settings.GenerateDefaultFile();
+
                 //Check if an external settings file exists, and load it's data if it does.
-                if (System.IO.File.Exists("\\settings.soul")) Settings.ReadExternalSettings("\\settings.soul");
+                Settings.ReadExternalSettings("\\settings.soul");
 
                 //Setup a core instance.
                 Context.Core = new Core();
