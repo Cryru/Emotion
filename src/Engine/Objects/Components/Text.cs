@@ -16,6 +16,7 @@ namespace SoulEngine.Objects.Components
     /// <summary>
     /// Location, Size, and Rotation.
     /// </summary>
+    public class Text : Component
     {
         #region "Variables"
         //The position of the object within the scene.
@@ -165,6 +166,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
+        public Text()
         {
             PositionFull = new Vector3(0, 0, 0);
             Size = new Vector2(100, 100);
@@ -174,6 +176,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         /// <param name="Position"></param>
         /// <param name="Size"></param>
+        public Text(Vector3 Position, Vector2 Size)
         {
             PositionFull = Position;
             this.Size = Size;
@@ -183,6 +186,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         /// <param name="Position"></param>
         /// <param name="Size"></param>
+        public Text(Vector2 Position, Vector2 Size)
         {
             this.Position = Position;
             this.Size = Size;
@@ -191,6 +195,7 @@ namespace SoulEngine.Objects.Components
         /// 
         /// </summary>
         /// <param name="Position"></param>
+        public Text(Vector3 Position)
         {
             PositionFull = Position;
         }
@@ -198,6 +203,7 @@ namespace SoulEngine.Objects.Components
         /// 
         /// </summary>
         /// <param name="Position"></param>
+        public Text(Vector2 Position)
         {
             this.Position = Position;
         }
