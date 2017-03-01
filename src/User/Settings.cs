@@ -16,11 +16,7 @@ namespace SoulEngine
     {
         #region "Engine Settings"
         /// <summary>
-        /// Whether to cap the FPS.
-        /// </summary>
-        public static bool capFPS = true;
-        /// <summary>
-        /// The FPS limit.
+        /// The FPS target.
         /// </summary>
         public static float FPS = 60;
         /// <summary>
@@ -63,7 +59,7 @@ namespace SoulEngine
         /// <summary>
         /// The way the engine should be displayed, the RefreshScreenSettings function must be used to apply changes.
         /// </summary>
-        public static ScreenMode ScreenMode = ScreenMode.Windowed;
+        public static DisplayMode DisplayMode = DisplayMode.BorderlessFullscreen;
         /// <summary>
         /// Whether the mouse should be rendered.
         /// </summary>
@@ -71,7 +67,7 @@ namespace SoulEngine
         /// <summary>
         /// Whether the window can be resized.
         /// </summary>
-        public static bool ResizableWindow = true;
+        public static bool ResizableWindow = false;
         #endregion
         #region "Other Settings"
         /// <summary>

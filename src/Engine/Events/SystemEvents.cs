@@ -28,28 +28,38 @@ namespace SoulEngine.Events
             bool force = false;
             if (e.Data != null && ((string) e.Data).ToLower() == "force") force = true;
 
-            //Reset some settings.
-            Context.Core.Window.IsBorderless = false;
-            Context.GraphicsManager.IsFullScreen = false;
-
-            //Check if using custom size from user, in the case of a resizable window.
+            //Check if using custom size from user, as is the case when the window is resizable.
             if (force == true || Settings.ResizableWindow == false)
             {
-                //Check which screen mode we want to apply.
-                switch (Settings.ScreenMode)
+                //Reset fullscreen and display border.
+                if (Settings.DisplayMode != Enums.DisplayMode.BorderlessFullscreen) Context.Core.Window.IsBorderless = false;
+                if (Settings.DisplayMode != Enums.DisplayMode.Fullscreen) Context.GraphicsManager.IsFullScreen = false;
+
+                //Check which window mode we want to apply.
+                switch (Settings.DisplayMode)
                 {
-                    case Enums.ScreenMode.Windowed:
-                        //Setup the screen with the screen's size as the settings specified size.
+                    case Enums.DisplayMode.Windowed:
+                        //Setup the window with the screen's size as the settings specified size.
                         Context.GraphicsManager.PreferredBackBufferWidth = Settings.WWidth;
                         Context.GraphicsManager.PreferredBackBufferHeight = Settings.WHeight;
                         Context.GraphicsManager.ApplyChanges();
 
-                        //Center window, but only if not at boot.
-                        Context.Core.Window.Position = new Point((int)Functions.GetScreenSize().X / 2 - Settings.WWidth / 2, 
+                        //Center window.
+                        Context.Core.Window.Position = new Point((int)Functions.GetScreenSize().X / 2 - Settings.WWidth / 2,
                             (int)Functions.GetScreenSize().Y / 2 - Settings.WHeight / 2);
                         break;
 
-                    case Enums.ScreenMode.Borderless:
+                    case Enums.DisplayMode.Fullscreen:
+                        //Set the graphics device to fullscreen.
+                        Context.GraphicsManager.IsFullScreen = true;
+
+                        //Setup the window with the screen's size as width and height.
+                        Context.GraphicsManager.PreferredBackBufferWidth = (int)Functions.GetScreenSize().X;
+                        Context.GraphicsManager.PreferredBackBufferHeight = (int)Functions.GetScreenSize().Y;
+                        Context.GraphicsManager.ApplyChanges();
+                        break;
+
+                    case Enums.DisplayMode.BorderlessFullscreen:
                         //Remove the window borders.
                         Context.Core.Window.IsBorderless = true;
 
@@ -60,16 +70,6 @@ namespace SoulEngine.Events
 
                         //Move the window to the top left.
                         Context.Core.Window.Position = new Point(0, 0);
-                        break;
-
-                    case Enums.ScreenMode.Fullscreen:
-                        //Set the graphics device to fullscreen.
-                        Context.GraphicsManager.IsFullScreen = true;
-
-                        //Setup the screen with the screen's size as width and height.
-                        Context.GraphicsManager.PreferredBackBufferWidth = (int)Functions.GetScreenSize().X;
-                        Context.GraphicsManager.PreferredBackBufferHeight = (int)Functions.GetScreenSize().Y;
-                        Context.GraphicsManager.ApplyChanges();
                         break;
                 }
             }

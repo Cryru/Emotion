@@ -29,7 +29,12 @@ namespace SoulEngine
         /// </summary>
         public static void GenerateDefaultFile()
         {
+            defaultFile.Add("FPS Target", FPS);
+            defaultFile.Add("VSync", vSync);
             defaultFile.Add("Window Width", WWidth);
+            defaultFile.Add("Window Height", WWidth);
+            defaultFile.Add("Display Mode", DisplayMode);
+            defaultFile.Add("Resizable", ResizableWindow);
         }
 
         public static void ReadExternalSettings(string filePath)
@@ -41,8 +46,12 @@ namespace SoulEngine
             MFile settingsFile = new MFile("Content\\settings.soul", defaultFile);
 
             //Read settings.
+            settingsFile.AssignContent(ref FPS, "FPS Target");
+            settingsFile.AssignContent(ref vSync, "VSync");
             settingsFile.AssignContent(ref WWidth, "Window Width");
-            
+            settingsFile.AssignContent(ref WHeight, "Window Height");
+            settingsFile.AssignContent(ref DisplayMode, "Display Mode");
+            settingsFile.AssignContent(ref ResizableWindow, "Resizable");
             bool traktor = true;
         }
 
