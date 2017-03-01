@@ -45,7 +45,7 @@ namespace SoulEngine
 
             //Apply settings.
             IsMouseVisible = Settings.RenderMouse;
-            IsFixedTimeStep = Settings.capFPS;
+            IsFixedTimeStep = Settings.FPS > 0 ? true : false; //Check whether to cap FPS based on the fps target.
             TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Settings.FPS);
             Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
             Window.AllowUserResizing = Settings.ResizableWindow;

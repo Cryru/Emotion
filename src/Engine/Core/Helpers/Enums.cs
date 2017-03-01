@@ -8,22 +8,22 @@
 namespace SoulEngine.Enums
 {
     /// <summary>
-    /// The screen's mode.
+    /// The way the window should be drawn.
     /// </summary>
-    public enum ScreenMode
+    public enum DisplayMode
     {
         /// <summary>
-        /// In a window the size of which is specified by the settings.
+        /// The window is a standard window with the specified size.
         /// </summary>
         Windowed,
         /// <summary>
-        /// Graphics exclusive mode, fullscreened.
+        /// Graphics exclusive mode - fullscreened.
         /// </summary>
         Fullscreen,
         /// <summary>
         /// The window is without a border and fullscreened.
         /// </summary>
-        Borderless
+        BorderlessFullscreen
     }
 
     /// <summary>
