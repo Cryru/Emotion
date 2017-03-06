@@ -29,6 +29,10 @@ namespace SoulEngine
         /// A blank texture.
         /// </summary>
         public static Texture2D BlankTexture;
+        /// <summary>
+        /// The default font.
+        /// </summary>
+        public static SpriteFont DefaultFont;
         #endregion
 
         /// <summary>
@@ -36,39 +40,73 @@ namespace SoulEngine
         /// </summary>
         public static void LoadGlobal()
         {
-            //Load the missingtexture.
-            MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
+            try
+            {
+                //Load the missingtexture.
+                MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
+                //Load the default font.
+                DefaultFont = Context.Core.Content.Load<SpriteFont>("Fonts/Default");
 
-            /*
-             * Generate the blank texture by creating a new 1 by 1 texture and
-             * inserting white color into it.
-             */
-            BlankTexture = new Texture2D(Context.Graphics, 1, 1);
-            Color[] data = new Color[] { Color.White };
-            BlankTexture.SetData(data);
-            BlankTexture.Name = "Engine/blank";
+                /*
+                 * Generate the blank texture by creating a new 1 by 1 texture and
+                 * inserting white color into it.
+                 */
+                BlankTexture = new Texture2D(Context.Graphics, 1, 1);
+                Color[] data = new Color[] { Color.White };
+                BlankTexture.SetData(data);
+                BlankTexture.Name = "Engine/blank";
+            }
+            catch (Exception)
+            {
+                //ERROR HANDLING - COULD NOT LOAD GLOBAL ASSETS
+                throw;
+            }
         }
 
+        #region "Asset Loading"
         /// <summary>
         /// Loads a texture asset into the current scene's content manager and returns it.
         /// </summary>
         /// <param name="textureName">Path and name of the asset, root is the Content folder.</param>
-        /// <returns>The texture, or the missingtexture if not found.</returns>
+        /// <returns>The texture, or the default texture if not found.</returns>
         public static Texture2D Texture(string textureName)
         {
-            if (GetAssetExist(textureName))
-                if (Context.Core.Scene != null)
-                    return Context.Core.Content.Load<Texture2D>(textureName);
-                else
-                    return Context.Core.Scene.Assets.Content.Load<Texture2D>(textureName);
-            else
-                return MissingTexture;
+            return Asset(textureName, MissingTexture);
         }
 
         /// <summary>
-        /// Returns whether the requested asset exists.
+        /// Loads a font into the current scene's content manager and returns it.
         /// </summary>
-        /// <param name="name">The path to the asset file relative to the Content folder.</param>
+        /// <param name="fontName">Path and name of the asset, root is the Content folder.</param>
+        /// <returns>The texture, or the default font if not found.</returns>
+        public static SpriteFont Font(string fontName)
+        {
+            return Asset(fontName, DefaultFont);
+        }
+
+        /// <summary>
+        /// Loads an asset into the current scene's content manager and returns it, or a specified asset if missing.
+        /// </summary>
+        /// <typeparam name="T">The type of asset to load</typeparam>
+        /// <param name="assetName">Path and name of the asset, root is the Content folder.</param>
+        /// <param name="ifMissing">The asset to load if the requested asset is missing.</param>
+        /// <returns>The asset requested, or the replacement if missing.</returns>
+        public static T Asset<T>(string assetName, T ifMissing)
+        {
+            if (GetAssetExist(assetName))
+                if (Context.Core.Scene != null)
+                    return Context.Core.Content.Load<T>(assetName);
+                else
+                    return Context.Core.Scene.Assets.Content.Load<T>(assetName);
+            else
+                return ifMissing;
+        }
+        #endregion
+
+        /// <summary>
+        /// Checks whether the requested asset exists.
+        /// </summary>
+        /// <param name="name">Path and name of the asset, root is the Content folder.</param>
         public static bool GetAssetExist(string name)
         {
             //Assign the path of the file.

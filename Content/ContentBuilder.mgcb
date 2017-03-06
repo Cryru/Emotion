@@ -13,12 +13,6 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Fonts/Font_DEBUG.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:TextureFormat=Color
-/build:Fonts/Font_DEBUG.spritefont
-
 #begin Engine/loadingLogo.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -42,4 +36,10 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Engine/missing.png
+
+#begin Fonts/Default.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+/build:Fonts/Default.spritefont
 
