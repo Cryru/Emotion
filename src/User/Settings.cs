@@ -39,11 +39,11 @@ namespace SoulEngine
         /// <summary>
         /// The width of the window.
         /// </summary>
-        public static int WWidth = 160;
+        public static int WWidth = 960;
         /// <summary>
         /// The height of the window.
         /// </summary>
-        public static int WHeight = 90;
+        public static int WHeight = 540;
         /// <summary>
         /// The width the game will be rendered at.
         /// </summary>
@@ -59,7 +59,7 @@ namespace SoulEngine
         /// <summary>
         /// The way the engine should be displayed, the RefreshScreenSettings function must be used to apply changes.
         /// </summary>
-        public static DisplayMode DisplayMode = DisplayMode.BorderlessFullscreen;
+        public static DisplayMode DisplayMode = DisplayMode.Windowed;
         /// <summary>
         /// Whether the mouse should be rendered.
         /// </summary>
@@ -77,7 +77,7 @@ namespace SoulEngine
         /// <summary>
         /// Whether an external settings file should be loaded.
         /// </summary>
-        public static bool settingsLoad = true;
+        public static bool settingsLoad = false;
         #endregion
         #region "Primary User Settings"
         /// <summary>

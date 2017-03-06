@@ -89,8 +89,11 @@ namespace SoulEngine
             Starter.bootPerformance.Stop();
             Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
+            //THE BELOW CODE NEEDS TO BE ATTACHED TO A SCENE LOADER
             //Load the starting scene.
             Scene = new ScenePrim();
+            //Run the scene's setup code.
+            Scene.Start();
         }
         #endregion
         GameObject t;

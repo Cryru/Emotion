@@ -32,8 +32,12 @@ namespace SoulEngine
 
         public override void Start()
         {
-           // throw new NotImplementedException();
-        }
+            // throw new NotImplementedException();
+            Console.WriteLine("SCENE PRIM LOADED");
+
+            GameObject a = new GameObject();
+            a.AddComponent(new SoulEngine.Objects.Components.ActiveText() {Text = "<blee>he\\ <aa>l<o>lo</>"});
+        } 
 
         public override void Update()
         {
