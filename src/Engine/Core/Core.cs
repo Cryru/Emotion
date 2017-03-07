@@ -43,22 +43,6 @@ namespace SoulEngine
             //Setup the Content root folder for the master scene. The root for this folder is the exe.
             Content.RootDirectory = "Content";
 
-            //Apply settings.
-            IsMouseVisible = Settings.RenderMouse;
-            IsFixedTimeStep = Settings.FPS > 0 ? true : false; //Check whether to cap FPS based on the fps target.
-            TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Settings.FPS);
-            Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
-            Window.AllowUserResizing = Settings.ResizableWindow;
-            Context.GraphicsManager.PreferredBackBufferWidth = Settings.WWidth;
-            Context.GraphicsManager.PreferredBackBufferHeight = Settings.WHeight;
-
-            //Apply hardcoded settings.
-            Window.AllowAltF4 = true;
-            Window.Title = Settings.WName;
-
-            //Add system events.
-            ESystem.Add(new Listen(EType.GAME_SIZECHANGED, SystemEvents.RefreshScreenSettings));
-
             //Connect the C# native events to the SE trigger system.
             Exiting += Engine_Exiting;
             Window.TextInput += Window_TextInput;
@@ -70,14 +54,24 @@ namespace SoulEngine
         /// </summary>
         protected override void LoadContent()
         {
-            //Setup the brush for drawing, and the brush for texture setup.
-            Context.ink = new SpriteBatch(GraphicsDevice);
-            Context.preInk = new SpriteBatch(GraphicsDevice);
+            //Apply settings.
+            IsMouseVisible = Settings.RenderMouse;
+            IsFixedTimeStep = Settings.FPS > 0 ? true : false; //Check whether to cap FPS based on the fps target.
+            TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Settings.FPS);
+            Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
 
-            //Setup the Screen adapter.
-            Context.Screen = new ScreenAdapter();
-            //Setup the camera.
-            Context.Camera = new Camera();
+            //Apply hardcoded settings.
+            Window.AllowAltF4 = true;
+            Window.Title = Settings.WName;
+
+            //Setup the brush for drawing.
+            Context.ink = new SpriteBatch(GraphicsDevice);
+
+            //Setup the window manager.
+            WindowManager.Initialize();
+
+            //Connect system events.
+            SystemEvents.ConnectSystemEvents();
 
             //Continue the start sequence.
             Starter.ContinueStart();
@@ -169,7 +163,7 @@ namespace SoulEngine
         /// </summary>
         private void Window_SizeChanged(object sender, EventArgs e)
         {
-            ESystem.Add(new Event(EType.GAME_SIZECHANGED, this, null));
+            ESystem.Add(new Event(EType.WINDOW_SIZECHANGED, this, null));
         }
         #endregion
 

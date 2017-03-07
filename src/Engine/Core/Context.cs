@@ -16,17 +16,10 @@ namespace SoulEngine
         /// 
         /// </summary>
         public static Core Core { get; set; }
-
         /// <summary>
         /// 
         /// </summary>
         public static SpriteBatch ink { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static SpriteBatch preInk { get; set; }
-
         /// <summary>
         /// 
         /// </summary>
@@ -41,7 +34,6 @@ namespace SoulEngine
                 return Core.GraphicsDevice;
             }
         }
-
         /// <summary>
         /// 
         /// </summary>

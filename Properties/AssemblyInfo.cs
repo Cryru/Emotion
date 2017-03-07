@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SoulEngine")]
-[assembly: AssemblyDescription("A game engine based on the MonoGame Framework.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SM")]
 [assembly: AssemblyProduct("SoulEngine")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyDescription("A game engine based on the MonoGame Framework.")]
+[assembly: AssemblyCompany("SM")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("Cryru")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
+// You can specify all the values or you can default the Build and Revision Numbers 
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

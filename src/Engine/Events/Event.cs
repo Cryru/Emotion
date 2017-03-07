@@ -27,7 +27,7 @@ namespace SoulEngine.Events
         /// <param name="type">The type of event, in order for a listener to detect the event it needs to be of the same type.</param>
         /// <param name="sender">The object which raised the event.</param>
         /// <param name="data">Additional data, usually specified by the type.</param>
-        public Event(string type, object sender, object data = null)
+        public Event(string type, object sender = null, object data = null)
         {
             Type = type;
             Sender = sender;

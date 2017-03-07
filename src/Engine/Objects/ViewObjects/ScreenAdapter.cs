@@ -35,7 +35,6 @@ namespace SoulEngine.Objects
         {
             Viewport viewport = Context.Graphics.Viewport;
 
-#warning TEMP - Remove on release.
             Console.WriteLine("DONT FORGET TO REMOVE - SCREENADAPTER: 32");
             float worldScale = MathHelper.Max((float)viewport.Width / Settings.Width, (float)viewport.Height / Settings.Height);
             float safeScale = MathHelper.Min((float)viewport.Width / (Settings.Width), (float)viewport.Height / (Settings.Height));
