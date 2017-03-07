@@ -15,6 +15,11 @@ namespace SoulEngine.Events
     /// </summary>
     public partial class EType
     {
-   
+        /* 
+         * Declare "public const string" here to use as event type constants.
+         * (ex. public const string GAME_CLOSED = "GAME_CLOSED")
+         * This is used to make sure event strings match when referenced by
+         * listener and event objects.
+         */
     }
 }
