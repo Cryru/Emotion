@@ -13,7 +13,7 @@ namespace SoulEngine.Events
     /// <summary>
     /// The types of events used by SE's custom event system.
     /// </summary>
-    public static class EType
+    public partial class EType
     {
         #region "PRIMARY"
         /// <summary>
@@ -43,10 +43,6 @@ namespace SoulEngine.Events
         /// </summary>
         public const string GAME_CLOSED = "GAME_CLOSED";
         /// <summary>
-        /// Triggered when the size of the game changes.
-        /// </summary>
-        public const string GAME_SIZECHANGED = "GAME_SIZECHANGED";
-        /// <summary>
         /// Triggered when a tick update cycle begins.
         /// </summary>
         public const string GAME_TICKSTART = "GAME_TICKSTART";
@@ -62,6 +58,16 @@ namespace SoulEngine.Events
         /// Triggered at the end of a new frame.
         /// </summary>
         public const string GAME_FRAMEEND = "GAME_FRAMEEND";
+        #endregion
+        #region "WINDOW"
+        /// <summary>
+        /// Triggered when the size of the window changes.
+        /// </summary>
+        public const string WINDOW_SIZECHANGED = "GAME_SIZECHANGED";
+        /// <summary>
+        /// Triggered when the window's display mode changes.
+        /// </summary>
+        public const string WINDOW_DISPLAYMODE = "WINDOW_DISPLAYMODE";
         #endregion
     }
 }

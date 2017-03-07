@@ -39,11 +39,11 @@ namespace SoulEngine
         /// <summary>
         /// The width of the window.
         /// </summary>
-        public static int WWidth = 1;
+        public static int WWidth = 960;
         /// <summary>
         /// The height of the window.
         /// </summary>
-        public static int WHeight = 1;
+        public static int WHeight = 540;
         /// <summary>
         /// The width the game will be rendered at.
         /// </summary>
@@ -67,7 +67,7 @@ namespace SoulEngine
         /// <summary>
         /// Whether the window can be resized.
         /// </summary>
-        public static bool ResizableWindow = false;
+        public static bool ResizableWindow = true;
         #endregion
         #region "Other Settings"
         /// <summary>
