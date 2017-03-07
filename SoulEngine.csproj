@@ -111,7 +111,8 @@
     <Compile Include="src\Engine\Objects\Ticker.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\Camera.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ScreenAdapter.cs" />
-    <Compile Include="src\User\EType.cs" />
+    <Compile Include="src\User\Custom\Event Types.cs" />
+    <Compile Include="src\User\Custom\Text Tags.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
