@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects;
 using Soul.IO;
+using SoulEngine.Objects.Components.Helpers;
 
 namespace SoulEngine
 {
@@ -61,6 +62,9 @@ namespace SoulEngine
                 //ERROR HANDLING - COULD NOT LOAD GLOBAL ASSETS
                 throw;
             }
+
+           //Load text object tags.
+           TagFactory.Initialize();
         }
 
         #region "Asset Loading"
