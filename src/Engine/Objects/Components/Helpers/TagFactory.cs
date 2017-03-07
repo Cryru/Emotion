@@ -11,9 +11,9 @@ namespace SoulEngine.Objects.Components.Helpers
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// 
+    /// Creates tag objects from identifiers.
     /// </summary>
-    public static class TagFactory
+    public partial class TagFactory
     {
         private static Dictionary<string, Type> TagDict;
 
@@ -24,6 +24,9 @@ namespace SoulEngine.Objects.Components.Helpers
         {
             TagDict = new Dictionary<string, Type>();
             TagDict.Add("a", typeof(Tags.Bracket));
+
+            //Add user tags to the dictionary.
+            Usertags();
         }
 
         /// <summary>
