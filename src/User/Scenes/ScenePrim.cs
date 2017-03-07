@@ -36,8 +36,10 @@ namespace SoulEngine
             Console.WriteLine("SCENE PRIM LOADED");
 
             GameObject a = new GameObject();
-            a.AddComponent(new SoulEngine.Objects.Components.ActiveText() {Text = "<blee>he\\ <aa>l<o>lo</>"});
-        } 
+            a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
+            { Text = 
+            "</></></><a>Hello sir! Th<is is the first line.<a></><a>\nAnd</> this <a>is <a>t</>he second<a></> line!\nWhile</> this is the third :D!</><a>\n</><a></>" });
+            }
 
         public override void Update()
         {
