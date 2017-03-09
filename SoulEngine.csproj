@@ -111,8 +111,16 @@
     <Compile Include="src\Engine\Objects\Ticker.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\Camera.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ScreenAdapter.cs" />
+    <Compile Include="src\Legacy\Engine\Core.cs" />
+    <Compile Include="src\Legacy\Engine\Engine.cs" />
+    <Compile Include="src\Legacy\Objects\Event.cs" />
+    <Compile Include="src\Legacy\Objects\ObjectBase.cs" />
+    <Compile Include="src\Legacy\Objects\Screen.cs" />
+    <Compile Include="src\Legacy\Objects\TextObject.cs" />
+    <Compile Include="src\Legacy\Objects\Texture.cs" />
     <Compile Include="src\User\Custom\Event Types.cs" />
     <Compile Include="src\User\Custom\Text Tags.cs" />
+    <Compile Include="src\User\Legacy\Settings.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>

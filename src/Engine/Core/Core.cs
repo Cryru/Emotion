@@ -171,16 +171,16 @@ namespace SoulEngine
         /// <summary>
         /// The frames rendered in the current second.
         /// </summary>
-        public static int curFrames = 0;
+        public int curFrames = 0;
         /// <summary>
         /// The frames rendered in the last second.
         /// </summary>
-        public static int lastFrames = 0;
+        public int lastFrames = 0;
         /// <summary>
         /// The current second number.
         /// </summary>
-        public static int curSec = 0;
-        public static void FPSCounterUpdate(GameTime gameTime)
+        public int curSec = 0;
+        public void FPSCounterUpdate(GameTime gameTime)
         {
             //Check if the current second has passed.
             if (!(curSec == gameTime.TotalGameTime.Seconds))
