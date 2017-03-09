@@ -3,12 +3,14 @@
 # SoulEngine Windows
 ## Main Repository
 
-SoulEngine is a 2D XNA/Monogame based game engine which provides another layer of abstraction while maintaining the hands-on code writing associated with XNA and Monogame as opposed to the script based approach big engines have. The intent is to make game development easier. The point is NOT to squeeze performance, but rather to shorten the amount of time it takes between you coming up with an idea for a game, getting a prototype ready, and eventually even releasing a product.
+SoulEngine is a 2D XNA/Monogame based game engine which provides another layer of abstraction while maintaining the hands-on code writing associated with XNA and Monogame as opposed to the script based approach big engines have. The intent is to make game development easier without losing control. The point is NOT to squeeze performance, but rather to shorten the time it takes between coming up with an idea, getting a prototype ready, and even releasing a product.
 
 While the plan is to update the engine often, that is not always possible, so most of the big changes and rewrites are left to big yearly updates. Currently version 2017 is in development and not ready to be used but older versions can be found here:
 
 * ["SoulEngine 2016"](https://github.com/Cryru/SoulEngine-2016)
 * ["SoulEngine 2016 Android"](https://github.com/Cryru/SoulEngine-2016-Android)
+
+In addition to these big updates the new versions are mostly backwards compatible.
 
 ## Idea
 
@@ -29,6 +31,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - JSON Based File Management (For Settings, Save Files etc.)
 - Error Logging
 - Custom Text Rendering with Markup
+- Legacy Support for SoulEngine 2016
 
 and more...
 
