@@ -53,4 +53,7 @@ Temporary Items
 .apdisk
 
 #SoulEngine Junk
-settings.txt
+*.soul
+
+#Node Junk
+node_modules
