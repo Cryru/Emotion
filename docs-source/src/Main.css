@@ -1,0 +1,47 @@
+body {
+     font-family: Roboto, Calibri, Ariel;
+     background-color: #1e1e1e;
+     color: white;
+}
+
+.navHeaderBox
+{
+    background-color: black;
+    width: 100%;
+    font-weight: bold;
+    text-align: left;
+    font-size: 20px;
+    padding: 10px;
+    font-family: Oxygen, Calibri, Ariel;
+}
+
+.navHeaderBox:hover
+{
+    background-color: #ae18bf;
+}
+
+.navHeaderBox a
+{
+    text-decoration: none;
+    color: white;
+}
+
+.navHeaderBox a:visited
+{
+    text-decoration: none;
+    color: white;
+}
+
+.navItem {
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: Roboto;
+    src: url('https://fonts.googleapis.com/css?family=Roboto');
+}
+
+@font-face {
+    font-family: Oxygen;
+    src: url('https://fonts.googleapis.com/css?family=Oxygen');
+}
