@@ -1,12 +1,12 @@
 body {
      font-family: Roboto, Calibri, Ariel;
-     background-color: #1e1e1e;
-     color: white;
+     background-color: #1e1e1e !important;
+     color: white !important;
 }
 
 .navHeaderBox
 {
-    background-color: black;
+    background-color: #b860f7;
     width: 100%;
     font-weight: bold;
     text-align: left;

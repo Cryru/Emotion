@@ -1,9 +1,20 @@
 .pagePaddingHeader
 {
     padding: 30px;
-    padding-bottom: 10px;
+    padding-bottom: 30px;
+}
+
+.pageHeader-h1
+{
     font-weight: bold;
     font-size: 50px;
+}
+
+.pageHeader-h2
+{
+    font-weight: bold;
+    font-size: 30px;
+    padding-bottom: 30px;
 }
 
 .pagePadding
@@ -15,10 +26,18 @@
 .pageText
 {
     font-size: 20px;
+    text-align: justify;
+}
+
+.spacer
+{
+    padding: 50px;
+    height: 10%;
 }
 
 .hljs {
-    display: block;
+    display: inline-block;
+    width: 100%;
     overflow-x: auto;
     padding: 0.5em;
     background: #161313;
