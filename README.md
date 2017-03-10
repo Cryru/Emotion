@@ -42,8 +42,8 @@ and more...
 
 ["SoulLib"](https://github.com/Cryru/SoulLib) - Encryption, JSON, Managed Files, and IO.
 
-["Polygon-Tool"](https://github.com/Cryru/Polygon-Tool) - Polygon collision boxes for physics engine.
+["Polygon-Tool"](https://github.com/Cryru/SE-Polygon-Tool) - Polygon collision boxes for physics engine.
 
 ["Farseer Physics for SoulEngine"](https://github.com/Cryru/SoulEngine-Farseer) - Physics engine.
 
-["Asset-Meta-Generator"](https://github.com/Cryru/Asset-Meta-Generator) - Generating Meta files for asset validation.
+["Asset-Meta-Generator"](https://github.com/Cryru/SE-Asset-Meta-Generator) - Generating Meta files for asset validation.
