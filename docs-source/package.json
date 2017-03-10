@@ -22,8 +22,12 @@
     "react-scripts": "0.9.5"
   },
   "dependencies": {
+    "bootstrap": "^3.3.7",
     "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react-addons-css-transition-group": "^15.4.2",
+    "react-addons-transition-group": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "reactstrap": "^4.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
