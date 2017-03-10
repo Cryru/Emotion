@@ -1,0 +1,72 @@
+.pagePaddingHeader
+{
+    padding: 30px;
+    padding-bottom: 10px;
+    font-weight: bold;
+    font-size: 50px;
+}
+
+.pagePadding
+{
+    padding: 30px;
+    padding-top: 10px;
+}
+
+.pageText
+{
+    font-size: 20px;
+}
+
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    background: #161313;
+    color: white
+}
+.hljs-comment,
+.hljs-quote,
+.hljs-variable {
+    color: #57a64a
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-name,
+.hljs-tag {
+    color: #569cd6
+}
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-addition {
+    color: #d69d85
+}
+.hljs-deletion,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-meta {
+    color: #2b91af
+}
+.hljs-doctag {
+    color: #808080
+}
+.hljs-attr {
+    color: #f00
+}
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+    color: #00b0e8
+}
+.hljs-emphasis {
+    font-style: italic
+}
+.hljs-strong {
+    font-weight: bold
+}
