@@ -2,14 +2,7 @@
   "name": "se-docs",
   "version": "1.0.0",
   "description": "Documentation for SoulEngine 2017",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Cryru/SoulEngine.git"
-  },
+  "repository": "git+https://github.com/Cryru/SoulEngine.git",
   "keywords": [
     "game",
     "engine",
@@ -23,15 +16,19 @@
   "bugs": {
     "url": "https://github.com/Cryru/SoulEngine/issues"
   },
-  "homepage": "https://github.com/Cryru/SoulEngine#readme",
+  "homepage": "https://cryru.github.io/SoulEngine",
+  "private": true,
+  "devDependencies": {
+    "react-scripts": "0.9.5"
+  },
   "dependencies": {
     "react": "^15.4.2",
     "react-dom": "^15.4.2"
   },
-  "devDependencies": {
-    "webpack": "^2.2.1"
-  },
   "scripts": {
-    "start": "webpack --config webpack.config.js"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
   }
 }
