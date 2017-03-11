@@ -28,7 +28,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - Unified Event System [&#10003;]
 - Tiled Integration
 - FPS Independent Timing [&#10003;]
-- Asset and Save File Tamper Prevention [&#10003;]
+- Asset Tampering Protection [&#10003;]
 - Camera System [&#10003;]
 - Resolution Adaptation with Boxing [&#10003;]
 - JSON Based File Management (For Settings, Save Files etc.)
@@ -38,15 +38,16 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 
 and more...
 
-
-## External Projects
-
-["TiledSharp"](https://github.com/marshallward/TiledSharp) - Parsing .tmx files.
+## Projects For SoulEngine
 
 ["SoulLib"](https://github.com/Cryru/SoulLib) - Encryption, JSON, Managed Files, and IO.
 
 ["Polygon-Tool"](https://github.com/Cryru/SE-Polygon-Tool) - Polygon collision boxes for physics engine.
 
 ["Farseer Physics for SoulEngine"](https://github.com/Cryru/SoulEngine-Farseer) - Physics engine.
+
+## External Projects
+
+["TiledSharp"](https://github.com/marshallward/TiledSharp) - Parsing .tmx files.
 
 ["Asset-Meta-Generator"](https://github.com/Cryru/SE-Asset-Meta-Generator) - Generating Meta files for asset validation.
