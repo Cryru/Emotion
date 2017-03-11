@@ -12,11 +12,10 @@ export default class Legacy extends Component {
         return (
             <div>
                 <Row className='row-reset'>
-                    <Col xs={{ size: 'xs-12' }} className='col-reset pagePaddingHeader'>
+                    <Col xs="10" className='col-reset Header'>
                         <div className='pageHeader-h1'>Legacy Support for SoulEngine 2016</div>
                     </Col>
                 </Row>
-                <div className='pagePadding'>
                     <Row className='row-reset'>
                         <Col xs="10" className='col-reset'>
                             <p className='pageText'>
@@ -31,12 +30,14 @@ export default class Legacy extends Component {
                             </p>
                         </Col>
                     </Row>
+                    <div className='spacer-small' />
                     <Row className='row-reset'>
                         <Col xs="5" className='col-reset'>
                             <Highlight className='cs'>
                                 {
                                     `public ObjectBase(Texture Image = null)
 {
+
     if (Image == null)
     {
         Image = new Texture();
@@ -46,7 +47,7 @@ export default class Legacy extends Component {
 }`
                                 }
                             </Highlight>
-                            <span>Original Code</span>
+                            <span className='t-center'>Original Code</span>
                         </Col>
                         <Col xs="5" className='col-reset'>
                             <Highlight className='cs'>
@@ -57,12 +58,13 @@ export default class Legacy extends Component {
 
     if (Image == null)
     {
-        actualObject.Component<ActiveTexture>().Texture = Image.Image;
+        actualObject.Component<ActiveTexture>()
+            .Texture = Image.Image;
     }
 }`
                                 }
                             </Highlight>
-                            <span>Adapted Code</span>
+                            <span className='t-center'>Adapted Code</span>
                         </Col>
                     </Row>
                     <div className='spacer' />
@@ -98,7 +100,6 @@ export default class Legacy extends Component {
                             </ul>
                         </Col>
                     </Row>
-                </div>
             </div>
         );
     }

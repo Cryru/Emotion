@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import { Row, Col } from 'reactstrap';
 import style from './Main.css';
 import { Sidebar, SidebarItem } from 'react-responsive-sidebar';
+import { Link } from 'react-router';
+import logo from './Icon.ico';
+
 import Legacy from './Pages/Legacy';
-import { Link } from 'react-router'
+import Home from './Pages/Home';
 
 export default class Main extends Component {
   constructor(props) {
@@ -11,26 +14,38 @@ export default class Main extends Component {
   }
   render() {
 
+    let page;
+    let navBoxClass = "navHeaderBox";
+
+    switch (this.props.params.pageId) {
+      case 'legacy':
+        page = <Legacy />
+        break;
+      case undefined:
+        page = <Home />
+        navBoxClass = "navHeaderBox navHeaderBoxAtPage";
+        break;
+      default:
+        page = <div>PAGE NOT FOUND</div>
+        break;
+    }
+
     const navigationBar = [
-      <div className='navHeaderBox'><Link to="/"><div className='navHeaderLink'>SoulEngine Documentation</div></Link></div>,
+      <div className={navBoxClass}><Link to="/"><div className='navHeaderLink'><img className='logoImage' src={logo} /> SoulEngine Documentation</div></Link></div>,
+      <SidebarItem href='/page/object'><div className='navItem'>Object-Component System</div></SidebarItem>,
+      <SidebarItem href='/page/textures'><div className='navItem'>Animated Textures</div></SidebarItem>,
+      <SidebarItem href='/page/assets'><div className='navItem'>Assets</div></SidebarItem>,
+      <SidebarItem href='/page/scene'><div className='navItem'>Scene System</div></SidebarItem>,
+      <SidebarItem href='/page/event'><div className='navItem'>Event System</div></SidebarItem>,
+      <SidebarItem href='/page/tiled'><div className='navItem'>Tiled</div></SidebarItem>,
+      <SidebarItem href='/page/timing'><div className='navItem'>FPS and Timing</div></SidebarItem>,
+      <SidebarItem href='/page/tamper'><div className='navItem'>Asset Tampering Protection</div></SidebarItem>,
+      <SidebarItem href='/page/camera'><div className='navItem'>Camera System</div></SidebarItem>,
+      <SidebarItem href='/page/resolution'><div className='navItem'>Resolution Adaptation</div></SidebarItem>,
+      <SidebarItem href='/page/jsonfiles'><div className='navItem'>JSON File Management</div></SidebarItem>,
+      <SidebarItem href='/page/errors'><div className='navItem'>Error Logging</div></SidebarItem>,
       <SidebarItem href='/page/legacy'><div className='navItem'>Legacy Support</div></SidebarItem>
     ]
-    let page;
-
-    console.dir(this.props.params.pageId);
-
-    switch(this.props.params.pageId)
-    {
-      case 'legacy':
-       page = <Legacy />
-      break;
-      case undefined:
-       page = <div>WELCOME! SELECT A PAGE FROM THE NAVIGATION :D</div>
-      break;
-      default:
-       page = <div>PAGE NOT FOUND</div>
-      break;
-    }
 
     return (
       <div className='navReset'>
@@ -38,7 +53,9 @@ export default class Main extends Component {
           background='#6324d8'
           backdrop={false}
         >
-          {page}
+          <div className='pagePadding'>
+            {page}
+          </div>
         </Sidebar>
       </div>
     );
