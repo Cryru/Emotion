@@ -18,6 +18,21 @@
     text-align: justify;
 }
 
+.filePath, .filePath:hover, .filePath:visited, .filePath:link, .filePath:active
+{
+    text-decoration: none;
+}
+
+.filePath
+{
+    color: #a6d17b;
+}
+
+.filePath:hover
+{
+    color: #73ba68;
+}
+
 .spacer
 {
     padding: 50px;
