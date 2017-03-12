@@ -6,9 +6,10 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 ReactDOM.render(
   <Router history={browserHistory}>
-    <Route path="/" component={Main}>
-      <Route path="page" component={Main}>
-        <Route path="/page/:pageId" component={Main}/>
+    <Route path="/" component={Main} />
+    <Route path="/SoulEngine" component={Main}>
+      <Route path="/SoulEngine/page" component={Main}>
+        <Route path="/SoulEngine/page/:pageId" component={Main}/>
       </Route>
       <Route path="*" component={Main}/>
     </Route>
