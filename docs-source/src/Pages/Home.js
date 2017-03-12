@@ -12,12 +12,12 @@ export default class Legacy extends Component {
         return (
             <div>
                 <Row className='row-reset'>
-                    <Col xs="10" className='col-reset'>
+                    <Col xs="xs-12" className='col-reset'>
                         <div className='pageHeader-h1'>SoulEngine 2017 Documentation</div>
                     </Col>
                 </Row>
                     <Row className='row-reset'>
-                        <Col xs="10" className='col-reset'>
+                        <Col xs="xs-12" className='col-reset'>
                             <p className='pageText'>
                                 {`SoulEngine is a 2D XNA/Monogame based game engine which provides another layer of 
                                 abstraction while maintaining the hands-on code writing associated with XNA and Monogame 
@@ -28,14 +28,12 @@ export default class Legacy extends Component {
                         </Col>
                     </Row>
                     <Row className='row-reset'>
-                        <Col xs="10" className='col-reset'>
+                        <Col xs="xs-6" className='col-reset'>
                             <p className='pageText'>
                                 {`To learn more about the major features of the engine browse through the navigation bar.`}
                             </p>
                         </Col>
-                    </Row>
-                    <Row className='row-reset'>
-                         <Col xs="6" className='col-reset'>
+                         <Col xs="xs-6" className='col-reset'>
                             <p className='pageText'>
                                 {`Useful Links: `}
                             </p>

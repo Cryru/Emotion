@@ -12,12 +12,12 @@ export default class Legacy extends Component {
         return (
             <div>
                 <Row className='row-reset'>
-                    <Col xs="10" className='col-reset Header'>
+                    <Col xs="xs-12" className='col-reset Header'>
                         <div className='pageHeader-h1'>Legacy Support for SoulEngine 2016</div>
                     </Col>
                 </Row>
                     <Row className='row-reset'>
-                        <Col xs="10" className='col-reset'>
+                        <Col xs="xs-12" className='col-reset'>
                             <p className='pageText'>
                                 {`To allow old projects to be ported over a compatibility layer for older SoulEngine versions
                         is located in the`} <a className='filePath' href="https://github.com/Cryru/SoulEngine/tree/master/src/Legacy">src/Engine/Legacy</a> {`folder, and
@@ -32,7 +32,7 @@ export default class Legacy extends Component {
                     </Row>
                     <div className='spacer-small' />
                     <Row className='row-reset'>
-                        <Col xs="5" className='col-reset'>
+                        <Col xs="xs-6" className='col-reset'>
                             <Highlight className='cs'>
                                 {
                                     `public ObjectBase(Texture Image = null)
@@ -49,7 +49,7 @@ export default class Legacy extends Component {
                             </Highlight>
                             <span className='t-center'>Original Code</span>
                         </Col>
-                        <Col xs="5" className='col-reset'>
+                        <Col xs="xs-6" className='col-reset'>
                             <Highlight className='cs'>
                                 {
                                     `public ObjectBase(Texture Image = null)
@@ -69,7 +69,7 @@ export default class Legacy extends Component {
                     </Row>
                     <div className='spacer' />
                     <Row className='row-reset'>
-                        <Col xs="10" className='col-reset'>
+                        <Col xs="xs-12" className='col-reset'>
                             <p className='pageText'>
                                 {`The current version (2017 1 Development - 3/10/2017) fully implements the legacy Core and Settings.`}
                             </p>
@@ -82,7 +82,7 @@ export default class Legacy extends Component {
                     </Row>
                     <div className='spacer' />
                     <Row className='row-reset'>
-                        <Col xs="6" className='col-reset'>
+                        <Col xs="xs-6" className='col-reset'>
                             <p className='pageText'>
                                 {`Namespaces: `}
                             </p>
@@ -91,7 +91,7 @@ export default class Legacy extends Component {
                                 <li>SoulEngine.Legacy.Objects</li>
                             </ul>
                         </Col>
-                         <Col xs="6" className='col-reset'>
+                         <Col xs="xs-6" className='col-reset'>
                             <p className='pageText'>
                                 {`Useful Links: `}
                             </p>
