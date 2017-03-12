@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Objects;
 
 namespace SoulEngine.Legacy.Objects
 {
@@ -13,15 +14,17 @@ namespace SoulEngine.Legacy.Objects
     // This code is part of the SoulEngine backwards compatibility layer.       //
     // Original Repository: https://github.com/Cryru/SoulEngine-2016            //
     //////////////////////////////////////////////////////////////////////////////
-    public abstract class Screen
+    public abstract class Screen : Scene
     {
         #region "Declarations"
         internal int Priority = 0;
         internal bool ObjectsLoaded = false;
         #endregion
 
-        public abstract void LoadObjects();
-        public abstract void Update();
-        public abstract void Draw();
+        public void LoadObjects()
+        {
+            SetupScene();
+            ObjectsLoaded = true;
+        }
     }
 }

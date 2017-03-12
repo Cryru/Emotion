@@ -105,4 +105,19 @@ namespace SoulEngine.Enums
         /// </summary>
         JustifiedCenter
     }
+
+    /// <summary>
+    /// The layer to draw the object on.
+    /// </summary>
+    public enum ObjectLayer
+    {
+        /// <summary>
+        /// The object belongs to the UI layer.
+        /// </summary>
+        UI,
+        /// <summary>
+        /// The object belongs to the world layer.
+        /// </summary>
+        World,
+    }
 }

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using SoulEngine.Objects.Components;
+using SoulEngine.Enums;
 
 namespace SoulEngine
 {
@@ -28,6 +29,18 @@ namespace SoulEngine
         /// Priority of the object.
         /// </summary>
         public float Priority = 0;
+        /// <summary>
+        /// Whether to update the object and its components.
+        /// </summary>
+        public bool Updating = true;
+        /// <summary>
+        /// Whether to draw the object and its components.
+        /// </summary>
+        public bool Drawing = true;
+        /// <summary>
+        /// The layer the object should be drawn on.
+        /// </summary>
+        public ObjectLayer Layer = ObjectLayer.World;
         #endregion
 
         #region "Components"
@@ -42,6 +55,9 @@ namespace SoulEngine
         /// </summary>
         public virtual void Update()
         {
+            //Check if updating.
+            if (Updating == false) return;
+
             for (int i = 0; i < Components.Count; i++)
             {
                 Components[i].Update();
@@ -53,6 +69,9 @@ namespace SoulEngine
         /// </summary>
         public virtual void Draw()
         {
+            //Check if drawing.
+            if (Drawing == false) return;
+
             for (int i = 0; i < Components.Count; i++)
             {
                 Components[i].Draw();

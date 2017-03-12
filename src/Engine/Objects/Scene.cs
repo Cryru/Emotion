@@ -26,7 +26,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Objects that belong to this scene.
         /// </summary>
-        private List<GameObject> Objects;
+        private Dictionary<string, GameObject> Objects;
         #endregion
 
         /// <summary>
@@ -34,30 +34,43 @@ namespace SoulEngine.Objects
         /// </summary>
         public void SetupScene()
         {
-            //Setup loop hooks.
-            SetupHooks();
+            //Set the current scene in core.
+            Context.Core.Scene = this;
 
+            //Setup assets loader and objects dictionary.
+            Assets = new Assets();
+            Objects = new Dictionary<string, GameObject>();
+
+            //Run the start code.
             Start();
         }
 
         #region "Hooks"
-        private void SetupHooks()
+        /// <summary>
+        /// The core's hook for updating.
+        /// </summary>
+        public void UpdateHook()
         {
-            ESystem.Add(new Listen(EType.GAME_FRAMEEND, DrawHook));
-            ESystem.Add(new Listen(EType.GAME_TICKEND, UpdateHook));
+            //Run the scene's update code.
+            Update();
+
+            //Update the scene's object.
+            foreach (var item in Objects)
+            {
+                item.Value.Update();
+            }
         }
-        private void DrawHook()
+        /// <summary>
+        /// The core's hook for drawing.
+        /// </summary>
+        public void DrawHook()
         {
             Context.ink.Start(DrawChannel.World);
-            Draw();
+            Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.World).ToList().ForEach(x => x.Draw());
             Context.ink.End();
             Context.ink.Start(DrawChannel.Screen);
-            Draw_UI();
+            Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.UI).ToList().ForEach(x => x.Draw());
             Context.ink.End();
-        }
-        private void UpdateHook()
-        {
-
         }
         #endregion
 
@@ -65,20 +78,21 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Adds an object to the scene.
         /// </summary>
+        /// <param name="Label">The object's label to access the object with.</param>
         /// <param name="Object">The object to add.</param>
-        public void AddObject(GameObject Object)
+        public void AddObject(string Label, GameObject Object)
         {
-            Objects.Add(Object);
+            Objects.Add(Label, Object);
 
-            Objects.OrderBy(x => x.Priority);
+            Objects.OrderBy(x => x.Value.Priority);
         }
         /// <summary>
         /// Removes an object from the scene.
         /// </summary>
-        /// <param name="Object">The object to remove.</param>
-        public void RemoveObject(GameObject Object)
+        /// <param name="Label">The label of the object you want to remove.</param>
+        public void RemoveObject(string Label)
         {
-            Objects.Remove(Object);
+            Objects.Remove(Label);
         }
         #endregion
 
@@ -86,14 +100,6 @@ namespace SoulEngine.Objects
         /// Runs when the scene takes control.
         /// </summary>
         abstract public void Start();
-        /// <summary>
-        /// Draws objects in the world.
-        /// </summary>
-        abstract public void Draw();
-        /// <summary>
-        /// Draws objects on the UI.
-        /// </summary>
-        abstract public void Draw_UI();
         /// <summary>
         /// Updates objects in the world.
         /// </summary>

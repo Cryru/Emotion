@@ -20,16 +20,6 @@ namespace SoulEngine
         #region "Declarations"
 
         #endregion
-        public override void Draw()
-        {
-           // throw new NotImplementedException();
-        }
-
-        public override void Draw_UI()
-        {
-            //throw new NotImplementedException();
-        }
-
         public override void Start()
         {
             // throw new NotImplementedException();

@@ -25,7 +25,7 @@ namespace SoulEngine
         public float frameTime = 0;
         #region "Systems"
         /// <summary>
-        /// 
+        /// The currently loaded scene.
         /// </summary>
         public Scene Scene;
         #endregion
@@ -83,11 +83,8 @@ namespace SoulEngine
             Starter.bootPerformance.Stop();
             Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
-            //THE BELOW CODE NEEDS TO BE ATTACHED TO A SCENE LOADER
-            //Load the starting scene.
-            Scene = new ScenePrim();
-            //Run the scene's setup code.
-            Scene.Start();
+            //Load the primary scene.
+            new ScenePrim().SetupScene();
         }
         #endregion
         GameObject t;
@@ -102,6 +99,9 @@ namespace SoulEngine
 
             //Trigger tick start event.
             ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
+
+            //Update the current scene.
+            Scene.Update();
 
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
@@ -127,9 +127,9 @@ namespace SoulEngine
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
-            //Draw the current scene. (NYI)
+            //Draw the current scene.
+            Scene.DrawHook();
             //Draw debug objects on top. (NYI)
-
 
             //Trigger frame end event.
             ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
