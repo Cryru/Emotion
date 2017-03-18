@@ -78,6 +78,20 @@ namespace SoulEngine
             }
         }
 
+        /// <summary>
+        /// Is run every frame outside of an ink binding.
+        /// </summary>
+        public virtual void DrawFree()
+        {
+            //Check if drawing.
+            if (Drawing == false) return;
+
+            for (int i = 0; i < Components.Count; i++)
+            {
+                Components[i].DrawFree();
+            }
+        }
+
         #region "Components Functions"
         /// <summary>
         /// Returns an attached component, will throw a NullReference if not attached.

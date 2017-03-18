@@ -26,12 +26,18 @@ namespace SoulEngine
             Console.WriteLine("SCENE PRIM LOADED");
 
             GameObject a = new GameObject();
+            a.AddComponent(new Objects.Components.ActiveTexture());
             a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
-            { Text =
-            "</></></><a>Hello sir! This is the first line.<a></><a>\nAnd</> this <a>is <a>t</>he second<a></> line!\nWhile</> this is the third :D!</><a>\n</><a></>"
+            {
+                Text =
+            "</></></><bracket>Hello sir! This is the first line.<bracket></><bracket>\nAnd</> this <bracket>is <bracket>t</>he second<bracket></> line!\nWhile</> this is the third :D!</><bracket>\n</><bracket></>"
             });
+            //a.AddComponent(new Objects.Components.Transform() { X = 0, Y = 0, Width = 200, Height = 200 });
 
-            Legacy.Core.Setup();
+            a.AddComponent(new Objects.Components.Renderer());
+            AddObject("", a);
+            
+            //Legacy.Core.Setup();
         }
 
         public override void Update()

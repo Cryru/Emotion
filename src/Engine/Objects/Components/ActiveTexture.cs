@@ -27,7 +27,6 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                shouldUpdate = true;
                 if (_texture == null) return AssetManager.MissingTexture;
                 return _texture as Texture2D;
             }
@@ -45,9 +44,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public TextureMode TextureMode = 0;
         /// <summary>
-        /// Whether to regenerate the texture at the beginning of the next frame.
+        /// Whether to rerender the texture each frame.
         /// </summary>
-        public bool shouldUpdate = true;
+        public bool Active = true;
         #region "Variables for the Renderer Component"
         /// <summary>
         /// Used to mirror textures horizontally or vertically. Used by the renderer component.
@@ -80,9 +79,6 @@ namespace SoulEngine.Objects.Components
             this.TextureMode = TextureMode;
             Texture = AssetManager.MissingTexture;
             DrawArea = _xnaTexture.Bounds; //Render whole texture if area not specified.
-
-            //Hook to the event frame start event where we will generate the texture.
-            ESystem.Add(new Listen(EType.GAME_FRAMESTART, GenerateTexture));
         }
         /// <summary>
         /// 
@@ -95,9 +91,6 @@ namespace SoulEngine.Objects.Components
             this.TextureMode = TextureMode;
             this.Texture = Texture;
             this.DrawArea = DrawArea;
-
-            //Hook to the event frame start event where we will generate the texture.
-            ESystem.Add(new Listen(EType.GAME_FRAMESTART, GenerateTexture));
         }
         #endregion
 
@@ -106,17 +99,16 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        private void GenerateTexture(Event t)
+        public override void Update()
         {
-            //Check if we should update the texture.
-            if (shouldUpdate == false) return;
+            if (!Active) return;
 
             //Check empty draw area.
             if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
 
             //Get the size of the object, or if a Transform component is attached get the bounds from it.
             Rectangle Bounds = DrawArea;
-            if (attachedObject.HasComponent<Transform>())
+            if (attachedObject != null && attachedObject.HasComponent<Transform>())
             {
                 Bounds = attachedObject.Component<Transform>().Bounds;
             }
@@ -156,9 +148,6 @@ namespace SoulEngine.Objects.Components
 
             //Stop drawing.
             EndTargetDraw();
-
-            //Reset update flag.
-            shouldUpdate = false;
         }
         /// <summary>
         /// 
@@ -172,7 +161,7 @@ namespace SoulEngine.Objects.Components
             Context.Graphics.SetRenderTarget(_texture);
 
             //Clear the rendertarget.
-            Context.Graphics.Clear(Color.Blue);
+            Context.Graphics.Clear(Color.Transparent);
         }
         /// <summary>
         /// 
@@ -206,42 +195,8 @@ namespace SoulEngine.Objects.Components
 
         //Other
         #region "Component Interface"
-        public override void Update(){}
         public override void Draw(){}
-        #endregion
-        #region "Disposing"
-        /// <summary>
-        /// Disposing flag to detect redundant calls.
-        /// </summary>
-        private bool disposedValue = false;
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    //Unhook event.
-                    ESystem.Remove(GenerateTexture);
-                    base.Dispose();
-                }
-
-                //Free resources.
-                Texture = null;
-                _texture = null;
-
-                //Set disposing flag.
-                disposedValue = true;
-            }
-        }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
-        }
+        public override void DrawFree(){}
         #endregion
     }
 }
