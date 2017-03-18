@@ -99,10 +99,11 @@
     <Compile Include="src\Engine\Meta\Info.cs" />
     <Compile Include="src\Engine\Objects\Components\ActiveTexture.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\CharData.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\Tag.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\TagFactory.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\Tags\Bracket.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\CharData.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tag.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagData.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagFactory.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Bracket.cs" />
     <Compile Include="src\Engine\Objects\Components\Renderer.cs" />
     <Compile Include="src\Engine\Objects\Components\Transform.cs" />
     <Compile Include="src\Engine\Objects\Components\АctiveText.cs" />

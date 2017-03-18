@@ -27,8 +27,9 @@ namespace SoulEngine
 
             GameObject a = new GameObject();
             a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
-            { Text = 
-            "</></></><a>Hello sir! Th<is is the first line.<a></><a>\nAnd</> this <a>is <a>t</>he second<a></> line!\nWhile</> this is the third :D!</><a>\n</><a></>" });
+            { Text =
+            "</></></><a>Hello sir! This is the first line.<a></><a>\nAnd</> this <a>is <a>t</>he second<a></> line!\nWhile</> this is the third :D!</><a>\n</><a></>"
+            });
 
             Legacy.Core.Setup();
         }

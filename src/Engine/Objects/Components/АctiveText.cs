@@ -125,60 +125,92 @@ namespace SoulEngine.Objects.Components
         #endregion
         //Private functions.
         #region "Internal Functions"
+        private void Compose()
+        {
+            //Determine how to wrap the text to fit the bounds.
+            determineBounds();
+        }
+        #region "Compose"
+        /// <summary>
+        /// 
+        /// </summary>
+        private void determineBounds()
+        {
+
+        }
+        #endregion
         private void Process()
         {
-            //Extract tags from the text to populate the array and get a clean string.
-            string tagFreeText = ExtractTags(Text);
+            //Reset the tag array.
+            textTags.Clear();
+            //Clean the text from tags and record some info while doing it.
+            List<TagData> tempTagData = new List<TagData>();
+            string tagFreeText = CleanTags(tempTagData);
+            //Process the captured info.
+            ProcessTags(tempTagData);
+
+
 
             //debug
             for (int i = 0; i < tagFreeText.Length + 1; i++)
             {
                 //Get the data of the current character, if past the length create an empty dummy.
                 CharData current;
+                CharData emptyOP = new CharData("");
                 if (i < tagFreeText.Length) current = new CharData(tagFreeText[i].ToString());
                 else current = new CharData("");
 
                 //check if any tags begin here
                 for (int tag = 0; tag < textTags.Count; tag++)
                 {
-                    /*
-                        Note: Tags are tied to a character's position which means tags with no characters between them will apply their onStart and
-                        onEnd on the next character. TODO - PREVENT THIS
-                    */
+                    if (textTags[tag] == null) break;
 
                     if (textTags[tag].Start == i)
                     {
                         textTags[tag].Active = true;
-                        textTags[tag].onStart(current);
-                    }
-                    if (textTags[tag].End == i)
-                    {
-                        textTags[tag].Active = false;
-                        textTags[tag].onEnd(current);
                     }
                 }
 
                 //apply effect stack
-                Tag[] activeTags = textTags.Where(x => x.Active == true).ToArray();
+                Tag[] activeTags = textTags.Where(x => x != null).Where(x => x.Active == true).ToArray();
                 for (int effect = 0; effect < activeTags.Length; effect++)
                 {
                     activeTags[effect].onDuration(current);
                 }
 
-                //render the text using the curdata
-                Console.Write(current.Content);
+                //check if any tags end here
+                for (int tag = 0; tag < textTags.Count; tag++)
+                {
+                    if (textTags[tag] == null) break;
+
+                    if (textTags[tag].Start == i)
+                    {
+                        textTags[tag].onStart(textTags[tag].Empty ? emptyOP : current);
+                    }
+                    if (textTags[tag].End == i)
+                    {
+                        textTags[tag].Active = false;
+                        textTags[tag].onEnd(textTags[tag].Empty ? emptyOP : current);
+                    }
+                }
+
+                //combine the empty tag content and the current char content.
+                Console.Write(emptyOP.Content + current.Content);
             }
         }
         #region "Process"
-        private string ExtractTags(string Text)
+        /// <summary>
+        /// Returns a clean string without any tags in it.
+        /// </summary>
+        /// <param name="tempTagData">Tag data recorded while cleaning.</param>
+        /// <returns>A clean string without any tags in it.</returns>
+        private string CleanTags(List<TagData> tempTagData)
         {
-            //Clear the array holding tag data.
-            textTags.Clear();
-
             //The text being built without tags.
             string tagFreeText = "";
+            int charactersFromPreviousTag = 0;
 
-            //Loop through the text looking for tags.
+            //Loop through the text looking for tag opening statements.
             for (int pointer = 0; pointer < Text.Length; pointer++)
             {
                 //Get the current and previous character.
@@ -188,37 +220,37 @@ namespace SoulEngine.Objects.Components
                 //Check if opening a tag and the character is not being escaped.
                 if (curChar == '<' && prevChar != '\\')
                 {
+                    //Declare a variable to declare the captured tag information.
+                    string tagInfo;
+
                     //Read the discovered tag and move the point to its end so it doesn't get recorded to the tag free text.
-                    pointer = ReadTag(pointer, tagFreeText.Length);
-                    //Continue to the next character, which should be after the tag.
+                    pointer = FindTagEnd(pointer, out tagInfo);
+                    //Record information that was captured while cleaning.
+                    tempTagData.Add(new TagData(tagInfo, tagFreeText.Length, charactersFromPreviousTag));
+                    charactersFromPreviousTag = 0;
+                    //Continue to the next character, which should be after the tag's closing character.
                     continue;
                 }
 
-                //If the current character is an escape symbol, and so is the previous one, then an escape symbol is being escaped.
-                if (curChar == '\\' && prevChar == '\\')
-                    tagFreeText += curChar;
-                //If the current character is an escape symbol, then don't add it to the tag free string.
-                else if (curChar == '\\') continue;
-                //If the current character is anything else, add it to the tag free string.
-                else tagFreeText += curChar;
+                //If the current character is an escape symbol that is not being escaped itself do not write it, otherwise write it.
+                if (!(curChar == '\\' && prevChar != '\\')) { tagFreeText += curChar; charactersFromPreviousTag++; }
             }
 
             return tagFreeText;
         }
-
         /// <summary>
-        /// Reads a records a tag's data.
+        /// Returns the position of the tag information's end.
         /// </summary>
-        /// <param name="pos">The position where the tag starts within the text.</param>
-        /// <param name="actpos">The position where the tag will be in the tag free text.</param>
-        /// <returns>The position at the end of the tag.</returns>
-        private int ReadTag(int pos, int actPos)
+        /// <param name="tagOpenPosition">The position where the tag was opened.</param>
+        /// <param name="tagInfo">The information inside the tag.</param>
+        /// <returns>The position where the tag information ends.</returns>
+        private int FindTagEnd(int tagOpenPosition, out string tagInfo)
         {
-            //The tag's information.
-            string information = "";
+            //Prepare to record tag information.
+            tagInfo = "";
 
             //Search from this position, plus one so we don't capture the opening character, until the end of the text for the tag closing symbol - '>'.
-            for (int pointer = pos + 1; pointer < Text.Length; pointer++)
+            for (int pointer = tagOpenPosition + 1; pointer < Text.Length; pointer++)
             {
                 //Get the current and previous characters.
                 char curChar = Text[pointer];
@@ -227,56 +259,87 @@ namespace SoulEngine.Objects.Components
                 //Check if closing a tag and the character is not being escaped.
                 if (curChar == '>' && prevChar != '\\')
                 {
-                    //Check if the tag information collected contains data in addition to the identifier and separate them if so.
-                    string identifier = information.Contains("=") ? information.Split('=')[0] : information;
-                    string data = information.Contains("=") ? information.Split('=')[1] : "";
-
-                    /*
-                     * Check if the current tag is a closing tag, in addition to there being tags collected and that there
-                     * are tags with unknown endings to prevent the ending from moving from the first found closing tag.
-                     */
-                    if (identifier == "/" && textTags.Count > 0 && textTags.Where(x => x.End == null).ToArray().Length > 0)
-                    {
-                        //Find the last tag with no closing pair.
-                        Tag pair = textTags.Where(x => x.End == null).Last();
-                        int endingPos = Math.Max(0, actPos - 1);
-
-                        /*
-                         * Assign the ending point to the last collected tag. We subtract one from the actual position because
-                         * otherwise we are grabbing the character after the tag into the ending.
-                         */
-                         pair.End = endingPos < pair.Start ? pair.Start : endingPos;
-                    }
-                    /*
-                     * If not a closing tag then add the tag to the tag list with the captured 
-                     * identifier, data, position, and an empty ending to be assigned later.
-                     */
-                    else if(information != "/")
-                    {
-                        Tag newTag = TagFactory.Build(identifier, data, actPos, null);
-                        //If the identifier is not present a null will be returned, so we need to end tag extraction.
-                        if (newTag == null) return Text.Length - 1;
-                        textTags.Add(newTag);
-                    }
-                        
-                    /*
-                     * Return the position of the ending sign to continue reading. 
-                     * Reading will resume from the next character to avoid capturing the closing character.
-                     */
-                    return pointer; 
+                    //Found it!
+                    return pointer;
                 }
-                //If not then continue add the current character to the information.
                 else
                 {
-                    information += curChar;
+                    //If not closing then continue recording info.
+                    tagInfo += curChar;
                 }
             }
 
             /*
-             * If no closing character is found then the tag spans the rest of the text.
+             * If no closing character is found then the tag information spans the rest of the text.
              * This is not intended behaviour, but is the logical one, and is the default error handling here.
             */
             return Text.Length - 1;
+        }
+        /// <summary>
+        /// Processed captured tags during the cleaning session.
+        /// </summary>
+        /// <param name="capturedData">The tags captured while cleaning.</param>
+        private void ProcessTags(List<TagData> capturedData)
+        {
+            foreach (var tagData in capturedData)
+            {
+                //Check if skipping this tag.
+                if (tagData.Skip == true) continue;
+
+                //Check if the tag information collected contains data in addition to the identifier and separate them if so.
+                string identifier = tagData.Information.Contains("=") ? tagData.Information.Split('=')[0] : tagData.Information;
+                string data = tagData.Information.Contains("=") ? tagData.Information.Split('=')[1] : "";
+
+                //Check if an ending tag, with no preceding opening tag.
+                if (identifier == "/") continue;
+
+                //Try to find this tag's ending tag pair.
+                TagData endTag = null;
+
+                /* 
+                 * Depth is used to detect and prevent taking another tag's ending pair since we aren't looking for the
+                 * first closing tag, but rather the right one.
+                 */
+                int depth = 0;
+                for (int i = capturedData.IndexOf(tagData) + 1; i < capturedData.Count; i++)
+                {
+                    if (capturedData[i].Information == "/")
+                    {
+                        if(depth == 0)
+                        {
+                            endTag = capturedData[i];
+                            break;
+                        }
+                        else
+                        {
+                            depth--;
+                        }                       
+                    }     
+                    else
+                    {
+                        depth++;
+                    }              
+                }
+
+                //Check if any is found.
+                int endLocation = -1;
+                bool empty = false;
+                if(endTag != null)
+                {
+                    //Delete the ending tag the captured data.
+                    endTag.Skip = true;
+                    empty = endTag.CharactersFromPreviousTag == 0;
+                    /*
+                     * Assign the ending point to the last collected tag. We subtract one from the actual position because
+                     * otherwise we are grabbing the character after the tag into the ending.
+                     */
+                    endLocation = Math.Max(endTag.StartPosition - 1, 0);
+                    endLocation = endLocation < tagData.StartPosition ? tagData.StartPosition : endLocation;
+                }
+
+                //All tag data is ready, add it.
+                textTags.Add(TagFactory.Build(identifier, data, tagData.StartPosition, endLocation, empty));
+            }
         }
         #endregion
         #endregion

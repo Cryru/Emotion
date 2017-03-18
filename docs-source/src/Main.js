@@ -50,7 +50,7 @@ export default class Main extends Component {
     return (
       <div className='navReset'>
         <Sidebar content={navigationBar}
-          background='#6324d8'
+          background='#9b1db7'
           backdrop={false}
         >
           <div className='pagePadding'>
