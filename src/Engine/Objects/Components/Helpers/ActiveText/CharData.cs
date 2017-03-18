@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,10 +10,12 @@ namespace SoulEngine.Objects.Components.Helpers
     public class CharData
     {
         public string Content;
+        public Color Color;
 
-        public CharData(string Content)
+        public CharData(string Content, Color Color)
         {
             this.Content = Content;
+            this.Color = Color;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace SoulEngine.Objects.Components
             {
                 X = value.X;
                 Y = value.Y;
-                attachedObject.Priority = value.Z;
+                if(attachedObject != null) attachedObject.Priority = value.Z;
             }
         }
         /// <summary>
@@ -301,6 +301,7 @@ namespace SoulEngine.Objects.Components
         //Other
         #region "Component Interface"
         public override void Draw() { }
+        public override void DrawFree() { }
         #endregion
     }
 }

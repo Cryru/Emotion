@@ -38,7 +38,6 @@ namespace SoulEngine.Objects.Components
         }
         #endregion
 
-        //Main functions.
         #region "Functions"
         /// <summary>
         /// Draws the object based on parameters specified by its other components. Make sure to call ink.Begin() first.
@@ -90,9 +89,13 @@ namespace SoulEngine.Objects.Components
 
         }
         #endregion
-        //Private functions.
+
         #region "Internal Functions"
 
+        #endregion
+
+        #region "Component Interface"
+        public override void DrawFree(){}
         #endregion
     }
 }

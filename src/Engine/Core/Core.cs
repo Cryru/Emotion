@@ -101,7 +101,7 @@ namespace SoulEngine
             ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
 
             //Update the current scene.
-            Scene.Update();
+            Scene.UpdateHook();
 
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));

@@ -36,7 +36,7 @@ namespace SoulEngine.Objects.Components
             set
             {
                 text = value;
-                if(text != "") Process();
+                if(text != "") ProcessText();
             }
         }
         /// <summary>
@@ -51,16 +51,21 @@ namespace SoulEngine.Objects.Components
             set
             {
                 font = value;
-                if (text != "") Process();
+                if (text != "") ProcessText();
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public TextStyle Style;
         #endregion
         //Private variables.
         #region "Private"
         private string text;
         private SpriteFont font;
+        private List<string> textLines;
+        private List<int> ts_spacingWord;
+        private List<int> ts_spacingTab;
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -70,7 +75,14 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        private List<string> textLines = new List<string>();
+        public string ProcessedString
+        {
+            get
+            {
+                return processedString;
+            }
+        }
+        private string processedString;
         #endregion
         #endregion
 
@@ -120,85 +132,385 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Update()
         {
+            ProcessRenderData();
+            if (attachedObject.HasComponent<ActiveTexture>())
+            {
+                attachedObject.Component<ActiveTexture>().Active = false;
+            }
+        }
+        /// <summary>
+        /// Is run every frame outside of an ink binding.
+        /// </summary>
+        public override void DrawFree()
+        {
+            if (attachedObject.HasComponent<ActiveTexture>())
+            {
+                attachedObject.Component<ActiveTexture>().BeginTargetDraw();
+            }
+            else
+            {
+                return;
+            }
 
-        }   
+            //The position of the current letter, in the overall text as they are written in the effects list.
+            int pointerPosition = 0;
+
+            //The default values.
+            float X = 0;
+            float Y = 0;
+            if (attachedObject.HasComponent<Transform>())
+            {
+                X = attachedObject.Component<Transform>().X;
+                Y = attachedObject.Component<Transform>().Y;
+            }
+
+            //The offsets of the current letter.
+            int Xoffset = 0;
+            int Yoffset = 0;
+
+            Color color = Color.White;
+            if (attachedObject.HasComponent<ActiveTexture>())
+            {
+                color = attachedObject.Component<ActiveTexture>().Tint;
+            }
+
+            Context.ink.Start();
+
+            //Run through all lines.
+            for (int l = 0; l < textLines.Count; l++)
+            {
+                //Run through all letters.
+                for (int p = 0; p < textLines[l].Length; p++)
+                {
+                        //Get the data of the current character, if past the length create an empty dummy.
+                        CharData current;
+                        CharData emptyOP = new CharData("", color);
+                        if (p < textLines[l].Length) current = new CharData(textLines[l][p].ToString(), color);
+                        else current = new CharData("", color);
+
+                        //check if any tags begin here
+                        for (int tag = 0; tag < textTags.Count; tag++)
+                        {
+                            if (textTags[tag] == null) break;
+
+                            if (textTags[tag].Start == pointerPosition)
+                            {
+                                textTags[tag].Active = true;
+                            }
+                        }
+
+                        //apply effect stack
+                        Tag[] activeTags = textTags.Where(x => x != null).Where(x => x.Active == true).ToArray();
+                        for (int effect = 0; effect < activeTags.Length; effect++)
+                        {
+                            activeTags[effect].onDuration(current);
+                        }
+
+                        //check if any tags end here
+                        for (int tag = 0; tag < textTags.Count; tag++)
+                        {
+                            if (textTags[tag] == null) break;
+
+                            if (textTags[tag].Start == pointerPosition)
+                            {
+                                textTags[tag].onStart(textTags[tag].Empty ? emptyOP : current);
+                            }
+                            if (textTags[tag].End == pointerPosition)
+                            {
+                                textTags[tag].Active = false;
+                                textTags[tag].onEnd(textTags[tag].Empty ? emptyOP : current);
+                            }
+                        }
+
+
+                    //Add tab space.
+                    if (p == 0)
+                    {
+                        Xoffset += ts_spacingTab[l];
+                    }
+
+                    //If the first letter on the line is a space then we don't draw it.
+                    if (!(p == 0 && (emptyOP.Content + current.Content) == " "))
+                    {
+                        //Draw the letter.
+                        Context.ink.DrawString(Font, emptyOP.Content + current.Content, new Vector2(X + Xoffset, Y + Yoffset), current.Color);
+
+                        //Add to the Xoffset, if justification then add the line's offset to the offset too.
+                        if ((emptyOP.Content + current.Content) == " ")
+                            Xoffset += (int)Font.MeasureString(emptyOP.Content + current.Content.ToString()).X + ts_spacingWord[l];
+                        else
+                            Xoffset += (int)Font.MeasureString(emptyOP.Content + current.Content.ToString()).X;
+                    }
+
+                    //Increment the pointer position.
+                    pointerPosition++;
+                }
+                //Reset offsets.
+                Xoffset = 0;
+                Yoffset += (int)Font.MeasureString(" ").Y;
+            }
+            Context.ink.End();
+            attachedObject.Component<ActiveTexture>().EndTargetDraw();
+        }
         #endregion
         //Private functions.
         #region "Internal Functions"
-        private void Compose()
+        private void ProcessRenderData()
         {
+            //Determine the width of the object.
+            float Width = Settings.WWidth;
+            if (attachedObject.HasComponent<Transform>())
+            {
+                Width = attachedObject.Component<Transform>().Width;
+            }
+
             //Determine how to wrap the text to fit the bounds.
-            determineBounds();
+            textLines = determineBounds(Width);
+            TextStyleCalculate(Width);
         }
-        #region "Compose"
+        #region "Process Render Data"
         /// <summary>
         /// 
         /// </summary>
-        private void determineBounds()
+        private List<string> determineBounds(float Width)
         {
+            List<string> textLines = new List<string>();
 
+            //Get all characters.
+            List<char> characters = processedString.ToCharArray().ToList();
+
+            //The current line as a string.
+            string lineString = "";
+
+            //Loop through all characters.
+            for (int i = 0; i < characters.Count; i++)
+            {
+
+                //Check if we are at the last character.
+                if (i == characters.Count - 1)
+                {
+                    textLines.Add(lineString + characters[i].ToString());
+                    lineString = "";
+                    continue;
+                }
+
+                //Check if a character is a space.
+                if (characters[i] == ' ')
+                {
+                    //Get the space left on the current line.
+                    float spaceOnLine = Width - stringWidth(lineString);
+                    //Find the location of the next space.
+                    int nextSpace = processedString.IndexOf(' ', i + 1) - i;
+                    //Check if the next location of the next space is not too far away.
+                    if (nextSpace > 0)
+                    {
+                        //Get the text to the next space.
+                        string textToNextSpace = string.Join("", characters.GetRange(i + 1, nextSpace));
+                        //If the text fits on the current line then go on a new line.
+                        if (spaceOnLine <= stringWidth(textToNextSpace))
+                        {
+                            textLines.Add(lineString + "");
+                            lineString = " ";
+                            continue;
+                        }
+                    }
+                }
+
+                //If the current character is a new line character go on a new line.
+                if (characters[i] == '\n')
+                {
+                    textLines.Add(lineString);
+                    lineString = "";
+                    continue;
+                }
+
+                //Check if there is still space on the current line.
+                if (stringWidth(lineString) + stringWidth(characters[i].ToString()) <= Width)
+                {
+                    lineString += characters[i].ToString();
+                    continue;
+                }
+                else
+                {
+                    //If not enough space then go on the next line.
+                    textLines.Add(lineString);
+                    lineString = "";
+                    i--;
+                    continue;
+                }
+            }
+
+            return textLines;
+        }
+        /// <summary>
+        /// Returns the width of a string.
+        /// </summary>
+        /// <param name="line">The string to measure.</param>
+        /// <returns>The width of the input string.</returns>
+        private float stringWidth(string text)
+        {
+            return Font.MeasureString(text).X;
+        }
+        /// <summary>
+        /// Calculates the style offsets for the selected text style.
+        /// </summary>
+        private void TextStyleCalculate(float Width)
+        {
+            //Clears offsets for the last frame.
+            ts_spacingWord = new List<int>();
+            ts_spacingTab = new List<int>();
+
+            //Generate offsets depending on the next frame.
+            switch (Style)
+            {
+                case TextStyle.Center: //In this mode we center the text by subtracting the line's width from the total width and dividing it by two.
+
+                    //Go through all lines.
+                    for (int l = 0; l < textLines.Count; l++)
+                    {
+                        string currentLine = textLines[l];
+                        //If the first character of a line is a space we don't count it.
+                        if (textLines[l].ToCharArray().First() == ' ')
+                        {
+                            currentLine = textLines[l].Substring(1);
+                        }
+                        //Add the offset.
+                        ts_spacingWord.Add(0);
+                        ts_spacingTab.Add((int)(Width - Font.MeasureString(currentLine).X) / 2);
+                    }
+
+                    break;
+                case TextStyle.Right: //In this mode we center the text by subtracting the line's width from the total width and dividing it by two.
+
+                    //Go through all lines.
+                    for (int l = 0; l < textLines.Count; l++)
+                    {
+                        string currentLine = textLines[l];
+                        //If the first character of a line is a space we don't count it.
+                        if (textLines[l].ToCharArray().First() == ' ')
+                        {
+                            currentLine = textLines[l].Substring(1);
+                        }
+                        //Add the offset.
+                        ts_spacingWord.Add(0);
+                        ts_spacingTab.Add((int)(Width - Font.MeasureString(currentLine).X));
+                    }
+
+                    break;
+                case TextStyle.Justified: //In this mode text is stretched to fill the current line as much as possible.
+                case TextStyle.JustifiedCenter:
+
+                    List<string> processedTextcleand = new List<string>();
+
+                    //Clean text with starting space.
+                    for (int i = 0; i < textLines.Count; i++)
+                    {
+                        if (textLines[i].Length > 0 && textLines[i][0] == ' ')
+                        {
+                            processedTextcleand.Add(textLines[i].Substring(1));
+                        }
+                        else
+                        {
+                            processedTextcleand.Add(textLines[i]);
+                        }
+                    }
+
+                    //Calculate the width of all lines.
+                    List<float> lineWidth = new List<float>();
+
+                    for (int i = 0; i < processedTextcleand.Count; i++)
+                    {
+                        lineWidth.Add(Font.MeasureString(processedTextcleand[i]).X);
+                    }
+
+                    //Find the longest line.
+                    float temp_width = 0;
+                    for (int l = 0; l < lineWidth.Count; l++)
+                    {
+                        if (lineWidth[l] > temp_width)
+                        {
+                            temp_width = lineWidth[l];
+                        }
+                    }
+
+                    //Go through all lines and make their offsets big enough to approximate this line.
+                    for (int l = 0; l < processedTextcleand.Count; l++)
+                    {
+                        //Check if the current line is the longest one.
+                        if (Font.MeasureString(processedTextcleand[l]).X == temp_width)
+                        {
+                            ts_spacingWord.Add(0);
+                            continue;
+                        }
+                        //Check for very short lines, or the last line, which should not be justified.
+                        if (Font.MeasureString(processedTextcleand[l]).X < temp_width / 3 || l == processedTextcleand.Count - 1)
+                        {
+                            ts_spacingWord.Add(0);
+                            continue;
+                        }
+
+                        //Else start incrementing.
+                        int temp_offset = 0;
+                        while (Font.MeasureString(processedTextcleand[l]).X + (temp_offset * processedTextcleand[l].Count(x => x == ' ')) <= temp_width)
+                        {
+                            temp_offset++;
+
+                            //Endless loop escape.
+                            if (temp_offset > 666)
+                            {
+                                temp_offset = 0;
+                                break;
+                            }
+                        }
+                        if (temp_offset != 0)
+                            ts_spacingWord.Add(temp_offset - 1);
+                        else
+                            ts_spacingWord.Add(temp_offset);
+                    }
+
+                    if (Style == TextStyle.JustifiedCenter)
+                    {
+                        //Center justified text.
+                        for (int l = 0; l < processedTextcleand.Count; l++)
+                        {
+                            float centeringoffet = Width - (Font.MeasureString(processedTextcleand[l]).X + (ts_spacingWord[l] * processedTextcleand[l].Count(x => x == ' ')));
+
+                            //We want to center the first line, while placing the others below it.
+                            if (l > 0) ts_spacingTab.Add(ts_spacingTab[l - 1]); else ts_spacingTab.Add((int)centeringoffet / 2);
+                        }
+                    }
+                    else
+                    {
+                        for (int l = 0; l < processedTextcleand.Count; l++)
+                        {
+                            ts_spacingTab.Add(0);
+                        }
+                    }
+
+                    break;
+
+                default:
+                    //If invalid or non implemented just add an empty array.
+                    for (int l = 0; l < textLines.Count; l++)
+                    {
+                        ts_spacingTab.Add(0);
+                        ts_spacingWord.Add(0);
+                    }
+                    break;
+            }
         }
         #endregion
-        private void Process()
+        private void ProcessText()
         {
             //Reset the tag array.
             textTags.Clear();
             //Clean the text from tags and record some info while doing it.
             List<TagData> tempTagData = new List<TagData>();
-            string tagFreeText = CleanTags(tempTagData);
+            processedString = CleanTags(tempTagData);
             //Process the captured info.
             ProcessTags(tempTagData);
-
-
-
-            //debug
-            for (int i = 0; i < tagFreeText.Length + 1; i++)
-            {
-                //Get the data of the current character, if past the length create an empty dummy.
-                CharData current;
-                CharData emptyOP = new CharData("");
-                if (i < tagFreeText.Length) current = new CharData(tagFreeText[i].ToString());
-                else current = new CharData("");
-
-                //check if any tags begin here
-                for (int tag = 0; tag < textTags.Count; tag++)
-                {
-                    if (textTags[tag] == null) break;
-
-                    if (textTags[tag].Start == i)
-                    {
-                        textTags[tag].Active = true;
-                    }
-                }
-
-                //apply effect stack
-                Tag[] activeTags = textTags.Where(x => x != null).Where(x => x.Active == true).ToArray();
-                for (int effect = 0; effect < activeTags.Length; effect++)
-                {
-                    activeTags[effect].onDuration(current);
-                }
-
-                //check if any tags end here
-                for (int tag = 0; tag < textTags.Count; tag++)
-                {
-                    if (textTags[tag] == null) break;
-
-                    if (textTags[tag].Start == i)
-                    {
-                        textTags[tag].onStart(textTags[tag].Empty ? emptyOP : current);
-                    }
-                    if (textTags[tag].End == i)
-                    {
-                        textTags[tag].Active = false;
-                        textTags[tag].onEnd(textTags[tag].Empty ? emptyOP : current);
-                    }
-                }
-
-                //combine the empty tag content and the current char content.
-                Console.Write(emptyOP.Content + current.Content);
-            }
         }
-        #region "Process"
+        #region "Process Text Data"
         /// <summary>
         /// Returns a clean string without any tags in it.
         /// </summary>

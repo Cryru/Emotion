@@ -65,6 +65,10 @@ namespace SoulEngine.Objects
         /// </summary>
         public void DrawHook()
         {
+            //Run the free draw function outside an ink binding.
+            Objects.Select(x => x.Value).ToList().ForEach(x => x.DrawFree());
+
+            //Run the draw function.
             Context.ink.Start(DrawChannel.World);
             Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.World).ToList().ForEach(x => x.Draw());
             Context.ink.End();

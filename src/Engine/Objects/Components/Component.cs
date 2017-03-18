@@ -26,6 +26,7 @@ namespace SoulEngine.Objects.Components
         #region "Functions"
         public abstract void Update();
         public abstract void Draw();
+        public abstract void DrawFree();
         #endregion
 
         //Other
