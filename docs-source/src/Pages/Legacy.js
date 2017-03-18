@@ -19,13 +19,11 @@ export default class Legacy extends Component {
                     <Row className='row-reset'>
                         <Col xs="12" className='col-reset'>
                             <p className='pageText'>
-                                {`To allow old projects to be ported over a compatibility layer for older SoulEngine versions
+                                {`To allow old projects to be ported over, a SoulEngine 2016 compatibility layer
                         is located in the`} <a className='filePath' href="https://github.com/Cryru/SoulEngine/tree/master/src/Legacy">src/Engine/Legacy</a> {`folder, and
-                        can be accessed through the SoulEngine.Legacy namespace.`}
-                            </p>
-                            <p className='pageText'>
-                                {`The isn't direct copy-pasted from the older version, rather it is a syntax converter which makes use of new features behind the scenes.
-                        The reason for this is to prevent duplicate code and polution such as having two separate settings for window width for example.
+                        can be accessed through the SoulEngine.Legacy namespace. This code is not directly copy-pasted from the older version, but rather it is a 
+                        syntax converter which makes use of new features behind the scenes, to prevent duplicate code and pollution such as having two separate 
+                        settings classes for window width for example.
                         As such it is not guaranteed that both will behave the same in all situations.`}
                             </p>
                             <p className='pageText'>

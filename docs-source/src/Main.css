@@ -32,12 +32,13 @@ li a:hover {
 
 .navHeaderBox
 {
-    background-color: #b860f7;
+    background-color: #9e23ba;
     width: 100%;
     font-weight: bold;
     text-align: left;
     font-size: 17px;
     padding: 10px;
+    border-bottom: 1px solid white;
 }
 
 .navHeaderBox a

@@ -19,9 +19,7 @@ export default class Legacy extends Component {
                     <Row className='row-reset'>
                         <Col xs="12" className='col-reset'>
                             <p className='pageText'>
-                                {`SoulEngine is a 2D XNA/Monogame based game engine created on the idea of hands-on code writing and in-depth control
-                                as opposed to the script based approach big engines have. In addition it aims to make the development process easier, 
-                                and to shorten the time it takes between coming up with an idea, getting a prototype ready, and even releasing a product.`}
+                                {`SoulEngine is a 2D XNA game engine with focus on making the development process easier while maintaining control over your code.`}
                             </p>
                         </Col>
                     </Row>

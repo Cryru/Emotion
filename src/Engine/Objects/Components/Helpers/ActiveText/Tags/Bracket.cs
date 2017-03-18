@@ -8,7 +8,7 @@ namespace SoulEngine.Objects.Components.Helpers.Tags
 {
     class Bracket : Tag
     {
-        public Bracket(string Data, int Start, int? End) : base(Data, Start, End)
+        public Bracket(string Data, int Start, int End, bool Empty = false) : base(Data, Start, End, Empty)
         {
         }
 
@@ -19,13 +19,13 @@ namespace SoulEngine.Objects.Components.Helpers.Tags
 
         public override CharData onEnd(CharData c)
         {
-            c.Content += "]";
+            c.Content += Data;
             return c;
         }
 
         public override CharData onStart(CharData c)
         {
-            c.Content = "[" + c.Content;
+            c.Content = Data + c.Content;
             return c;
         }
     }
