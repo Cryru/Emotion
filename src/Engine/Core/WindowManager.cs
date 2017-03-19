@@ -31,6 +31,14 @@ namespace SoulEngine
             //Hook a size changed event to the screen adapter's update, as changes to the window size will mess with it.
             ESystem.Add(new Listen(EType.WINDOW_SIZECHANGED, Context.Screen.Update));
 
+            //Set the window to the setting's size if resizable.
+            if (Settings.ResizableWindow == true)
+            {
+                Context.GraphicsManager.PreferredBackBufferWidth = Settings.WWidth;
+                Context.GraphicsManager.PreferredBackBufferHeight = Settings.WHeight;
+                Context.GraphicsManager.ApplyChanges();
+            }
+
             //Update the window.
             UpdateWindow();
         }
@@ -100,7 +108,7 @@ namespace SoulEngine
                 }
             }
 
-            //Send the new display mode to the system event.
+            //Send the new display mode to the system event which detects changes to the settings.
             ESystem.Add(new Event("prevDisplayMode_update", null, Settings.DisplayMode));
         }
     }

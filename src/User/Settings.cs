@@ -39,19 +39,19 @@ namespace SoulEngine
         /// <summary>
         /// The width of the window.
         /// </summary>
-        public static int WWidth = 960;
+        public static int WWidth = 20;
         /// <summary>
         /// The height of the window.
         /// </summary>
-        public static int WHeight = 540;
+        public static int WHeight = 20;
         /// <summary>
         /// The width the game will be rendered at.
         /// </summary>
-        public static int Width = 1000;
+        public static int Width = 20;
         /// <summary>
         /// The height the game will be rendered at.
         /// </summary>
-        public static int Height = 500;
+        public static int Height = 20;
         /// <summary>
         /// The name of the window.
         /// </summary>

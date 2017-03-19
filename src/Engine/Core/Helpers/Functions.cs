@@ -32,7 +32,7 @@ namespace SoulEngine
         /// <param name="ink">The spritebatch to use.</param>
         /// <param name="DrawChannel">The channel to render on.</param>
         /// <param name="Parallax">Parallax factor for the World channel.</param>
-        public static void Start(this SpriteBatch ink, DrawChannel DrawChannel = DrawChannel.Screen, Vector2? Parallax = null)
+        public static void Start(this SpriteBatch ink, DrawChannel DrawChannel = DrawChannel.Terminus, Vector2? Parallax = null)
         {
             //Define a render matrix to determine later, by default it's null.
             Matrix? transformationMatrix = null;
@@ -53,6 +53,39 @@ namespace SoulEngine
 
             //Start drawing.
             ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, transformationMatrix);
+        }
+
+        /// <summary>
+        /// Start drawing on the provided render target.
+        /// </summary>
+        /// <param name="ink">The spritebatch to use.</param>
+        /// <param name="Target">The render target to render on.</param>
+        public static void StartRenderTarget(this SpriteBatch ink, RenderTarget2D Target)
+        {
+            //Set the current rendertarget to the drawer.
+            Context.Graphics.SetRenderTarget(Target);
+
+            //Clear the rendertarget.
+            Context.Graphics.Clear(Color.Aqua);
+
+            //Start drawing.
+            ink.Start();
+        }
+
+        /// <summary>
+        /// Stop drawing and return the render target. 
+        /// </summary>
+        /// <param name="ink">The spritebatch to use.</param>
+        public static void EndRenderTarget(this SpriteBatch ink)
+        {
+            //Start drawing.
+            ink.End();
+
+            //Return to the default render target.
+            Context.Graphics.SetRenderTarget(null);
+
+            //Return the viewport holder.
+            Context.Screen.Update();
         }
 
         /// <summary>

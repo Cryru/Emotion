@@ -85,6 +85,12 @@ namespace SoulEngine
 
             //Load the primary scene.
             new ScenePrim().SetupScene();
+
+            t = new GameObject();
+            t.AddComponent(new ActiveTexture());
+            t.AddComponent(new Renderer());
+
+            a = new RenderTarget2D(Context.Graphics, 100, 100);
         }
         #endregion
         GameObject t;
@@ -106,7 +112,7 @@ namespace SoulEngine
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
         }
-
+        RenderTarget2D a;
         /// <summary>
         /// Is executed every frame.
         /// </summary>
@@ -123,14 +129,25 @@ namespace SoulEngine
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
-            Context.ink.Begin(transformMatrix: Context.Screen.View);
+            Context.ink.Start(DrawChannel.Screen);
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
             //Draw the current scene.
-            Scene.DrawHook();
+            //Scene.DrawHook();
             //Draw debug objects on top. (NYI)
 
+            //Context.ink.StartRenderTarget(a);
+            //Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(20, 0, 5, 5), Color.Red);
+            //Context.ink.EndRenderTarget();
+            //Context.ink.Start();
+            //Context.ink.Draw(a, new Rectangle(0, 0, 200, 200), Color.White);
+            //Context.ink.End();
+
+            //t.DrawFree();
+            Context.ink.Start();
+            //t.Draw();
+            Context.ink.End();
             //Trigger frame end event.
             ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
         }
