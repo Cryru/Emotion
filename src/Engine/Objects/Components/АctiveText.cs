@@ -145,7 +145,7 @@ namespace SoulEngine.Objects.Components
         {
             if (attachedObject.HasComponent<ActiveTexture>())
             {
-                attachedObject.Component<ActiveTexture>().BeginTargetDraw();
+                //attachedObject.Component<ActiveTexture>().BeginTargetDraw();
             }
             else
             {
@@ -250,7 +250,7 @@ namespace SoulEngine.Objects.Components
                 Yoffset += (int)Font.MeasureString(" ").Y;
             }
             Context.ink.End();
-            attachedObject.Component<ActiveTexture>().EndTargetDraw();
+            //attachedObject.Component<ActiveTexture>().EndTargetDraw();
         }
         #endregion
         //Private functions.

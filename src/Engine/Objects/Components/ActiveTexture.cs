@@ -99,7 +99,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public override void Update()
+        public override void DrawFree()
         {
             if (!Active) return;
 
@@ -119,9 +119,8 @@ namespace SoulEngine.Objects.Components
                 Bounds.Height != _texture.Bounds.Size.Y) DefineTarget(Bounds.Width, Bounds.Height);
 
             //Start drawing on internal target.
-            BeginTargetDraw();
+            Context.ink.StartRenderTarget(_texture);
 
-            Context.ink.Start();
             //Draw the texture depending on how we are stretching.
             switch (TextureMode)
             {
@@ -144,35 +143,9 @@ namespace SoulEngine.Objects.Components
                     }
                     break;
             }
-            Context.ink.End();
 
             //Stop drawing.
-            EndTargetDraw();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public void BeginTargetDraw()
-        {
-            //Record the viewport of the current graphics device, as the rendertarget switching resets it.
-            _tempPortHolder = Context.Graphics.Viewport;
-
-            //Set the current rendertarget to the drawer.
-            Context.Graphics.SetRenderTarget(_texture);
-
-            //Clear the rendertarget.
-            Context.Graphics.Clear(Color.Transparent);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public void EndTargetDraw()
-        {
-            //Return to the default render target.
-            Context.Graphics.SetRenderTarget(null);
-
-            //Return the viewport holder.
-            Context.Graphics.Viewport = _tempPortHolder;
+            Context.ink.EndRenderTarget();
         }
         #endregion
 
@@ -195,8 +168,8 @@ namespace SoulEngine.Objects.Components
 
         //Other
         #region "Component Interface"
+        public override void Update(){}
         public override void Draw(){}
-        public override void DrawFree(){}
         #endregion
     }
 }

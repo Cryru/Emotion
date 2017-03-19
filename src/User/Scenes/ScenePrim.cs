@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects;
+using SoulEngine.Objects.Components;
 
 namespace SoulEngine
 {
@@ -25,17 +26,26 @@ namespace SoulEngine
             // throw new NotImplementedException();
             Console.WriteLine("SCENE PRIM LOADED");
 
-            GameObject a = new GameObject();
-            a.AddComponent(new Objects.Components.ActiveTexture());
-            a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
-            {
-                Text =
-            "</></></><bracket>Hello sir! This is the first line.<bracket></><bracket>\nAnd</> this <bracket>is <bracket>t</>he second<bracket></> line!\nWhile</> this is the third :D!</><bracket>\n</><bracket></>"
-            });
-            //a.AddComponent(new Objects.Components.Transform() { X = 0, Y = 0, Width = 200, Height = 200 });
+            //GameObject b = new GameObject();
+            //b.AddComponent(new ActiveTexture(AssetManager.BlankTexture, Enums.TextureMode.Stretch, new Rectangle(0,0,50,50)));
+            //b.AddComponent(new Renderer());
+            ////b.AddComponent(new Transform());
+            ////b.Component<ActiveTexture>().Texture = AssetManager.MissingTexture;
 
-            a.AddComponent(new Objects.Components.Renderer());
-            AddObject("", a);
+            //b.Layer = Enums.ObjectLayer.UI;
+            //AddObject("", b);
+
+            //GameObject a = new GameObject();
+            //a.AddComponent(new Objects.Components.ActiveTexture());
+            //a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
+            //{
+            //    Text =
+            //"</></></><bracket>Hello sir! This is the first line.<bracket></><bracket>\nAnd</> this <bracket>is <bracket>t</>he second<bracket></> line!\nWhile</> this is the third :D!</><bracket>\n</><bracket></>"
+            //});
+            ////a.AddComponent(new Objects.Components.Transform() { X = 0, Y = 0, Width = 200, Height = 200 });
+
+            //a.AddComponent(new Objects.Components.Renderer());
+            //AddObject("", a);
             
             //Legacy.Core.Setup();
         }

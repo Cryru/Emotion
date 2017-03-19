@@ -133,10 +133,10 @@ namespace SoulEngine
         /// <summary>
         /// Removes a component from the object, if such a component isn't attached nothing happens.
         /// </summary>
-        /// <typeparam name="T">The type of the component.</typeparam>
-        public void RemoveComponent<T>()
+        /// <param name="Component">The type of the component.</typeparam>
+        public void RemoveComponent(Type Component)
         {
-            RemoveComponent(typeof(T).Name);
+            RemoveComponent(Component.Name);
         }
         /// <summary>
         /// Removes a component from the object, if such a component isn't attached nothing happens.
