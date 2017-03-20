@@ -90,7 +90,7 @@ namespace SoulEngine
             t.AddComponent(new ActiveTexture());
             t.AddComponent(new Renderer());
 
-            a = new RenderTarget2D(Context.Graphics, 100, 100);
+            a = new RenderTarget2D(Context.Graphics, 10, 10);
         }
         #endregion
         GameObject t;
@@ -129,20 +129,23 @@ namespace SoulEngine
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
-            Context.ink.Start(DrawChannel.Screen);
-            Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
-            Context.ink.End();
 
             //Draw the current scene.
             //Scene.DrawHook();
             //Draw debug objects on top. (NYI)
 
-            //Context.ink.StartRenderTarget(a);
-            //Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(20, 0, 5, 5), Color.Red);
-            //Context.ink.EndRenderTarget();
-            //Context.ink.Start();
-            //Context.ink.Draw(a, new Rectangle(0, 0, 200, 200), Color.White);
-            //Context.ink.End();
+            //We draw the render targets before anything else as it messes with stuff.
+            Context.ink.StartRenderTarget(a);
+            Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, 5, 5), Color.Red);
+            Context.ink.EndRenderTarget();
+            
+            Context.ink.Start(DrawChannel.Screen);
+            Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
+            Context.ink.End();
+
+            Context.ink.Start();
+            Context.ink.Draw(a, new Rectangle(0, 0, 10, 10), Color.White);
+            Context.ink.End();
 
             //t.DrawFree();
             Context.ink.Start();
@@ -173,6 +176,8 @@ namespace SoulEngine
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
             ESystem.Add(new Event(EType.INPUT_TEXT, this, e.Character.ToString()));
+            System.IO.Stream aaa = System.IO.File.Create("b/aaa" + DateTime.Now.ToString("MM-dd-yy H;mm;ss;fff") + ".jpg");
+            a.SaveAsJpeg(aaa, 10, 10);
         }
         /// <summary>
         /// Triggered when the size of the window changes. If Settings.ResizableWindow is true

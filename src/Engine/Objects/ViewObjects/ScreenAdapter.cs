@@ -35,11 +35,6 @@ namespace SoulEngine.Objects
         {
             Viewport viewport = Context.Graphics.Viewport;
 
-            Console.WriteLine("DONT FORGET TO REMOVE - SCREENADAPTER: 32");
-            float worldScale = MathHelper.Max((float)viewport.Width / Settings.Width, (float)viewport.Height / Settings.Height);
-            float safeScale = MathHelper.Min((float)viewport.Width / (Settings.Width), (float)viewport.Height / (Settings.Height));
-            if (worldScale < safeScale) throw new Exception("Unexpected behaviour, change scale below.");
-
             //Get the scale ratio between the viewport and the game's resolution, based on whichever the bigger side is.
             float scale = MathHelper.Min((float)viewport.Width / (Settings.Width), (float)viewport.Height / (Settings.Height));
 
