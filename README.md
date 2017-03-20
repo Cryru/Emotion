@@ -1,6 +1,6 @@
 <img src="windowslogo.png" width=30%>
 
-### [Documentation and Help (In development)](http://cryru.github.io/SoulEngine)
+### [Documentation and Help](https://cryru.github.io/SE-Docs/)
 
 
 
@@ -22,7 +22,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - Object-Component System [&#10003;]
 - Simple Animated Textures
 - Asset Loading and Unloading Manager
-- Scene System
+- Scene System [&#10003;]
 - Unified Event System [&#10003;]
 - Tiled Integration
 - FPS Independent Timing [&#10003;]
@@ -31,7 +31,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - Resolution Adaptation with Boxing [&#10003;]
 - JSON Based File Management (For Settings, Save Files etc.)
 - Error Logging
-- Custom Text Rendering with Markup
+- Custom Text Rendering with Markup [&#10003;]
 - Legacy Support for SoulEngine 2016
 and more...
 
@@ -43,7 +43,9 @@ and more...
 
 ["Asset-Meta-Generator"](https://github.com/Cryru/SE-Asset-Meta-Generator) - Generating Meta files for asset validation.
 
-["Farseer Physics for SoulEngine"](https://github.com/Cryru/SoulEngine-Farseer) - Physics engine.
+["Farseer Physics for SoulEngine"](https://github.com/Cryru/SE-Farseer) - Physics engine.
+
+["SoulEngine Docs"](https://github.com/Cryru/SE-Docs) - Online documentation.
 
 ## External Projects
 
