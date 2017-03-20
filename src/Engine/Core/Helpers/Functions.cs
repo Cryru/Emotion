@@ -66,7 +66,7 @@ namespace SoulEngine
             Context.Graphics.SetRenderTarget(Target);
 
             //Clear the rendertarget.
-            Context.Graphics.Clear(Color.Aqua);
+            Context.Graphics.Clear(Color.Transparent);
 
             //Start drawing.
             ink.Start();
