@@ -47,11 +47,11 @@ namespace SoulEngine
         /// <summary>
         /// The width the game will be rendered at.
         /// </summary>
-        public static int Width = 300;
+        public static int Width = 960;
         /// <summary>
         /// The height the game will be rendered at.
         /// </summary>
-        public static int Height = 300;
+        public static int Height = 540;
         /// <summary>
         /// The name of the window.
         /// </summary>
@@ -96,7 +96,7 @@ namespace SoulEngine
         /// <summary>
         /// Enables debug mode.
         /// </summary>
-        public static bool debug = true;
+        public static bool Debug = true;
         /// <summary>
         /// Toggles updating the debug text.
         /// </summary>

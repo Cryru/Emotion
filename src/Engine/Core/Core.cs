@@ -6,6 +6,7 @@ using SoulEngine.Objects;
 using SoulEngine.Objects.Components;
 using SoulEngine.Enums;
 using SoulEngine.Events;
+using SoulEngine.Debugging;
 
 namespace SoulEngine
 {
@@ -18,7 +19,7 @@ namespace SoulEngine
     /// </summary>
     public class Core : Game
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// The time in milliseconds it took for the last frame to render.
         /// </summary>
@@ -28,6 +29,12 @@ namespace SoulEngine
         /// The currently loaded scene.
         /// </summary>
         public Scene Scene;
+        #endregion
+        #region "Error Checkers"
+        /// <summary>
+        /// Used to check whether composing is done properly.
+        /// </summary>
+        public bool __composeAllowed = false;
         #endregion
         #endregion
 
@@ -81,19 +88,16 @@ namespace SoulEngine
 
             //Measure boot time.
             Starter.bootPerformance.Stop();
-            Console.WriteLine(">>>> Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
+            Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
             //Load the primary scene.
             new ScenePrim().SetupScene();
 
-            t = new GameObject();
-            t.AddComponent(new ActiveTexture());
-            t.AddComponent(new Renderer());
-
-            a = new RenderTarget2D(Context.Graphics, 10, 10);
+            //Load the debugging scene.
+            if (Settings.Debug) DebugScene.Setup();
         }
         #endregion
-        GameObject t;
+
         #region "Loops"
         /// <summary>
         /// Is executed every tick.
@@ -112,7 +116,6 @@ namespace SoulEngine
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
         }
-        RenderTarget2D a;
         /// <summary>
         /// Is executed every frame.
         /// </summary>
@@ -120,9 +123,6 @@ namespace SoulEngine
         {
             //If the game is not focused, don't update.
             if (IsActive == false) return;
-            FPSCounterUpdate(gameTime);
-            //Trigger frame start event.
-            ESystem.Add(new Event(EType.GAME_FRAMESTART, this, gameTime));
 
             //Record frametime.
             frameTime = gameTime.ElapsedGameTime.Milliseconds;
@@ -130,34 +130,28 @@ namespace SoulEngine
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
 
-            //Draw the current scene.
-            //Scene.DrawHook();
-            //Draw debug objects on top. (NYI)
+            //Allow composing.
+            __composeAllowed = true;
 
-            //We draw the render targets before anything else as it messes with stuff.
-            Context.ink.StartRenderTarget(a);
-            Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, 5, 5), Color.Red);
-            Context.ink.EndRenderTarget();
-            
+            //Trigger frame start event.
+            ESystem.Add(new Event(EType.GAME_FRAMESTART, this, gameTime));
+
+            //Compose textures on the current scene. We draw the render targets before anything else because it renders over other things otherwise.
+            Scene.Compose();
+
+            //Stop allowing composig. This is to prevent the 'black screen bug'.
+            __composeAllowed = false;
+
             Context.ink.Start(DrawChannel.Screen);
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
-            Context.ink.Start();
-            Context.ink.Draw(a, new Rectangle(0, 0, 10, 10), Color.White);
-            Context.ink.End();
+            //Draw the current scene.
+            Scene.DrawHook();
 
-            //t.DrawFree();
-            Context.ink.Start();
-            //t.Draw();
-            Context.ink.End();
             //Trigger frame end event.
             ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
         }
-        #endregion
-
-        #region "Functions"
-
         #endregion
 
         #region "Triggers for Internal Events"
@@ -176,8 +170,6 @@ namespace SoulEngine
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
             ESystem.Add(new Event(EType.INPUT_TEXT, this, e.Character.ToString()));
-            System.IO.Stream aaa = System.IO.File.Create("b/aaa" + DateTime.Now.ToString("MM-dd-yy H;mm;ss;fff") + ".jpg");
-            a.SaveAsJpeg(aaa, 10, 10);
         }
         /// <summary>
         /// Triggered when the size of the window changes. If Settings.ResizableWindow is true
@@ -188,31 +180,6 @@ namespace SoulEngine
             ESystem.Add(new Event(EType.WINDOW_SIZECHANGED, this, null));
         }
         #endregion
-
-
-        /// <summary>
-        /// The frames rendered in the current second.
-        /// </summary>
-        public int curFrames = 0;
-        /// <summary>
-        /// The frames rendered in the last second.
-        /// </summary>
-        public int lastFrames = 0;
-        /// <summary>
-        /// The current second number.
-        /// </summary>
-        public int curSec = 0;
-        public void FPSCounterUpdate(GameTime gameTime)
-        {
-            //Check if the current second has passed.
-            if (!(curSec == gameTime.TotalGameTime.Seconds))
-            {
-                curSec = gameTime.TotalGameTime.Seconds; //Assign the current second to a variable.
-                lastFrames = curFrames; //Set the current second's frames to the last second's frames as a second has passed.
-                curFrames = 0;
-            }
-            curFrames += 1;
-        }
     }
 }
 

@@ -69,6 +69,8 @@
     <Compile Include="src\Engine\Core\Helpers\Functions.cs" />
     <Compile Include="src\Engine\Core\Starter.cs" />
     <Compile Include="src\Engine\Core\WindowManager.cs" />
+    <Compile Include="src\Engine\Debugging\DebugScene.cs" />
+    <Compile Include="src\Engine\Debugging\Logger.cs" />
     <Compile Include="src\Engine\Events\ESystem.cs" />
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\Event.cs" />
@@ -103,7 +105,7 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tag.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagFactory.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Bracket.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Color.cs" />
     <Compile Include="src\Engine\Objects\Components\Renderer.cs" />
     <Compile Include="src\Engine\Objects\Components\Transform.cs" />
     <Compile Include="src\Engine\Objects\Components\АctiveText.cs" />

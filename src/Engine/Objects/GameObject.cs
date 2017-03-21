@@ -16,7 +16,7 @@ namespace SoulEngine
     /// </summary>
     public class GameObject : IDisposable
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// Whether component adding should be disabled.
         /// </summary>
@@ -79,16 +79,16 @@ namespace SoulEngine
         }
 
         /// <summary>
-        /// Is run every frame outside of an ink binding.
+        /// Is run every frame outside of an ink binding and used to compose component textures.
         /// </summary>
-        public virtual void DrawFree()
+        public virtual void Compose()
         {
             //Check if drawing.
             if (Drawing == false) return;
 
             for (int i = 0; i < Components.Count; i++)
             {
-                Components[i].DrawFree();
+                Components[i].Compose();
             }
         }
 
@@ -231,7 +231,7 @@ namespace SoulEngine
 
         #region "Templates"
         /// <summary>
-        /// Generic object with positioning and rendering.
+        /// Generic object with positioning and a texture.
         /// </summary>
         public static GameObject GenericDrawObject
         {
@@ -240,6 +240,21 @@ namespace SoulEngine
                 GameObject a = new GameObject();
                 a.AddComponent(new Transform());
                 a.AddComponent(new ActiveTexture());
+                a.AddComponent(new Renderer());
+                return a;
+            }
+        }
+
+        /// <summary>
+        /// Generic object with positioning and text.
+        /// </summary>
+        public static GameObject GenericTextObject
+        {
+            get
+            {
+                GameObject a = new GameObject();
+                a.AddComponent(new Transform());
+                a.AddComponent(new ActiveText());
                 a.AddComponent(new Renderer());
                 return a;
             }

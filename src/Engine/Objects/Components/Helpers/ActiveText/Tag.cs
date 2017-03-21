@@ -15,7 +15,7 @@ namespace SoulEngine.Objects.Components.Helpers
     /// </summary>
     public abstract class Tag
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// Whether the tag is considered active.
         /// </summary>

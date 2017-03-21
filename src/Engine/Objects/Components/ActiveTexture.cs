@@ -19,7 +19,7 @@ namespace SoulEngine.Objects.Components
     /// </summary>
     public class ActiveTexture : Component
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// Internal XNA Texture holder.
         /// </summary>
@@ -99,7 +99,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public override void DrawFree()
+        public override void Compose()
         {
             if (!Active) return;
 
@@ -113,13 +113,8 @@ namespace SoulEngine.Objects.Components
                 Bounds = attachedObject.Component<Transform>().Bounds;
             }
 
-            //Check if the render target is the same size as the draw area, because if it's not we need to redefine it.
-            if (_texture == null ||
-                Bounds.Width != _texture.Bounds.Size.X ||
-                Bounds.Height != _texture.Bounds.Size.Y) DefineTarget(Bounds.Width, Bounds.Height);
-
             //Start drawing on internal target.
-            Context.ink.StartRenderTarget(_texture);
+            Context.ink.StartRenderTarget(ref _texture, Bounds.Width, Bounds.Height);
 
             //Draw the texture depending on how we are stretching.
             switch (TextureMode)
@@ -146,23 +141,6 @@ namespace SoulEngine.Objects.Components
 
             //Stop drawing.
             Context.ink.EndRenderTarget();
-        }
-        #endregion
-
-        //Private functions.
-        #region "Internal Functions"
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Width"></param>
-        /// <param name="Height"></param>
-        private void DefineTarget(int Width = 0, int Height = 0)
-        {
-            //Destroy previous render target safely, if any.
-            if (_texture != null) _texture.Dispose();
-
-            //Generate a new rendertarget with the specified size.
-            _texture = new RenderTarget2D(Context.Graphics, Width, Height);
         }
         #endregion
 

@@ -15,7 +15,7 @@ namespace SoulEngine.Objects.Components
     /// </summary>
     public abstract class Component : IDisposable
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// The object this component is attached to.
         /// </summary>
@@ -26,7 +26,7 @@ namespace SoulEngine.Objects.Components
         #region "Functions"
         public abstract void Update();
         public abstract void Draw();
-        public abstract void DrawFree();
+        public abstract void Compose();
         #endregion
 
         //Other

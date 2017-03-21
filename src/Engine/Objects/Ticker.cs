@@ -17,7 +17,7 @@ namespace SoulEngine.Objects
     /// </summary>
     public class Ticker : IDisposable
     {
-        #region "Variables"
+        #region "Declarations"
         #region "Settings"
         /// <summary>
         /// The delay between ticks.

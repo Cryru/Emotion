@@ -21,7 +21,7 @@ namespace SoulEngine.Objects.Components
     /// </summary>
     public class ActiveText : Component
     {
-        #region "Variables"
+        #region "Declarations"
         //Main variables.
         #region "Primary"
         /// <summary>
@@ -35,8 +35,12 @@ namespace SoulEngine.Objects.Components
             }
             set
             {
-                text = value;
-                if(text != "") ProcessText();
+                //Check if the text is changed before applying processing.
+                if(value != text)
+                {
+                    text = value;
+                    if (text == "") processedString = ""; else ProcessText();
+                }
             }
         }
         /// <summary>
@@ -58,14 +62,58 @@ namespace SoulEngine.Objects.Components
         /// 
         /// </summary>
         public TextStyle Style;
+        /// <summary>
+        /// The default text color.
+        /// </summary>
+        public Color Color = Color.White;
+        /// <summary>
+        /// Scale the transform component (if any) according to the text's size.
+        /// </summary>
+        public bool AutoSize = false;
+        /// <summary>
+        /// The width of the text.
+        /// </summary>
+        public float Width
+        {
+            get
+            {
+                if (attachedObject.HasComponent<Transform>() && !AutoSize)
+                {
+                    return attachedObject.Component<Transform>().Width;
+                }
+                else
+                {
+                    return width;
+                }
+            }
+        }
+        /// <summary>
+        /// The height of the text.
+        /// </summary>
+        public float Height
+        {
+            get
+            {
+                if (attachedObject.HasComponent<Transform>() && !AutoSize)
+                {
+                    return attachedObject.Component<Transform>().Height;
+                }
+                else
+                {
+                    return height;
+                }
+            }
+        }
         #endregion
         //Private variables.
         #region "Private"
         private string text;
         private SpriteFont font;
-        private List<string> textLines;
+        private List<string> textLines = new List<string>();
         private List<int> ts_spacingWord;
         private List<int> ts_spacingTab;
+        private float width;
+        private float height;
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -83,6 +131,17 @@ namespace SoulEngine.Objects.Components
             }
         }
         private string processedString;
+        /// <summary>
+        /// The text composed to a texture.
+        /// </summary>
+        public Texture2D Texture
+        {
+            get
+            {
+                return texture as Texture2D;
+            }
+        }
+        private RenderTarget2D texture;
         #endregion
         #endregion
 
@@ -133,29 +192,16 @@ namespace SoulEngine.Objects.Components
         public override void Update()
         {
             ProcessRenderData();
-            if (attachedObject.HasComponent<ActiveTexture>())
-            {
-                attachedObject.Component<ActiveTexture>().Active = false;
-            }
         }
         /// <summary>
         /// Is run every frame outside of an ink binding.
         /// </summary>
-        public override void DrawFree()
+        public override void Compose()
         {
-            if (attachedObject.HasComponent<ActiveTexture>())
-            {
-                //attachedObject.Component<ActiveTexture>().BeginTargetDraw();
-            }
-            else
-            {
-                return;
-            }
-
-            //The position of the current letter, in the overall text as they are written in the effects list.
+            //The position of the current letter in the processed tag free text.
             int pointerPosition = 0;
 
-            //The default values.
+            //Get values for size and position.
             float X = 0;
             float Y = 0;
             if (attachedObject.HasComponent<Transform>())
@@ -168,13 +214,8 @@ namespace SoulEngine.Objects.Components
             int Xoffset = 0;
             int Yoffset = 0;
 
-            Color color = Color.White;
-            if (attachedObject.HasComponent<ActiveTexture>())
-            {
-                color = attachedObject.Component<ActiveTexture>().Tint;
-            }
-
-            Context.ink.Start();
+            //Start composing on the render target.
+            Context.ink.StartRenderTarget(ref texture, (int)Width, (int)Height);
 
             //Run through all lines.
             for (int l = 0; l < textLines.Count; l++)
@@ -182,99 +223,130 @@ namespace SoulEngine.Objects.Components
                 //Run through all letters.
                 for (int p = 0; p < textLines[l].Length; p++)
                 {
-                        //Get the data of the current character, if past the length create an empty dummy.
-                        CharData current;
-                        CharData emptyOP = new CharData("", color);
-                        if (p < textLines[l].Length) current = new CharData(textLines[l][p].ToString(), color);
-                        else current = new CharData("", color);
+                    //Define data for the current character.
+                    CharData current = new CharData(Color);
+                    string currentChar = textLines[l][p].ToString();
 
-                        //check if any tags begin here
-                        for (int tag = 0; tag < textTags.Count; tag++)
+                    //Check if any tags start here and set them to active, skip empty tags.
+                    for (int tag = 0; tag < textTags.Count; tag++)
+                    {
+                        if (textTags[tag] == null || textTags[tag].Empty) continue;
+
+                        if (textTags[tag].Start == pointerPosition)
                         {
-                            if (textTags[tag] == null) break;
+                            textTags[tag].Active = true;
+                        }
+                    }
 
-                            if (textTags[tag].Start == pointerPosition)
-                            {
-                                textTags[tag].Active = true;
-                            }
+                    //Get active tags and apply their duration effect on the character data.
+                    Tag[] activeTags = textTags.Where(x => x != null).Where(x => x.Active == true).ToArray();
+                    for (int effect = 0; effect < activeTags.Length; effect++)
+                    {
+                        activeTags[effect].onDuration(current);
+                    }
+
+                    //Check if any tags end here, we do this after the duration effect has been applied and then overwrite.
+                    for (int tag = 0; tag < textTags.Count; tag++)
+                    {
+                        if(textTags[tag] == null || textTags[tag].Empty) continue;
+
+                        if(textTags[tag].Start == pointerPosition)
+                        {
+                            textTags[tag].onStart(current);
                         }
 
-                        //apply effect stack
-                        Tag[] activeTags = textTags.Where(x => x != null).Where(x => x.Active == true).ToArray();
-                        for (int effect = 0; effect < activeTags.Length; effect++)
+                        if (textTags[tag].End == pointerPosition && textTags[tag].Active == true)
                         {
-                            activeTags[effect].onDuration(current);
+                            textTags[tag].Active = false;
+                            textTags[tag].onEnd(current);
                         }
+                    }
 
-                        //check if any tags end here
-                        for (int tag = 0; tag < textTags.Count; tag++)
-                        {
-                            if (textTags[tag] == null) break;
-
-                            if (textTags[tag].Start == pointerPosition)
-                            {
-                                textTags[tag].onStart(textTags[tag].Empty ? emptyOP : current);
-                            }
-                            if (textTags[tag].End == pointerPosition)
-                            {
-                                textTags[tag].Active = false;
-                                textTags[tag].onEnd(textTags[tag].Empty ? emptyOP : current);
-                            }
-                        }
-
-
-                    //Add tab space.
+                    //Add tab space offset if on the first character on a line.
                     if (p == 0)
                     {
                         Xoffset += ts_spacingTab[l];
                     }
 
                     //If the first letter on the line is a space then we don't draw it.
-                    if (!(p == 0 && (emptyOP.Content + current.Content) == " "))
+                    if (!(p == 0 && (currentChar) == " "))
                     {
-                        //Draw the letter.
-                        Context.ink.DrawString(Font, emptyOP.Content + current.Content, new Vector2(X + Xoffset, Y + Yoffset), current.Color);
+                        //Draw the letter with the collected character data.
+                        Context.ink.DrawString(Font, currentChar, new Vector2(X + Xoffset, Y + Yoffset), current.Color);
 
-                        //Add to the Xoffset, if justification then add the line's offset to the offset too.
-                        if ((emptyOP.Content + current.Content) == " ")
-                            Xoffset += (int)Font.MeasureString(emptyOP.Content + current.Content.ToString()).X + ts_spacingWord[l];
+                        //If the current character is a space add word spacing offset.
+                        if (currentChar == " ")
+                            Xoffset += (int)Font.MeasureString(currentChar).X + ts_spacingWord[l];
                         else
-                            Xoffset += (int)Font.MeasureString(emptyOP.Content + current.Content.ToString()).X;
+                            Xoffset += (int)Font.MeasureString(currentChar).X;
                     }
 
                     //Increment the pointer position.
                     pointerPosition++;
                 }
-                //Reset offsets.
+
+                //Starting a new line, reset X offset and increment Y offset.
                 Xoffset = 0;
                 Yoffset += (int)Font.MeasureString(" ").Y;
             }
-            Context.ink.End();
-            //attachedObject.Component<ActiveTexture>().EndTargetDraw();
+
+            //Stop composing.
+            Context.ink.EndRenderTarget();
         }
         #endregion
-        //Private functions.
+
         #region "Internal Functions"
         private void ProcessRenderData()
         {
-            //Determine the width of the object.
-            float Width = Settings.WWidth;
-            if (attachedObject.HasComponent<Transform>())
-            {
-                Width = attachedObject.Component<Transform>().Width;
-            }
+            //Clear the text lines.
+            textLines.Clear();
 
             //Determine how to wrap the text to fit the bounds.
-            textLines = determineBounds(Width);
-            TextStyleCalculate(Width);
+            determineBounds();
+
+            //Check if auto sizing.
+            if(AutoSize) SetAutoSize();
+
+            //Determine word and tab spacing to display the specified style.
+            TextStyleCalculate();
+        }
+        /// <summary>
+        /// Sets the width to the longest line and the height to the number of lines.
+        /// </summary>
+        private void SetAutoSize()
+        {
+            //The biggest line.
+            int MaxWidth = 0;
+            for (int i = 0; i < textLines.Count; i++)
+            {
+                //Find the width of the current line.
+                int CurWidth = (int) stringWidth(textLines[i]);
+
+                //Check if exceeding max.
+                if (CurWidth > MaxWidth)
+                {
+                    MaxWidth = CurWidth;
+                }
+            }
+            width = MaxWidth;
+
+            height = (int)Font.MeasureString(" ").Y * textLines.Count();
         }
         #region "Process Render Data"
         /// <summary>
-        /// 
+        /// Splits the text so it fits within its bounds.
         /// </summary>
-        private List<string> determineBounds(float Width)
+        private void determineBounds()
         {
-            List<string> textLines = new List<string>();
+            //Check if there is any text to process.
+            if (processedString == null || processedString == "") return;
+
+            //Check if auto sizing.
+            float Width = this.Width;
+            if (AutoSize)
+            {
+                Width = int.MaxValue;
+            }
 
             //Get all characters.
             List<char> characters = processedString.ToCharArray().ToList();
@@ -300,8 +372,8 @@ namespace SoulEngine.Objects.Components
                     //Get the space left on the current line.
                     float spaceOnLine = Width - stringWidth(lineString);
                     //Find the location of the next space.
-                    int nextSpace = processedString.IndexOf(' ', i + 1) - i;
-                    //Check if the next location of the next space is not too far away.
+                    int nextSpace = Math.Min(processedString.IndexOf(' ', i + 1) - i, processedString.IndexOf('\n', i + 1) - i);
+                    //Check if there is actually a next space.
                     if (nextSpace > 0)
                     {
                         //Get the text to the next space.
@@ -339,8 +411,6 @@ namespace SoulEngine.Objects.Components
                     continue;
                 }
             }
-
-            return textLines;
         }
         /// <summary>
         /// Returns the width of a string.
@@ -354,8 +424,11 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Calculates the style offsets for the selected text style.
         /// </summary>
-        private void TextStyleCalculate(float Width)
+        private void TextStyleCalculate()
         {
+            //Check if there is any text to process.
+            if (processedString == null || processedString == "") return;
+
             //Clears offsets for the last frame.
             ts_spacingWord = new List<int>();
             ts_spacingTab = new List<int>();
@@ -617,7 +690,7 @@ namespace SoulEngine.Objects.Components
                 {
                     if (capturedData[i].Information == "/")
                     {
-                        if(depth == 0)
+                        if (depth == 0)
                         {
                             endTag = capturedData[i];
                             break;
@@ -625,18 +698,18 @@ namespace SoulEngine.Objects.Components
                         else
                         {
                             depth--;
-                        }                       
-                    }     
+                        }
+                    }
                     else
                     {
                         depth++;
-                    }              
+                    }
                 }
 
                 //Check if any is found.
                 int endLocation = -1;
                 bool empty = false;
-                if(endTag != null)
+                if (endTag != null)
                 {
                     //Delete the ending tag the captured data.
                     endTag.Skip = true;

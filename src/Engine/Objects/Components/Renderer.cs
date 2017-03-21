@@ -18,7 +18,7 @@ namespace SoulEngine.Objects.Components
     /// </summary>
     public class Renderer : Component
     {
-        #region "Variables"
+        #region "Declarations"
         //Main variables.
         #region "Primary"
         #endregion
@@ -44,33 +44,55 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Draw()
         {
+            if(attachedObject.HasComponent<ActiveTexture>())
+            {
+                DrawComponent(attachedObject.Component<ActiveTexture>().Texture, 
+                    attachedObject.Component<ActiveTexture>().Tint, 
+                    attachedObject.Component<ActiveTexture>().Opacity);
+            }
+
+            if (attachedObject.HasComponent<ActiveText>())
+            {
+                DrawComponent(attachedObject.Component<ActiveText>().Texture, 
+                    attachedObject.Component<ActiveText>().Color, 1f, attachedObject.Component<ActiveText>().AutoSize);
+            }
+        }
+
+        public override void Update()
+        {
+
+        }
+        #endregion
+
+        #region "Internal Functions"
+        private void DrawComponent(Texture2D Texture, Color Tint, float Opacity, bool OverwriteTransform = false)
+        {
+            //Check if empty texture, sometimes it happens.
+            if (Texture == null) return;
+
             //Define drawing properties.
-            Texture2D DrawImage = AssetManager.MissingTexture;
-            Color DrawTint = Color.White;
-            float DrawOpacity = 1f;
+            Texture2D DrawImage = Texture;
+            Color DrawTint = Tint;
+            float DrawOpacity = Opacity;
             SpriteEffects DrawEffects = SpriteEffects.None;
-            Rectangle DrawBounds = new Rectangle(0, 0, 50, 50);
+            //In case there is no transform attached we will take the texture's size and render it in its fullest.
+            Rectangle DrawBounds = new Rectangle(0, 0, Texture.Width, Texture.Height);
             float Rotation = 0f;
 
             //Check for components to overwrite default drawing properties.
             if (attachedObject.HasComponent<ActiveTexture>())
             {
-                DrawImage = attachedObject.Component<ActiveTexture>().Texture;
-                DrawTint = attachedObject.Component<ActiveTexture>().Tint;
-                DrawOpacity = attachedObject.Component<ActiveTexture>().Opacity;
                 DrawEffects = attachedObject.Component<ActiveTexture>().MirrorEffects;
-                //In case there is no transform attached, we will take the texture's bounds.
-                DrawBounds = attachedObject.Component<ActiveTexture>().Texture.Bounds;
             }
             if (attachedObject.HasComponent<Transform>())
             {
-                DrawBounds = attachedObject.Component<Transform>().Bounds;
+                if(!OverwriteTransform) DrawBounds = attachedObject.Component<Transform>().Bounds;
                 Rotation = attachedObject.Component<Transform>().Rotation;
             }
 
             //Correct bounds to center origin.
-            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2), 
-                (DrawBounds.Y + DrawBounds.Height / 2)), 
+            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
+                (DrawBounds.Y + DrawBounds.Height / 2)),
                 new Point(DrawBounds.Width, DrawBounds.Height));
 
             //Draw the object through XNA's SpriteBatch.
@@ -83,19 +105,10 @@ namespace SoulEngine.Objects.Components
                 DrawEffects,
                 1.0f);
         }
-
-        public override void Update()
-        {
-
-        }
-        #endregion
-
-        #region "Internal Functions"
-
         #endregion
 
         #region "Component Interface"
-        public override void DrawFree(){}
+        public override void Compose(){}
         #endregion
     }
 }

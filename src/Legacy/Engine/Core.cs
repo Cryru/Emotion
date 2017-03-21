@@ -108,14 +108,6 @@ namespace SoulEngine.Legacy
         public static Objects.Event onDraw = new Objects.Event();
         public static Objects.Event onClosing = new Objects.Event();
 
-        public static int lastFrames
-        {
-            get
-            {
-                return Context.Core.lastFrames;
-            }
-        }
-
         public static void Setup()
         {
             ESystem.Add(new Listen(EType.GAME_TICKSTART, Update));
@@ -163,7 +155,7 @@ namespace SoulEngine.Legacy
 
             if (Settings.displayFPS)
             {
-                if (Settings.fpsUpdate) fpsText.Text = "FPS: " + lastFrames;
+                if (Settings.fpsUpdate) fpsText.Text = "FPS: " + Debugging.DebugScene.FPS;
                 fpsText.Location = new Vector2(Settings.game_width - fpsText.Width, 0);
             }
 
@@ -196,8 +188,6 @@ namespace SoulEngine.Legacy
                 debugText.Draw();
             }
             ink.End();
-
-            Context.Core.FPSCounterUpdate(gameTime);
         }
 
         public static void FullScreenKeyToggle()

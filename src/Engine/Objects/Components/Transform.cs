@@ -18,7 +18,7 @@ namespace SoulEngine.Objects.Components
     /// </summary>
     public class Transform : Component
     {
-        #region "Variables"
+        #region "Declarations"
         //The position of the object within the scene.
         #region "Positional"
         /// <summary>
@@ -301,7 +301,7 @@ namespace SoulEngine.Objects.Components
         //Other
         #region "Component Interface"
         public override void Draw() { }
-        public override void DrawFree() { }
+        public override void Compose() { }
         #endregion
     }
 }
