@@ -63,7 +63,7 @@ namespace SoulEngine.Events
         /// <summary>
         /// Triggered when the size of the window changes.
         /// </summary>
-        public const string WINDOW_SIZECHANGED = "GAME_SIZECHANGED";
+        public const string WINDOW_SIZECHANGED = "WINDOW_SIZECHANGED";
         /// <summary>
         /// Triggered when the window's display mode changes.
         /// </summary>

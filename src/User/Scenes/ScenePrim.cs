@@ -24,7 +24,7 @@ namespace SoulEngine
         public override void Start()
         {
             // throw new NotImplementedException();
-            Console.WriteLine("SCENE PRIM LOADED");
+            Debugging.Logger.Add("Primary scene loaded");
 
             //GameObject b = new GameObject();
             //b.AddComponent(new ActiveTexture(AssetManager.BlankTexture, Enums.TextureMode.Stretch, new Rectangle(0,0,50,50)));
@@ -36,17 +36,22 @@ namespace SoulEngine
             //AddObject("", b);
 
             //GameObject a = new GameObject();
-            //a.AddComponent(new Objects.Components.ActiveTexture());
+            //a.AddComponent(new SoulEngine.Objects.Components.ActiveTexture());
+            //a.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
+            //a.Component<ActiveTexture>().Tint = Color.Black;
+            //a.AddComponent(new SoulEngine.Objects.Components.Transform());
+            //a.Component<Transform>().Width = 20;
+            //a.Component<Transform>().Height = 200;
             //a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
             //{
             //    Text =
-            //"</></></><bracket>Hello sir! This is the first line.<bracket></><bracket>\nAnd</> this <bracket>is <bracket>t</>he second<bracket></> line!\nWhile</> this is the third :D!</><bracket>\n</><bracket></>"
+            //"Te<color=#b738ed>fdsf\n\nsdfsdf</>a<wrap=@>bst</>"
             //});
             ////a.AddComponent(new Objects.Components.Transform() { X = 0, Y = 0, Width = 200, Height = 200 });
 
             //a.AddComponent(new Objects.Components.Renderer());
             //AddObject("", a);
-            
+
             //Legacy.Core.Setup();
         }
 

@@ -14,7 +14,7 @@ namespace SoulEngine
     /// </summary>
     public static class Starter
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// Define a mutex to check for multiple instances.
         /// </summary>

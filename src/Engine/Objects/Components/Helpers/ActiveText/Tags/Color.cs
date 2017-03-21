@@ -6,26 +6,25 @@ using System.Threading.Tasks;
 
 namespace SoulEngine.Objects.Components.Helpers.Tags
 {
-    class Bracket : Tag
+    class Color : Tag
     {
-        public Bracket(string Data, int Start, int End, bool Empty = false) : base(Data, Start, End, Empty)
+        public Color(string Data, int Start, int End, bool Empty = false) : base(Data, Start, End, Empty)
         {
         }
 
         public override CharData onDuration(CharData c)
         {
+            c.Color = new Microsoft.Xna.Framework.Color().fromString(Data);
             return c;
         }
 
         public override CharData onEnd(CharData c)
         {
-            c.Content += Data;
             return c;
         }
 
         public override CharData onStart(CharData c)
         {
-            c.Content = Data + c.Content;
             return c;
         }
     }

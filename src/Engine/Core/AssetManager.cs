@@ -59,8 +59,7 @@ namespace SoulEngine
             }
             catch (Exception)
             {
-                //ERROR HANDLING - COULD NOT LOAD GLOBAL ASSETS
-                throw;
+                throw new Exception("ERROR HANDLING - COULD NOT LOAD GLOBAL ASSETS");
             }
 
            //Load text object tags.

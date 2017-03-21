@@ -15,7 +15,7 @@ namespace SoulEngine.Objects.Components.Helpers
     /// </summary>
     public class TagData
     {
-        #region "Variables"
+        #region "Declarations"
         /// <summary>
         /// The tag's information.
         /// </summary>

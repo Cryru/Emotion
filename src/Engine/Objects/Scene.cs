@@ -61,14 +61,19 @@ namespace SoulEngine.Objects
             }
         }
         /// <summary>
+        /// Composes component textures on linked objects.
+        /// </summary>
+        public void Compose()
+        {
+            //Run the free draw function outside an ink binding.
+            Objects.Select(x => x.Value).ToList().ForEach(x => x.Compose());
+        }
+        /// <summary>
         /// The core's hook for drawing.
         /// </summary>
         public void DrawHook()
         {
-            //Run the free draw function outside an ink binding.
-            Objects.Select(x => x.Value).ToList().ForEach(x => x.DrawFree());
-
-            //Run the draw function.
+            //Run the draw function on all objects with respect to their selected layer.
             Context.ink.Start(DrawChannel.World);
             Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.World).ToList().ForEach(x => x.Draw());
             Context.ink.End();
