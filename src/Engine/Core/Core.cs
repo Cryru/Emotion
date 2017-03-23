@@ -110,11 +110,17 @@ namespace SoulEngine
             //Trigger tick start event.
             ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
 
+            //Update input module.
+            Input.UpdateInput();
+
             //Update the current scene.
             Scene.UpdateHook();
 
             //Trigger tick end event.
             ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
+
+            //Update input module.
+            Input.UpdateInput_End();
         }
         /// <summary>
         /// Is executed every frame.

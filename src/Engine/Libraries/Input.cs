@@ -6,19 +6,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Events;
 
-namespace SoulEngine.Legacy
+namespace SoulEngine
 {
     //////////////////////////////////////////////////////////////////////////////
-    // Soul Engine - A game engine based on the MonoGame Framework.             //
-    //                                                                          //
-    // Copyright © 2016 Vlad Abadzhiev                                          //
-    //                                                                          //
-    // Records and allows access to user input.                                 //
-    //                                                                          //
-    // Refer to the documentation for any questions, or                         //
-    // to TheCryru@gmail.com                                                    //
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Location, Size, and Rotation.
+    /// </summary>
     class Input
     {
         #region "Declarations"
@@ -27,7 +25,7 @@ namespace SoulEngine.Legacy
         public static KeyboardState lastFrameKeyState; //The keyboard state of the last frame. Used for button events.
         public static MouseState currentFrameMouseState; //The keyboard state of the current frame. Used for mouse events.
         public static MouseState lastFrameMouseState; //The keyboard state of the last frame. Used for mouse events.
-#if ANDROID //Touch is Android only.
+#if ANDROID
         public static TouchCollection currentTouchState; //The touch screen state of the current frame.
 #endif
         #endregion
@@ -38,8 +36,27 @@ namespace SoulEngine.Legacy
             currentFrameKeyState = Keyboard.GetState();
             currentFrameMouseState = Mouse.GetState();
 
+            List<Keys> keysDownNow = currentFrameKeyState.GetPressedKeys().ToList();
+            List<Keys> keysDownBefore = lastFrameKeyState.GetPressedKeys().ToList();
+
+            for (int i = 0; i < keysDownNow.Count; i++)
+            {
+                if(keysDownBefore.IndexOf(keysDownNow[i]) == -1)
+                {
+                    ESystem.Add(new Event(EType.KEY_PRESSED, keysDownNow[i]));
+                }
+            }
+
+            for (int i = 0; i < keysDownBefore.Count; i++)
+            {
+                if (keysDownNow.IndexOf(keysDownBefore[i]) == -1)
+                {
+                    ESystem.Add(new Event(EType.KEY_UNPRESSED, keysDownBefore[i]));
+                }
+            }
+
             //Check if closing.
-            //if (isKeyDown(Keys.Escape)) Core.host.Exit();
+            if (isKeyDown(Keys.Escape)) Context.Core.Exit();
         }
         public static void UpdateInput_End()
         {
@@ -158,8 +175,7 @@ namespace SoulEngine.Legacy
         /// <returns></returns>
         public static Vector2 getMousePos()
         {
-            //return Core.maincam.ScreenToWorld(currentFrameMouseState.Position.ToVector2());
-            return new Vector2();
+            return currentFrameMouseState.Position.ToVector2();
         }
         #region "Left Button"
         /// <summary>

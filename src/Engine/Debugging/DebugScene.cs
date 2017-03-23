@@ -44,7 +44,7 @@ namespace SoulEngine.Debugging
             logDebug.Component<ActiveTexture>().Tint = Color.Black;
             logDebug.Component<ActiveTexture>().Opacity = 0.3f;
 
-            logDebug.Component<ActiveText>().AutoSize = true;
+            logDebug.Component<ActiveText>().AutoSizeHeight = true;
             logDebug.Component<ActiveText>().Style = Enums.TextStyle.Left;
 
             ESystem.Add(new Listen(EType.GAME_TICKEND, Update));
@@ -52,7 +52,10 @@ namespace SoulEngine.Debugging
             ESystem.Add(new Listen(EType.GAME_FRAMEEND, DrawHook));
 
             entriesDisplayed.Add("SoulEngine " + Info.Version);
-            entriesDisplayed.Add("<color=#e2a712>FPS: 0</>");
+            entriesDisplayed.Add("");
+            entriesDisplayed.Add("");
+            entriesDisplayed.Add("");
+            entriesDisplayed.Add("------------EVENT LOG------------");
         }
         #region "Hooks"
         /// <summary>
@@ -61,9 +64,12 @@ namespace SoulEngine.Debugging
         private static void Update(Event e)
         {
             FPSCounterUpdate((GameTime) e.Data);
-            //entriesDisplayed[1] = "<color=#e2a712>FPS: " + FPS + "</>";
+            entriesDisplayed[1] = "<color=#e2a712>FPS: " + FPS + "</>";
+            entriesDisplayed[2] = "Scene: " + Context.Core.Scene.ToString();
+            entriesDisplayed[3] = "Objects: " + Context.Core.Scene.ObjectCount;
+            entriesDisplayed[3] = "a: " + logDebug.Component<ActiveText>().Width + " " + logDebug.Component<ActiveText>().Height;
 
-            logDebug.Component<Transform>().Width = logDebug.Component<ActiveText>().Width;
+            logDebug.Component<Transform>().Width = Settings.Width / 4;
             logDebug.Component<Transform>().Height = logDebug.Component<ActiveText>().Height;
 
             if (Logger.Log.Count - 1 > lastLogLine)
@@ -79,7 +85,7 @@ namespace SoulEngine.Debugging
         }
         private static void CutLogLine()
         {
-            if(entriesDisplayed.Count > 2) entriesDisplayed.RemoveAt(2);
+            if(entriesDisplayed.Count > 5) entriesDisplayed.RemoveAt(5);
         }
 
         /// <summary>

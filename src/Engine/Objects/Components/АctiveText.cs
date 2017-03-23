@@ -69,7 +69,8 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Scale the transform component (if any) according to the text's size.
         /// </summary>
-        public bool AutoSize = false;
+        public bool AutoSizeWidth = false;
+        public bool AutoSizeHeight = false;
         /// <summary>
         /// The width of the text.
         /// </summary>
@@ -77,7 +78,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (attachedObject.HasComponent<Transform>() && !AutoSize)
+                if (attachedObject.HasComponent<Transform>() && !AutoSizeWidth)
                 {
                     return attachedObject.Component<Transform>().Width;
                 }
@@ -94,7 +95,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (attachedObject.HasComponent<Transform>() && !AutoSize)
+                if (attachedObject.HasComponent<Transform>() && !AutoSizeHeight)
                 {
                     return attachedObject.Component<Transform>().Height;
                 }
@@ -305,7 +306,7 @@ namespace SoulEngine.Objects.Components
             determineBounds();
 
             //Check if auto sizing.
-            if(AutoSize) SetAutoSize();
+            SetAutoSize();
 
             //Determine word and tab spacing to display the specified style.
             TextStyleCalculate();
@@ -328,9 +329,9 @@ namespace SoulEngine.Objects.Components
                     MaxWidth = CurWidth;
                 }
             }
-            width = MaxWidth;
+            if (AutoSizeWidth) width = MaxWidth;
 
-            height = (int)Font.MeasureString(" ").Y * textLines.Count();
+            if(AutoSizeHeight) height = (int)Font.MeasureString(" ").Y * textLines.Count();
         }
         #region "Process Render Data"
         /// <summary>
@@ -343,7 +344,7 @@ namespace SoulEngine.Objects.Components
 
             //Check if auto sizing.
             float Width = this.Width;
-            if (AutoSize)
+            if (AutoSizeWidth)
             {
                 Width = int.MaxValue;
             }
@@ -595,6 +596,8 @@ namespace SoulEngine.Objects.Components
             string tagFreeText = "";
             int charactersFromPreviousTag = 0;
 
+            int pointerPos = 0;
+
             //Loop through the text looking for tag opening statements.
             for (int pointer = 0; pointer < Text.Length; pointer++)
             {
@@ -611,14 +614,14 @@ namespace SoulEngine.Objects.Components
                     //Read the discovered tag and move the point to its end so it doesn't get recorded to the tag free text.
                     pointer = FindTagEnd(pointer, out tagInfo);
                     //Record information that was captured while cleaning.
-                    tempTagData.Add(new TagData(tagInfo, tagFreeText.Length, charactersFromPreviousTag));
+                    tempTagData.Add(new TagData(tagInfo, pointerPos, charactersFromPreviousTag));
                     charactersFromPreviousTag = 0;
                     //Continue to the next character, which should be after the tag's closing character.
                     continue;
                 }
 
                 //If the current character is an escape symbol that is not being escaped itself do not write it, otherwise write it.
-                if (!(curChar == '\\' && prevChar != '\\')) { tagFreeText += curChar; charactersFromPreviousTag++; }
+                if (!(curChar == '\\' && prevChar != '\\')) { tagFreeText += curChar; if (curChar != '\n') { charactersFromPreviousTag++; pointerPos++; } }
             }
 
             return tagFreeText;

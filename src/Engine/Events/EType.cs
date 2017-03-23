@@ -69,5 +69,15 @@ namespace SoulEngine.Events
         /// </summary>
         public const string WINDOW_DISPLAYMODE = "WINDOW_DISPLAYMODE";
         #endregion
+        #region "INPUT"
+        /// <summary>
+        /// Triggered when a key is pressed.
+        /// </summary>
+        public const string KEY_PRESSED = "KEY_PRESSED";
+        /// <summary>
+        /// Triggered when a key is let go.
+        /// </summary>
+        public const string KEY_UNPRESSED = "KEY_UNPRESSED";
+        #endregion
     }
 }
