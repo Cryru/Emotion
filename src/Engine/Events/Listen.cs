@@ -99,8 +99,6 @@ namespace SoulEngine.Events
             if (_timesTriggered >= TriggerCount && TriggerCount != -1)
                 return;
 
-            if(Debugging.DebugScene.blacklistedEvents.IndexOf(Event.Type) == -1) Debugging.Logger.Add("Event triggered: " + Event.Type);
-
             //Check if waiting for a specific sender.
             if((TargetedSender != null && TargetedSender == Event.Sender) || (TargetedSender == null && Type == Event.Type))
             {

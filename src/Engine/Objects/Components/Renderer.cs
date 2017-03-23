@@ -53,8 +53,13 @@ namespace SoulEngine.Objects.Components
 
             if (attachedObject.HasComponent<ActiveText>())
             {
+                Rectangle temp = attachedObject.Component<Transform>().Bounds;
+
+                if (attachedObject.Component<ActiveText>().AutoSizeWidth) temp.Width = attachedObject.Component<ActiveText>().Texture.Width;
+                if (attachedObject.Component<ActiveText>().AutoSizeHeight) temp.Height = attachedObject.Component<ActiveText>().Texture.Height;
+
                 DrawComponent(attachedObject.Component<ActiveText>().Texture, 
-                    attachedObject.Component<ActiveText>().Color, 1f, attachedObject.Component<ActiveText>().AutoSize);
+                    attachedObject.Component<ActiveText>().Color, 1f, temp);
             }
         }
 
@@ -65,7 +70,7 @@ namespace SoulEngine.Objects.Components
         #endregion
 
         #region "Internal Functions"
-        private void DrawComponent(Texture2D Texture, Color Tint, float Opacity, bool OverwriteTransform = false)
+        private void DrawComponent(Texture2D Texture, Color Tint, float Opacity, Rectangle? Bounds = null)
         {
             //Check if empty texture, sometimes it happens.
             if (Texture == null) return;
@@ -86,7 +91,7 @@ namespace SoulEngine.Objects.Components
             }
             if (attachedObject.HasComponent<Transform>())
             {
-                if(!OverwriteTransform) DrawBounds = attachedObject.Component<Transform>().Bounds;
+                if(Bounds == null) DrawBounds = attachedObject.Component<Transform>().Bounds;
                 Rotation = attachedObject.Component<Transform>().Rotation;
             }
 

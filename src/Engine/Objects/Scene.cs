@@ -27,6 +27,16 @@ namespace SoulEngine.Objects
         /// Objects that belong to this scene.
         /// </summary>
         private Dictionary<string, GameObject> Objects;
+        /// <summary>
+        /// The number of objects attached to the scene.
+        /// </summary>
+        public int ObjectCount
+        {
+            get
+            {
+                return Objects.Count;
+            }
+        }
         #endregion
 
         /// <summary>
