@@ -38,15 +38,12 @@ namespace SoulEngine.Objects.Components.Helpers
         /// </summary>
         /// <param name="Identifier">The tag's identifier.</param>
         /// <param name="Data">The tag's metadata.</param>
-        /// <param name="Start">The character position from which the tag is considered active.</param>
-        /// <param name="End">The character position at which the tag is no longer considered active.</param>
-        /// <param name="Empty">Whether the tag is immediately closed after opened with no chars between.</param>
         /// <returns></returns>
-        public static Tag Build(string Identifier, string Data, int Start, int End, bool Empty = false)
+        public static Tag Build(string Identifier, string Data)
         {
             //Check if the dictionary has an entry for the provided identifier.
             if (TagDict.ContainsKey(Identifier))
-                return (Tag)Activator.CreateInstance(TagDict[Identifier], new object[] { Data, Start, End, Empty });
+                return (Tag)Activator.CreateInstance(TagDict[Identifier], new object[] { Data });
             else
                 return null;
         }

@@ -8,23 +8,13 @@ namespace SoulEngine.Objects.Components.Helpers.Tags
 {
     class Color : Tag
     {
-        public Color(string Data, int Start, int End, bool Empty = false) : base(Data, Start, End, Empty)
+        public Color(string Data) : base(Data)
         {
         }
 
-        public override CharData onDuration(CharData c)
+        public override CharData Effect(CharData c)
         {
             c.Color = new Microsoft.Xna.Framework.Color().fromString(Data);
-            return c;
-        }
-
-        public override CharData onEnd(CharData c)
-        {
-            return c;
-        }
-
-        public override CharData onStart(CharData c)
-        {
             return c;
         }
     }
