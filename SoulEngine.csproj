@@ -103,7 +103,6 @@
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\CharData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tag.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagFactory.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Color.cs" />
     <Compile Include="src\Engine\Objects\Components\Renderer.cs" />

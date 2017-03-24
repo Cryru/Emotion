@@ -17,10 +17,6 @@ namespace SoulEngine.Objects.Components.Helpers
     {
         #region "Declarations"
         /// <summary>
-        /// Whether the tag is considered active.
-        /// </summary>
-        public bool Active;
-        /// <summary>
         /// The tag's metadata.
         /// </summary>
         public string Data
@@ -31,69 +27,22 @@ namespace SoulEngine.Objects.Components.Helpers
             }
         }
         private string data;
-        /// <summary>
-        /// The character position from which the tag is considered active.
-        /// </summary>
-        public int Start
-        {
-            get
-            {
-                return start;
-            }
-        }
-        private int start;
-        /// <summary>
-        /// The character position at which the tag is no longer considered active.
-        /// </summary>
-        public int End
-        {
-            get
-            {
-                return end;
-            }
-        }
-        private int end;
-        /// <summary>
-        /// Whether the tag is immediately closed after opened with no chars between.
-        /// </summary>
-        public bool Empty
-        {
-            get
-            {
-                return empty;
-            }
-        }
-        private bool empty;
         #endregion
 
         #region "Functions"
         /// <summary>
-        /// The character data mutation that will be applied once the tag is considered active.
-        /// </summary>
-        public abstract CharData onStart(CharData c);
-        /// <summary>
         /// The character data mutation that will be applied on each character while the tag is considered active.
         /// </summary>
-        public abstract CharData onDuration(CharData c);
-        /// <summary>
-        /// The character data mutation that wll be applied on the last character of which the tag is considered active.
-        /// </summary>
-        public abstract CharData onEnd(CharData c);
+        public abstract CharData Effect(CharData c);
         #endregion
 
         /// <summary>
         /// Initializes a new tag.
         /// </summary>
         /// <param name="Data">The tag's metadata.</param>
-        /// <param name="Start">The character position from which the tag is considered active.</param>
-        /// <param name="End">The character position at which the tag is no longer considered active.</param>
-        /// <param name="Empty">Whether the tag is immediately closed after opened with no chars between.</param>
-        public Tag(string Data, int Start, int End, bool Empty = false)
+        public Tag(string Data)
         {
-            start = Start;
-            end = End;
             data = Data;
-            empty = Empty;
         }
     }
 }
