@@ -41,10 +41,13 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public Color Color = Color.White;
         /// <summary>
-        /// Scale the transform component (if any) according to the text's size.
+        /// Whether to lock the width to the Transform component's width.
         /// </summary>
-        public bool AutoSizeWidth = false;
-        public bool AutoSizeHeight = false;
+        public bool LockWidth = true;
+        /// <summary>
+        /// Whether to lock the height to the Transform component's height.
+        /// </summary>
+        public bool LockHeight = true;
         /// <summary>
         /// The width of the text.
         /// </summary>
@@ -52,13 +55,13 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (attachedObject.HasComponent<Transform>() && !AutoSizeWidth)
+                if (attachedObject.HasComponent<Transform>() && LockWidth)
                 {
                     return attachedObject.Component<Transform>().Width;
                 }
                 else
                 {
-                    return width;
+                    if (texture != null) { return texture.Width; } else return Settings.Width;
                 }
             }
         }
@@ -69,21 +72,20 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (attachedObject.HasComponent<Transform>() && !AutoSizeHeight)
+                if (attachedObject.HasComponent<Transform>() && LockHeight)
                 {
                     return attachedObject.Component<Transform>().Height;
                 }
                 else
                 {
-                    return height;
+                    if (texture != null) { return texture.Height; } else return Settings.Height;
                 }
             }
         }
         #endregion
         //Private variables.
         #region "Private"
-        private float width;
-        private float height;
+
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -196,7 +198,7 @@ namespace SoulEngine.Objects.Components
                         textBetweenCurrentCharAndNextSpace = Text.Substring(i + 1, locationOfNextSpace - i - 1);
 
                     //Check if there is no space on the line for the next word, in which case force a new line.
-                    if (spaceOnLine - stringWidth(textBetweenCurrentCharAndNextSpace) < 0)
+                    if (spaceOnLine - stringWidth(" " + textBetweenCurrentCharAndNextSpace) < 0)
                     {
                         newLine = true;
                     }

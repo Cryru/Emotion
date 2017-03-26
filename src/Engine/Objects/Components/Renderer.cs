@@ -55,17 +55,12 @@ namespace SoulEngine.Objects.Components
             {
                 Rectangle temp = attachedObject.Component<Transform>().Bounds;
 
-                if (attachedObject.Component<ActiveText>().AutoSizeWidth) temp.Width = attachedObject.Component<ActiveText>().Texture.Width;
-                if (attachedObject.Component<ActiveText>().AutoSizeHeight) temp.Height = attachedObject.Component<ActiveText>().Texture.Height;
+                if (!attachedObject.Component<ActiveText>().LockWidth) temp.Width = (int) attachedObject.Component<ActiveText>().Width;
+                if (!attachedObject.Component<ActiveText>().LockHeight) temp.Height = (int) attachedObject.Component<ActiveText>().Height;
 
                 DrawComponent(attachedObject.Component<ActiveText>().Texture, 
                     attachedObject.Component<ActiveText>().Color, 1f, temp);
             }
-        }
-
-        public override void Update()
-        {
-
         }
         #endregion
 
@@ -114,6 +109,7 @@ namespace SoulEngine.Objects.Components
 
         #region "Component Interface"
         public override void Compose(){}
+        public override void Update() {}
         #endregion
     }
 }
