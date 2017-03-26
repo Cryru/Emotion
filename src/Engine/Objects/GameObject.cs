@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using SoulEngine.Objects.Components;
 using SoulEngine.Enums;
+using System.Linq;
 
 namespace SoulEngine
 {
@@ -71,6 +72,8 @@ namespace SoulEngine
         {
             //Check if drawing.
             if (Drawing == false) return;
+
+            Components = Components.OrderBy(x => x.DrawPriority).ToList();
 
             for (int i = 0; i < Components.Count; i++)
             {
@@ -195,6 +198,29 @@ namespace SoulEngine
             return -1;
         }
         #endregion
+        #region "Other Functions"
+        /// <summary>
+        /// Returns the requested property from a component based on priority. Not case sensitive.
+        /// </summary>
+        /// <param name="Property"></param>
+        /// <param name="Default">What to return if the property is not found.</param>
+        public T GetProperty<T>(string Property, T Default)
+        {
+            switch (Property.ToLower())
+            {
+                case "x":
+                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().X, typeof(T)) : Default;
+                case "y":
+                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Y, typeof(T)) : Default;
+                case "width":
+                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Width, typeof(T)) : Default;
+                case "height":
+                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Height, typeof(T)) : Default;
+            }
+
+            return Default;
+        }
+        #endregion
 
         //Other
         #region "Disposing"
@@ -240,7 +266,6 @@ namespace SoulEngine
                 GameObject a = new GameObject();
                 a.AddComponent(new Transform());
                 a.AddComponent(new ActiveTexture());
-                a.AddComponent(new Renderer());
                 return a;
             }
         }
@@ -255,7 +280,6 @@ namespace SoulEngine
                 GameObject a = new GameObject();
                 a.AddComponent(new Transform());
                 a.AddComponent(new ActiveText());
-                a.AddComponent(new Renderer());
                 return a;
             }
         }

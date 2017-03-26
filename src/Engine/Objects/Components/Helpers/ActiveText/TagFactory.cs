@@ -28,6 +28,7 @@ namespace SoulEngine.Objects.Components.Helpers
             //Initialize and add systemtic tags.
             TagDict = new Dictionary<string, Type>();
             TagDict.Add("color", typeof(Tags.Color));
+            TagDict.Add("border", typeof(Tags.Border));
 
             //Add user tags to the dictionary.
             Usertags();

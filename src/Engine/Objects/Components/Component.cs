@@ -20,6 +20,10 @@ namespace SoulEngine.Objects.Components
         /// The object this component is attached to.
         /// </summary>
         public GameObject attachedObject;
+        /// <summary>
+        /// The priority of the drawing call of this component.
+        /// </summary>
+        public int DrawPriority = 0;
         #endregion
 
         //Main functions.
