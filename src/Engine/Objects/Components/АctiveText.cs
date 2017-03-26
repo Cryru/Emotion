@@ -251,8 +251,26 @@ namespace SoulEngine.Objects.Components
         /// <param name="offsetY">The vertical offset of the line.</param>
         private void RenderLine(List<CharData> currentLine, float offsetY)
         {
-            float offsetX = 0;
+                        float offsetX = 0;
+            string lineAsString = "";
 
+            for (int i = 0; i < currentLine.Count; i++)
+            {
+                lineAsString += currentLine[i].Content;
+            }
+
+            //Calculate style offsets.
+            switch (Style)
+            {
+                case TextStyle.Right:
+                    offsetX = Width - stringWidth(lineAsString);
+                    break;
+                default:
+                    offsetX = 0;
+                    break;
+            }
+
+            //Render the line.
             for (int i = 0; i < currentLine.Count; i++)
             {
                 Context.ink.DrawString(Font, currentLine[i].Content, new Vector2(offsetX, offsetY), currentLine[i].Color);
