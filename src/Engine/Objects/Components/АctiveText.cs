@@ -251,7 +251,9 @@ namespace SoulEngine.Objects.Components
         /// <param name="offsetY">The vertical offset of the line.</param>
         private void RenderLine(List<CharData> currentLine, float offsetY)
         {
-                        float offsetX = 0;
+            float offsetX = 0;
+            float wordSpacing = 0.1f;
+
             string lineAsString = "";
 
             for (int i = 0; i < currentLine.Count; i++)
@@ -259,11 +261,30 @@ namespace SoulEngine.Objects.Components
                 lineAsString += currentLine[i].Content;
             }
 
+            //Remove spaces at the end of lines.
+            lineAsString = lineAsString.Trim();
+
             //Calculate style offsets.
             switch (Style)
             {
                 case TextStyle.Right:
                     offsetX = Width - stringWidth(lineAsString);
+                    break;
+                case TextStyle.Center:
+                    offsetX = (Width - stringWidth(lineAsString)) / 2;
+                    break;
+                case TextStyle.Justified:
+                    float lineWidth = stringWidth(lineAsString);
+                    float a = lineAsString.Count(x => x == ' ');
+                    float b = wordSpacing * a;
+                    if(b != 0)
+                    {
+                        while (lineWidth + b < Width && wordSpacing < 10)
+                        {
+                            wordSpacing += 0.1f;
+                            b = wordSpacing * a;
+                        }
+                    }                  
                     break;
                 default:
                     offsetX = 0;
@@ -275,6 +296,8 @@ namespace SoulEngine.Objects.Components
             {
                 Context.ink.DrawString(Font, currentLine[i].Content, new Vector2(offsetX, offsetY), currentLine[i].Color);
                 offsetX += Font.MeasureString(currentLine[i].Content).X;
+                //Add word spacing if going to the next word.
+                if (currentLine[i].Content == " ") offsetX += wordSpacing;
             }
         }
 
