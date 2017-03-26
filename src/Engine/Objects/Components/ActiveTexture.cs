@@ -21,7 +21,7 @@ namespace SoulEngine.Objects.Components
     {
         #region "Declarations"
         /// <summary>
-        /// Internal XNA Texture holder.
+        /// The active texture's drawing texture.
         /// </summary>
         public Texture2D Texture
         {
@@ -44,11 +44,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public TextureMode TextureMode = 0;
         /// <summary>
-        /// Whether to rerender the texture each frame.
-        /// </summary>
-        public bool Active = true;
-        #region "Variables for the Renderer Component"
-        /// <summary>
         /// Used to mirror textures horizontally or vertically. Used by the renderer component.
         /// </summary>
         public SpriteEffects MirrorEffects = SpriteEffects.None;
@@ -60,7 +55,6 @@ namespace SoulEngine.Objects.Components
         /// Used to color the texture. Used by the renderer component.
         /// </summary>
         public Color Tint = Color.White;
-        #endregion
         #region "Private"
         private RenderTarget2D _texture;
         private Viewport _tempPortHolder;
@@ -101,8 +95,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Compose()
         {
-            if (!Active) return;
-
             //Check empty draw area.
             if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
 
@@ -142,12 +134,43 @@ namespace SoulEngine.Objects.Components
             //Stop drawing.
             Context.ink.EndRenderTarget();
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void Draw()
+        {
+            //Check if empty texture, sometimes it happens.
+            if (Texture == null) return;
+
+            //Get some drawing properties.
+            int X = attachedObject.GetProperty("X", 0);
+            int Y = attachedObject.GetProperty("Y", 0);
+            int Width = attachedObject.GetProperty("Width", Texture.Width);
+            int Height = attachedObject.GetProperty("Height", Texture.Height);
+            float Rotation = attachedObject.GetProperty("Rotation", 0f);
+
+            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
+
+            //Correct bounds to center origin.
+            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
+                (DrawBounds.Y + DrawBounds.Height / 2)),
+                new Point(DrawBounds.Width, DrawBounds.Height));
+
+            //Draw the object through XNA's SpriteBatch.
+            Context.ink.Draw(Texture,
+                DrawBounds,
+                null,
+                Tint * Opacity,
+                Rotation,
+                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
+                MirrorEffects,
+                1.0f);
+        }
         #endregion
 
         //Other
         #region "Component Interface"
         public override void Update(){}
-        public override void Draw(){}
         #endregion
     }
 }

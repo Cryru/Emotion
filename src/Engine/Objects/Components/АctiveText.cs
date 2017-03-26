@@ -41,15 +41,16 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public Color Color = Color.White;
         /// <summary>
+        /// The opacity of the text.
+        /// </summary>
+        public float Opacity = 1f;
+        #region "Bounds"
+        /// <summary>
         /// Whether to lock the width to the Transform component's width.
         /// </summary>
         public bool LockWidth = true;
         /// <summary>
-        /// Whether to lock the height to the Transform component's height.
-        /// </summary>
-        public bool LockHeight = true;
-        /// <summary>
-        /// The width of the text.
+        /// The width of the text, based on the transform component's width if locked, and the screen size if not.
         /// </summary>
         public float Width
         {
@@ -68,24 +69,11 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// The height of the text.
         /// </summary>
-        public float Height
-        {
-            get
-            {
-                if (attachedObject.HasComponent<Transform>() && LockHeight)
-                {
-                    return attachedObject.Component<Transform>().Height;
-                }
-                else
-                {
-                    if (texture != null) { return texture.Height; } else return Settings.Height;
-                }
-            }
-        }
+        public int Height = 0;
+        #endregion
         #endregion
         //Private variables.
         #region "Private"
-
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -111,6 +99,7 @@ namespace SoulEngine.Objects.Components
             Text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
+            DrawPriority = 1;
         }
         /// <summary>
         /// 
@@ -120,6 +109,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
+            DrawPriority = 1;
         }
         /// <summary>
         /// 
@@ -129,6 +119,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
+            DrawPriority = 1;
         }
         /// <summary>
         /// 
@@ -138,11 +129,15 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             this.Font = Font;
             this.Style = Style;
+            DrawPriority = 1;
         }
         #endregion
 
         //Main functions.
         #region "Functions"
+        /// <summary>
+        /// Composes the text texture.
+        /// </summary>
         public override void Compose()
         {
             //Start composing on the render target.
@@ -165,7 +160,7 @@ namespace SoulEngine.Objects.Components
             for (int i = 0; i < Text.Length; i++)
             {
                 //Get the current character.
-                CharData current = new CharData(Text[i].ToString(), Color);
+                CharData current = new CharData(Text[i].ToString(), Color, offsetX, offsetY, Font);
 
                 //Check if opening a tag.
                 if (current.Content == "<")
@@ -188,15 +183,22 @@ namespace SoulEngine.Objects.Components
                 bool newLine = false;
 
                 //If the current character is space and it isn't the last character...
-                if(current.Content == " " && i != Text.Length - 1)
+                if (current.Content == " " && i != Text.Length - 1)
                 {
                     //Get the text between this space and the next.
                     string textBetweenCurrentCharAndNextSpace = "";
                     int locationOfNextSpace = Text.IndexOf(' ', i + 1);
-                    if(locationOfNextSpace != -1)
+                    if (locationOfNextSpace != -1)
                         textBetweenCurrentCharAndNextSpace = Text.Substring(i + 1, locationOfNextSpace - i - 1);
                     else
                         textBetweenCurrentCharAndNextSpace = Text.Substring(i + 1);
+
+                    //Check if manual new line symbol is present between this and the next space.
+                    if(textBetweenCurrentCharAndNextSpace.IndexOf('\n') != -1)
+                    {
+                        textBetweenCurrentCharAndNextSpace = textBetweenCurrentCharAndNextSpace.Substring(0, textBetweenCurrentCharAndNextSpace.IndexOf('\n'));
+                    }
+
 
                     //Check if there is no space on the line for the next word, in which case force a new line.
                     if (spaceOnLine - stringWidth(" " + textBetweenCurrentCharAndNextSpace) < 0)
@@ -206,10 +208,19 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //If the character is not a space and there is not enough space on the next line or it's a new line character, set offsets to new line.
-                if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0) || current.Content == "\n")
+                if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0))
                 {
+                    //NEW LINE
                     offsetX = 0;
-                    RenderLine(currentLine, offsetY);
+                    RenderLine(currentLine, offsetY, spaceOnLine);
+                    currentLine.Clear();
+                    offsetY += Font.MeasureString(" ").Y;
+                }
+                else if (current.Content == "\n")
+                {
+                    //NEW LINE
+                    offsetX = 0;
+                    RenderLine(currentLine, offsetY, spaceOnLine, true);
                     currentLine.Clear();
                     offsetY += Font.MeasureString(" ").Y;
                 }
@@ -218,10 +229,11 @@ namespace SoulEngine.Objects.Components
                 currentLine.Add(current);
 
                 //Update the offset.
-                if(newLine)
+                if (newLine)
                 {
+                    //NEW LINE
                     offsetX = 0;
-                    RenderLine(currentLine, offsetY);
+                    RenderLine(currentLine, offsetY, spaceOnLine);
                     currentLine.Clear();
                     offsetY += Font.MeasureString(" ").Y;
                 }
@@ -235,21 +247,76 @@ namespace SoulEngine.Objects.Components
             }
 
             //Check if any characters are left to be rendered.
-            if(currentLine.Count > 0)
+            if (currentLine.Count > 0)
             {
-                RenderLine(currentLine, offsetY);
+                RenderLine(currentLine, offsetY, spaceOnLine);
             }
 
             //Stop composing.
             Context.ink.EndRenderTarget();
-        }
 
+
+            //Set bounds cache.
+            Height = (int) (offsetY + Font.MeasureString(" ").Y);
+        }
+        /// <summary>
+        /// Draws the text texture that was composed based on cached data.
+        /// </summary>
+        public override void Draw()
+        {
+            //Check if empty texture, sometimes it happens.
+            if (Texture == null) return;
+
+            //Get some drawing properties.
+            int X = attachedObject.GetProperty("X", 0);
+            int Y = attachedObject.GetProperty("Y", 0);
+            SpriteEffects MirrorEffects = attachedObject.GetProperty("MirrorEffects", SpriteEffects.None);
+            int Width = attachedObject.GetProperty("Width", Texture.Width);
+            int Height = attachedObject.GetProperty("Height", Texture.Height);
+            float Rotation = attachedObject.GetProperty("Rotation", 0f);
+
+            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
+
+            //Correct bounds to center origin.
+            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
+                (DrawBounds.Y + DrawBounds.Height / 2)),
+                new Point(DrawBounds.Width, DrawBounds.Height));
+
+            //Draw the object through XNA's SpriteBatch.
+            Context.ink.Draw(Texture,
+                DrawBounds,
+                null,
+                Color * Opacity,
+                Rotation,
+                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
+                MirrorEffects,
+                1.0f);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void Update()
+        {
+
+        }
+        #endregion
+
+        #region "Internal Functions"
+        /// <summary>
+        /// Returns the width of a string.
+        /// </summary>
+        /// <param name="line">The string to measure.</param>
+        /// <returns>The width of the input string.</returns>
+        private int stringWidth(string text)
+        {
+            return (int) Math.Ceiling(Font.MeasureString(text).X);
+        }
         /// <summary>
         /// Render the provided character data as a line.
         /// </summary>
         /// <param name="currentLine">The current line as a list of character data.</param>
         /// <param name="offsetY">The vertical offset of the line.</param>
-        private void RenderLine(List<CharData> currentLine, float offsetY)
+        private void RenderLine(List<CharData> currentLine, float offsetY, float spaceOnLine, bool manualNewLine = false)
         {
             float offsetX = 0;
             float wordSpacing = 0.1f;
@@ -261,30 +328,31 @@ namespace SoulEngine.Objects.Components
                 lineAsString += currentLine[i].Content;
             }
 
-            //Remove spaces at the end of lines.
-            lineAsString = lineAsString.Trim();
-
             //Calculate style offsets.
             switch (Style)
             {
                 case TextStyle.Right:
-                    offsetX = Width - stringWidth(lineAsString);
+                    offsetX = spaceOnLine;
                     break;
                 case TextStyle.Center:
-                    offsetX = (Width - stringWidth(lineAsString)) / 2;
+                    offsetX = spaceOnLine / 2;
                     break;
                 case TextStyle.Justified:
-                    float lineWidth = stringWidth(lineAsString);
-                    float a = lineAsString.Count(x => x == ' ');
-                    float b = wordSpacing * a;
-                    if(b != 0)
+                    //If manually going to a new line then don't apply justification.
+                    if(!manualNewLine)
                     {
-                        while (lineWidth + b < Width && wordSpacing < 10)
+                        float lineWidth = Width - spaceOnLine;
+                        float a = lineAsString.Count(x => x == ' ');
+                        float b = wordSpacing * a;
+                        if (b != 0)
                         {
-                            wordSpacing += 0.1f;
-                            b = wordSpacing * a;
+                            while (lineWidth + b < Width && wordSpacing < 5)
+                            {
+                                wordSpacing += 0.1f;
+                                b = wordSpacing * a;
+                            }
                         }
-                    }                  
+                    }
                     break;
                 default:
                     offsetX = 0;
@@ -338,31 +406,13 @@ namespace SoulEngine.Objects.Components
             string data = TagInformation.Contains("=") ? TagInformation.Split('=')[1] : "";
 
             //Check if ending tag, if yes remove the last tag.
-            if(identifier == "/")
-            { 
-                if(TagStack.Count > 0) TagStack.RemoveAt(TagStack.Count - 1);
+            if (identifier == "/")
+            {
+                if (TagStack.Count > 0) TagStack.RemoveAt(TagStack.Count - 1);
             }
             else
-                 TagStack.Add(TagFactory.Build(identifier, data));        
+                TagStack.Add(TagFactory.Build(identifier, data));
         }
-        #endregion
-
-        #region "Internal Functions"
-        /// <summary>
-        /// Returns the width of a string.
-        /// </summary>
-        /// <param name="line">The string to measure.</param>
-        /// <returns>The width of the input string.</returns>
-        private float stringWidth(string text)
-        {
-            return Font.MeasureString(text).X;
-        }
-        #endregion
-
-        //Other
-        #region "Component Interface"
-        public override void Draw() { }
-        public override void Update() { }
         #endregion
     }
 }
