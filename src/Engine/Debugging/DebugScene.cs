@@ -45,7 +45,6 @@ namespace SoulEngine.Debugging
             logDebug.Component<ActiveTexture>().Opacity = 0.3f;
 
             logDebug.Component<ActiveText>().LockHeight = false;
-            logDebug.Component<ActiveText>().Style = Enums.TextStyle.Left;
 
             ESystem.Add(new Listen(EType.GAME_TICKEND, Update));
             ESystem.Add(new Listen(EType.GAME_FRAMESTART, Compose));
@@ -79,7 +78,7 @@ namespace SoulEngine.Debugging
                 ESystem.Add(new Listen(EType.TICKER_DONE, CutLogLine, new Ticker(1000, 1, true)));
             }
 
-            logDebug.Component<ActiveText>().Text = "Lorem Ipsum is simply dummy text 0f the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";//string.Join("\n", entriesDisplayed);
+            logDebug.Component<ActiveText>().Text = string.Join("\n", entriesDisplayed);
             
             logDebug.Update();
         }
