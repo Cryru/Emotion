@@ -155,8 +155,8 @@ namespace SoulEngine.Objects.Components
             //The space left on the current line.
             float spaceOnLine = Width - offsetX;
 
-            //The character data that is modified by effects.
-            CharData current = new CharData(Color);
+            //The current line.
+            List<CharData> currentLine = new List<CharData>();
 
             //The tags in effect.
             List<Tag> tagStack = new List<Tag>();
@@ -164,11 +164,11 @@ namespace SoulEngine.Objects.Components
             //Read through the text.
             for (int i = 0; i < Text.Length; i++)
             {
-                //Get the current and previous character.
-                string curChar = Text[i].ToString();
+                //Get the current character.
+                CharData current = new CharData(Text[i].ToString(), Color);
 
                 //Check if opening a tag.
-                if (curChar == "<")
+                if (current.Content == "<")
                 {
                     //Read the tag info.
                     string tagInfo;
@@ -179,7 +179,6 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //Apply effects.
-                current.Color = Color;
                 for (int e = 0; e < tagStack.Count; e++)
                 {
                     tagStack[e].Effect(current);
@@ -189,13 +188,15 @@ namespace SoulEngine.Objects.Components
                 bool newLine = false;
 
                 //If the current character is space and it isn't the last character...
-                if(curChar == " " && i != Text.Length - 1)
+                if(current.Content == " " && i != Text.Length - 1)
                 {
                     //Get the text between this space and the next.
                     string textBetweenCurrentCharAndNextSpace = "";
                     int locationOfNextSpace = Text.IndexOf(' ', i + 1);
                     if(locationOfNextSpace != -1)
                         textBetweenCurrentCharAndNextSpace = Text.Substring(i + 1, locationOfNextSpace - i - 1);
+                    else
+                        textBetweenCurrentCharAndNextSpace = Text.Substring(i + 1);
 
                     //Check if there is no space on the line for the next word, in which case force a new line.
                     if (spaceOnLine - stringWidth(" " + textBetweenCurrentCharAndNextSpace) < 0)
@@ -205,33 +206,58 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //If the character is not a space and there is not enough space on the next line or it's a new line character, set offsets to new line.
-                if ((curChar != " " && spaceOnLine - stringWidth(curChar) <= 0) || curChar == "\n")
+                if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0) || current.Content == "\n")
                 {
                     offsetX = 0;
+                    RenderLine(currentLine, offsetY);
+                    currentLine.Clear();
                     offsetY += Font.MeasureString(" ").Y;
                 }
 
-                
-                //Render character.
-                Context.ink.DrawString(Font, curChar, new Vector2(offsetX, offsetY), current.Color);
+                //Add the character to the current line.
+                currentLine.Add(current);
 
                 //Update the offset.
                 if(newLine)
                 {
                     offsetX = 0;
+                    RenderLine(currentLine, offsetY);
+                    currentLine.Clear();
                     offsetY += Font.MeasureString(" ").Y;
                 }
                 else
                 {
-                    offsetX += Font.MeasureString(curChar).X;
+                    offsetX += Font.MeasureString(current.Content).X;
                 }
 
                 //Update the space on line variable.
                 spaceOnLine = Width - offsetX;
             }
 
+            //Check if any characters are left to be rendered.
+            if(currentLine.Count > 0)
+            {
+                RenderLine(currentLine, offsetY);
+            }
+
             //Stop composing.
             Context.ink.EndRenderTarget();
+        }
+
+        /// <summary>
+        /// Render the provided character data as a line.
+        /// </summary>
+        /// <param name="currentLine">The current line as a list of character data.</param>
+        /// <param name="offsetY">The vertical offset of the line.</param>
+        private void RenderLine(List<CharData> currentLine, float offsetY)
+        {
+            float offsetX = 0;
+
+            for (int i = 0; i < currentLine.Count; i++)
+            {
+                Context.ink.DrawString(Font, currentLine[i].Content, new Vector2(offsetX, offsetY), currentLine[i].Color);
+                offsetX += Font.MeasureString(currentLine[i].Content).X;
+            }
         }
 
         /// <summary>

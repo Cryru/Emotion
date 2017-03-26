@@ -44,7 +44,7 @@ namespace SoulEngine.Debugging
             logDebug.Component<ActiveTexture>().Tint = Color.Black;
             logDebug.Component<ActiveTexture>().Opacity = 0.3f;
 
-            //logDebug.Component<ActiveText>().AutoSizeHeight = true;
+            logDebug.Component<ActiveText>().LockHeight = false;
             logDebug.Component<ActiveText>().Style = Enums.TextStyle.Left;
 
             ESystem.Add(new Listen(EType.GAME_TICKEND, Update));
