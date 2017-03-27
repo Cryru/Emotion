@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 
 namespace SoulEngine.Objects.Components.Helpers
 {
+    //////////////////////////////////////////////////////////////////////////////
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
+    //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Render data about a single character.
+    /// </summary>
     public class CharData
     {
         public Color Color;

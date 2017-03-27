@@ -40,6 +40,7 @@ namespace SoulEngine.Debugging
         public static void Add(string Message)
         {
             if(Enabled) log.Add(Message);
+            Console.WriteLine(Message);
         }
     }
 }

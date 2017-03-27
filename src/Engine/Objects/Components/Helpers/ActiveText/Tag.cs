@@ -11,7 +11,7 @@ namespace SoulEngine.Objects.Components.Helpers
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// 
+    /// An active text markup tag.
     /// </summary>
     public abstract class Tag
     {

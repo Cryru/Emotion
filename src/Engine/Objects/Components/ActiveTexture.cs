@@ -27,6 +27,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
+                if (TextureMode == TextureMode.Stretch) return _xnaTexture;
                 if (_texture == null) return AssetManager.MissingTexture;
                 return _texture as Texture2D;
             }
@@ -95,6 +96,8 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Compose()
         {
+            if (TextureMode == TextureMode.Stretch) return;
+
             //Check empty draw area.
             if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
 
@@ -111,10 +114,6 @@ namespace SoulEngine.Objects.Components
             //Draw the texture depending on how we are stretching.
             switch (TextureMode)
             {
-                case TextureMode.Stretch:
-                    Context.ink.Draw(_xnaTexture, new Rectangle(0, 0, Bounds.Width, Bounds.Height), DrawArea, Color.White);
-                    break;
-
                 case TextureMode.Tile:
                     //Calculate the limit of the texture tile, we go higher as the rendertarget will not allow out of bounds drawing anyway.
                     int xLimit = (int) Math.Ceiling((double) Bounds.Width / _xnaTexture.Width);
