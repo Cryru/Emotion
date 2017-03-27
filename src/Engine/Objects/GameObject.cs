@@ -216,6 +216,10 @@ namespace SoulEngine
                     return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Width, typeof(T)) : Default;
                 case "height":
                     return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Height, typeof(T)) : Default;
+                case "rotation":
+                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Rotation, typeof(T)) : Default;
+                case "mirroreffects":
+                    return HasComponent<ActiveTexture>() ? (T)Convert.ChangeType(Component<ActiveTexture>().MirrorEffects, typeof(T)) : Default;
             }
 
             return Default;

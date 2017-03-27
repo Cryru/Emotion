@@ -5,6 +5,7 @@ using SoulEngine.Enums;
 using System;
 using System.Linq;
 using System.Globalization;
+using System.IO;
 
 namespace SoulEngine
 {
@@ -67,6 +68,9 @@ namespace SoulEngine
         public static void StartRenderTarget(this SpriteBatch ink, ref RenderTarget2D Target, int Width = 0, int Height = 0)
         {
             if (!Context.Core.__composeAllowed) throw new Exception("Cannot compose outside of the frame start sequence.");
+
+            //Pass data to the optimization engine.
+            Opt.rcc(Width, Height);
 
             //Redefine target if needed.
             if (Width != 0 && Height != 0) DefineTarget(ref Target, Width, Height);
@@ -162,9 +166,23 @@ namespace SoulEngine
             //Destroy previous render target safely, if any.
             if (Target != null) Target.Dispose();
 
-            //Generate a new rendertarget with the specified size.
-            Target = new RenderTarget2D(Context.Graphics, Width, Height);
-            Debugging.Logger.Add("Allocating graphic memory for new buffer (" + Width + ", " + Height + ")");
+            //Generate a new rendertarget with the specified size. (Through the optimization engine.)
+            Target = Opt.rcc_define(Width, Height);
+        }
+
+        /// <summary>
+        /// Generates a stream from a string.
+        /// </summary>
+        /// <param name="String">The string to convert to a stream.</param>
+        /// <returns></returns>
+        public static Stream StreamFromString(string String)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(String);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
         }
         #endregion
     }

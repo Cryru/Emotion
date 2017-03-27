@@ -26,7 +26,11 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Objects that belong to this scene.
         /// </summary>
-        private Dictionary<string, GameObject> Objects;
+        protected Dictionary<string, GameObject> Objects;
+        /// <summary>
+        /// Objects that belong to this scene and are generated.
+        /// </summary>
+        protected Dictionary<string, List<GameObject>> ObjectClusters;
         /// <summary>
         /// The number of objects attached to the scene.
         /// </summary>
@@ -34,7 +38,7 @@ namespace SoulEngine.Objects
         {
             get
             {
-                return Objects.Count;
+                return Objects.Count + ObjectClusters.Count;
             }
         }
         #endregion
@@ -50,6 +54,7 @@ namespace SoulEngine.Objects
             //Setup assets loader and objects dictionary.
             Assets = new Assets();
             Objects = new Dictionary<string, GameObject>();
+            ObjectClusters = new Dictionary<string, List<GameObject>>();
 
             //Run the start code.
             Start();
@@ -64,19 +69,22 @@ namespace SoulEngine.Objects
             //Run the scene's update code.
             Update();
 
-            //Update the scene's object.
-            foreach (var item in Objects)
-            {
-                item.Value.Update();
-            }
+            //Update the scene's objects.
+            Objects.Select(x => x.Value).ToList().ForEach(x => x.Update());
+
+            //Update the scene's clusters.
+            ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.ForEach(y => y.Update()));
         }
         /// <summary>
         /// Composes component textures on linked objects.
         /// </summary>
         public void Compose()
         {
-            //Run the free draw function outside an ink binding.
+            //Run texture composition for the scene's objects.
             Objects.Select(x => x.Value).ToList().ForEach(x => x.Compose());
+
+            //Run texture composition for the scene's clusters.
+            ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.ForEach(y => y.Compose()));
         }
         /// <summary>
         /// The core's hook for drawing.
@@ -86,18 +94,20 @@ namespace SoulEngine.Objects
             //Run the draw function on all objects with respect to their selected layer.
             Context.ink.Start(DrawChannel.World);
             Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.World).ToList().ForEach(x => x.Draw());
+            ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.Where(y => y.Layer == ObjectLayer.World).ToList().ForEach(y => y.Draw()));
             Context.ink.End();
             Context.ink.Start(DrawChannel.Screen);
             Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.UI).ToList().ForEach(x => x.Draw());
+            ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.Where(y => y.Layer == ObjectLayer.UI).ToList().ForEach(y => y.Draw()));
             Context.ink.End();
         }
         #endregion
 
-        #region "Object Manager"
+        #region "Object and Cluster Manager"
         /// <summary>
         /// Adds an object to the scene.
         /// </summary>
-        /// <param name="Label">The object's label to access the object with.</param>
+        /// <param name="Label">A label to access the object with.</param>
         /// <param name="Object">The object to add.</param>
         public void AddObject(string Label, GameObject Object)
         {
@@ -112,6 +122,23 @@ namespace SoulEngine.Objects
         public void RemoveObject(string Label)
         {
             Objects.Remove(Label);
+        }
+        /// <summary>
+        /// Adds an object cluster to the scene.
+        /// </summary>
+        /// <param name="Label">A label to access the cluster with.</param>
+        /// <param name="ObjectCluster">The cluster to add.</param>
+        public void AddCluster(string Label, List<GameObject> ObjectCluster)
+        {
+            ObjectClusters.Add(Label, ObjectCluster);
+        }
+        /// <summary>
+        /// Removes an object from the scene.
+        /// </summary>
+        /// <param name="Label">The label of the object you want to remove.</param>
+        public void RemoveCluster(string Label)
+        {
+            ObjectClusters.Remove(Label);
         }
         #endregion
 

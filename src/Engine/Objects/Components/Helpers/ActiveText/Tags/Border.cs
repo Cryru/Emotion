@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace SoulEngine.Objects.Components.Helpers.Tags
 {
+    //////////////////////////////////////////////////////////////////////////////
+    // SoulEngine - A game engine based on the MonoGame Framework.              //
+    // Public Repository: https://github.com/Cryru/SoulEngine                   //
+    //////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Renders a border around the text in the color specified by data.
+    /// </summary>
     class Border : Tag
     {
         public Border(string Data) : base(Data)

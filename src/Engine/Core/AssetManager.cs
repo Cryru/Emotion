@@ -88,6 +88,20 @@ namespace SoulEngine
         }
 
         /// <summary>
+        /// Loads a custom asset file and returns its contents.
+        /// </summary>
+        /// <param name="fileName">Path and name including extension of the asset, root is the Content folder.</param>
+        /// <returns>A string containing the contents of the file.</returns>
+        public static string CustomFile(string fileName)
+        {
+            //Check if the file exists.
+            if (!AssetExist(fileName, "")) return "";
+
+            //If it does read it and return it.
+            return Utils.ReadFile("Content\\" + fileName);
+        }
+
+        /// <summary>
         /// Loads an asset into the current scene's content manager and returns it, or a specified asset if missing.
         /// </summary>
         /// <typeparam name="T">The type of asset to load</typeparam>
@@ -96,7 +110,7 @@ namespace SoulEngine
         /// <returns>The asset requested, or the replacement if missing.</returns>
         public static T Asset<T>(string assetName, T ifMissing)
         {
-            if (GetAssetExist(assetName))
+            if (AssetExist(assetName))
                 if (Context.Core.Scene != null)
                     return Context.Core.Content.Load<T>(assetName);
                 else
@@ -110,10 +124,11 @@ namespace SoulEngine
         /// Checks whether the requested asset exists.
         /// </summary>
         /// <param name="name">Path and name of the asset, root is the Content folder.</param>
-        public static bool GetAssetExist(string name)
+        /// <param name="extension">The extension of the file we are looking for.</param>
+        public static bool AssetExist(string name, string extension = ".xnb")
         {
             //Assign the path of the file.
-            string contentpath = "Content\\" + name.Replace("/", "\\") + ".xnb";
+            string contentpath = "Content\\" + name.Replace("/", "\\") + extension;
             //Check if the file exists.
             if (File.Exists(contentpath))
             {

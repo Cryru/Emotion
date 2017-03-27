@@ -33,8 +33,6 @@ namespace SoulEngine.Events
             //If event without sender then the sender was probably disposed or something.
             if (Event.Sender == null) return;
 
-            if (Debugging.DebugScene.blacklistedEvents.IndexOf(Event.Type) == -1) Debugging.Logger.Add("Event registered: " + Event.Type);
-
             //Get listeners for the current event type.
             List<Listen> matches = ListenerQueue.Where((x, y) => x.Type == Event.Type).ToList().ToList();
             //Invoke them.
