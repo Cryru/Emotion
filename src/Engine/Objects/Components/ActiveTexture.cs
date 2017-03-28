@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Enums;
 using SoulEngine.Events;
+using SoulEngine.Objects.Components.Helpers;
 
 namespace SoulEngine.Objects.Components
 {
@@ -27,6 +28,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
+                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) return attachedObject.Component<Animation>().Frames[attachedObject.Component<Animation>().FrameTotal];
                 if (TextureMode == TextureMode.Stretch) return _xnaTexture;
                 if (_texture == null) return AssetManager.MissingTexture;
                 return _texture as Texture2D;
@@ -37,7 +39,7 @@ namespace SoulEngine.Objects.Components
             }
         }
         /// <summary>
-        /// 
+        /// The part of the texture to draw.
         /// </summary>
         public Rectangle DrawArea;
         /// <summary>
@@ -58,9 +60,7 @@ namespace SoulEngine.Objects.Components
         public Color Tint = Color.White;
         #region "Private"
         private RenderTarget2D _texture;
-        private Viewport _tempPortHolder;
         private Texture2D _xnaTexture;
-        private Rectangle _bounds;
         #endregion
         #endregion
 
@@ -96,7 +96,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Compose()
         {
-            if (TextureMode == TextureMode.Stretch) return;
+            if (TextureMode != TextureMode.Tile) return;
 
             //Check empty draw area.
             if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
@@ -167,9 +167,8 @@ namespace SoulEngine.Objects.Components
         }
         #endregion
 
-        //Other
         #region "Component Interface"
-        public override void Update(){}
+        public override void Update() { }
         #endregion
     }
 }

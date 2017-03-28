@@ -65,15 +65,13 @@ namespace SoulEngine
         /// <param name="Target">The render target to render on.</param>
         /// <param name="Width">The desired width of the render target.</param>
         /// <param name="Height">The desired height of the render target.</param>
-        public static void StartRenderTarget(this SpriteBatch ink, ref RenderTarget2D Target, int Width = 0, int Height = 0)
+        /// <param name="Force">Whether to force the target to be redefined..</param>
+        public static void StartRenderTarget(this SpriteBatch ink, ref RenderTarget2D Target, int Width = 0, int Height = 0, bool Force = false)
         {
             if (!Context.Core.__composeAllowed) throw new Exception("Cannot compose outside of the frame start sequence.");
 
-            //Pass data to the optimization engine.
-            Opt.rcc(Width, Height);
-
             //Redefine target if needed.
-            if (Width != 0 && Height != 0) DefineTarget(ref Target, Width, Height);
+            if ((Width != 0 && Height != 0) || Force) DefineTarget(ref Target, Width, Height);
 
             //Set the current rendertarget to the drawer.
             Context.Graphics.SetRenderTarget(Target);
@@ -167,7 +165,7 @@ namespace SoulEngine
             if (Target != null) Target.Dispose();
 
             //Generate a new rendertarget with the specified size. (Through the optimization engine.)
-            Target = Opt.rcc_define(Width, Height);
+            Target = new RenderTarget2D(Context.Graphics, Width, Height);
         }
 
         /// <summary>

@@ -35,6 +35,7 @@ namespace SoulEngine
             defaultFile.Add("Window Height", WWidth);
             defaultFile.Add("Display Mode", DisplayMode);
             defaultFile.Add("Resizable", ResizableWindow);
+            defaultFile.Add("Debug", Debug);
         }
 
         public static void ReadExternalSettings(string filePath)
@@ -52,7 +53,7 @@ namespace SoulEngine
             settingsFile.AssignContent(ref WHeight, "Window Height");
             settingsFile.AssignContent(ref DisplayMode, "Display Mode");
             settingsFile.AssignContent(ref ResizableWindow, "Resizable");
-            bool traktor = true;
+            settingsFile.AssignContent(ref Debug, "Debug");
         }
     }
 }

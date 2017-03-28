@@ -23,41 +23,13 @@ namespace SoulEngine
         #endregion
         public override void Start()
         {
-            // throw new NotImplementedException();
             Debugging.Logger.Add("Primary scene loaded");
 
-            //GameObject b = new GameObject();
-            //b.AddComponent(new ActiveTexture(AssetManager.BlankTexture, Enums.TextureMode.Stretch, new Rectangle(0,0,50,50)));
-            //b.AddComponent(new Renderer());
-            ////b.AddComponent(new Transform());
-            ////b.Component<ActiveTexture>().Texture = AssetManager.MissingTexture;
-
-            //b.Layer = Enums.ObjectLayer.UI;
-            //AddObject("", b);
-
-            //GameObject a = new GameObject();
-            //a.AddComponent(new SoulEngine.Objects.Components.ActiveTexture());
-            //a.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
-            //a.Component<ActiveTexture>().Tint = Color.Black;
-            //a.AddComponent(new SoulEngine.Objects.Components.Transform());
-            //a.Component<Transform>().Width = 20;
-            //a.Component<Transform>().Height = 200;
-            //a.AddComponent(new SoulEngine.Objects.Components.ActiveText()
-            //{
-            //    Text =
-            //"Te<color=#b738ed>fdsf\n\nsdfsdf</>a<wrap=@>bst</>"
-            //});
-            ////a.AddComponent(new Objects.Components.Transform() { X = 0, Y = 0, Width = 200, Height = 200 });
-
-            //a.AddComponent(new Objects.Components.Renderer());
-            //AddObject("", a);
-
-            //Legacy.Core.Setup();
         }
 
         public override void Update()
         {
-            //throw new NotImplementedException();
+
         }
     }
 }
