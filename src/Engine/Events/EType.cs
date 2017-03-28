@@ -79,5 +79,11 @@ namespace SoulEngine.Events
         /// </summary>
         public const string KEY_UNPRESSED = "KEY_UNPRESSED";
         #endregion
+        #region "ANIMATION"
+        /// <summary>
+        /// Triggered when an animation is done.
+        /// </summary>
+        public const string ANIM_FINISHED = "ANIM_FINISHED";
+        #endregion
     }
 }
