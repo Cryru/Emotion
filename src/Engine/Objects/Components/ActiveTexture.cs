@@ -170,5 +170,32 @@ namespace SoulEngine.Objects.Components
         #region "Component Interface"
         public override void Update() { }
         #endregion
+
+        //Other
+        #region "Disposing"
+        /// <summary>
+        /// Disposing flag to detect redundant calls.
+        /// </summary>
+        private bool disposedValue = false;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                //Free resources.
+                _texture = null;
+                SoulEngine.Events.ESystem.Remove(this);
+                attachedObject = null;
+
+                //Set disposing flag.
+                disposedValue = true;
+            }
+        }
+        #endregion
     }
 }

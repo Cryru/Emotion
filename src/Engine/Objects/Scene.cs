@@ -41,6 +41,16 @@ namespace SoulEngine.Objects
                 return Objects.Count + ObjectClusters.Count;
             }
         }
+        /// <summary>
+        /// Returns all attached objects to the scene, clusters not included.
+        /// </summary>
+        public List<GameObject> AttachedObjects
+        {
+            get
+            {
+                return Objects.Select(x => x.Value).ToList();
+            }
+        }
         #endregion
 
         /// <summary>
@@ -48,9 +58,6 @@ namespace SoulEngine.Objects
         /// </summary>
         public void SetupScene()
         {
-            //Set the current scene in core.
-            Context.Core.Scene = this;
-
             //Setup assets loader and objects dictionary.
             Assets = new Assets();
             Objects = new Dictionary<string, GameObject>();
@@ -107,38 +114,54 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Adds an object to the scene.
         /// </summary>
-        /// <param name="Label">A label to access the object with.</param>
+        /// <param name="Label">A label to access the object with, case insensitive.</param>
         /// <param name="Object">The object to add.</param>
         public void AddObject(string Label, GameObject Object)
         {
-            Objects.Add(Label, Object);
+            Objects.Add(Label.ToLower(), Object);
 
-            Objects.OrderBy(x => x.Value.Priority);
+            Objects = Objects.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);
         }
         /// <summary>
         /// Removes an object from the scene.
         /// </summary>
-        /// <param name="Label">The label of the object you want to remove.</param>
+        /// <param name="Label">The label of the object you want to remove, case insensitive.</param>
         public void RemoveObject(string Label)
         {
-            Objects.Remove(Label);
+            Objects.Remove(Label.ToLower());
+        }
+        /// <summary>
+        /// Returns the object marked with the specified label.
+        /// </summary>
+        /// <param name="Label">The label of the object you want, case insensitive.</param>
+        public GameObject GetObject(string Label)
+        {
+            return Objects[Label.ToLower()];
         }
         /// <summary>
         /// Adds an object cluster to the scene.
         /// </summary>
-        /// <param name="Label">A label to access the cluster with.</param>
+        /// <param name="Label">A label to access the cluster with, case insensitive.</param>
         /// <param name="ObjectCluster">The cluster to add.</param>
         public void AddCluster(string Label, List<GameObject> ObjectCluster)
         {
-            ObjectClusters.Add(Label, ObjectCluster);
+            ObjectClusters.Add(Label.ToLower(), ObjectCluster);
         }
         /// <summary>
-        /// Removes an object from the scene.
+        /// Removes a cluster from the scene.
         /// </summary>
-        /// <param name="Label">The label of the object you want to remove.</param>
+        /// <param name="Label">The label of the object you want to remove, case insensitive.</param>
         public void RemoveCluster(string Label)
         {
-            ObjectClusters.Remove(Label);
+            ObjectClusters.Remove(Label.ToLower());
+        }
+        /// <summary>
+        /// Returns the cluster marked with the specified label.
+        /// </summary>
+        /// <param name="Label">The label of the object you want, case insensitive.</param>
+        public List<GameObject> GetCluster(string Label)
+        {
+            return ObjectClusters[Label.ToLower()];
         }
         #endregion
 
@@ -168,9 +191,20 @@ namespace SoulEngine.Objects
                 }
 
                 //Free resources.
-                Assets.Content.Unload();
-                ESystem.Remove(DrawHook);
-                ESystem.Remove(UpdateHook);
+                Assets = null;
+                foreach (var obj in Objects)
+                {
+                    obj.Value.Dispose();
+                }
+                foreach (var cluster in ObjectClusters)
+                {
+                    for (int i = 0; i < cluster.Value.Count; i++)
+                    {
+                        cluster.Value[i].Dispose();
+                    }
+                }
+                ObjectClusters = null;
+                Objects = null;
 
                 //Set disposing flag.
                 disposedValue = true;

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Objects;
 using SoulEngine.Objects.Components;
+using SoulEngine.Events;
 
 namespace SoulEngine
 {

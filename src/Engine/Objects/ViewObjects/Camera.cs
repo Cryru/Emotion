@@ -12,7 +12,7 @@ namespace SoulEngine.Objects
     /// <summary>
     /// A camera object.
     /// </summary>
-    public class Camera : GameObject
+    public class Camera : ViewObject
     {
         #region "Declarations"
         /// <summary>
@@ -36,7 +36,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The transformation matrix to render through.
         /// </summary>
-        public Matrix View
+        public override Matrix View
         {
             get
             {
@@ -57,50 +57,7 @@ namespace SoulEngine.Objects
             lockComponentRemoving = true;
         }
 
-
         #region "Functions"
-        /// <summary>
-        /// Converts a camera coordinate to a screen coordinate.
-        /// </summary>
-        /// <param name="x">The X coordinate of the camera coordinate to convert.</param>
-        /// <param name="y">The Y coordinate of the camera coordinate to convert.</param>
-        /// <returns>The screen coordinate that corresponds to the provided world coordinate.</returns>
-        public Vector2 WorldToScreen(float x, float y)
-        {
-            return WorldToScreen(new Vector2(x, y));
-        }
-        /// <summary>
-        /// Converts a camera coordinate to a screen coordinate.
-        /// </summary>
-        /// <param name="worldPosition">The camera coordinate to convert.</param>
-        /// <returns>The screen coordinate that corresponds to the provided world coordinate.</returns>
-        public Vector2 WorldToScreen(Vector2 worldPosition)
-        {
-            var viewport = Context.Graphics.Viewport;
-            return Vector2.Transform(worldPosition + new Vector2(viewport.X, viewport.Y), View);
-        }
-
-        /// <summary>
-        /// Converts a screen coordinate to a world coordinate.
-        /// </summary>
-        /// <param name="x">The X coordinate of the screen coordinate to convert.</param>
-        /// <param name="y">The Y coordinate of the screen coordinate to convert.</param>
-        /// <returns>The world coordinate that corresponds to the provided screen coordinate.</returns>
-        public Vector2 ScreenToWorld(float x, float y)
-        {
-            return ScreenToWorld(new Vector2(x, y));
-        }
-        /// <summary>
-        /// Converts a screen coordinate to a world coordinate.
-        /// </summary>
-        /// <param name="screenPosition">The screen coordinate to convert.</param>
-        /// <returns>The world coordinate that corresponds to the provided screen coordinate.</returns>
-        public Vector2 ScreenToWorld(Vector2 screenPosition)
-        {
-            var viewport = Context.Graphics.Viewport;
-            return Vector2.Transform(screenPosition - new Vector2(viewport.X, viewport.Y), Matrix.Invert(View));
-        }
-
         /// <summary>
         /// The transformation matrix to render through with an added parallax factor.
         /// </summary>

@@ -111,7 +111,7 @@ namespace SoulEngine
         public static T Asset<T>(string assetName, T ifMissing)
         {
             if (AssetExist(assetName))
-                if (Context.Core.Scene != null)
+                if (Context.Core.Scene == null)
                     return Context.Core.Content.Load<T>(assetName);
                 else
                     return Context.Core.Scene.Assets.Content.Load<T>(assetName);

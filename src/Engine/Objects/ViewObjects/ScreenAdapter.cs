@@ -12,13 +12,13 @@ namespace SoulEngine.Objects
     /// <summary>
     /// An adapter for scaling and boxing the screen when the window doesn't fit the resolution.
     /// </summary>
-    public class ScreenAdapter
+    public class ScreenAdapter : ViewObject
     {
         #region "Declarations"
         /// <summary>
         /// The transformation matrix to render through.
         /// </summary>
-        public Matrix View
+        public override Matrix View
         {
             get
             {
@@ -31,7 +31,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Updates the screen adapter. Called by a system event when the window size changes.
         /// </summary>
-        public void Update()
+        new public void Update()
         {
             Viewport viewport = Context.Graphics.Viewport;
 
