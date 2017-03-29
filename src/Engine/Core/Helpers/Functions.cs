@@ -145,6 +145,25 @@ namespace SoulEngine
                 return color = new Color(0, 0, 0, 0);
             }
         }
+
+        /// <summary>
+        /// Creates a rectangle from two vectors.
+        /// </summary>
+        /// <param name="Location">The coordinate location of the rectangle.</param>
+        /// <param name="Size">The size of the rectangle.</param>
+        public static Rectangle fromVectors(this Rectangle Rectangle, Vector2 Location, Vector2 Size)
+        {
+            return new Rectangle(Location.ToPoint(), Size.ToPoint());
+        }
+
+        /// <summary>
+        /// Returns whether the Vector2 is within the Rectangle. 
+        /// </summary>
+        /// <param name="Point">The point to check for intersection.</param>
+        public static bool Intersects(this Rectangle Rectangle, Vector2 Point)
+        {
+            return Rectangle.Intersects(new Rectangle().fromVectors(Point, new Vector2(1, 1)));
+        }
         #endregion
 
         #region "Others"

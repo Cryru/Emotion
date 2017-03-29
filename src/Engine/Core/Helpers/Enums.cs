@@ -147,4 +147,23 @@ namespace SoulEngine.Enums
         /// </summary>
         NoneReverse
     }
+
+    /// <summary>
+    /// The interaction between a mouse input component and the mouse.
+    /// </summary>
+    public enum MouseInputStatus
+    {
+        /// <summary>
+        /// The mouse has nothing to do with this object.
+        /// </summary>
+        None,
+        /// <summary>
+        /// The object is being clicked.
+        /// </summary>
+        Clicked,
+        /// <summary>
+        /// The mouse is 'looming' over the object.
+        /// </summary>
+        MouseOvered
+    }
 }

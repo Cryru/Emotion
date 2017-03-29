@@ -29,6 +29,10 @@ namespace SoulEngine
         /// The currently loaded scene.
         /// </summary>
         public Scene Scene;
+        /// <summary>
+        /// A scene waiting to be loaded.
+        /// </summary>
+        private Scene sceneLoadQueue;
         #endregion
         #region "Error Checkers"
         /// <summary>
@@ -91,7 +95,7 @@ namespace SoulEngine
             Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
             //Load the primary scene.
-            new ScenePrim().SetupScene();
+            LoadScene(new ScenePrim());
 
             //Load the debugging scene.
             if (Settings.Debug) DebugScene.Setup();
@@ -106,6 +110,9 @@ namespace SoulEngine
         {
             //If the game is not focused, don't update.
             if (IsActive == false) return;
+
+            //Check if a scene is waiting to be loaded and if so load it.
+            if (sceneLoadQueue != null) SceneLoad();
 
             //Trigger tick start event.
             ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
@@ -157,6 +164,29 @@ namespace SoulEngine
 
             //Trigger frame end event.
             ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
+        }
+        #endregion
+
+        #region "Scene System"
+        /// <summary>
+        /// Loads the provided scene at the next frame.
+        /// </summary>
+        /// <param name="Scene">The scene to load.</param>
+        public void LoadScene(Scene Scene)
+        {
+            sceneLoadQueue = Scene;
+        }
+        private void SceneLoad()
+        {
+            //Dispose of the current scene if any.
+            if (Scene != null) Scene.Dispose();
+
+            //Trasfer the scene from the queue.
+            Scene = sceneLoadQueue;
+            sceneLoadQueue = null;
+
+            //Initiate inner setup.
+            Scene.SetupScene();
         }
         #endregion
 

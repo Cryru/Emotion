@@ -11,5 +11,9 @@ namespace SoulEngine
     {
         public ContentManager Content;
 
-    }
+        public Assets()
+        {
+             Content = new ContentManager(Context.Core.Content.ServiceProvider, Context.Core.Content.RootDirectory);
+        }
+}
 }

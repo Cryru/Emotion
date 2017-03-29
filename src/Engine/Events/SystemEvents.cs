@@ -34,7 +34,7 @@ namespace SoulEngine.Events
         private static void DisplayModeChanged()
         {
             //If a change to the display mode is detected raise the event.
-            if (Settings.DisplayMode != prevDisplayMode) ESystem.Add(new Event(EType.WINDOW_DISPLAYMODE));
+            if (Settings.DisplayMode != prevDisplayMode) ESystem.Add(new Event(EType.WINDOW_DISPLAYMODECHANGED));
         }
         private static void prevDisplayMode_Update(Event e)
         {

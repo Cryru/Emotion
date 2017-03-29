@@ -43,7 +43,7 @@ namespace SoulEngine.Objects.Components
             {
                 X = value.X;
                 Y = value.Y;
-                if(attachedObject != null) attachedObject.Priority = value.Z;
+                if (attachedObject != null) attachedObject.Priority = value.Z;
             }
         }
         /// <summary>
@@ -118,7 +118,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                return (int) MathHelper.ToDegrees(Rotation);
+                return (int)MathHelper.ToDegrees(Rotation);
             }
             set
             {
@@ -212,13 +212,6 @@ namespace SoulEngine.Objects.Components
         //Main functions.
         #region "Functions"
         /// <summary>
-        /// Is run every tick.
-        /// </summary>
-        public override void Update()
-        {
-
-        }
-        /// <summary>
         /// Moves the object to the desired location over the desired duration.
         /// </summary>
         /// <param name="Duration">The time the movement should take.</param>
@@ -249,26 +242,39 @@ namespace SoulEngine.Objects.Components
             direction.Normalize();
             Position += Vector2.Transform(direction, Matrix.CreateRotationZ(Rotation));
         }
+        /// <summary>
+        /// Returns the distance between this transform and the provided one.
+        /// </summary>
+        /// <param name="transform">The transform to measure the distance to.</param>
+        public float DistanceTo(Transform transform)
+        {
+            double a = Math.Abs(X - transform.X);
+            double b = Math.Abs(Y - transform.Y);
+
+            float c = (float)Math.Sqrt(Math.Pow(a, 2) + Math.Pow(b, 2));
+
+            return c;
+        }
         #region "Positioning"
         /// <summary>
         /// Center the object within the window.
         /// </summary>
-        public void ObjectCenter()
+        public void CenterObject()
         {
-            ObjectCenterX();
-            ObjectCenterY();
+            CenterObjectX();
+            CenterObjectY();
         }
         /// <summary>
         /// Center the object within the window on the X axis.
         /// </summary>
-        public void ObjectCenterX()
+        public void CenterObjectX()
         {
             X = Settings.Width / 2 - Width / 2;
         }
         /// <summary>
         /// Center the object within the window on the Y axis.
         /// </summary>
-        public void ObjectCenterY()
+        public void CenterObjectY()
         {
             Y = Settings.Height / 2 - Height / 2;
         }
@@ -294,12 +300,13 @@ namespace SoulEngine.Objects.Components
         private void moveOver()
         {
             //Remove the ticker.
-            _moveTicker.Dispose();       
+            _moveTicker.Dispose();
         }
         #endregion
 
         //Other
         #region "Component Interface"
+        public override void Update() { }
         public override void Draw() { }
         public override void Compose() { }
         #endregion

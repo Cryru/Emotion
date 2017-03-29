@@ -108,6 +108,7 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Color.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileObject.cs" />
+    <Compile Include="src\Engine\Objects\Components\MouseInput.cs" />
     <Compile Include="src\Engine\Objects\Components\TiledMap.cs" />
     <Compile Include="src\Engine\Objects\Components\Transform.cs" />
     <Compile Include="src\Engine\Objects\Components\АctiveText.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="src\Engine\Objects\Ticker.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\Camera.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ScreenAdapter.cs" />
+    <Compile Include="src\Engine\Objects\ViewObjects\ViewObject.cs" />
     <Compile Include="src\Legacy\Engine\Core.cs" />
     <Compile Include="src\Legacy\Engine\Engine.cs" />
     <Compile Include="src\Legacy\Objects\Event.cs" />

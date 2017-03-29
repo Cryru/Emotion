@@ -34,7 +34,7 @@ namespace SoulEngine.Debugging
             logDebug.Component<ActiveTexture>().Tint = Color.Black;
             logDebug.Component<ActiveTexture>().Opacity = 0.1f;
 
-            ESystem.Add(new Listen(EType.GAME_TICKEND, Update));
+            ESystem.Add(new Listen(EType.GAME_TICKSTART, Update));
             ESystem.Add(new Listen(EType.GAME_FRAMESTART, Compose));
             ESystem.Add(new Listen(EType.GAME_FRAMEEND, DrawHook));
 

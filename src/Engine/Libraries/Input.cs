@@ -30,6 +30,9 @@ namespace SoulEngine
 #endif
         #endregion
 
+        /// <summary>
+        /// Gets input data for the current frame.
+        /// </summary>
         public static void UpdateInput()
         {
             //Record the frame's keyboard and mouse states for the current frame.
@@ -58,6 +61,9 @@ namespace SoulEngine
             //Check if closing.
             if (isKeyDown(Keys.Escape)) Context.Core.Exit();
         }
+        /// <summary>
+        /// At the end of the frame moves the current frame variables to the last frame input variables.
+        /// </summary>
         public static void UpdateInput_End()
         {
             //Assign this frame's code to be used as the last frame's code.
@@ -175,7 +181,7 @@ namespace SoulEngine
         /// <returns></returns>
         public static Vector2 getMousePos()
         {
-            return currentFrameMouseState.Position.ToVector2();
+            return Context.Screen.ScreenToView(currentFrameMouseState.Position.ToVector2());
         }
         #region "Left Button"
         /// <summary>

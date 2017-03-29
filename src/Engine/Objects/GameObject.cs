@@ -126,10 +126,10 @@ namespace SoulEngine
 
             //Check if the component is already added.
             if (HasComponent(ComponentObject.GetType().Name))
-                //If not add it.
+            //If not add it.
             { Components[IdComponent(ComponentObject.GetType().Name)] = ComponentObject; ComponentObject.attachedObject = this; }
             else
-                //If it is then ovewrite the existing one.
+            //If it is then ovewrite the existing one.
             { Components.Add(ComponentObject); ComponentObject.attachedObject = this; }
         }
 
@@ -208,6 +208,8 @@ namespace SoulEngine
         {
             switch (Property.ToLower())
             {
+                case "bounds":
+                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Bounds, typeof(T)) : Default;
                 case "x":
                     return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().X, typeof(T)) : Default;
                 case "y":
@@ -243,6 +245,8 @@ namespace SoulEngine
                     {
                         Components[i].Dispose();
                     }
+                    Components.Clear();
+                    Components = null;
                 }
 
                 //Set disposing flag.

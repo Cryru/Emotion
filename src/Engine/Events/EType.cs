@@ -67,7 +67,7 @@ namespace SoulEngine.Events
         /// <summary>
         /// Triggered when the window's display mode changes.
         /// </summary>
-        public const string WINDOW_DISPLAYMODE = "WINDOW_DISPLAYMODE";
+        public const string WINDOW_DISPLAYMODECHANGED = "WINDOW_DISPLAYMODECHANGED";
         #endregion
         #region "INPUT"
         /// <summary>
@@ -84,6 +84,24 @@ namespace SoulEngine.Events
         /// Triggered when an animation is done.
         /// </summary>
         public const string ANIM_FINISHED = "ANIM_FINISHED";
+        #endregion
+        #region "UI INPUT STATUS"
+        /// <summary>
+        /// Triggered when the mouse enters the a mouse input component.
+        /// </summary>
+        public const string MOUSEINPUT_ENTERED = "MOUSEINPUT_ENTERED";
+        /// <summary>
+        /// Triggered when the mouse leaves a mouse input component.
+        /// </summary>
+        public const string MOUSEINPUT_LEFT = "MOUSEINPUT_LEFT";
+        /// <summary>
+        /// Triggered when the mouse clicks a mouse input component.
+        /// </summary>
+        public const string MOUSEINPUT_CLICKDOWN = "MOUSEINPUT_CLICKDOWN";
+        /// <summary>
+        /// Triggered when the mouse lets go a mouse input component.
+        /// </summary>
+        public const string MOUSEINPUT_CLICKUP = "MOUSEINPUT_CLICKUP";
         #endregion
     }
 }

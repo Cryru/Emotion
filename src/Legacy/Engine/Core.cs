@@ -235,7 +235,7 @@ namespace SoulEngine.Legacy
 
         public static Vector2 PointToScreen(Vector2 Point)
         {
-            return maincam.WorldToScreen(Point);
+            return maincam.ViewToScreen(Point);
         }
 
         public static void DrawOnScreen()
