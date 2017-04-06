@@ -56,3 +56,4 @@ and more...
 ## External Projects
 
 ["TiledSharp"](https://github.com/marshallward/TiledSharp) - Parsing .tmx files.
+["Jint"](https://github.com/sebastienros/jint) - Javascript interpretation for the script engine.
