@@ -38,6 +38,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - Custom Text Rendering with Markup [&#10003;]
 - Scripting Support [&#10003;]
 - Documentation
+
 and more...
 
 ## Projects For SoulEngine
