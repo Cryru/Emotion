@@ -74,7 +74,7 @@ namespace SoulEngine.Objects.Components
             if (!inObject) return Enums.MouseInputStatus.None;
 
             //Get the bounds of all other UI objects.
-            List<GameObject> objects = Context.Core.Scene.AttachedObjects
+            List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
                 .Where(x => x.Layer == Enums.ObjectLayer.UI)
                 .Where(x => x.HasComponent<Transform>() == true)
                 .OrderBy(x => x.Priority).ToList();

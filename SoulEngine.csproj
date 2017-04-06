@@ -76,27 +76,30 @@
     <Compile Include="src\Engine\Events\Event.cs" />
     <Compile Include="src\Engine\Events\Listen.cs" />
     <Compile Include="src\Engine\Events\SystemEvents.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\ImageLayer.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\Layer.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\Map.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\ObjectGroup.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\TiledCore.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\Tileset.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\CRC32.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Deflate.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\DeflateStream.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\GZipStream.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Inflate.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\InfTree.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ParallelDeflateOutputStream.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Tree.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\Zlib.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibBaseStream.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibCodec.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibConstants.cs" />
-    <Compile Include="src\Engine\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
-    <Compile Include="src\Engine\Libraries\Input.cs" />
-    <Compile Include="src\Engine\Libraries\Settings.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TextLine.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\ImageLayer.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\Layer.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\Map.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\ObjectGroup.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\TiledCore.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\Tileset.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\CRC32.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\Deflate.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\DeflateStream.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\GZipStream.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\Inflate.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\InfTree.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\ParallelDeflateOutputStream.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\Tree.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\Zlib.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibBaseStream.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibCodec.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibConstants.cs" />
+    <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
+    <Compile Include="src\Libraries\Input.cs" />
+    <Compile Include="src\Libraries\ScriptEngine.cs" />
+    <Compile Include="src\Libraries\Settings.cs" />
     <Compile Include="src\Engine\Meta\Info.cs" />
     <Compile Include="src\Engine\Objects\Components\ActiveTexture.cs" />
     <Compile Include="src\Engine\Objects\Components\Component.cs" />
@@ -118,22 +121,18 @@
     <Compile Include="src\Engine\Objects\ViewObjects\Camera.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ScreenAdapter.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ViewObject.cs" />
-    <Compile Include="src\Legacy\Engine\Core.cs" />
-    <Compile Include="src\Legacy\Engine\Engine.cs" />
-    <Compile Include="src\Legacy\Objects\Event.cs" />
-    <Compile Include="src\Legacy\Objects\ObjectBase.cs" />
-    <Compile Include="src\Legacy\Objects\Screen.cs" />
-    <Compile Include="src\Legacy\Objects\TextObject.cs" />
-    <Compile Include="src\Legacy\Objects\Texture.cs" />
     <Compile Include="src\User\Custom\Event Types.cs" />
     <Compile Include="src\User\Custom\Text Tags.cs" />
-    <Compile Include="src\User\Legacy\Settings.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Libraries\External\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
     <Reference Include="SoulLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -208,8 +207,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="src\Engine\Libraries\External\Newtonsoft.Json.dll" />
-    <Content Include="src\Engine\Libraries\External\SoulLib.dll" />
+    <Content Include="src\Libraries\External\MoonSharp.Interpreter.dll" />
+    <Content Include="src\Libraries\External\Newtonsoft.Json.dll" />
+    <Content Include="src\Libraries\External\SoulLib.dll" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

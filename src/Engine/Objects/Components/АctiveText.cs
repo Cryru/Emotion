@@ -46,34 +46,67 @@ namespace SoulEngine.Objects.Components
         public float Opacity = 1f;
         #region "Bounds"
         /// <summary>
-        /// Whether to lock the width to the Transform component's width.
+        /// The width of the text, based on the transform component's width if attached, and the screen's width if not.
         /// </summary>
-        public bool LockWidth = true;
-        /// <summary>
-        /// The width of the text, based on the transform component's width if locked, and the screen size if not.
-        /// </summary>
-        public float Width
+        public int Width
         {
             get
             {
-                if (attachedObject.HasComponent<Transform>() && LockWidth)
-                {
-                    return attachedObject.Component<Transform>().Width;
-                }
-                else
-                {
-                    if (texture != null) { return texture.Width; } else return Settings.Width;
-                }
+                if (AutoWidth) return width;
+                else return attachedObject.GetProperty("Width", Settings.Width);
             }
         }
         /// <summary>
         /// The height of the text.
         /// </summary>
-        public int Height = 0;
+        public int Height
+        {
+            get
+            {
+                if (AutoHeight) return height;
+                else return attachedObject.GetProperty("Height", Settings.Height);
+            }
+        }
+        /// <summary>
+        /// If set to true the height of the text texture will be according to the text inside rather than the transform.
+        /// </summary>
+        public bool AutoHeight = false;
+        /// <summary>
+        /// If set to true the width of the text texture will be according to the text inside rather than the transform.
+        /// </summary>
+        public bool AutoWidth = false;
+        /// <summary>
+        /// The character to draw up to. Used for scrolling and cutting off text without messing with formatting.
+        /// </summary>
+        public int DrawLimit
+        {
+            get
+            {
+                if (drawlimit == -1)
+                    drawlimit = Text.Length;
+
+                return drawlimit;
+            }
+            set
+            {
+                if (value == -1)
+                    drawlimit = Text.Length;
+                else
+                    drawlimit = value;
+            }
+        }
+        /// <summary>
+        /// whether to draw in reverse, from bottom to top.
+        /// </summary>
+        public bool Reverse = false;
         #endregion
         #endregion
         //Private variables.
         #region "Private"
+        private int width = 0;
+        private int height = 0;
+        private int drawlimit = -1;
+        private List<TextLine> linesCache;
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -136,19 +169,138 @@ namespace SoulEngine.Objects.Components
         //Main functions.
         #region "Functions"
         /// <summary>
-        /// Composes the text texture.
+        /// Composes the text texture based on cached data.
         /// </summary>
         public override void Compose()
         {
-            //Start composing on the render target.
-            Context.ink.StartRenderTarget(ref texture, (int)Width, (int)Height);
+            //Check if no cache.
+            if (linesCache == null) return;
 
-            //Drawing offsets.
+            //Start composing on the render target.
+            Context.ink.StartRenderTarget(ref texture, Width, Height);
+
             float offsetX = 0;
-            float offsetY = 0;
+            float offsetY = Reverse ? Height - stringHeight() : 0; //Set the Y offset to the bottom if going in reverse or the top if not.
+            int currentChar = 0;
+            float firstLineJustifiedCenterOffset = 0;
+
+            //Each line.
+            for (int y = 0; y < linesCache.Count; y++)
+            {
+                //Determine beginning X offset based on the selected style.
+                int wordSpacing = 0;
+                //---------------------------------------------------------------------------------------
+                switch (Style)
+                {
+                    case TextStyle.Right:
+                        offsetX = linesCache[y].SpaceOnLine;
+                        break;
+                    case TextStyle.Center:
+                        offsetX = linesCache[y].SpaceOnLine / 2;
+                        break;
+                    case TextStyle.JustifiedCenter:
+                    case TextStyle.Justified:
+                        float a = linesCache[y].Chars.Select(x => x.Content).Count(x => x == " ");
+                        //If manually going to a new line then don't apply justification.
+                        if (!linesCache[y].Manual && y != linesCache.Count - 1)
+                        {
+                            float b = wordSpacing * a;
+                            if (a != 0)
+                            {
+                                /*
+                                 * Check if there is space on the current line when we apply word spacing,
+                                 * if there will be enough space after we add one to the word spacing, and
+                                 * if the wordspacing isn't getting too big.
+                                */
+                                while (linesCache[y].SpaceOnLine - b > 0 && linesCache[y].SpaceOnLine - ((wordSpacing + 1) * a) > 0)
+                                {
+                                    wordSpacing += 1;
+                                    b = wordSpacing * a;
+                                }
+                            }
+                        }
+
+                        //If this is the first line set the first line justification.
+                        if (y == 0) firstLineJustifiedCenterOffset = (linesCache[0].SpaceOnLine - wordSpacing * a) / 2;
+                        if(Style == TextStyle.JustifiedCenter) offsetX = firstLineJustifiedCenterOffset;
+                        break;
+                    default:
+                        offsetX = 0;
+                        break;
+                }
+                //---------------------------------------------------------------------------------------
+
+                //Each character.
+                for (int x = 0; x < linesCache[y].Chars.Count; x++)
+                {
+                    //Check if trying to draw past limit.
+                    if (currentChar == drawlimit) break;
+
+                    //Each character effect.
+                    for (int t = 0; t < linesCache[y].Chars[x].Tags.Count; t++)
+                    {
+                        linesCache[y].Chars[x].Tags[t].Effect(linesCache[y].Chars[x], new DrawData(offsetX, offsetY));
+                    }
+                    
+                    //Draw the character.
+                    Context.ink.DrawString(Font, linesCache[y].Chars[x].Content, new Vector2(offsetX, offsetY), linesCache[y].Chars[x].Color * 1f);
+
+                    //Increment character counter and add its width to the offset.
+                    currentChar++;
+                    offsetX += stringWidth(linesCache[y].Chars[x].Content);
+
+                    if (linesCache[y].Chars[x].Content == " ") offsetX += wordSpacing;
+                }
+
+                //Move the Y offset to draw on a new line.
+                if(!Reverse) offsetY += stringHeight(); else offsetY -= stringHeight();
+            }
+
+            //Stop composing.
+            Context.ink.EndRenderTarget();
+        }
+        /// <summary>
+        /// Draws the text texture that was composed based on cached data.
+        /// </summary>
+        public override void Draw()
+        {
+            //Check if empty texture, sometimes it happens.
+            if (Texture == null) return;
+
+            //Get some drawing properties.
+            int X = attachedObject.GetProperty("X", 0);
+            int Y = attachedObject.GetProperty("Y", 0);
+            SpriteEffects MirrorEffects = attachedObject.GetProperty("MirrorEffects", SpriteEffects.None);
+            int Height = AutoHeight ? this.Height : Math.Min(attachedObject.GetProperty("Height", Texture.Height), Texture.Height);
+            float Rotation = attachedObject.GetProperty("Rotation", 0f);
+
+            Rectangle DrawBounds = new Rectangle(X, Y, (int) Width, Height);
+
+            //Correct bounds to center origin.
+            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
+                (DrawBounds.Y + DrawBounds.Height / 2)),
+                new Point(DrawBounds.Width, DrawBounds.Height));
+
+            //Draw the object through XNA's SpriteBatch.
+            Context.ink.Draw(Texture,
+                DrawBounds,
+                null,
+                Color.White * Opacity,
+                Rotation,
+                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
+                MirrorEffects,
+                1.0f);
+        }
+        /// <summary>
+        /// Caches data.
+        /// </summary>
+        public override void Update()
+        {
+            //Reset cache.
+            linesCache = new List<TextLine>();
 
             //The space left on the current line.
-            float spaceOnLine = Width - offsetX;
+            float spaceOnLine = AutoWidth ? Settings.Width : Width;
 
             //The current line.
             List<CharData> currentLine = new List<CharData>();
@@ -160,7 +312,7 @@ namespace SoulEngine.Objects.Components
             for (int i = 0; i < Text.Length; i++)
             {
                 //Get the current character.
-                CharData current = new CharData(Text[i].ToString(), Color, offsetX, offsetY, Font);
+                CharData current = new CharData(Text[i].ToString(), Color, Font);
 
                 //Check if opening a tag.
                 if (current.Content == "<")
@@ -176,7 +328,7 @@ namespace SoulEngine.Objects.Components
                 //Apply effects.
                 for (int e = 0; e < tagStack.Count; e++)
                 {
-                    tagStack[e].Effect(current);
+                    current.Tags.Add(tagStack[e]);
                 }
 
                 //Define a trigger for forcing a new line.
@@ -194,7 +346,7 @@ namespace SoulEngine.Objects.Components
                         textBetweenCurrentCharAndNextSpace = Text.Substring(i + 1);
 
                     //Check if manual new line symbol is present between this and the next space.
-                    if(textBetweenCurrentCharAndNextSpace.IndexOf('\n') != -1)
+                    if (textBetweenCurrentCharAndNextSpace.IndexOf('\n') != -1)
                     {
                         textBetweenCurrentCharAndNextSpace = textBetweenCurrentCharAndNextSpace.Substring(0, textBetweenCurrentCharAndNextSpace.IndexOf('\n'));
                     }
@@ -211,18 +363,16 @@ namespace SoulEngine.Objects.Components
                 if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0))
                 {
                     //NEW LINE
-                    offsetX = 0;
-                    RenderLine(currentLine, offsetY, spaceOnLine);
-                    currentLine.Clear();
-                    offsetY += Font.MeasureString(" ").Y;
+                    linesCache.Add(new TextLine(currentLine, (int) spaceOnLine));
+                    spaceOnLine = AutoWidth ? Settings.Width : Width;
+                    currentLine = new List<CharData>();
                 }
                 else if (current.Content == "\n")
                 {
                     //NEW LINE
-                    offsetX = 0;
-                    RenderLine(currentLine, offsetY, spaceOnLine, true);
-                    currentLine.Clear();
-                    offsetY += Font.MeasureString(" ").Y;
+                    linesCache.Add(new TextLine(currentLine, (int)spaceOnLine, true));
+                    spaceOnLine = AutoWidth ? Settings.Width : Width;
+                    currentLine = new List<CharData>();
                 }
 
                 //Add the character to the current line.
@@ -232,72 +382,28 @@ namespace SoulEngine.Objects.Components
                 if (newLine)
                 {
                     //NEW LINE
-                    offsetX = 0;
-                    RenderLine(currentLine, offsetY, spaceOnLine);
-                    currentLine.Clear();
-                    offsetY += Font.MeasureString(" ").Y;
+                    linesCache.Add(new TextLine(currentLine, (int)spaceOnLine));
+                    spaceOnLine = AutoWidth ? Settings.Width : Width;
+                    currentLine = new List<CharData>();
                 }
                 else
                 {
-                    offsetX += Font.MeasureString(current.Content).X;
+                    spaceOnLine -= stringWidth(current.Content);
                 }
-
-                //Update the space on line variable.
-                spaceOnLine = Width - offsetX;
             }
 
             //Check if any characters are left to be rendered.
             if (currentLine.Count > 0)
             {
-                RenderLine(currentLine, offsetY, spaceOnLine);
+                linesCache.Add(new TextLine(currentLine, (int)spaceOnLine));
             }
 
-            //Stop composing.
-            Context.ink.EndRenderTarget();
-
-
-            //Set bounds cache.
-            Height = (int) (offsetY + Font.MeasureString(" ").Y);
-        }
-        /// <summary>
-        /// Draws the text texture that was composed based on cached data.
-        /// </summary>
-        public override void Draw()
-        {
-            //Check if empty texture, sometimes it happens.
-            if (Texture == null) return;
-
-            //Get some drawing properties.
-            int X = attachedObject.GetProperty("X", 0);
-            int Y = attachedObject.GetProperty("Y", 0);
-            SpriteEffects MirrorEffects = attachedObject.GetProperty("MirrorEffects", SpriteEffects.None);
-            int Width = attachedObject.GetProperty("Width", Texture.Width);
-            int Height = attachedObject.GetProperty("Height", Texture.Height);
-            float Rotation = attachedObject.GetProperty("Rotation", 0f);
-
-            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
-
-            //Correct bounds to center origin.
-            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
-                (DrawBounds.Y + DrawBounds.Height / 2)),
-                new Point(DrawBounds.Width, DrawBounds.Height));
-
-            //Draw the object through XNA's SpriteBatch.
-            Context.ink.Draw(Texture,
-                DrawBounds,
-                null,
-                Color * Opacity,
-                Rotation,
-                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
-                MirrorEffects,
-                1.0f);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public override void Update()
-        {
-
+            //Determine text sizes from cached data.
+            if(linesCache.Count > 0)
+            {
+                height = (int)(linesCache.Count * stringHeight());
+                width = stringWidth(linesCache.OrderByDescending(x => stringWidth(x.ToString())).First().ToString());
+            }
         }
         #endregion
 
@@ -311,62 +417,10 @@ namespace SoulEngine.Objects.Components
         {
             return (int) Math.Ceiling(Font.MeasureString(text).X);
         }
-        /// <summary>
-        /// Render the provided character data as a line.
-        /// </summary>
-        /// <param name="currentLine">The current line as a list of character data.</param>
-        /// <param name="offsetY">The vertical offset of the line.</param>
-        private void RenderLine(List<CharData> currentLine, float offsetY, float spaceOnLine, bool manualNewLine = false)
+
+        private int stringHeight()
         {
-            float offsetX = 0;
-            float wordSpacing = 0.1f;
-
-            string lineAsString = "";
-
-            for (int i = 0; i < currentLine.Count; i++)
-            {
-                lineAsString += currentLine[i].Content;
-            }
-
-            //Calculate style offsets.
-            switch (Style)
-            {
-                case TextStyle.Right:
-                    offsetX = spaceOnLine;
-                    break;
-                case TextStyle.Center:
-                    offsetX = spaceOnLine / 2;
-                    break;
-                case TextStyle.Justified:
-                    //If manually going to a new line then don't apply justification.
-                    if(!manualNewLine)
-                    {
-                        float lineWidth = Width - spaceOnLine;
-                        float a = lineAsString.Count(x => x == ' ');
-                        float b = wordSpacing * a;
-                        if (b != 0)
-                        {
-                            while (lineWidth + b < Width && wordSpacing < 5)
-                            {
-                                wordSpacing += 0.1f;
-                                b = wordSpacing * a;
-                            }
-                        }
-                    }
-                    break;
-                default:
-                    offsetX = 0;
-                    break;
-            }
-
-            //Render the line.
-            for (int i = 0; i < currentLine.Count; i++)
-            {
-                Context.ink.DrawString(Font, currentLine[i].Content, new Vector2(offsetX, offsetY), currentLine[i].Color);
-                offsetX += Font.MeasureString(currentLine[i].Content).X;
-                //Add word spacing if going to the next word.
-                if (currentLine[i].Content == " ") offsetX += wordSpacing;
-            }
+            return (int) Math.Ceiling(Font.MeasureString(" ").Y);
         }
 
         /// <summary>
@@ -411,7 +465,11 @@ namespace SoulEngine.Objects.Components
                 if (TagStack.Count > 0) TagStack.RemoveAt(TagStack.Count - 1);
             }
             else
-                TagStack.Add(TagFactory.Build(identifier, data));
+            {
+                Tag temp = TagFactory.Build(identifier.ToLower(), data);
+                if(temp != null) TagStack.Add(temp);
+            }
+                
         }
         #endregion
     }

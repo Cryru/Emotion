@@ -42,13 +42,13 @@ namespace SoulEngine.Objects
             }
         }
         /// <summary>
-        /// Returns all attached objects to the scene, clusters not included.
+        /// Returns the objects dictionary, read only.
         /// </summary>
-        public List<GameObject> AttachedObjects
+        public Dictionary<string, GameObject> AttachedObjects
         {
             get
             {
-                return Objects.Select(x => x.Value).ToList();
+                return Objects;
             }
         }
         #endregion
@@ -58,6 +58,9 @@ namespace SoulEngine.Objects
         /// </summary>
         public void SetupScene()
         {
+            //Check if allowed to setup a new scene.
+            if (!Context.Core.__sceneSetupAllowed) throw new Exception("Scene setup must be done by the core, to load a scene use Core.LoadScene(Scene).");
+
             //Setup assets loader and objects dictionary.
             Assets = new Assets();
             Objects = new Dictionary<string, GameObject>();
@@ -203,6 +206,7 @@ namespace SoulEngine.Objects
                         cluster.Value[i].Dispose();
                     }
                 }
+
                 ObjectClusters = null;
                 Objects = null;
 

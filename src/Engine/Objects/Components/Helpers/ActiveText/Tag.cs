@@ -33,7 +33,7 @@ namespace SoulEngine.Objects.Components.Helpers
         /// <summary>
         /// The character data mutation that will be applied on each character while the tag is considered active.
         /// </summary>
-        public abstract CharData Effect(CharData c);
+        public abstract CharData Effect(CharData c, DrawData d);
         #endregion
 
         /// <summary>

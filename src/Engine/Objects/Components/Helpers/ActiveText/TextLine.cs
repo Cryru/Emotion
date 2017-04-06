@@ -13,21 +13,31 @@ namespace SoulEngine.Objects.Components.Helpers
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Render data about a single character.
+    /// A cached list of CharData.
     /// </summary>
-    public class CharData
+    public class TextLine
     {
-        public Color Color;
-        public string Content;
-        public SpriteFont Font;
+        public List<CharData> Chars;
+        public bool Manual;
+        public int SpaceOnLine;
 
-        public List<Tag> Tags = new List<Tag>();
-
-        public CharData(string Content, Color Color, SpriteFont Font)
+        public TextLine(List<CharData> Chars, int SpaceOnLine, bool Manual = false)
         {
-            this.Content = Content;
-            this.Color = Color;
-            this.Font = Font;
+            this.Chars = Chars;
+            this.Manual = Manual;
+            this.SpaceOnLine = SpaceOnLine;
+        }
+
+        public override string ToString()
+        {
+            string temp = "";
+
+            for (int i = 0; i < Chars.Count; i++)
+            {
+                temp += Chars[i].Content;
+            }
+
+            return temp;
         }
     }
 }

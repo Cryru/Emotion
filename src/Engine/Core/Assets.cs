@@ -15,5 +15,5 @@ namespace SoulEngine
         {
              Content = new ContentManager(Context.Core.Content.ServiceProvider, Context.Core.Content.RootDirectory);
         }
-}
+    }
 }
