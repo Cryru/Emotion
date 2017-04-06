@@ -13,7 +13,7 @@ namespace SoulEngine.Scripting
     /// <summary>
     /// A script to be executed line by line.
     /// </summary>
-    class LineScript
+    public class LineScript
     {
         #region "Declarations"
         /// <summary>
