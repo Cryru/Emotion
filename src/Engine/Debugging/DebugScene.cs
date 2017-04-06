@@ -7,6 +7,7 @@ using SoulEngine.Objects;
 using SoulEngine.Events;
 using SoulEngine.Objects.Components;
 using Microsoft.Xna.Framework;
+using SoulEngine.Scripting;
 
 namespace SoulEngine.Debugging
 {
@@ -164,7 +165,7 @@ namespace SoulEngine.Debugging
             if (!consoleOpened) return;
 
             //Send input to the script engine to process.
-            consoleOutput = ScriptEngine.ExecuteScript(consoleInput).ToPrintString();
+            consoleOutput = ScriptEngine.ExecuteScript(consoleInput).ToString();
             previousInput = consoleInput;
             consoleInput = "";
 

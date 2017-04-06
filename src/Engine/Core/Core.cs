@@ -7,6 +7,7 @@ using SoulEngine.Objects.Components;
 using SoulEngine.Enums;
 using SoulEngine.Events;
 using SoulEngine.Debugging;
+using SoulEngine.Scripting;
 
 namespace SoulEngine
 {

@@ -98,7 +98,8 @@
     <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibConstants.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="src\Libraries\Input.cs" />
-    <Compile Include="src\Libraries\ScriptEngine.cs" />
+    <Compile Include="src\Libraries\Scripting\LineScript.cs" />
+    <Compile Include="src\Libraries\Scripting\ScriptEngine.cs" />
     <Compile Include="src\Libraries\Settings.cs" />
     <Compile Include="src\Engine\Meta\Info.cs" />
     <Compile Include="src\Engine\Objects\Components\ActiveTexture.cs" />
@@ -127,12 +128,14 @@
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Esprima">
+      <HintPath>src\Libraries\External\Scripting\Esprima.dll</HintPath>
+    </Reference>
+    <Reference Include="jint">
+      <HintPath>src\Libraries\External\Scripting\jint.dll</HintPath>
+    </Reference>
     <Reference Include="MonoGame.Framework">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\MonoGame.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>src\Libraries\External\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
     <Reference Include="SoulLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -207,7 +210,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="src\Libraries\External\MoonSharp.Interpreter.dll" />
     <Content Include="src\Libraries\External\Newtonsoft.Json.dll" />
     <Content Include="src\Libraries\External\SoulLib.dll" />
   </ItemGroup>
