@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("SoulEngine")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyDescription("A game engine based on the MonoGame Framework.")]
-[assembly: AssemblyCompany("SM")]
+[assembly: AssemblyCompany("Soul")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("Cryru")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("130F150C-0000-0000-0000-050E07090E05")]
+[assembly: Guid("536F756C-456E-6769-6E65-203230313700")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -19,7 +19,7 @@ namespace SoulEngine.Objects.Components.Helpers.Tags
         {
         }
 
-        public override CharData Effect(CharData c)
+        public override CharData Effect(CharData c, DrawData d)
         {
             c.Color = new Microsoft.Xna.Framework.Color().fromString(Data);
             return c;

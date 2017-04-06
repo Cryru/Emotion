@@ -51,9 +51,3 @@ obj
 Network Trash Folder
 Temporary Items
 .apdisk
-
-#SoulEngine Junk
-*.soul
-
-#Node Junk
-node_modules

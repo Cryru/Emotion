@@ -249,8 +249,6 @@ namespace SoulEngine.Objects.Components
             //Check if the animation is finished.
             if (finished) return;
 
-            Debugging.DebugScene.debugText[0] = _Frame.ToString();
-
             //Add the time passed to the inner variable and switch the frame if enough time has passed.
             timePassed += Context.Core.frameTime;
             if(timePassed > Delay)

@@ -103,7 +103,11 @@ namespace SoulEngine.Enums
         /// <summary>
         /// Each line of text is stretched to be somewhat the same width creating a box effect.
         /// </summary>
-        Justified
+        Justified,
+        /// <summary>
+        /// Each line of text is stretched to be somewhat the same width creating a box effect, and the text is centered inside the box.
+        /// </summary>
+        JustifiedCenter
     }
 
     /// <summary>

@@ -18,9 +18,26 @@ namespace SoulEngine.Events
     {
         #region "Queues"
         /// <summary>
-        /// 
+        /// The list of event listeners.
         /// </summary>
-        private static List<Listen> ListenerQueue = new List<Listen>();
+        public static List<Listen> ListenerQueue
+        {
+            get
+            {
+                return _ListenerQueue;
+            }
+        }
+        private static List<Listen> _ListenerQueue = new List<Listen>();
+
+        /// <summary>
+        /// The list of event listeners that belong to the system.
+        /// </summary>
+        private static List<Listen> SystemListenerQueue = new List<Listen>();
+
+        /// <summary>
+        /// Whether to add new listeners to the system queue.
+        /// </summary>
+        public static bool AddSystemListeners = true;
         #endregion
 
         #region "Adding"
@@ -35,6 +52,7 @@ namespace SoulEngine.Events
 
             //Get listeners for the current event type.
             List<Listen> matches = ListenerQueue.Where((x, y) => x.Type == Event.Type).ToList().ToList();
+            matches.AddRange(SystemListenerQueue.Where((x, y) => x.Type == Event.Type).ToList().ToList());
             //Invoke them.
             for (int i = 0; i < matches.Count; i++)
             {
@@ -47,7 +65,7 @@ namespace SoulEngine.Events
         /// <param name="Listen">The listener to add.</param>
         public static void Add(Listen Listen)
         {
-            ListenerQueue.Add(Listen);
+            if(AddSystemListeners) SystemListenerQueue.Add(Listen); else ListenerQueue.Add(Listen);
         }
         #endregion
         #region "Removing"

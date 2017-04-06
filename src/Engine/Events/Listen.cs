@@ -100,7 +100,7 @@ namespace SoulEngine.Events
                 return;
 
             //Check if waiting for a specific sender.
-            if((TargetedSender != null && TargetedSender == Event.Sender) || (TargetedSender == null && Type == Event.Type))
+            if((TargetedSender != null && TargetedSender.Equals(Event.Sender)) || (TargetedSender == null))
             {
                 if (ListenerActionWithNoEvent == null) ListenerAction.Invoke(Event); else ListenerActionWithNoEvent.Invoke();
             }

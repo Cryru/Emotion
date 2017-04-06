@@ -277,6 +277,8 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Draw()
         {
+            if (map == null) return;
+
             DrawLayers(0, map.Layers.Count - 1);
         }
 

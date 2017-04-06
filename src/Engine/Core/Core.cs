@@ -39,6 +39,10 @@ namespace SoulEngine
         /// Used to check whether composing is done properly.
         /// </summary>
         public bool __composeAllowed = false;
+        /// <summary>
+        /// Used to prevent scenes being loaded outside of the queue system.
+        /// </summary>
+        public bool __sceneSetupAllowed = false;
         #endregion
         #endregion
 
@@ -87,6 +91,9 @@ namespace SoulEngine
             //Continue the start sequence.
             Starter.ContinueStart();
 
+            //Setup the scripting engine.
+            ScriptEngine.SetupScripting();
+
             //Load global resources.
             AssetManager.LoadGlobal();
 
@@ -99,6 +106,9 @@ namespace SoulEngine
 
             //Load the debugging scene.
             if (Settings.Debug) DebugScene.Setup();
+
+            //Signify that we don't expect any more system event listeners.
+            ESystem.AddSystemListeners = false;
         }
         #endregion
 
@@ -185,8 +195,14 @@ namespace SoulEngine
             Scene = sceneLoadQueue;
             sceneLoadQueue = null;
 
+            //Allow scene loading.
+            __sceneSetupAllowed = true;
+
             //Initiate inner setup.
             Scene.SetupScene();
+
+            //Disallow scene loading.
+            __sceneSetupAllowed = false;
         }
         #endregion
 

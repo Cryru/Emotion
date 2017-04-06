@@ -49,6 +49,16 @@ namespace SoulEngine
         /// The list of components attached to this object. Accessed through functions.
         /// </summary>
         private List<Component> Components = new List<Component>();
+        /// <summary>
+        /// Returns the number of components attached to the object.
+        /// </summary>
+        public int ComponentCount
+        {
+            get
+            {
+                return Components.Count;
+            }
+        }
         #endregion
 
         /// <summary>
