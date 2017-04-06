@@ -6,33 +6,38 @@
 
 ## What is it?
 
-SoulEngine is a 2D Monogame based game engine based on the idea of low level code writing, flexibiliy, and DIY, as opposed to the script based, high level tool approach big engines have. Despite this, the point is not to complicate development, but rather make it easier and simpler without losing control. The end goal is to shorten the time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
+SoulEngine is a 2D Monogame based game engine based on the idea of low level code writing, flexibiliy, and DIY, as opposed to the script based, high level, tool approach big engines have. Despite this, the point is not to complicate development, but rather make it easier and simpler while maintaining control. The end goal is to shorten the time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
 
-While I try to update the engine as often as possible, that is not always possible as life gets in the way, so most of the big changes and rewrites are left to big yearly (which sometimes span an entire year) updates. Currently version 2017 is in development, but older versions can be found here:
+## Updates
+
+While I try to update the engine as often as possible, that is not always possible as life gets in the way, so most of the big changes and rewrites are left to big yearly updates. This year's version can be found here and is in development, while older versions can be found at these links:
 
 * [SoulEngine 2016](https://github.com/Cryru/SoulEngine-2016)
 * [SoulEngine 2016 Android](https://github.com/Cryru/SoulEngine-2016-Android)
 
-## New Version's Idea
+## This Year's Idea
 
-SoulEngine 2016 wasn't based on any particular idea and was pretty much over all the place. The 2017 version's philosophy is based on an entity-component system similar to the one Unity3D has, as well as a single "Scene", as opposed to the old Photoshop-like layer model.
+SoulEngine 2016 wasn't based on any particular idea and was pretty much over all the place. The 2017 version's philosophy is based on an entity-component system, as well as a single loaded "Scene", as opposed to the old Photoshop-like layer model.
 
 ## Features and Progress
 
 - Object-Component System [&#10003;]
-- Simple Animated Textures
-- Asset Loading and Unloading Manager
+- Simple Animated Textures [&#10003;]
+- Easy and Efficient Asset Loading [&#10003;]
 - Scene System [&#10003;]
 - Unified Event System [&#10003;]
-- Tiled Integration
+- Tiled Integration [&#10003;] (Thanks TiledSharp)
 - FPS Independent Timing [&#10003;]
 - Asset Tampering Protection [&#10003;]
 - Camera System [&#10003;]
 - Resolution Adaptation with Boxing [&#10003;]
-- JSON Based File Management (For Settings, Save Files etc.)
-- Error Logging
+- JSON Based File Management (For Settings, Save Files etc.) [&#10003;]
+- Error Logging [&#10003;]
+- Debugging Console [&#10003;]
+- Multi-Channel Sound
 - Custom Text Rendering with Markup [&#10003;]
-- Legacy Support for SoulEngine 2016
+- Scripting Support [&#10003;]
+- Documentation
 and more...
 
 ## Projects For SoulEngine
