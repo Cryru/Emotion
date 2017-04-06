@@ -3,27 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MoonSharp;
-using MoonSharp.Interpreter;
-using MoonSharp.Interpreter.Interop;
+using Jint;
+using Jint.Native;
 
-namespace SoulEngine
+namespace SoulEngine.Scripting
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Used to run LUA scripts.
-    /// Uses MoonSharp - Public Repository: https://github.com/xanathar/moonsharp
+    /// Used to run javascript.
+    /// Uses Jint - Public Repository: https://github.com/sebastienros/jint
     /// </summary>
     public static class ScriptEngine
     {
         #region "Declarations"
         /// <summary>
-        /// The MoonSharp lua engine.
+        /// The jint engine.
         /// </summary>
-        private static Script Interpreter = new Script();
+        public static Engine Interpreter = new Engine();
         /// <summary>
         /// List of exposed functions.
         /// </summary>
@@ -45,28 +44,28 @@ namespace SoulEngine
             ExposeFunction("autoReturn", (Func<bool, string>) autoReturn);
             ExposeFunction("getLog", (Func<string>) getLog);
             ExposeFunction("help", (Func<string>) help);
-            UserData.RegistrationPolicy = InteropRegistrationPolicy.Automatic;
         }
 
         /// <summary>
         /// Executes the provided line of script.
         /// </summary>
         /// <param name="Script">The script to execute as a string.</param>
-        public static DynValue ExecuteScript(string Script)
+        public static JsValue ExecuteScript(string Script)
         {
+            
             try
             {
                 //Run the script and append a return if specified.
-                return Interpreter.DoString(returnAll ? "return " + Script : Script);
+                return Interpreter.Execute(Script).GetCompletionValue();
             }
             catch (Exception e)
             {
-                return DynValue.NewString("<color=#f44b42>" + e.Message + "</>\nFunctions you can use:\n" + help());
+                return JsValue.FromObject(Interpreter, "<color=#f44b42>" + e.Message + "</>\nFunctions you can use:\n" + help());
             }
         }
 
         /// <summary>
-        /// Exposes a function to be used by the lia script interpreter.
+        /// Exposes a function to be used by the javascript interpreter.
         /// </summary>
         /// <param name="Name">The name the function will be called by in the script.</param>
         /// <param name="Function">The func object to register.</param>
@@ -84,14 +83,14 @@ namespace SoulEngine
 
             exposedFunctions.Add("<color=#f2a841>" + Name + "</><color=#6bdd52>" + functionType + "</>");
 
-            Interpreter.Globals[Name] = Function;
+            Interpreter.SetValue(Name, Function);
         }
 
         /// <summary>
         /// Returns a colored script message.
         /// </summary>
         /// <param name="msg">The message to color.</param>
-        public static string ScriptMessage(string msg)
+        private static string ScriptMessage(string msg)
         {
             return "<color=#42f4cb>" + msg + "</>";
         }
