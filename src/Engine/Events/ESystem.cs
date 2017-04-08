@@ -20,19 +20,12 @@ namespace SoulEngine.Events
         /// <summary>
         /// The list of event listeners.
         /// </summary>
-        public static List<Listen> ListenerQueue
-        {
-            get
-            {
-                return _ListenerQueue;
-            }
-        }
-        private static List<Listen> _ListenerQueue = new List<Listen>();
+        public static List<Listen> ListenerQueue = new List<Listen>();
 
         /// <summary>
         /// The list of event listeners that belong to the system.
         /// </summary>
-        private static List<Listen> SystemListenerQueue = new List<Listen>();
+        public static List<Listen> SystemListenerQueue = new List<Listen>();
 
         /// <summary>
         /// Whether to add new listeners to the system queue.

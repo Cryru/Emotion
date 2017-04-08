@@ -26,12 +26,12 @@ namespace SoulEngine.Debugging
         private static GameObject console;
         private static string consoleInput = "";
         private static string previousInput = "";
-        private static string consoleOutput = "<color=#b642f4>" + Info.Name + " " + Info.Version + "</> {" + Info.GUID + "}";
+        private static string consoleOutput = Info.getInfo();
         private static string consoleBlinker = "|";
         private static Ticker consoleBlinkTicker;
 
         //Console
-        private static bool consoleOpened = false;
+        public static bool consoleOpened = false;
 
         /// <summary>
         /// Setups the scene as the current scene.
@@ -57,6 +57,7 @@ namespace SoulEngine.Debugging
             UpdateConsoleText();
             consoleBlinkTicker = new Ticker(500, -1, true);
 
+            ESystem.Add(new Listen(">>>DEBUG LISTENERS<<<", Update));
             ESystem.Add(new Listen(EType.GAME_TICKSTART, Update));
             ESystem.Add(new Listen(EType.GAME_FRAMESTART, Compose));
             ESystem.Add(new Listen(EType.GAME_FRAMEEND, DrawHook));

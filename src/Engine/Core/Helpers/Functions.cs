@@ -166,6 +166,89 @@ namespace SoulEngine
         }
         #endregion
 
+        #region "Ink Primitives Drawing"
+        /// <summary>
+        /// Draws a hollow rectangle.
+        /// </summary>
+        /// <param name="Rectangle">The rectangle to draw.</param>
+        /// <param name="Width">The width of the outline.</param>
+        /// <param name="Color">The color of the outline.</param>
+        static public void DrawRectangle(this SpriteBatch ink, Rectangle Rectangle, int Width = 1, Color Color = new Color())
+        {
+            if (Color == new Color()) Color = Color.White;
+
+            //Draw the sides as lines.
+            Context.ink.DrawLine(new Vector2(Rectangle.X, Rectangle.Y), new Vector2(Rectangle.Width, Rectangle.Y), Width, Color);
+            Context.ink.DrawLine(new Vector2(Rectangle.Width, Rectangle.Y), new Vector2(Rectangle.Width, Rectangle.Height), Width, Color);
+            Context.ink.DrawLine(new Vector2(Rectangle.Width, Rectangle.Height), new Vector2(Rectangle.X, Rectangle.Height), Width, Color);
+            Context.ink.DrawLine(new Vector2(Rectangle.X, Rectangle.Height), new Vector2(Rectangle.X, Rectangle.Y), Width, Color);
+        }
+
+        /// <summary>
+        /// Draws a hollow circle.
+        /// </summary>
+        /// <param name="Center">The center of the circle.</param>
+        /// <param name="Radius">The radius of the circle.</param>
+        /// <param name="Width">The width of the outline.</param>
+        /// <param name="Color">The color of the outline.</param>
+        /// <param name="Detail">How smooth the circle should be.</param>
+        public static void DrawCircle(this SpriteBatch ink, Vector2 Center, float Radius, int Width = 1, Color Color = new Color(), int Detail = 64)
+        {
+            if (Color == new Color()) Color = Color.White;
+
+            //Build a circle polygon based on the requested detail and draw it as a polygon.
+            Vector2[] vertex = new Vector2[Detail];
+
+            double increment = Math.PI * 2.0 / Detail;
+            double theta = 0.0;
+
+            for (int i = 0; i < Detail; i++)
+            {
+                vertex[i] = Center + Radius * new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta));
+                theta += increment;
+            }
+
+            Context.ink.DrawPolygon(vertex, Width, Color);
+        }
+
+        /// <summary>
+        /// Draws a hollow polygon shape.
+        /// </summary>
+        /// <param name="Vertex">The vertex of the polygon.</param>
+        /// <param name="Width">The width of the outline.</param>
+        /// <param name="Color">The color of the outline.</param>
+        public static void DrawPolygon(this SpriteBatch ink, Vector2[] Vertex, int Width = 1, Color Color = new Color())
+        {
+            if (Vertex.Length > 0)
+            {
+                for (int i = 0; i < Vertex.Length - 1; i++)
+                {
+                    Context.ink.DrawLine(Vertex[i], Vertex[i + 1], Width, Color);
+                }
+                Context.ink.DrawLine(Vertex[Vertex.Length - 1], Vertex[0], Width, Color);
+            }
+        }
+
+        /// <summary>
+        /// Draws a line between two points.
+        /// </summary>
+        /// <param name="Start"></param>
+        /// <param name="End"></param>
+        /// <param name="Width"></param>
+        /// <param name="Color"></param>
+        public static void DrawLine(this SpriteBatch ink, Vector2 Start, Vector2 End, int Width = 1, Color Color = new Color())
+        {
+            if (Color == new Color()) Color = Color.White;
+
+            //To draw a line we stretch and rotate a texture.
+            Vector2 edge = End - Start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+            float length = Vector2.Distance(Start, End);
+
+            Context.ink.Draw(AssetManager.BlankTexture, Start, null, Color, angle, Vector2.Zero, new Vector2(length, Width), SpriteEffects.None, 0f);
+        }
+        #endregion
+
         #region "Others"
         /// <summary>
         /// Defines or redefines the provided render target to it's specified dimensions.

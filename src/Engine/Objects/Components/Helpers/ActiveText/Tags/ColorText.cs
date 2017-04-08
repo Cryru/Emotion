@@ -13,9 +13,9 @@ namespace SoulEngine.Objects.Components.Helpers.Tags
     /// <summary>
     /// Colors the character in the color specified in the data.
     /// </summary>
-    class Color : Tag
+    class ColorText : Tag
     {
-        public Color(string Data) : base(Data)
+        public ColorText(string Data) : base(Data)
         {
         }
 
