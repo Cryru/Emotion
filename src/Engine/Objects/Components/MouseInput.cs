@@ -90,7 +90,7 @@ namespace SoulEngine.Objects.Components
             }
 
             //Check if mouse is clicked now that we have determined the focus is on us.
-            if (Input.isLeftClickDown()) return Enums.MouseInputStatus.MouseOvered; else return Enums.MouseInputStatus.Clicked;
+            if (Input.isLeftClickDown()) return Enums.MouseInputStatus.Clicked; else return Enums.MouseInputStatus.MouseOvered;
         }
         #endregion
 

@@ -258,6 +258,7 @@ namespace SoulEngine
                     Components.Clear();
                     Components = null;
                 }
+                Events.ESystem.Remove(this);
 
                 //Set disposing flag.
                 disposedValue = true;
@@ -270,6 +271,11 @@ namespace SoulEngine
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
+        }
+
+        ~GameObject()
+        {
+            Dispose();
         }
         #endregion
 

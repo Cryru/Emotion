@@ -95,10 +95,6 @@ namespace SoulEngine.Events
             //Check if broken listener.
             if (ListenerAction != null && ListenerActionWithNoEvent != null) throw new Exception("Invalid event listener, ");
 
-            //Check if reached trigger limit.
-            if (_timesTriggered >= TriggerCount && TriggerCount != -1)
-                return;
-
             //Check if waiting for a specific sender.
             if((TargetedSender != null && TargetedSender.Equals(Event.Sender)) || (TargetedSender == null))
             {
@@ -107,6 +103,13 @@ namespace SoulEngine.Events
 
             //Increment trigger count.
             _timesTriggered++;
+
+            //Check if reached trigger limit.
+            if (_timesTriggered >= TriggerCount && TriggerCount != -1)
+            {
+                ESystem.Remove(this);
+                return;
+            }
         }
     }
 }

@@ -86,9 +86,6 @@ namespace SoulEngine
             //Setup the window manager.
             WindowManager.Initialize();
 
-            //Connect system events.
-            SystemEvents.ConnectSystemEvents();
-
             //Continue the start sequence.
             Starter.ContinueStart();
 

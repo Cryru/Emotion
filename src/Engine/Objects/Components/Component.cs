@@ -50,7 +50,7 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //Free resources.
-                SoulEngine.Events.ESystem.Remove(this);
+                Events.ESystem.Remove(this);
                 attachedObject = null;
 
                 //Set disposing flag.
@@ -66,5 +66,10 @@ namespace SoulEngine.Objects.Components
             // GC.SuppressFinalize(this);
         }
         #endregion
+
+        ~Component()
+        {
+            Dispose(false);
+        }
     }
 }

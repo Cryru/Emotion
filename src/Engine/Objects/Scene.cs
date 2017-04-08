@@ -51,6 +51,20 @@ namespace SoulEngine.Objects
                 return Objects;
             }
         }
+        /// <summary>
+        /// Returns the object cluster dictionary, read only.
+        /// </summary>
+        public Dictionary<string, List<GameObject>> AttachedClusters
+        {
+            get
+            {
+                return ObjectClusters;
+            }
+        }
+        /// <summary>
+        /// Queue of actions to do on the next update.
+        /// </summary>
+        private List<string> queue = new List<string>();
         #endregion
 
         /// <summary>
@@ -76,6 +90,32 @@ namespace SoulEngine.Objects
         /// </summary>
         public void UpdateHook()
         {
+            //Execute queued actions.
+            for (int i = 0; i < queue.Count; i++)
+            {
+                string[] actions = queue[i].Split(':');
+                
+                //Determine action
+                switch(actions[0])
+                {
+                    case "remove-obj":
+                        Objects.Remove(actions[1]);
+                        break;
+                    case "remove-cluster":
+                        ObjectClusters.Remove(actions[1]);
+                        break;
+                    case "clean-cluster":
+                        for (int o = 0; o < ObjectClusters[actions[1]].Count; o++)
+                        {
+                            ObjectClusters[actions[1]][o].Dispose();
+                        }
+                        ObjectClusters[actions[1]].Clear();
+                        break;
+                }
+            }
+            queue.Clear();
+
+
             //Run the scene's update code.
             Update();
 
@@ -131,7 +171,7 @@ namespace SoulEngine.Objects
         /// <param name="Label">The label of the object you want to remove, case insensitive.</param>
         public void RemoveObject(string Label)
         {
-            Objects.Remove(Label.ToLower());
+            if(Objects.ContainsKey(Label)) queue.Add("remove-obj:" + Label.ToLower());
         }
         /// <summary>
         /// Returns the object marked with the specified label.
@@ -156,7 +196,15 @@ namespace SoulEngine.Objects
         /// <param name="Label">The label of the object you want to remove, case insensitive.</param>
         public void RemoveCluster(string Label)
         {
-            ObjectClusters.Remove(Label.ToLower());
+            if (ObjectClusters.ContainsKey(Label)) queue.Add("remove-cluster:" + Label.ToLower());
+        }
+        /// <summary>
+        /// Clears a cluster.
+        /// </summary>
+        /// <param name="Label">The label of the object you want to clear, case insensitive.</param>
+        public void CleanCluster(string Label)
+        {
+            if (ObjectClusters.ContainsKey(Label)) queue.Add("clean-cluster:" + Label.ToLower());
         }
         /// <summary>
         /// Returns the cluster marked with the specified label.
