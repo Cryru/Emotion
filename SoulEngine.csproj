@@ -75,8 +75,8 @@
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\Event.cs" />
     <Compile Include="src\Engine\Events\Listen.cs" />
-    <Compile Include="src\Engine\Events\SystemEvents.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
+    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TextLine.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\ImageLayer.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\Layer.cs" />
@@ -109,7 +109,6 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tag.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TagFactory.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Border.cs" />
-    <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Color.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileObject.cs" />
     <Compile Include="src\Engine\Objects\Components\MouseInput.cs" />
@@ -213,7 +212,9 @@
     <Content Include="src\Libraries\External\Newtonsoft.Json.dll" />
     <Content Include="src\Libraries\External\SoulLib.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="src\User\Custom\Tags\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
