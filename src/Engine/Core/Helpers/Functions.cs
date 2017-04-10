@@ -26,6 +26,19 @@ namespace SoulEngine
         {
             return new Vector2(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
         }
+
+        /// <summary>
+        /// Returns the number that corresponds to the provided number scaled by the current resolution.
+        /// </summary>
+        /// <param name="NumToScale">The number to scale.</param>
+        /// <param name="DefaultSize">The smaller side of the default resolution.</param>
+        /// <returns></returns>
+        public static int ManualRatio(int NumToScale, int DefaultSize)
+        {
+            int smallerNum = Math.Min(Settings.Width, Settings.Height);
+
+            return (NumToScale * smallerNum) / DefaultSize;
+        }
         #endregion
 
         #region "Extensions"
@@ -283,6 +296,14 @@ namespace SoulEngine
             writer.Flush();
             stream.Position = 0;
             return stream;
+        }
+
+        /// <summary>
+        /// Returns a randomly generated number.
+        /// </summary>
+        public static int generateRandomNumber(int Min = 0, int Max = 100)
+        {
+            return 4; // Decided by a fair dice roll.
         }
         #endregion
     }

@@ -26,9 +26,12 @@ namespace SoulEngine.Debugging
         private static GameObject console;
         private static string consoleInput = "";
         private static string previousInput = "";
-        private static string consoleOutput = Info.getInfo();
+        private static string consoleOutput = Info.getInfo() + "\n" + 
+            "Start typing and press Enter to execute code. To scroll use PageUp and PageDown." + "\n" +
+            "Use the arrows to navigate and the Up arrow to repeat the previous command.";
         private static string consoleBlinker = "|";
         private static Ticker consoleBlinkTicker;
+        private static int blinkerLocation = 0;
 
         //Console
         public static bool consoleOpened = false;
@@ -40,24 +43,28 @@ namespace SoulEngine.Debugging
         {
             stats = GameObject.GenericTextObject;
 
+            stats.AddComponent(new ActiveTexture(AssetManager.BlankTexture));
+            stats.Component<ActiveTexture>().Opacity = 0.5f;
+            stats.Component<ActiveTexture>().Tint = Color.Black;
+
             stats.Component<ActiveText>().AutoHeight = true;
             stats.Component<ActiveText>().AutoWidth = true;
+            stats.Component<ActiveText>().Padding = new Vector2(Functions.ManualRatio(3, 540), Functions.ManualRatio(3, 540));
 
             console = GameObject.GenericTextObject;
             console.AddComponent(new ActiveTexture());
-
             console.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
             console.Component<ActiveTexture>().Tint = Color.Black;
             console.Component<ActiveTexture>().Opacity = 0.5f;
+            console.Component<ActiveText>().Style = Enums.TextStyle.JustifiedCenter;
 
             console.Component<Transform>().Width = Settings.Width;
             console.Component<Transform>().Height = Settings.Height / 2;
             console.Component<Transform>().Y = Settings.Height - console.Component<Transform>().Height;
 
-            UpdateConsoleText();
-            consoleBlinkTicker = new Ticker(500, -1, true);
+            consoleBlinkTicker = new Ticker(300, -1, true);
 
-            ESystem.Add(new Listen(">>>DEBUG LISTENERS<<<", Update));
+            ESystem.Add(new Listen("---DEBUG LISTENERS---", Update));
             ESystem.Add(new Listen(EType.GAME_TICKSTART, Update));
             ESystem.Add(new Listen(EType.GAME_FRAMESTART, Compose));
             ESystem.Add(new Listen(EType.GAME_FRAMEEND, DrawHook));
@@ -65,8 +72,15 @@ namespace SoulEngine.Debugging
             ESystem.Add(new Listen(EType.KEY_PRESSED, ToggleConsole, Microsoft.Xna.Framework.Input.Keys.OemTilde));
             ESystem.Add(new Listen(EType.KEY_PRESSED, ExecuteConsole, Microsoft.Xna.Framework.Input.Keys.Enter));
             ESystem.Add(new Listen(EType.KEY_PRESSED, ConsolePreviousInput, Microsoft.Xna.Framework.Input.Keys.Up));
+            ESystem.Add(new Listen(EType.KEY_PRESSED, MoveBlinkerLeft, Microsoft.Xna.Framework.Input.Keys.Left));
+            ESystem.Add(new Listen(EType.KEY_PRESSED, MoveBlinkerRight, Microsoft.Xna.Framework.Input.Keys.Right));
+            ESystem.Add(new Listen(EType.KEY_PRESSED, ScrollUp, Microsoft.Xna.Framework.Input.Keys.PageUp));
+            ESystem.Add(new Listen(EType.KEY_PRESSED, ScrollDown, Microsoft.Xna.Framework.Input.Keys.PageDown));
             ESystem.Add(new Listen(EType.INPUT_TEXT, ConsoleInput));
             ESystem.Add(new Listen(EType.TICKER_TICK, ConsoleBlinkToggle, consoleBlinkTicker));
+            ESystem.Add(new Listen("---DEBUG LISTENERS END---", Update));
+
+            Logger.Add("Debugging enabled!");
         }
         #region "Hooks"
         /// <summary>
@@ -74,13 +88,14 @@ namespace SoulEngine.Debugging
         /// </summary>
         private static void Update()
         {
-            stats.Component<Transform>().Width = stats.Component<ActiveText>().Width;
-            stats.Component<Transform>().Height = stats.Component<ActiveText>().Height;
+            stats.Component<Transform>().Width = stats.Component<ActiveText>().Width + Functions.ManualRatio(6, 540);
+            stats.Component<Transform>().Height = stats.Component<ActiveText>().Height + Functions.ManualRatio(6, 540);
 
             stats.Component<ActiveText>().Text = Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
-                "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>";
+                "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
 
             stats.Update();
+
             if (consoleOpened) console.Update();
         }
         /// <summary>
@@ -141,6 +156,7 @@ namespace SoulEngine.Debugging
         private static void ToggleConsole()
         {
             consoleOpened = !consoleOpened;
+            console.Component<ActiveText>().ScrollBottom();
         }
         /// <summary>
         /// Accepts text input to display to the console.
@@ -150,16 +166,25 @@ namespace SoulEngine.Debugging
         {
             if (!consoleOpened || (string) e.Data == "`") return;
 
-            if ((string)e.Data != "\b") consoleInput += e.Data;
+            if ((string)e.Data != "\b")
+            {
+                consoleInput = consoleInput.Substring(0, blinkerLocation) + e.Data + consoleInput.Substring(blinkerLocation);
+                blinkerLocation++;
+            }
             else
             {
-                if(consoleInput.Length != 0) consoleInput = consoleInput.Substring(0, consoleInput.Length - 1);
+                if (consoleInput.Length != 0 && blinkerLocation > 0)
+                {
+                    consoleInput = consoleInput.Substring(0, blinkerLocation - 1) + consoleInput.Substring(blinkerLocation);
+                    blinkerLocation--;
+                }
             }
 
+            console.Component<ActiveText>().ScrollBottom();
             UpdateConsoleText();
         }
         /// <summary>
-        /// Executes the console input through the LUA interpreter.
+        /// Executes the console input through the JS interpreter.
         /// </summary>
         private static void ExecuteConsole()
         {
@@ -171,13 +196,18 @@ namespace SoulEngine.Debugging
             consoleInput = "";
 
             UpdateConsoleText();
+
+            console.Component<ActiveText>().ScrollBottom();
         }
         /// <summary>
         /// Updates the text that the console displays.
         /// </summary>
         private static void UpdateConsoleText()
         {
-            console.Component<ActiveText>().Text = consoleOutput + "\n" + "> " + consoleInput + consoleBlinker;
+            if (blinkerLocation > consoleInput.Length) blinkerLocation = Math.Max(0, consoleInput.Length);
+
+            console.Component<ActiveText>().Text = consoleOutput + "\n" + "> " + consoleInput.Substring(0, blinkerLocation) + consoleBlinker + 
+                consoleInput.Substring(blinkerLocation);
         }
 
         /// <summary>
@@ -185,7 +215,7 @@ namespace SoulEngine.Debugging
         /// </summary>
         private static void ConsoleBlinkToggle()
         {
-            if (consoleBlinker == "|") consoleBlinker = ""; else consoleBlinker = "|";
+            if (consoleBlinker == "|") consoleBlinker = " "; else consoleBlinker = "|";
             UpdateConsoleText();
         }
 
@@ -197,6 +227,38 @@ namespace SoulEngine.Debugging
             if (!consoleOpened) return;
 
             consoleInput = previousInput;
+            blinkerLocation = previousInput.Length;
+        }
+
+        private static void MoveBlinkerRight()
+        {
+            blinkerLocation += 1;
+            consoleBlinker = " ";
+            UpdateConsoleText();
+        }
+
+        private static void MoveBlinkerLeft()
+        {
+            if(blinkerLocation != 0) blinkerLocation -= 1;
+            consoleBlinker = " ";
+            UpdateConsoleText();
+        }
+
+
+        private static void ScrollUp()
+        {
+            if (console.Component<ActiveText>().TextHeight <= console.GetProperty("Height", 0)) return;
+            if (console.Component<ActiveText>().Scroll.Y == 0) return;
+
+            console.Component<ActiveText>().ScrollLineUp();
+            UpdateConsoleText();
+        }
+
+        private static void ScrollDown()
+        {
+            if (console.Component<ActiveText>().Scroll.Y <= console.GetProperty("Height", 0) - console.Component<ActiveText>().TextHeight) return;
+            console.Component<ActiveText>().ScrollLineDown();
+            UpdateConsoleText();
         }
         #endregion
     }

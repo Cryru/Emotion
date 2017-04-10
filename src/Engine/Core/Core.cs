@@ -201,6 +201,9 @@ namespace SoulEngine
 
             //Disallow scene loading.
             __sceneSetupAllowed = false;
+
+            //Log the scene being loaded.
+            Logger.Add("Scene loaded: " + Context.Core.Scene.ToString().Replace("SoulEngine.", ""));
         }
         #endregion
 

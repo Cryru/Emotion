@@ -44,6 +44,14 @@ namespace SoulEngine.Objects.Components
         /// The opacity of the text.
         /// </summary>
         public float Opacity = 1f;
+        /// <summary>
+        /// The top and left padding of the text texture.
+        /// </summary>
+        public Vector2 Padding = new Vector2(0, 0);
+        /// <summary>
+        /// The scrolling of the text.
+        /// </summary>
+        public Vector2 Scroll = new Vector2(0, 0);
         #region "Bounds"
         /// <summary>
         /// The width of the text, based on the transform component's width if attached, and the screen's width if not.
@@ -96,9 +104,25 @@ namespace SoulEngine.Objects.Components
             }
         }
         /// <summary>
-        /// whether to draw in reverse, from bottom to top.
+        /// The height of the text.
         /// </summary>
-        public bool Reverse = false;
+        public int TextHeight
+        {
+            get
+            {
+                return height;
+            }
+        }
+        /// <summary>
+        /// The width of the text.
+        /// </summary>
+        public int TextWidth
+        {
+            get
+            {
+                return width;
+            }
+        }
         #endregion
         #endregion
         //Private variables.
@@ -107,6 +131,7 @@ namespace SoulEngine.Objects.Components
         private int height = 0;
         private int drawlimit = -1;
         private List<TextLine> linesCache;
+        private bool scrollBottom = false;
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -176,11 +201,23 @@ namespace SoulEngine.Objects.Components
             //Check if no cache.
             if (linesCache == null) return;
 
+            //Clear ending spaces.
+            for (int i = 0; i < linesCache.Count; i++)
+            {
+                if(linesCache[i].Chars[linesCache[i].Chars.Count - 1].Content == " ")
+                {
+                    linesCache[i].Chars.RemoveAt(linesCache[i].Chars.Count - 1);
+                    linesCache[i].SpaceOnLine += stringWidth(" ");
+                }
+            }
+
             //Start composing on the render target.
             Context.ink.StartRenderTarget(ref texture, Width, Height);
 
-            float offsetX = 0;
-            float offsetY = Reverse ? Height - stringHeight() : 0; //Set the Y offset to the bottom if going in reverse or the top if not.
+            //Apply scrolling.
+            float offsetX = Scroll.X;
+            float offsetY = Scroll.Y;
+
             int currentChar = 0;
             float firstLineJustifiedCenterOffset = 0;
 
@@ -189,6 +226,7 @@ namespace SoulEngine.Objects.Components
             {
                 //Determine beginning X offset based on the selected style.
                 int wordSpacing = 0;
+                int spaceLeftOnLine = Width - stringWidth(linesCache[y].ToString());
                 //---------------------------------------------------------------------------------------
                 switch (Style)
                 {
@@ -212,7 +250,7 @@ namespace SoulEngine.Objects.Components
                                  * if there will be enough space after we add one to the word spacing, and
                                  * if the wordspacing isn't getting too big.
                                 */
-                                while (linesCache[y].SpaceOnLine - b > 0 && linesCache[y].SpaceOnLine - ((wordSpacing + 1) * a) > 0)
+                                while (linesCache[y].SpaceOnLine - b >= 0 && linesCache[y].SpaceOnLine - ((wordSpacing + 1) * a) >= 0)
                                 {
                                     wordSpacing += 1;
                                     b = wordSpacing * a;
@@ -222,10 +260,10 @@ namespace SoulEngine.Objects.Components
 
                         //If this is the first line set the first line justification.
                         if (y == 0) firstLineJustifiedCenterOffset = (linesCache[0].SpaceOnLine - wordSpacing * a) / 2;
-                        if(Style == TextStyle.JustifiedCenter) offsetX = firstLineJustifiedCenterOffset;
+                        if (Style == TextStyle.JustifiedCenter) offsetX = firstLineJustifiedCenterOffset; else offsetX = Scroll.X;
                         break;
                     default:
-                        offsetX = 0;
+                        offsetX = Scroll.X;
                         break;
                 }
                 //---------------------------------------------------------------------------------------
@@ -253,7 +291,7 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //Move the Y offset to draw on a new line.
-                if(!Reverse) offsetY += stringHeight(); else offsetY -= stringHeight();
+                offsetY += stringHeight();
             }
 
             //Stop composing.
@@ -274,7 +312,12 @@ namespace SoulEngine.Objects.Components
             int Height = AutoHeight ? this.Height : Math.Min(attachedObject.GetProperty("Height", Texture.Height), Texture.Height);
             float Rotation = attachedObject.GetProperty("Rotation", 0f);
 
-            Rectangle DrawBounds = new Rectangle(X, Y, (int) Width, Height);
+            //Add padding.
+            X += (int)Padding.X;
+            Y += (int)Padding.Y;
+
+            //Generate bounds.
+            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
 
             //Correct bounds to center origin.
             DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
@@ -353,7 +396,7 @@ namespace SoulEngine.Objects.Components
 
 
                     //Check if there is no space on the line for the next word, in which case force a new line.
-                    if (spaceOnLine - stringWidth(" " + textBetweenCurrentCharAndNextSpace) < 0)
+                    if (spaceOnLine - stringWidth(" " + textBetweenCurrentCharAndNextSpace) <= 0)
                     {
                         newLine = true;
                     }
@@ -363,7 +406,7 @@ namespace SoulEngine.Objects.Components
                 if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0))
                 {
                     //NEW LINE
-                    linesCache.Add(new TextLine(currentLine, (int) spaceOnLine));
+                    linesCache.Add(new TextLine(currentLine, (int)spaceOnLine));
                     spaceOnLine = AutoWidth ? Settings.Width : Width;
                     currentLine = new List<CharData>();
                 }
@@ -399,11 +442,43 @@ namespace SoulEngine.Objects.Components
             }
 
             //Determine text sizes from cached data.
-            if(linesCache.Count > 0)
+            if (linesCache.Count > 0)
             {
-                height = (int)(linesCache.Count * stringHeight());
+                height = linesCache.Count * stringHeight();
                 width = stringWidth(linesCache.OrderByDescending(x => stringWidth(x.ToString())).First().ToString());
             }
+
+            //Check if a scroll to the bottom is queued.
+            if (scrollBottom)
+            {
+                Scroll = new Vector2(Scroll.X, Height - TextHeight);
+                scrollBottom = false;
+            }
+        }
+        #endregion
+
+        #region "Scroll Functions"
+        /// <summary>
+        /// Scrolls the text to the bottom.
+        /// </summary>
+        public void ScrollBottom()
+        {
+            //Scroll to the bottom on the next frame.
+            scrollBottom = true;
+        }
+        /// <summary>
+        /// Scrolls the text one line up.
+        /// </summary>
+        public void ScrollLineUp()
+        {
+            Scroll.Y += stringHeight();
+        }
+        /// <summary>
+        /// Scrolls the text one line down.
+        /// </summary>
+        public void ScrollLineDown()
+        {
+           Scroll.Y -= stringHeight();
         }
         #endregion
 
@@ -418,9 +493,9 @@ namespace SoulEngine.Objects.Components
             return (int) Math.Ceiling(Font.MeasureString(text).X);
         }
 
-        private int stringHeight()
+        private int stringHeight(string text = " ")
         {
-            return (int) Math.Ceiling(Font.MeasureString(" ").Y);
+            return (int) Math.Ceiling(Font.MeasureString(text).Y);
         }
 
         /// <summary>

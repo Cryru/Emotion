@@ -161,6 +161,8 @@ namespace SoulEngine.Objects
         /// <param name="Object">The object to add.</param>
         public void AddObject(string Label, GameObject Object)
         {
+            if (Objects.ContainsKey(Label)) Label += Functions.generateRandomNumber(1000, 9999);
+
             Objects.Add(Label.ToLower(), Object);
 
             Objects = Objects.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);

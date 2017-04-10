@@ -42,6 +42,7 @@ namespace SoulEngine
             List<Keys> keysDownNow = currentFrameKeyState.GetPressedKeys().ToList();
             List<Keys> keysDownBefore = lastFrameKeyState.GetPressedKeys().ToList();
 
+            //Check for keys being pressed and let go events.
             for (int i = 0; i < keysDownNow.Count; i++)
             {
                 if(keysDownBefore.IndexOf(keysDownNow[i]) == -1)
@@ -55,6 +56,27 @@ namespace SoulEngine
                 if (keysDownNow.IndexOf(keysDownBefore[i]) == -1)
                 {
                     ESystem.Add(new Event(EType.KEY_UNPRESSED, keysDownBefore[i]));
+                }
+            }
+
+            //Check for mouse move event.
+            if(currentFrameMouseState.Position != lastFrameMouseState.Position)
+            {
+                ESystem.Add(new Event(EType.MOUSE_MOVED, lastFrameMouseState.Position));
+            }
+
+            //Check for scrolling events.
+            if(currentFrameMouseState.ScrollWheelValue != lastFrameMouseState.ScrollWheelValue)
+            {
+                int scrollDif = lastFrameMouseState.ScrollWheelValue - currentFrameMouseState.ScrollWheelValue;
+
+                if(scrollDif < 0)
+                {
+                    ESystem.Add(new Event(EType.MOUSE_SCROLLUP, scrollDif));
+                }
+                else if(scrollDif > 0)
+                {
+                    ESystem.Add(new Event(EType.MOUSE_SCROLLDOWN, scrollDif));
                 }
             }
 

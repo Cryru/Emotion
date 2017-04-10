@@ -40,10 +40,12 @@ namespace SoulEngine.Scripting
         {
             //Add default functions.
             ExposeFunction("getListeners", (Func<string>) getListeners);
+            ExposeFunction("getSystemListeners", (Func<string>) getSystemListeners);
             ExposeFunction("getObjects", (Func<string>) getObjects);
             ExposeFunction("autoReturn", (Func<bool, string>) autoReturn);
             ExposeFunction("getLog", (Func<string>) getLog);
             ExposeFunction("help", (Func<string>) help);
+            ExposeFunction("loremipsum", (Func<string>) loremipsum);
         }
 
         /// <summary>
@@ -105,6 +107,14 @@ namespace SoulEngine.Scripting
             (x.TargetedSender != null ? "</> wants <color=#6bdd52>" + x.TargetedSender + "</>" : "</>")));
         }
         /// <summary>
+        /// Returns all currently attached listeners.
+        /// </summary>
+        private static string getSystemListeners()
+        {
+            return string.Join("\n", Events.ESystem.SystemListenerQueue.Select(x => "<color=#f2a841>" + x.Type +
+            (x.TargetedSender != null ? "</> wants <color=#6bdd52>" + x.TargetedSender + "</>" : "</>")));
+        }
+        /// <summary>
         /// Sets the "returnAll" variable.
         /// </summary>
         /// <param name="setting">The variable to set it to.</param>
@@ -134,6 +144,13 @@ namespace SoulEngine.Scripting
         private static string help()
         {
             return string.Join("\n", exposedFunctions);
+        }
+        /// <summary>
+        /// Returns a long lorem ipsum string for testing.
+        /// </summary>
+        private static string loremipsum()
+        {
+            return "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
         }
         #endregion
     }

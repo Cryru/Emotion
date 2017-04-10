@@ -308,6 +308,21 @@ namespace SoulEngine
             }
         }
 
+        /// <summary>
+        /// Generic object for mouse input.
+        /// </summary>
+        public static GameObject GenericUIObject
+        {
+            get
+            {
+                GameObject a = new GameObject();
+                a.AddComponent(new Transform());
+                a.AddComponent(new ActiveTexture());
+                a.AddComponent(new MouseInput());
+                a.Layer = ObjectLayer.UI;
+                return a;
+            }
+        }
         #endregion
     }
 }

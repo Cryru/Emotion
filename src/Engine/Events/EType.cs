@@ -71,13 +71,26 @@ namespace SoulEngine.Events
         #endregion
         #region "INPUT"
         /// <summary>
-        /// Triggered when a key is pressed.
+        /// Triggered when a key is pressed, the sender is the key.
         /// </summary>
         public const string KEY_PRESSED = "KEY_PRESSED";
         /// <summary>
-        /// Triggered when a key is let go.
+        /// Triggered when a key is let go, the sender is the key.
         /// </summary>
         public const string KEY_UNPRESSED = "KEY_UNPRESSED";
+        /// <summary>
+        /// Triggered when the mouse moves, the sender is the previous position, 
+        /// current position can be gotten from the Input library.
+        /// </summary>
+        public const string MOUSE_MOVED = "MOUSE_MOVED";
+        /// <summary>
+        /// Triggered when the mouse wheel is scrolled up, the sender is scroll difference.
+        /// </summary>
+        public const string MOUSE_SCROLLUP = "MOUSE_SCROLLUP";
+        /// <summary>
+        /// Triggered when the mouse wheel is scrolled down, the sender is scroll difference.
+        /// </summary>
+        public const string MOUSE_SCROLLDOWN = "MOUSE_SCROLLDOWN";
         #endregion
         #region "ANIMATION"
         /// <summary>
@@ -85,9 +98,9 @@ namespace SoulEngine.Events
         /// </summary>
         public const string ANIM_FINISHED = "ANIM_FINISHED";
         #endregion
-        #region "UI INPUT STATUS"
+        #region "MOUSE INPUT STATUS"
         /// <summary>
-        /// Triggered when the mouse enters the a mouse input component.
+        /// Triggered when the mouse enters a mouse input component.
         /// </summary>
         public const string MOUSEINPUT_ENTERED = "MOUSEINPUT_ENTERED";
         /// <summary>
@@ -102,6 +115,18 @@ namespace SoulEngine.Events
         /// Triggered when the mouse lets go a mouse input component.
         /// </summary>
         public const string MOUSEINPUT_CLICKUP = "MOUSEINPUT_CLICKUP";
+        /// <summary>
+        /// Triggered when the mouse moves inside a mouse input component, the data is the previous position.
+        /// </summary>
+        public const string MOUSEINPUT_MOVED = "MOUSEINPUT_MOVED";
+        /// <summary>
+        /// Triggered when the mouse wheel is scrolled up on the mouse input, the data is the scroll difference.
+        /// </summary>
+        public const string MOUSEINPUT_SCROLLUP = "MOUSEINPUT_SCROLLUP";
+        /// <summary>
+        /// Triggered when the mouse wheel is scrolled down on the mouse input, the data is the scroll difference.
+        /// </summary>
+        public const string MOUSEINPUT_SCROLLDOWN = "MOUSEINPUT_SCROLLDOWN";
         #endregion
     }
 }
