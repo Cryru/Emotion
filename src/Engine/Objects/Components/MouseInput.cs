@@ -31,6 +31,10 @@ namespace SoulEngine.Objects.Components
         #region "Private"
         private Enums.MouseInputStatus status = Enums.MouseInputStatus.None;
         private Enums.MouseInputStatus lastTickStatus = Enums.MouseInputStatus.None;
+        private Vector2 position;
+        private Vector2 lastTickPosition;
+        private int scrollPosition;
+        private int lastscrollPosition;
         #endregion
         #endregion
 
@@ -57,6 +61,38 @@ namespace SoulEngine.Objects.Components
                 status == Enums.MouseInputStatus.MouseOvered)
                 ESystem.Add(new Event(EType.MOUSEINPUT_CLICKUP, attachedObject));
 
+            //Check for moving.
+            position = Input.getMousePos();
+
+            if(Status != Enums.MouseInputStatus.None)
+            {
+                if(lastTickPosition != null && position != lastTickPosition)
+                {
+                    ESystem.Add(new Event(EType.MOUSEINPUT_MOVED, attachedObject, lastTickPosition));
+                }
+            }
+
+            lastTickPosition = position;
+
+            //Check for scrolling.
+            scrollPosition = Input.currentFrameMouseState.ScrollWheelValue;
+
+            if (Status != Enums.MouseInputStatus.None)
+            {
+                int scrollDif = lastscrollPosition - scrollPosition;
+
+                if (scrollDif < 0)
+                {
+                    ESystem.Add(new Event(EType.MOUSEINPUT_SCROLLUP, attachedObject, scrollDif));
+                }
+                else if (scrollDif > 0)
+                {
+                    ESystem.Add(new Event(EType.MOUSEINPUT_SCROLLDOWN, attachedObject, scrollDif));
+                }
+            }
+
+            lastscrollPosition = scrollPosition;
+
         }
         private Enums.MouseInputStatus UpdateStatus()
         {
@@ -77,7 +113,7 @@ namespace SoulEngine.Objects.Components
             List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
                 .Where(x => x.Layer == Enums.ObjectLayer.UI)
                 .Where(x => x.HasComponent<Transform>() == true)
-                .OrderBy(x => x.Priority).ToList();
+                .OrderByDescending(x => x.Priority).ToList();
 
             //Check if any objects are blocking this one.
             for (int i = 0; i < objects.Count; i++)

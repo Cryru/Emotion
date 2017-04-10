@@ -24,13 +24,12 @@ namespace SoulEngine
         #endregion
         public override void Start()
         {
-            Debugging.Logger.Add("Primary scene loaded");
-
+            
         }
 
         public override void Update()
         {
-
+            
         }
     }
 }
