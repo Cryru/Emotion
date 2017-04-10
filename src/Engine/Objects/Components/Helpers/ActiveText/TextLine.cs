@@ -17,16 +17,9 @@ namespace SoulEngine.Objects.Components.Helpers
     /// </summary>
     public class TextLine
     {
-        public List<CharData> Chars;
+        public List<CharData> Chars = new List<CharData>();
         public bool Manual;
-        public int SpaceOnLine;
-
-        public TextLine(List<CharData> Chars, int SpaceOnLine, bool Manual = false)
-        {
-            this.Chars = Chars;
-            this.Manual = Manual;
-            this.SpaceOnLine = SpaceOnLine;
-        }
+        public int SpaceLeft;
 
         public override string ToString()
         {

@@ -27,7 +27,18 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public string Text = "";
+        public string Text
+        {
+            get
+            {
+                return text;
+            }
+            set
+            {
+                text = value;
+                Update();
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -131,7 +142,7 @@ namespace SoulEngine.Objects.Components
         private int height = 0;
         private int drawlimit = -1;
         private List<TextLine> linesCache;
-        private bool scrollBottom = false;
+        private string text = "";
         #endregion
         #region "Processed Text Data"
         /// <summary>
@@ -154,7 +165,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public ActiveText()
         {
-            Text = "";
+            text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             DrawPriority = 1;
@@ -164,7 +175,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public ActiveText(string Text)
         {
-            this.Text = Text;
+            text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             DrawPriority = 1;
@@ -174,7 +185,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public ActiveText(string Text, SpriteFont Font)
         {
-            this.Text = Text;
+            text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
             DrawPriority = 1;
@@ -184,7 +195,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public ActiveText(string Text, SpriteFont Font, TextStyle Style)
         {
-            this.Text = Text;
+            text = Text;
             this.Font = Font;
             this.Style = Style;
             DrawPriority = 1;
@@ -200,16 +211,6 @@ namespace SoulEngine.Objects.Components
         {
             //Check if no cache.
             if (linesCache == null) return;
-
-            //Clear ending spaces.
-            for (int i = 0; i < linesCache.Count; i++)
-            {
-                if(linesCache[i].Chars[linesCache[i].Chars.Count - 1].Content == " ")
-                {
-                    linesCache[i].Chars.RemoveAt(linesCache[i].Chars.Count - 1);
-                    linesCache[i].SpaceOnLine += stringWidth(" ");
-                }
-            }
 
             //Start composing on the render target.
             Context.ink.StartRenderTarget(ref texture, Width, Height);
@@ -231,35 +232,36 @@ namespace SoulEngine.Objects.Components
                 switch (Style)
                 {
                     case TextStyle.Right:
-                        offsetX = linesCache[y].SpaceOnLine;
+                        offsetX = linesCache[y].SpaceLeft;
                         break;
                     case TextStyle.Center:
-                        offsetX = linesCache[y].SpaceOnLine / 2;
+                        offsetX = linesCache[y].SpaceLeft / 2;
                         break;
                     case TextStyle.JustifiedCenter:
                     case TextStyle.Justified:
-                        float a = linesCache[y].Chars.Select(x => x.Content).Count(x => x == " ");
+                        float spaces = linesCache[y].Chars.Select(x => x.Content).Count(x => x == " ");
+                        float currentBoost = wordSpacing * spaces;
+                        float nextBoost = (wordSpacing + 1) * spaces;
                         //If manually going to a new line then don't apply justification.
                         if (!linesCache[y].Manual && y != linesCache.Count - 1)
                         {
-                            float b = wordSpacing * a;
-                            if (a != 0)
+                            if (spaces != 0)
                             {
                                 /*
                                  * Check if there is space on the current line when we apply word spacing,
-                                 * if there will be enough space after we add one to the word spacing, and
-                                 * if the wordspacing isn't getting too big.
+                                 * if there will be enough space after we add one to the word spacing.
                                 */
-                                while (linesCache[y].SpaceOnLine - b >= 0 && linesCache[y].SpaceOnLine - ((wordSpacing + 1) * a) >= 0)
+                                while (linesCache[y].SpaceLeft - currentBoost >= 0 && linesCache[y].SpaceLeft - nextBoost >= 0)
                                 {
                                     wordSpacing += 1;
-                                    b = wordSpacing * a;
+                                    currentBoost = wordSpacing * spaces;
+                                    nextBoost = (wordSpacing + 1) * spaces;
                                 }
                             }
                         }
 
                         //If this is the first line set the first line justification.
-                        if (y == 0) firstLineJustifiedCenterOffset = (linesCache[0].SpaceOnLine - wordSpacing * a) / 2;
+                        if (y == 0) firstLineJustifiedCenterOffset = (linesCache[0].SpaceLeft - currentBoost) / 2;
                         if (Style == TextStyle.JustifiedCenter) offsetX = firstLineJustifiedCenterOffset; else offsetX = Scroll.X;
                         break;
                     default:
@@ -343,10 +345,10 @@ namespace SoulEngine.Objects.Components
             linesCache = new List<TextLine>();
 
             //The space left on the current line.
-            float spaceOnLine = AutoWidth ? Settings.Width : Width;
+            int spaceOnLine = AutoWidth ? Settings.Width : Width;
 
             //The current line.
-            List<CharData> currentLine = new List<CharData>();
+            TextLine currentLine = new TextLine();
 
             //The tags in effect.
             List<Tag> tagStack = new List<Tag>();
@@ -403,56 +405,37 @@ namespace SoulEngine.Objects.Components
                 }
 
                 //If the character is not a space and there is not enough space on the next line or it's a new line character, set offsets to new line.
-                if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0))
+                if ((current.Content != " " && spaceOnLine - stringWidth(current.Content) <= 0) || current.Content == "\n" || newLine)
                 {
                     //NEW LINE
-                    linesCache.Add(new TextLine(currentLine, (int)spaceOnLine));
+                    currentLine.Manual = current.Content == "\n";
+                    currentLine.SpaceLeft = spaceOnLine;
+                    linesCache.Add(currentLine);
                     spaceOnLine = AutoWidth ? Settings.Width : Width;
-                    currentLine = new List<CharData>();
-                }
-                else if (current.Content == "\n")
-                {
-                    //NEW LINE
-                    linesCache.Add(new TextLine(currentLine, (int)spaceOnLine, true));
-                    spaceOnLine = AutoWidth ? Settings.Width : Width;
-                    currentLine = new List<CharData>();
+                    currentLine = new TextLine();
                 }
 
-                //Add the character to the current line.
-                currentLine.Add(current);
-
-                //Update the offset.
-                if (newLine)
+                //Update the offset if not going to a new line directed from a space to prevent trailing spaces.
+                if (!newLine)
                 {
-                    //NEW LINE
-                    linesCache.Add(new TextLine(currentLine, (int)spaceOnLine));
-                    spaceOnLine = AutoWidth ? Settings.Width : Width;
-                    currentLine = new List<CharData>();
-                }
-                else
-                {
-                    spaceOnLine -= stringWidth(current.Content);
+                    //Add the character to the current line.
+                    currentLine.Chars.Add(current);
+                    spaceOnLine = AutoWidth ? Settings.Width : Width - stringWidth(currentLine.ToString());
                 }
             }
 
             //Check if any characters are left to be rendered.
-            if (currentLine.Count > 0)
+            if (currentLine.Chars.Count > 0)
             {
-                linesCache.Add(new TextLine(currentLine, (int)spaceOnLine));
+                currentLine.SpaceLeft = spaceOnLine;
+                linesCache.Add(currentLine);
             }
 
             //Determine text sizes from cached data.
             if (linesCache.Count > 0)
             {
                 height = linesCache.Count * stringHeight();
-                width = stringWidth(linesCache.OrderByDescending(x => stringWidth(x.ToString())).First().ToString());
-            }
-
-            //Check if a scroll to the bottom is queued.
-            if (scrollBottom)
-            {
-                Scroll = new Vector2(Scroll.X, Height - TextHeight);
-                scrollBottom = false;
+                width = stringWidth(linesCache.OrderBy(x => x.SpaceLeft).First().ToString());
             }
         }
         #endregion
@@ -463,8 +446,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public void ScrollBottom()
         {
-            //Scroll to the bottom on the next frame.
-            scrollBottom = true;
+            Scroll = new Vector2(Scroll.X, Height - TextHeight);
         }
         /// <summary>
         /// Scrolls the text one line up.

@@ -46,7 +46,7 @@ namespace SoulEngine
                 //Load the missingtexture.
                 MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
                 //Load the default font.
-                DefaultFont = Context.Core.Content.Load<SpriteFont>("Fonts/Default");
+                DefaultFont = Context.Core.Content.Load<SpriteFont>("Font/Default");
 
                 /*
                  * Generate the blank texture by creating a new 1 by 1 texture and
