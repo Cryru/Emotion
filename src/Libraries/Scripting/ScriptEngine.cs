@@ -46,6 +46,7 @@ namespace SoulEngine.Scripting
             ExposeFunction("getLog", (Func<string>) getLog);
             ExposeFunction("help", (Func<string>) help);
             ExposeFunction("loremipsum", (Func<string>) loremipsum);
+            ExposeFunction("info", (Func<string>) Info.getInfo);
         }
 
         /// <summary>

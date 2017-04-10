@@ -168,7 +168,7 @@ namespace SoulEngine.Debugging
         /// <param name="e"></param>
         private static void ConsoleInput(Event e)
         {
-            if (!consoleOpened || (string) e.Data == "`") return;
+            if (!consoleOpened || (string) e.Data == "`" || (string)e.Data == "\r") return;
 
             if ((string)e.Data != "\b")
             {
@@ -232,6 +232,8 @@ namespace SoulEngine.Debugging
 
             consoleInput = previousInput;
             blinkerLocation = previousInput.Length;
+
+            UpdateConsoleText();
         }
 
         private static void MoveBlinkerRight()
