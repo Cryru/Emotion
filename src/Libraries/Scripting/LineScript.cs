@@ -24,6 +24,16 @@ namespace SoulEngine.Scripting
         /// The script file.
         /// </summary>
         private string[] Script;
+        /// <summary>
+        /// If reached the last line.
+        /// </summary>
+        public bool Finished
+        {
+            get
+            {
+                return Pointer == Script.Length;
+            }
+        }
         #endregion
 
         public LineScript(string[] fileContents, int Pointer)
@@ -45,7 +55,7 @@ namespace SoulEngine.Scripting
         /// </summary>
         public void ExecuteNextLine()
         {
-            if (Pointer == Script.Length) return;
+            if (Finished) return;
 
             string line = Script[Pointer];
 

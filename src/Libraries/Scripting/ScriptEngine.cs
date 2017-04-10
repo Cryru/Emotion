@@ -39,14 +39,14 @@ namespace SoulEngine.Scripting
         public static void SetupScripting()
         {
             //Add default functions.
-            ExposeFunction("getListeners", (Func<string>) getListeners);
-            ExposeFunction("getSystemListeners", (Func<string>) getSystemListeners);
-            ExposeFunction("getObjects", (Func<string>) getObjects);
-            ExposeFunction("autoReturn", (Func<bool, string>) autoReturn);
-            ExposeFunction("getLog", (Func<string>) getLog);
-            ExposeFunction("help", (Func<string>) help);
-            ExposeFunction("loremipsum", (Func<string>) loremipsum);
-            ExposeFunction("info", (Func<string>) Info.getInfo);
+            ExposeFunction("getListeners", (Func<string>)getListeners);
+            ExposeFunction("getSystemListeners", (Func<string>)getSystemListeners);
+            ExposeFunction("getObjects", (Func<string>)getObjects);
+            ExposeFunction("autoReturn", (Func<bool, string>)autoReturn);
+            ExposeFunction("getLog", (Func<string>)getLog);
+            ExposeFunction("help", (Func<string>)help);
+            ExposeFunction("loremipsum", (Func<string>)loremipsum);
+            ExposeFunction("info", (Func<string>)Info.getInfo);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace SoulEngine.Scripting
         /// <param name="Script">The script to execute as a string.</param>
         public static JsValue ExecuteScript(string Script)
         {
-            
+
             try
             {
                 //Run the script and append a return if specified.
@@ -63,6 +63,7 @@ namespace SoulEngine.Scripting
             }
             catch (Exception e)
             {
+                if (!Debugging.DebugScene.consoleOpened) Debugging.Logger.Add(e.Message);
                 return JsValue.FromObject(Interpreter, "<color=#f44b42>" + e.Message + "</>\nFunctions you can use:\n" + help());
             }
         }
@@ -74,7 +75,9 @@ namespace SoulEngine.Scripting
         /// <param name="Function">The func object to register.</param>
         public static void ExposeFunction(string Name, object Function)
         {
-            string functionType = Function.GetType().ToString().Replace("System.Func`", "");
+            string functionType = Function.GetType().ToString();
+            string returnType = "";
+
             for (int i = 1; i < 10; i++)
             {
                 functionType = functionType.Replace(i.ToString(), "");
@@ -84,7 +87,24 @@ namespace SoulEngine.Scripting
             functionType = functionType.Replace("]", ")");
             functionType = functionType.Replace(",", ", ");
 
-            exposedFunctions.Add("<color=#f2a841>" + Name + "</><color=#6bdd52>" + functionType + "</>");
+
+            //if the functions returns a value.
+            if (functionType.Contains("Func`"))
+            {
+                functionType = functionType.Replace("Func`", "");
+                string[] args = functionType.Split(',');
+                returnType = args[args.Length - 1].Replace(")", "").Replace("(", "");
+                functionType = string.Join("", args.SubArray(0, args.Length - 1)) + (args.Length > 1 ? ")" : "");
+            }
+
+            //if the function doesn't return a value.
+            if (functionType.Contains("Action`"))
+            {
+                functionType = functionType.Replace("Action`", "");
+                returnType = "Nothing";
+            }
+
+            exposedFunctions.Add("<color=#f2a841>" + Name + "</><color=#6bdd52>" + functionType + "</> => " + returnType);
 
             Interpreter.SetValue(Name, Function);
         }
@@ -104,11 +124,11 @@ namespace SoulEngine.Scripting
         /// </summary>
         private static string getListeners()
         {
-            return string.Join("\n", Events.ESystem.ListenerQueue.Select(x => "<color=#f2a841>" + x.Type + 
+            return string.Join("\n", Events.ESystem.ListenerQueue.Select(x => "<color=#f2a841>" + x.Type +
             (x.TargetedSender != null ? "</> wants <color=#6bdd52>" + x.TargetedSender + "</>" : "</>")));
         }
         /// <summary>
-        /// Returns all currently attached listeners.
+        /// Returns all currently attached system listeners.
         /// </summary>
         private static string getSystemListeners()
         {
@@ -122,7 +142,8 @@ namespace SoulEngine.Scripting
         private static string autoReturn(bool setting)
         {
             returnAll = setting;
-            if (setting) return ScriptMessage("All scripts will now automatically return values."); else
+            if (setting) return ScriptMessage("All scripts will now automatically return values.");
+            else
                 return ScriptMessage("Scripts will no longer automatically return values.");
         }
         /// <summary>
@@ -130,7 +151,8 @@ namespace SoulEngine.Scripting
         /// </summary>
         private static string getObjects()
         {
-            return string.Join("\n", Context.Core.Scene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components"));
+            return string.Join("\n", Context.Core.Scene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + "\n" +
+            string.Join("\n", Context.Core.Scene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components"));
         }
         /// <summary>
         /// Prints the system log.
