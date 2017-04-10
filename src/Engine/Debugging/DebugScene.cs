@@ -56,11 +56,15 @@ namespace SoulEngine.Debugging
             console.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
             console.Component<ActiveTexture>().Tint = Color.Black;
             console.Component<ActiveTexture>().Opacity = 0.5f;
-            console.Component<ActiveText>().Style = Enums.TextStyle.JustifiedCenter;
+            console.Component<ActiveText>().Style = Enums.TextStyle.Justified;
 
             console.Component<Transform>().Width = Settings.Width;
             console.Component<Transform>().Height = Settings.Height / 2;
             console.Component<Transform>().Y = Settings.Height - console.Component<Transform>().Height;
+
+            console.AddComponent(new MouseInput());
+
+            console.Layer = Enums.ObjectLayer.UI;
 
             consoleBlinkTicker = new Ticker(300, -1, true);
 
@@ -74,8 +78,8 @@ namespace SoulEngine.Debugging
             ESystem.Add(new Listen(EType.KEY_PRESSED, ConsolePreviousInput, Microsoft.Xna.Framework.Input.Keys.Up));
             ESystem.Add(new Listen(EType.KEY_PRESSED, MoveBlinkerLeft, Microsoft.Xna.Framework.Input.Keys.Left));
             ESystem.Add(new Listen(EType.KEY_PRESSED, MoveBlinkerRight, Microsoft.Xna.Framework.Input.Keys.Right));
-            ESystem.Add(new Listen(EType.KEY_PRESSED, ScrollUp, Microsoft.Xna.Framework.Input.Keys.PageUp));
-            ESystem.Add(new Listen(EType.KEY_PRESSED, ScrollDown, Microsoft.Xna.Framework.Input.Keys.PageDown));
+            ESystem.Add(new Listen(EType.MOUSEINPUT_SCROLLUP, ScrollUp, console));
+            ESystem.Add(new Listen(EType.MOUSEINPUT_SCROLLDOWN, ScrollDown, console));
             ESystem.Add(new Listen(EType.INPUT_TEXT, ConsoleInput));
             ESystem.Add(new Listen(EType.TICKER_TICK, ConsoleBlinkToggle, consoleBlinkTicker));
             ESystem.Add(new Listen("---DEBUG LISTENERS END---", Update));
