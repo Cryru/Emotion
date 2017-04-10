@@ -59,15 +59,15 @@ namespace SoulEngine
         /// <summary>
         /// The way the engine should be displayed, the RefreshScreenSettings function must be used to apply changes.
         /// </summary>
-        public static DisplayMode DisplayMode = DisplayMode.Windowed;
+        private static DisplayMode _DisplayMode = DisplayMode.Windowed;
         /// <summary>
         /// Whether the mouse should be rendered.
         /// </summary>
         public static bool RenderMouse = true;
         /// <summary>
-        /// Whether the window can be resized.
+        /// Whether the window can be resized, currently disables display modes other than windowed.
         /// </summary>
-        public static bool ResizableWindow = true;
+        public static bool ResizableWindow = false;
         #endregion
         #region "Other Settings"
         /// <summary>
@@ -89,27 +89,14 @@ namespace SoulEngine
         /// </summary>
         public static List<int> SoundChannelsVolume;
         #endregion
-
-        //TODO
-
         #region "Debug Settings"
         /// <summary>
         /// Enables debug mode.
         /// </summary>
         public static bool Debug = true;
-        /// <summary>
-        /// Toggles updating the debug text.
-        /// </summary>
-        public static bool debugUpdate = true;
-        /// <summary>
-        /// Whether to draw the current fps on the screen.
-        /// </summary>
-        public static bool displayFPS = true;
-        /// <summary>
-        /// Whether to update the fps text.
-        /// </summary>
-        public static bool fpsUpdate = true;
-        #endregion      
+        #endregion
+
+        //TODO: ANDROID SETTINGS
         #region "Android Settings"
 #if ANDROID
         /// <summary>

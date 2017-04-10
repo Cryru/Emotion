@@ -82,6 +82,14 @@ namespace SoulEngine
 
             //Check if closing.
             if (isKeyDown(Keys.Escape)) Context.Core.Exit();
+
+            //Check if toggling fullscreen.
+            if (KeyDownTrigger(Keys.Enter) && isKeyDown(Keys.LeftAlt))
+            {
+                if (Settings.DisplayMode == Enums.DisplayMode.Windowed) Settings.DisplayMode = Enums.DisplayMode.BorderlessFullscreen;
+                else
+                    Settings.DisplayMode = Enums.DisplayMode.Windowed;
+            }
         }
         /// <summary>
         /// At the end of the frame moves the current frame variables to the last frame input variables.
