@@ -78,6 +78,7 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TextLine.cs" />
+    <Compile Include="src\Engine\Objects\Helpers\GameObject\SmoothStepData.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\ImageLayer.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\Layer.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\Map.cs" />

@@ -54,6 +54,7 @@ namespace SoulEngine
             defaultFile.Add("Display Mode", DisplayMode);
             defaultFile.Add("Resizable", ResizableWindow);
             defaultFile.Add("Debug", Debug);
+            defaultFile.Add("AA", AntiAlias);
         }
 
         public static void ReadExternalSettings(string filePath)
@@ -62,7 +63,7 @@ namespace SoulEngine
             if (settingsLoad == false) return;
 
             //The settings file is expected to a non encrypted Soul Managed File.
-            MFile settingsFile = new MFile("Content\\settings.soul", defaultFile);
+            MFile settingsFile = new MFile("UserContent\\settings.soul", defaultFile);
 
             //Read settings.
             settingsFile.AssignContent(ref FPS, "FPS Target");
@@ -72,6 +73,7 @@ namespace SoulEngine
             settingsFile.AssignContent(ref _DisplayMode, "Display Mode");
             settingsFile.AssignContent(ref ResizableWindow, "Resizable");
             settingsFile.AssignContent(ref Debug, "Debug");
+            settingsFile.AssignContent(ref AntiAlias, "AA");
         }
     }
 }

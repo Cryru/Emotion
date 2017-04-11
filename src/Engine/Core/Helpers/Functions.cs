@@ -68,7 +68,10 @@ namespace SoulEngine
             }
 
             //Start drawing.
-            ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, transformationMatrix);
+            if(Settings.AntiAlias)
+                ink.Begin(SpriteSortMode.Deferred, null, null, null, RasterizerState.CullNone, null, transformationMatrix);
+            else
+                ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, transformationMatrix);
         }
 
         /// <summary>
@@ -299,11 +302,19 @@ namespace SoulEngine
         }
 
         /// <summary>
-        /// Returns a randomly generated number.
+        /// The generator to be used for generating randomness.
         /// </summary>
+        private static Random generator = new Random();
+
+        /// <summary>
+        /// Returns a randomly (tm) generated number within specified constraints.
+        /// </summary>
+        /// <param name="Min">The lowest number that can be generated.</param>
+        /// <param name="Max">The highest number that can be generated.</param>
+        /// <returns></returns>
         public static int generateRandomNumber(int Min = 0, int Max = 100)
         {
-            return 4; // Decided by a fair dice roll.
+            return generator.Next(Min, Max + 1); //We add one because by Random.Next does not include max.
         }
         #endregion
     }

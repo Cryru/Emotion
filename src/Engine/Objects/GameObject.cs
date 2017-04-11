@@ -212,7 +212,7 @@ namespace SoulEngine
         /// <summary>
         /// Returns the requested property from a component based on priority. Not case sensitive.
         /// </summary>
-        /// <param name="Property"></param>
+        /// <param name="Property">The name of the property to return.</param>
         /// <param name="Default">What to return if the property is not found.</param>
         public T GetProperty<T>(string Property, T Default)
         {
@@ -235,6 +235,57 @@ namespace SoulEngine
             }
 
             return Default;
+        }
+
+        /// <summary>
+        /// Sets the property to the provided value.
+        /// </summary>
+        /// <param name="Property">The name of the property to change.</param>
+        /// <param name="Value">The value to impose on it.</param>
+        public void SetProperty<T>(string Property, T Value)
+        {
+            switch (Property.ToLower())
+            {
+                case "bounds":
+                    if (HasComponent<Transform>()) Component<Transform>().Bounds = (Rectangle) Convert.ChangeType(Value, typeof(Rectangle));
+                    break;
+                case "x":
+                    if(HasComponent<Transform>()) Component<Transform>().X = (float) Convert.ChangeType(Value, typeof(float));
+                    break;
+                case "y":
+                    if (HasComponent<Transform>()) Component<Transform>().Y = (float)Convert.ChangeType(Value, typeof(float));
+                    break;
+                case "width":
+                    if (HasComponent<Transform>()) Component<Transform>().Width = (float)Convert.ChangeType(Value, typeof(float));
+                    break;
+                case "height":
+                    if (HasComponent<Transform>()) Component<Transform>().Height = (float)Convert.ChangeType(Value, typeof(float));
+                    break;
+                case "rotation":
+                    if (HasComponent<Transform>()) Component<Transform>().Rotation = (float)Convert.ChangeType(Value, typeof(float));
+                    break;
+                case "mirroreffects":
+                    if (HasComponent<ActiveTexture>()) Component<ActiveTexture>().MirrorEffects = (SpriteEffects) Convert.ChangeType(Value, typeof(SpriteEffects));
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Property"></param>
+        /// <param name="Start"></param>
+        /// <param name="End"></param>
+        /// <param name="Time"></param>
+        public void SmoothStepProperty(string Property, int Start, int End, int Time)
+        {
+            Objects.Ticker stepper = new Objects.Ticker(Time / 100, 100, true);
+            Events.ESystem.Add(new Events.Listen(Events.EType.TICKER_TICK, ssproperty_ticker, stepper));
+        }
+
+        private void ssproperty_ticker(Events.Event e)
+        {
+
         }
         #endregion
 

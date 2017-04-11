@@ -42,7 +42,6 @@ namespace SoulEngine.Scripting
             ExposeFunction("getListeners", (Func<string>)getListeners);
             ExposeFunction("getSystemListeners", (Func<string>)getSystemListeners);
             ExposeFunction("getObjects", (Func<string>)getObjects);
-            ExposeFunction("autoReturn", (Func<bool, string>)autoReturn);
             ExposeFunction("getLog", (Func<string>)getLog);
             ExposeFunction("help", (Func<string>)help);
             ExposeFunction("loremipsum", (Func<string>)loremipsum);
@@ -134,17 +133,6 @@ namespace SoulEngine.Scripting
         {
             return string.Join("\n", Events.ESystem.SystemListenerQueue.Select(x => "<color=#f2a841>" + x.Type +
             (x.TargetedSender != null ? "</> wants <color=#6bdd52>" + x.TargetedSender + "</>" : "</>")));
-        }
-        /// <summary>
-        /// Sets the "returnAll" variable.
-        /// </summary>
-        /// <param name="setting">The variable to set it to.</param>
-        private static string autoReturn(bool setting)
-        {
-            returnAll = setting;
-            if (setting) return ScriptMessage("All scripts will now automatically return values.");
-            else
-                return ScriptMessage("Scripts will no longer automatically return values.");
         }
         /// <summary>
         /// Returns all objects attached to the scene.
