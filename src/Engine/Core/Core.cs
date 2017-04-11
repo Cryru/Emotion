@@ -95,6 +95,9 @@ namespace SoulEngine
             //Load global resources.
             AssetManager.LoadGlobal();
 
+            //Setup networking if we have to.
+            if (Settings.Networking) SoulServer.Setup();
+
             //Measure boot time.
             Starter.bootPerformance.Stop();
             Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");

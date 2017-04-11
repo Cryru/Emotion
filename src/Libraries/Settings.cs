@@ -55,6 +55,7 @@ namespace SoulEngine
             defaultFile.Add("Resizable", ResizableWindow);
             defaultFile.Add("Debug", Debug);
             defaultFile.Add("AA", AntiAlias);
+            defaultFile.Add("Networking", Networking);
         }
 
         public static void ReadExternalSettings(string filePath)
@@ -74,6 +75,7 @@ namespace SoulEngine
             settingsFile.AssignContent(ref ResizableWindow, "Resizable");
             settingsFile.AssignContent(ref Debug, "Debug");
             settingsFile.AssignContent(ref AntiAlias, "AA");
+            settingsFile.AssignContent(ref Networking, "Networking");
         }
     }
 }
