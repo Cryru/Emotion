@@ -254,7 +254,7 @@ namespace SoulEngine.Debugging
         private static void ScrollUp()
         {
             if (console.Component<ActiveText>().TextHeight <= console.GetProperty("Height", 0)) return;
-            if (console.Component<ActiveText>().Scroll.Y == 0) return;
+            if (console.Component<ActiveText>().Scroll.Y == -15) return;
 
             console.Component<ActiveText>().ScrollLineUp();
             UpdateConsoleText();

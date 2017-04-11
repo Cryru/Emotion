@@ -78,6 +78,10 @@ namespace SoulEngine
         /// Whether an external settings file should be loaded.
         /// </summary>
         public static bool settingsLoad = false;
+        /// <summary>
+        /// Whether to apply anti-aliasing.
+        /// </summary>
+        public static bool AntiAlias = false;
         #endregion
         #region "Primary User Settings"
         /// <summary>

@@ -36,7 +36,7 @@ namespace SoulEngine.Objects.Components
             set
             {
                 text = value;
-                Update();
+                if(attachedObject != null) Update();
             }
         }
         /// <summary>
@@ -165,7 +165,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public ActiveText()
         {
-            text = "";
+            Text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             DrawPriority = 1;
@@ -173,9 +173,10 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="Text"></param>
         public ActiveText(string Text)
         {
-            text = Text;
+            this.Text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             DrawPriority = 1;
@@ -183,9 +184,11 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="Text"></param>
+        /// <param name="Font"></param>
         public ActiveText(string Text, SpriteFont Font)
         {
-            text = Text;
+            this.Text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
             DrawPriority = 1;
@@ -193,9 +196,12 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="Text"></param>
+        /// <param name="Font"></param>
+        /// <param name="Style"></param>
         public ActiveText(string Text, SpriteFont Font, TextStyle Style)
         {
-            text = Text;
+            this.Text = Text;
             this.Font = Font;
             this.Style = Style;
             DrawPriority = 1;
