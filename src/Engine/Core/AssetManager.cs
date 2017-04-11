@@ -160,7 +160,7 @@ namespace SoulEngine
                     //Get the path of the file.
                     string path = file.Content<string>(file.Keys[i]);
                     //Get the hash of the current file.
-                    string currentFile = Soul.Encryption.GetMD5("Content\\" + path);
+                    string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content\\" + path));
                     //Check against the meta stored hash, if it doesn't match return false.
                     if (currentFile != file.Content<string>(path)) return false;
                 }

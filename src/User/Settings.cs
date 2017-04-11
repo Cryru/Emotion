@@ -24,6 +24,10 @@ namespace SoulEngine
         /// Overwrites the 'capFPS' setting. 
         /// </summary>
         public static bool vSync = false;
+        /// <summary>
+        /// Whether networking is allowed, requires a restart.
+        /// </summary>
+        public static bool Networking = true;
         #endregion
         #region "Security Settings"
         /// <summary>
