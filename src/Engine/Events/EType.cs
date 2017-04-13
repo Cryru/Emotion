@@ -128,5 +128,20 @@ namespace SoulEngine.Events
         /// </summary>
         public const string MOUSEINPUT_SCROLLDOWN = "MOUSEINPUT_SCROLLDOWN";
         #endregion
+        #region "Networking"
+        /// <summary>
+        /// Triggered when the client cannot find the server.
+        /// </summary>
+        public const string NETWORK_NOSERVER = "NETWORK_NOSERVER";
+        /// <summary>
+        /// Triggered when the client has successfully logged in to the server.
+        /// </summary>
+        public const string NETWORK_LOGGEDIN = "NETWORK_LOGGEDIN";
+        /// <summary>
+        /// Triggered when a message has been received from the server. 
+        /// The sender is the SoulServer.MType of the message and the data is the message itself.
+        /// </summary>
+        public const string NETWORK_MESSAGE = "NETWORK_MESSAGE";
+        #endregion
     }
 }

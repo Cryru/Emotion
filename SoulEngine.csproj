@@ -123,7 +123,7 @@
     <Compile Include="src\Engine\Objects\ViewObjects\ScreenAdapter.cs" />
     <Compile Include="src\Engine\Objects\ViewObjects\ViewObject.cs" />
     <Compile Include="src\Libraries\SoulServer\Message.cs" />
-    <Compile Include="src\Libraries\SoulServer\SoulServer.cs" />
+    <Compile Include="src\Libraries\SoulServer\Networking.cs" />
     <Compile Include="src\User\Custom\Event Types.cs" />
     <Compile Include="src\User\Custom\Text Tags.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />

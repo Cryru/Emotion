@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using SoulServer;
+using SoulEngine.Events;
+using System.Net;
 
 namespace SoulEngine
 {
@@ -17,12 +19,15 @@ namespace SoulEngine
     /// <summary>
     /// Networking and Multiplayer support with SoulServer. EXPERIMENTAL 
     /// </summary>
-    public static class SoulServer
+    public static class Networking
     {
         #region "Declarations"
-        private static Socket Client;
+        private static UdpClient Client;
         private static byte[] buffer;
-        private static string Hash;
+        /// <summary>
+        /// The login authentification hash.
+        /// </summary>
+        public static string Hash;
         #endregion
 
         /// <summary>
@@ -46,71 +51,48 @@ namespace SoulEngine
             //Check if already connected.
             if (!isConnected() && Settings.Networking)
             {
-                Client = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                Hash = Username + "|" + Soul.Encryption.MD5(Username + Password);
-                Client.BeginConnect(IP, Port, new AsyncCallback(Connected), null);
-            }
-        }
-
-        /// <summary>
-        /// Processed a message from the server.
-        /// </summary>
-        /// <param name="Message">The message received.</param>
-        private static void ProcessMessage(ServerMessage Message)
-        {
-            switch(Message.Type)
-            {
-                //Check if asking for authentification.
-                case MType.AUTHENTIFICATION_REQUEST: 
-                    Send(new ServerMessage(MType.AUTHENTIFICATION_DATA, Hash));
-                    break;
-                case MType.AUTHENTIFICATION_ERROR:
-                    Client.Disconnect(true);
-                    break;
-                default:
-                    Debugging.Logger.Add(Message.ToString());
-                    break;
+                //Generate a socket to connect through.
+                Client = new UdpClient();
+                Client.Connect(new IPEndPoint(IPAddress.Parse(IP), Port));
+                //Generate a hash to authentificate with and send it to the server.
+                Send(new ServerMessage(MType.AUTHENTIFICATION, Soul.Encryption.MD5(Username + Password)));
+                //Start listening for messages.
+                Client.BeginReceive(ReceivedMessage, null);
             }
         }
 
         #region "Async Callbacks"
         /// <summary>
-        /// The callback for when connection is complete.
-        /// </summary>
-        /// <param name="AR"></param>
-        private static void Connected(IAsyncResult AR)
-        {
-            //Start listening for messages from the server.
-            Client.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceivedMessage), null);
-        }
-
-        /// <summary>
         /// When the server has sent us a message.
         /// </summary>
         private static void ReceivedMessage(IAsyncResult AR)
         {
-            //Check if networking is on, we have a client and are connected.
-            if (!Settings.Networking || Client == null || !Client.Connected) return;
+            IPEndPoint receivedIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            byte[] receivedBytes = Client.EndReceive(AR, ref receivedIpEndPoint);
 
-            try
+            //Get message.
+            string message = Encoding.UTF8.GetString(receivedBytes);
+
+            //If authentification message then this must be the hash to encrypt future correspondence.
+            if(message.Length > 1 && message.Substring(0, 1) == "0" && (Hash == "" || Hash == null))
             {
-                //Get the length to cut the message from the buffer.
-                int received = Client.EndReceive(AR);
-                //Check if empty message.
-                if (received == 0) return;
-                //Convert the message to a string.
-                string message = Encoding.UTF8.GetString(buffer).Substring(0, received).Trim().Replace("\r", "");
-                //Process the message.
-                ProcessMessage(new ServerMessage(message));
-                //Continue receiving messages if connected.
-                if (Client.Connected)
-                    Client.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceivedMessage), null);
+                Hash = new ServerMessage(message).Data;
+                ESystem.Add(new Event(EType.NETWORK_LOGGEDIN));
             }
-            catch (Exception e)
+            else
             {
-                //Log the error.
-                Debugging.Logger.Add("Message receive error: " + e.ToString());
+                string decryptMsg = Soul.Encryption.TryDecrypt(message, Hash, supressInvalidKey: true);
+
+                //Check if any decryption occured.
+                if(decryptMsg != message)
+                {
+                    ServerMessage msg = new ServerMessage(decryptMsg);
+                    ESystem.Add(new Event(EType.NETWORK_MESSAGE, msg.Type, msg.Data));
+                }
             }
+
+            //Continue listening for packages.
+            Client.BeginReceive(ReceivedMessage, null);
         }
 
         /// <summary>
@@ -143,15 +125,18 @@ namespace SoulEngine
         /// <param name="Message">The message to send.</param>
         public static void Send(ServerMessage Message)
         {
-            //Check if networking is on, we have a client and are connected.
-            if (!Settings.Networking || Client == null || !Client.Connected) return;
+            //Check if networking is on, and we have a client.
+            if (!Settings.Networking || Client == null) return;
 
             try
             {
+                string messageStr = Message.ToString();
+                //Check if we have a hash to encrypt with.
+                if (Hash != "" && Hash != null) messageStr = Soul.Encryption.Encrypt(messageStr, Hash);
                 //Convert the string into bytes.
-                byte[] send = Encoding.UTF8.GetBytes(Message.ToString());
+                byte[] send = Encoding.UTF8.GetBytes(messageStr.ToString());
                 //Start sending, call the sent method.
-                Client.BeginSend(send, 0, send.Length, SocketFlags.None, new AsyncCallback(SendEndCallback), Client);
+                Client.BeginSend(send, send.Length, new AsyncCallback(SendEndCallback), null);
             }
             catch (Exception e)
             {
