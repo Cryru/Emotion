@@ -96,7 +96,7 @@ namespace SoulEngine
             AssetManager.LoadGlobal();
 
             //Setup networking if we have to.
-            if (Settings.Networking) SoulServer.Setup();
+            if (Settings.Networking) Networking.Setup();
 
             //Measure boot time.
             Starter.bootPerformance.Stop();
