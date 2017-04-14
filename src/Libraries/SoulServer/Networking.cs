@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using SoulServer;
 using SoulEngine.Events;
 using System.Net;
+using SoulEngine.Enums;
 
 namespace SoulEngine
 {
@@ -28,6 +29,25 @@ namespace SoulEngine
         /// The login authentification hash.
         /// </summary>
         public static string Hash;
+        /// <summary>
+        /// The status of the connection between the client and the server.
+        /// </summary>
+        public static NetworkStatus Status
+        {
+            get
+            {
+                return status;
+            }
+            set
+            {
+                //This assignment is done because the event listeners might use the status value.
+                NetworkStatus old = value;
+                status = value;
+                ESystem.Add(new Event(EType.NETWORK_STATUSCHANGED, status, old));
+                Debugging.Logger.Add("Network status changed " + old + " -> " + status);
+            }
+        }
+        private static NetworkStatus status = NetworkStatus.Disabled;
         #endregion
 
         /// <summary>
@@ -35,8 +55,9 @@ namespace SoulEngine
         /// </summary>
         public static void Setup()
         {
+            status = NetworkStatus.None;
             buffer = new byte[1024];
-            Scripting.ScriptEngine.ExposeFunction("connect", (Action<string, int, string, string>)Connect);
+            Scripting.ScriptEngine.ExposeFunction("connect", (Func<string, int, string, string, bool>) Connect);
         }
 
         /// <summary>
@@ -46,19 +67,30 @@ namespace SoulEngine
         /// <param name="Port">The port of the server.</param>
         /// <param name="Username">The username to login with.</param>
         /// <param name="Password">The password login with.</param>
-        public static void Connect(string IP, int Port, string Username, string Password)
+        /// <returns>A boolean that signifies whether the connection was successful.</returns>
+        public static bool Connect(string IP, int Port, string Username, string Password)
         {
             //Check if already connected.
-            if (!isConnected() && Settings.Networking)
+            if (Status != NetworkStatus.Connected && Settings.Networking)
             {
-                //Generate a socket to connect through.
-                Client = new UdpClient();
-                Client.Connect(new IPEndPoint(IPAddress.Parse(IP), Port));
-                //Generate a hash to authentificate with and send it to the server.
-                Send(new ServerMessage(MType.AUTHENTIFICATION, Soul.Encryption.MD5(Username + Password)));
-                //Start listening for messages.
-                Client.BeginReceive(ReceivedMessage, null);
+                try
+                {
+                    //Generate a socket to connect through.
+                    Client = new UdpClient();
+                    Client.Connect(new IPEndPoint(IPAddress.Parse(IP), Port));
+                    //Generate a hash to authentificate with and send it to the server.
+                    Send(new ServerMessage(MType.AUTHENTIFICATION, Soul.Encryption.MD5(Username + Password)));
+                    //Start listening for messages.
+                    Client.BeginReceive(ReceivedMessage, null);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
+
+            return false;
         }
 
         #region "Async Callbacks"
@@ -77,7 +109,7 @@ namespace SoulEngine
             if(message.Length > 1 && message.Substring(0, 1) == "0" && (Hash == "" || Hash == null))
             {
                 Hash = new ServerMessage(message).Data;
-                ESystem.Add(new Event(EType.NETWORK_LOGGEDIN));
+                Status = NetworkStatus.Connected;
             }
             else
             {
@@ -106,15 +138,8 @@ namespace SoulEngine
             }
             catch (Exception e)
             {
-                Debugging.Logger.Add("Error finishing sending message to network: " + e.Message.ToString());
+                Status = NetworkStatus.Disconnected;
             }
-        }
-        #endregion
-
-        #region "Helpers"
-        private static bool isConnected()
-        {
-            return false;
         }
         #endregion
 
@@ -140,7 +165,7 @@ namespace SoulEngine
             }
             catch (Exception e)
             {
-                Debugging.Logger.Add("Error sending message to network: " + e.Message.ToString());
+                Status = NetworkStatus.Disconnected;
             }
         }
         #endregion

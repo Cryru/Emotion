@@ -27,7 +27,7 @@ namespace SoulEngine.Debugging
         private static string consoleInput = "";
         private static string previousInput = "";
         private static string consoleOutput = Info.getInfo() + "\n" + 
-            "Start typing and press Enter to execute code. To scroll use PageUp and PageDown." + "\n" +
+            "Start typing and press Enter to execute code. To scroll use the mouse wheel." + "\n" +
             "Use the arrows to navigate and the Up arrow to repeat the previous command.";
         private static string consoleBlinker = "|";
         private static Ticker consoleBlinkTicker;

@@ -170,4 +170,27 @@ namespace SoulEngine.Enums
         /// </summary>
         MouseOvered
     }
+
+    /// <summary>
+    /// The status of the connection between the client and the server.
+    /// </summary>
+    public enum NetworkStatus
+    {
+        /// <summary>
+        /// Networking disabled.
+        /// </summary>
+        Disabled,
+        /// <summary>
+        /// Not attempted to connect yet.
+        /// </summary>
+        None,
+        /// <summary>
+        /// Was connected but is no longer.
+        /// </summary>
+        Disconnected,
+        /// <summary>
+        /// Connected according to last information!
+        /// </summary>
+        Connected
+    }
 }
