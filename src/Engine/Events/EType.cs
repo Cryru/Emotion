@@ -130,13 +130,9 @@ namespace SoulEngine.Events
         #endregion
         #region "Networking"
         /// <summary>
-        /// Triggered when the client cannot find the server.
+        /// Triggered when the network status has changed. The sender is the new status and the data is the old status.
         /// </summary>
-        public const string NETWORK_NOSERVER = "NETWORK_NOSERVER";
-        /// <summary>
-        /// Triggered when the client has successfully logged in to the server.
-        /// </summary>
-        public const string NETWORK_LOGGEDIN = "NETWORK_LOGGEDIN";
+        public const string NETWORK_STATUSCHANGED = "NETWORK_STATUSCHANGED";
         /// <summary>
         /// Triggered when a message has been received from the server. 
         /// The sender is the SoulServer.MType of the message and the data is the message itself.
