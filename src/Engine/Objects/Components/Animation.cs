@@ -106,6 +106,10 @@ namespace SoulEngine.Objects.Components
             }
         }
         private float delay = 1;
+        /// <summary>
+        /// The space betweem frames.
+        /// </summary>
+        public Vector2 Spacing = Vector2.Zero;
         #endregion
         #region "Spritesheet Information"
         /// <summary>
@@ -171,7 +175,7 @@ namespace SoulEngine.Objects.Components
         /// <param name="EndingFrame"> The frame to end at, or start on if in reverse, from all the frames in the spritesheet. </param>
         /// <param name="Loop">The type of loop.</param>
         /// <param name="FPS">The frames per second of the animation, essentially the speed.</param>
-        public Animation(Texture2D SpriteSheet, int FrameWidth, int FrameHeight, int StartingFrame = 0, int EndingFrame = -1, LoopType Loop = LoopType.Normal, int FPS = 10)
+        public Animation(Texture2D SpriteSheet, int FrameWidth, int FrameHeight, int StartingFrame = 0, int EndingFrame = -1, LoopType Loop = LoopType.Normal, int FPS = 10, Vector2 Spacing = new Vector2())
         {
             //Assign variables
             this.FrameWidth = FrameWidth;
@@ -181,7 +185,11 @@ namespace SoulEngine.Objects.Components
             this.StartingFrame = StartingFrame;
             this.EndingFrame = EndingFrame;
             this.Loop = Loop;
+            this.Spacing = Spacing;
 
+            Context.Core.__composeAllowed = true;
+            SplitFrames();
+            Context.Core.__composeAllowed = false;
             InitiateLoop();
         }
 
@@ -204,10 +212,10 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Cuts the individual frames.
         /// </summary>
-        public override void Compose()
+        public void SplitFrames()
         {
             //If the textures are cut, skip cutting.
-            if(frames.Count != 0) return;
+            if (frames.Count != 0) return;
 
             //Calculate how many columns and rows the spritesheet has.
             int fColumns = SpriteSheet.Width / FrameWidth;
@@ -224,7 +232,7 @@ namespace SoulEngine.Objects.Components
                 int Column = i % fColumns;
 
                 //Determine which part of the spritesheet we want to cut out next.
-                Rectangle FrameRect = new Rectangle(FrameWidth * Column, FrameHeight * Row, FrameWidth, FrameHeight);
+                Rectangle FrameRect = new Rectangle(FrameWidth * Column + (int)(Spacing.X * (Column + 1)), FrameHeight * Row + (int)(Spacing.Y * (Row + 1)), FrameWidth, FrameHeight);
 
                 //Switch over to the composer.
                 RenderTarget2D TextureComposer = new RenderTarget2D(Context.Graphics, FrameWidth, FrameHeight);
@@ -251,7 +259,7 @@ namespace SoulEngine.Objects.Components
 
             //Add the time passed to the inner variable and switch the frame if enough time has passed.
             timePassed += Context.Core.frameTime;
-            if(timePassed > Delay)
+            if (timePassed > Delay)
             {
                 timePassed -= Delay;
                 NextFrame();
@@ -267,7 +275,7 @@ namespace SoulEngine.Objects.Components
             {
                 case LoopType.None:
                     //If the global frame is the last frame.
-                    if (_Frame == EndingFrame) 
+                    if (_Frame == EndingFrame)
                     {
                         ESystem.Add(new Event(EType.ANIM_FINISHED, this));
                         finished = true;
@@ -275,28 +283,28 @@ namespace SoulEngine.Objects.Components
                     else
                     {
                         //Increment the frame.
-                        _Frame++; 
+                        _Frame++;
                     }
                     break;
                 case LoopType.Normal:
                     //If the global frame is the last frame.
-                    if (_Frame == EndingFrame) 
+                    if (_Frame == EndingFrame)
                     {
                         //Loop to the starting frame.
-                        _Frame = StartingFrame; 
+                        _Frame = StartingFrame;
                     }
                     else
                     {
                         //Increment the frame.
-                        _Frame++; 
+                        _Frame++;
                     }
                     break;
                 case LoopType.NormalThenReverse:
                     //If the global frame is the last frame and going in reverse or the first and not going in reverse.
-                    if ((_Frame == EndingFrame && flagReverse == false) || (_Frame == StartingFrame && flagReverse == true)) 
+                    if ((_Frame == EndingFrame && flagReverse == false) || (_Frame == StartingFrame && flagReverse == true))
                     {
                         //Change the reverse flag.
-                        flagReverse = !flagReverse; 
+                        flagReverse = !flagReverse;
 
                         //Depending on the direction set the frame to be the appropriate one.
                         if (flagReverse)
@@ -315,10 +323,10 @@ namespace SoulEngine.Objects.Components
                     break;
                 case LoopType.Reverse:
                     //If the global frame is the first frame.
-                    if (_Frame == StartingFrame) 
+                    if (_Frame == StartingFrame)
                     {
                         //Loop to the ending frame.
-                        _Frame = EndingFrame; 
+                        _Frame = EndingFrame;
                     }
                     else
                     {
@@ -344,6 +352,7 @@ namespace SoulEngine.Objects.Components
 
 
         #region "Component Interface"
+        public override void Compose() { }
         public override void Draw() { }
         #endregion
 

@@ -39,10 +39,6 @@ namespace SoulEngine.Objects.Components
             }
         }
         /// <summary>
-        /// The part of the texture to draw.
-        /// </summary>
-        public Rectangle DrawArea;
-        /// <summary>
         /// The way to texture should be rendered to fill its bounds.
         /// </summary>
         public TextureMode TextureMode = 0;
@@ -73,7 +69,6 @@ namespace SoulEngine.Objects.Components
         {
             this.TextureMode = TextureMode;
             Texture = AssetManager.MissingTexture;
-            DrawArea = _xnaTexture.Bounds; //Render whole texture if area not specified.
         }
         /// <summary>
         /// 
@@ -81,11 +76,10 @@ namespace SoulEngine.Objects.Components
         /// <param name="Texture"></param>
         /// <param name="TextureMode"></param>
         /// <param name="DrawArea"></param>
-        public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0, Rectangle DrawArea = new Rectangle())
+        public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
             this.Texture = Texture;
-            this.DrawArea = DrawArea;
         }
         #endregion
 
@@ -98,11 +92,8 @@ namespace SoulEngine.Objects.Components
         {
             if (TextureMode != TextureMode.Tile) return;
 
-            //Check empty draw area.
-            if (DrawArea == new Rectangle()) DrawArea = _xnaTexture.Bounds;
-
             //Get the size of the object, or if a Transform component is attached get the bounds from it.
-            Rectangle Bounds = DrawArea;
+            Rectangle Bounds = _xnaTexture.Bounds;
             if (attachedObject != null && attachedObject.HasComponent<Transform>())
             {
                 Bounds = attachedObject.Component<Transform>().Bounds;
@@ -116,15 +107,15 @@ namespace SoulEngine.Objects.Components
             {
                 case TextureMode.Tile:
                     //Calculate the limit of the texture tile, we go higher as the rendertarget will not allow out of bounds drawing anyway.
-                    int xLimit = (int) Math.Ceiling((double) Bounds.Width / _xnaTexture.Width);
-                    int yLimit = (int) Math.Ceiling((double) Bounds.Height / _xnaTexture.Height);
+                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / _xnaTexture.Width);
+                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / _xnaTexture.Height);
 
                     for (int x = 0; x < xLimit; x++)
                     {
                         for (int y = 0; y < yLimit; y++)
                         {
                             Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y,
-                                _xnaTexture.Width, _xnaTexture.Height), DrawArea, Color.White);
+                                _xnaTexture.Width, _xnaTexture.Height), null, Color.White);
                         }
                     }
                     break;
