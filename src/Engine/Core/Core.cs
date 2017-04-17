@@ -131,6 +131,9 @@ namespace SoulEngine
             //Update input module.
             Input.UpdateInput();
 
+            //Update the sound engine.
+            SoundEngine.Update();
+
             //Update the current scene.
             Scene.UpdateHook();
 

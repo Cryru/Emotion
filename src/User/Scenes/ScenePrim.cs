@@ -25,7 +25,7 @@ namespace SoulEngine
         #endregion
         public override void Start()
         {
-            
+
         }
 
         public override void Update()
