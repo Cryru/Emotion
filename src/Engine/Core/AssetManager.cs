@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using SoulEngine.Objects;
 using Soul.IO;
 using SoulEngine.Objects.Components.Helpers;
+using Microsoft.Xna.Framework.Audio;
 
 namespace SoulEngine
 {
@@ -85,6 +86,16 @@ namespace SoulEngine
         public static SpriteFont Font(string fontName)
         {
             return Asset(fontName, DefaultFont);
+        }
+
+        /// <summary>
+        /// Loads a sound asset into the current scene's content manager and returns it.
+        /// </summary>
+        /// <param name="soundName">Path and name of the asset, root is the Content folder.</param>
+        /// <returns>The sound, or the nothing if not found.</returns>
+        public static SoundEffect Sound(string soundName)
+        {
+            return Asset<SoundEffect>(soundName, null);
         }
 
         /// <summary>
