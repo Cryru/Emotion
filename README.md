@@ -34,7 +34,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - JSON Based File Management (For Settings, Save Files etc.) [&#10003;]
 - Error Logging [&#10003;]
 - Debugging Console [&#10003;]
-- Multi-Channel Sound
+- Sound Engine [&#10003;]
 - Custom Text Rendering with Markup [&#10003;]
 - Scripting Support [&#10003;]
 - Documentation
