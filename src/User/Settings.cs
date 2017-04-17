@@ -87,15 +87,17 @@ namespace SoulEngine
         /// </summary>
         public static bool AntiAlias = false;
         #endregion
-        #region "Primary User Settings"
+        #region "Sound Settings"
         /// <summary>
         /// Whether sound is on or off.
         /// </summary>
         public static bool Sound = true;
         /// <summary>
         /// The sound volume of each sound channel.
+        /// The sound volume.
         /// </summary>
         public static List<int> SoundChannelsVolume;
+        public static int Volume = 1;
         #endregion
         #region "Debug Settings"
         /// <summary>
@@ -103,8 +105,6 @@ namespace SoulEngine
         /// </summary>
         public static bool Debug = true;
         #endregion
-
-        //TODO: ANDROID SETTINGS
         #region "Android Settings"
 #if ANDROID
         /// <summary>
