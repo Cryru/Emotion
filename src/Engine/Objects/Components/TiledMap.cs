@@ -247,26 +247,17 @@ namespace SoulEngine.Objects.Components
             //Check if empty texture, sometimes it happens.
             if (mapLayers.Count == 0) return;
 
-            //Get some drawing properties.
-            int X = attachedObject.GetProperty("X", 0);
-            int Y = attachedObject.GetProperty("Y", 0);
-            int Width = attachedObject.GetProperty("Width", mapLayers[0].Width);
-            int Height = attachedObject.GetProperty("Height", mapLayers[0].Height);
-            float Rotation = attachedObject.GetProperty("Rotation", 0f);
-
-            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
-
             //Correct bounds to center origin.
-            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
-                (DrawBounds.Y + DrawBounds.Height / 2)),
-                new Point(DrawBounds.Width, DrawBounds.Height));
+            Rectangle DrawBounds = new Rectangle(new Point(attachedObject.X + attachedObject.Width / 2,
+                attachedObject.Y + attachedObject.Height / 2),
+                new Point(attachedObject.Width, attachedObject.Height));
 
             //Draw the object through XNA's SpriteBatch.
             Context.ink.Draw(mapLayers[DrawLayer],
                 DrawBounds,
                 null,
                 Tint * Opacity,
-                Rotation,
+                attachedObject.Rotation,
                 new Vector2((float)mapLayers[DrawLayer].Width / 2, (float)mapLayers[DrawLayer].Height / 2),
                 MirrorEffects,
                 1.0f);
@@ -348,8 +339,8 @@ namespace SoulEngine.Objects.Components
             if (TileCoordinate >= map.Layers[0].Tiles.Count) return Vector2.Zero;
 
             //Get the X and Y of the tile.
-            float XTile = attachedObject.GetProperty("X", 0) + map.Layers[0].Tiles[TileCoordinate].X * GetWarpedTileSize().X;
-            float YTile = attachedObject.GetProperty("Y", 0) + map.Layers[0].Tiles[TileCoordinate].Y * GetWarpedTileSize().Y;
+            float XTile = attachedObject.X + map.Layers[0].Tiles[TileCoordinate].X * GetWarpedTileSize().X;
+            float YTile = attachedObject.Y + map.Layers[0].Tiles[TileCoordinate].Y * GetWarpedTileSize().Y;
             //The location of the object, plus the tile's actual size warped through the scale.
 
             return new Vector2(XTile, YTile);
@@ -392,8 +383,8 @@ namespace SoulEngine.Objects.Components
             if (map == null && mapLayers.Count == 0) return Vector2.Zero;
 
             //Calculate warp scale.
-            float XScale = attachedObject.GetProperty("Width", mapLayers[0].Width) / (map.Width * map.TileWidth);
-            float YScale = attachedObject.GetProperty("Height", mapLayers[0].Height) / (map.Height * map.TileHeight);
+            float XScale = attachedObject.Width / (map.Width * map.TileWidth);
+            float YScale = attachedObject.Height / (map.Height * map.TileHeight);
 
             //Get the X and Y of the tile.
             float WarpedWidth = map.TileWidth * XScale;

@@ -58,9 +58,9 @@ namespace SoulEngine.Debugging
             console.Component<ActiveTexture>().Opacity = 0.5f;
             console.Component<ActiveText>().Style = Enums.TextStyle.Justified;
 
-            console.Component<Transform>().Width = Settings.Width;
-            console.Component<Transform>().Height = Settings.Height / 2;
-            console.Component<Transform>().Y = Settings.Height - console.Component<Transform>().Height;
+            console.Width = Settings.Width;
+            console.Height = Settings.Height / 2;
+            console.Y = Settings.Height - console.Height;
 
             console.AddComponent(new MouseInput());
 
@@ -68,10 +68,9 @@ namespace SoulEngine.Debugging
 
             consoleBlinkTicker = new Ticker(300, -1, true);
 
-            ESystem.Add(new Listen("---DEBUG LISTENERS---", Update));
-            ESystem.Add(new Listen(EType.GAME_TICKSTART, Update));
-            ESystem.Add(new Listen(EType.GAME_FRAMESTART, Compose));
-            ESystem.Add(new Listen(EType.GAME_FRAMEEND, DrawHook));
+            Context.Core.OnUpdate += Update;
+            Context.Core.OnDraw += Compose;
+            Context.Core.OnDrawEnd += DrawHook;
 
             ESystem.Add(new Listen(EType.KEY_PRESSED, ToggleConsole, Microsoft.Xna.Framework.Input.Keys.OemTilde));
             ESystem.Add(new Listen(EType.KEY_PRESSED, ExecuteConsole, Microsoft.Xna.Framework.Input.Keys.Enter));
@@ -82,7 +81,6 @@ namespace SoulEngine.Debugging
             ESystem.Add(new Listen(EType.MOUSEINPUT_SCROLLDOWN, ScrollDown, console));
             ESystem.Add(new Listen(EType.INPUT_TEXT, ConsoleInput));
             ESystem.Add(new Listen(EType.TICKER_TICK, ConsoleBlinkToggle, consoleBlinkTicker));
-            ESystem.Add(new Listen("---DEBUG LISTENERS END---", Update));
 
             Logger.Add("Debugging enabled!");
         }
@@ -90,10 +88,10 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// The core's hook for updating.
         /// </summary>
-        private static void Update()
+        private static void Update(object sender, SoulUpdateEventArgs e)
         {
-            stats.Component<Transform>().Width = stats.Component<ActiveText>().Width + Functions.ManualRatio(6, 540);
-            stats.Component<Transform>().Height = stats.Component<ActiveText>().Height + Functions.ManualRatio(6, 540);
+            stats.Width = stats.Component<ActiveText>().Width + Functions.ManualRatio(6, 540);
+            stats.Height = stats.Component<ActiveText>().Height + Functions.ManualRatio(6, 540);
 
             stats.Component<ActiveText>().Text = Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
                 "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
@@ -105,7 +103,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Composes component textures on linked objects.
         /// </summary>
-        private static void Compose()
+        private static void Compose(object sender, SoulUpdateEventArgs e)
         {
             //Don't log events caused by the debugger.
             Logger.Enabled = false;
@@ -116,9 +114,9 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// The core's hook for drawing.
         /// </summary>
-        private static void DrawHook(Event e)
+        private static void DrawHook(object sender, SoulUpdateEventArgs e)
         {
-            FPSCounterUpdate((GameTime)e.Data);
+            FPSCounterUpdate(e.updateTime);
 
             Context.ink.Start(Enums.DrawChannel.Screen);
             stats.Draw();
@@ -253,7 +251,7 @@ namespace SoulEngine.Debugging
 
         private static void ScrollUp()
         {
-            if (console.Component<ActiveText>().TextHeight <= console.GetProperty("Height", 0)) return;
+            if (console.Component<ActiveText>().TextHeight <= console.Height) return;
             if (console.Component<ActiveText>().Scroll.Y == -15) return;
 
             console.Component<ActiveText>().ScrollLineUp();
@@ -262,7 +260,7 @@ namespace SoulEngine.Debugging
 
         private static void ScrollDown()
         {
-            if (console.Component<ActiveText>().Scroll.Y <= console.GetProperty("Height", 0) - console.Component<ActiveText>().TextHeight) return;
+            if (console.Component<ActiveText>().Scroll.Y <= console.Height - console.Component<ActiveText>().TextHeight) return;
             console.Component<ActiveText>().ScrollLineDown();
             UpdateConsoleText();
         }

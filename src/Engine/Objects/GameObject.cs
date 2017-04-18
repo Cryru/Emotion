@@ -19,6 +19,11 @@ namespace SoulEngine
     {
         #region "Declarations"
         /// <summary>
+        /// The layer the object should be drawn on.
+        /// </summary>
+        public ObjectLayer Layer = ObjectLayer.World;
+        #region "Component Related"
+        /// <summary>
         /// Whether component adding should be disabled.
         /// </summary>
         protected bool lockComponentAdding = false;
@@ -29,7 +34,7 @@ namespace SoulEngine
         /// <summary>
         /// Priority of the object.
         /// </summary>
-        public float Priority = 0;
+        public int Priority = 0;
         /// <summary>
         /// Whether to update the object and its components.
         /// </summary>
@@ -38,10 +43,134 @@ namespace SoulEngine
         /// Whether to draw the object and its components.
         /// </summary>
         public bool Drawing = true;
+        #endregion
+        //The position of the object within the scene.
+        #region "Positional"
         /// <summary>
-        /// The layer the object should be drawn on.
+        /// 
         /// </summary>
-        public ObjectLayer Layer = ObjectLayer.World;
+        public int X { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Y { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector3 PositionFull
+        {
+            get
+            {
+                return new Vector3(X, Y, Priority);
+            }
+            set
+            {
+                X = (int) value.X;
+                Y = (int) value.Y;
+                Priority = (int) value.Z;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector2 Position
+        {
+            get
+            {
+                return new Vector2(X, Y);
+            }
+            set
+            {
+                X = (int) value.X;
+                Y = (int) value.Y;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector2 Center
+        {
+            get
+            {
+                return Bounds.Center.ToVector2();
+                //return new Vector2(X + Width / 2, Y + Height / 2); <-- Custom Implementation
+            }
+            set
+            {
+                X = (int) value.X - Width / 2;
+                Y = (int) value.Y - Height / 2;
+            }
+        }
+        #endregion
+        //The size of the box wrapping the object.
+        #region "Size"
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Width { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Height { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector2 Size
+        {
+            get
+            {
+                return new Vector2(Width, Height);
+            }
+            set
+            {
+                Width = (int) value.X;
+                Height = (int) value.Y;
+            }
+        }
+        #endregion
+        //The rotation of the object.
+        #region "Rotation"
+        /// <summary>
+        /// The object's rotation in radians.
+        /// </summary>
+        public float Rotation { get; set; }
+        /// <summary>
+        /// The object's rotation in degrees.
+        /// </summary>
+        public int RotationDegree
+        {
+            get
+            {
+                return (int)MathHelper.ToDegrees(Rotation);
+            }
+            set
+            {
+                Rotation = MathHelper.ToRadians(value);
+            }
+        }
+        #endregion
+        //Main variables.
+        #region "Primary"
+        /// <summary>
+        /// The box wrapping the object.
+        /// </summary>
+        public Rectangle Bounds
+        {
+            get
+            {
+                return new Rectangle(X, Y, Width, Height);
+            }
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+                Width = value.Width;
+                Height = value.Height;
+            }
+        }
+        #endregion
         #endregion
 
         #region "Components"
@@ -104,6 +233,53 @@ namespace SoulEngine
                 Components[i].Compose();
             }
         }
+
+        #region "Initialization"
+        /// <summary>
+        /// 
+        /// </summary>
+        public GameObject()
+        {
+            PositionFull = new Vector3(0, 0, 0);
+            Size = new Vector2(100, 100);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Position"></param>
+        /// <param name="Size"></param>
+        public GameObject(Vector3 Position, Vector2 Size)
+        {
+            PositionFull = Position;
+            this.Size = Size;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Position"></param>
+        /// <param name="Size"></param>
+        public GameObject(Vector2 Position, Vector2 Size)
+        {
+            this.Position = Position;
+            this.Size = Size;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Position"></param>
+        public GameObject(Vector3 Position)
+        {
+            PositionFull = Position;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Position"></param>
+        public GameObject(Vector2 Position)
+        {
+            this.Position = Position;
+        }
+        #endregion
 
         #region "Components Functions"
         /// <summary>
@@ -208,84 +384,39 @@ namespace SoulEngine
             return -1;
         }
         #endregion
-        #region "Other Functions"
+
+        #region "Positioning"
         /// <summary>
-        /// Returns the requested property from a component based on priority. Not case sensitive.
+        /// Center the object within the window.
         /// </summary>
-        /// <param name="Property">The name of the property to return.</param>
-        /// <param name="Default">What to return if the property is not found.</param>
-        public T GetProperty<T>(string Property, T Default)
+        public void CenterObject()
         {
-            switch (Property.ToLower())
-            {
-                case "bounds":
-                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Bounds, typeof(T)) : Default;
-                case "x":
-                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().X, typeof(T)) : Default;
-                case "y":
-                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Y, typeof(T)) : Default;
-                case "width":
-                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Width, typeof(T)) : Default;
-                case "height":
-                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Height, typeof(T)) : Default;
-                case "rotation":
-                    return HasComponent<Transform>() ? (T)Convert.ChangeType(Component<Transform>().Rotation, typeof(T)) : Default;
-                case "mirroreffects":
-                    return HasComponent<ActiveTexture>() ? (T)Convert.ChangeType(Component<ActiveTexture>().MirrorEffects, typeof(T)) : Default;
-            }
-
-            return Default;
+            CenterObjectX();
+            CenterObjectY();
         }
-
         /// <summary>
-        /// Sets the property to the provided value.
+        /// Center the object within the window on the X axis.
         /// </summary>
-        /// <param name="Property">The name of the property to change.</param>
-        /// <param name="Value">The value to impose on it.</param>
-        public void SetProperty<T>(string Property, T Value)
+        public void CenterObjectX()
         {
-            switch (Property.ToLower())
-            {
-                case "bounds":
-                    if (HasComponent<Transform>()) Component<Transform>().Bounds = (Rectangle) Convert.ChangeType(Value, typeof(Rectangle));
-                    break;
-                case "x":
-                    if(HasComponent<Transform>()) Component<Transform>().X = (float) Convert.ChangeType(Value, typeof(float));
-                    break;
-                case "y":
-                    if (HasComponent<Transform>()) Component<Transform>().Y = (float)Convert.ChangeType(Value, typeof(float));
-                    break;
-                case "width":
-                    if (HasComponent<Transform>()) Component<Transform>().Width = (float)Convert.ChangeType(Value, typeof(float));
-                    break;
-                case "height":
-                    if (HasComponent<Transform>()) Component<Transform>().Height = (float)Convert.ChangeType(Value, typeof(float));
-                    break;
-                case "rotation":
-                    if (HasComponent<Transform>()) Component<Transform>().Rotation = (float)Convert.ChangeType(Value, typeof(float));
-                    break;
-                case "mirroreffects":
-                    if (HasComponent<ActiveTexture>()) Component<ActiveTexture>().MirrorEffects = (SpriteEffects) Convert.ChangeType(Value, typeof(SpriteEffects));
-                    break;
-            }
+            X = Settings.Width / 2 - Width / 2;
         }
-
         /// <summary>
-        /// 
+        /// Center the object within the window on the Y axis.
         /// </summary>
-        /// <param name="Property"></param>
-        /// <param name="Start"></param>
-        /// <param name="End"></param>
-        /// <param name="Time"></param>
-        public void SmoothStepProperty(string Property, int Start, int End, int Time)
+        public void CenterObjectY()
         {
-            Objects.Ticker stepper = new Objects.Ticker(Time / 100, 100, true);
-            Events.ESystem.Add(new Events.Listen(Events.EType.TICKER_TICK, ssproperty_ticker, stepper));
+            Y = Settings.Height / 2 - Height / 2;
         }
-
-        private void ssproperty_ticker(Events.Event e)
+        /// <summary>
+        /// Makes the object fit the whole screen.
+        /// </summary>
+        public void ObjectFullscreen()
         {
-
+            Width = Settings.Width;
+            Height = Settings.Height;
+            X = 0;
+            Y = 0;
         }
         #endregion
 
@@ -339,7 +470,6 @@ namespace SoulEngine
             get
             {
                 GameObject a = new GameObject();
-                a.AddComponent(new Transform());
                 a.AddComponent(new ActiveTexture());
                 return a;
             }
@@ -353,7 +483,6 @@ namespace SoulEngine
             get
             {
                 GameObject a = new GameObject();
-                a.AddComponent(new Transform());
                 a.AddComponent(new ActiveText());
                 return a;
             }
@@ -367,7 +496,6 @@ namespace SoulEngine
             get
             {
                 GameObject a = new GameObject();
-                a.AddComponent(new Transform());
                 a.AddComponent(new ActiveTexture());
                 a.AddComponent(new MouseInput());
                 a.Layer = ObjectLayer.UI;

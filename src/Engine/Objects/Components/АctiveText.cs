@@ -63,6 +63,10 @@ namespace SoulEngine.Objects.Components
         /// The scrolling of the text.
         /// </summary>
         public Vector2 Scroll = new Vector2(0, 0);
+        /// <summary>
+        /// Used to mirror textures horizontally or vertically. Used by the renderer component.
+        /// </summary>
+        public SpriteEffects MirrorEffects = SpriteEffects.None;
         #region "Bounds"
         /// <summary>
         /// The width of the text, based on the transform component's width if attached, and the screen's width if not.
@@ -72,7 +76,7 @@ namespace SoulEngine.Objects.Components
             get
             {
                 if (AutoWidth) return width;
-                else return attachedObject.GetProperty("Width", Settings.Width);
+                else return attachedObject.Width;
             }
         }
         /// <summary>
@@ -83,7 +87,7 @@ namespace SoulEngine.Objects.Components
             get
             {
                 if (AutoHeight) return height;
-                else return attachedObject.GetProperty("Height", Settings.Height);
+                else return attachedObject.Height;
             }
         }
         /// <summary>
@@ -313,31 +317,21 @@ namespace SoulEngine.Objects.Components
             //Check if empty texture, sometimes it happens.
             if (Texture == null) return;
 
-            //Get some drawing properties.
-            int X = attachedObject.GetProperty("X", 0);
-            int Y = attachedObject.GetProperty("Y", 0);
-            SpriteEffects MirrorEffects = attachedObject.GetProperty("MirrorEffects", SpriteEffects.None);
-            int Height = AutoHeight ? this.Height : Math.Min(attachedObject.GetProperty("Height", Texture.Height), Texture.Height);
-            float Rotation = attachedObject.GetProperty("Rotation", 0f);
-
             //Add padding.
-            X += (int)Padding.X;
-            Y += (int)Padding.Y;
-
-            //Generate bounds.
-            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
+            int X = attachedObject.X + (int) Padding.X;
+            int Y = attachedObject.Y + (int) Padding.Y;
 
             //Correct bounds to center origin.
-            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
-                (DrawBounds.Y + DrawBounds.Height / 2)),
-                new Point(DrawBounds.Width, DrawBounds.Height));
+            Rectangle DrawBounds = new Rectangle(new Point(attachedObject.X + attachedObject.Width / 2,
+                attachedObject.Y + attachedObject.Height / 2),
+                new Point(attachedObject.Width, attachedObject.Height));
 
             //Draw the object through XNA's SpriteBatch.
             Context.ink.Draw(Texture,
                 DrawBounds,
                 null,
                 Color.White * Opacity,
-                Rotation,
+                attachedObject.Rotation,
                 new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
                 MirrorEffects,
                 1.0f);

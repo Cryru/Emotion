@@ -47,6 +47,25 @@ namespace SoulEngine
         #endregion
         #endregion
 
+        #region "Events"
+        /// <summary>
+        /// Triggered when a tick update cycle begins.
+        /// </summary>
+        public event EventHandler<SoulUpdateEventArgs> OnUpdate;
+        /// <summary>
+        /// Triggered when a tick update cycle ends.
+        /// </summary>
+        public event EventHandler<SoulUpdateEventArgs> OnUpdateEnd;
+        /// <summary>
+        /// Triggered at the start of a new frame.
+        /// </summary>
+        public event EventHandler<SoulUpdateEventArgs> OnDraw;
+        /// <summary>
+        /// Triggered at the end of a new frame.
+        /// </summary>
+        public event EventHandler<SoulUpdateEventArgs> OnDrawEnd;
+        #endregion
+
         #region "Initialization"
         /// <summary>
         /// The initializer.
@@ -60,7 +79,6 @@ namespace SoulEngine
             Content.RootDirectory = "Content";
 
             //Connect the C# native events to the SE trigger system.
-            Exiting += Engine_Exiting;
             Window.TextInput += Window_TextInput;
             Window.ClientSizeChanged += Window_SizeChanged;
         }
@@ -126,7 +144,7 @@ namespace SoulEngine
             if (sceneLoadQueue != null) SceneLoad();
 
             //Trigger tick start event.
-            ESystem.Add(new Event(EType.GAME_TICKSTART, this, gameTime));
+            OnUpdate?.Invoke(this, new SoulUpdateEventArgs(gameTime));
 
             //Update input module.
             Input.UpdateInput();
@@ -138,7 +156,7 @@ namespace SoulEngine
             Scene.UpdateHook();
 
             //Trigger tick end event.
-            ESystem.Add(new Event(EType.GAME_TICKEND, this, gameTime));
+            OnUpdateEnd?.Invoke(this, new SoulUpdateEventArgs(gameTime));
 
             //Update input module.
             Input.UpdateInput_End();
@@ -161,7 +179,7 @@ namespace SoulEngine
             __composeAllowed = true;
 
             //Trigger frame start event.
-            ESystem.Add(new Event(EType.GAME_FRAMESTART, this, gameTime));
+            OnDraw?.Invoke(this, new SoulUpdateEventArgs(gameTime));
 
             //Compose textures on the current scene. We draw the render targets before anything else because it renders over other things otherwise.
             Scene.Compose();
@@ -177,7 +195,7 @@ namespace SoulEngine
             Scene.DrawHook();
 
             //Trigger frame end event.
-            ESystem.Add(new Event(EType.GAME_FRAMEEND, this, gameTime));
+            OnDrawEnd?.Invoke(this, new SoulUpdateEventArgs(gameTime));
         }
         #endregion
 
@@ -214,13 +232,6 @@ namespace SoulEngine
         #endregion
 
         #region "Triggers for Internal Events"
-        /// <summary>
-        /// Is triggered before the game is closed.
-        /// </summary>
-        private void Engine_Exiting(object sender, System.EventArgs e)
-        {
-            ESystem.Add(new Event(EType.GAME_CLOSED, this, null));
-        }
         /// <summary>
         /// Is triggered when text input is detected to the game.
         /// This returns the character as input, for instance capital letters etc. 

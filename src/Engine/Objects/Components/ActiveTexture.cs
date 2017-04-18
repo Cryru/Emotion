@@ -93,11 +93,7 @@ namespace SoulEngine.Objects.Components
             if (TextureMode != TextureMode.Tile) return;
 
             //Get the size of the object, or if a Transform component is attached get the bounds from it.
-            Rectangle Bounds = _xnaTexture.Bounds;
-            if (attachedObject != null && attachedObject.HasComponent<Transform>())
-            {
-                Bounds = attachedObject.Component<Transform>().Bounds;
-            }
+            Rectangle Bounds = attachedObject.Bounds;
 
             //Start drawing on internal target.
             Context.ink.StartRenderTarget(ref _texture, Bounds.Width, Bounds.Height);
@@ -132,26 +128,17 @@ namespace SoulEngine.Objects.Components
             //Check if empty texture, sometimes it happens.
             if (Texture == null) return;
 
-            //Get some drawing properties.
-            int X = attachedObject.GetProperty("X", 0);
-            int Y = attachedObject.GetProperty("Y", 0);
-            int Width = attachedObject.GetProperty("Width", Texture.Width);
-            int Height = attachedObject.GetProperty("Height", Texture.Height);
-            float Rotation = attachedObject.GetProperty("Rotation", 0f);
-
-            Rectangle DrawBounds = new Rectangle(X, Y, Width, Height);
-
             //Correct bounds to center origin.
-            DrawBounds = new Rectangle(new Point((DrawBounds.X + DrawBounds.Width / 2),
-                (DrawBounds.Y + DrawBounds.Height / 2)),
-                new Point(DrawBounds.Width, DrawBounds.Height));
+            Rectangle DrawBounds = new Rectangle(new Point(attachedObject.X + attachedObject.Width / 2,
+                attachedObject.Y + attachedObject.Height / 2),
+                new Point(attachedObject.Width, attachedObject.Height));
 
             //Draw the object through XNA's SpriteBatch.
             Context.ink.Draw(Texture,
                 DrawBounds,
                 null,
                 Tint * Opacity,
-                Rotation,
+                attachedObject.Rotation,
                 new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
                 MirrorEffects,
                 1.0f);

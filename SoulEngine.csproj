@@ -75,6 +75,8 @@
     <Compile Include="src\Engine\Events\ESystem.cs" />
     <Compile Include="src\Engine\Events\EType.cs" />
     <Compile Include="src\Engine\Events\Event.cs" />
+    <Compile Include="src\Engine\Events\SoulUpdateEventArgs.cs" />
+    <Compile Include="src\Engine\Events\SoulEventArgs.cs" />
     <Compile Include="src\Engine\Events\Listen.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
@@ -115,7 +117,6 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileObject.cs" />
     <Compile Include="src\Engine\Objects\Components\MouseInput.cs" />
     <Compile Include="src\Engine\Objects\Components\TiledMap.cs" />
-    <Compile Include="src\Engine\Objects\Components\Transform.cs" />
     <Compile Include="src\Engine\Objects\Components\АctiveText.cs" />
     <Compile Include="src\Engine\Objects\GameObject.cs" />
     <Compile Include="src\Engine\Objects\Scene.cs" />
