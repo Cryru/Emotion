@@ -50,8 +50,11 @@ namespace SoulEngine.Objects
         /// </summary>
         public Camera()
         {
-            //Add a transform to the camera.
-            AddComponent(new Transform(new Vector2(0,0), new Vector2(Settings.Width, Settings.Height)));
+            //Camera bounds.
+            X = 0;
+            Y = 0;
+            Width = Settings.Width;
+            Height = Settings.Height;
 
             lockComponentAdding = true;
             lockComponentRemoving = true;
@@ -76,11 +79,11 @@ namespace SoulEngine.Objects
         private Matrix GetVirtualViewMatrix(Vector2 parallaxFactor)
         {
             return
-                Matrix.CreateTranslation(new Vector3(-Component<Transform>().Position * parallaxFactor, 0.0f)) * //Position is modified by parallax.
-                Matrix.CreateTranslation(new Vector3(-Component<Transform>().Center, 0.0f)) * //Center is origin.
-                Matrix.CreateRotationZ(Component<Transform>().Rotation) * //Rotation is based on rotation.
+                Matrix.CreateTranslation(new Vector3(-Position * parallaxFactor, 0.0f)) * //Position is modified by parallax.
+                Matrix.CreateTranslation(new Vector3(-Center, 0.0f)) * //Center is origin.
+                Matrix.CreateRotationZ(Rotation) * //Rotation is based on rotation.
                 Matrix.CreateScale(Zoom, Zoom, 1) * //Scale is based on zoom level.
-                Matrix.CreateTranslation(new Vector3(Component<Transform>().Center, 0.0f)); //Center is origin.
+                Matrix.CreateTranslation(new Vector3(Center, 0.0f)); //Center is origin.
         }
         #endregion
     }

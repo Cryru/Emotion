@@ -97,9 +97,9 @@ namespace SoulEngine.Objects.Components
         private Enums.MouseInputStatus UpdateStatus()
         {
             //Get the bounds of my object.
-            if (!attachedObject.HasComponent<Transform>() || attachedObject.Layer != Enums.ObjectLayer.UI) return Enums.MouseInputStatus.None;
+            if (attachedObject.Layer != Enums.ObjectLayer.UI) return Enums.MouseInputStatus.None;
 
-            Rectangle objectBounds = attachedObject.GetProperty("Bounds", new Rectangle());
+            Rectangle objectBounds = attachedObject.Bounds;
 
             //Get the location of the mouse.
             Vector2 mouseLoc = Input.getMousePos();
@@ -112,7 +112,6 @@ namespace SoulEngine.Objects.Components
             //Get the bounds of all other UI objects.
             List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
                 .Where(x => x.Layer == Enums.ObjectLayer.UI)
-                .Where(x => x.HasComponent<Transform>() == true)
                 .OrderByDescending(x => x.Priority).ToList();
 
             //Check if any objects are blocking this one.
@@ -122,7 +121,7 @@ namespace SoulEngine.Objects.Components
                 if (objects[i] == attachedObject) break;
 
                 //Check if the mouse intersects with the bounds of the object.
-                if (objects[i].Component<Transform>().Bounds.Intersects(mouseLoc)) return Enums.MouseInputStatus.None;
+                if (objects[i].Bounds.Intersects(mouseLoc)) return Enums.MouseInputStatus.None;
             }
 
             //Check if mouse is clicked now that we have determined the focus is on us.

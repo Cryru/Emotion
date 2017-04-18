@@ -131,13 +131,13 @@ namespace SoulEngine.Objects
             if (startNow) _State = TickerState.Running; else _State = TickerState.Paused;
 
             //Add the ticker to the global list.
-            ESystem.Add(new Listen(EType.GAME_FRAMESTART, Update, Context.Core));
+            Context.Core.OnDraw += Update;
         }
 
         /// <summary>
         /// Is run every tick by the Core. Invokes triggers and calculates time passing.
         /// </summary>
-        public void Update(Event e)
+        public void Update(object sender, SoulUpdateEventArgs e)
         {
             switch(_State) //Check which state we are in.
             {
@@ -170,7 +170,7 @@ namespace SoulEngine.Objects
                         //Unhook listeners from the object.
                         ESystem.Remove(this);
                         //Unhook object listener from core.
-                        ESystem.Remove(Update);
+                        Context.Core.OnDraw -= Update;
                     }
 
                     break;

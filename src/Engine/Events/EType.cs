@@ -37,28 +37,6 @@ namespace SoulEngine.Events
         /// </summary>
         public const string INPUT_TEXT = "INPUT_TEXT";
         #endregion
-        #region "GAME"
-        /// <summary>
-        /// Instantly triggered when the game is closed. Will not be triggered if forcelly closed or in case of a crash.
-        /// </summary>
-        public const string GAME_CLOSED = "GAME_CLOSED";
-        /// <summary>
-        /// Triggered when a tick update cycle begins.
-        /// </summary>
-        public const string GAME_TICKSTART = "GAME_TICKSTART";
-        /// <summary>
-        /// Triggered when a tick update cycle ends.
-        /// </summary>
-        public const string GAME_TICKEND = "GAME_TICKEND";
-        /// <summary>
-        /// Triggered at the start of a new frame.
-        /// </summary>
-        public const string GAME_FRAMESTART = "GAME_FRAMESTART";
-        /// <summary>
-        /// Triggered at the end of a new frame.
-        /// </summary>
-        public const string GAME_FRAMEEND = "GAME_FRAMEEND";
-        #endregion
         #region "WINDOW"
         /// <summary>
         /// Triggered when the size of the window changes.

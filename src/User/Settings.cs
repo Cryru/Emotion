@@ -77,7 +77,7 @@ namespace SoulEngine
         /// <summary>
         /// The color the screen will be cleared with.
         /// </summary>
-        public static Color FillColor = Color.Black;
+        public static Color FillColor = Color.CornflowerBlue;
         /// <summary>
         /// Whether an external settings file should be loaded.
         /// </summary>
