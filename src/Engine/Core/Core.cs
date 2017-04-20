@@ -88,6 +88,20 @@ namespace SoulEngine
         /// </summary>
         protected override void LoadContent()
         {
+            ////Measure boot time.
+            //LoadScene(new ScenePrim());
+            //Starter.bootPerformance.Stop();
+
+            ////Setup the brush for drawing.
+            //Context.ink = new SpriteBatch(GraphicsDevice);
+            ////Setup the window manager.
+
+            ////Load global resources.
+            //AssetManager.LoadGlobal();
+            //WindowManager.Initialize();
+            //Console.WriteLine("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
+            //return;
+
             //Apply settings.
             IsMouseVisible = Settings.RenderMouse;
             IsFixedTimeStep = Settings.FPS > 0 ? true : false; //Check whether to cap FPS based on the fps target.

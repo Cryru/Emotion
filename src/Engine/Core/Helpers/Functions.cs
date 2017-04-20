@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Globalization;
 using System.IO;
+using SoulEngine.Objects;
 
 namespace SoulEngine
 {
@@ -68,7 +69,7 @@ namespace SoulEngine
             }
 
             //Start drawing.
-            if(Settings.AntiAlias)
+            if (Settings.AntiAlias)
                 ink.Begin(SpriteSortMode.Deferred, null, null, null, RasterizerState.CullNone, null, transformationMatrix);
             else
                 ink.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, RasterizerState.CullNone, null, transformationMatrix);
@@ -317,5 +318,36 @@ namespace SoulEngine
             return generator.Next(Min, Max + 1); //We add one because by Random.Next does not include max.
         }
         #endregion
+
+        #region "Wrappers"
+        /// <summary>
+        /// Executes the requested action after a set interval of time.
+        /// </summary>
+        /// <param name="Time">The time to wait before executing the action.</param>
+        /// <param name="Action">The action to execute.</param>
+        public static void queueAction(int Time, Action Action)
+        {
+            Ticker temp = new Ticker(Time, 1, true);
+            temp.OnDone += new QueuedAction(Action).EventWrapper;
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Wrapper for the queueAction function.
+    /// </summary>
+    class QueuedAction
+    {
+        Action Action;
+
+        public QueuedAction(Action Action)
+        {
+            this.Action = Action;
+        }
+
+        public void EventWrapper(object sender, EventArgs e)
+        {
+            Action?.Invoke();
+        }
     }
 }

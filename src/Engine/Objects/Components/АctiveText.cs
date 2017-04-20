@@ -75,7 +75,10 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (AutoWidth) return width;
+                if (AutoWidth)
+                {
+                    if (width != 0) return width; else return Settings.Width;
+                }
                 else return attachedObject.Width;
             }
         }
@@ -86,7 +89,10 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (AutoHeight) return height;
+                if (AutoHeight)
+                {
+                    if (height != 0) return height; else return Settings.Height;
+                }
                 else return attachedObject.Height;
             }
         }
