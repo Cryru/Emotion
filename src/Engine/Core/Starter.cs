@@ -55,21 +55,6 @@ namespace SoulEngine
                 Context.Core.Dispose();
             }
         }
-
-        /// <summary>
-        /// Continues the start up process after the engine is set up.
-        /// </summary>
-        public static void ContinueStart()
-        {
-            //Check if we are enforcing asset integrity, and check it.
-            if (Settings.EnforceAssetIntegrity == true && AssetManager.AssertAssets() == false)
-            {
-                throw new Exception("The assets meta file is missing, or file tampering detected.");
-            }
-            
-            //Loading has finished.
-            Loading = false;
-        }
     } 
 } 
 

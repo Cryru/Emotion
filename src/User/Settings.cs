@@ -14,16 +14,18 @@ namespace SoulEngine
     /// </summary>
     public partial class Settings
     {
-        #region "Engine Settings"
+        #region "Drawing Settings"
         /// <summary>
-        /// The FPS target.
+        /// The FPS target, if below 0 the FPS isn't capped.
         /// </summary>
         public static float FPS = 60;
         /// <summary>
         /// Whether to synchronize the FPS to the screen's refresh rate. 
-        /// Overwrites the 'capFPS' setting. 
+        /// Can be overwriten by GPU options.
         /// </summary>
         public static bool vSync = false;
+        #endregion
+        #region "Engine Settings"
         /// <summary>
         /// Whether networking is allowed, requires a restart.
         /// </summary>

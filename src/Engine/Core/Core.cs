@@ -88,24 +88,10 @@ namespace SoulEngine
         /// </summary>
         protected override void LoadContent()
         {
-            ////Measure boot time.
-            //LoadScene(new ScenePrim());
-            //Starter.bootPerformance.Stop();
-
-            ////Setup the brush for drawing.
-            //Context.ink = new SpriteBatch(GraphicsDevice);
-            ////Setup the window manager.
-
-            ////Load global resources.
-            //AssetManager.LoadGlobal();
-            //WindowManager.Initialize();
-            //Console.WriteLine("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
-            //return;
-
             //Apply settings.
             IsMouseVisible = Settings.RenderMouse;
             IsFixedTimeStep = Settings.FPS > 0 ? true : false; //Check whether to cap FPS based on the fps target.
-            TargetElapsedTime = TimeSpan.FromSeconds(1.0f / Settings.FPS);
+            TargetElapsedTime = Settings.FPS > 0 ? TimeSpan.FromSeconds(1.0f / Settings.FPS) : TimeSpan.FromSeconds(1);
             Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
 
             //Apply hardcoded settings.
@@ -115,30 +101,33 @@ namespace SoulEngine
             //Setup the brush for drawing.
             Context.ink = new SpriteBatch(GraphicsDevice);
 
+            //Load global resources.
+            AssetManager.LoadGlobal();
+
             //Setup the window manager.
             WindowManager.Initialize();
 
-            //Continue the start sequence.
-            Starter.ContinueStart();
+            //Check if we are enforcing asset integrity, and check it.
+            if (Settings.EnforceAssetIntegrity == true && AssetManager.AssertAssets() == false)
+            {
+                throw new Exception("The assets meta file is missing, or file tampering detected.");
+            }
 
             //Setup the scripting engine.
             ScriptEngine.SetupScripting();
 
-            //Load global resources.
-            AssetManager.LoadGlobal();
-
             //Setup networking if we have to.
             if (Settings.Networking) Networking.Setup();
-
-            //Measure boot time.
-            Starter.bootPerformance.Stop();
-            Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
             //Load the primary scene.
             LoadScene(new ScenePrim());
 
             //Load the debugging scene.
             if (Settings.Debug) DebugScene.Setup();
+
+            //Measure boot time.
+            Starter.bootPerformance.Stop();
+            Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
 
             //Signify that we don't expect any more system event listeners.
             ESystem.AddSystemListeners = false;
@@ -184,7 +173,7 @@ namespace SoulEngine
             if (IsActive == false) return;
 
             //Record frametime.
-            frameTime = gameTime.ElapsedGameTime.Milliseconds;
+            frameTime = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
