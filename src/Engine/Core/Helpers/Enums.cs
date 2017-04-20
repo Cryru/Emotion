@@ -32,6 +32,10 @@ namespace SoulEngine.Enums
     public enum TickerState
     {
         /// <summary>
+        /// The ticker is not instanced. This should never happen.
+        /// </summary>
+        None,
+        /// <summary>
         /// Ticking.
         /// </summary>
         Running,

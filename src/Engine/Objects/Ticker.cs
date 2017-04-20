@@ -96,7 +96,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The state of the ticker. Private holder.
         /// </summary>
-        protected TickerState _State;
+        protected TickerState _State = TickerState.None;
         #endregion
         #region "Private Workings"
         /// <summary>
@@ -112,6 +112,24 @@ namespace SoulEngine.Objects
         /// </summary>
         private DateTime _TimeStarted;
         #endregion
+        #region "Events"
+        /// <summary>
+        /// Triggered when the ticker ticks.
+        /// </summary>
+        public event EventHandler<EventArgs> OnTick;
+        /// <summary>
+        /// Triggered when ticker is done ticking.
+        /// </summary>
+        public event EventHandler<EventArgs> OnDone;
+        /// <summary>
+        /// Triggered when the ticker starts or is resumed.
+        /// </summary>
+        public event EventHandler<EventArgs> OnStart;
+        /// <summary>
+        /// Triggered when the ticker is paused.
+        /// </summary>
+        public event EventHandler<EventArgs> OnPause;
+        #endregion
         #endregion
 
         /// <summary>
@@ -119,7 +137,8 @@ namespace SoulEngine.Objects
         /// </summary>
         /// <param name="Delay">The delay between ticks.</param>
         /// <param name="Limit">The number of times the ticker should tick. If below 0 it will go on forever.</param>
-        public Ticker(float Delay = 100, int Limit = -1, bool startNow = false)
+        /// <param name="StartNow">Whether to start the ticker immediately or start paused.</param>
+        public Ticker(float Delay = 100, int Limit = -1, bool StartNow = false)
         {
             this.Delay = Delay;
             this.Limit = Limit;
@@ -128,9 +147,9 @@ namespace SoulEngine.Objects
             _TimeStarted = DateTime.Now;
 
             //Check if ticking should start.
-            if (startNow) _State = TickerState.Running; else _State = TickerState.Paused;
+            if (StartNow) Start(); else Pause();
 
-            //Add the ticker to the global list.
+            //Execute the ticker on each frame for accurate timing.
             Context.Core.OnDraw += Update;
         }
 
@@ -153,7 +172,7 @@ namespace SoulEngine.Objects
                     //If enough time has passed then tick.
                     if (time > Delay)
                     {
-                        ESystem.Add(new Event(EType.TICKER_TICK, this, _Ticks));
+                        OnTick?.Invoke(this, EventArgs.Empty);
                         time -= Delay;
                         _Ticks++;
                     }
@@ -166,11 +185,9 @@ namespace SoulEngine.Objects
 
                         //In which case run the ending event.
                         _State = TickerState.Done;
-                        ESystem.Add(new Event(EType.TICKER_DONE, this));
-                        //Unhook listeners from the object.
-                        ESystem.Remove(this);
-                        //Unhook object listener from core.
-                        Context.Core.OnDraw -= Update;
+                        OnDone?.Invoke(this, EventArgs.Empty);
+                        //Destroy the ticker.
+                        Dispose();
                     }
 
                     break;
@@ -183,19 +200,21 @@ namespace SoulEngine.Objects
         /// </summary>
         public virtual void Pause()
         {
-            if (_State == TickerState.Running)
+            if (_State == TickerState.Running || _State == TickerState.None)
             {
                 _State = TickerState.Paused;
+                OnPause?.Invoke(this, EventArgs.Empty);
             }
         }
         /// <summary>
         /// Start the ticker if paused.
         /// </summary>
-        public virtual void Resume()
+        public virtual void Start()
         {
-            if (_State == TickerState.Paused)
+            if (_State == TickerState.Paused || _State == TickerState.None)
             {
                 _State = TickerState.Running;
+                OnStart?.Invoke(this, EventArgs.Empty);
             }
         }
         #endregion
