@@ -440,7 +440,6 @@ namespace SoulEngine
                     Components.Clear();
                     Components = null;
                 }
-                Events.ESystem.Remove(this);
 
                 //Set disposing flag.
                 disposedValue = true;

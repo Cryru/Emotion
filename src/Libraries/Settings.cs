@@ -36,8 +36,9 @@ namespace SoulEngine
             set
             {
                 _DisplayMode = value;
-                //Send a display mode changed event.
-                ESystem.Add(new Event(EType.WINDOW_DISPLAYMODECHANGED, Context.Core));
+
+                //Trigger the display mode changed event.
+                Context.Core.triggerDisplayChanged();
             }
         }
         #endregion

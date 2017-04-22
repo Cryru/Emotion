@@ -197,4 +197,31 @@ namespace SoulEngine.Enums
         /// </summary>
         Connected
     }
+
+    /// <summary>
+    /// All mouse butons.
+    /// </summary>
+    public enum MouseButton
+    {
+        /// <summary>
+        /// The left mouse button.
+        /// </summary>
+        Left,
+        /// <summary>
+        /// The right mouse button.
+        /// </summary>
+        Right,
+        /// <summary>
+        /// The scroll wheel button.
+        /// </summary>
+        Middle,
+        /// <summary>
+        /// The forth button on some mice.
+        /// </summary>
+        Forth,
+        /// <summary>
+        /// The fifth button on some mice.
+        /// </summary>
+        Fifth
+    }
 }

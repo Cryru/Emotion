@@ -44,6 +44,8 @@ namespace SoulEngine
         /// Used to prevent scenes being loaded outside of the queue system.
         /// </summary>
         public bool __sceneSetupAllowed = false;
+
+        public object EventsArgs { get; private set; }
         #endregion
         #endregion
 
@@ -61,9 +63,23 @@ namespace SoulEngine
         /// </summary>
         public event EventHandler<SoulUpdateEventArgs> OnDraw;
         /// <summary>
+        /// Triggered at the part of the frame when textures are composed.
+        /// </summary>
+        public event EventHandler<SoulUpdateEventArgs> OnCompose;
+        /// <summary>
         /// Triggered at the end of a new frame.
         /// </summary>
         public event EventHandler<SoulUpdateEventArgs> OnDrawEnd;
+        #region "Window Events"
+        /// <summary>
+        /// Triggered at the end of a new frame.
+        /// </summary>
+        public event EventHandler<EventArgs> OnSizeChanged;
+        /// <summary>
+        /// Triggered when the game's display mode changes.
+        /// </summary>
+        public event EventHandler<EventArgs> OnDisplayModeChanged;
+        #endregion
         #endregion
 
         #region "Initialization"
@@ -78,8 +94,8 @@ namespace SoulEngine
             //Setup the Content root folder for the master scene. The root for this folder is the exe.
             Content.RootDirectory = "Content";
 
-            //Connect the C# native events to the SE trigger system.
-            Window.TextInput += Window_TextInput;
+            //Reroute window events to the core and input classes.
+            Window.TextInput += Input_TextInput;
             Window.ClientSizeChanged += Window_SizeChanged;
         }
 
@@ -128,9 +144,6 @@ namespace SoulEngine
             //Measure boot time.
             Starter.bootPerformance.Stop();
             Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
-
-            //Signify that we don't expect any more system event listeners.
-            ESystem.AddSystemListeners = false;
         }
         #endregion
 
@@ -181,8 +194,8 @@ namespace SoulEngine
             //Allow composing.
             __composeAllowed = true;
 
-            //Trigger frame start event.
-            OnDraw?.Invoke(this, new SoulUpdateEventArgs(gameTime));
+            //Trigger compose event.
+            OnCompose?.Invoke(this, new SoulUpdateEventArgs(gameTime));
 
             //Compose textures on the current scene. We draw the render targets before anything else because it renders over other things otherwise.
             Scene.Compose();
@@ -193,6 +206,9 @@ namespace SoulEngine
             Context.ink.Start(DrawChannel.Screen);
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
+
+            //Trigger the frame start event.
+            OnDraw?.Invoke(this, new SoulUpdateEventArgs(gameTime));
 
             //Draw the current scene.
             Scene.DrawHook();
@@ -234,23 +250,31 @@ namespace SoulEngine
         }
         #endregion
 
-        #region "Triggers for Internal Events"
+        #region "Event Rerouting"
         /// <summary>
         /// Is triggered when text input is detected to the game.
-        /// This returns the character as input, for instance capital letters etc. 
-        /// and doesn't capture non text characters.
+        /// This returns the character as input, for instance a backspace is '/b' and so on.
         /// </summary>
-        private void Window_TextInput(object sender, TextInputEventArgs e)
+        private void Input_TextInput(object sender, TextInputEventArgs e)
         {
-            ESystem.Add(new Event(EType.INPUT_TEXT, this, e.Character.ToString()));
+            Input.triggerTextInput(sender, e);
         }
         /// <summary>
         /// Triggered when the size of the window changes. If Settings.ResizableWindow is true
-        /// this can be quite useful. Has a system event hooked to it that regenerates the window.
+        /// this can be quite useful. The window manager is connected to this event to redefine the window.
         /// </summary>
         private void Window_SizeChanged(object sender, EventArgs e)
         {
-            ESystem.Add(new Event(EType.WINDOW_SIZECHANGED, this, null));
+            Context.Screen?.Update();
+            OnSizeChanged?.Invoke(this, EventArgs.Empty);
+        }
+        /// <summary>
+        /// Wrapper for the display changed event.
+        /// </summary>
+        public void triggerDisplayChanged()
+        {
+            WindowManager.UpdateWindow();
+            OnDisplayModeChanged?.Invoke(this, EventArgs.Empty);
         }
         #endregion
     }

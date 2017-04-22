@@ -69,21 +69,17 @@ namespace SoulEngine.Debugging
             consoleBlinkTicker = new Ticker(300, -1, true);
 
             Context.Core.OnUpdate += Update;
-            Context.Core.OnDraw += Compose;
+            Context.Core.OnCompose += Compose;
             Context.Core.OnDrawEnd += DrawHook;
 
-            ESystem.Add(new Listen(EType.KEY_PRESSED, ToggleConsole, Microsoft.Xna.Framework.Input.Keys.OemTilde));
-            ESystem.Add(new Listen(EType.KEY_PRESSED, ExecuteConsole, Microsoft.Xna.Framework.Input.Keys.Enter));
-            ESystem.Add(new Listen(EType.KEY_PRESSED, ConsolePreviousInput, Microsoft.Xna.Framework.Input.Keys.Up));
-            ESystem.Add(new Listen(EType.KEY_PRESSED, MoveBlinkerLeft, Microsoft.Xna.Framework.Input.Keys.Left));
-            ESystem.Add(new Listen(EType.KEY_PRESSED, MoveBlinkerRight, Microsoft.Xna.Framework.Input.Keys.Right));
-            ESystem.Add(new Listen(EType.MOUSEINPUT_SCROLLUP, ScrollUp, console));
-            ESystem.Add(new Listen(EType.MOUSEINPUT_SCROLLDOWN, ScrollDown, console));
-            ESystem.Add(new Listen(EType.INPUT_TEXT, ConsoleInput));
-            ESystem.Add(new Listen(EType.TICKER_TICK, ConsoleBlinkToggle, consoleBlinkTicker));
+            Input.OnKeyDown += KeysManager;
+            console.Component<MouseInput>().OnMouseScroll += ScrollManager;
+            Input.OnTextInput += ConsoleInput;
+            consoleBlinkTicker.OnTick += ConsoleBlinkToggle;
 
             Logger.Add("Debugging enabled!");
         }
+
         #region "Hooks"
         /// <summary>
         /// The core's hook for updating.
@@ -163,14 +159,15 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Accepts text input to display to the console.
         /// </summary>
-        /// <param name="e"></param>
-        private static void ConsoleInput(Event e)
+        private static void ConsoleInput(object sender, TextInputEventArgs e)
         {
-            if (!consoleOpened || (string) e.Data == "`" || (string)e.Data == "\r") return;
+            string inputChar = e.Character.ToString();
 
-            if ((string)e.Data != "\b")
+            if (!consoleOpened || inputChar == "`" || inputChar == "\r") return;
+
+            if (inputChar != "\b")
             {
-                consoleInput = consoleInput.Substring(0, blinkerLocation) + e.Data + consoleInput.Substring(blinkerLocation);
+                consoleInput = consoleInput.Substring(0, blinkerLocation) + inputChar + consoleInput.Substring(blinkerLocation);
                 blinkerLocation++;
             }
             else
@@ -215,7 +212,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Selection blinker.
         /// </summary>
-        private static void ConsoleBlinkToggle()
+        private static void ConsoleBlinkToggle(object sender, EventArgs e)
         {
             if (consoleBlinker == "|") consoleBlinker = " "; else consoleBlinker = "|";
             UpdateConsoleText();
@@ -263,6 +260,42 @@ namespace SoulEngine.Debugging
             if (console.Component<ActiveText>().Scroll.Y <= console.Height - console.Component<ActiveText>().TextHeight) return;
             console.Component<ActiveText>().ScrollLineDown();
             UpdateConsoleText();
+        }
+        #endregion
+
+        #region "Event Wrappers"
+        private static void KeysManager(object sender, KeyEventArgs e)
+        {
+            switch(e.Key)
+            {
+                case Microsoft.Xna.Framework.Input.Keys.OemTilde:
+                    ToggleConsole();
+                    break;
+                case Microsoft.Xna.Framework.Input.Keys.Enter:
+                    ExecuteConsole();
+                    break;
+                case Microsoft.Xna.Framework.Input.Keys.Up:
+                    ConsolePreviousInput();
+                    break;
+                case Microsoft.Xna.Framework.Input.Keys.Left:
+                    MoveBlinkerLeft();
+                    break;
+                case Microsoft.Xna.Framework.Input.Keys.Right:
+                    MoveBlinkerRight();
+                    break;
+
+            }
+        }
+        private static void ScrollManager(object sender, MouseScrollEventArgs e)
+        {
+            if(e.ScrollAmount < 0)
+            {
+                ScrollDown();
+            }
+            else
+            {
+                ScrollUp();
+            }
         }
         #endregion
     }
