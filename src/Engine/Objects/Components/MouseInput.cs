@@ -149,10 +149,6 @@ namespace SoulEngine.Objects.Components
         #endregion
 
         #region "Component Interface"
-        public override void Draw()
-        {
-
-        }
         public override void Compose()
         {
 

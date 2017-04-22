@@ -212,7 +212,7 @@ namespace SoulEngine
             //Check if drawing.
             if (Drawing == false) return;
 
-            Components = Components.OrderBy(x => x.DrawPriority).ToList();
+            Components = Components.OrderBy(x => x.RenderPriority).ToList();
 
             for (int i = 0; i < Components.Count; i++)
             {

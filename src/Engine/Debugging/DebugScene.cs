@@ -53,9 +53,10 @@ namespace SoulEngine.Debugging
 
             console = GameObject.GenericTextObject;
             console.AddComponent(new ActiveTexture());
-            console.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
+            console.Component<ActiveTexture>().SetTexture(AssetManager.BlankTexture);
             console.Component<ActiveTexture>().Tint = Color.Black;
             console.Component<ActiveTexture>().Opacity = 0.5f;
+
             console.Component<ActiveText>().Style = Enums.TextStyle.Justified;
 
             console.Width = Settings.Width;

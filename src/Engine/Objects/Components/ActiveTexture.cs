@@ -20,43 +20,35 @@ namespace SoulEngine.Objects.Components
     /// </summary>
     public class ActiveTexture : Component
     {
+
         #region "Declarations"
         /// <summary>
-        /// The active texture's drawing texture.
+        /// Returns the active texture's texture.
         /// </summary>
-        public Texture2D Texture
+        /// <returns></returns>
+        public Texture2D GetTexture()
         {
-            get
-            {
-                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) return attachedObject.Component<Animation>().Frames[attachedObject.Component<Animation>().FrameTotal];
-                if (TextureMode == TextureMode.Stretch) return _xnaTexture;
-                if (_texture == null) return AssetManager.MissingTexture;
-                return _texture as Texture2D;
-            }
-            set
-            {
-                _xnaTexture = value;
-            }
+            if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) return attachedObject.Component<Animation>().Frames[attachedObject.Component<Animation>().FrameTotal];
+            if (TextureMode == TextureMode.Stretch) return Texture;
+            if (_texture == null) return AssetManager.MissingTexture;
+            return _texture as Texture2D;
         }
+
+        /// <summary>
+        /// Sets the active texture's texture.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetTexture(Texture2D value)
+        {
+            Texture = value;
+        }
+
         /// <summary>
         /// The way to texture should be rendered to fill its bounds.
         /// </summary>
         public TextureMode TextureMode = 0;
-        /// <summary>
-        /// Used to mirror textures horizontally or vertically. Used by the renderer component.
-        /// </summary>
-        public SpriteEffects MirrorEffects = SpriteEffects.None;
-        /// <summary>
-        /// Used to decide the texture opacity. Used by the renderer component.
-        /// </summary>
-        public float Opacity = 1f;
-        /// <summary>
-        /// Used to color the texture. Used by the renderer component.
-        /// </summary>
-        public Color Tint = Color.White;
         #region "Private"
         private RenderTarget2D _texture;
-        private Texture2D _xnaTexture;
         #endregion
         #endregion
 
@@ -68,7 +60,7 @@ namespace SoulEngine.Objects.Components
         public ActiveTexture(TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
-            Texture = AssetManager.MissingTexture;
+            this.SetTexture(AssetManager.MissingTexture);
         }
         /// <summary>
         /// 
@@ -79,7 +71,7 @@ namespace SoulEngine.Objects.Components
         public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
-            this.Texture = Texture;
+            this.SetTexture(Texture);
         }
         #endregion
 
@@ -103,15 +95,15 @@ namespace SoulEngine.Objects.Components
             {
                 case TextureMode.Tile:
                     //Calculate the limit of the texture tile, we go higher as the rendertarget will not allow out of bounds drawing anyway.
-                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / _xnaTexture.Width);
-                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / _xnaTexture.Height);
+                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / GetTexture().Width);
+                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / GetTexture().Height);
 
                     for (int x = 0; x < xLimit; x++)
                     {
                         for (int y = 0; y < yLimit; y++)
                         {
-                            Context.ink.Draw(_xnaTexture, new Rectangle(_xnaTexture.Width * x, _xnaTexture.Height * y,
-                                _xnaTexture.Width, _xnaTexture.Height), null, Color.White);
+                            Context.ink.Draw(GetTexture(), new Rectangle(GetTexture().Width * x, GetTexture().Height * y,
+                                GetTexture().Width, GetTexture().Height), null, Color.White);
                         }
                     }
                     break;
@@ -119,29 +111,6 @@ namespace SoulEngine.Objects.Components
 
             //Stop drawing.
             Context.ink.EndRenderTarget();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public override void Draw()
-        {
-            //Check if empty texture, sometimes it happens.
-            if (Texture == null) return;
-
-            //Correct bounds to center origin.
-            Rectangle DrawBounds = new Rectangle(new Point(attachedObject.X + attachedObject.Width / 2,
-                attachedObject.Y + attachedObject.Height / 2),
-                new Point(attachedObject.Width, attachedObject.Height));
-
-            //Draw the object through XNA's SpriteBatch.
-            Context.ink.Draw(Texture,
-                DrawBounds,
-                null,
-                Tint * Opacity,
-                attachedObject.Rotation,
-                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
-                MirrorEffects,
-                1.0f);
         }
         #endregion
 
