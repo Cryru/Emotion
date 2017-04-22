@@ -235,8 +235,9 @@ namespace SoulEngine.Objects
                     // TODO: dispose managed state (managed objects).
                 }
 
-                //Free resources.
-                ESystem.Remove(this);
+                //Remove events.
+                OnTick = null;
+                OnDone = null;
 
                 //Set disposing flag.
                 disposedValue = true;

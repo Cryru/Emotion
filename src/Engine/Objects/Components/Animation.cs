@@ -163,6 +163,12 @@ namespace SoulEngine.Objects.Components
         private int _FPS = 0;
         private List<Texture2D> frames = new List<Texture2D>();
         #endregion
+        #region "Events"
+        /// <summary>
+        /// Triggered when the animation finishes.
+        /// </summary>
+        public static event EventHandler<EventArgs> OnFinish;
+        #endregion
         #endregion
 
         /// <summary>
@@ -277,7 +283,7 @@ namespace SoulEngine.Objects.Components
                     //If the global frame is the last frame.
                     if (_Frame == EndingFrame)
                     {
-                        ESystem.Add(new Event(EType.ANIM_FINISHED, this));
+                        OnFinish?.Invoke(this, null);
                         finished = true;
                     }
                     else
@@ -338,7 +344,7 @@ namespace SoulEngine.Objects.Components
                     //If the global frame is the first frame.
                     if (_Frame == StartingFrame)
                     {
-                        ESystem.Add(new Event(EType.ANIM_FINISHED, this));
+                        OnFinish?.Invoke(this, null);
                         finished = true;
                     }
                     else

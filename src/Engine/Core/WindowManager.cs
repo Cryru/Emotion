@@ -28,10 +28,6 @@ namespace SoulEngine
             Context.Screen = new ScreenAdapter();
             Context.Camera = new Camera();
 
-            //Hook a size changed event to the screen adapter's update, as changes to the window size will mess with it.
-            ESystem.Add(new Listen(EType.WINDOW_SIZECHANGED, Context.Screen.Update));
-            ESystem.Add(new Listen(EType.WINDOW_DISPLAYMODECHANGED, UpdateWindow));
-
             //Set the window to the setting's size if resizable.
             if (Settings.ResizableWindow == true)
             {
@@ -108,9 +104,6 @@ namespace SoulEngine
                     Context.GraphicsManager.ApplyChanges();
                 }
             }
-
-            //Send the new display mode to the system event which detects changes to the settings.
-            ESystem.Add(new Event("prevDisplayMode_update", null, Settings.DisplayMode));
         }
     }
 }

@@ -36,6 +36,32 @@ namespace SoulEngine.Objects.Components
         private int scrollPosition;
         private int lastscrollPosition;
         #endregion
+        #region "Events"
+        /// <summary>
+        /// Triggered when the mouse leaves the object's bounds.
+        /// </summary>
+        public event EventHandler<EventArgs> OnMouseLeave;
+        /// <summary>
+        /// Triggered when the mouse enters the object's bounds.
+        /// </summary>
+        public event EventHandler<EventArgs> OnMouseEnter;
+        /// <summary>
+        /// Triggered when the object is left clicked.
+        /// </summary>
+        public event EventHandler<EventArgs> OnClicked;
+        /// <summary>
+        /// Triggered when left click is let go on the object.
+        /// </summary>
+        public event EventHandler<EventArgs> OnLetGo;
+        /// <summary>
+        /// Triggered when mouse moves inside the object's bounds.
+        /// </summary>
+        public event EventHandler<MouseMoveEventArgs> OnMouseMove;
+        /// <summary>
+        /// Triggered when mouse's scrolls inside the object.
+        /// </summary>
+        public event EventHandler<MouseScrollEventArgs> OnMouseScroll;
+        #endregion
         #endregion
 
         #region "Functions"
@@ -47,19 +73,19 @@ namespace SoulEngine.Objects.Components
             //Process events.
             if (lastTickStatus == Enums.MouseInputStatus.MouseOvered &&
                 status == Enums.MouseInputStatus.None)
-                ESystem.Add(new Event(EType.MOUSEINPUT_LEFT, attachedObject));
+                OnMouseLeave?.Invoke(attachedObject, EventArgs.Empty);
 
             if (lastTickStatus == Enums.MouseInputStatus.None &&
                  status == Enums.MouseInputStatus.MouseOvered)
-                ESystem.Add(new Event(EType.MOUSEINPUT_ENTERED, attachedObject));
+                OnMouseEnter?.Invoke(attachedObject, EventArgs.Empty);
 
             if (lastTickStatus == Enums.MouseInputStatus.MouseOvered &&
                 status == Enums.MouseInputStatus.Clicked)
-                ESystem.Add(new Event(EType.MOUSEINPUT_CLICKDOWN, attachedObject));
+                OnClicked?.Invoke(attachedObject, EventArgs.Empty);
 
             if (lastTickStatus == Enums.MouseInputStatus.Clicked &&
                 status == Enums.MouseInputStatus.MouseOvered)
-                ESystem.Add(new Event(EType.MOUSEINPUT_CLICKUP, attachedObject));
+                OnLetGo?.Invoke(attachedObject, EventArgs.Empty);
 
             //Check for moving.
             position = Input.getMousePos();
@@ -68,7 +94,7 @@ namespace SoulEngine.Objects.Components
             {
                 if(lastTickPosition != null && position != lastTickPosition)
                 {
-                    ESystem.Add(new Event(EType.MOUSEINPUT_MOVED, attachedObject, lastTickPosition));
+                    OnMouseMove?.Invoke(attachedObject, new MouseMoveEventArgs(lastTickPosition));
                 }
             }
 
@@ -81,14 +107,7 @@ namespace SoulEngine.Objects.Components
             {
                 int scrollDif = lastscrollPosition - scrollPosition;
 
-                if (scrollDif < 0)
-                {
-                    ESystem.Add(new Event(EType.MOUSEINPUT_SCROLLUP, attachedObject, scrollDif));
-                }
-                else if (scrollDif > 0)
-                {
-                    ESystem.Add(new Event(EType.MOUSEINPUT_SCROLLDOWN, attachedObject, scrollDif));
-                }
+                OnMouseScroll?.Invoke(attachedObject, new MouseScrollEventArgs(scrollDif));
             }
 
             lastscrollPosition = scrollPosition;

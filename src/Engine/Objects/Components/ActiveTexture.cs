@@ -167,7 +167,6 @@ namespace SoulEngine.Objects.Components
 
                 //Free resources.
                 _texture = null;
-                SoulEngine.Events.ESystem.Remove(this);
                 attachedObject = null;
 
                 //Set disposing flag.

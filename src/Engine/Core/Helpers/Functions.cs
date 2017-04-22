@@ -44,7 +44,7 @@ namespace SoulEngine
 
         #region "Extensions"
         /// <summary>
-        /// Starts a pixel perfect draw stack on the specified channel. 
+        /// Starts drawing on the specified channel. 
         /// </summary>
         /// <param name="ink">The spritebatch to use.</param>
         /// <param name="DrawChannel">The channel to render on.</param>
@@ -82,7 +82,7 @@ namespace SoulEngine
         /// <param name="Target">The render target to render on.</param>
         /// <param name="Width">The desired width of the render target.</param>
         /// <param name="Height">The desired height of the render target.</param>
-        /// <param name="Force">Whether to force the target to be redefined..</param>
+        /// <param name="Force">Whether to force the target to be redefined.</param>
         public static void StartRenderTarget(this SpriteBatch ink, ref RenderTarget2D Target, int Width = 0, int Height = 0, bool Force = false)
         {
             if (!Context.Core.__composeAllowed) throw new Exception("Cannot compose outside of the frame start sequence.");

@@ -43,11 +43,21 @@ namespace SoulEngine
                 //This assignment is done because the event listeners might use the status value.
                 NetworkStatus old = value;
                 status = value;
-                ESystem.Add(new Event(EType.NETWORK_STATUSCHANGED, status, old));
+                OnStatusChanged?.Invoke(null, new NetworkEventArgs(old));
                 Debugging.Logger.Add("Network status changed " + old + " -> " + status);
             }
         }
         private static NetworkStatus status = NetworkStatus.Disabled;
+        #region "Events"
+        /// <summary>
+        /// Triggered when the connection to the network's status changes.
+        /// </summary>
+        public static event EventHandler<NetworkEventArgs> OnStatusChanged;
+        /// <summary>
+        /// Triggered when a message is received from the network.
+        /// </summary>
+        public static event EventHandler<NetworkMessageEventArgs> OnMessageReceived;
+        #endregion
         #endregion
 
         /// <summary>
@@ -67,7 +77,7 @@ namespace SoulEngine
         /// <param name="Port">The port of the server.</param>
         /// <param name="Username">The username to login with.</param>
         /// <param name="Password">The password login with.</param>
-        /// <returns>A boolean that signifies whether the connection was successful.</returns>
+        /// <returns>A boolean that signifies whether a valid connection was started.</returns>
         public static bool Connect(string IP, int Port, string Username, string Password)
         {
             //Check if already connected.
@@ -119,7 +129,7 @@ namespace SoulEngine
                 if(decryptMsg != message)
                 {
                     ServerMessage msg = new ServerMessage(decryptMsg);
-                    ESystem.Add(new Event(EType.NETWORK_MESSAGE, msg.Type, msg.Data));
+                    OnMessageReceived?.Invoke(null, new NetworkMessageEventArgs(msg.Data, msg.Type));
                 }
             }
 
@@ -136,7 +146,7 @@ namespace SoulEngine
             {
                 Client.EndSend(AR);
             }
-            catch (Exception e)
+            catch
             {
                 Status = NetworkStatus.Disconnected;
             }
@@ -163,7 +173,7 @@ namespace SoulEngine
                 //Start sending, call the sent method.
                 Client.BeginSend(send, send.Length, new AsyncCallback(SendEndCallback), null);
             }
-            catch (Exception e)
+            catch
             {
                 Status = NetworkStatus.Disconnected;
             }

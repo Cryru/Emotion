@@ -19,8 +19,7 @@ namespace SoulEngine
     /// </summary>
     class Input
     {
-        #region "Declarations"
-        //States
+        #region "States"
         public static KeyboardState currentFrameKeyState; //The keyboard state of the current frame. Used for button events.
         public static KeyboardState lastFrameKeyState; //The keyboard state of the last frame. Used for button events.
         public static MouseState currentFrameMouseState; //The keyboard state of the current frame. Used for mouse events.
@@ -28,6 +27,37 @@ namespace SoulEngine
 #if ANDROID
         public static TouchCollection currentTouchState; //The touch screen state of the current frame.
 #endif
+        #endregion
+
+        #region "Events"
+        /// <summary>
+        /// Triggered when some sort of text input is detected.
+        /// </summary>
+        public static event EventHandler<TextInputEventArgs> OnTextInput;
+        /// <summary>
+        /// Triggered when a button is pressed.
+        /// </summary>
+        public static event EventHandler<KeyEventArgs> OnKeyDown;
+        /// <summary>
+        /// Triggered when a button is let go.
+        /// </summary>
+        public static event EventHandler<KeyEventArgs> OnKeyUp;
+        /// <summary>
+        /// Triggered when the mouse moves.
+        /// </summary>
+        public static event EventHandler<MouseMoveEventArgs> OnMouseMove;
+        /// <summary>
+        /// Triggered when the mouse wheel is scrolled.
+        /// </summary>
+        public static event EventHandler<MouseScrollEventArgs> OnMouseScroll;
+        /// <summary>
+        /// Triggered when a mouse button is pressed.
+        /// </summary>
+        public static event EventHandler<MouseButtonEventArgs> OnMouseButtonDown;
+        /// <summary>
+        /// Triggered when a mouse button is let go.
+        /// </summary>
+        public static event EventHandler<MouseButtonEventArgs> OnMouseButtonUp;
         #endregion
 
         /// <summary>
@@ -47,7 +77,7 @@ namespace SoulEngine
             {
                 if(keysDownBefore.IndexOf(keysDownNow[i]) == -1)
                 {
-                    ESystem.Add(new Event(EType.KEY_PRESSED, keysDownNow[i]));
+                    OnKeyDown?.Invoke(null, new KeyEventArgs(keysDownNow[i]));
                 }
             }
 
@@ -55,14 +85,14 @@ namespace SoulEngine
             {
                 if (keysDownNow.IndexOf(keysDownBefore[i]) == -1)
                 {
-                    ESystem.Add(new Event(EType.KEY_UNPRESSED, keysDownBefore[i]));
+                    OnKeyUp?.Invoke(null, new KeyEventArgs(keysDownBefore[i]));
                 }
             }
 
             //Check for mouse move event.
             if(currentFrameMouseState.Position != lastFrameMouseState.Position)
             {
-                ESystem.Add(new Event(EType.MOUSE_MOVED, lastFrameMouseState.Position));
+                OnMouseMove?.Invoke(null, new MouseMoveEventArgs(lastFrameMouseState.Position.ToVector2()));
             }
 
             //Check for scrolling events.
@@ -70,14 +100,64 @@ namespace SoulEngine
             {
                 int scrollDif = lastFrameMouseState.ScrollWheelValue - currentFrameMouseState.ScrollWheelValue;
 
-                if(scrollDif < 0)
-                {
-                    ESystem.Add(new Event(EType.MOUSE_SCROLLUP, scrollDif));
-                }
-                else if(scrollDif > 0)
-                {
-                    ESystem.Add(new Event(EType.MOUSE_SCROLLDOWN, scrollDif));
-                }
+                OnMouseScroll?.Invoke(null, new MouseScrollEventArgs(scrollDif));
+            }
+
+            //Check for mouse key events.
+            // Left Button
+            if (lastFrameMouseState.LeftButton == ButtonState.Released &&
+                 currentFrameMouseState.LeftButton == ButtonState.Pressed)
+            {
+                OnMouseButtonDown?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Left));
+            }
+            if (lastFrameMouseState.LeftButton == ButtonState.Pressed &&
+                currentFrameMouseState.LeftButton == ButtonState.Released)
+            {
+                OnMouseButtonUp?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Left));
+            }
+            // Right Button
+            if (lastFrameMouseState.RightButton == ButtonState.Released &&
+                 currentFrameMouseState.RightButton == ButtonState.Pressed)
+            {
+                OnMouseButtonDown?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Right));
+            }
+            if (lastFrameMouseState.RightButton == ButtonState.Pressed &&
+                currentFrameMouseState.RightButton == ButtonState.Released)
+            {
+                OnMouseButtonUp?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Right));
+            }
+            // Middle
+            if (lastFrameMouseState.MiddleButton == ButtonState.Released &&
+                currentFrameMouseState.MiddleButton == ButtonState.Pressed)
+            {
+                OnMouseButtonDown?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Middle));
+            }
+            if (lastFrameMouseState.MiddleButton == ButtonState.Pressed &&
+                currentFrameMouseState.MiddleButton == ButtonState.Released)
+            {
+                OnMouseButtonUp?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Middle));
+            }
+            // Forth
+            if (lastFrameMouseState.XButton1 == ButtonState.Released &&
+                currentFrameMouseState.XButton1 == ButtonState.Pressed)
+            {
+                OnMouseButtonDown?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Forth));
+            }
+            if (lastFrameMouseState.XButton1 == ButtonState.Pressed &&
+                currentFrameMouseState.XButton1 == ButtonState.Released)
+            {
+                OnMouseButtonUp?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Forth));
+            }
+            // Fifth
+            if (lastFrameMouseState.XButton2 == ButtonState.Released &&
+                currentFrameMouseState.XButton2 == ButtonState.Pressed)
+            {
+                OnMouseButtonDown?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Fifth));
+            }
+            if (lastFrameMouseState.XButton2 == ButtonState.Pressed &&
+                currentFrameMouseState.XButton2 == ButtonState.Released)
+            {
+                OnMouseButtonUp?.Invoke(null, new MouseButtonEventArgs(Enums.MouseButton.Fifth));
             }
 
             //Check if closing.
@@ -299,5 +379,12 @@ namespace SoulEngine
         #endregion
         #endregion
         #endregion
+
+        #region "Event Wrapper"
+        public static void triggerTextInput(object sender, TextInputEventArgs e)
+        {
+            OnTextInput?.Invoke(sender, e);
+        }
+#endregion
     }
 }
