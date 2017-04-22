@@ -22,20 +22,6 @@ namespace SoulEngine.Objects.Components
     public class TiledMap : Component
     {
         #region "Declarations"
-        #region "Public"
-        /// <summary>
-        /// Used to mirror textures horizontally or vertically. Used by the renderer component.
-        /// </summary>
-        public SpriteEffects MirrorEffects = SpriteEffects.None;
-        /// <summary>
-        /// Used to decide the texture opacity. Used by the renderer component.
-        /// </summary>
-        public float Opacity = 1f;
-        /// <summary>
-        /// Used to color the texture. Used by the renderer component.
-        /// </summary>
-        public Color Tint = Color.White;
-        #endregion
         #region "Read-Only"
         /// <summary>
         /// The TiledSharp map object.

@@ -52,21 +52,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public Color Color = Color.White;
         /// <summary>
-        /// The opacity of the text.
-        /// </summary>
-        public float Opacity = 1f;
-        /// <summary>
-        /// The top and left padding of the text texture.
-        /// </summary>
-        public Vector2 Padding = new Vector2(0, 0);
-        /// <summary>
         /// The scrolling of the text.
         /// </summary>
         public Vector2 Scroll = new Vector2(0, 0);
-        /// <summary>
-        /// Used to mirror textures horizontally or vertically. Used by the renderer component.
-        /// </summary>
-        public SpriteEffects MirrorEffects = SpriteEffects.None;
         #region "Bounds"
         /// <summary>
         /// The width of the text, based on the transform component's width if attached, and the screen's width if not.
@@ -155,16 +143,6 @@ namespace SoulEngine.Objects.Components
         private string text = "";
         #endregion
         #region "Processed Text Data"
-        /// <summary>
-        /// The text composed to a texture.
-        /// </summary>
-        public Texture2D Texture
-        {
-            get
-            {
-                return texture as Texture2D;
-            }
-        }
         private RenderTarget2D texture;
         #endregion
         #endregion
@@ -178,7 +156,7 @@ namespace SoulEngine.Objects.Components
             Text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
-            DrawPriority = 1;
+            RenderPriority = 1;
         }
         /// <summary>
         /// 
@@ -189,7 +167,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
-            DrawPriority = 1;
+            RenderPriority = 1;
         }
         /// <summary>
         /// 
@@ -201,7 +179,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
-            DrawPriority = 1;
+            RenderPriority = 1;
         }
         /// <summary>
         /// 
@@ -214,7 +192,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             this.Font = Font;
             this.Style = Style;
-            DrawPriority = 1;
+            RenderPriority = 1;
         }
         #endregion
 
@@ -314,33 +292,9 @@ namespace SoulEngine.Objects.Components
 
             //Stop composing.
             Context.ink.EndRenderTarget();
-        }
-        /// <summary>
-        /// Draws the text texture that was composed based on cached data.
-        /// </summary>
-        public override void Draw()
-        {
-            //Check if empty texture, sometimes it happens.
-            if (Texture == null) return;
 
-            //Add padding.
-            int X = attachedObject.X + (int) Padding.X;
-            int Y = attachedObject.Y + (int) Padding.Y;
-
-            //Correct bounds to center origin.
-            Rectangle DrawBounds = new Rectangle(new Point(attachedObject.X + attachedObject.Width / 2,
-                attachedObject.Y + attachedObject.Height / 2),
-                new Point(attachedObject.Width, attachedObject.Height));
-
-            //Draw the object through XNA's SpriteBatch.
-            Context.ink.Draw(Texture,
-                DrawBounds,
-                null,
-                Color.White * Opacity,
-                attachedObject.Rotation,
-                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
-                MirrorEffects,
-                1.0f);
+            //Assign the rendertarget to the draw texture.
+            Texture = texture;
         }
         /// <summary>
         /// Caches data.
@@ -443,6 +397,10 @@ namespace SoulEngine.Objects.Components
                 height = linesCache.Count * stringHeight();
                 width = stringWidth(linesCache.OrderBy(x => x.SpaceLeft).First().ToString());
             }
+        }
+        public override void Draw()
+        {
+            base.Draw(Width, Height);
         }
         #endregion
 
