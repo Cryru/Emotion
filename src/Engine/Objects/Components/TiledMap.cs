@@ -19,7 +19,7 @@ namespace SoulEngine.Objects.Components
     /// Used to render maps created by the Tiled program. 
     /// Uses TiledSharp - Public Repository: https://github.com/marshallward/TiledSharp
     /// </summary>
-    public class TiledMap : Component
+    public class TiledMap : DrawComponent
     {
         #region "Declarations"
         #region "Read-Only"

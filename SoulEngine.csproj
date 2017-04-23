@@ -79,6 +79,7 @@
     <Compile Include="src\Engine\Events\MouseMoveEventArgs.cs" />
     <Compile Include="src\Engine\Events\KeyEventArgs.cs" />
     <Compile Include="src\Engine\Events\SoulUpdateEventArgs.cs" />
+    <Compile Include="src\Engine\Objects\DrawComponent.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TextLine.cs" />
@@ -108,7 +109,7 @@
     <Compile Include="src\Libraries\Settings.cs" />
     <Compile Include="src\Engine\Meta\Info.cs" />
     <Compile Include="src\Engine\Objects\Components\ActiveTexture.cs" />
-    <Compile Include="src\Engine\Objects\Components\Component.cs" />
+    <Compile Include="src\Engine\Objects\Component.cs" />
     <Compile Include="src\Engine\Objects\Components\Animation.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\CharData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tag.cs" />

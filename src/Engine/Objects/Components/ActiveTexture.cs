@@ -18,7 +18,7 @@ namespace SoulEngine.Objects.Components
     /// <summary>
     /// A managed texture object.
     /// </summary>
-    public class ActiveTexture : Component
+    public class ActiveTexture : DrawComponent
     {
 
         #region "Declarations"

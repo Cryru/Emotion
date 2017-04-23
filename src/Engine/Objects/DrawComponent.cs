@@ -15,18 +15,10 @@ namespace SoulEngine.Objects.Components
     /// <summary>
     /// Base class for components.
     /// </summary>
-    public abstract class Component : IDisposable
+    public abstract class DrawComponent : Component
     {
         #region "Declarations"
-        /// <summary>
-        /// The object this component is attached to.
-        /// </summary>
-        public GameObject attachedObject;
         #region "Rendering Data"
-        /// <summary>
-        /// The priority of the drawing call of this component.
-        /// </summary>
-        public int RenderPriority = 0;
         /// <summary>
         /// The texture of the component, if any.
         /// </summary>
@@ -52,12 +44,10 @@ namespace SoulEngine.Objects.Components
 
         //Main functions.
         #region "Functions"
-        public abstract void Update();
-        public abstract void Compose();
         /// <summary>
         /// Draws the component's texture.
         /// </summary>
-        public virtual void Draw()
+        public override void Draw()
         {
             Draw(attachedObject.Width, attachedObject.Height);
         }
@@ -102,7 +92,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private bool disposedValue = false;
 
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
@@ -113,18 +103,11 @@ namespace SoulEngine.Objects.Components
 
                 //Free resources.
                 attachedObject = null;
+                Texture = null;
 
                 //Set disposing flag.
                 disposedValue = true;
             }
-        }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion
     }
