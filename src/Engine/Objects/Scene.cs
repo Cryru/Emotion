@@ -259,6 +259,7 @@ namespace SoulEngine.Objects
 
                 ObjectClusters = null;
                 Objects = null;
+                Assets.Dispose();
 
                 //Set disposing flag.
                 disposedValue = true;

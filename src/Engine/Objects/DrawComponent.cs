@@ -22,7 +22,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// The texture of the component, if any.
         /// </summary>
-        public Texture2D Texture;
+        public virtual Texture2D Texture { get; set; }
         /// <summary>
         /// The padding of the texture.
         /// </summary>

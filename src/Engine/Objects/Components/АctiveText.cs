@@ -36,7 +36,7 @@ namespace SoulEngine.Objects.Components
             set
             {
                 text = value;
-                if(attachedObject != null) Update();
+                GenerateCache();
             }
         }
         /// <summary>
@@ -153,7 +153,7 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public ActiveText()
         {
-            Text = "";
+            text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             Priority = 1;
@@ -164,7 +164,7 @@ namespace SoulEngine.Objects.Components
         /// <param name="Text"></param>
         public ActiveText(string Text)
         {
-            this.Text = Text;
+            text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             Priority = 1;
@@ -176,7 +176,7 @@ namespace SoulEngine.Objects.Components
         /// <param name="Font"></param>
         public ActiveText(string Text, SpriteFont Font)
         {
-            this.Text = Text;
+            text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
             Priority = 1;
@@ -189,7 +189,7 @@ namespace SoulEngine.Objects.Components
         /// <param name="Style"></param>
         public ActiveText(string Text, SpriteFont Font, TextStyle Style)
         {
-            this.Text = Text;
+            text = Text;
             this.Font = Font;
             this.Style = Style;
             Priority = 1;
@@ -299,7 +299,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Caches data.
         /// </summary>
-        public override void Update()
+        public void GenerateCache()
         {
             //Reset cache.
             linesCache = new List<TextLine>();
@@ -401,6 +401,10 @@ namespace SoulEngine.Objects.Components
         public override void Draw()
         {
             base.Draw(Width, Height);
+        }
+        public override void Update()
+        {
+
         }
         #endregion
 

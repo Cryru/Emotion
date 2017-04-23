@@ -26,7 +26,13 @@ namespace SoulEngine
         #endregion
         public override void Start()
         {
+            GameObject animtest = new GameObject();
+            animtest.CenterObject();
 
+            animtest.AddComponent(new Animation(AssetManager.MissingTexture, 1, 1));
+            animtest.AddComponent(new ActiveTexture(Enums.TextureMode.Animate));
+
+            AddObject("test", animtest);
         }
 
         public override void Update()
