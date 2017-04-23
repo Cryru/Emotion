@@ -147,12 +147,5 @@ namespace SoulEngine.Objects.Components
             if (Input.isLeftClickDown()) return Enums.MouseInputStatus.Clicked; else return Enums.MouseInputStatus.MouseOvered;
         }
         #endregion
-
-        #region "Component Interface"
-        public override void Compose()
-        {
-
-        }
-        #endregion
     }
 }

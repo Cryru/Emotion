@@ -19,7 +19,7 @@ namespace SoulEngine.Objects.Components
     /// <summary>
     /// Location, Size, and Rotation.
     /// </summary>
-    public class ActiveText : Component
+    public class ActiveText : DrawComponent
     {
         #region "Declarations"
         //Main variables.
@@ -156,7 +156,7 @@ namespace SoulEngine.Objects.Components
             Text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
-            RenderPriority = 1;
+            Priority = 1;
         }
         /// <summary>
         /// 
@@ -167,7 +167,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
-            RenderPriority = 1;
+            Priority = 1;
         }
         /// <summary>
         /// 
@@ -179,7 +179,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
-            RenderPriority = 1;
+            Priority = 1;
         }
         /// <summary>
         /// 
@@ -192,7 +192,7 @@ namespace SoulEngine.Objects.Components
             this.Text = Text;
             this.Font = Font;
             this.Style = Style;
-            RenderPriority = 1;
+            Priority = 1;
         }
         #endregion
 
