@@ -96,7 +96,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// The state of the ticker. Private holder.
         /// </summary>
-        protected TickerState _State = TickerState.None;
+        private TickerState _State = TickerState.None;
         #endregion
         #region "Private Workings"
         /// <summary>
@@ -198,9 +198,9 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Pause the ticker.
         /// </summary>
-        public virtual void Pause()
+        public void Pause()
         {
-            if (_State == TickerState.Running || _State == TickerState.None)
+            if (State == TickerState.Running || State == TickerState.None)
             {
                 _State = TickerState.Paused;
                 OnPause?.Invoke(this, EventArgs.Empty);
@@ -209,9 +209,9 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Start the ticker if paused.
         /// </summary>
-        public virtual void Start()
+        public void Start()
         {
-            if (_State == TickerState.Paused || _State == TickerState.None)
+            if (State == TickerState.Paused || State == TickerState.None)
             {
                 _State = TickerState.Running;
                 OnStart?.Invoke(this, EventArgs.Empty);

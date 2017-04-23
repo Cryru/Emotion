@@ -453,11 +453,6 @@ namespace SoulEngine
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-
-        ~GameObject()
-        {
-            Dispose();
-        }
         #endregion
 
         #region "Templates"

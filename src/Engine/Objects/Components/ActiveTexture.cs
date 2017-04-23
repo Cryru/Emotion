@@ -22,25 +22,20 @@ namespace SoulEngine.Objects.Components
     {
 
         #region "Declarations"
-        /// <summary>
-        /// Returns the active texture's texture.
-        /// </summary>
-        /// <returns></returns>
-        public Texture2D GetTexture()
+        public override Texture2D Texture
         {
-            if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) return attachedObject.Component<Animation>().Frames[attachedObject.Component<Animation>().FrameTotal];
-            if (TextureMode == TextureMode.Stretch) return Texture;
-            if (_texture == null) return AssetManager.MissingTexture;
-            return _texture as Texture2D;
-        }
-
-        /// <summary>
-        /// Sets the active texture's texture.
-        /// </summary>
-        /// <param name="value"></param>
-        public void SetTexture(Texture2D value)
-        {
-            Texture = value;
+            get
+            {
+                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) return attachedObject.Component<Animation>().Frames[attachedObject.Component<Animation>().FrameTotal];
+                if (TextureMode == TextureMode.Stretch) return _xnatexture;
+                if (_texture == null && _xnatexture == null) return AssetManager.MissingTexture;
+                if (TextureMode == TextureMode.Tile) return _texture as Texture2D;
+                return _xnatexture;
+            }
+            set
+            {
+                _xnatexture = value;
+            }
         }
 
         /// <summary>
@@ -49,6 +44,7 @@ namespace SoulEngine.Objects.Components
         public TextureMode TextureMode = 0;
         #region "Private"
         private RenderTarget2D _texture;
+        private Texture2D _xnatexture;
         #endregion
         #endregion
 
@@ -60,7 +56,7 @@ namespace SoulEngine.Objects.Components
         public ActiveTexture(TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
-            this.SetTexture(AssetManager.MissingTexture);
+            this.Texture = AssetManager.MissingTexture;
         }
         /// <summary>
         /// 
@@ -71,7 +67,7 @@ namespace SoulEngine.Objects.Components
         public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
-            this.SetTexture(Texture);
+            this.Texture = Texture;
         }
         #endregion
 
@@ -95,15 +91,15 @@ namespace SoulEngine.Objects.Components
             {
                 case TextureMode.Tile:
                     //Calculate the limit of the texture tile, we go higher as the rendertarget will not allow out of bounds drawing anyway.
-                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / GetTexture().Width);
-                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / GetTexture().Height);
+                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / Texture.Width);
+                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / Texture.Height);
 
                     for (int x = 0; x < xLimit; x++)
                     {
                         for (int y = 0; y < yLimit; y++)
                         {
-                            Context.ink.Draw(GetTexture(), new Rectangle(GetTexture().Width * x, GetTexture().Height * y,
-                                GetTexture().Width, GetTexture().Height), null, Color.White);
+                            Context.ink.Draw(Texture, new Rectangle(Texture.Width * x, Texture.Height * y,
+                                Texture.Width, Texture.Height), null, Color.White);
                         }
                     }
                     break;
@@ -137,6 +133,7 @@ namespace SoulEngine.Objects.Components
                 //Free resources.
                 _texture = null;
                 attachedObject = null;
+                base.Dispose();
 
                 //Set disposing flag.
                 disposedValue = true;
