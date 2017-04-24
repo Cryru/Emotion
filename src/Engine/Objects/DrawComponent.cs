@@ -82,6 +82,10 @@ namespace SoulEngine.Objects.Components
                 new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
                 MirrorEffects,
                 1.0f);
+
+            //Check if drawing bounds.
+            if (Settings.DrawBounds)
+                Context.ink.DrawRectangle(new Rectangle(X, Y, Width, Height), Functions.ManualRatio(1, 540), Color.Red);
         }
         #endregion
 

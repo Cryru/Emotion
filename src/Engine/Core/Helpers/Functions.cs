@@ -195,10 +195,13 @@ namespace SoulEngine
             if (Color == new Color()) Color = Color.White;
 
             //Draw the sides as lines.
-            Context.ink.DrawLine(new Vector2(Rectangle.X, Rectangle.Y), new Vector2(Rectangle.Width, Rectangle.Y), Width, Color);
-            Context.ink.DrawLine(new Vector2(Rectangle.Width, Rectangle.Y), new Vector2(Rectangle.Width, Rectangle.Height), Width, Color);
-            Context.ink.DrawLine(new Vector2(Rectangle.Width, Rectangle.Height), new Vector2(Rectangle.X, Rectangle.Height), Width, Color);
-            Context.ink.DrawLine(new Vector2(Rectangle.X, Rectangle.Height), new Vector2(Rectangle.X, Rectangle.Y), Width, Color);
+            Vector2[] vertex = new Vector2[4];
+            vertex[0] = new Vector2(Rectangle.X, Rectangle.Y);
+            vertex[1] = new Vector2(Rectangle.X + Rectangle.Width, Rectangle.Y);
+            vertex[2] = new Vector2(Rectangle.X + Rectangle.Width, Rectangle.Y + Rectangle.Height);
+            vertex[3] = new Vector2(Rectangle.X, Rectangle.Y + Rectangle.Height);
+
+            DrawPolygon(ink, vertex, Width, Color);
         }
 
         /// <summary>
