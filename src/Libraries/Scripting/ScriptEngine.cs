@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Jint;
 using Jint.Native;
+using Microsoft.Xna.Framework;
 
 namespace SoulEngine.Scripting
 {
@@ -43,6 +44,12 @@ namespace SoulEngine.Scripting
             ExposeFunction("getLog", (Func<string>)getLog);
             ExposeFunction("help", (Func<string>)help);
             ExposeFunction("info", (Func<string>)Info.getInfo);
+            ExposeFunction("line", (Action<int, int, int, int>) line);
+            ExposeFunction("rect", (Action<int, int, int, int>) rect);
+
+            Interpreter.SetValue("Settings", new Settings());
+            Interpreter.SetValue("Lines", Lines);
+            Interpreter.SetValue("Rects", Rects);
         }
 
         /// <summary>
@@ -137,6 +144,38 @@ namespace SoulEngine.Scripting
         {
             return string.Join("\n", exposedFunctions);
         }
+        /// <summary>
+        /// Draws a line on the screen.
+        /// </summary>
+        private static List<List<Vector2>> Lines = new List<List<Vector2>>();
+        private static void line(int x, int y, int x2, int y2)
+        {
+            
+            List<Vector2> temp = new List<Vector2>();
+            temp.Add(new Vector2(x, y));
+            temp.Add(new Vector2(x2, y2));
+            Lines.Add(temp);
+            
+        }
+        private static List<Rectangle> Rects = new List<Rectangle>();
+        private static void rect(int x, int y, int width, int height)
+        {
+            Rects.Add(new Rectangle(x, y, width, height));
+        }
         #endregion
+
+        public static void Draw()
+        {
+            Context.ink.Start(Enums.DrawChannel.Screen);
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                Context.ink.DrawLine(Lines[i][0], Lines[i][1], 1, Color.Red);
+            }
+            for (int i = 0; i < Rects.Count; i++)
+            {
+                Context.ink.DrawRectangle(Rects[i], 1, Color.Red);
+            }
+            Context.ink.End();
+        }
     }
 }

@@ -106,6 +106,10 @@ namespace SoulEngine
         /// Enables debug mode.
         /// </summary>
         public static bool Debug = true;
+        /// <summary>
+        /// Draws rectangles around all components.
+        /// </summary>
+        public static bool DrawBounds = false;
         #endregion
         #region "Android Settings"
 #if ANDROID

@@ -213,6 +213,9 @@ namespace SoulEngine
             //Draw the current scene.
             Scene.DrawHook();
 
+            //Draw script engine objects.
+            ScriptEngine.Draw();
+
             //Trigger frame end event.
             OnDrawEnd?.Invoke(this, new SoulUpdateEventArgs(gameTime));
         }

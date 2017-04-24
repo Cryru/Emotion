@@ -117,7 +117,8 @@ namespace SoulEngine.Debugging
 
             Context.ink.Start(Enums.DrawChannel.Screen);
             stats.Draw();
-            if (consoleOpened) console.Draw();
+            if (consoleOpened)
+                console.Draw();
             Context.ink.End();
         }
         #endregion
