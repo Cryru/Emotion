@@ -25,7 +25,7 @@ SoulEngine 2016 wasn't based on any particular idea and was pretty much over all
 - Simple Animated Textures [&#10003;]
 - Easy and Efficient Asset Loading [&#10003;]
 - Scene System [&#10003;]
-- Unified Event System [&#10003;]
+- Event System [&#10003;]
 - Tiled Integration [&#10003;]
 - FPS Independent Timing [&#10003;]
 - Asset Tampering Protection [&#10003;]
