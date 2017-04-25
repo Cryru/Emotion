@@ -133,7 +133,6 @@ namespace SoulEngine.Objects.Components
                 //Free resources.
                 _texture = null;
                 attachedObject = null;
-                base.Dispose();
 
                 //Set disposing flag.
                 disposedValue = true;
