@@ -18,7 +18,7 @@ namespace SoulEngine
         /// <summary>
         /// The FPS target, if below 0 the FPS isn't capped.
         /// </summary>
-        public static float FPS = 60;
+        public static float FPS = 5;
         /// <summary>
         /// Whether to synchronize the FPS to the screen's refresh rate. 
         /// Can be overwriten by GPU options.
@@ -73,13 +73,13 @@ namespace SoulEngine
         /// <summary>
         /// Whether the window can be resized, currently disables display modes other than windowed.
         /// </summary>
-        public static bool ResizableWindow = false;
+        public static bool ResizableWindow = true;
         #endregion
         #region "Other Settings"
         /// <summary>
         /// The color the screen will be cleared with.
         /// </summary>
-        public static Color FillColor = Color.CornflowerBlue;
+        public static Color FillColor = Color.Black;
         /// <summary>
         /// Whether an external settings file should be loaded.
         /// </summary>
