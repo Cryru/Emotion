@@ -380,7 +380,7 @@ namespace SoulEngine.Objects.Components
                 {
                     //Add the character to the current line.
                     currentLine.Chars.Add(current);
-                    spaceOnLine = AutoWidth ? Settings.Width : Width - stringWidth(currentLine.ToString());
+                    spaceOnLine = AutoWidth ? Settings.Width - stringWidth(currentLine.ToString()) : Width - stringWidth(currentLine.ToString());
                 }
             }
 
