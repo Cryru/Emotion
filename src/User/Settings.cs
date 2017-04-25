@@ -18,7 +18,7 @@ namespace SoulEngine
         /// <summary>
         /// The FPS target, if below 0 the FPS isn't capped.
         /// </summary>
-        public static float FPS = 5;
+        public static float FPS = 60;
         /// <summary>
         /// Whether to synchronize the FPS to the screen's refresh rate. 
         /// Can be overwriten by GPU options.
@@ -79,7 +79,7 @@ namespace SoulEngine
         /// <summary>
         /// The color the screen will be cleared with.
         /// </summary>
-        public static Color FillColor = Color.Black;
+        public static Color FillColor = Color.CornflowerBlue;
         /// <summary>
         /// Whether an external settings file should be loaded.
         /// </summary>
