@@ -244,7 +244,6 @@ namespace SoulEngine.Objects
                 }
 
                 //Free resources.
-                Assets = null;
                 foreach (var obj in Objects)
                 {
                     obj.Value.Dispose();
