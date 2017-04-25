@@ -95,10 +95,8 @@ namespace SoulEngine
         /// </summary>
         public static bool Sound = true;
         /// <summary>
-        /// The sound volume of each sound channel.
         /// The sound volume.
         /// </summary>
-        public static List<int> SoundChannelsVolume;
         public static int Volume = 1;
         #endregion
         #region "Debug Settings"
