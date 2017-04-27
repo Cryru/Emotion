@@ -13,7 +13,7 @@ namespace SoulEngine.Objects.Components
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// used to detect mouse input on the object like clicks, mouse overing etc.
+    /// A helper UI component used to detect mouse input on the object like clicks, mouse overing etc.
     /// </summary>
     class MouseInput : Component
     {
@@ -64,6 +64,27 @@ namespace SoulEngine.Objects.Components
         #endregion
         #endregion
 
+        /// <summary>
+        /// Declare a new mouseinput component.
+        /// </summary>
+        public MouseInput()
+        {
+            //Check if object we are attaching to is on the UI layer.
+            if (attachedObject.Layer != Enums.ObjectLayer.UI) throw new Exception("Cannot attach UI component to an object not on the UI layer!");
+            Input.OnMouseMove += Input_OnMouseMove;
+        }
+
+        /// <summary>
+        /// Check if the mouse moved inside the object, entered or left it.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Input_OnMouseMove(object sender, MouseMoveEventArgs e)
+        {
+            bool wasIn = inObject(e.From);
+            bool isIn = inObject(e.To);
+        }
+
         #region "Functions"
         public override void Update()
         {
@@ -94,7 +115,7 @@ namespace SoulEngine.Objects.Components
             {
                 if(lastTickPosition != null && position != lastTickPosition)
                 {
-                    OnMouseMove?.Invoke(attachedObject, new MouseMoveEventArgs(lastTickPosition));
+                    OnMouseMove?.Invoke(attachedObject, new MouseMoveEventArgs(lastTickPosition, position));
                 }
             }
 
@@ -145,6 +166,18 @@ namespace SoulEngine.Objects.Components
 
             //Check if mouse is clicked now that we have determined the focus is on us.
             if (Input.isLeftClickDown()) return Enums.MouseInputStatus.Clicked; else return Enums.MouseInputStatus.MouseOvered;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Position"></param>
+        /// <returns></returns>
+        private bool inObject(Vector2 Position)
+        {
+
+            //PH
+            return false;
         }
         #endregion
     }

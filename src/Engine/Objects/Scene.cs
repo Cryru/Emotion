@@ -181,7 +181,14 @@ namespace SoulEngine.Objects
         /// <param name="Label">The label of the object you want, case insensitive.</param>
         public GameObject GetObject(string Label)
         {
-            return Objects[Label.ToLower()];
+            try
+            {
+                return Objects[Label.ToLower()];
+            }
+            catch
+            {
+                throw new Exception("No object with the name " + Label.ToLower() + " is attached to " + GetType().ToString().Replace("SoulEngine.", ""));
+            }         
         }
         /// <summary>
         /// Adds an object cluster to the scene.

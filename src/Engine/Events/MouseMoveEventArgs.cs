@@ -10,11 +10,13 @@ namespace SoulEngine.Events
 {
     public class MouseMoveEventArgs : EventArgs
     {
-        public Vector2 LastPosition;
+        public Vector2 From;
+        public Vector2 To;
 
-        public MouseMoveEventArgs(Vector2 LastPosition)
+        public MouseMoveEventArgs(Vector2 From, Vector2 To)
         {
-            this.LastPosition = LastPosition;
+            this.From = From;
+            this.To = To;
         }
     }
 }
