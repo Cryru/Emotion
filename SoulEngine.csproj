@@ -118,7 +118,7 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\Border.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\TiledMap\TileObject.cs" />
-    <Compile Include="src\Engine\Objects\Components\MouseInput.cs" />
+    <Compile Include="src\Engine\Objects\UIComponents\MouseInput.cs" />
     <Compile Include="src\Engine\Objects\Components\TiledMap.cs" />
     <Compile Include="src\Engine\Objects\Components\АctiveText.cs" />
     <Compile Include="src\Engine\Objects\GameObject.cs" />
@@ -132,7 +132,7 @@
     <Compile Include="src\User\Custom\Event Types.cs" />
     <Compile Include="src\User\Custom\Text Tags.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />
-    <Compile Include="src\User\Scrollbar.cs" />
+    <Compile Include="src\Engine\Objects\UIComponents\Scrollbar.cs" />
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -27,11 +27,14 @@ namespace SoulEngine
         public override void Start()
         {
             AddObject("scrollbar_test", UIObject.Scrollbar());
+
+            GetObject("scrollbar_test").Position = new Vector2(100, 100);
+            GetObject("scrollbar_test").Size = new Vector2(100, 25);
         }
 
         public override void Update()
         {
-            GetObject("scrollbar_test").Component<SoulEngine.Objects.Components.UI.Scrollbar>().Value += 1;
+            GetObject("scrollbar_test").Component<Scrollbar>().Value += 1;
         }
     }
 }

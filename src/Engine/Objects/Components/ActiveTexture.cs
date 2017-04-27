@@ -56,7 +56,7 @@ namespace SoulEngine.Objects.Components
         public ActiveTexture(TextureMode TextureMode = 0)
         {
             this.TextureMode = TextureMode;
-            this.Texture = AssetManager.MissingTexture;
+            Texture = AssetManager.MissingTexture;
         }
         /// <summary>
         /// 

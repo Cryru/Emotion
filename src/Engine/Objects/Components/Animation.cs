@@ -193,6 +193,7 @@ namespace SoulEngine.Objects.Components
             this.Loop = Loop;
             this.Spacing = Spacing;
 
+            //TODO: Fix this, what's the point of standards if we work around them.
             Context.Core.__composeAllowed = true;
             SplitFrames();
             Context.Core.__composeAllowed = false;

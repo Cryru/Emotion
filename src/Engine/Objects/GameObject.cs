@@ -21,7 +21,19 @@ namespace SoulEngine
         /// <summary>
         /// The layer the object should be drawn on.
         /// </summary>
-        public ObjectLayer Layer = ObjectLayer.World;
+        public virtual ObjectLayer Layer
+        {
+            get
+            {
+                return _layer;
+            }
+            set
+            {
+                _layer = value;
+            }
+        }
+        private ObjectLayer _layer = ObjectLayer.World;
+
         #region "Component Related"
         /// <summary>
         /// Whether component adding should be disabled.
@@ -478,21 +490,6 @@ namespace SoulEngine
             {
                 GameObject a = new GameObject();
                 a.AddComponent(new ActiveText());
-                return a;
-            }
-        }
-
-        /// <summary>
-        /// Generic object for mouse input.
-        /// </summary>
-        public static GameObject GenericUIObject
-        {
-            get
-            {
-                GameObject a = new GameObject();
-                a.AddComponent(new ActiveTexture());
-                a.AddComponent(new MouseInput());
-                a.Layer = ObjectLayer.UI;
                 return a;
             }
         }
