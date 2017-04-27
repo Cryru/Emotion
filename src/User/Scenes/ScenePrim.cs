@@ -26,7 +26,7 @@ namespace SoulEngine
 
         public override void Start()
         {
-            AddObject("scrollbar_test", UI.Scrollbar(new Rectangle(100, 100, 200, 50)));
+            AddObject("scrollbar_test", UIObject.Scrollbar());
         }
 
         public override void Update()
