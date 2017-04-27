@@ -73,7 +73,7 @@ namespace SoulEngine
         /// <summary>
         /// Whether the window can be resized, currently disables display modes other than windowed.
         /// </summary>
-        public static bool ResizableWindow = true;
+        public static bool ResizableWindow = false;
         #endregion
         #region "Other Settings"
         /// <summary>

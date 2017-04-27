@@ -1,4 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
+using SoulEngine.Objects.Components;
+using SoulEngine.Objects.Components.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,15 +14,11 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Children objects of this object.
         /// </summary>
-        public Dictionary<string, GameObject> Children;
-
-        public UIObject(GameObject Origin)
-        {
-            base = Origin;
-        }
+        public Dictionary<string, GameObject> Children = new Dictionary<string, GameObject>();
 
         public override void Draw()
         {
+
             //Offset the drawing of all children objects by the location of the parent.
             foreach (GameObject child in Children.Select(x => x.Value))
             {
@@ -38,5 +36,18 @@ namespace SoulEngine.Objects
                 child.Position = Position;
             }
         }
+
+        #region "Templates"
+        public static UIObject Scrollbar()
+        {
+            UIObject Object = new UIObject();
+
+            Object.Layer = Enums.ObjectLayer.UI;
+            Object.AddComponent(new MouseInput());
+            Object.AddComponent(new Scrollbar());
+
+            return Object;
+        }
+#endregion
     }
 }
