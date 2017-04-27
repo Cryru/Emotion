@@ -58,34 +58,66 @@ namespace SoulEngine.Objects.Components
         /// <param name="Height">The drawing width of the object's texture.</param>
         public virtual void Draw(int Width, int Height)
         {
-            //Check if the component has a texture to render.
-            if (Texture == null) return;
-
+            Draw(Width, Height, attachedObject.X, attachedObject.Y, Texture);
+        }
+        /// <summary>
+        /// Draws the component's texture.
+        /// </summary>
+        /// <param name="Width">The drawing height of the object's texture.</param>
+        /// <param name="Height">The drawing width of the object's texture.</param>
+        /// <param name="X">The X axis location to draw the texture to.</param>
+        /// <param name="Y">The Y axis location to draw the texture to.</param>
+        public virtual void Draw(int Width, int Height, int X, int Y)
+        {
+            Draw(Width, Height, X, Y, Texture);
+        }
+        /// <summary>
+        /// Draws the component's texture.
+        /// </summary>
+        /// <param name="Texture">The texture to draw.</param>
+        public virtual void Draw(Texture2D Texture)
+        {
+            Draw(attachedObject.Width, attachedObject.Height, attachedObject.X, attachedObject.Y, Texture);
+        }
+        /// <summary>
+        /// Draws the component's texture.
+        /// </summary>
+        /// <param name="Width">The drawing height of the object's texture.</param>
+        /// <param name="Height">The drawing width of the object's texture.</param>
+        /// <param name="X">The X axis location to draw the texture to.</param>
+        /// <param name="Y">The Y axis location to draw the texture to.</param>
+        /// <param name="Texture">The texture to draw.</param>
+        public virtual void Draw(int Width, int Height, int X, int Y, Texture2D Texture)
+        {
             //Calculate texture position with padding.
-            int X = attachedObject.X + (int)Padding.X;
-            int Y = attachedObject.Y + (int)Padding.Y;
+            int XA = X + (int)Padding.X;
+            int YA = Y + (int)Padding.Y;
 
             if (Width == -1) Width = attachedObject.Width;
             if (Height == -1) Height = attachedObject.Height;
 
             //Correct bounds to center origin.
-            Rectangle DrawBounds = new Rectangle(new Point(X + Width / 2,
-                Y + Height / 2),
+            Rectangle DrawBounds = new Rectangle(new Point(XA + Width / 2,
+                YA + Height / 2),
                 new Point(Width, Height));
 
-            //Draw the object through XNA's SpriteBatch.
-            Context.ink.Draw(Texture,
-                DrawBounds,
-                null,
-                Tint * Opacity,
-                attachedObject.Rotation,
-                new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
-                MirrorEffects,
-                1.0f);
+            //Check if the component has a texture to render.
+            if (Texture != null)
+            {
+                //Draw the object through XNA's SpriteBatch.
+                Context.ink.Draw(Texture,
+                    DrawBounds,
+                    null,
+                    Tint * Opacity,
+                    attachedObject.Rotation,
+                    new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
+                    MirrorEffects,
+                    1.0f);
+            }
 
             //Check if drawing bounds.
             if (Settings.DrawBounds)
-                Context.ink.DrawRectangle(new Rectangle(X, Y, Width, Height), Functions.ManualRatio(1, 540), Color.Red);
+                Context.ink.DrawRectangle(new Rectangle(XA, YA, Width, Height), Functions.ManualRatio(1, 540), Color.Red);
         }
         #endregion
 

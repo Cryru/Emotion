@@ -84,6 +84,8 @@
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\TextLine.cs" />
     <Compile Include="src\Engine\Objects\Helpers\GameObject\SmoothStepData.cs" />
+    <Compile Include="src\Engine\Objects\UI.cs" />
+    <Compile Include="src\Engine\Objects\UIObject.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\ImageLayer.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\Layer.cs" />
     <Compile Include="src\Libraries\External\TiledSharp\Map.cs" />
@@ -131,6 +133,7 @@
     <Compile Include="src\User\Custom\Event Types.cs" />
     <Compile Include="src\User\Custom\Text Tags.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />
+    <Compile Include="src\User\Scrollbar.cs" />
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
   <ItemGroup>

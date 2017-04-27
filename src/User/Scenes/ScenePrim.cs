@@ -26,12 +26,12 @@ namespace SoulEngine
 
         public override void Start()
         {
-
+            AddObject("scrollbar_test", UI.Scrollbar(new Rectangle(100, 100, 200, 50)));
         }
 
         public override void Update()
         {
-
+            GetObject("scrollbar_test").Component<SoulEngine.Objects.Components.UI.Scrollbar>().Value += 1;
         }
     }
 }
