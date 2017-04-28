@@ -175,6 +175,25 @@ namespace SoulEngine.Objects.Components
         /// <returns></returns>
         private bool inObject(Vector2 Position)
         {
+            bool inObject = attachedObject.Bounds.Intersects(Position);
+
+            //Check if the mouse is within the bounds of the object.
+            if (!inObject) return false;
+
+            //Get the bounds of all other UI objects.
+            List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
+                .Where(x => x.Layer == Enums.ObjectLayer.UI)
+                .OrderByDescending(x => x.Priority).ToList();
+
+            //Check if any objects are blocking this one.
+            for (int i = 0; i < objects.Count; i++)
+            {
+                //Check if this is us, we don't care about what's below us so break.
+                if (objects[i] == attachedObject) break;
+
+                //Check if the mouse intersects with the bounds of the object.
+                //if (objects[i].Bounds.Intersects(mouseLoc)) return Enums.MouseInputStatus.None;
+            }
 
             //PH
             return false;
