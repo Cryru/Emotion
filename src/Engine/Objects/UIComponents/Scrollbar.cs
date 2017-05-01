@@ -85,7 +85,7 @@ namespace SoulEngine.Objects.Components
             if (attachedObject.Layer != Enums.ObjectLayer.UI) throw new Exception("Cannot attach UI component to an object not on the UI layer!");
         }
 
-        public void Initialize()
+        public override Component Initialize()
         {
             //Generate objects.
             GameObject bar = GameObject.GenericDrawObject;
@@ -99,7 +99,7 @@ namespace SoulEngine.Objects.Components
             selector.Layer = Enums.ObjectLayer.UI;
             selector.Position = new Vector2(0, 0);
             selector.AddComponent(new ActiveTexture());
-            selector.AddComponent(new MouseInput());
+            selector.AddComponent(new MouseInput().Initialize());
             selector.Priority = 1;
             parent.Children.Add("selector", selector);
 
@@ -111,6 +111,8 @@ namespace SoulEngine.Objects.Components
 
             //Hook events.
             selector.Component<MouseInput>().OnClicked += FocusGain;
+
+            return this;
         }
 
         private void FocusGain(object sender, EventArgs e)
