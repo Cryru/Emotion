@@ -69,16 +69,24 @@ namespace SoulEngine.Objects.Components
         #endregion
 
         #region "Initialization"
+        public override Component Initialize()
+        {
+            return this;
+        }
+
         /// <summary>
         /// Initializes a new map object, loading the .tmx from the specified path.
         /// </summary>
         /// <param name="mapPath">The map file's location. The root is the Content folder.</param>
         /// <param name="tilesetContentPath">The path to the folder where the tileset images are. The root is the Content folder.</param>
-        public TiledMap(string MapPath, string TilesetsContentPath = "Tilesets/")
+        public Component Initialize(string MapPath, string TilesetsContentPath = "Tilesets/")
         {
             Reload(MapPath, TilesetsContentPath);
+
+            return this;
         }
         #endregion
+
         /// <summary>
         /// Reloads the map object, loading the .tmx from the specified path.
         /// </summary>

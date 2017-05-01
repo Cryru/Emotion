@@ -172,7 +172,15 @@ namespace SoulEngine.Objects.Components
         #endregion
 
         /// <summary>
-        /// Information about an animation.
+        /// 
+        /// </summary>
+        public override Component Initialize()
+        {
+            return this;
+        }
+
+        /// <summary>
+        /// Initialize an animation component based on a texture to act as a spritesheet. Requires an ActiveTexture set to animation mode.
         /// </summary>
         /// <param name="SpriteSheet">The spritesheet that holds the animation frames.</param>
         /// <param name="FrameWidth">The width of each frame the spritesheet contains.</param>
@@ -181,7 +189,8 @@ namespace SoulEngine.Objects.Components
         /// <param name="EndingFrame"> The frame to end at, or start on if in reverse, from all the frames in the spritesheet. </param>
         /// <param name="Loop">The type of loop.</param>
         /// <param name="FPS">The frames per second of the animation, essentially the speed.</param>
-        public Animation(Texture2D SpriteSheet, int FrameWidth, int FrameHeight, int StartingFrame = 0, int EndingFrame = -1, LoopType Loop = LoopType.Normal, int FPS = 10, Vector2 Spacing = new Vector2())
+        /// <param name="Spacing">The spacing between frames in the picture.</param>
+        public Component Initialize(Texture2D SpriteSheet, int FrameWidth, int FrameHeight, int StartingFrame = 0, int EndingFrame = -1, LoopType Loop = LoopType.Normal, int FPS = 10, Vector2 Spacing = new Vector2())
         {
             //Assign variables
             this.FrameWidth = FrameWidth;
@@ -198,6 +207,8 @@ namespace SoulEngine.Objects.Components
             SplitFrames();
             Context.Core.__composeAllowed = false;
             InitiateLoop();
+
+            return this;
         }
 
         /// <summary>
@@ -356,6 +367,5 @@ namespace SoulEngine.Objects.Components
                     break;
             }
         }
-
     }
 }

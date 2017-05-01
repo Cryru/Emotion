@@ -52,22 +52,35 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
+        public override Component Initialize()
+        {
+            TextureMode = TextureMode.Stretch;
+            Texture = AssetManager.MissingTexture;
+
+            return this;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="TextureMode"></param>
-        public ActiveTexture(TextureMode TextureMode = 0)
+        public Component Initialize(TextureMode TextureMode)
         {
             this.TextureMode = TextureMode;
             Texture = AssetManager.MissingTexture;
+
+            return this;
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Texture"></param>
         /// <param name="TextureMode"></param>
-        /// <param name="DrawArea"></param>
-        public ActiveTexture(Texture2D Texture, TextureMode TextureMode = 0)
+        public Component Initialize(TextureMode TextureMode, Texture2D Texture)
         {
             this.TextureMode = TextureMode;
             this.Texture = Texture;
+
+            return this;
         }
         #endregion
 

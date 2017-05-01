@@ -30,6 +30,7 @@ namespace SoulEngine.Objects.Components
 
         //Main functions.
         #region "Functions"
+        public abstract Component Initialize();
         public abstract void Update();
         public virtual void Compose()
         {

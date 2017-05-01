@@ -40,19 +40,19 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Triggered when the mouse leaves the object's bounds.
         /// </summary>
-        public event EventHandler<EventArgs> OnMouseLeave;
+        public event EventHandler<MouseMoveEventArgs> OnMouseLeave;
         /// <summary>
         /// Triggered when the mouse enters the object's bounds.
         /// </summary>
-        public event EventHandler<EventArgs> OnMouseEnter;
+        public event EventHandler<MouseMoveEventArgs> OnMouseEnter;
         /// <summary>
-        /// Triggered when the object is left clicked.
+        /// Triggered when the object is clicked.
         /// </summary>
-        public event EventHandler<EventArgs> OnClicked;
+        public event EventHandler<MouseButtonEventArgs> OnClicked;
         /// <summary>
-        /// Triggered when left click is let go on the object.
+        /// Triggered when the object is no longer clicked.
         /// </summary>
-        public event EventHandler<EventArgs> OnLetGo;
+        public event EventHandler<MouseButtonEventArgs> OnLetGo;
         /// <summary>
         /// Triggered when mouse moves inside the object's bounds.
         /// </summary>
@@ -64,41 +64,55 @@ namespace SoulEngine.Objects.Components
         #endregion
         #endregion
 
-        /// <summary>
-        /// Declare a new mouseinput component.
-        /// </summary>
-        public MouseInput()
+        public override Component Initialize()
         {
             //Check if object we are attaching to is on the UI layer.
             if (attachedObject.Layer != Enums.ObjectLayer.UI) throw new Exception("Cannot attach UI component to an object not on the UI layer!");
             Input.OnMouseMove += Input_OnMouseMove;
+            Input.OnMouseButtonDown += Input_OnMouseButtonDown;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Check if the object was clicked by any of the mouse's buttons.
+        /// </summary>
+        private void Input_OnMouseButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
         /// Check if the mouse moved inside the object, entered or left it.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void Input_OnMouseMove(object sender, MouseMoveEventArgs e)
         {
             bool wasIn = inObject(e.From);
             bool isIn = inObject(e.To);
+
+            //Check if it was in but now isn't, in which case it left.
+            if (wasIn && !isIn)
+            {
+                OnMouseLeave.Invoke(attachedObject, e);
+                status = Enums.MouseInputStatus.None;
+            }
+            //Check if it wasn't in but now is, in which case it entered.
+            else if (!wasIn && isIn) 
+            {
+                OnMouseEnter.Invoke(attachedObject, e);
+                status = Enums.MouseInputStatus.MouseOvered;
+            }
+            //Check if it was in and still is, in which case it moved inside the object.
+            else if (wasIn && isIn) OnMouseMove.Invoke(attachedObject, e);
         }
+
+        
 
         #region "Functions"
         public override void Update()
         {
             lastTickStatus = status;
             status = UpdateStatus();
-
-            //Process events.
-            if (lastTickStatus == Enums.MouseInputStatus.MouseOvered &&
-                status == Enums.MouseInputStatus.None)
-                OnMouseLeave?.Invoke(attachedObject, EventArgs.Empty);
-
-            if (lastTickStatus == Enums.MouseInputStatus.None &&
-                 status == Enums.MouseInputStatus.MouseOvered)
-                OnMouseEnter?.Invoke(attachedObject, EventArgs.Empty);
 
             if (lastTickStatus == Enums.MouseInputStatus.MouseOvered &&
                 status == Enums.MouseInputStatus.Clicked)
@@ -180,7 +194,7 @@ namespace SoulEngine.Objects.Components
             //Check if the mouse is within the bounds of the object.
             if (!inObject) return false;
 
-            //Get the bounds of all other UI objects.
+            //Get the bounds of all other UI objects.  
             List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
                 .Where(x => x.Layer == Enums.ObjectLayer.UI)
                 .OrderByDescending(x => x.Priority).ToList();

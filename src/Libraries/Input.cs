@@ -92,7 +92,8 @@ namespace SoulEngine
             //Check for mouse move event.
             if(currentFrameMouseState.Position != lastFrameMouseState.Position)
             {
-                OnMouseMove?.Invoke(null, new MouseMoveEventArgs(lastFrameMouseState.Position.ToVector2()));
+                OnMouseMove?.Invoke(null, new MouseMoveEventArgs(lastFrameMouseState.Position.ToVector2(), 
+                    currentFrameMouseState.Position.ToVector2()));
             }
 
             //Check for scrolling events.
