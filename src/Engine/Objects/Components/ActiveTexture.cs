@@ -16,83 +16,119 @@ namespace SoulEngine.Objects.Components
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// A managed texture object.
+    /// A component for holding textures and managing how they are drawn.
     /// </summary>
     public class ActiveTexture : DrawComponent
     {
 
         #region "Declarations"
+        /// <summary>
+        /// The ActiveTexture's processed texture.
+        /// </summary>
         public override Texture2D Texture
         {
             get
             {
-                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) return attachedObject.Component<Animation>().Frames[attachedObject.Component<Animation>().FrameTotal];
-                if (TextureMode == TextureMode.Stretch) return _xnatexture;
-                if (_texture == null && _xnatexture == null) return AssetManager.MissingTexture;
-                if (TextureMode == TextureMode.Tile) return _texture as Texture2D;
-                return _xnatexture;
+                //Texture mode animate requires an animation component.
+                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>())
+                    return attachedObject.Component<Animation>().FrameTexture;
+                if (TextureMode == TextureMode.Tile && _texture != null) return _texture as Texture2D;
+                if (ActualTexture == null) return AssetManager.MissingTexture; else return ActualTexture;
             }
             set
             {
-                _xnatexture = value;
+                //Set the internal texture to the one provided.
+                ActualTexture = value;
+                //Clear the compose buffer to force a recomposing.
+                if(_texture != null) _texture.Dispose();
+                _texture = null;
+
+                //Trigger texture changing event.
+                OnTextureChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
         /// <summary>
-        /// The way to texture should be rendered to fill its bounds.
+        /// The way to texture should be rendered.
         /// </summary>
-        public TextureMode TextureMode = 0;
+        public TextureMode TextureMode
+        {
+            get
+            {
+                return _mode;
+            }
+            set
+            {
+                _mode = value;
+                //Trigger texture mode change event.
+                OnTextureModeChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+        /// <summary>
+        /// The internal texture.
+        /// </summary>
+        public Texture2D ActualTexture;
+
         #region "Private"
+        /// <summary>
+        /// The buffer we compose textures to.
+        /// </summary>
         private RenderTarget2D _texture;
-        private Texture2D _xnatexture;
+        /// <summary>
+        /// The way the texture should be rendered.
+        /// </summary>
+        private TextureMode _mode = 0;
         #endregion
+        #endregion
+
+        #region "Events"
+        /// <summary>
+        /// Triggered when the texture is set from outside.
+        /// </summary>
+        public event EventHandler<EventArgs> OnTextureChanged;
+        /// <summary>
+        /// Triggered when the texture mode is changed.
+        /// </summary>
+        public event EventHandler<EventArgs> OnTextureModeChanged;
         #endregion
 
         #region "Initialization"
         /// <summary>
-        /// 
+        /// Create a new ActiveTexture object.
         /// </summary>
-        public override Component Initialize()
-        {
-            TextureMode = TextureMode.Stretch;
-            Texture = AssetManager.MissingTexture;
-
-            return this;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="TextureMode"></param>
-        public Component Initialize(TextureMode TextureMode)
+        /// <param name="TextureMode">The texture drawing mode.</param>
+        public ActiveTexture(TextureMode TextureMode)
         {
             this.TextureMode = TextureMode;
             Texture = AssetManager.MissingTexture;
-
-            return this;
         }
         /// <summary>
-        /// 
+        /// Create a new ActiveTexture object with a specified Texture.
         /// </summary>
-        /// <param name="Texture"></param>
-        /// <param name="TextureMode"></param>
-        public Component Initialize(TextureMode TextureMode, Texture2D Texture)
+        /// <param name="Texture">The texture to draw.</param>
+        /// <param name="TextureMode">The texture drawing mode.</param>
+        public ActiveTexture(TextureMode TextureMode, Texture2D Texture)
         {
             this.TextureMode = TextureMode;
             this.Texture = Texture;
-
-            return this;
         }
         #endregion
 
-        //Main functions.
         #region "Functions"
         /// <summary>
-        /// 
+        /// Compose the ActiveTexture's texture based on its TextureMode.
         /// </summary>
         public override void Compose()
         {
-            if (TextureMode != TextureMode.Tile) return;
+            //Check if the texture mode is set to tile, and a texture hasn't been composed.
+            if (TextureMode == TextureMode.Tile && _texture == null) ComposeTile();
+        }
 
+        /// <summary>
+        /// Composes a tiled image of the provided texture.
+        /// </summary>
+        public void ComposeTile()
+        {
             //Get the size of the object, or if a Transform component is attached get the bounds from it.
             Rectangle Bounds = attachedObject.Bounds;
 
@@ -104,15 +140,15 @@ namespace SoulEngine.Objects.Components
             {
                 case TextureMode.Tile:
                     //Calculate the limit of the texture tile, we go higher as the rendertarget will not allow out of bounds drawing anyway.
-                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / Texture.Width);
-                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / Texture.Height);
+                    int xLimit = (int)Math.Ceiling((double)Bounds.Width / ActualTexture.Width);
+                    int yLimit = (int)Math.Ceiling((double)Bounds.Height / ActualTexture.Height);
 
                     for (int x = 0; x < xLimit; x++)
                     {
                         for (int y = 0; y < yLimit; y++)
                         {
-                            Context.ink.Draw(Texture, new Rectangle(Texture.Width * x, Texture.Height * y,
-                                Texture.Width, Texture.Height), null, Color.White);
+                            Context.ink.Draw(ActualTexture, new Rectangle(ActualTexture.Width * x, ActualTexture.Height * y,
+                                ActualTexture.Width, ActualTexture.Height), null, Color.White);
                         }
                     }
                     break;
@@ -123,28 +159,22 @@ namespace SoulEngine.Objects.Components
         }
         #endregion
 
-        #region "Component Interface"
-        public override void Update() { }
-        #endregion
-
-        //Other
         #region "Disposing"
         /// <summary>
         /// Disposing flag to detect redundant calls.
         /// </summary>
         private bool disposedValue = false;
-
         protected override void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    //Free resources.
+                    if (_texture != null) _texture.Dispose();
+                    _texture = null;
                 }
 
-                //Free resources.
-                _texture = null;
                 attachedObject = null;
 
                 //Set disposing flag.

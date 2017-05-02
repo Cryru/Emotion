@@ -41,6 +41,8 @@ namespace SoulEngine.Scripting
         {
             //Add default functions.
             ExposeFunction("getObjects", (Func<string>)getObjects);
+            ExposeFunction("object", (Action<string>) selectObject);
+            ExposeFunction("object", (Action<int>)selectObject);
             ExposeFunction("getLog", (Func<string>)getLog);
             ExposeFunction("help", (Func<string>)help);
             ExposeFunction("info", (Func<string>)Info.getInfo);
@@ -127,8 +129,34 @@ namespace SoulEngine.Scripting
         /// </summary>
         private static string getObjects()
         {
-            return string.Join("\n", Context.Core.Scene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + "\n" +
-            string.Join("\n", Context.Core.Scene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components"));
+            return string.Join("\n", Context.Core.Scene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + 
+                (Context.Core.Scene.AttachedClusters.Count > 0 ? 
+                "\n" + string.Join("\n", Context.Core.Scene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components")) :
+                "");
+        }
+        /// <summary>
+        /// Draws a border around the object with the provided name.
+        /// </summary>
+        /// <param name="objectName">The name of the object to draw a border around.</param>
+        private static void selectObject(string objectName)
+        {
+            Debugging.DebugScene.selectedObject = objectName;
+        }
+        /// <summary>
+        /// Draws a border around the object with the provided index.
+        /// </summary>
+        /// <param name="objectName">The name of the object to draw a border around.</param>
+        private static void selectObject(int objectIndex)
+        {
+            int index = 0;
+            string name = null;
+            foreach (var item in Context.Core.Scene.AttachedObjects)
+            {
+                name = item.Key;
+                index++;
+                if (index == objectIndex) break;
+            }
+            Debugging.DebugScene.selectedObject = name;
         }
         /// <summary>
         /// Prints the system log.

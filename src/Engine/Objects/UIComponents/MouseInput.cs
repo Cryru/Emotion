@@ -30,11 +30,6 @@ namespace SoulEngine.Objects.Components
         }
         #region "Private"
         private Enums.MouseInputStatus status = Enums.MouseInputStatus.None;
-        private Enums.MouseInputStatus lastTickStatus = Enums.MouseInputStatus.None;
-        private Vector2 position;
-        private Vector2 lastTickPosition;
-        private int scrollPosition;
-        private int lastscrollPosition;
         #endregion
         #region "Events"
         /// <summary>
@@ -54,6 +49,10 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public event EventHandler<MouseButtonEventArgs> OnLetGo;
         /// <summary>
+        /// Triggered when the anything other than the object is clicked.
+        /// </summary>
+        public event EventHandler<MouseButtonEventArgs> OnClickOutside;
+        /// <summary>
         /// Triggered when mouse moves inside the object's bounds.
         /// </summary>
         public event EventHandler<MouseMoveEventArgs> OnMouseMove;
@@ -64,14 +63,39 @@ namespace SoulEngine.Objects.Components
         #endregion
         #endregion
 
-        public override Component Initialize()
+        public override void Initialize()
         {
             //Check if object we are attaching to is on the UI layer.
             if (attachedObject.Layer != Enums.ObjectLayer.UI) throw new Exception("Cannot attach UI component to an object not on the UI layer!");
             Input.OnMouseMove += Input_OnMouseMove;
             Input.OnMouseButtonDown += Input_OnMouseButtonDown;
+            Input.OnMouseButtonUp += Input_OnMouseButtonUp;
+            Input.OnMouseScroll += Input_OnMouseScroll;
+        }
 
-            return this;
+        #region "Event Handlers"
+        /// <summary>
+        /// Check if the mouse wheel was scrolled on the object.
+        /// </summary>
+        private void Input_OnMouseScroll(object sender, MouseScrollEventArgs e)
+        {
+            bool isIn = inObject(Input.getMousePos());
+
+            if (isIn) OnMouseScroll?.Invoke(attachedObject, e);
+        }
+
+        /// <summary>
+        /// Check if any of the mouse's buttons were let go on top of the object..
+        /// </summary>
+        private void Input_OnMouseButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            bool isIn = inObject(Input.getMousePos());
+
+            if (isIn)
+            {
+                status = Enums.MouseInputStatus.MouseOvered;
+                OnLetGo?.Invoke(attachedObject, e);
+            }
         }
 
         /// <summary>
@@ -79,7 +103,17 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            throw new NotImplementedException();
+            bool isIn = inObject(Input.getMousePos());
+
+            if (isIn)
+            {
+                status = Enums.MouseInputStatus.Clicked;
+                OnClicked?.Invoke(attachedObject, e);
+            }
+            else
+            {
+                OnClickOutside?.Invoke(attachedObject, e);
+            }
         }
 
         /// <summary>
@@ -93,100 +127,26 @@ namespace SoulEngine.Objects.Components
             //Check if it was in but now isn't, in which case it left.
             if (wasIn && !isIn)
             {
-                OnMouseLeave.Invoke(attachedObject, e);
+                OnMouseLeave?.Invoke(attachedObject, e);
                 status = Enums.MouseInputStatus.None;
             }
             //Check if it wasn't in but now is, in which case it entered.
-            else if (!wasIn && isIn) 
+            else if (!wasIn && isIn)
             {
-                OnMouseEnter.Invoke(attachedObject, e);
+                OnMouseEnter?.Invoke(attachedObject, e);
                 status = Enums.MouseInputStatus.MouseOvered;
             }
             //Check if it was in and still is, in which case it moved inside the object.
-            else if (wasIn && isIn) OnMouseMove.Invoke(attachedObject, e);
+            else if (wasIn && isIn) OnMouseMove?.Invoke(attachedObject, e);
         }
-
-        
+        #endregion
 
         #region "Functions"
-        public override void Update()
-        {
-            lastTickStatus = status;
-            status = UpdateStatus();
-
-            if (lastTickStatus == Enums.MouseInputStatus.MouseOvered &&
-                status == Enums.MouseInputStatus.Clicked)
-                OnClicked?.Invoke(attachedObject, EventArgs.Empty);
-
-            if (lastTickStatus == Enums.MouseInputStatus.Clicked &&
-                status == Enums.MouseInputStatus.MouseOvered)
-                OnLetGo?.Invoke(attachedObject, EventArgs.Empty);
-
-            //Check for moving.
-            position = Input.getMousePos();
-
-            if(Status != Enums.MouseInputStatus.None)
-            {
-                if(lastTickPosition != null && position != lastTickPosition)
-                {
-                    OnMouseMove?.Invoke(attachedObject, new MouseMoveEventArgs(lastTickPosition, position));
-                }
-            }
-
-            lastTickPosition = position;
-
-            //Check for scrolling.
-            scrollPosition = Input.currentFrameMouseState.ScrollWheelValue;
-
-            if (Status != Enums.MouseInputStatus.None)
-            {
-                int scrollDif = lastscrollPosition - scrollPosition;
-
-                OnMouseScroll?.Invoke(attachedObject, new MouseScrollEventArgs(scrollDif));
-            }
-
-            lastscrollPosition = scrollPosition;
-
-        }
-        private Enums.MouseInputStatus UpdateStatus()
-        {
-            //Get the bounds of my object.
-            if (attachedObject.Layer != Enums.ObjectLayer.UI) return Enums.MouseInputStatus.None;
-
-            Rectangle objectBounds = attachedObject.Bounds;
-
-            //Get the location of the mouse.
-            Vector2 mouseLoc = Input.getMousePos();
-
-            //Check if within object bounds.
-            bool inObject = objectBounds.Intersects(mouseLoc);
-
-            if (!inObject) return Enums.MouseInputStatus.None;
-
-            //Get the bounds of all other UI objects.
-            List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
-                .Where(x => x.Layer == Enums.ObjectLayer.UI)
-                .OrderByDescending(x => x.Priority).ToList();
-
-            //Check if any objects are blocking this one.
-            for (int i = 0; i < objects.Count; i++)
-            {
-                //Check if this is us, we don't care about what's below us so break.
-                if (objects[i] == attachedObject) break;
-
-                //Check if the mouse intersects with the bounds of the object.
-                if (objects[i].Bounds.Intersects(mouseLoc)) return Enums.MouseInputStatus.None;
-            }
-
-            //Check if mouse is clicked now that we have determined the focus is on us.
-            if (Input.isLeftClickDown()) return Enums.MouseInputStatus.Clicked; else return Enums.MouseInputStatus.MouseOvered;
-        }
-
         /// <summary>
-        /// 
+        /// Check if the provided position is within the object.
         /// </summary>
-        /// <param name="Position"></param>
-        /// <returns></returns>
+        /// <param name="Position">The position to check.</param>
+        /// <returns>True if inside, false if not.</returns>
         private bool inObject(Vector2 Position)
         {
             bool inObject = attachedObject.Bounds.Intersects(Position);
@@ -206,11 +166,36 @@ namespace SoulEngine.Objects.Components
                 if (objects[i] == attachedObject) break;
 
                 //Check if the mouse intersects with the bounds of the object.
-                //if (objects[i].Bounds.Intersects(mouseLoc)) return Enums.MouseInputStatus.None;
+                if (objects[i].Bounds.Intersects(Position)) return false;
             }
 
-            //PH
-            return false;
+            return true;
+        }
+        #endregion
+
+        #region "Disposing"
+        /// <summary>
+        /// Disposing flag to detect redundant calls.
+        /// </summary>
+        private bool disposedValue = false;
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    //Detach from events.
+                    Input.OnMouseMove -= Input_OnMouseMove;
+                    Input.OnMouseButtonDown -= Input_OnMouseButtonDown;
+                    Input.OnMouseButtonUp -= Input_OnMouseButtonUp;
+                    Input.OnMouseScroll -= Input_OnMouseScroll;
+                }
+
+                attachedObject = null;
+
+                //Set disposing flag.
+                disposedValue = true;
+            }
         }
         #endregion
     }

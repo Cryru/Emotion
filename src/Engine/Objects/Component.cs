@@ -30,13 +30,22 @@ namespace SoulEngine.Objects.Components
 
         //Main functions.
         #region "Functions"
-        public abstract Component Initialize();
-        public abstract void Update();
+        public virtual void Update()
+        {
+
+        }
         public virtual void Compose()
         {
 
         }
         public virtual void Draw()
+        {
+
+        }
+        /// <summary>
+        /// Initializes the component. Is automatically called when adding the component to an object.
+        /// </summary>
+        public virtual void Initialize()
         {
 
         }

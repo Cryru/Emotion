@@ -20,14 +20,37 @@ namespace SoulEngine.Objects.Components
     public class Animation : Component
     {
         #region "Declarations"
-        #region "Frame Animation Information"
+        #region "Frame Information"
         /// <summary>
-        /// The frame to start from, or end on if in reverse, from all the frames in the spritesheet.
+        /// Returns the texture of the current frame.
         /// </summary>
-        public int StartingFrame = 0;
+        public Texture2D FrameTexture
+        {
+            get
+            {
+                if (Frames.Count == 0) return AssetManager.MissingTexture;
+
+                return Frames[FrameIndex] as Texture2D;
+            }
+        }
         /// <summary>
-        /// The frame to end at, or start on if in reverse, from all the frames in the spritesheet. 
-        /// Internal Accessor.
+        /// The frame to start from, or end at if in reverse, from all the frames in the spritesheet.
+        /// </summary>
+        public int StartingFrame
+        {
+            get
+            {
+                return _startingframe;
+            }
+            set
+            {
+                _startingframe = value;
+                //Reset the current frame.
+                Reset();
+            }
+        }
+        /// <summary>
+        /// The frame to end at, or start at if in reverse, from all the frames in the spritesheet. Set to -1 for last frame.
         /// </summary>
         public int EndingFrame
         {
@@ -35,7 +58,7 @@ namespace SoulEngine.Objects.Components
             {
                 if (_endingFrame == -1)
                 {
-                    return FramesCountTotal - 1;
+                    return Frames.Count - 1;
                 }
 
                 return _endingFrame;
@@ -43,40 +66,42 @@ namespace SoulEngine.Objects.Components
             set
             {
                 _endingFrame = value;
+                //Reset the current frame.
+                Reset();
             }
         }
         /// <summary>
-        /// The index of the current frame within the range of the starting and ending frame.
+        /// The number of the current frame from the range of the starting and ending frame.
         /// </summary>
         public int Frame
         {
             get
             {
-                return _Frame - StartingFrame;
+                return _frameindex - StartingFrame;
             }
             set
             {
-                _Frame = StartingFrame + value;
+                _frameindex = StartingFrame + value;
             }
         }
         /// <summary>
-        /// The index of the current frame within the total frames.
+        /// The index of the current frame from the total frames.
         /// </summary>
-        public int FrameTotal
+        public int FrameIndex
         {
             get
             {
-                return _Frame;
+                return _frameindex;
             }
         }
         /// <summary>
-        /// The total number of frames for the animation.
+        /// The total number of frames used by the animation.
         /// </summary>
-        public int FramesTotal
+        public int FramesCount
         {
             get
             {
-                return FramesCount;
+                return EndingFrame - StartingFrame;
             }
         }
         /// <summary>
@@ -91,35 +116,16 @@ namespace SoulEngine.Objects.Components
             set
             {
                 //The delay (since it's in miliseconds) is equal to the fps divided by a second, or 1000 miliseconds.
-                delay = 1000f / (float)value;
+                clock.Delay = 1000f / value;
                 _FPS = value;
             }
         }
-        /// <summary>
-        /// The calculated time between frames.
-        /// </summary>
-        public float Delay
-        {
-            get
-            {
-                return delay;
-            }
-        }
-        private float delay = 1;
-        /// <summary>
-        /// The space betweem frames.
-        /// </summary>
-        public Vector2 Spacing = Vector2.Zero;
         #endregion
         #region "Spritesheet Information"
         /// <summary>
-        /// The sheet containing the frames.
-        /// </summary>
-        public Texture2D SpriteSheet;
-        /// <summary>
         /// The frames that make up the animation cut from the spritesheet.
         /// </summary>
-        public List<Texture2D> Frames
+        public List<RenderTarget2D> Frames
         {
             get
             {
@@ -127,245 +133,349 @@ namespace SoulEngine.Objects.Components
             }
         }
         /// <summary>
-        /// The width of each frame the spritesheet contains.
+        /// The size of individual frames within the spritesheet.
         /// </summary>
-        public int FrameWidth;
+        public Vector2 FrameSize
+        {
+            get
+            {
+                return _frameSize;
+            }
+            set
+            {
+                _frameSize = value;
+                //Recut frames.
+                Setup();
+            }
+        }
         /// <summary>
-        /// The height of each frame the spritesheet contains.
+        /// The space between frames.
         /// </summary>
-        public int FrameHeight;
+        public Vector2 Spacing = Vector2.Zero;
         #endregion
         #region "Loop"
         /// <summary>
         /// The type of loop.
         /// </summary>
-        public LoopType Loop;
+        public LoopType Loop
+        {
+            get
+            {
+                return _loop;
+            }
+            set
+            {
+                _loop = value;
+                Reset();
+            }
+        }
         /// <summary>
-        /// Used for NormalThenReverse, is true once reverse.
+        /// Used for NormalThenReverse, is true when reversing.
         /// </summary>
         private bool flagReverse = false;
         #endregion
-        #region "Time Keeping"
-        /// <summary>
-        /// The time that has passed since the last frame switch.
-        /// </summary>
-        private float timePassed = 0;
-        /// <summary>
-        /// If animating is done.
-        /// </summary>
-        private bool finished = false;
-        #endregion
         #region "Privates"
+        private int _startingframe = 0;
         private int _endingFrame = 0;
-        private int _Frame = 0;
-        private int FramesCount = 0;
-        private int FramesCountTotal = 0;
+        private int _frameindex = 0;
         private int _FPS = 0;
-        private List<Texture2D> frames = new List<Texture2D>();
+        private List<RenderTarget2D> frames = new List<RenderTarget2D>();
+        private Vector2 _frameSize = new Vector2();
+        private LoopType _loop;
+        /// <summary>
+        /// Whether to cut the frames in the next compose.
+        /// </summary>
+        private bool cutFrames = false;
+        /// <summary>
+        /// The internal time keeping object.
+        /// </summary>
+        private Ticker clock;
         #endregion
+        #endregion
+
         #region "Events"
         /// <summary>
         /// Triggered when the animation finishes.
         /// </summary>
         public static event EventHandler<EventArgs> OnFinish;
         #endregion
-        #endregion
 
         /// <summary>
-        /// 
+        /// Initialize an animation component. The ActiveTexture's texture will be used as a spritesheet.
         /// </summary>
-        public override Component Initialize()
-        {
-            return this;
-        }
-
-        /// <summary>
-        /// Initialize an animation component based on a texture to act as a spritesheet. Requires an ActiveTexture set to animation mode.
-        /// </summary>
-        /// <param name="SpriteSheet">The spritesheet that holds the animation frames.</param>
-        /// <param name="FrameWidth">The width of each frame the spritesheet contains.</param>
-        /// <param name="FrameHeight">The height of each frame the spritesheet contains.</param>
+        /// <param name="FrameSize">The size of individual frames within the spritesheet.</param>
         /// <param name="StartingFrame">The frame to start from, or end on if in reverse, from all the frames in the spritesheet.</param>
         /// <param name="EndingFrame"> The frame to end at, or start on if in reverse, from all the frames in the spritesheet. </param>
         /// <param name="Loop">The type of loop.</param>
         /// <param name="FPS">The frames per second of the animation, essentially the speed.</param>
         /// <param name="Spacing">The spacing between frames in the picture.</param>
-        public Component Initialize(Texture2D SpriteSheet, int FrameWidth, int FrameHeight, int StartingFrame = 0, int EndingFrame = -1, LoopType Loop = LoopType.Normal, int FPS = 10, Vector2 Spacing = new Vector2())
+        public Animation(Vector2 FrameSize, int StartingFrame = 0, int EndingFrame = -1, LoopType Loop = LoopType.Normal, int FPS = 10, Vector2 Spacing = new Vector2())
         {
+            //Setup clock.
+            clock = new Ticker(1, -1, true);
+            clock.Start();
+            clock.OnTick += NextFrame;
+
             //Assign variables
-            this.FrameWidth = FrameWidth;
-            this.FrameHeight = FrameHeight;
             this.FPS = FPS;
-            this.SpriteSheet = SpriteSheet;
-            this.StartingFrame = StartingFrame;
-            this.EndingFrame = EndingFrame;
             this.Loop = Loop;
             this.Spacing = Spacing;
 
-            //TODO: Fix this, what's the point of standards if we work around them.
-            Context.Core.__composeAllowed = true;
-            SplitFrames();
-            Context.Core.__composeAllowed = false;
-            InitiateLoop();
-
-            return this;
+            //Assign to privates to prevent triggering Setup() before initialization.
+            _frameSize = FrameSize;
+            _startingframe = StartingFrame;
+            _endingFrame = EndingFrame;
         }
 
         /// <summary>
-        /// Initiates starting loop variables.
+        /// Initializes the component. Is automatically called when adding the component to an object.
         /// </summary>
-        public void InitiateLoop()
+        public override void Initialize()
         {
-            //Check if playing in reverse.
-            if (Loop == LoopType.None || Loop == LoopType.Normal || Loop == LoopType.NormalThenReverse)
-            {
-                _Frame = StartingFrame;
-            }
-            else if (Loop == LoopType.Reverse || Loop == LoopType.NoneReverse)
-            {
-                _Frame = EndingFrame;
-            }
+            //Check for ActiveTexture depedency and hook to the texture changed event.
+            if (!attachedObject.HasComponent<ActiveTexture>()) throw new Exception("Cannot attach an Animation component when there is no ActiveTexture component.");
+
+            attachedObject.Component<ActiveTexture>().OnTextureChanged += ActiveTexture_OnTextureChanged;
+
+            //Cut frames and setup animation.
+            Setup();
         }
 
         /// <summary>
-        /// Cuts the individual frames.
+        /// Used to detect a texture change in which case we must recut the frames.
         /// </summary>
-        public void SplitFrames()
+        private void ActiveTexture_OnTextureChanged(object sender, EventArgs e)
         {
-            //If the textures are cut, skip cutting.
-            if (frames.Count != 0) return;
+            if (attachedObject.Component<ActiveTexture>().TextureMode == TextureMode.Animate) Setup();
+        }
 
-            //Calculate how many columns and rows the spritesheet has.
-            int fColumns = SpriteSheet.Width / FrameWidth;
-            int fRows = SpriteSheet.Height / FrameHeight;
+        /// <summary>
+        /// Recuts the frames and reinitializes the animation.
+        /// </summary>
+        private void Setup()
+        {
+            //Clear old frames.
+            for (int i = 0; i < frames.Count; i++)
+            {
+                frames[i].Dispose();
+            }
+            frames.Clear();
 
-            //Count frames.
-            FramesCountTotal = fColumns * fRows;
-            FramesCount = EndingFrame - StartingFrame;
+            //Get the spritesheet.
+            Texture2D Spritesheet = attachedObject.Component<ActiveTexture>().ActualTexture;
 
-            for (int i = 0; i < FramesCountTotal; i++)
+            //Calculate the number of frames we will cut.
+            int fColumns = Spritesheet.Width / (int) FrameSize.X;
+            int fRows = Spritesheet.Height / (int) FrameSize.Y;
+            int FrameCount = fColumns * fRows;
+
+            //Generate frame textures for each frame.
+            for (int i = 0; i < FrameCount; i++)
+            {
+                RenderTarget2D tempFrame = new RenderTarget2D(Context.Graphics, (int)FrameSize.X, (int)FrameSize.Y);
+                tempFrame.Name = Spritesheet.Name + "_Frame" + i;
+
+                frames.Add(tempFrame);
+            }
+
+            //Reset the frame counter.
+            Reset();
+
+            //Request frame cutting.
+            cutFrames = true;
+        }
+
+        /// <summary>
+        /// Cuts the individual frames if they aren't.
+        /// </summary>
+        public override void Compose()
+        {
+            //If we are not supposed to cut frames then do nothing.
+            if (!cutFrames) return;
+
+            //Get the spritesheet.
+            Texture2D Spritesheet = attachedObject.Component<ActiveTexture>().ActualTexture;
+
+            //Calculate columns and rows.
+            int fColumns = Spritesheet.Width / (int)FrameSize.X;
+            int fRows = Spritesheet.Height / (int)FrameSize.Y;
+
+            for (int i = 0; i < Frames.Count; i++)
             {
                 //Calculate the location of the current sprite within the image.
                 int Row = (int)(i / (float)fColumns);
                 int Column = i % fColumns;
 
                 //Determine which part of the spritesheet we want to cut out next.
-                Rectangle FrameRect = new Rectangle(FrameWidth * Column + (int)(Spacing.X * (Column + 1)), FrameHeight * Row + (int)(Spacing.Y * (Row + 1)), FrameWidth, FrameHeight);
+                Rectangle FrameRect = new Rectangle((int) FrameSize.X * Column + (int)(Spacing.X * (Column + 1)), 
+                    (int) FrameSize.Y * Row + (int)(Spacing.Y * (Row + 1)), (int) FrameSize.X, (int) FrameSize.Y);
 
                 //Switch over to the composer.
-                RenderTarget2D TextureComposer = new RenderTarget2D(Context.Graphics, FrameWidth, FrameHeight);
-                Context.ink.StartRenderTarget(ref TextureComposer, FrameRect.Width, FrameRect.Height, true);
+                Context.ink.StartRenderTarget(frames[i]);
 
                 //Cut the part we need out.
-                Context.ink.Draw(SpriteSheet, new Rectangle(0, 0, FrameWidth, FrameHeight), FrameRect, Color.White);
+                Context.ink.Draw(Spritesheet, new Rectangle(0, 0, FrameRect.Width, FrameRect.Height), FrameRect, Color.White);
 
                 //Stop drawing on the composer and offload the frame to the list.
                 Context.ink.EndRenderTarget();
-
-                TextureComposer.Name = SpriteSheet.Name + "_Frame" + i;
-                frames.Add(TextureComposer as Texture2D);
-            }
-        }
-
-        /// <summary>
-        /// Runs the animation, should be called once every tick.
-        /// </summary>
-        public override void Update()
-        {
-            //Check if the animation is finished.
-            if (finished) return;
-
-            //Add the time passed to the inner variable and switch the frame if enough time has passed.
-            timePassed += Context.Core.frameTime;
-            if (timePassed > Delay)
-            {
-                timePassed -= Delay;
-                NextFrame();
             }
         }
 
         /// <summary>
         /// Switches over to the next frame.
         /// </summary>
-        private void NextFrame()
+        private void NextFrame(object sender, EventArgs e)
         {
             switch (Loop)
             {
                 case LoopType.None:
                     //If the global frame is the last frame.
-                    if (_Frame == EndingFrame)
+                    if (_frameindex == EndingFrame)
                     {
                         OnFinish?.Invoke(this, null);
-                        finished = true;
+                        clock.Pause();
                     }
                     else
                     {
                         //Increment the frame.
-                        _Frame++;
+                        _frameindex++;
                     }
                     break;
                 case LoopType.Normal:
                     //If the global frame is the last frame.
-                    if (_Frame == EndingFrame)
+                    if (_frameindex == EndingFrame)
                     {
                         //Loop to the starting frame.
-                        _Frame = StartingFrame;
+                        _frameindex = StartingFrame;
                     }
                     else
                     {
                         //Increment the frame.
-                        _Frame++;
+                        _frameindex++;
                     }
                     break;
                 case LoopType.NormalThenReverse:
                     //If the global frame is the last frame and going in reverse or the first and not going in reverse.
-                    if ((_Frame == EndingFrame && flagReverse == false) || (_Frame == StartingFrame && flagReverse == true))
+                    if ((_frameindex == EndingFrame && flagReverse == false) || (_frameindex == StartingFrame && flagReverse == true))
                     {
                         //Change the reverse flag.
                         flagReverse = !flagReverse;
 
                         //Depending on the direction set the frame to be the appropriate one.
                         if (flagReverse)
-                            _Frame = EndingFrame;
+                            _frameindex = EndingFrame;
                         else
-                            _Frame = StartingFrame;
+                            _frameindex = StartingFrame;
                     }
                     else
                     {
                         //Modify the current frame depending on the direction we are going in.
                         if (flagReverse)
-                            _Frame--;
+                            _frameindex--;
                         else
-                            _Frame++;
+                            _frameindex++;
                     }
                     break;
                 case LoopType.Reverse:
                     //If the global frame is the first frame.
-                    if (_Frame == StartingFrame)
+                    if (_frameindex == StartingFrame)
                     {
                         //Loop to the ending frame.
-                        _Frame = EndingFrame;
+                        _frameindex = EndingFrame;
                     }
                     else
                     {
                         //Otherwise decrement the frame, as we are going in reverse.
-                        _Frame--;
+                        _frameindex--;
                     }
                     break;
                 case LoopType.NoneReverse:
                     //If the global frame is the first frame.
-                    if (_Frame == StartingFrame)
+                    if (_frameindex == StartingFrame)
                     {
                         OnFinish?.Invoke(this, null);
-                        finished = true;
+                        clock.Pause();
                     }
                     else
                     {
                         //Decrement the frame, as we are going in reverse.
-                        _Frame--;
+                        _frameindex--;
                     }
                     break;
             }
         }
+
+        #region "Clock Control"
+        /// <summary>
+        /// Resume animation if paused.
+        /// </summary>
+        public void Resume()
+        {
+            clock.Start();
+        }
+
+        /// <summary>
+        /// Pause animation if playing.
+        /// </summary>
+        public void Pause()
+        {
+            clock.Pause();
+        }
+
+        /// <summary>
+        /// Restarts the animation.
+        /// </summary>
+        public void Restart()
+        {
+            Resume();
+            Reset();
+        }
+        #endregion
+
+        #region "Helpers"
+        /// <summary>
+        /// Resets the frame to the first one depending on the loop type.
+        /// </summary>
+        private void Reset()
+        {
+            //Check if playing in reverse.
+            if (Loop == LoopType.None || Loop == LoopType.Normal || Loop == LoopType.NormalThenReverse)
+            {
+                _frameindex = StartingFrame;
+            }
+            else if (Loop == LoopType.Reverse || Loop == LoopType.NoneReverse)
+            {
+                _frameindex = EndingFrame;
+            }
+        }
+        #endregion
+
+        #region "Disposing"
+        /// <summary>
+        /// Disposing flag to detect redundant calls.
+        /// </summary>
+        private bool disposedValue = false;
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    //Free resources.
+                    for (int i = 0; i < frames.Count; i++)
+                    {
+                        frames[i].Dispose();
+                    }
+                    frames = null;
+                    clock.Dispose();
+                }
+
+                attachedObject = null;
+
+                //Set disposing flag.
+                disposedValue = true;
+            }
+        }
+        #endregion
     }
 }

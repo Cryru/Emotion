@@ -69,11 +69,6 @@ namespace SoulEngine.Objects.Components
         #endregion
 
         #region "Initialization"
-        public override Component Initialize()
-        {
-            return this;
-        }
-
         /// <summary>
         /// Initializes a new map object, loading the .tmx from the specified path.
         /// </summary>
@@ -482,10 +477,6 @@ namespace SoulEngine.Objects.Components
         {
             return GetTileDataFromCoordinate(TileLocationAsInt(TileCoordinate), Layer);
         }
-        #endregion
-
-        #region "Component Interface"
-        public override void Update() { }
         #endregion
     }
 }

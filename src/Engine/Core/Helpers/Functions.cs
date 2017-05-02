@@ -101,6 +101,25 @@ namespace SoulEngine
         }
 
         /// <summary>
+        /// Start drawing on the provided render target without checking for size and redefining.
+        /// </summary>
+        /// <param name="ink">The spritebatch to use.</param>
+        /// <param name="Target">The render target to render on.</param>
+        public static void StartRenderTarget(this SpriteBatch ink, RenderTarget2D Target)
+        {
+            if (!Context.Core.__composeAllowed) throw new Exception("Cannot compose outside of the frame start sequence.");
+
+            //Set the current rendertarget to the drawer.
+            Context.Graphics.SetRenderTarget(Target);
+
+            //Clear the rendertarget.
+            Context.Graphics.Clear(Color.Transparent);
+
+            //Start drawing.
+            ink.Start();
+        }
+
+        /// <summary>
         /// Stop drawing and return the render target. 
         /// </summary>
         /// <param name="ink">The spritebatch to use.</param>
