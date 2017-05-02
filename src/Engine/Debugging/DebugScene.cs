@@ -36,6 +36,8 @@ namespace SoulEngine.Debugging
         //Console
         public static bool consoleOpened = false;
 
+        public static string selectedObject = "";
+
         /// <summary>
         /// Setups the scene as the current scene.
         /// </summary>
@@ -43,7 +45,7 @@ namespace SoulEngine.Debugging
         {
             stats = GameObject.GenericTextObject;
 
-            stats.AddComponent(new ActiveTexture(AssetManager.BlankTexture));
+            stats.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
             stats.Component<ActiveTexture>().Opacity = 0.5f;
             stats.Component<ActiveTexture>().Tint = Color.Black;
 
@@ -52,8 +54,7 @@ namespace SoulEngine.Debugging
             stats.Component<ActiveText>().Padding = new Vector2(Functions.ManualRatio(3, 540), Functions.ManualRatio(3, 540));
 
             console = GameObject.GenericTextObject;
-            console.AddComponent(new ActiveTexture());
-            console.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
+            console.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
             console.Component<ActiveTexture>().Tint = Color.Black;
             console.Component<ActiveTexture>().Opacity = 0.5f;
 
@@ -62,10 +63,8 @@ namespace SoulEngine.Debugging
             console.Width = Settings.Width;
             console.Height = Settings.Height / 2;
             console.Y = Settings.Height - console.Height;
-
-            console.AddComponent(new MouseInput());
-
             console.Layer = Enums.ObjectLayer.UI;
+            console.AddComponent(new MouseInput());
 
             consoleBlinkTicker = new Ticker(300, -1, true);
 

@@ -151,41 +151,35 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// 
         /// </summary>
-        public override Component Initialize()
+        public ActiveText()
         {
             text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             Priority = 1;
-
-            return this;
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Text"></param>
-        public Component Initialize(string Text)
+        public ActiveText(string Text)
         {
             text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
             Priority = 1;
-
-            return this;
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Text"></param>
         /// <param name="Font"></param>
-        public Component Initialize(string Text, SpriteFont Font)
+        public ActiveText(string Text, SpriteFont Font)
         {
             text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
             Priority = 1;
-
-            return this;
         }
         /// <summary>
         /// 
@@ -193,14 +187,12 @@ namespace SoulEngine.Objects.Components
         /// <param name="Text"></param>
         /// <param name="Font"></param>
         /// <param name="Style"></param>
-        public Component Initialize(string Text, SpriteFont Font, TextStyle Style)
+        public ActiveText(string Text, SpriteFont Font, TextStyle Style)
         {
             text = Text;
             this.Font = Font;
             this.Style = Style;
             Priority = 1;
-
-            return this;
         }
         #endregion
 

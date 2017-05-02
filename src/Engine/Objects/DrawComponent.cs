@@ -116,8 +116,10 @@ namespace SoulEngine.Objects.Components
             }
 
             //Check if drawing bounds.
-            if (Settings.DrawBounds)
-                Context.ink.DrawRectangle(new Rectangle(XA, YA, Width, Height), Functions.ManualRatio(1, 540), Color.Red);
+            if (Settings.DrawTextureBounds)
+            {
+                Context.ink.DrawRectangle(new Rectangle(XA, YA, Width, Height), Math.Max(1, Functions.ManualRatio(1, 540)), Color.Yellow);
+            }
         }
         #endregion
 

@@ -34,6 +34,11 @@ namespace SoulEngine
         }
         private ObjectLayer _layer = ObjectLayer.World;
 
+        /// <summary>
+        /// The name of the object, assigned by the scene.
+        /// </summary>
+        public string Name = "";
+
         #region "Component Related"
         /// <summary>
         /// Whether component adding should be disabled.
@@ -56,19 +61,41 @@ namespace SoulEngine
         /// </summary>
         public bool Drawing = true;
         #endregion
-        //The position of the object within the scene.
         #region "Positional"
         /// <summary>
-        /// 
+        /// The position of the object within the X axis.
         /// </summary>
-        public int X { get; set; }
+        public int X
+        {
+            get
+            {
+                return x;
+            }
+            set
+            {
+                if (x != value) OnMove?.Invoke(this, EventArgs.Empty);
+                x = value;
+            }
+        }
+        private int x;
         /// <summary>
-        /// 
+        /// The position of the object within the Y axis.
         /// </summary>
-        public int Y { get; set; }
-
+        public int Y
+        {
+            get
+            {
+                return y;
+            }
+            set
+            {
+                if (y != value) OnMove?.Invoke(this, EventArgs.Empty);
+                y = value;
+            }
+        }
+        private int y;
         /// <summary>
-        /// 
+        /// The full position of the object including the Z axis.
         /// </summary>
         public Vector3 PositionFull
         {
@@ -84,7 +111,7 @@ namespace SoulEngine
             }
         }
         /// <summary>
-        /// 
+        /// The position of the object within 2D space.
         /// </summary>
         public Vector2 Position
         {
@@ -99,14 +126,13 @@ namespace SoulEngine
             }
         }
         /// <summary>
-        /// 
+        /// The center of the object.
         /// </summary>
         public Vector2 Center
         {
             get
             {
                 return Bounds.Center.ToVector2();
-                //return new Vector2(X + Width / 2, Y + Height / 2); <-- Custom Implementation
             }
             set
             {
@@ -115,19 +141,18 @@ namespace SoulEngine
             }
         }
         #endregion
-        //The size of the box wrapping the object.
         #region "Size"
         /// <summary>
-        /// 
+        /// The width of the object.
         /// </summary>
         public int Width { get; set; }
         /// <summary>
-        /// 
+        /// The height of the object.
         /// </summary>
         public int Height { get; set; }
 
         /// <summary>
-        /// 
+        /// The size of the object.
         /// </summary>
         public Vector2 Size
         {
@@ -142,7 +167,6 @@ namespace SoulEngine
             }
         }
         #endregion
-        //The rotation of the object.
         #region "Rotation"
         /// <summary>
         /// The object's rotation in radians.
@@ -163,10 +187,9 @@ namespace SoulEngine
             }
         }
         #endregion
-        //Main variables.
         #region "Primary"
         /// <summary>
-        /// The box wrapping the object.
+        /// The bounds of the object represented as a bounding rectangle.
         /// </summary>
         public Rectangle Bounds
         {
@@ -183,6 +206,13 @@ namespace SoulEngine
             }
         }
         #endregion
+        #endregion
+
+        #region "Events"
+        /// <summary>
+        /// Triggered when the object's position changes.
+        /// </summary>
+        public static event EventHandler<EventArgs> OnMove;
         #endregion
 
         #region "Components"
@@ -230,6 +260,12 @@ namespace SoulEngine
             {
                 Components[i].Draw();
             }
+
+            //Check if drawing bounds.
+            if (Settings.DrawBounds || (Name != null && Name != "" && Name == Debugging.DebugScene.selectedObject))
+            {
+                Context.ink.DrawRectangle(Bounds, Math.Max(1, Functions.ManualRatio(1, 540)), Color.Red);
+            }   
         }
 
         /// <summary>
@@ -329,6 +365,9 @@ namespace SoulEngine
             else
             //If it is then ovewrite the existing one.
             { Components.Add(ComponentObject); ComponentObject.attachedObject = this; }
+
+            //Run the component additional initialization login.
+            ComponentObject.Initialize();
         }
 
         /// <summary>
@@ -448,6 +487,7 @@ namespace SoulEngine
                     for (int i = 0; i < Components.Count; i++)
                     {
                         Components[i].Dispose();
+                        Components[i] = null;
                     }
                     Components.Clear();
                     Components = null;
@@ -476,7 +516,7 @@ namespace SoulEngine
             get
             {
                 GameObject a = new GameObject();
-                a.AddComponent(new ActiveTexture());
+                a.AddComponent(new ActiveTexture(TextureMode.Stretch, AssetManager.MissingTexture));
                 return a;
             }
         }

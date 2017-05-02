@@ -13,11 +13,6 @@ namespace SoulEngine.Objects
     {
         #region "Declarations"
         /// <summary>
-        /// Children objects of this object.
-        /// </summary>
-        public Dictionary<string, GameObject> Children = new Dictionary<string, GameObject>();
-
-        /// <summary>
         /// Override the layer property so the object is always on the UI layer.
         /// </summary>
         public override ObjectLayer Layer
@@ -29,37 +24,11 @@ namespace SoulEngine.Objects
         }
         #endregion
 
-        public override void Draw()
-        {
-            Children.OrderBy(x => x.Value.Priority);
-
-            //Offset the drawing of all children objects by the location of the parent.
-            foreach (GameObject child in Children.Select(x => x.Value))
-            {
-                //Store the position of the child.
-                int PositionX = child.X;
-                int PositionY = child.Y;
-
-                //Set the position to the one offset by the parent.
-                child.X += X;
-                child.Y += Y;
-
-                //Draw the object.
-                child.Draw();
-
-                //Restore old position.
-                child.X = PositionX;
-                child.Y = PositionY;
-            }
-        }
-
         #region "Helper Functions"
-        public Vector2 ActualPositionToChild(Vector2 ActualPosition)
+        public void AsChild(GameObject Child)
         {
-            if (ActualPosition.X >= X) ActualPosition.X -= X; else ActualPosition.X += X;
-            if (ActualPosition.Y >= Y) ActualPosition.Y -= Y; else ActualPosition.Y += Y;
-
-            return ActualPosition;
+            Child.X += X;
+            Child.Y += Y;
         }
         #endregion
 
@@ -70,12 +39,35 @@ namespace SoulEngine.Objects
         public static UIObject Scrollbar()
         {
             UIObject Object = new UIObject();
-            Object.AddComponent(new Scrollbar());
 
-            //Some UI components have to initialized separately.
-            Object.Component<Scrollbar>().Initialize();
+            GameObject bar = GenericDrawObject;
+            bar.Layer = ObjectLayer.UI;
+            bar.Priority = 0;
+            string nameBar = GenerateChildObjectName("scrollbar-bar");
+            Context.Core.Scene.AddObject(nameBar, bar);
+
+            GameObject selector = GenericDrawObject;
+            selector.Layer = ObjectLayer.UI;
+            selector.AddComponent(new MouseInput());
+            selector.Priority = 1;
+            string nameSelect = GenerateChildObjectName("scrollbar-selector");
+            Context.Core.Scene.AddObject(nameSelect, selector);
+
+            Object.AddComponent(new Scrollbar(nameBar, nameSelect));
 
             return Object;
+        }
+        #endregion
+
+        #region "Helpers"
+        /// <summary>
+        /// Generates a unique name for a child object.
+        /// </summary>
+        /// <param name="Type">The type of object.</param>
+        private static string GenerateChildObjectName(string Type)
+        {
+            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" + Context.Core.Scene.ObjectCount + 
+                "@" + DateTime.Now.Minute + ":" + DateTime.Now.Second + ":" + DateTime.Now.Millisecond;
         }
         #endregion
     }

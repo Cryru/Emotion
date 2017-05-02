@@ -105,9 +105,13 @@ namespace SoulEngine
         /// </summary>
         public static bool Debug = true;
         /// <summary>
-        /// Draws rectangles around all components.
+        /// Draws rectangles around all objects.
         /// </summary>
         public static bool DrawBounds = false;
+        /// <summary>
+        /// Draws rectangles around all draw components.
+        /// </summary>
+        public static bool DrawTextureBounds = false;
         #endregion
         #region "Android Settings"
 #if ANDROID

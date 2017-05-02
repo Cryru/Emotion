@@ -16,7 +16,7 @@
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public const string Version = "2017 4";
+        public const string Version = "2017 5 inDevelopment - 5/2/2017";
         /// <summary>
         /// The GUID of the application. Used on windows to prevent multi-instancing.
         /// The default SoulEngine GUID - 536F756C-456E-6769-6E65-203230313700
