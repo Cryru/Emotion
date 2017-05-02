@@ -57,6 +57,18 @@ namespace SoulEngine.Objects
 
             return Object;
         }
+        /// <summary>
+        /// A button.
+        /// </summary>
+        public static UIObject Button()
+        {
+            UIObject Object = new UIObject();
+            Object.AddComponent(new MouseInput());
+            Object.AddComponent(new ActiveTexture(TextureMode.Stretch));
+            Object.AddComponent(new Button());
+
+            return Object;
+        }
         #endregion
 
         #region "Helpers"
