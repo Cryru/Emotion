@@ -23,6 +23,7 @@ namespace SoulEngine
     public static class Networking
     {
         #region "Declarations"
+        private static DateTime LastMessageTime;
         private static UdpClient Client;
         private static byte[] buffer;
         /// <summary>
@@ -40,8 +41,11 @@ namespace SoulEngine
             }
             set
             {
+                //Clear has if disconnecting.
+                if (value == NetworkStatus.Disconnected) Hash = "";
+
                 //This assignment is done because the event listeners might use the status value.
-                NetworkStatus old = value;
+                NetworkStatus old = status;
                 status = value;
                 OnStatusChanged?.Invoke(null, new NetworkEventArgs(old));
                 Debugging.Logger.Add("Network status changed " + old + " -> " + status);
@@ -100,6 +104,7 @@ namespace SoulEngine
                 }
             }
 
+            Send(new ServerMessage(MType.PING, "<3"));
             return false;
         }
 
@@ -115,8 +120,11 @@ namespace SoulEngine
             //Get message.
             string message = Encoding.UTF8.GetString(receivedBytes);
 
+            //Record receive time.
+            LastMessageTime = DateTime.Now;
+
             //If authentification message then this must be the hash to encrypt future correspondence.
-            if(message.Length > 1 && message.Substring(0, 1) == "0" && (Hash == "" || Hash == null))
+            if (message.Length > 1 && message.Substring(0, 1) == "0" && (Hash == "" || Hash == null))
             {
                 Hash = new ServerMessage(message).Data;
                 Status = NetworkStatus.Connected;
@@ -162,6 +170,13 @@ namespace SoulEngine
         {
             //Check if networking is on, and we have a client.
             if (!Settings.Networking || Client == null) return;
+
+            //Check when the last message was, and disconnect if timeout.
+            if(LastMessageTime.AddSeconds(Settings.Timeout) < DateTime.Now && Status == NetworkStatus.Connected)
+            {
+                Status = NetworkStatus.Disconnected;
+                return;
+            }
 
             try
             {

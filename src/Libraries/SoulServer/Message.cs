@@ -18,11 +18,11 @@ namespace SoulServer
         public ServerMessage(string Message)
         {
             //Check if the full message is present.
-            if (Message.Split('\0').Length != 3) return;
+            if (Message.Split('\u0007').Length != 3) return;
 
-            Type = Message.Split('\0')[0];
-            Data = Message.Split('\0')[1];
-            if (!long.TryParse(Message.Split('\0')[2], out Timestamp)) return;
+            Type = Message.Split('\u0007')[0];
+            Data = Message.Split('\u0007')[1];
+            if (!long.TryParse(Message.Split('\u0007')[2], out Timestamp)) return;
         }
 
         public ServerMessage(string Type, string Data)
@@ -42,7 +42,7 @@ namespace SoulServer
 
         public override string ToString()
         {
-            return Type + "\0" + Data + "\0" + Timestamp;
+            return Type + "\u0007" + Data + "\u0007" + Timestamp;
         }
     }
 
@@ -52,7 +52,9 @@ namespace SoulServer
     public partial class MType
     {
         #region "Authentification"
+        public const string PING = "-1";
         public const string AUTHENTIFICATION = "0";
+
         #endregion
     }
 }

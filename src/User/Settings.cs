@@ -125,5 +125,10 @@ namespace SoulEngine
         public static bool win_hidebar = true;
 #endif
         #endregion
+        #region "Network Settings"
+        public static string IP = "";
+        public static string Port = "";
+            public static int Timeout = 10;
+#endregion
     }
 }
