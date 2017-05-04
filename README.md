@@ -1,4 +1,4 @@
-<img src="windowslogo.png" width=30%>
+<img src="soulengine.png" width=30%>
 
 ### [Documentation and Help](https://cryru.github.io/SE-Docs/)
 
