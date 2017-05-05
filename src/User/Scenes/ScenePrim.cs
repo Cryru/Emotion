@@ -26,15 +26,8 @@ namespace SoulEngine
 
         public override void Start()
         {
-            AddObject("scrollbar_test", UIObject.Scrollbar());
 
-            GetObject("scrollbar_test").Size = new Vector2(100, 15);
-            GetObject("scrollbar_test").CenterObject();
 
-            AddObject("button_test", UIObject.Button());
-            GetObject("button_test").Size = new Vector2(50, 50);
-            GetObject("button_test").CenterObject();
-            GetObject("button_test").Y += 200;
         }
 
         public override void Update()

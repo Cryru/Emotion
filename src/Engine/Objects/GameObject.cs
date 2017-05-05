@@ -60,6 +60,10 @@ namespace SoulEngine
         /// Whether to draw the object and its components.
         /// </summary>
         public bool Drawing = true;
+        /// <summary>
+        /// Whether to compose textures.
+        /// </summary>
+        public bool Composing = true;
         #endregion
         #region "Positional"
         /// <summary>
@@ -274,7 +278,7 @@ namespace SoulEngine
         public virtual void Compose()
         {
             //Check if drawing.
-            if (Drawing == false) return;
+            if (Composing == false) return;
 
             for (int i = 0; i < Components.Count; i++)
             {
