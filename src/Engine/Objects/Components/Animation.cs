@@ -274,6 +274,7 @@ namespace SoulEngine.Objects.Components
             {
                 RenderTarget2D tempFrame = new RenderTarget2D(Context.Graphics, (int)FrameSize.X, (int)FrameSize.Y);
                 tempFrame.Name = Spritesheet.Name + "_Frame" + i;
+                tempFrame.Tag = "notready";
 
                 frames.Add(tempFrame);
             }
@@ -315,6 +316,9 @@ namespace SoulEngine.Objects.Components
 
                 //Cut the part we need out.
                 Context.ink.Draw(Spritesheet, new Rectangle(0, 0, FrameRect.Width, FrameRect.Height), FrameRect, Color.White);
+
+                //Clear tag.
+                frames[i].Tag = null;
 
                 //Stop drawing on the composer and offload the frame to the list.
                 Context.ink.EndRenderTarget();

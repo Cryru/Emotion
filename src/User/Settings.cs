@@ -25,12 +25,6 @@ namespace SoulEngine
         /// </summary>
         public static bool vSync = false;
         #endregion
-        #region "Engine Settings"
-        /// <summary>
-        /// Whether networking is allowed, requires a restart.
-        /// </summary>
-        public static bool Networking = true;
-        #endregion
         #region "Security Settings"
         /// <summary>
         /// The key that will be used to encrypt and decrypt files.
@@ -126,9 +120,13 @@ namespace SoulEngine
 #endif
         #endregion
         #region "Network Settings"
+        /// <summary>
+        /// Whether networking is allowed, requires a restart.
+        /// </summary>
+        public static bool Networking = true;
         public static string IP = "";
         public static string Port = "";
-            public static int Timeout = 10;
-#endregion
+        public static int Timeout = 10;
+        #endregion
     }
 }

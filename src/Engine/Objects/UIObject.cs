@@ -69,6 +69,17 @@ namespace SoulEngine.Objects
 
             return Object;
         }
+
+        /// <summary>
+        /// A box.
+        /// </summary>
+        public static UIObject Box()
+        {
+            UIObject Object = new UIObject();
+            Object.AddComponent(new Box());
+
+            return Object;
+        }
         #endregion
 
         #region "Helpers"
