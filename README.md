@@ -49,6 +49,8 @@ and more...
 
 ["Asset-Meta-Generator"](https://github.com/Cryru/SE-Asset-Meta-Generator) - Generating Meta files for asset validation.
 
+["FileEncrypt"](https://github.com/Cryru/FileEncrypt) - Used to encrypt files.
+
 ["Farseer Physics for SoulEngine"](https://github.com/Cryru/SE-Farseer) - Physics engine.
 
 ["SoulEngine Docs"](https://github.com/Cryru/SE-Docs) - Online documentation.
