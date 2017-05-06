@@ -123,11 +123,8 @@ namespace SoulEngine
             //Setup the window manager.
             WindowManager.Initialize();
 
-            //Check if we are enforcing asset integrity, and check it.
-            if (Settings.EnforceAssetIntegrity == true && AssetManager.AssertAssets() == false)
-            {
-                throw new Exception("The assets meta file is missing, or file tampering detected.");
-            }
+            //Assert assets.
+            AssetManager.AssertAssets();
 
             //Setup the scripting engine.
             ScriptEngine.SetupScripting();
