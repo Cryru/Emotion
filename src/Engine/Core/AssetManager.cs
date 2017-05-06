@@ -47,7 +47,7 @@ namespace SoulEngine
                 //Load the missingtexture.
                 MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
                 //Load the default font.
-                DefaultFont = Context.Core.Content.Load<SpriteFont>("Font/DefaultScaled");
+                DefaultFont = Context.Core.Content.Load<SpriteFont>("Font/Default");
 
                 /*
                  * Generate the blank texture by creating a new 1 by 1 texture and
@@ -169,12 +169,11 @@ namespace SoulEngine
                 for (int i = 0; i < file.Keys.Count; i++)
                 {
                     //Get the path of the file.
-                    string enc = file.Content<string>(file.Keys[i]);
+                    string path = file.Content<string>(file.Keys[i]);
                     //Get the hash of the current file.
-                    string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content\\" + file.Keys[i]));
+                    string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content\\" + path));
                     //Check against the meta stored hash, if it doesn't match return false.
-                    if (currentFile != enc)
-                        return false;
+                    if (currentFile != file.Content<string>(path)) return false;
                 }
             }
             catch (Exception)

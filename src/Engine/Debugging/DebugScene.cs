@@ -93,9 +93,8 @@ namespace SoulEngine.Debugging
             stats.Height = stats.Component<ActiveText>().Height + Functions.ManualRatio(6, 540);
             stats.Update();
 
-            //Update display status.
-            console.Drawing = consoleOpened;
-            console.Update();
+
+            if (consoleOpened) console.Update();
         }
         /// <summary>
         /// Composes component textures on linked objects.
@@ -105,7 +104,7 @@ namespace SoulEngine.Debugging
             //Don't log events caused by the debugger.
             Logger.Enabled = false;
             stats.Compose();
-            console.Compose();
+            if (consoleOpened) console.Compose();
             Logger.Enabled = true;
         }
         /// <summary>
@@ -117,7 +116,8 @@ namespace SoulEngine.Debugging
 
             Context.ink.Start(Enums.DrawChannel.Screen);
             stats.Draw();
-            console.Draw();
+            if (consoleOpened)
+                console.Draw();
             Context.ink.End();
         }
         #endregion

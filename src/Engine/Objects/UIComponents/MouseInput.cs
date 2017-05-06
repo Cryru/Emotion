@@ -79,8 +79,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseScroll(object sender, MouseScrollEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
-
             bool isIn = inObject(Input.getMousePos());
 
             if (isIn) OnMouseScroll?.Invoke(attachedObject, e);
@@ -91,8 +89,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
-
             bool isIn = inObject(Input.getMousePos());
 
             if (isIn)
@@ -107,8 +103,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
-
             bool isIn = inObject(Input.getMousePos());
 
             if (isIn)
@@ -127,8 +121,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseMove(object sender, MouseMoveEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
-
             bool wasIn = inObject(e.From);
             bool isIn = inObject(e.To);
 
@@ -164,28 +156,8 @@ namespace SoulEngine.Objects.Components
 
             //Get the bounds of all other UI objects.  
             List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
-                .Where(x => x.Layer == Enums.ObjectLayer.UI && x.Drawing == true && CheckOpacity(x)).ToList();
-
-            //Check if we should check clusters as well.
-            if(Context.Core.Scene.UIClusters)
-            {
-                //Get the bounds of all clusters.
-                List<GameObject> clusters = new List<GameObject>();
-
-                //Get all objects within clusters that are on the UI layer.
-                foreach (var cluster in Context.Core.Scene.AttachedClusters)
-                {
-                    for (int c = 0; c < cluster.Value.Count; c++)
-                    {
-                        if (cluster.Value[c].Layer == Enums.ObjectLayer.UI && cluster.Value[c].Drawing == true && CheckOpacity(cluster.Value[c]))
-                            clusters.Add(cluster.Value[c]);
-                    }
-                };
-
-                objects.AddRange(clusters);
-            }
-
-            objects = objects.OrderByDescending(y => y.Priority).ToList();
+                .Where(x => x.Layer == Enums.ObjectLayer.UI)
+                .OrderByDescending(x => x.Priority).ToList();
 
             //Check if any objects are blocking this one.
             for (int i = 0; i < objects.Count; i++)
@@ -198,14 +170,6 @@ namespace SoulEngine.Objects.Components
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Returns true if the object has a positive opacity or doesn't have an activetexture object.
-        /// </summary>
-        private bool CheckOpacity(GameObject x)
-        {
-            return ((x.HasComponent<ActiveTexture>() && x.Component<ActiveTexture>().Opacity > 0) || !x.HasComponent<ActiveTexture>());
         }
         #endregion
 

@@ -74,9 +74,11 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         /// <param name="mapPath">The map file's location. The root is the Content folder.</param>
         /// <param name="tilesetContentPath">The path to the folder where the tileset images are. The root is the Content folder.</param>
-        public TiledMap(string MapPath, string TilesetsContentPath = "Tilesets/")
+        public Component Initialize(string MapPath, string TilesetsContentPath = "Tilesets/")
         {
             Reload(MapPath, TilesetsContentPath);
+
+            return this;
         }
         #endregion
 
@@ -234,8 +236,20 @@ namespace SoulEngine.Objects.Components
             //Check if empty texture, sometimes it happens.
             if (mapLayers.Count == 0) return;
 
-            //Draw the texture.
-            Draw(mapLayers[DrawLayer]);
+            //Correct bounds to center origin.
+            Rectangle DrawBounds = new Rectangle(new Point(attachedObject.X + attachedObject.Width / 2,
+                attachedObject.Y + attachedObject.Height / 2),
+                new Point(attachedObject.Width, attachedObject.Height));
+
+            //Draw the object through XNA's SpriteBatch.
+            Context.ink.Draw(mapLayers[DrawLayer],
+                DrawBounds,
+                null,
+                Tint * Opacity,
+                attachedObject.Rotation,
+                new Vector2((float)mapLayers[DrawLayer].Width / 2, (float)mapLayers[DrawLayer].Height / 2),
+                MirrorEffects,
+                1.0f);
         }
 
         /// <summary>
