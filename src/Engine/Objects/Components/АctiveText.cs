@@ -35,6 +35,7 @@ namespace SoulEngine.Objects.Components
             }
             set
             {
+                if (text == value) return;
                 text = value;
                 GenerateCache();
             }
@@ -50,7 +51,20 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// The default text color.
         /// </summary>
-        public Color Color = Color.White;
+        public Color Color
+        {
+            get
+            {
+                return color;
+            }
+            set
+            {
+                if (color == value) return;
+                color = value;
+                GenerateCache();
+            }
+        }
+        private Color color = Color.White;
         /// <summary>
         /// The scrolling of the text.
         /// </summary>
