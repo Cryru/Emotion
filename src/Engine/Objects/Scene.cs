@@ -134,6 +134,7 @@ namespace SoulEngine.Objects
             //Update the scene's clusters.
             ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.ForEach(y => y.Update()));
         }
+
         /// <summary>
         /// Composes component textures on linked objects.
         /// </summary>
