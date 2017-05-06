@@ -79,6 +79,7 @@ namespace SoulEngine.Objects.Components
         {
             Draw(attachedObject.Width, attachedObject.Height, attachedObject.X, attachedObject.Y, Texture);
         }
+
         /// <summary>
         /// Draws the component's texture.
         /// </summary>
@@ -88,6 +89,20 @@ namespace SoulEngine.Objects.Components
         /// <param name="Y">The Y axis location to draw the texture to.</param>
         /// <param name="Texture">The texture to draw.</param>
         public virtual void Draw(int Width, int Height, int X, int Y, Texture2D Texture)
+        {
+            Draw(Width, Height, X, Y, Texture, Tint);
+        }
+
+        /// <summary>
+        /// Draws the component's texture.
+        /// </summary>
+        /// <param name="Width">The drawing height of the object's texture.</param>
+        /// <param name="Height">The drawing width of the object's texture.</param>
+        /// <param name="X">The X axis location to draw the texture to.</param>
+        /// <param name="Y">The Y axis location to draw the texture to.</param>
+        /// <param name="Texture">The texture to draw.</param>
+        /// <param name="Tint">The color tint of the texture.</param>
+        public virtual void Draw(int Width, int Height, int X, int Y, Texture2D Texture, Color Tint)
         {
             //Calculate texture position with padding.
             int XA = X + (int)Padding.X;

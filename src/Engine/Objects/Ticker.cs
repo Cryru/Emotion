@@ -112,6 +112,14 @@ namespace SoulEngine.Objects
         /// </summary>
         private DateTime _TimeStarted;
         #endregion
+        #region "Tags"
+        /// <summary>
+        /// Additional data attached to the ticker.
+        /// </summary>
+        public List<object> Tags = new List<object>();
+        #endregion
+        #endregion
+
         #region "Events"
         /// <summary>
         /// Triggered when the ticker ticks.
@@ -129,7 +137,6 @@ namespace SoulEngine.Objects
         /// Triggered when the ticker is paused.
         /// </summary>
         public event EventHandler<EventArgs> OnPause;
-        #endregion
         #endregion
 
         /// <summary>
