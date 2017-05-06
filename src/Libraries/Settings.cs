@@ -54,6 +54,8 @@ namespace SoulEngine
             defaultFile.Add("Window Height", WWidth);
             defaultFile.Add("Display Mode", DisplayMode);
             defaultFile.Add("Resizable", ResizableWindow);
+            defaultFile.Add("Sound", Sound);
+            defaultFile.Add("Volume", Volume);
             defaultFile.Add("Debug", Debug);
             defaultFile.Add("AA", AntiAlias);
             defaultFile.Add("Networking", Networking);
@@ -74,6 +76,8 @@ namespace SoulEngine
             settingsFile.AssignContent(ref WHeight, "Window Height");
             settingsFile.AssignContent(ref _DisplayMode, "Display Mode");
             settingsFile.AssignContent(ref ResizableWindow, "Resizable");
+            settingsFile.AssignContent(ref Sound, "Sound");
+            settingsFile.AssignContent(ref Volume, "Volume");
             settingsFile.AssignContent(ref Debug, "Debug");
             settingsFile.AssignContent(ref AntiAlias, "AA");
             settingsFile.AssignContent(ref Networking, "Networking");
