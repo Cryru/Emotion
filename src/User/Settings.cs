@@ -34,6 +34,10 @@ namespace SoulEngine
         /// If true, the engine will not run unless the meta.soul file exists and is correct. About 100ms slowdown.
         /// </summary>
         public static bool EnforceAssetIntegrity = false;
+        /// <summary>
+        /// The MD5 hash of the meta.soul file.
+        /// </summary>
+        public static string MetaMD5 = "";
         #endregion
         #region "Window Settings"
         /// <summary>
