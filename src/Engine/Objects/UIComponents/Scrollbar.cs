@@ -23,9 +23,7 @@ namespace SoulEngine.Objects.Components
             }
             set
             {
-                if (value == _value) return;
                 _value = MathHelper.Clamp(value, 0, 100);
-                OnValueChanged?.Invoke(attachedObject, new ScrollbarEventArgs(_value));
             }
         }
         private int _value;
@@ -102,13 +100,6 @@ namespace SoulEngine.Objects.Components
         #endregion
         #endregion
 
-        #region "Events"
-        /// <summary>
-        /// Triggered when the scrollbar is scrolled.
-        /// </summary>
-        public event EventHandler<ScrollbarEventArgs> OnValueChanged;
-        #endregion
-
         public Scrollbar(string Bar, string Selector)
         {
             barID = Bar;
@@ -145,7 +136,6 @@ namespace SoulEngine.Objects.Components
             //Set bar size to parent size and position 0.
             Bar.Position = new Vector2(0, 0);
             Bar.Size = Parent.Size;
-            Bar.Drawing = Parent.Drawing;
             Parent.AsChild(Bar);
 
             //Calculate selector properties.
@@ -153,7 +143,6 @@ namespace SoulEngine.Objects.Components
             Selector.Height = (int)(Parent.Height + ((Parent.Height * 0.1) * 2));
             Selector.Center = Parent.Center;
             Selector.X = Parent.X + ((Bar.Width / 100) * _value) - Selector.Width / 2;
-            Selector.Drawing = Parent.Drawing;
 
             //Apply dynamic styles.
             if (Held) Selector.Component<ActiveTexture>().Tint = HeldColor;
@@ -165,13 +154,11 @@ namespace SoulEngine.Objects.Components
         {
             if (!Held) return;
 
-            float PosWithin = e.To.X - Parent.X;
+            Vector2 Change = e.To - e.From;
 
-            float incr = Bar.Width / 100;
+            int oldval = Value;
 
-            float va = PosWithin / incr;
-
-            Value = (int) va;
+            Value += (int)Change.X;
         }
         private void LetGo(object sender, Events.MouseButtonEventArgs e)
         {

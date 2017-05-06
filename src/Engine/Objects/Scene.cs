@@ -65,10 +65,6 @@ namespace SoulEngine.Objects
         /// Queue of actions to do on the next update.
         /// </summary>
         private List<string> queue = new List<string>();
-        /// <summary>
-        /// Whether we are expecting UI objects in clusters.
-        /// </summary>
-        public bool UIClusters = false;
         #endregion
 
         /// <summary>

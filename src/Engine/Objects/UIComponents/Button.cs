@@ -44,7 +44,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Triggered when the button is clicked.
         /// </summary>
-        public event EventHandler<MouseButtonEventArgs> OnClicked;
+        public event EventHandler<EventArgs> OnClicked;
         #endregion
 
         public override void Initialize()
@@ -88,7 +88,7 @@ namespace SoulEngine.Objects.Components
         {
             Parent.Component<ActiveTexture>().Texture = Clicked;
             Parent.Component<ActiveTexture>().Tint = ClickedColor;
-            OnClicked?.Invoke(Parent, e);
+            OnClicked?.Invoke(Parent, EventArgs.Empty);
         }
         private void Button_OnLetGo(object sender, MouseButtonEventArgs e)
         {
