@@ -10,6 +10,7 @@ using SoulEngine.Objects;
 using Soul.IO;
 using SoulEngine.Objects.Components.Helpers;
 using Microsoft.Xna.Framework.Audio;
+using System.Threading;
 
 namespace SoulEngine
 {
@@ -151,10 +152,26 @@ namespace SoulEngine
         /// <summary>
         /// Reads the assets meta file, and applies checks for validity.
         /// If true is returned then files are as they should be, otherwise false is returned.
-        /// Format: Asset Meta Generator Version 3
+        /// Format: Asset Meta Generator Version 4
         /// </summary>
-        public static bool AssertAssets()
+        public static void AssertAssets()
         {
+            if (Settings.EnforceAssetIntegrity == true)
+            {
+                if (!File.Exists("Content\\meta.soul")) throw new AssetsException("The assets meta file is missing");
+                if (Soul.Encryption.MD5(Soul.IO.Utils.ReadFile("Content\\meta.soul")) != Settings.MetaMD5) throw new AssetsException("The assets meta file is corrupted");
+
+                Thread assert = new Thread(new ThreadStart(assertThread));
+                assert.Start();
+
+                //Wait for thread to activate.
+                while (!assert.IsAlive);
+            }
+        }
+
+        private static void assertThread()
+        {
+
             /*
              * The meta.soul file is expected to a Soul Managed File with each key being a
              * file path relative to the Content folder and each value a hash of the file, 
@@ -174,16 +191,22 @@ namespace SoulEngine
                     string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content\\" + file.Keys[i]));
                     //Check against the meta stored hash, if it doesn't match return false.
                     if (currentFile != enc)
-                        return false;
+                    {
+                        throw new AssetsException("File tampering detected.");
+                    }
                 }
             }
             catch (Exception)
             {
-                throw new Exception("The meta.soul is corrupted or incorrect.");
+                throw new AssetsException("The meta.soul is corrupted or incorrect.");
             }
+        }
+    }
 
-            //If everything went smoothly, return true.
-            return true;
+    public class AssetsException : Exception
+    {
+        public AssetsException(string message) : base(message)
+        {
         }
     }
 }
