@@ -44,6 +44,9 @@ namespace SoulEngine.Objects.Components
             }
             set
             {
+                //Check if any change occured.
+                if (_startingframe == value) return;
+
                 _startingframe = value;
                 //Reset the current frame.
                 Reset();
@@ -65,6 +68,9 @@ namespace SoulEngine.Objects.Components
             }
             set
             {
+                //Check if any change occured.
+                if (_endingFrame == value) return;
+
                 _endingFrame = value;
                 //Reset the current frame.
                 Reset();
