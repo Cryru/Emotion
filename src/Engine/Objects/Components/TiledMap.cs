@@ -91,7 +91,12 @@ namespace SoulEngine.Objects.Components
             string MapData = AssetManager.CustomFile(MapPath + ".tmx");
 
             //Check if the map file exists.
-            if (MapData == "") return;
+            if (MapData == "")
+            {
+                Texture = null;
+                map = null;
+                return;
+            }
 
             //Create a stream because that's what TiledSharp wants.
             Stream mapDataStream = Functions.StreamFromString(MapData);
