@@ -36,49 +36,58 @@ namespace SoulEngine.Objects
         /// <summary>
         /// A UI horizontal scroll bar. The value of it is under the Scrollbar component.
         /// </summary>
-        public static UIObject Scrollbar()
+        public static UIObject Scrollbar
         {
-            UIObject Object = new UIObject();
+            get
+            {
+                UIObject Object = new UIObject();
 
-            GameObject bar = GenericDrawObject;
-            bar.Layer = ObjectLayer.UI;
-            bar.Priority = 0;
-            string nameBar = GenerateChildObjectName("scrollbar-bar");
-            Context.Core.Scene.AddObject(nameBar, bar);
+                GameObject bar = GenericDrawObject;
+                bar.Layer = ObjectLayer.UI;
+                bar.Priority = 0;
+                string nameBar = GenerateChildObjectName("scrollbar-bar");
+                Context.Core.Scene.AddObject(nameBar, bar);
 
-            GameObject selector = GenericDrawObject;
-            selector.Layer = ObjectLayer.UI;
-            selector.AddComponent(new MouseInput());
-            selector.Priority = 1;
-            string nameSelect = GenerateChildObjectName("scrollbar-selector");
-            Context.Core.Scene.AddObject(nameSelect, selector);
+                GameObject selector = GenericDrawObject;
+                selector.Layer = ObjectLayer.UI;
+                selector.AddComponent(new MouseInput());
+                selector.Priority = 1;
+                string nameSelect = GenerateChildObjectName("scrollbar-selector");
+                Context.Core.Scene.AddObject(nameSelect, selector);
 
-            Object.AddComponent(new Scrollbar(nameBar, nameSelect));
+                Object.AddComponent(new Scrollbar(nameBar, nameSelect));
 
-            return Object;
+                return Object;
+            }
         }
         /// <summary>
         /// A button.
         /// </summary>
-        public static UIObject Button()
+        public static UIObject Button
         {
-            UIObject Object = new UIObject();
-            Object.AddComponent(new MouseInput());
-            Object.AddComponent(new ActiveTexture(TextureMode.Stretch));
-            Object.AddComponent(new Button());
+            get
+            {
+                UIObject Object = new UIObject();
+                Object.AddComponent(new MouseInput());
+                Object.AddComponent(new ActiveTexture(TextureMode.Stretch));
+                Object.AddComponent(new Button());
 
-            return Object;
+                return Object;
+            }
         }
 
         /// <summary>
         /// A box.
         /// </summary>
-        public static UIObject Box()
+        public static UIObject Box
         {
-            UIObject Object = new UIObject();
-            Object.AddComponent(new Box());
+            get
+            {
+                UIObject Object = new UIObject();
+                Object.AddComponent(new Box());
 
-            return Object;
+                return Object;
+            }
         }
         #endregion
 
@@ -89,7 +98,7 @@ namespace SoulEngine.Objects
         /// <param name="Type">The type of object.</param>
         private static string GenerateChildObjectName(string Type)
         {
-            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" + Context.Core.Scene.ObjectCount + 
+            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" + Context.Core.Scene.ObjectCount +
                 "@" + DateTime.Now.Minute + ":" + DateTime.Now.Second + ":" + DateTime.Now.Millisecond;
         }
         #endregion
