@@ -136,6 +136,7 @@
     <Compile Include="src\User\Custom\Text Tags.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />
     <Compile Include="src\Engine\Objects\UIComponents\Scrollbar.cs" />
+    <Compile Include="src\User\Scenes\StressTest.cs" />
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
