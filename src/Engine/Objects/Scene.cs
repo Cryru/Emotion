@@ -151,14 +151,52 @@ namespace SoulEngine.Objects
         /// </summary>
         public void DrawHook()
         {
-            //Run the draw function on all objects with respect to their selected layer.
+            //Draw all objects.
+            ObjectLayer Current = ObjectLayer.World;
             Context.ink.Start(DrawChannel.World);
-            Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.World).ToList().ForEach(x => x.Draw());
-            ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.Where(y => y.Layer == ObjectLayer.World).ToList().ForEach(y => y.Draw()));
+            foreach (var obj in Objects)
+            {
+                //Check if the next object is on the same layer.
+                if(obj.Value.Layer == Current)
+                {
+                    obj.Value.Draw();
+                }
+                else
+                {
+                    //If it isn't switch layers.
+                    Context.ink.End();
+                    Current = obj.Value.Layer;
+                    if(Current == ObjectLayer.UI) Context.ink.Start(DrawChannel.Screen); else Context.ink.Start(DrawChannel.World);
+                    obj.Value.Draw();
+                }
+            }
+            //Make sure to close the drawing channel.
             Context.ink.End();
-            Context.ink.Start(DrawChannel.Screen);
-            Objects.Select(x => x.Value).Where(x => x.Layer == ObjectLayer.UI).ToList().ForEach(x => x.Draw());
-            ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.Where(y => y.Layer == ObjectLayer.UI).ToList().ForEach(y => y.Draw()));
+
+            //Draw all clusters.
+            Current = ObjectLayer.World;
+            Context.ink.Start(DrawChannel.World);
+            foreach (var obj in ObjectClusters)
+            {
+                //Loop through all objects in the cluster.
+                for (int i = 0; i < obj.Value.Count; i++)
+                {
+                    //Check if the next object is on the same layer.
+                    if (obj.Value[i].Layer == Current)
+                    {
+                        obj.Value[i].Draw();
+                    }
+                    else
+                    {
+                        //If it isn't switch layers.
+                        Context.ink.End();
+                        Current = obj.Value[i].Layer;
+                        if (Current == ObjectLayer.UI) Context.ink.Start(DrawChannel.Screen); else Context.ink.Start(DrawChannel.World);
+                        obj.Value[i].Draw();
+                    }
+                }
+            }
+            //Make sure to close the drawing channel.
             Context.ink.End();
         }
         #endregion
@@ -175,7 +213,7 @@ namespace SoulEngine.Objects
 
             Objects.Add(Label.ToLower(), Object);
 
-            Objects = Objects.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);
+            Objects = Objects.OrderBy(x => x.Value.Priority).ThenBy(x => x.Value.Layer).ToDictionary(x => x.Key, x => x.Value);
 
             Object.Name = Label.ToLower();
         }
