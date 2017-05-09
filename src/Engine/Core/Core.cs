@@ -136,7 +136,7 @@ namespace SoulEngine
             LoadScene(new ScenePrim());
 
             //Load the debugging scene.
-            //if (Settings.Debug) DebugScene.Setup();
+            if (Settings.Debug) DebugScene.Setup();
 
             //Measure boot time.
             Starter.bootPerformance.Stop();
