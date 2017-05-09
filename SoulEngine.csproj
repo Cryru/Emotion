@@ -140,6 +140,22 @@
     <Compile Include="src\User\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Entitas, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Libraries\External\Entitas\Entitas.dll</HintPath>
+    </Reference>
+    <Reference Include="Entitas.Blueprints, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Libraries\External\Entitas\Entitas.Blueprints.dll</HintPath>
+    </Reference>
+    <Reference Include="Entitas.CodeGeneration.Attributes, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Libraries\External\Entitas\Entitas.CodeGeneration.Attributes.dll</HintPath>
+    </Reference>
+    <Reference Include="Entitas.Utils, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>src\Libraries\External\Entitas\Entitas.Utils.dll</HintPath>
+    </Reference>
     <Reference Include="Esprima">
       <HintPath>src\Libraries\External\Scripting\Esprima.dll</HintPath>
     </Reference>
@@ -229,6 +245,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="src\Libraries\External\Entitas\Entitas.Blueprints.dll" />
+    <Content Include="src\Libraries\External\Entitas\Entitas.CodeGeneration.Attributes.dll" />
+    <Content Include="src\Libraries\External\Entitas\Entitas.dll" />
+    <Content Include="src\Libraries\External\Entitas\Entitas.Utils.dll" />
     <Content Include="src\Libraries\External\Newtonsoft.Json.dll" />
     <Content Include="src\Libraries\External\SoulLib.dll" />
   </ItemGroup>
