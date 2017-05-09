@@ -163,7 +163,7 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Is run every tick by the Core. Invokes triggers and calculates time passing.
         /// </summary>
-        public void Update(object sender, SoulUpdateEventArgs e)
+        public void Update()
         {
             switch(_State) //Check which state we are in.
             {

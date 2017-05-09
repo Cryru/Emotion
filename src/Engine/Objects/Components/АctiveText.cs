@@ -170,7 +170,6 @@ namespace SoulEngine.Objects.Components
             text = "";
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
-            Priority = 1;
         }
         /// <summary>
         /// 
@@ -181,7 +180,6 @@ namespace SoulEngine.Objects.Components
             text = Text;
             Font = AssetManager.DefaultFont;
             Style = TextStyle.Left;
-            Priority = 1;
         }
         /// <summary>
         /// 
@@ -193,7 +191,6 @@ namespace SoulEngine.Objects.Components
             text = Text;
             this.Font = Font;
             Style = TextStyle.Left;
-            Priority = 1;
         }
         /// <summary>
         /// 
@@ -206,7 +203,6 @@ namespace SoulEngine.Objects.Components
             text = Text;
             this.Font = Font;
             this.Style = Style;
-            Priority = 1;
         }
         #endregion
 

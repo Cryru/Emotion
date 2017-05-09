@@ -28,7 +28,8 @@ namespace SoulEngine
                     int B = Functions.generateRandomNumber(1, 255);
 
                     temp.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
-                    temp.Component<ActiveTexture>().Tint = new Color(R, G, B);
+                    temp.Component<ActiveTexture>().Tint = new Color(Functions.generateRandomNumber(1, 255),
+                    Functions.generateRandomNumber(1, 255), Functions.generateRandomNumber(1, 255));
 
                     temp.Size = new Vector2(detail, detail);
                     temp.X = x;
@@ -41,13 +42,11 @@ namespace SoulEngine
 
         public override void Update()
         {
+            return;
             for (int i = 0; i < GetCluster("testCluster").Count; i++)
             {
-                int R = Functions.generateRandomNumber(1, 255);
-                int G = Functions.generateRandomNumber(1, 255);
-                int B = Functions.generateRandomNumber(1, 255);
-
-                GetCluster("testCluster")[i].Component<ActiveTexture>().Tint = new Color(R, G, B);
+                GetCluster("testCluster")[i].Component<ActiveTexture>().Tint = new Color(Functions.generateRandomNumber(1, 255),
+                    Functions.generateRandomNumber(1, 255), Functions.generateRandomNumber(1, 255));
             }
         }
     }

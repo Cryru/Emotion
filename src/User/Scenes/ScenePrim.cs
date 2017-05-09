@@ -26,7 +26,7 @@ namespace SoulEngine
 
         public override void Start()
         {
-            Context.Core.LoadScene(new StressTest());
+            //Context.Core.LoadScene(new StressTest());
            
 
         }

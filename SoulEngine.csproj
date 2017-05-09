@@ -79,7 +79,6 @@
     <Compile Include="src\Engine\EventArgs\MouseMoveEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\KeyEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\ScrollbarEventArgs.cs" />
-    <Compile Include="src\Engine\EventArgs\SoulUpdateEventArgs.cs" />
     <Compile Include="src\Engine\Objects\DrawComponent.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
