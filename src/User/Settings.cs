@@ -110,6 +110,8 @@ namespace SoulEngine
         /// Draws rectangles around all draw components.
         /// </summary>
         public static bool DrawTextureBounds = false;
+
+        public static int DebugSocketPort = 2345;
         #endregion
         #region "Android Settings"
 #if ANDROID

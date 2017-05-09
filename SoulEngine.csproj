@@ -71,6 +71,7 @@
     <Compile Include="src\Engine\Core\Starter.cs" />
     <Compile Include="src\Engine\Core\WindowManager.cs" />
     <Compile Include="src\Engine\Debugging\DebugScene.cs" />
+    <Compile Include="src\Engine\Debugging\DebugSocket.cs" />
     <Compile Include="src\Engine\Debugging\Logger.cs" />
     <Compile Include="src\Engine\EventArgs\NetworkMessageEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\NetworkEventArgs.cs" />

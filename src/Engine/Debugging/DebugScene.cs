@@ -43,6 +43,8 @@ namespace SoulEngine.Debugging
         /// </summary>
         public static void Setup()
         {
+            DebugSocket.Setup();
+
             stats = GameObject.GenericDrawObject;
 
             stats.Component<ActiveTexture>().ActualTexture = AssetManager.BlankTexture;
@@ -80,6 +82,7 @@ namespace SoulEngine.Debugging
             Logger.Add("Debugging enabled!");
         }
 
+        static float delayer;
         #region "Hooks"
         /// <summary>
         /// The core's hook for updating.
@@ -96,6 +99,23 @@ namespace SoulEngine.Debugging
             //Update display status.
             console.Drawing = consoleOpened;
             console.Update();
+
+            //Update buttons on a delay.
+            delayer += Context.Core.frameTime;
+            if(delayer > 100)
+            {
+                delayer -= 100;
+
+                if (Input.isKeyDown(Microsoft.Xna.Framework.Input.Keys.Left))
+                {
+                    MoveBlinkerLeft();
+                }
+
+                if (Input.isKeyDown(Microsoft.Xna.Framework.Input.Keys.Right))
+                {
+                    MoveBlinkerRight();
+                }
+            }
         }
         /// <summary>
         /// Composes component textures on linked objects.
@@ -231,14 +251,14 @@ namespace SoulEngine.Debugging
         private static void MoveBlinkerRight()
         {
             blinkerLocation += 1;
-            consoleBlinker = " ";
+            consoleBlinker = "|";
             UpdateConsoleText();
         }
 
         private static void MoveBlinkerLeft()
         {
             if(blinkerLocation != 0) blinkerLocation -= 1;
-            consoleBlinker = " ";
+            consoleBlinker = "|";
             UpdateConsoleText();
         }
 
@@ -276,11 +296,12 @@ namespace SoulEngine.Debugging
                     break;
                 case Microsoft.Xna.Framework.Input.Keys.Left:
                     MoveBlinkerLeft();
+                    delayer = -300;
                     break;
                 case Microsoft.Xna.Framework.Input.Keys.Right:
                     MoveBlinkerRight();
+                    delayer = -300;
                     break;
-
             }
         }
         private static void ScrollManager(object sender, MouseScrollEventArgs e)
