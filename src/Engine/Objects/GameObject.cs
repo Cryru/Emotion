@@ -264,10 +264,10 @@ namespace SoulEngine
             }
 
             //Check if drawing bounds.
-            if (Settings.DrawBounds || (Name != null && Name != "" && Name == Debugging.DebugScene.selectedObject))
+            if (Settings.DrawBounds || (Name != null && Name != "" && Name == Scripting.ScriptEngine.selectedObject))
             {
                 Context.ink.DrawRectangle(Bounds, Math.Max(1, Functions.ManualRatio(1, 540)), Color.Red);
-            }   
+            }
         }
 
         /// <summary>
