@@ -68,7 +68,7 @@ namespace SoulEngine.Scripting
             }
             catch (Exception e)
             {
-                Debugging.Logger.Add(e.Message);
+                if (!Debugging.DebugScene.consoleOpened) Debugging.Logger.Add(e.Message);
                 return JsValue.FromObject(Interpreter, "<color=#f44b42>" + e.Message + "</>\nFunctions you can use:\n" + help());
             }
         }
@@ -138,10 +138,9 @@ namespace SoulEngine.Scripting
         /// Draws a border around the object with the provided name.
         /// </summary>
         /// <param name="objectName">The name of the object to draw a border around.</param>
-        public static string selectedObject;
         private static void selectObject(string objectName)
         {
-            selectedObject = objectName;
+            Debugging.DebugScene.selectedObject = objectName;
         }
         /// <summary>
         /// Draws a border around the object with the provided index.
@@ -157,7 +156,7 @@ namespace SoulEngine.Scripting
                 index++;
                 if (index == objectIndex) break;
             }
-            //Debugging.DebugScene.selectedObject = name;
+            Debugging.DebugScene.selectedObject = name;
         }
         /// <summary>
         /// Prints the system log.
