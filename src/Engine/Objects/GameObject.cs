@@ -333,7 +333,12 @@ namespace SoulEngine
 
         #region "Components Functions"
         /// <summary>
-        /// Returns an attached component, will throw a NullReference if not attached.
+        /// Internal index of types.
+        /// </summary>
+        List<string> TypeIndex = new List<string>();
+
+        /// <summary>
+        /// Returns an attached component by type, will throw a NullReference if not attached.
         /// </summary>
         /// <typeparam name="T">The type of component.</typeparam>
         /// <returns>The component object.</returns>
@@ -341,59 +346,56 @@ namespace SoulEngine
         {
             return (T)Convert.ChangeType(Components[IdComponent<T>()], typeof(T));
         }
-        /// <summary>
-        /// Returns an attached component, will throw a NullReference if not attached.
-        /// </summary>
-        /// <param name="componentName">The name of the component. Case insensitive.</param>
-        /// <returns>The component object, needs to be cast.</returns>
-        public object Component(string componentName)
-        {
-            return Components[IdComponent(componentName)];
-        }
 
         /// <summary>
         /// Attaches a component to the object, if the object already has a component of this type it is overwritten.
         /// </summary>
-        /// <param name="ComponentObject">The component object.</param>
+        /// <param name="ComponentObject">The component to add.</param>
         public void AddComponent(Component ComponentObject)
         {
             //Check if adding components is forbidden.
             if (lockComponentAdding) return;
 
+            //Get the index of that component type.
+            int ComponentIndex = IdComponent(ComponentObject.GetType());
+
             //Check if the component is already added.
-            if (HasComponent(ComponentObject.GetType().Name))
-            //If not add it.
-            { Components[IdComponent(ComponentObject.GetType().Name)] = ComponentObject; ComponentObject.attachedObject = this; }
+            if (ComponentIndex >= 0)
+            //If it is replace it.
+            {
+                Components[ComponentIndex] = ComponentObject;
+                ComponentObject.attachedObject = this;
+            }
             else
-            //If it is then ovewrite the existing one.
-            { Components.Add(ComponentObject); ComponentObject.attachedObject = this; }
+            //If it isn't add it.
+            {
+                Components.Add(ComponentObject);
+                ComponentObject.attachedObject = this;
+                //Index the object.
+                TypeIndex.Add(ComponentObject.GetType().ToString());
+            }
 
-            //Run the component additional initialization login.
+            //Run the component additional initialization.
             ComponentObject.Initialize();
-
-            Components = Components.OrderBy(x => x.Priority).ToList();
         }
 
         /// <summary>
         /// Removes a component from the object, if such a component isn't attached nothing happens.
         /// </summary>
         /// <param name="Component">The type of the component.</typeparam>
-        public void RemoveComponent(Type Component)
-        {
-            RemoveComponent(Component.Name);
-        }
-        /// <summary>
-        /// Removes a component from the object, if such a component isn't attached nothing happens.
-        /// </summary>
-        /// <param name="componentName">The name of the component. Case insensitive.</param>
-        public void RemoveComponent(string componentName)
+        public void RemoveComponent<T>()
         {
             //Check if removing components is forbidden.
             if (lockComponentRemoving) return;
 
             //Get the ID of the component and use IT to remove the component.
-            int id = IdComponent(componentName);
-            if (id != -1) { Components[id].Dispose(); Components.RemoveAt(id); }
+            int id = IdComponent<T>();
+            if (id != -1)
+            {
+                Components[id].Dispose();
+                Components.RemoveAt(id);
+                TypeIndex.Remove(typeof(T).ToString());
+            }
         }
 
         /// <summary>
@@ -403,16 +405,17 @@ namespace SoulEngine
         /// <returns>True if attached, false if not.</returns>
         public bool HasComponent<T>()
         {
-            return HasComponent(typeof(T).Name);
+            return IdComponent<T>() != -1;
         }
+
         /// <summary>
         /// Returns whether the specified component is attached to the object.
         /// </summary>
-        /// <param name="componentName">The name of the component. Case insensitive.</param>
+        /// <typeparam name="T">The type of the component.</typeparam>
         /// <returns>True if attached, false if not.</returns>
-        public bool HasComponent(string componentName)
+        public bool HasComponent(Type Type)
         {
-            return IdComponent(componentName) != -1;
+            return TypeIndex.IndexOf(Type.ToString()) != -1;
         }
 
         /// <summary>
@@ -422,21 +425,17 @@ namespace SoulEngine
         /// <returns>The id of the component, -1 if not attached.</returns>
         private int IdComponent<T>()
         {
-            return IdComponent(typeof(T).Name);
+            return TypeIndex.IndexOf(typeof(T).ToString());        
         }
+
         /// <summary>
         /// Returns the id of the component within the internal component list.
         /// </summary>
-        /// <param name="componentName">The name of the component. Case insensitive.</param>
+        /// <param name="Type">The type of the component.</typeparam>
         /// <returns>The id of the component, -1 if not attached.</returns>
-        private int IdComponent(string componentName)
+        private int IdComponent(Type Type)
         {
-            //Note: This is the primary function other component functions rely on, optimization is to be done HERE.
-            for (int i = 0; i < Components.Count; i++)
-                if (Components[i].GetType().Name.ToLower() == componentName.ToLower())
-                    return i;
-
-            return -1;
+            return TypeIndex.IndexOf(Type.ToString());
         }
         #endregion
 

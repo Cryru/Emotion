@@ -53,23 +53,23 @@ namespace SoulEngine
         /// <summary>
         /// Triggered when a tick update cycle begins.
         /// </summary>
-        public event EventHandler<SoulUpdateEventArgs> OnUpdate;
+        public event Action OnUpdate;
         /// <summary>
         /// Triggered when a tick update cycle ends.
         /// </summary>
-        public event EventHandler<SoulUpdateEventArgs> OnUpdateEnd;
+        public event Action OnUpdateEnd;
         /// <summary>
         /// Triggered at the start of a new frame.
         /// </summary>
-        public event EventHandler<SoulUpdateEventArgs> OnDraw;
+        public event Action OnDraw;
         /// <summary>
         /// Triggered at the part of the frame when textures are composed.
         /// </summary>
-        public event EventHandler<SoulUpdateEventArgs> OnCompose;
+        public event Action OnCompose;
         /// <summary>
         /// Triggered at the end of a new frame.
         /// </summary>
-        public event EventHandler<SoulUpdateEventArgs> OnDrawEnd;
+        public event Action OnDrawEnd;
         #region "Window Events"
         /// <summary>
         /// Triggered at the end of a new frame.
@@ -157,7 +157,7 @@ namespace SoulEngine
             if (sceneLoadQueue != null) SceneLoad();
 
             //Trigger tick start event.
-            OnUpdate?.Invoke(this, new SoulUpdateEventArgs(gameTime));
+            OnUpdate?.Invoke();
 
             //Update input module.
             Input.UpdateInput();
@@ -169,7 +169,7 @@ namespace SoulEngine
             Scene.UpdateHook();
 
             //Trigger tick end event.
-            OnUpdateEnd?.Invoke(this, new SoulUpdateEventArgs(gameTime));
+            OnUpdateEnd?.Invoke();
 
             //Update input module.
             Input.UpdateInput_End();
@@ -192,7 +192,7 @@ namespace SoulEngine
             __composeAllowed = true;
 
             //Trigger compose event.
-            OnCompose?.Invoke(this, new SoulUpdateEventArgs(gameTime));
+            OnCompose?.Invoke();
 
             //Compose textures on the current scene. We draw the render targets before anything else because it renders over other things otherwise.
             Scene.Compose();
@@ -205,7 +205,7 @@ namespace SoulEngine
             Context.ink.End();
 
             //Trigger the frame start event.
-            OnDraw?.Invoke(this, new SoulUpdateEventArgs(gameTime));
+            OnDraw?.Invoke();
 
             //Draw the current scene.
             Scene.DrawHook();
@@ -214,7 +214,7 @@ namespace SoulEngine
             ScriptEngine.Draw();
 
             //Trigger frame end event.
-            OnDrawEnd?.Invoke(this, new SoulUpdateEventArgs(gameTime));
+            OnDrawEnd?.Invoke();
         }
         #endregion
 

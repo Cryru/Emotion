@@ -43,22 +43,22 @@ namespace SoulEngine.Debugging
         /// </summary>
         public static void Setup()
         {
-            stats = GameObject.GenericTextObject;
+            stats = GameObject.GenericDrawObject;
 
-            stats.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
+            stats.Component<ActiveTexture>().ActualTexture = AssetManager.BlankTexture;
             stats.Component<ActiveTexture>().Opacity = 0.5f;
             stats.Component<ActiveTexture>().Tint = Color.Black;
 
+            stats.AddComponent(new ActiveText());
             stats.Component<ActiveText>().AutoHeight = true;
             stats.Component<ActiveText>().AutoWidth = true;
             stats.Component<ActiveText>().Padding = new Vector2(Functions.ManualRatio(3, 540), Functions.ManualRatio(3, 540));
 
-            console = GameObject.GenericTextObject;
-            console.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
+            console = GameObject.GenericDrawObject;
+            console.Component<ActiveTexture>().ActualTexture = AssetManager.BlankTexture;
             console.Component<ActiveTexture>().Tint = Color.Black;
             console.Component<ActiveTexture>().Opacity = 0.5f;
-
-            console.Component<ActiveText>().Style = Enums.TextStyle.Justified;
+            console.AddComponent(new ActiveText());
 
             console.Width = Settings.Width;
             console.Height = Settings.Height / 2;
@@ -84,7 +84,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// The core's hook for updating.
         /// </summary>
-        private static void Update(object sender, SoulUpdateEventArgs e)
+        private static void Update()
         {
             stats.Component<ActiveText>().Text = Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
                 "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
@@ -100,7 +100,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Composes component textures on linked objects.
         /// </summary>
-        private static void Compose(object sender, SoulUpdateEventArgs e)
+        private static void Compose()
         {
             //Don't log events caused by the debugger.
             Logger.Enabled = false;
@@ -111,9 +111,9 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// The core's hook for drawing.
         /// </summary>
-        private static void DrawHook(object sender, SoulUpdateEventArgs e)
+        private static void DrawHook()
         {
-            FPSCounterUpdate(e.updateTime);
+            FPSCounterUpdate();
 
             Context.ink.Start(Enums.DrawChannel.Screen);
             stats.Draw();
@@ -124,27 +124,23 @@ namespace SoulEngine.Debugging
 
         #region "FPS Counter"
         /// <summary>
-        /// The frames rendered in the current second.
-        /// </summary>
-        private static int curFrames = 0;
-        /// <summary>
         /// The frames rendered in the last second.
         /// </summary>
         public static int FPS = 0;
         /// <summary>
-        /// The current second number.
+        /// The time.
         /// </summary>
-        private static int curSec = 0;
-        private static void FPSCounterUpdate(GameTime gameTime)
+        private static float secondCounter = 0;
+        private static void FPSCounterUpdate()
         {
-            //Check if the current second has passed.
-            if (curSec != gameTime.TotalGameTime.Seconds)
+            secondCounter += Context.Core.frameTime;
+
+            //Check if one second has passed.
+            if(secondCounter > 1000)
             {
-                curSec = gameTime.TotalGameTime.Seconds; //Assign the current second to a variable.
-                FPS = curFrames; //Set the current second's frames to the last second's frames as a second has passed.
-                curFrames = 0;
+                secondCounter -= 1000;
+                FPS = (int)(1000f / Context.Core.frameTime);
             }
-            curFrames += 1;
         }
         #endregion
 
