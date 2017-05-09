@@ -57,7 +57,7 @@ namespace SoulEngine.Debugging
             string message = Encoding.UTF8.GetString(receivedBytes);
 
             //Execute through the script engine.
-            Broadcast(Scripting.ScriptEngine.ExecuteScript(message).ToString());
+            Broadcast(ScriptEngine.ExecuteScript(message).ToString());
 
             //Resume listening.
             Socket.BeginReceive(ReceivedMessage, null);
@@ -69,17 +69,16 @@ namespace SoulEngine.Debugging
         /// <param name="Message"></param>
         public static void Broadcast(string Message)
         {
-            for (int i = 0; i < AttachedDebuggers.Count; i++)
+            for (int i = AttachedDebuggers.Count - 1; i >= 0 ; i--)
             {
                 var send = Encoding.UTF8.GetBytes(Message);
-                //Start sending, call the sent method.
-                Socket.BeginSend(send, send.Length, AttachedDebuggers[i], new AsyncCallback(SendEndCallback), null);
+                try { Socket.BeginSend(send, send.Length, AttachedDebuggers[i], new AsyncCallback(SendEndCallback), AttachedDebuggers[i]); } catch { AttachedDebuggers.RemoveAt(i); }               
             }
         }
 
         private static void SendEndCallback(IAsyncResult AR)
         {
-            Socket.EndSend(AR);
+            try { Socket.EndSend(AR); } catch { AttachedDebuggers.Remove((IPEndPoint)AR.AsyncState); }
         }
     }
 }
