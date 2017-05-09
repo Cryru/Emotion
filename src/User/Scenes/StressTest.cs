@@ -23,13 +23,11 @@ namespace SoulEngine
                 {
                     GameObject temp = new GameObject();
 
-                    int R = Functions.generateRandomNumber(1, 255);
-                    int G = Functions.generateRandomNumber(1, 255);
-                    int B = Functions.generateRandomNumber(1, 255);
+                    int C = Functions.generateRandomNumber(1, 255);
 
                     temp.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
-                    temp.Component<ActiveTexture>().Tint = new Color(Functions.generateRandomNumber(1, 255),
-                    Functions.generateRandomNumber(1, 255), Functions.generateRandomNumber(1, 255));
+                    temp.Component<ActiveTexture>().Tint = new Color(C,
+                    C, C);
 
                     temp.Size = new Vector2(detail, detail);
                     temp.X = x;
@@ -42,11 +40,14 @@ namespace SoulEngine
 
         public override void Update()
         {
-            return;
+            
+
             for (int i = 0; i < GetCluster("testCluster").Count; i++)
             {
-                GetCluster("testCluster")[i].Component<ActiveTexture>().Tint = new Color(Functions.generateRandomNumber(1, 255),
-                    Functions.generateRandomNumber(1, 255), Functions.generateRandomNumber(1, 255));
+                int C = Functions.generateRandomNumber(1, 255);
+
+                GetCluster("testCluster")[i].Component<ActiveTexture>().Tint = new Color(C,
+                    C, C);
             }
         }
     }
