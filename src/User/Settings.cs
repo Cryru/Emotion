@@ -86,6 +86,10 @@ namespace SoulEngine
         /// Whether to apply anti-aliasing.
         /// </summary>
         public static bool AntiAlias = false;
+        /// <summary>
+        /// Whether to stop drawing and updating when the game is not focused.
+        /// </summary>
+        public static bool PauseOnFocusLoss = true;
         #endregion
         #region "Sound Settings"
         /// <summary>
