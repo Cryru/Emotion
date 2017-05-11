@@ -16,12 +16,17 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// The socket to be used for broadcasting.
         /// </summary>
-        public static UdpClient Socket;
+        public static Socket Socket;
 
         /// <summary>
-        /// The list of attached debuggers.
+        /// The attached debugger.
         /// </summary>
-        private static List<IPEndPoint> AttachedDebuggers;
+        private static Socket AttachedDebugger;
+
+        /// <summary>
+        /// The message sending and receiving buffer;
+        /// </summary>
+        private static byte[] buffer;
 
         /// <summary>
         /// Initiate broadcasting debug information.
@@ -32,17 +37,29 @@ namespace SoulEngine.Debugging
             if (Settings.Debug == false) return;
 
             //Initiate the socket.
-            Socket = new UdpClient(new IPEndPoint(IPAddress.Any, Settings.DebugSocketPort));
-
-            //Create a list for attached debuggers.
-            AttachedDebuggers = new List<IPEndPoint>();
+            Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket.Bind(new IPEndPoint(IPAddress.Any, Settings.DebugSocketPort));
 
             //Open script access.
             ScriptEngine.Interpreter = new Engine(cfg => cfg.AllowClr());
             ScriptEngine.Interpreter.Execute("var SoulEngine = importNamespace(\"SoulEngine\")");
 
+            //Define the message buffer.
+            buffer = new byte[1024];
+
             //Listen for messages.
-            Socket.BeginReceive(ReceivedMessage, null);
+            Socket.Listen(1);
+            Socket.BeginAccept(new AsyncCallback(AcceptCallback), null);
+        }
+
+        private static void AcceptCallback(IAsyncResult AR)
+        {
+            //Accept the current connection.
+            try { AttachedDebugger = Socket.EndAccept(AR); } catch { return; }
+
+            AttachedDebugger.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceivedMessage), null);
+
+            Socket.BeginAccept(new AsyncCallback(AcceptCallback), null);
         }
 
         /// <summary>
@@ -51,16 +68,18 @@ namespace SoulEngine.Debugging
         /// <param name="ar"></param>
         private static void ReceivedMessage(IAsyncResult AR)
         {
-            IPEndPoint receivedIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-            AttachedDebuggers.Add(receivedIpEndPoint);
-            var receivedBytes = Socket.EndReceive(AR, ref receivedIpEndPoint);
-            string message = Encoding.UTF8.GetString(receivedBytes);
+            int received;
+            try { received = Socket.EndReceive(AR); } catch { return; }
+            //Check if empty message.
+            if (received == 0) return;
+            //Convert the message to a string.
+            string message = Encoding.UTF8.GetString(buffer).Substring(0, received);
 
-            //Execute through the script engine.
-            Broadcast(ScriptEngine.ExecuteScript(message).ToString());
+            //Execute through the script engine if not a dummy message.
+            if(message.Substring(0, 1) != "0") Broadcast(ScriptEngine.ExecuteScript(message).ToString());
 
             //Resume listening.
-            Socket.BeginReceive(ReceivedMessage, null);
+            AttachedDebugger.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceivedMessage), null);
         }
 
         /// <summary>
@@ -69,16 +88,17 @@ namespace SoulEngine.Debugging
         /// <param name="Message"></param>
         public static void Broadcast(string Message)
         {
-            for (int i = AttachedDebuggers.Count - 1; i >= 0 ; i--)
-            {
-                var send = Encoding.UTF8.GetBytes(Message);
-                try { Socket.BeginSend(send, send.Length, AttachedDebuggers[i], new AsyncCallback(SendEndCallback), AttachedDebuggers[i]); } catch { AttachedDebuggers.RemoveAt(i); }               
-            }
+            if (AttachedDebugger == null) return;
+
+            //Convert the string into bytes.
+            byte[] send = Encoding.UTF8.GetBytes(Message);
+            //Start sending, call the sent method.
+            try { AttachedDebugger.BeginSend(send, 0, send.Length, SocketFlags.None, new AsyncCallback(SendEndCallback), null); } catch { AttachedDebugger = null; }
         }
 
         private static void SendEndCallback(IAsyncResult AR)
         {
-            try { Socket.EndSend(AR); } catch { AttachedDebuggers.Remove((IPEndPoint)AR.AsyncState); }
+            try { AttachedDebugger.EndSend(AR); } catch { AttachedDebugger = null; }
         }
     }
 }

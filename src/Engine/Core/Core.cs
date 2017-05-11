@@ -180,10 +180,12 @@ namespace SoulEngine
         protected override void Draw(GameTime gameTime)
         {
             //If the game is not focused, don't update.
-            if (IsActive == false) return;
+            //if (IsActive == false) return;
 
             //Record frametime.
             frameTime = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            DebugSocket.Broadcast("Drew frame in " + frameTime);
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
