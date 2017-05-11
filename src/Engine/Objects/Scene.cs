@@ -209,12 +209,19 @@ namespace SoulEngine.Objects
         /// <param name="Object">The object to add.</param>
         public void AddObject(string Label, GameObject Object)
         {
-            if (Objects.ContainsKey(Label)) Label += Functions.generateRandomNumber(1000, 9999);
+            //Check if an object with that name exists.
+            if (Objects.ContainsKey(Label.ToLower()))
+            {
+                //If it does overwrite it.
+                Objects[Label.ToLower()] = Object;
+            }
+            else
+            {
+                //If it doesn't then add it.
+                Objects.Add(Label.ToLower(), Object);
+            }
 
-            Objects.Add(Label.ToLower(), Object);
-
-            Objects = Objects.OrderBy(x => x.Value.Priority).ThenBy(x => x.Value.Layer).ToDictionary(x => x.Key, x => x.Value);
-
+            Objects = Objects.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);
             Object.Name = Label.ToLower();
         }
         /// <summary>
