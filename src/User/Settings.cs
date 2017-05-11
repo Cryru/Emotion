@@ -110,7 +110,9 @@ namespace SoulEngine
         /// Draws rectangles around all draw components.
         /// </summary>
         public static bool DrawTextureBounds = false;
-
+        /// <summary>
+        /// The port the debug socket will be hosted on.
+        /// </summary>
         public static int DebugSocketPort = 2345;
         #endregion
         #region "Android Settings"
