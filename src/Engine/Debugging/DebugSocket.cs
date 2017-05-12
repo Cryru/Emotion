@@ -42,7 +42,7 @@ namespace SoulEngine.Debugging
 
             //Open script access.
             ScriptEngine.Interpreter = new Engine(cfg => cfg.AllowClr());
-            ScriptEngine.Interpreter.Execute("var SoulEngine = importNamespace(\"SoulEngine\")");
+            ScriptEngine.Interpreter.Execute("var SoulEngine = importNamespace('SoulEngine');");
 
             //Define the message buffer.
             buffer = new byte[1024];
@@ -76,7 +76,7 @@ namespace SoulEngine.Debugging
             string message = Encoding.UTF8.GetString(buffer).Substring(0, received);
 
             //Execute through the script engine if not a dummy message.
-            if(message.Substring(0, 1) != "0") Broadcast(ScriptEngine.ExecuteScript(message).ToString());
+            if(message.Substring(0, 1) != "0") Broadcast("script", ScriptEngine.ExecuteScript(message).ToString());
 
             //Resume listening.
             AttachedDebugger.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceivedMessage), null);
@@ -85,13 +85,25 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Send a message to all connected debuggers.
         /// </summary>
-        /// <param name="Message"></param>
-        public static void Broadcast(string Message)
+        /// <param name="Type">The type identifier of the message.</param>
+        /// <param name="Message">The message data.</param>
+        public static void Broadcast(string Type, string Message)
         {
+            //Check if the type is 'fatalerror' in which case crash.
+            if(Type == "fatalerror")
+            {
+                throw new Exception(Message);
+                Context.Core.Exit();
+            }
+
+            //Check if any debugger is attached.
             if (AttachedDebugger == null) return;
 
+            //Convert to JSON format.
+            string JSON = "{\"type\": \"" + Type + "\", \"data\": \"" + Message + "\"}";
+
             //Convert the string into bytes.
-            byte[] send = Encoding.UTF8.GetBytes(Message);
+            byte[] send = Encoding.UTF8.GetBytes(JSON);
             //Start sending, call the sent method.
             try { AttachedDebugger.BeginSend(send, 0, send.Length, SocketFlags.None, new AsyncCallback(SendEndCallback), null); } catch { AttachedDebugger = null; }
         }
