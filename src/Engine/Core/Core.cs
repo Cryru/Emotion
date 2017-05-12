@@ -76,7 +76,7 @@ namespace SoulEngine
         /// </summary>
         public event EventHandler<EventArgs> OnSizeChanged;
         /// <summary>
-        /// Triggered when the game\"s display mode changes.
+        /// Triggered when the game's display mode changes.
         /// </summary>
         public event EventHandler<EventArgs> OnDisplayModeChanged;
         #endregion
@@ -150,7 +150,7 @@ namespace SoulEngine
         /// </summary>
         protected override void Update(GameTime gameTime)
         {
-            //If the game is not focused, don\"t update.
+            //If the game is not focused, don't update.
             if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
             //Check if a scene is waiting to be loaded and if so load it.
@@ -183,12 +183,12 @@ namespace SoulEngine
             frameTime = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
             //Draw debug event, reports the current frametime. Used to determine FPS and activity.
-            DebugSocket.Broadcast("{\"type\": \"draw\", \"data\": \"" + frameTime + "\"}");
+            DebugSocket.Broadcast("draw", frameTime.ToString());
 
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
 
-            //If the game is not focused, don\"t update.
+            //If the game is not focused, don't update.
             if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
             //Allow composing.
@@ -200,7 +200,7 @@ namespace SoulEngine
             //Compose textures on the current scene. We draw the render targets before anything else because it renders over other things otherwise.
             Scene.Compose();
 
-            //Stop allowing composig. This is to prevent the \"black screen bug\".
+            //Stop allowing composig. This is to prevent the 'black screen bug'.
             __composeAllowed = false;
 
             Context.ink.Start(DrawChannel.Screen);
@@ -256,7 +256,7 @@ namespace SoulEngine
         #region "Event Rerouting"
         /// <summary>
         /// Is triggered when text input is detected to the game.
-        /// This returns the character as input, for instance a backspace is \"/b\" and so on.
+        /// This returns the character as input, for instance a backspace is '/b' and so on.
         /// </summary>
         private void Input_TextInput(object sender, TextInputEventArgs e)
         {
