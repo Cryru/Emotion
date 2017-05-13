@@ -16,15 +16,15 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Box textures.
         /// </summary>
-        public Texture2D TopLeft;
-        public Texture2D HorizontalTop;
-        public Texture2D TopRight;
-        public Texture2D VerticalRight;
-        public Texture2D BottomRight;
-        public Texture2D HorizontalBottom;
-        public Texture2D BottomLeft;
-        public Texture2D VerticalLeft;
-        public Texture2D Fill;
+        public Rectangle TopLeft;
+        public Rectangle HorizontalTop;
+        public Rectangle TopRight;
+        public Rectangle VerticalRight;
+        public Rectangle BottomRight;
+        public Rectangle HorizontalBottom;
+        public Rectangle BottomLeft;
+        public Rectangle VerticalLeft;
+        public Rectangle Fill;
         #endregion
         #region "Objects"
         /// <summary>
@@ -50,15 +50,16 @@ namespace SoulEngine.Objects.Components
             if (Parent.Layer != Enums.ObjectLayer.UI) throw new Exception("Cannot attach UI component to an object not on the UI layer!");
 
             //Default styles.
-            TopLeft = AssetManager.BlankTexture;
-            HorizontalTop = AssetManager.BlankTexture;
-            TopRight = AssetManager.BlankTexture;
-            VerticalRight = AssetManager.BlankTexture;
-            BottomRight = AssetManager.BlankTexture;
-            HorizontalBottom = AssetManager.BlankTexture;
-            BottomLeft = AssetManager.BlankTexture;
-            VerticalLeft = AssetManager.BlankTexture;
-            Fill = AssetManager.BlankTexture;
+            TopLeft = new Rectangle(0, 0, 0, 0);
+            HorizontalTop = new Rectangle(0, 0, 0, 0);
+            TopRight = new Rectangle(0, 0, 0, 0);
+            VerticalRight = new Rectangle(0, 0, 0, 0);
+            BottomRight = new Rectangle(0, 0, 0, 0);
+            HorizontalBottom = new Rectangle(0, 0, 0, 0);
+            BottomLeft = new Rectangle(0, 0, 0, 0);
+            VerticalLeft = new Rectangle(0, 0, 0, 0);
+            Fill = new Rectangle(0, 0, 0, 0);
+            Texture = AssetManager.MissingTexture;
 
             //Create children array.
             Children = new List<GameObject>();
@@ -128,15 +129,14 @@ namespace SoulEngine.Objects.Components
             FillBounds.Width = Parent.Width - VerticalLeft.Width - VerticalRight.Width;
             FillBounds.Height = Parent.Height - HorizontalBottom.Height - HorizontalTop.Height;
 
-            Draw(FillBounds.Width, FillBounds.Height, FillBounds.X, FillBounds.Y, Fill);
-
+            Draw(FillBounds.Width, FillBounds.Height, FillBounds.X, FillBounds.Y, Texture, Color.White, Fill);
         }
-        private void DrawTexture(Texture2D Texture, Vector2 Position)
+        private void DrawTexture(Rectangle TextureArea, Vector2 Position)
         {
             Position.X += Parent.X;
             Position.Y += Parent.Y;
 
-            Draw(Texture.Width, Texture.Height, (int) Position.X, (int) Position.Y, Texture);
+            Draw(Texture.Width, Texture.Height, (int) Position.X, (int) Position.Y, Texture, Color.White, TextureArea);
         }
         #endregion
     }
