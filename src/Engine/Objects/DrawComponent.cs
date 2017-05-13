@@ -104,6 +104,21 @@ namespace SoulEngine.Objects.Components
         /// <param name="Tint">The color tint of the texture.</param>
         public virtual void Draw(int Width, int Height, int X, int Y, Texture2D Texture, Color Tint)
         {
+            Draw(Width, Height, X, Y, Texture, Tint, new Rectangle(X, Y, Width, Height));
+        }
+
+        /// <summary>
+        /// Draws the component's texture.
+        /// </summary>
+        /// <param name="Width">The drawing height of the object's texture.</param>
+        /// <param name="Height">The drawing width of the object's texture.</param>
+        /// <param name="X">The X axis location to draw the texture to.</param>
+        /// <param name="Y">The Y axis location to draw the texture to.</param>
+        /// <param name="Texture">The texture to draw.</param>
+        /// <param name="Tint">The color tint of the texture.</param>
+        /// <param name="DrawArea">The area of the texture to draw.</param>
+        public virtual void Draw(int Width, int Height, int X, int Y, Texture2D Texture, Color Tint, Rectangle DrawArea)
+        {
             //Calculate texture position with padding.
             int XA = X + (int)Padding.X;
             int YA = Y + (int)Padding.Y;
@@ -122,7 +137,7 @@ namespace SoulEngine.Objects.Components
                 //Draw the object through XNA's SpriteBatch.
                 Context.ink.Draw(Texture,
                     DrawBounds,
-                    null,
+                    DrawArea,
                     Tint * Opacity,
                     attachedObject.Rotation,
                     new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
