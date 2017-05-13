@@ -269,7 +269,7 @@ namespace SoulEngine.Debugging
         private static void ScrollUp()
         {
             if (console.Component<ActiveText>().TextHeight <= console.Height) return;
-            if (console.Component<ActiveText>().Scroll.Y == -15) return;
+            if (console.Component<ActiveText>().Scroll.Y == -4) return;
 
             console.Component<ActiveText>().ScrollLineUp();
             UpdateConsoleText();
@@ -309,7 +309,7 @@ namespace SoulEngine.Debugging
         }
         private static void ScrollManager(object sender, MouseScrollEventArgs e)
         {
-            if(e.ScrollAmount < 0)
+            if(e.ScrollAmount > 0)
             {
                 ScrollDown();
             }

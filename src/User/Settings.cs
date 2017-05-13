@@ -93,7 +93,7 @@ namespace SoulEngine
         /// <summary>
         /// Whether Jint scripting is enabled. Raises memory usage.
         /// </summary>
-        public static bool Scripting = false;
+        public static bool Scripting = true;
         #endregion
         #region "Sound Settings"
         /// <summary>

@@ -136,7 +136,7 @@ namespace SoulEngine.Objects.Components
             Position.X += Parent.X;
             Position.Y += Parent.Y;
 
-            Draw(Texture.Width, Texture.Height, (int) Position.X, (int) Position.Y, Texture, Color.White, TextureArea);
+            Draw(TextureArea.Width, TextureArea.Height, (int) Position.X, (int) Position.Y, Texture, Color.White, TextureArea);
         }
         #endregion
     }

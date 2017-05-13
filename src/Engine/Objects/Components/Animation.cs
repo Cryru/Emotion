@@ -195,6 +195,9 @@ namespace SoulEngine.Objects.Components
 
             //Attach to the texture change event of the attached object to reset frames.
             attachedObject.Component<ActiveTexture>().OnTextureChanged += ActiveTexture_OnTextureChanged;
+
+            //Initiate loop.
+            Reset();
         }
 
         /// <summary>
