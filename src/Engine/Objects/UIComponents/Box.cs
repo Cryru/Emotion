@@ -37,6 +37,10 @@ namespace SoulEngine.Objects.Components
                 return (UIObject)attachedObject;
             }
         }
+        /// <summary>
+        /// Attached children objects.
+        /// </summary>
+        private List<GameObject> Children;
         #endregion
         #endregion
 
@@ -55,6 +59,26 @@ namespace SoulEngine.Objects.Components
             BottomLeft = AssetManager.BlankTexture;
             VerticalLeft = AssetManager.BlankTexture;
             Fill = AssetManager.BlankTexture;
+
+            //Create children array.
+            Children = new List<GameObject>();
+        }
+
+        /// <summary>
+        /// Assign an object to be a child of the box.
+        /// </summary>
+        /// <param name="Object">The object to take in.</param>
+        public void AssignObject(GameObject Object)
+        {
+            Children.Add(Object);
+        }
+
+        public override void Update()
+        {
+            for (int i = 0; i < Children.Count; i++)
+            {
+                Children[i].Drawing = Parent.Drawing;
+            }
         }
 
         #region "Event Handlers"

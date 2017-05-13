@@ -204,6 +204,12 @@ namespace SoulEngine.Objects.Components
             this.Font = Font;
             this.Style = Style;
         }
+
+        public override void Initialize()
+        {
+            GenerateCache();
+            priority = 2;
+        }
         #endregion
 
         //Main functions.

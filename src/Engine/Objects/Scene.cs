@@ -71,6 +71,13 @@ namespace SoulEngine.Objects
         public bool UIClusters = false;
         #endregion
 
+        #region "Events"
+        /// <summary>
+        /// Triggered when the scene is clicked and not a UI object.
+        /// </summary>
+        public event EventHandler<MouseButtonEventArgs> OnClicked;
+        #endregion
+
         /// <summary>
         /// Setups the scene as the current scene.
         /// </summary>
@@ -84,8 +91,22 @@ namespace SoulEngine.Objects
             Objects = new Dictionary<string, GameObject>();
             ObjectClusters = new Dictionary<string, List<GameObject>>();
 
+            //Attach the mouse down event.
+            Input.OnMouseButtonDown += Input_OnMouseButtonDown;
+
             //Run the start code.
             Start();
+        }
+
+        /// <summary>
+        /// Check if not clicking on an object.
+        /// </summary>
+        private void Input_OnMouseButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if(Functions.inObject(Input.getMousePos(), new Microsoft.Xna.Framework.Rectangle(0, 0, Settings.Width, Settings.Height), -1))
+            {
+                OnClicked?.Invoke(this, e);
+            }
         }
 
         #region "Hooks"
@@ -123,7 +144,6 @@ namespace SoulEngine.Objects
                 }
             }
             queue.Clear();
-
 
             //Run the scene's update code.
             Update();
@@ -221,9 +241,20 @@ namespace SoulEngine.Objects
                 Objects.Add(Label.ToLower(), Object);
             }
 
-            Objects = Objects.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);
             Object.Name = Label.ToLower();
+
+            //Order objects based on priority.
+            OrderObjects();
         }
+
+        /// <summary>
+        /// Orders attached objects by priority.
+        /// </summary>
+        public void OrderObjects()
+        {
+            Objects = Objects.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);
+        }
+
         /// <summary>
         /// Removes an object from the scene.
         /// </summary>

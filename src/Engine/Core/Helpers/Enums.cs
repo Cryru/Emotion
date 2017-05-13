@@ -65,7 +65,15 @@ namespace SoulEngine.Enums
         /// <summary>
         /// The texture is animated.
         /// </summary>
-        Animate
+        Animate,
+        /// <summary>
+        /// When rendering a part of a bigger image.
+        /// </summary>
+        Area,
+        /// <summary>
+        /// When rendering a part of a bigger image, but by id and not area.
+        /// </summary>
+        Frame
     }
 
     /// <summary>

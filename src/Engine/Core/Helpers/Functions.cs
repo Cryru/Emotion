@@ -7,6 +7,8 @@ using System.Linq;
 using System.Globalization;
 using System.IO;
 using SoulEngine.Objects;
+using System.Collections.Generic;
+using SoulEngine.Objects.Components;
 
 namespace SoulEngine
 {
@@ -338,6 +340,71 @@ namespace SoulEngine
         public static int generateRandomNumber(int Min = 0, int Max = 100)
         {
             return generator.Next(Min, Max + 1); //We add one because by Random.Next does not include max.
+        }
+        #endregion
+
+        #region "UI Checkers"
+        /// <summary>
+        /// Check if the provided position is within the provided objectand priority.
+        /// </summary>
+        /// <param name="Position">The position to check.</param>
+        /// <param name="ObjectBounds">The object's bounds.</param>
+        /// <param name="ObjectPriority">The objects priority.</param>
+        /// <returns>True if inside, false if not.</returns>
+        public static bool inObject(Vector2 Position, Rectangle ObjectBounds, int ObjectPriority)
+        {
+            //Check if below scene priority.
+            if (ObjectPriority < -1) return false;
+
+            bool inObject = ObjectBounds.Intersects(Position);
+
+            //Check if the mouse is within the bounds of the object.
+            if (!inObject) return false;
+
+            //Get the bounds of all other UI objects.  
+            List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
+                .Where(x => x.Layer == Enums.ObjectLayer.UI && x.Drawing == true && CheckOpacity(x)).ToList();
+
+            //Check if we should check clusters as well.
+            if (Context.Core.Scene.UIClusters)
+            {
+                //Get the bounds of all clusters.
+                List<GameObject> clusters = new List<GameObject>();
+
+                //Get all objects within clusters that are on the UI layer.
+                foreach (var cluster in Context.Core.Scene.AttachedClusters)
+                {
+                    for (int c = 0; c < cluster.Value.Count; c++)
+                    {
+                        if (cluster.Value[c].Layer == Enums.ObjectLayer.UI && cluster.Value[c].Drawing == true && CheckOpacity(cluster.Value[c]))
+                            clusters.Add(cluster.Value[c]);
+                    }
+                };
+
+                objects.AddRange(clusters);
+            }
+
+            objects = objects.OrderByDescending(y => y.Priority).ToList();
+
+            //Check if any objects are blocking this one.
+            for (int i = 0; i < objects.Count; i++)
+            {
+                //Check if this is us, we don't care about what's below us so break.
+                if (objects[i].Priority == ObjectPriority) break;
+
+                //Check if the mouse intersects with the bounds of the object.
+                if (objects[i].Bounds.Intersects(Position)) return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if the object has a positive opacity or doesn't have an activetexture object.
+        /// </summary>
+        public static bool CheckOpacity(GameObject x)
+        {
+            return ((x.HasComponent<ActiveTexture>() && x.Component<ActiveTexture>().Opacity > 0) || !x.HasComponent<ActiveTexture>());
         }
         #endregion
 

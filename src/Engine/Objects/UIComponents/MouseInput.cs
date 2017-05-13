@@ -31,6 +31,8 @@ namespace SoulEngine.Objects.Components
         #region "Private"
         private Enums.MouseInputStatus status = Enums.MouseInputStatus.None;
         #endregion
+        #endregion
+
         #region "Events"
         /// <summary>
         /// Triggered when the mouse leaves the object's bounds.
@@ -61,7 +63,6 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public event EventHandler<MouseScrollEventArgs> OnMouseScroll;
         #endregion
-        #endregion
 
         public override void Initialize()
         {
@@ -79,9 +80,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseScroll(object sender, MouseScrollEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
+            if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool isIn = inObject(Input.getMousePos());
+            bool isIn = Functions.inObject(Input.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
 
             if (isIn) OnMouseScroll?.Invoke(attachedObject, e);
         }
@@ -91,9 +92,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
+            if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool isIn = inObject(Input.getMousePos());
+            bool isIn = Functions.inObject(Input.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
 
             if (isIn)
             {
@@ -107,9 +108,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
+            if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool isIn = inObject(Input.getMousePos());
+            bool isIn = Functions.inObject(Input.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
 
             if (isIn)
             {
@@ -127,10 +128,10 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         private void Input_OnMouseMove(object sender, MouseMoveEventArgs e)
         {
-            if (!attachedObject.Drawing || !CheckOpacity(attachedObject)) return;
+            if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool wasIn = inObject(e.From);
-            bool isIn = inObject(e.To);
+            bool wasIn = Functions.inObject(e.From, attachedObject.Bounds, attachedObject.Priority);
+            bool isIn = Functions.inObject(e.To, attachedObject.Bounds, attachedObject.Priority);
 
             //Check if it was in but now isn't, in which case it left.
             if (wasIn && !isIn)
@@ -146,66 +147,6 @@ namespace SoulEngine.Objects.Components
             }
             //Check if it was in and still is, in which case it moved inside the object.
             else if (wasIn && isIn) OnMouseMove?.Invoke(attachedObject, e);
-        }
-        #endregion
-
-        #region "Functions"
-        /// <summary>
-        /// Check if the provided position is within the object.
-        /// </summary>
-        /// <param name="Position">The position to check.</param>
-        /// <returns>True if inside, false if not.</returns>
-        private bool inObject(Vector2 Position)
-        {
-            bool inObject = attachedObject.Bounds.Intersects(Position);
-
-            //Check if the mouse is within the bounds of the object.
-            if (!inObject) return false;
-
-            //Get the bounds of all other UI objects.  
-            List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
-                .Where(x => x.Layer == Enums.ObjectLayer.UI && x.Drawing == true && CheckOpacity(x)).ToList();
-
-            //Check if we should check clusters as well.
-            if(Context.Core.Scene.UIClusters)
-            {
-                //Get the bounds of all clusters.
-                List<GameObject> clusters = new List<GameObject>();
-
-                //Get all objects within clusters that are on the UI layer.
-                foreach (var cluster in Context.Core.Scene.AttachedClusters)
-                {
-                    for (int c = 0; c < cluster.Value.Count; c++)
-                    {
-                        if (cluster.Value[c].Layer == Enums.ObjectLayer.UI && cluster.Value[c].Drawing == true && CheckOpacity(cluster.Value[c]))
-                            clusters.Add(cluster.Value[c]);
-                    }
-                };
-
-                objects.AddRange(clusters);
-            }
-
-            objects = objects.OrderByDescending(y => y.Priority).ToList();
-
-            //Check if any objects are blocking this one.
-            for (int i = 0; i < objects.Count; i++)
-            {
-                //Check if this is us, we don't care about what's below us so break.
-                if (objects[i] == attachedObject) break;
-
-                //Check if the mouse intersects with the bounds of the object.
-                if (objects[i].Bounds.Intersects(Position)) return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Returns true if the object has a positive opacity or doesn't have an activetexture object.
-        /// </summary>
-        private bool CheckOpacity(GameObject x)
-        {
-            return ((x.HasComponent<ActiveTexture>() && x.Component<ActiveTexture>().Opacity > 0) || !x.HasComponent<ActiveTexture>());
         }
         #endregion
 

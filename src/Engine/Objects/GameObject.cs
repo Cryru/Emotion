@@ -51,7 +51,20 @@ namespace SoulEngine
         /// <summary>
         /// Priority of the object.
         /// </summary>
-        public int Priority = 0;
+        public int Priority
+        {
+            get
+            {
+                return priority;
+            }
+            set
+            {
+                if (value == priority) return;
+                priority = value;
+                Context.Core.Scene.OrderObjects();
+            }
+        }
+        private int priority = 0;
         /// <summary>
         /// Whether to update the object and its components.
         /// </summary>
@@ -377,6 +390,22 @@ namespace SoulEngine
 
             //Run the component additional initialization.
             ComponentObject.Initialize();
+
+            //Order components by priority.
+            OrderComponents();
+        }
+
+        /// <summary>
+        /// Order components by priority.
+        /// </summary>
+        public void OrderComponents()
+        {
+            Components = Components.OrderBy(x => x.Priority).ToList();
+            TypeIndex.Clear();
+            for (int i = 0; i < Components.Count; i++)
+            {
+                TypeIndex.Add(Components[i].GetType().ToString());
+            }
         }
 
         /// <summary>
