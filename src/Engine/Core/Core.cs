@@ -130,13 +130,13 @@ namespace SoulEngine
             ScriptEngine.SetupScripting();
 
             //Setup networking if we have to.
-            if (Settings.Networking) Networking.Setup();
+            Networking.Setup();
 
             //Load the primary scene.
             LoadScene(new ScenePrim());
 
             //Load the debugging scene.
-            if (Settings.Debug) DebugScene.Setup();
+           DebugScene.Setup();
 
             //Measure boot time.
             Starter.bootPerformance.Stop();

@@ -69,6 +69,9 @@ namespace SoulEngine
         /// </summary>
         public static void Setup()
         {
+            //Check if networking is enabled.
+            if (!Settings.Networking) return;
+
             status = NetworkStatus.None;
             buffer = new byte[1024];
             Scripting.ScriptEngine.ExposeFunction("connect", (Func<string, int, string, string, bool>) Connect);

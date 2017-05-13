@@ -43,7 +43,10 @@ namespace SoulEngine.Debugging
         /// </summary>
         public static void Setup()
         {
-            DebugSocket.Setup();
+            //Check if debugging is enabled.
+            if (!Settings.Debug) return;
+
+                DebugSocket.Setup();
 
             stats = GameObject.GenericDrawObject;
 

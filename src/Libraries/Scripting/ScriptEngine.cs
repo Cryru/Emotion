@@ -27,11 +27,7 @@ namespace SoulEngine.Scripting
         /// <summary>
         /// List of exposed functions.
         /// </summary>
-        private static List<string> exposedFunctions = new List<string>();
-        /// <summary>
-        /// Whether to append "return" to all ExecuteLine calls.
-        /// </summary>
-        public static bool returnAll = false;
+        private static List<string> exposedFunctions;
         #endregion
 
         /// <summary>
@@ -39,6 +35,12 @@ namespace SoulEngine.Scripting
         /// </summary>
         public static void SetupScripting()
         {
+            //Check if scripting is enabled.
+            if (!Settings.Scripting) return;
+
+            //Define an internal list of exposed functions.
+            exposedFunctions = new List<string>();
+
             //Add default functions.
             ExposeFunction("getObjects", (Func<string>)getObjects);
             ExposeFunction("object", (Action<string>) selectObject);
@@ -60,6 +62,8 @@ namespace SoulEngine.Scripting
         /// <param name="Script">The script to execute as a string.</param>
         public static JsValue ExecuteScript(string Script)
         {
+            //Check if scripting is enabled.
+            if (!Settings.Scripting) return "";
 
             try
             {
@@ -80,6 +84,9 @@ namespace SoulEngine.Scripting
         /// <param name="Function">The func object to register.</param>
         public static void ExposeFunction(string Name, object Function)
         {
+            //Check if scripting is enabled.
+            if (!Settings.Scripting) return;
+
             string functionType = Function.GetType().ToString();
             string returnType = "";
 
