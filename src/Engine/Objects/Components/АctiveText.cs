@@ -154,6 +154,7 @@ namespace SoulEngine.Objects.Components
         private int height = 0;
         private int drawlimit = -1;
         private List<TextLine> linesCache;
+        private Vector2 cachedSize;
         private string text = "";
         #endregion
         #region "Processed Text Data"
@@ -219,6 +220,9 @@ namespace SoulEngine.Objects.Components
         /// </summary>
         public override void Compose()
         {
+            //Check if size changed and we need to regenerate cache.
+            if (cachedSize != attachedObject.Size) GenerateCache();
+
             //Check if no cache.
             if (linesCache == null) return;
 
@@ -319,6 +323,9 @@ namespace SoulEngine.Objects.Components
         {
             //Reset cache.
             linesCache = new List<TextLine>();
+
+            //Cache size.
+            cachedSize = attachedObject.Size;
 
             //The space left on the current line.
             int spaceOnLine = AutoWidth ? Settings.Width : Width;

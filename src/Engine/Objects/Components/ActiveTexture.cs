@@ -29,10 +29,7 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>())
-                {
-                    Frame = attachedObject.Component<Animation>().FrameIndex;
-                }
+                if (TextureMode == TextureMode.Animate && attachedObject.HasComponent<Animation>()) Frame = attachedObject.Component<Animation>().FrameIndex;
                 if ((TextureMode == TextureMode.Tile || TextureMode == TextureMode.Area || TextureMode == TextureMode.Animate || TextureMode == TextureMode.Frame) && _texture != null) return _texture as Texture2D;
                 if (ActualTexture == null) return AssetManager.MissingTexture; else return ActualTexture;
             }
@@ -209,7 +206,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Whether to recompose the texture.
         /// </summary>
-        private bool recompose = false;
+        private bool recompose = true;
         #endregion
         #endregion
 
@@ -293,6 +290,9 @@ namespace SoulEngine.Objects.Components
 
             //Stop drawing.
             Context.ink.EndRenderTarget();
+
+            //Reset recomposing.
+            recompose = false;
         }
 
         /// <summary>
@@ -321,6 +321,9 @@ namespace SoulEngine.Objects.Components
 
             //Stop drawing.
             Context.ink.EndRenderTarget();
+
+            //Reset recomposing.
+            recompose = false;
         }
         #endregion
 

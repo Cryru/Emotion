@@ -90,6 +90,10 @@ namespace SoulEngine
         /// Whether to stop drawing and updating when the game is not focused.
         /// </summary>
         public static bool PauseOnFocusLoss = true;
+        /// <summary>
+        /// Whether Jint scripting is enabled. Raises memory usage.
+        /// </summary>
+        public static bool Scripting = false;
         #endregion
         #region "Sound Settings"
         /// <summary>
