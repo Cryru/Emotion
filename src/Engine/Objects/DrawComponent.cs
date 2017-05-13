@@ -140,7 +140,7 @@ namespace SoulEngine.Objects.Components
                     DrawArea,
                     Tint * Opacity,
                     attachedObject.Rotation,
-                    new Vector2((float)Texture.Width / 2, (float)Texture.Height / 2),
+                    new Vector2((float)Width / 2, (float)Height / 2),
                     MirrorEffects,
                     1.0f);
             }

@@ -31,6 +31,7 @@ namespace SoulEngine
             GameObject animtest = new GameObject();
             animtest.AddComponent(new ActiveTexture(AssetManager.MissingTexture, new Vector2(1, 1)));
             animtest.AddComponent(new Animation(0, -1, Enums.LoopType.Normal, 1));
+            animtest.RotationDegree = 45;
 
             AddObject("anim", animtest);
 
