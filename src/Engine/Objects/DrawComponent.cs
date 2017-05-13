@@ -104,7 +104,7 @@ namespace SoulEngine.Objects.Components
         /// <param name="Tint">The color tint of the texture.</param>
         public virtual void Draw(int Width, int Height, int X, int Y, Texture2D Texture, Color Tint)
         {
-            Draw(Width, Height, X, Y, Texture, Tint, new Rectangle(X, Y, Width, Height));
+            Draw(Width, Height, X, Y, Texture, Tint, new Rectangle(0, 0, Texture.Width, Texture.Height));
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace SoulEngine.Objects.Components
                     DrawArea,
                     Tint * Opacity,
                     attachedObject.Rotation,
-                    new Vector2((float)Width / 2, (float)Height / 2),
+                    new Vector2((float)DrawArea.Width / 2, (float)DrawArea.Height / 2),
                     MirrorEffects,
                     1.0f);
             }
