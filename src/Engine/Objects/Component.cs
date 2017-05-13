@@ -22,6 +22,23 @@ namespace SoulEngine.Objects.Components
         /// The object this component is attached to.
         /// </summary>
         public GameObject attachedObject;
+        /// <summary>
+        /// The component's priority.
+        /// </summary>
+        public int Priority
+        {
+            get
+            {
+                return priority;
+            }
+            set
+            {
+                if (value == priority) return;
+                priority = value;
+                if(attachedObject != null) attachedObject.OrderComponents();
+            }
+        }
+        protected int priority = 0;
         #endregion
 
         //Main functions.
