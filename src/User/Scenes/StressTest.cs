@@ -15,7 +15,7 @@ namespace SoulEngine
         {
             AddCluster("testCluster", new List<GameObject>());
 
-            int detail = 1;
+            int detail = 5;
 
             for (int x = 0; x <= Settings.Width; x += detail)
             {
