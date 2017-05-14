@@ -8,6 +8,7 @@ using SoulEngine.Enums;
 using SoulEngine.Events;
 using SoulEngine.Debugging;
 using SoulEngine.Scripting;
+using System.Threading;
 
 namespace SoulEngine
 {
@@ -165,8 +166,8 @@ namespace SoulEngine
             //Update the sound engine.
             SoundEngine.Update();
 
-            //Update the current scene.
-            Scene.UpdateHook();
+            //Update the current scene if its loaded.
+            if (Scene != null && !__sceneSetupAllowed) Scene.UpdateHook();
 
             //Trigger tick end event.
             OnUpdateEnd?.Invoke();
@@ -182,14 +183,8 @@ namespace SoulEngine
             //Record frametime.
             frameTime = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            //Draw debug event, reports the current frametime. Used to determine FPS and activity.
-            DebugSocket.Broadcast("draw", frameTime.ToString());
-
             //Start drawing frame by first clearing the screen, first the behind and then the front.
             Context.Graphics.Clear(Color.Black);
-
-            //If the game is not focused, don't update.
-            if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
             //Allow composing.
             __composeAllowed = true;
@@ -197,8 +192,8 @@ namespace SoulEngine
             //Trigger compose event.
             OnCompose?.Invoke();
 
-            //Compose textures on the current scene. We draw the render targets before anything else because it renders over other things otherwise.
-            Scene.Compose();
+            //Compose textures on the current scene if its loaded.. We draw the render targets before anything else because it renders over other things otherwise.
+            if (Scene != null && !__sceneSetupAllowed) Scene.Compose();
 
             //Stop allowing composig. This is to prevent the 'black screen bug'.
             __composeAllowed = false;
@@ -210,8 +205,15 @@ namespace SoulEngine
             //Trigger the frame start event.
             OnDraw?.Invoke();
 
-            //Draw the current scene.
-            Scene.DrawHook();
+            //Draw the current scene if its loaded..
+            if (Scene != null && !__sceneSetupAllowed) Scene.DrawHook();
+            else
+            {
+                //Draw the loading screen otherwise.
+                Context.ink.Start(DrawChannel.Screen);
+                Context.ink.Draw(AssetManager.Texture("Engine/loadingscreen"), new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White);
+                Context.ink.End();
+            }
 
             //Draw script engine objects.
             ScriptEngine.Draw();
@@ -235,12 +237,18 @@ namespace SoulEngine
             //Dispose of the current scene if any.
             if (Scene != null) Scene.Dispose();
 
+            //Allow scene loading.
+            __sceneSetupAllowed = true;
+
+            //Start loading the scene on another thread.
+            Thread loadThread = new Thread(new ThreadStart(SceneLoadThread));
+            loadThread.Start();
+        }
+        private void SceneLoadThread()
+        {
             //Trasfer the scene from the queue.
             Scene = sceneLoadQueue;
             sceneLoadQueue = null;
-
-            //Allow scene loading.
-            __sceneSetupAllowed = true;
 
             //Initiate inner setup.
             Scene.SetupScene();
