@@ -92,7 +92,7 @@ namespace SoulEngine.Debugging
         /// </summary>
         private static void Update()
         {
-            stats.Component<ActiveText>().Text = Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
+            stats.Component<ActiveText>().Text = (Context.Core.__sceneSetupAllowed ? "Loading: " : "") + Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
                 "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
 
             stats.Width = stats.Component<ActiveText>().Width + Functions.ManualRatio(6, 540);
