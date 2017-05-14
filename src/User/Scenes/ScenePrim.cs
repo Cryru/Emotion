@@ -26,19 +26,12 @@ namespace SoulEngine
 
         public override void Start()
         {
-            Context.Core.LoadScene(new StressTest());
-
-            GameObject animtest = new GameObject();
-            animtest.AddComponent(new ActiveTexture(AssetManager.MissingTexture, new Vector2(1, 1)));
-            animtest.AddComponent(new Animation(0, -1, Enums.LoopType.Normal, 1));
-
-            AddObject("anim", animtest);
 
         }
 
         public override void Update()
         {
-
+            
         }
     }
 }

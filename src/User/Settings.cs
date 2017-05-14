@@ -18,12 +18,54 @@ namespace SoulEngine
         /// <summary>
         /// The FPS target, if below 0 the FPS isn't capped.
         /// </summary>
-        public static float FPS = -1;
+        private static float _FPS = 60;
         /// <summary>
         /// Whether to synchronize the FPS to the screen's refresh rate. 
         /// Can be overwriten by GPU options.
         /// </summary>
         public static bool vSync = false;
+        /// <summary>
+        /// The width the game will be rendered at.
+        /// </summary>
+        public static int Width = 960;
+        /// <summary>
+        /// The height the game will be rendered at.
+        /// </summary>
+        public static int Height = 540;
+        /// <summary>
+        /// The color the screen will be cleared with.
+        /// </summary>
+        public static Color FillColor = Color.CornflowerBlue;
+        /// <summary>
+        /// Whether to apply anti-aliasing.
+        /// </summary>
+        public static bool AntiAlias = false;
+        #endregion
+        #region "Window Settings"
+        /// <summary>
+        /// The width of the window.
+        /// </summary>
+        private static int _WWidth = 960;
+        /// <summary>
+        /// The height of the window.
+        /// </summary>
+        private static int _WHeight = 540;
+        /// <summary>
+        /// The name of the window.
+        /// </summary>
+        private static string _WName = "SoulEngine 2017";
+        /// <summary>
+        /// The way the engine should be displayed.
+        /// </summary>
+        private static DisplayMode _DisplayMode = DisplayMode.Windowed;
+        /// <summary>
+        /// Whether the mouse should be rendered.
+        /// </summary>
+        private static bool _RenderMouse = true;
+        /// <summary>
+        /// Whether the window can be resized, currently disables display modes other than windowed.
+        /// </summary>
+        public static bool ResizableWindow = false;
         #endregion
         #region "Security Settings"
         /// <summary>
@@ -39,53 +81,12 @@ namespace SoulEngine
         /// </summary>
         public static string MetaMD5 = "";
         #endregion
-        #region "Window Settings"
-        /// <summary>
-        /// The width of the window.
-        /// </summary>
-        public static int WWidth = 960;
-        /// <summary>
-        /// The height of the window.
-        /// </summary>
-        public static int WHeight = 540;
-        /// <summary>
-        /// The width the game will be rendered at.
-        /// </summary>
-        public static int Width = 960;
-        /// <summary>
-        /// The height the game will be rendered at.
-        /// </summary>
-        public static int Height = 540;
-        /// <summary>
-        /// The name of the window.
-        /// </summary>
-        public static string WName = "SoulEngine 2017";
-        /// <summary>
-        /// The way the engine should be displayed, the RefreshScreenSettings function must be used to apply changes.
-        /// </summary>
-        private static DisplayMode _DisplayMode = DisplayMode.Windowed;
-        /// <summary>
-        /// Whether the mouse should be rendered.
-        /// </summary>
-        public static bool RenderMouse = true;
-        /// <summary>
-        /// Whether the window can be resized, currently disables display modes other than windowed.
-        /// </summary>
-        public static bool ResizableWindow = false;
-        #endregion
+
         #region "Other Settings"
-        /// <summary>
-        /// The color the screen will be cleared with.
-        /// </summary>
-        public static Color FillColor = Color.CornflowerBlue;
         /// <summary>
         /// Whether an external settings file should be loaded.
         /// </summary>
-        public static bool settingsLoad = false;
-        /// <summary>
-        /// Whether to apply anti-aliasing.
-        /// </summary>
-        public static bool AntiAlias = false;
+        public static bool ExternalSettings = false;
         /// <summary>
         /// Whether to stop drawing and updating when the game is not focused.
         /// </summary>
@@ -103,7 +104,7 @@ namespace SoulEngine
         /// <summary>
         /// The sound volume.
         /// </summary>
-        public static int Volume = 1;
+        public static int Volume = 100;
         #endregion
         #region "Debug Settings"
         /// <summary>
@@ -140,8 +141,17 @@ namespace SoulEngine
         /// Whether networking is allowed, requires a restart.
         /// </summary>
         public static bool Networking = true;
+        /// <summary>
+        /// The IP to connect by default.
+        /// </summary>
         public static string IP = "";
+        /// <summary>
+        /// The port to connect to by default.
+        /// </summary>
         public static string Port = "";
+        /// <summary>
+        /// The default timeout of the connection.
+        /// </summary>
         public static int Timeout = 10;
         #endregion
     }
