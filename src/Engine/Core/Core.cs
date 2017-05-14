@@ -45,8 +45,6 @@ namespace SoulEngine
         /// Used to prevent scenes being loaded outside of the queue system.
         /// </summary>
         public bool __sceneSetupAllowed = false;
-
-        public object EventsArgs { get; private set; }
         #endregion
         #endregion
 
@@ -108,12 +106,12 @@ namespace SoulEngine
             //Apply settings.
             IsMouseVisible = Settings.RenderMouse;
             IsFixedTimeStep = Settings.FPS > 0 ? true : false; //Check whether to cap FPS based on the fps target.
-            TargetElapsedTime = Settings.FPS > 0 ? TimeSpan.FromSeconds(1.0f / Settings.FPS) : TimeSpan.FromSeconds(1);
+            TargetElapsedTime = Settings.FPS > 0 ? TimeSpan.FromMilliseconds(Math.Floor(1000f / Settings.FPS)) : TimeSpan.FromSeconds(1);
             Context.GraphicsManager.SynchronizeWithVerticalRetrace = Settings.vSync;
+            Window.Title = Settings.WName;
 
             //Apply hardcoded settings.
             Window.AllowAltF4 = true;
-            Window.Title = Settings.WName;
 
             //Setup the brush for drawing.
             Context.ink = new SpriteBatch(GraphicsDevice);
@@ -155,7 +153,7 @@ namespace SoulEngine
             if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
             //Check if a scene is waiting to be loaded and if so load it.
-            if (sceneLoadQueue != null) SceneLoad();
+            SceneLoad();
 
             //Trigger tick start event.
             OnUpdate?.Invoke();
@@ -189,8 +187,8 @@ namespace SoulEngine
             //Allow composing.
             __composeAllowed = true;
 
-            //Trigger compose event.
-            OnCompose?.Invoke();
+            //Trigger compose event if the game is not paused.
+            if (IsActive == true || (IsActive == false && !Settings.PauseOnFocusLoss)) OnCompose?.Invoke();
 
             //Compose textures on the current scene if its loaded.. We draw the render targets before anything else because it renders over other things otherwise.
             if (Scene != null && !__sceneSetupAllowed) Scene.Compose();
@@ -202,8 +200,8 @@ namespace SoulEngine
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
-            //Trigger the frame start event.
-            OnDraw?.Invoke();
+            //Trigger the frame start event if game is not paused.
+            if (IsActive == true || (IsActive == false && !Settings.PauseOnFocusLoss)) OnDraw?.Invoke();
 
             //Draw the current scene if its loaded..
             if (Scene != null && !__sceneSetupAllowed) Scene.DrawHook();
@@ -234,22 +232,28 @@ namespace SoulEngine
         }
         private void SceneLoad()
         {
+            //Check if any scene to load.
+            if (sceneLoadQueue == null) return;
+
             //Dispose of the current scene if any.
             if (Scene != null) Scene.Dispose();
 
             //Allow scene loading.
             __sceneSetupAllowed = true;
 
-            //Start loading the scene on another thread.
-            Thread loadThread = new Thread(new ThreadStart(SceneLoadThread));
-            loadThread.Start();
-        }
-        private void SceneLoadThread()
-        {
             //Trasfer the scene from the queue.
             Scene = sceneLoadQueue;
             sceneLoadQueue = null;
 
+            //Start loading the scene on another thread.
+            Thread loadThread = new Thread(new ThreadStart(SceneLoadThread));
+            loadThread.Start();
+
+            //Wait for thread to activate.
+            while (!loadThread.IsAlive) ;
+        }
+        private void SceneLoadThread()
+        {
             //Initiate inner setup.
             Scene.SetupScene();
 
