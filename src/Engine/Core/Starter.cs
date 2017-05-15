@@ -35,25 +35,28 @@ namespace SoulEngine
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            //Check if an instance of the game is running, and exit if it is.
-            if (mutex.WaitOne(TimeSpan.Zero, true))
-            {
-                //Start measuring boot performance.
-                bootPerformance = Stopwatch.StartNew();
+            ////Check if an instance of the game is running, and exit if it is.
+            //if (mutex.WaitOne(TimeSpan.Zero, true))
+            //{
+            //    //Start measuring boot performance.
+            //    bootPerformance = Stopwatch.StartNew();
 
-                //Generate the default settings file to be used in case an external one is missing.
-                Settings.GenerateDefaultFile();
+            //    //Generate the default settings file to be used in case an external one is missing.
+            //    Settings.GenerateDefaultFile();
 
-                //Check if an external settings file exists, and load it's data if it does.
-                Settings.ReadExternalSettings("\\settings.soul");
+            //    //Check if an external settings file exists, and load it's data if it does.
+            //    Settings.ReadExternalSettings("\\settings.soul");
 
-                //Setup a core instance.
-                Context.Core = new Core();
-                Context.Core.Run();
+            //    //Setup a core instance.
+            //    Context.Core = new Core();
+            //    Context.Core.Run();
 
-                //Dispose of the core if it stops running.
-                Context.Core.Dispose();
-            }
+            //    //Dispose of the core if it stops running.
+            //    Context.Core.Dispose();
+            //}
+
+            Raya.Initialize("Test", 960, 540);
+
         }
     } 
 } 
