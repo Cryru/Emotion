@@ -21,13 +21,13 @@ namespace Example
         public static void Main(string[] args)
         {
             //Define an instance of the engine and run it.
-            Engine engInst = new Engine(new Settings() { WindowWidth = 960, WindowHeight = 540, WindowName = "SE18 Test Environment" });
+            Engine engInst = new Engine(new SoulEngine.Modules.Settings() { WindowWidth = 960, WindowHeight = 540, WindowName = "SE18 Test Environment" });
             engInst.Run();
             
-            while(true)
-            {
+            //while(true)
+            //{
 
-            }
+            //}
 
         }
     } 
