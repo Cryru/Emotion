@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SoulEngine.Modules;
+using SoulEngine.Libraries;
 
 namespace SoulEngine
 {
@@ -40,12 +42,24 @@ namespace SoulEngine
         /// </summary>
         public void Run()
         {
-            Raya.Initialize(
+            Raya.Initialize(true, 3, 0);
+
+            Raya.CreateWindow(
                 Context.Settings.WindowName,
                 Context.Settings.WindowWidth,
                 Context.Settings.WindowHeight
                 );
+            
+            while (true)
+            {
+                Raya.Tick();
+
+            }
+
+
         }
+        
+
         #endregion
 
 

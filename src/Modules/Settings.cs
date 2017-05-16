@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace SoulEngine
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// The context objects holder.
+    /// The engine's user settings.
     /// </summary>
-    public class Context
+    public class Settings
     {
-        public Settings Settings;
+        public string WindowName = "SoulEngine";
+        public int WindowWidth = 960;
+        public int WindowHeight = 540;
     }
 }

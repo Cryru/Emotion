@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -7,12 +12,10 @@ namespace SoulEngine
     // Public Repository: https://github.com/Cryru/SoulEngine                   //
     //////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// The engine's user settings.
+    /// The context objects holder.
     /// </summary>
-    public class Settings
+    public class Context
     {
-        public string WindowName = "SoulEngine";
-        public int WindowWidth = 960;
-        public int WindowHeight = 540;
+        public Settings Settings;
     }
 }
