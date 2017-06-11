@@ -177,6 +177,9 @@ namespace SoulEngine.Objects.Components
             int fColumns = ActualTexture.Width / (int)FrameSize.X;
             int fRows = ActualTexture.Height / (int)FrameSize.Y;
 
+            //Check if there are any columns and rows.
+            if (fColumns == 0 || fRows == 0) return;
+
             //Check if frame is out of bounds.
             if (frame > FramesCount) frame = 0;
             if (frame < 0) frame = FramesCount;
