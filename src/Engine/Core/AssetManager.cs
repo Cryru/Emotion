@@ -36,6 +36,10 @@ namespace SoulEngine
         /// The default font.
         /// </summary>
         public static SpriteFont DefaultFont;
+        /// <summary>
+        /// The path to the assets meta file.
+        /// </summary>
+        public static string assetsMetaPath = "Content" + Path.DirectorySeparatorChar + "meta.soul";
         #endregion
 
         /// <summary>
@@ -48,7 +52,7 @@ namespace SoulEngine
                 //Load the missingtexture.
                 MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
                 //Load the default font.
-                DefaultFont = Context.Core.Content.Load<SpriteFont>("Font/Default");
+                DefaultFont = Context.Core.Content.Load<SpriteFont>("Font/DefaultScaled");
 
                 /*
                  * Generate the blank texture by creating a new 1 by 1 texture and
@@ -110,7 +114,7 @@ namespace SoulEngine
             if (!AssetExist(fileName, "")) return "";
 
             //If it does read it and return it.
-            return Utils.ReadFile("Content\\" + fileName);
+            return Utils.ReadFile("Content" + Path.DirectorySeparatorChar + fileName);
         }
 
         /// <summary>
@@ -123,7 +127,7 @@ namespace SoulEngine
         public static T Asset<T>(string assetName, T ifMissing)
         {
             if (AssetExist(assetName))
-                if (Context.Core.Scene == null)
+                if (Context.Core.Scene == null || assetName == "Engine/loadingscreen")
                     return Context.Core.Content.Load<T>(assetName);
                 else
                     return Context.Core.Scene.Assets.Content.Load<T>(assetName);
@@ -140,7 +144,8 @@ namespace SoulEngine
         public static bool AssetExist(string name, string extension = ".xnb")
         {
             //Assign the path of the file.
-            string contentpath = "Content\\" + name.Replace("/", "\\") + extension;
+            name = name.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+            string contentpath = System.IO.Path.Combine("Content", name + extension);
             //Check if the file exists.
             if (File.Exists(contentpath))
             {
@@ -156,10 +161,10 @@ namespace SoulEngine
         /// </summary>
         public static void AssertAssets()
         {
-            if (Settings.EnforceAssetIntegrity == true)
+            if (Settings.EnforceAssetIntegrity)
             {
-                if (!File.Exists("Content\\meta.soul")) throw new AssetsException("The assets meta file is missing");
-                if (Soul.Encryption.MD5(Soul.IO.Utils.ReadFile("Content\\meta.soul")) != Settings.MetaMD5) throw new AssetsException("The assets meta file is corrupted");
+                if (!File.Exists(assetsMetaPath)) throw new AssetsException("The assets meta file is missing");
+                if (Soul.Encryption.MD5(Soul.IO.Utils.ReadFile(assetsMetaPath)) != Settings.MetaMD5) throw new AssetsException("The assets meta file is corrupted");
 
                 Thread assert = new Thread(new ThreadStart(assertThread));
                 assert.Start();
@@ -178,26 +183,30 @@ namespace SoulEngine
              * as hashed by SoulLib. If encrypted the key from the settings file is used.
              */
 
-            MFile file = new MFile("Content\\meta.soul", null, Settings.SecurityKey);
+            MFile file = new MFile(assetsMetaPath, null, Settings.SecurityKey);
 
             try
             {
                 //Iterate through each file.
                 for (int i = 0; i < file.Keys.Count; i++)
                 {
+                    //Make sure the path is platform agnostic.
+                    string currentKey = file.Keys[i].Replace('\\', Path.DirectorySeparatorChar);
                     //Get the path of the file.
-                    string enc = file.Content<string>(file.Keys[i]);
+                    string enc = file.Content<string>(currentKey);
                     //Get the hash of the current file.
-                    string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content\\" + file.Keys[i]));
+                    string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content" + Path.DirectorySeparatorChar + currentKey));
                     //Check against the meta stored hash, if it doesn't match return false.
                     if (currentFile != enc)
                     {
-                        throw new AssetsException("File tampering detected.");
+                        // throw new AssetsException(currentKey + " has been tampered with.");
+                        Console.WriteLine(currentKey + " has been tampered with! " + i.ToString());
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                throw e;
                 throw new AssetsException("The meta.soul is corrupted or incorrect.");
             }
         }
