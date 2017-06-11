@@ -68,8 +68,8 @@ namespace SoulEngine
                 throw new Exception("ERROR HANDLING - COULD NOT LOAD GLOBAL ASSETS");
             }
 
-           //Load text object tags.
-           TagFactory.Initialize();
+            //Load text object tags.
+            TagFactory.Initialize();
         }
 
         #region "Asset Loading"
@@ -144,7 +144,8 @@ namespace SoulEngine
         public static bool AssetExist(string name, string extension = ".xnb")
         {
             //Assign the path of the file.
-            name = name.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+            name = name.Replace('/', '@').Replace('\\', '@');
+            name = name.Replace('@', Path.DirectorySeparatorChar);
             string contentpath = System.IO.Path.Combine("Content", name + extension);
             //Check if the file exists.
             if (File.Exists(contentpath))
@@ -170,7 +171,7 @@ namespace SoulEngine
                 assert.Start();
 
                 //Wait for thread to activate.
-                while (!assert.IsAlive);
+                while (!assert.IsAlive) ;
             }
         }
 
@@ -190,23 +191,21 @@ namespace SoulEngine
                 //Iterate through each file.
                 for (int i = 0; i < file.Keys.Count; i++)
                 {
-                    //Make sure the path is platform agnostic.
-                    string currentKey = file.Keys[i].Replace('\\', Path.DirectorySeparatorChar);
                     //Get the path of the file.
-                    string enc = file.Content<string>(currentKey);
+                    string enc = file.Content<string>(file.Keys[i]);
+                    //Get the path of the file for all platforms.
+                    string currentFilePath = file.Keys[i].Replace('\\', Path.DirectorySeparatorChar);
                     //Get the hash of the current file.
-                    string currentFile = Soul.Encryption.MD5(Utils.ReadFile("Content" + Path.DirectorySeparatorChar + currentKey));
+                    string currentFileEnc = Soul.Encryption.MD5(Utils.ReadFile("Content" + Path.DirectorySeparatorChar + currentFilePath));
                     //Check against the meta stored hash, if it doesn't match return false.
-                    if (currentFile != enc)
+                    if (currentFileEnc != enc)
                     {
-                        // throw new AssetsException(currentKey + " has been tampered with.");
-                        Console.WriteLine(currentKey + " has been tampered with! " + i.ToString());
+                        throw new AssetsException(currentFilePath + " has been tampered with.");
                     }
                 }
             }
             catch (Exception e)
             {
-                throw e;
                 throw new AssetsException("The meta.soul is corrupted or incorrect.");
             }
         }
