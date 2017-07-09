@@ -40,10 +40,6 @@ namespace SoulEngine.Debugging
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket.Bind(new IPEndPoint(IPAddress.Any, Settings.DebugSocketPort));
 
-            //Open script access.
-            ScriptEngine.Interpreter = new Engine(cfg => cfg.AllowClr());
-            ScriptEngine.Interpreter.Execute("var SoulEngine = importNamespace('SoulEngine');");
-
             //Define the message buffer.
             buffer = new byte[1024];
 
