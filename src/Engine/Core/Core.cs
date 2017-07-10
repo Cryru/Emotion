@@ -120,7 +120,14 @@ namespace SoulEngine
             Starter.bootPerformance.Stop();
             if (Context.Core.isModuleLoaded<Logger>())
                 Context.Core.Module<Logger>().Add("Engine loading completed in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
+
+            // Start update thread.
+            Thread updateThread = new Thread(new ThreadStart(Update));
+            updateThread.Start();
+
+            while(!updateThread.IsAlive) { }
         }
+        bool updateFinished = false;
         #endregion
 
         #region Module System
@@ -212,35 +219,52 @@ namespace SoulEngine
         /// <summary>
         /// Is executed every tick.
         /// </summary>
+        private void Update()
+        {
+            while(Content != null)
+            {
+                if (updateFinished) continue;
+
+                //If the game is not focused, don't update.
+                if (IsActive == false && Settings.PauseOnFocusLoss) continue;
+
+                //Update the sound engine.
+                SoundEngine.Update();
+
+                //Update the current scene if its loaded.
+                if (Scene != null && !__sceneSetupAllowed) Scene.UpdateHook();
+
+                updateFinished = true;
+            }
+        }
+
+        /// <summary>
+        /// Is executed every tick.
+        /// </summary>
         protected override void Update(GameTime gameTime)
         {
-            //If the game is not focused, don't update.
+            // If the game is not focused, don't update.
             if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
-            //Check if a scene is waiting to be loaded and if so load it.
+            // Check if a scene is waiting to be loaded and if so load it.
             SceneLoad();
 
             //Update input module.
             Input.UpdateInput();
-
-            //Update the sound engine.
-            SoundEngine.Update();
-
-            //Update the current scene if its loaded.
-            if (Scene != null && !__sceneSetupAllowed) Scene.UpdateHook();
-
-            //Update input module.
-            Input.UpdateInput_End();
 
             // Run core modules that require updating.
             for (int i = 0; i < Modules.Count; i++)
             {
                 if (Modules[i] is IModuleUpdatable)
                 {
-                    ((IModuleUpdatable) Modules[i]).Update();
+                    ((IModuleUpdatable)Modules[i]).Update();
                 }
             }
+
+            //Update input module.
+            Input.UpdateInput_End();
         }
+
         /// <summary>
         /// Is executed every frame.
         /// </summary>
@@ -283,6 +307,8 @@ namespace SoulEngine
                     ((IModuleDrawable) Modules[i]).Draw();
                 }
             }
+
+            updateFinished = false;
         }
         #endregion
 

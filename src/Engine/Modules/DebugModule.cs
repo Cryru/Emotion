@@ -90,9 +90,12 @@ namespace SoulEngine.Modules
         /// </summary>
         public void Update()
         {
-            stats.Component<ActiveText>().Text = (Context.Core.__sceneSetupAllowed ? "Loading: " : "") + Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
-                "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
-
+            if(Context.Core.Scene != null)
+            {
+                stats.Component<ActiveText>().Text = (Context.Core.__sceneSetupAllowed ? "Loading: " : "") + Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
+               "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
+            }
+           
             stats.Width = stats.Component<ActiveText>().Width + Functions.ManualRatio(6, 540);
             stats.Height = stats.Component<ActiveText>().Height + Functions.ManualRatio(6, 540);
             stats.Update();
@@ -180,10 +183,13 @@ namespace SoulEngine.Modules
 
             if (!consoleOpened || inputChar == "`" || inputChar == "\r") return;
 
+            if (inputChar == "<") inputChar = "\\<";
+            if (inputChar == ">") inputChar = "\\>";
+
             if (inputChar != "\b")
             {
                 consoleInput = consoleInput.Substring(0, blinkerLocation) + inputChar + consoleInput.Substring(blinkerLocation);
-                blinkerLocation++;
+                blinkerLocation += inputChar.Length;
             }
             else
             {
@@ -264,7 +270,7 @@ namespace SoulEngine.Modules
         private void ScrollUp()
         {
             if (console.Component<ActiveText>().TextHeight <= console.Height) return;
-            if (console.Component<ActiveText>().Scroll.Y == -4) return;
+            if (console.Component<ActiveText>().Scroll.Y == 4) return;
 
             console.Component<ActiveText>().ScrollLineUp();
             UpdateConsoleText();
