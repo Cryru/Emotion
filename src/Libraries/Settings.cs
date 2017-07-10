@@ -8,6 +8,7 @@ using System.Linq;
 using SoulEngine.Enums;
 using SoulEngine.Events;
 using System;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -41,8 +42,8 @@ namespace SoulEngine
 
                 _DisplayMode = value;
 
-                //Trigger the display mode changed event.
-                Context.Core.triggerDisplayChanged();
+                // Trigger the display changed event, if a window manager is loaded.
+                if (Context.Core.isModuleLoaded<WindowManager>()) Context.Core.Module<WindowManager>().triggerDisplayChanged();
             }
         }
         /// <summary>
@@ -80,8 +81,8 @@ namespace SoulEngine
 
                 _WWidth = value;
 
-                //Trigger the display mode changed event.
-                Context.Core.triggerDisplayChanged();
+                // Trigger the display changed event, if a window manager is loaded.
+                if (Context.Core.isModuleLoaded<WindowManager>()) Context.Core.Module<WindowManager>().triggerDisplayChanged();
             }
         }
         /// <summary>
@@ -99,8 +100,8 @@ namespace SoulEngine
 
                 _WHeight = value;
 
-                //Trigger the display mode changed event.
-                Context.Core.triggerDisplayChanged();
+                // Trigger the display changed event, if a window manager is loaded.
+                if (Context.Core.isModuleLoaded<WindowManager>()) Context.Core.Module<WindowManager>().triggerDisplayChanged();
             }
         }
         /// <summary>

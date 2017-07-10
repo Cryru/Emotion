@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SoulEngine.Objects;
 using SoulEngine.Objects.Components;
 using Microsoft.Xna.Framework;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -15,7 +16,7 @@ namespace SoulEngine
         {
             AddCluster("testCluster", new List<GameObject>());
 
-            int detail = 5;
+            int detail = 10;
 
             for (int x = 0; x <= Settings.Width; x += detail)
             {
@@ -40,8 +41,6 @@ namespace SoulEngine
 
         public override void Update()
         {
-            
-
             for (int i = 0; i < GetCluster("testCluster").Count; i++)
             {
                 int C = Functions.generateRandomNumber(1, 255);

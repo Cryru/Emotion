@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using SoulEngine.Objects.Components;
 using SoulEngine.Enums;
 using System.Linq;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -277,7 +278,7 @@ namespace SoulEngine
             }
 
             //Check if drawing bounds.
-            if (Settings.DrawBounds || (Name != null && Name != "" && Name == Debugging.DebugScene.selectedObject))
+            if (Settings.DrawBounds || (Name != null && Name != "" && Name == Context.Core.Module<DebugModule>().selectedObject))
             {
                 Context.ink.DrawRectangle(Bounds, Math.Max(1, Functions.ManualRatio(1, 540)), Color.Red);
             }   

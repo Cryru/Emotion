@@ -9,6 +9,8 @@ using SoulEngine.Events;
 using SoulEngine.Debugging;
 using SoulEngine.Scripting;
 using System.Threading;
+using SoulEngine.Modules;
+using System.Diagnostics;
 
 namespace SoulEngine
 {
@@ -21,12 +23,14 @@ namespace SoulEngine
     /// </summary>
     public class Core : Game
     {
-        #region "Declarations"
+        #region Declarations
         /// <summary>
         /// The time in milliseconds it took for the last frame to render.
         /// </summary>
         public float frameTime = 0;
-        #region "Systems"
+        #endregion
+
+        #region Systems
         /// <summary>
         /// The currently loaded scene.
         /// </summary>
@@ -35,8 +39,26 @@ namespace SoulEngine
         /// A scene waiting to be loaded.
         /// </summary>
         private Scene sceneLoadQueue;
+        /// <summary>
+        /// The loading scene.
+        /// </summary>
+        private Scene LoadingScene;
+        /// <summary>
+        /// Loaded modules.
+        /// </summary>
+        private List<IModule> Modules = new List<IModule> {
+            Settings.Debug ? new Logger() : null,
+            new ErrorManager(),
+            new AssetManager(),
+            new WindowManager(),
+            new TimingManager(),
+            Settings.Scripting ? new ScriptEngine() : null,
+            Settings.Debug ? new DebugModule() : null
+        };
+        private List<string> ModulesIndex = new List<string>();
         #endregion
-        #region "Error Checkers"
+
+        #region Allow Flags
         /// <summary>
         /// Used to check whether composing is done properly.
         /// </summary>
@@ -45,40 +67,6 @@ namespace SoulEngine
         /// Used to prevent scenes being loaded outside of the queue system.
         /// </summary>
         public bool __sceneSetupAllowed = false;
-        #endregion
-        #endregion
-
-        #region "Events"
-        /// <summary>
-        /// Triggered when a tick update cycle begins.
-        /// </summary>
-        public event Action OnUpdate;
-        /// <summary>
-        /// Triggered when a tick update cycle ends.
-        /// </summary>
-        public event Action OnUpdateEnd;
-        /// <summary>
-        /// Triggered at the start of a new frame.
-        /// </summary>
-        public event Action OnDraw;
-        /// <summary>
-        /// Triggered at the part of the frame when textures are composed.
-        /// </summary>
-        public event Action OnCompose;
-        /// <summary>
-        /// Triggered at the end of a new frame.
-        /// </summary>
-        public event Action OnDrawEnd;
-        #region "Window Events"
-        /// <summary>
-        /// Triggered at the end of a new frame.
-        /// </summary>
-        public event EventHandler<EventArgs> OnSizeChanged;
-        /// <summary>
-        /// Triggered when the game's display mode changes.
-        /// </summary>
-        public event EventHandler<EventArgs> OnDisplayModeChanged;
-        #endregion
         #endregion
 
         #region "Initialization"
@@ -95,7 +83,6 @@ namespace SoulEngine
 
             //Reroute window events to the core and input classes.
             Window.TextInput += Input_TextInput;
-            Window.ClientSizeChanged += Window_SizeChanged;
         }
 
         /// <summary>
@@ -116,17 +103,12 @@ namespace SoulEngine
             //Setup the brush for drawing.
             Context.ink = new SpriteBatch(GraphicsDevice);
 
-            //Load global resources.
-            AssetManager.LoadGlobal();
+            // Load modules.
+            LoadModules();
 
-            //Setup the window manager.
-            WindowManager.Initialize();
-
-            //Assert assets.
-            AssetManager.AssertAssets();
-
-            //Setup the scripting engine.
-            ScriptEngine.SetupScripting();
+            // Load the loading screen scene.
+            LoadingScene = new Scenes.Loading();
+            LoadingScene.SetupScene(true);
 
             //Setup networking if we have to.
             Networking.Setup();
@@ -134,12 +116,95 @@ namespace SoulEngine
             //Load the primary scene.
             LoadScene(new ScenePrim());
 
-            //Load the debugging scene.
-            DebugScene.Setup();
-
-            //Measure boot time.
+            // Measure boot time.
             Starter.bootPerformance.Stop();
-            Logger.Add("Engine loaded in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
+            if (Context.Core.isModuleLoaded<Logger>())
+                Context.Core.Module<Logger>().Add("Engine loading completed in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
+        }
+        #endregion
+
+        #region Module System
+        /// <summary>
+        /// Loads all modules defined in the core list.
+        /// </summary>
+        private void LoadModules()
+        {
+            // Clear the index list.
+            ModulesIndex.Clear();
+
+            for (int i = 0; i < Modules.Count; i++)
+            {
+
+                // Check if null, in which case we skip loading, but still add to the index to maintain positions.
+                if (Modules[i] == null)
+                {
+                    ModulesIndex.Add("");
+                    continue;
+                }
+
+                // Measure how fast each module boots.
+                Stopwatch moduleBootMeasure = new Stopwatch();
+                moduleBootMeasure.Start();
+
+                // Initialize module.
+                if (Modules[i].Initialize())
+                {
+                    moduleBootMeasure.Stop();
+
+                    // If logger is loaded, log boot time.
+                    if (isModuleLoaded<Logger>())
+                        Context.Core.Module<Logger>().Add("Module " + Modules[i].GetType().ToString() + " loaded in " + moduleBootMeasure.ElapsedMilliseconds + " ms.");
+
+                    // Index the module for quicker searching in the future.
+                    ModulesIndex.Add(Modules[i].GetType().ToString());
+                }
+                else
+                {
+                    // If the error manager is loaded, log an error.
+                    if (isModuleLoaded<ErrorManager>())
+                        Context.Core.Module<ErrorManager>().RaiseError("Module " + Modules[i].GetType().ToString() + "failed to load.", 100);
+
+                    // IPut in an empty string to maintain other modules' order.
+                    ModulesIndex.Add("Non-loaded module: " + Modules[i].GetType().ToString());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the loaded module by type. Returns a null reference if the module isn't loaded.
+        /// </summary>
+        /// <typeparam name="T">The type of module.</typeparam>
+        /// <returns>The module object.</returns>
+        public T Module<T>()
+        {
+            return (T)Convert.ChangeType(Modules[IdModule<T>()], typeof(T));
+        }
+
+        /// <summary>
+        /// Returns the id of the module within the loaded modules list.
+        /// </summary>
+        /// <typeparam name="T">The type of the module.</typeparam>
+        /// <returns>The id of the module, -1 if not attached.</returns>
+        private int IdModule<T>()
+        {
+            int id = ModulesIndex.IndexOf(typeof(T).ToString());
+
+            if(id == -1 && isModuleLoaded<ErrorManager>())
+            {
+                Module<ErrorManager>().RaiseError("Expected module " + typeof(T).ToString() + " to be loaded.", 101);
+            }
+
+            return id;
+        }
+
+        /// <summary>
+        /// Returns whether the selected module is loaded.
+        /// </summary>
+        /// <typeparam name="T">The type of the module.</typeparam>
+        /// <returns>True if loaded, false if not.</returns>
+        public bool isModuleLoaded<T>()
+        {
+            return ModulesIndex.IndexOf(typeof(T).ToString()) != -1;
         }
         #endregion
 
@@ -155,9 +220,6 @@ namespace SoulEngine
             //Check if a scene is waiting to be loaded and if so load it.
             SceneLoad();
 
-            //Trigger tick start event.
-            OnUpdate?.Invoke();
-
             //Update input module.
             Input.UpdateInput();
 
@@ -167,57 +229,60 @@ namespace SoulEngine
             //Update the current scene if its loaded.
             if (Scene != null && !__sceneSetupAllowed) Scene.UpdateHook();
 
-            //Trigger tick end event.
-            OnUpdateEnd?.Invoke();
-
             //Update input module.
             Input.UpdateInput_End();
+
+            // Run core modules that require updating.
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                if (Modules[i] is IModuleUpdatable)
+                {
+                    ((IModuleUpdatable) Modules[i]).Update();
+                }
+            }
         }
         /// <summary>
         /// Is executed every frame.
         /// </summary>
         protected override void Draw(GameTime gameTime)
         {
+            //If the game is not focused, don't update.
+            if (IsActive == false && Settings.PauseOnFocusLoss) return;
+
             //Record frametime.
             frameTime = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            //Start drawing frame by first clearing the screen, first the behind and then the front.
-            Context.Graphics.Clear(Color.Black);
-
-            //Allow composing.
+            // Compose textures, we do this first due to a bug which prevents us to switch render targets in between renders.
             __composeAllowed = true;
-
-            //Trigger compose event if the game is not paused.
-            if (IsActive == true || (IsActive == false && !Settings.PauseOnFocusLoss)) OnCompose?.Invoke();
-
-            //Compose textures on the current scene if its loaded.. We draw the render targets before anything else because it renders over other things otherwise.
             if (Scene != null && !__sceneSetupAllowed) Scene.Compose();
-
-            //Stop allowing composig. This is to prevent the 'black screen bug'.
+            // Run core modules that require composing.
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                if (Modules[i] is IModuleComposable)
+                {
+                    ((IModuleComposable)Modules[i]).Compose();
+                }
+            }
             __composeAllowed = false;
 
-            Context.ink.Start(DrawChannel.Screen);
+            // Clear the screen, then the drawing area.
+            Context.Graphics.Clear(Color.Black);
+            Context.ink.Start(DrawMatrix.Screen);
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
-            //Trigger the frame start event if game is not paused.
-            if (IsActive == true || (IsActive == false && !Settings.PauseOnFocusLoss)) OnDraw?.Invoke();
-
             //Draw the current scene if its loaded..
             if (Scene != null && !__sceneSetupAllowed) Scene.DrawHook();
-            else
+            else if(LoadingScene != null) LoadingScene.DrawHook();
+
+            // Run core modules that require drawing.
+            for (int i = 0; i < Modules.Count; i++)
             {
-                //Draw the loading screen otherwise.
-                Context.ink.Start(DrawChannel.Screen);
-                Context.ink.Draw(AssetManager.Texture("Engine/loadingscreen"), new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White);
-                Context.ink.End();
+                if(Modules[i] is IModuleDrawable)
+                {
+                    ((IModuleDrawable) Modules[i]).Draw();
+                }
             }
-
-            //Draw script engine objects.
-            ScriptEngine.Draw();
-
-            //Trigger frame end event.
-            OnDrawEnd?.Invoke();
         }
         #endregion
 
@@ -228,40 +293,42 @@ namespace SoulEngine
         /// <param name="Scene">The scene to load.</param>
         public void LoadScene(Scene Scene)
         {
+            // Add the scene to load to the queue.
             sceneLoadQueue = Scene;
         }
         private void SceneLoad()
         {
-            //Check if any scene to load.
+            // Check if any scene to load.
             if (sceneLoadQueue == null) return;
 
-            //Dispose of the current scene if any.
+            // Dispose of the current scene if any.
             if (Scene != null) Scene.Dispose();
 
-            //Allow scene loading.
+            // Allow scene loading.
             __sceneSetupAllowed = true;
 
-            //Trasfer the scene from the queue.
+            // Trasfer the scene from the queue.
             Scene = sceneLoadQueue;
             sceneLoadQueue = null;
 
-            //Start loading the scene on another thread.
+            // Start loading the scene on another thread.
             Thread loadThread = new Thread(new ThreadStart(SceneLoadThread));
             loadThread.Start();
 
-            //Wait for thread to activate.
+            // Wait for thread to activate.
             while (!loadThread.IsAlive) ;
         }
         private void SceneLoadThread()
         {
-            //Initiate inner setup.
+            // Initiate inner setup.
             Scene.SetupScene();
 
-            //Disallow scene loading.
+            // Disallow scene loading.
             __sceneSetupAllowed = false;
 
-            //Log the scene being loaded.
-            Logger.Add("Scene loaded: " + Context.Core.Scene.ToString().Replace("SoulEngine.", ""));
+            // Log the scene being loaded.
+            if(Context.Core.isModuleLoaded<Logger>()) Context.Core.Module<Logger>().Add("Scene loaded: " + Context.Core.Scene.ToString().Replace("SoulEngine.", ""));
+           
         }
         #endregion
 
@@ -273,23 +340,6 @@ namespace SoulEngine
         private void Input_TextInput(object sender, TextInputEventArgs e)
         {
             Input.triggerTextInput(sender, e);
-        }
-        /// <summary>
-        /// Triggered when the size of the window changes. If Settings.ResizableWindow is true
-        /// this can be quite useful. The window manager is connected to this event to redefine the window.
-        /// </summary>
-        private void Window_SizeChanged(object sender, EventArgs e)
-        {
-            Context.Screen?.Update();
-            OnSizeChanged?.Invoke(this, EventArgs.Empty);
-        }
-        /// <summary>
-        /// Wrapper for the display changed event.
-        /// </summary>
-        public void triggerDisplayChanged()
-        {
-            WindowManager.UpdateWindow();
-            OnDisplayModeChanged?.Invoke(this, EventArgs.Empty);
         }
         #endregion
     }

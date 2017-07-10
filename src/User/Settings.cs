@@ -73,13 +73,27 @@ namespace SoulEngine
         /// </summary>
         public static string SecurityKey = "standardkey";
         /// <summary>
-        /// If true, the engine will not run unless the meta.soul file exists and is correct. About 100ms slowdown.
+        /// If true, the engine will check the hash of every asset. Requires a meta.soul file.
         /// </summary>
         public static bool EnforceAssetIntegrity = false;
         /// <summary>
         /// The MD5 hash of the meta.soul file.
         /// </summary>
         public static string MetaMD5 = "";
+        #endregion
+        #region "Module Settings"
+        /// <summary>
+        /// Any errors with severity above this will cause the engine to exit.
+        /// </summary>
+        public static byte ErrorSupressionLevel = 200;
+        /// <summary>
+        /// Whether to save logs. Cannot be changed at runtime.
+        /// </summary>
+        public static bool Log = true;
+        /// <summary>
+        /// Whether Jint scripting is enabled. Raises memory usage.
+        /// </summary>
+        public static bool Scripting = true;
         #endregion
 
         #region "Other Settings"
@@ -91,10 +105,6 @@ namespace SoulEngine
         /// Whether to stop drawing and updating when the game is not focused.
         /// </summary>
         public static bool PauseOnFocusLoss = true;
-        /// <summary>
-        /// Whether Jint scripting is enabled. Raises memory usage.
-        /// </summary>
-        public static bool Scripting = true;
         #endregion
         #region "Sound Settings"
         /// <summary>

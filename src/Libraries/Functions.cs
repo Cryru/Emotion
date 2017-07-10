@@ -9,6 +9,7 @@ using System.IO;
 using SoulEngine.Objects;
 using System.Collections.Generic;
 using SoulEngine.Objects.Components;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -46,31 +47,37 @@ namespace SoulEngine
 
         #region "Extensions"
         /// <summary>
-        /// Starts drawing on the specified channel. 
+        /// Starts drawing on the specified matrix. 
         /// </summary>
         /// <param name="ink">The spritebatch to use.</param>
-        /// <param name="DrawChannel">The channel to render on.</param>
-        /// <param name="Parallax">Parallax factor for the World channel.</param>
-        public static void Start(this SpriteBatch ink, DrawChannel DrawChannel = DrawChannel.Terminus, Vector2? Parallax = null)
+        /// <param name="DrawMatrix">The matrix to render on.</param>
+        /// <param name="Parallax">Parallax factor for the World matrix.</param>
+        public static void Start(this SpriteBatch ink, DrawMatrix DrawMatrix = DrawMatrix.Terminus, Vector2? Parallax = null)
         {
             //Define a render matrix to determine later, by default it's null.
             Matrix? transformationMatrix = null;
 
-            //Determine which channel we are rendering on, and get its matrix.
-            switch (DrawChannel)
+            // Check if a window manager is loaded.
+            if (Context.Core.isModuleLoaded<WindowManager>())
             {
-                case DrawChannel.Screen:
-                    transformationMatrix = Context.Screen.View;
-                    break;
-                case DrawChannel.World: //If on the world channel then check for parallax.
-                    if (Parallax != null)
-                        transformationMatrix = Context.Camera.ViewParallax(Parallax.Value);
-                    else
-                        transformationMatrix = Context.Camera.View;
-                    break;
+                WindowManager temp = Context.Core.Module<WindowManager>();
+
+                // If loaded determine the view matrix we need.
+                switch (DrawMatrix)
+                {
+                    case DrawMatrix.Screen:
+                        transformationMatrix = temp.Screen.View;
+                        break;
+                    case DrawMatrix.World: // If on the world matrix then check for parallax.
+                        if (Parallax != null)
+                            transformationMatrix = temp.Camera.ViewParallax(Parallax.Value);
+                        else
+                            transformationMatrix = temp.Camera.View;
+                        break;
+                }
             }
 
-            //Start drawing.
+            // Start drawing.
             if (Settings.AntiAlias)
                 ink.Begin(SpriteSortMode.Deferred, null, null, null, RasterizerState.CullNone, null, transformationMatrix);
             else
@@ -133,8 +140,8 @@ namespace SoulEngine
             //Return to the default render target.
             Context.Graphics.SetRenderTarget(null);
 
-            //Return the viewport holder.
-            Context.Screen.Update();
+            // Update the screen because render targets mess with the viewport settings.
+            if(Context.Core.isModuleLoaded<WindowManager>()) Context.Core.Module<WindowManager>().Screen.Update();
         }
 
         /// <summary>
@@ -179,7 +186,7 @@ namespace SoulEngine
             }
             catch (Exception)
             {
-                Debugging.Logger.Add("Invalid color argument: " + String);
+                Context.Core.Module<ErrorManager>().RaiseError("Invalid color argument: " + String, 3);
                 return color = new Color(0, 0, 0, 0);
             }
         }

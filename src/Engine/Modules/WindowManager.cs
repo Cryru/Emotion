@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -16,19 +16,40 @@ namespace SoulEngine
     /// <summary>
     /// Manages the game window, resolution and other related stuff.
     /// </summary>
-    public static class WindowManager
+    public class WindowManager : IModule
     {
+        #region Objects
+        /// <summary>
+        /// The screen's viewport.
+        /// </summary>
+        public ScreenAdapter Screen;
+        /// <summary>
+        /// The 2D camera viewport.
+        /// </summary>
+        public Camera Camera;
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Triggered when the window's size changes. This only happens with a resizable window.
+        /// </summary>
+        public event EventHandler<EventArgs> OnSizeChanged;
+        /// <summary>
+        /// Triggered when the window's display mode changes.
+        /// </summary>
+        public event EventHandler<EventArgs> OnDisplayModeChanged;
+        #endregion
 
         /// <summary>
         /// Initializes the camera, screen adapter, applies various settings, and connects to events.
         /// </summary>
-        public static void Initialize()
+        public bool Initialize()
         {
-            //Setup viewing object contexts.
-            Context.Screen = new ScreenAdapter();
-            Context.Camera = new Camera();
+            // Setup view objects.
+            Screen = new ScreenAdapter();
+            Camera = new Camera();
 
-            //Set the window to the setting's size if resizable.
+            // Set the window to the setting's size if resizable.
             if (Settings.ResizableWindow == true)
             {
                 Context.GraphicsManager.PreferredBackBufferWidth = Settings.WWidth;
@@ -36,14 +57,19 @@ namespace SoulEngine
                 Context.GraphicsManager.ApplyChanges();
             }
 
-            //Update the window.
+            // Update the window.
             UpdateWindow();
+
+            // Hook up to events.
+            Context.Core.Window.ClientSizeChanged += Window_SizeChanged;
+
+            return true;
         }
 
         /// <summary>
         /// Applies the screen settings, and regenerates a new camera and screen adapter.
         /// </summary>
-        public static void UpdateWindow()
+        public void UpdateWindow()
         {
             //Update the resizing setting.
             Context.Core.Window.AllowUserResizing = Settings.ResizableWindow;
@@ -105,5 +131,33 @@ namespace SoulEngine
                 }
             }
         }
+
+        #region Event Wrappers
+        /// <summary>
+        /// Triggered when the size of the window changes. Happens if Settings.ResizableWindow is true.
+        /// </summary>
+        private void Window_SizeChanged(object sender, EventArgs e)
+        {
+            // Update the screen adapter.
+            Screen?.Update();
+
+            // Invoke the size changed event.
+            OnSizeChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Wrapper for the display changed event.
+        /// </summary>
+        public void triggerDisplayChanged()
+        {
+            // Update the window.
+            UpdateWindow();
+
+            // Trigger actual event.
+            OnDisplayModeChanged?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
+
+
     }
 }

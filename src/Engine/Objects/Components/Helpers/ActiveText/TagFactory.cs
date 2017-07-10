@@ -25,7 +25,7 @@ namespace SoulEngine.Objects.Components.Helpers
         /// </summary>
         public static void Initialize()
         {
-            //Initialize and add systemtic tags.
+            //Initialize and add systemic tags.
             TagDict = new Dictionary<string, Type>();
             TagDict.Add("color", typeof(Tags.ColorText));
             TagDict.Add("border", typeof(Tags.Border));

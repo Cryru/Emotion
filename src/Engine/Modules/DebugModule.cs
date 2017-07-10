@@ -8,8 +8,9 @@ using SoulEngine.Events;
 using SoulEngine.Objects.Components;
 using Microsoft.Xna.Framework;
 using SoulEngine.Scripting;
+using SoulEngine.Modules;
 
-namespace SoulEngine.Debugging
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -18,79 +19,76 @@ namespace SoulEngine.Debugging
     /// <summary>
     /// A scene-like object that manages debugging components.
     /// </summary>
-    public static class DebugScene
+    public class DebugModule : IModuleUpdatable, IModuleDrawable, IModuleComposable
     {
-        private static GameObject stats;
-        public static string debugText;
+        private GameObject stats;
+        public string debugText;
 
-        private static GameObject console;
-        private static string consoleInput = "";
-        private static string previousInput = "";
-        private static string consoleOutput = Info.getInfo() + "\n" + 
+        private GameObject console;
+        private string consoleInput = "";
+        private string previousInput = "";
+        private string consoleOutput = Info.getInfo() + "\n" +
             "Start typing and press Enter to execute code. To scroll use the mouse wheel." + "\n" +
             "Use the arrows to navigate and the Up arrow to repeat the previous command.";
-        private static string consoleBlinker = "|";
-        private static Ticker consoleBlinkTicker;
-        private static int blinkerLocation = 0;
+        private string consoleBlinker = "|";
+        private Ticker consoleBlinkTicker;
+        private int blinkerLocation = 0;
 
         //Console
-        public static bool consoleOpened = false;
+        public bool consoleOpened = false;
 
-        public static string selectedObject = "";
+        public string selectedObject = "";
 
         /// <summary>
         /// Setups the scene as the current scene.
         /// </summary>
-        public static void Setup()
+        public bool Initialize()
         {
-            //Check if debugging is enabled.
-            if (!Settings.Debug) return;
+            // Check if scripting is enabled, since it is required for the debugging module.
+            if (!Context.Core.isModuleLoaded<ScriptEngine>()) return false;
 
-                DebugSocket.Setup();
-
+            // The stats in the top left corner.
             stats = GameObject.GenericDrawObject;
-
             stats.Component<ActiveTexture>().ActualTexture = AssetManager.BlankTexture;
             stats.Component<ActiveTexture>().Opacity = 0.5f;
             stats.Component<ActiveTexture>().Tint = Color.Black;
-
             stats.AddComponent(new ActiveText());
             stats.Component<ActiveText>().AutoHeight = true;
             stats.Component<ActiveText>().AutoWidth = true;
             stats.Component<ActiveText>().Padding = new Vector2(Functions.ManualRatio(3, 540), Functions.ManualRatio(3, 540));
-
+            
+            // The console.
             console = GameObject.GenericDrawObject;
             console.Component<ActiveTexture>().ActualTexture = AssetManager.BlankTexture;
             console.Component<ActiveTexture>().Tint = Color.Black;
             console.Component<ActiveTexture>().Opacity = 0.5f;
             console.AddComponent(new ActiveText());
-
             console.Width = Settings.Width;
             console.Height = Settings.Height / 2;
             console.Y = Settings.Height - console.Height;
             console.Layer = Enums.ObjectLayer.UI;
             console.AddComponent(new MouseInput());
 
+            // Ticker for the console blink.
             consoleBlinkTicker = new Ticker(300, -1, true);
-
-            Context.Core.OnUpdate += Update;
-            Context.Core.OnCompose += Compose;
-            Context.Core.OnDrawEnd += DrawHook;
 
             Input.OnKeyDown += KeysManager;
             console.Component<MouseInput>().OnMouseScroll += ScrollManager;
             Input.OnTextInput += ConsoleInput;
             consoleBlinkTicker.OnTick += ConsoleBlinkToggle;
 
-            Logger.Add("Debugging enabled!");
+            // Refresh the console text.
+            UpdateConsoleText();
+
+            return true;
         }
 
-        static float delayer;
+        float delayer;
         #region "Hooks"
         /// <summary>
         /// The core's hook for updating.
         /// </summary>
-        private static void Update()
+        public void Update()
         {
             stats.Component<ActiveText>().Text = (Context.Core.__sceneSetupAllowed ? "Loading: " : "") + Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
                 "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
@@ -105,7 +103,7 @@ namespace SoulEngine.Debugging
 
             //Update buttons on a delay.
             delayer += Context.Core.frameTime;
-            if(delayer > 100)
+            if (delayer > 100)
             {
                 delayer -= 100;
 
@@ -123,22 +121,19 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Composes component textures on linked objects.
         /// </summary>
-        private static void Compose()
+        public void Compose()
         {
-            //Don't log events caused by the debugger.
-            Logger.Enabled = false;
             stats.Compose();
             console.Compose();
-            Logger.Enabled = true;
         }
         /// <summary>
         /// The core's hook for drawing.
         /// </summary>
-        private static void DrawHook()
+        public void Draw()
         {
             FPSCounterUpdate();
 
-            Context.ink.Start(Enums.DrawChannel.Screen);
+            Context.ink.Start(Enums.DrawMatrix.Screen);
             stats.Draw();
             console.Draw();
             Context.ink.End();
@@ -149,17 +144,17 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// The frames rendered in the last second.
         /// </summary>
-        public static int FPS = 0;
+        public int FPS = 0;
         /// <summary>
         /// The time.
         /// </summary>
-        private static float secondCounter = 0;
-        private static void FPSCounterUpdate()
+        private float secondCounter = 0;
+        private void FPSCounterUpdate()
         {
             secondCounter += Context.Core.frameTime;
 
             //Check if one second has passed.
-            if(secondCounter > 1000)
+            if (secondCounter > 1000)
             {
                 secondCounter -= 1000;
                 FPS = (int)(1000f / Context.Core.frameTime);
@@ -171,7 +166,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Toggles the console on or off.
         /// </summary>
-        private static void ToggleConsole()
+        private void ToggleConsole()
         {
             consoleOpened = !consoleOpened;
             console.Component<ActiveText>().ScrollBottom();
@@ -179,7 +174,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Accepts text input to display to the console.
         /// </summary>
-        private static void ConsoleInput(object sender, TextInputEventArgs e)
+        private void ConsoleInput(object sender, TextInputEventArgs e)
         {
             string inputChar = e.Character.ToString();
 
@@ -205,12 +200,12 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Executes the console input through the JS interpreter.
         /// </summary>
-        private static void ExecuteConsole()
+        private void ExecuteConsole()
         {
             if (!consoleOpened) return;
 
             //Send input to the script engine to process.
-            consoleOutput = ScriptEngine.ExecuteScript(consoleInput).ToString();
+            consoleOutput = Context.Core.Module<ScriptEngine>().ExecuteScript(consoleInput).ToString();
             previousInput = consoleInput;
             consoleInput = "";
 
@@ -221,18 +216,18 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Updates the text that the console displays.
         /// </summary>
-        private static void UpdateConsoleText()
+        private void UpdateConsoleText()
         {
             if (blinkerLocation > consoleInput.Length) blinkerLocation = Math.Max(0, consoleInput.Length);
 
-            console.Component<ActiveText>().Text = consoleOutput + "\n" + "> " + consoleInput.Substring(0, blinkerLocation) + consoleBlinker + 
+            console.Component<ActiveText>().Text = consoleOutput + "\n" + "> " + consoleInput.Substring(0, blinkerLocation) + consoleBlinker +
                 consoleInput.Substring(blinkerLocation);
         }
 
         /// <summary>
         /// Selection blinker.
         /// </summary>
-        private static void ConsoleBlinkToggle(object sender, EventArgs e)
+        private void ConsoleBlinkToggle(object sender, EventArgs e)
         {
             if (consoleBlinker == "|") consoleBlinker = " "; else consoleBlinker = "|";
             UpdateConsoleText();
@@ -241,7 +236,7 @@ namespace SoulEngine.Debugging
         /// <summary>
         /// Inserts the previous console input in the input field.
         /// </summary>
-        private static void ConsolePreviousInput()
+        private void ConsolePreviousInput()
         {
             if (!consoleOpened) return;
 
@@ -251,22 +246,22 @@ namespace SoulEngine.Debugging
             UpdateConsoleText();
         }
 
-        private static void MoveBlinkerRight()
+        private void MoveBlinkerRight()
         {
             blinkerLocation += 1;
             consoleBlinker = "|";
             UpdateConsoleText();
         }
 
-        private static void MoveBlinkerLeft()
+        private void MoveBlinkerLeft()
         {
-            if(blinkerLocation != 0) blinkerLocation -= 1;
+            if (blinkerLocation != 0) blinkerLocation -= 1;
             consoleBlinker = "|";
             UpdateConsoleText();
         }
 
 
-        private static void ScrollUp()
+        private void ScrollUp()
         {
             if (console.Component<ActiveText>().TextHeight <= console.Height) return;
             if (console.Component<ActiveText>().Scroll.Y == -4) return;
@@ -275,7 +270,7 @@ namespace SoulEngine.Debugging
             UpdateConsoleText();
         }
 
-        private static void ScrollDown()
+        private void ScrollDown()
         {
             if (console.Component<ActiveText>().Scroll.Y <= console.Height - console.Component<ActiveText>().TextHeight) return;
             console.Component<ActiveText>().ScrollLineDown();
@@ -284,9 +279,9 @@ namespace SoulEngine.Debugging
         #endregion
 
         #region "Event Wrappers"
-        private static void KeysManager(object sender, KeyEventArgs e)
+        private void KeysManager(object sender, KeyEventArgs e)
         {
-            switch(e.Key)
+            switch (e.Key)
             {
                 case Microsoft.Xna.Framework.Input.Keys.OemTilde:
                     ToggleConsole();
@@ -307,9 +302,9 @@ namespace SoulEngine.Debugging
                     break;
             }
         }
-        private static void ScrollManager(object sender, MouseScrollEventArgs e)
+        private void ScrollManager(object sender, MouseScrollEventArgs e)
         {
-            if(e.ScrollAmount > 0)
+            if (e.ScrollAmount > 0)
             {
                 ScrollDown();
             }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Events;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -92,8 +93,17 @@ namespace SoulEngine
             //Check for mouse move event.
             if(currentFrameMouseState.Position != lastFrameMouseState.Position)
             {
-                OnMouseMove?.Invoke(null, new MouseMoveEventArgs(Context.Screen.ScreenToView(lastFrameMouseState.Position.ToVector2()),
-                    Context.Screen.ScreenToView(currentFrameMouseState.Position.ToVector2())));
+                Vector2 StartPosition = lastFrameMouseState.Position.ToVector2();
+                Vector2 EndPosition = currentFrameMouseState.Position.ToVector2();
+
+                // Check if a window manager is loaded, in which case we want to warp the mouse coordintes through its screen matrix.
+                if (Context.Core.isModuleLoaded<WindowManager>())
+                {
+                    StartPosition = Context.Core.Module<WindowManager>().Screen.ScreenToView(StartPosition);
+                    EndPosition = Context.Core.Module<WindowManager>().Screen.ScreenToView(EndPosition);
+                }
+
+                OnMouseMove?.Invoke(null, new MouseMoveEventArgs(StartPosition, EndPosition));
             }
 
             //Check for scrolling events.
@@ -292,7 +302,15 @@ namespace SoulEngine
         /// <returns></returns>
         public static Vector2 getMousePos()
         {
-            return Context.Screen.ScreenToView(currentFrameMouseState.Position.ToVector2());
+            // Check if a window manager is loaded, in which case we want to warp the mouse through the screen matrix.
+            if(Context.Core.isModuleLoaded<WindowManager>())
+            {
+                return Context.Core.Module<WindowManager>().Screen.ScreenToView(currentFrameMouseState.Position.ToVector2());
+            }
+            else
+            {
+                return currentFrameMouseState.Position.ToVector2();
+            }
         }
         #region "Left Button"
         /// <summary>

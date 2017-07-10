@@ -34,13 +34,5 @@ namespace SoulEngine
                 return Core.GraphicsDevice;
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        public static Camera Camera;
-        /// <summary>
-        /// 
-        /// </summary>
-        public static ScreenAdapter Screen;
     }
 }

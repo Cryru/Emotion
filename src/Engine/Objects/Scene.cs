@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SoulEngine.Objects.Components;
 using SoulEngine.Events;
 using SoulEngine.Enums;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects
 {
@@ -81,10 +82,16 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Setups the scene as the current scene.
         /// </summary>
-        public void SetupScene()
+        /// <param name="Force">Whether to force loading the scene.</param>
+        public void SetupScene(bool Force = false)
         {
             //Check if allowed to setup a new scene.
-            if (!Context.Core.__sceneSetupAllowed) throw new Exception("Scene setup must be done by the core, to load a scene use Core.LoadScene(Scene).");
+            if (!Context.Core.__sceneSetupAllowed && !Force)
+            {
+                if (Context.Core.isModuleLoaded<ErrorManager>())
+                    Context.Core.Module<ErrorManager>().RaiseError("Scene setup must be done by the core, and not called directly.", 180);
+            }
+
 
             //Setup assets loader and objects dictionary.
             Assets = new Assets();
@@ -166,14 +173,15 @@ namespace SoulEngine.Objects
             //Run texture composition for the scene's clusters.
             ObjectClusters.Select(x => x.Value).ToList().ForEach(x => x.ForEach(y => y.Compose()));
         }
+
         /// <summary>
         /// The core's hook for drawing.
         /// </summary>
-        public void DrawHook()
+        public virtual void DrawHook()
         {
             //Draw all objects.
             ObjectLayer Current = ObjectLayer.World;
-            Context.ink.Start(DrawChannel.World);
+            Context.ink.Start(DrawMatrix.World);
             foreach (var obj in Objects)
             {
                 //Check if the next object is on the same layer.
@@ -186,7 +194,7 @@ namespace SoulEngine.Objects
                     //If it isn't switch layers.
                     Context.ink.End();
                     Current = obj.Value.Layer;
-                    if(Current == ObjectLayer.UI) Context.ink.Start(DrawChannel.Screen); else Context.ink.Start(DrawChannel.World);
+                    if(Current == ObjectLayer.UI) Context.ink.Start(DrawMatrix.Screen); else Context.ink.Start(DrawMatrix.World);
                     obj.Value.Draw();
                 }
             }
@@ -195,7 +203,7 @@ namespace SoulEngine.Objects
 
             //Draw all clusters.
             Current = ObjectLayer.World;
-            Context.ink.Start(DrawChannel.World);
+            Context.ink.Start(DrawMatrix.World);
             foreach (var obj in ObjectClusters)
             {
                 //Loop through all objects in the cluster.
@@ -211,7 +219,7 @@ namespace SoulEngine.Objects
                         //If it isn't switch layers.
                         Context.ink.End();
                         Current = obj.Value[i].Layer;
-                        if (Current == ObjectLayer.UI) Context.ink.Start(DrawChannel.Screen); else Context.ink.Start(DrawChannel.World);
+                        if (Current == ObjectLayer.UI) Context.ink.Start(DrawMatrix.Screen); else Context.ink.Start(DrawMatrix.World);
                         obj.Value[i].Draw();
                     }
                 }
