@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Enums;
 using SoulEngine.Events;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects
 {
@@ -157,7 +158,14 @@ namespace SoulEngine.Objects
             if (StartNow) Start(); else Pause();
 
             //Execute the ticker on each frame for accurate timing.
-            Context.Core.OnDraw += Update;
+            if(Context.Core.isModuleLoaded<TimingManager>())
+            {
+                Context.Core.Module<TimingManager>().RegisterTicker(this);
+            }
+            else
+            {
+                Context.Core.Module<ErrorManager>().RaiseError("Using tickers requires the TimingManager module to be loaded.", 101);
+            }
         }
 
         /// <summary>

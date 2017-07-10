@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SoulEngine.Modules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -45,7 +46,7 @@ namespace SoulEngine.Scripting
             {
                 for (int i = 0; i < Pointer; i++)
                 {
-                    if (Script.Length - 1 > i) ScriptEngine.ExecuteScript(Script[i]);
+                    if (Script.Length - 1 > i) Context.Core.Module<ScriptEngine>().ExecuteScript(Script[i]);
                 }
             }
         }
@@ -59,7 +60,7 @@ namespace SoulEngine.Scripting
 
             string line = Script[Pointer];
 
-            ScriptEngine.ExecuteScript(line);
+            Context.Core.Module<ScriptEngine>().ExecuteScript(line);
 
             Pointer++;
         }

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Scripting;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Debugging
 {
@@ -72,7 +73,7 @@ namespace SoulEngine.Debugging
             string message = Encoding.UTF8.GetString(buffer).Substring(0, received);
 
             //Execute through the script engine if not a dummy message.
-            if(message.Substring(0, 1) != "0") Broadcast("script", ScriptEngine.ExecuteScript(message).ToString());
+            if(message.Substring(0, 1) != "0") Broadcast("script", Context.Core.Module<ScriptEngine>().ExecuteScript(message).ToString());
 
             //Resume listening.
             AttachedDebugger.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(ReceivedMessage), null);

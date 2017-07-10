@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SoulEngine.Objects.Components;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects
 {
@@ -68,7 +69,8 @@ namespace SoulEngine.Objects
         /// <returns>The transformation matrix to render through.</returns>
         public Matrix ViewParallax(Vector2 parallaxFactor)
         {
-            return GetVirtualViewMatrix(parallaxFactor) * Context.Screen.View;
+            // We warp the parallax through the screen matrix, which we assume is loaded.
+            return GetVirtualViewMatrix(parallaxFactor) * Context.Core.Module<WindowManager>().Screen.View;
         }
         #endregion
 

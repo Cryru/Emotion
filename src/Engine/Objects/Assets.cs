@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Objects
 {
     public class Assets : IDisposable
     {
@@ -16,7 +16,7 @@ namespace SoulEngine
              Content = new ContentManager(Context.Core.Content.ServiceProvider, Context.Core.Content.RootDirectory);
         }
 
-        #region IDisposable Support
+        #region IDisposable
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)

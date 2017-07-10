@@ -12,8 +12,9 @@ using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SoulEngine.Modules;
+using SoulEngine.Enums;
 
-namespace SoulEngine
+namespace SoulEngine.Scenes
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -22,20 +23,27 @@ namespace SoulEngine
     /// <summary>
     /// The first scene to load.
     /// </summary>
-    public class ScenePrim : Scene
+    public class Loading : Scene
     {
         #region "Declarations"
-
+        Texture2D LoadingTexture;
         #endregion
 
         public override void Start()
         {
-            Context.Core.LoadScene(new StressTest());
+            LoadingTexture = Context.Core.Content.Load<Texture2D>("Engine/loadingscreen");
         }
 
         public override void Update()
         {
 
+        }
+
+        public override void DrawHook()
+        {
+            Context.ink.Start(DrawMatrix.Screen);
+            Context.ink.Draw(LoadingTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.White);
+            Context.ink.End();
         }
     }
 }

@@ -77,9 +77,9 @@ namespace SoulEngine.Enums
     }
 
     /// <summary>
-    /// The channel to draw on.
+    /// The matrix to draw on.
     /// </summary>
-    public enum DrawChannel
+    public enum DrawMatrix
     {
         /// <summary>
         /// Can be used to draw outside out of the screen space, like the black bars.

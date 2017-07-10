@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SoulEngine.Enums;
 using SoulEngine.Events;
 using SoulEngine.Objects.Components.Helpers;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects.Components
 {

@@ -9,6 +9,7 @@ using SoulEngine.Events;
 using Microsoft.Xna.Framework.Graphics;
 using SoulEngine.Enums;
 using SoulEngine.Objects.Components.Helpers;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects.Components
 {

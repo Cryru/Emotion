@@ -8,6 +8,7 @@ using SoulServer;
 using SoulEngine.Events;
 using System.Net;
 using SoulEngine.Enums;
+using SoulEngine.Modules;
 
 namespace SoulEngine
 {
@@ -48,7 +49,7 @@ namespace SoulEngine
                 NetworkStatus old = status;
                 status = value;
                 OnStatusChanged?.Invoke(null, new NetworkEventArgs(old));
-                Debugging.Logger.Add("Network status changed " + old + " -> " + status);
+                Context.Core.Module<Logger>().Add("Network status changed " + old + " -> " + status);
             }
         }
         private static NetworkStatus status = NetworkStatus.Disabled;
@@ -74,7 +75,7 @@ namespace SoulEngine
 
             status = NetworkStatus.None;
             buffer = new byte[1024];
-            Scripting.ScriptEngine.ExposeFunction("connect", (Func<string, int, string, string, bool>) Connect);
+            Context.Core.Module<ScriptEngine>().ExposeFunction("connect", (Func<string, int, string, string, bool>) Connect);
         }
 
         /// <summary>

@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using Jint;
 using Jint.Native;
 using Microsoft.Xna.Framework;
+using SoulEngine.Modules;
 
-namespace SoulEngine.Scripting
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -17,7 +18,7 @@ namespace SoulEngine.Scripting
     /// Used to run javascript.
     /// Uses Jint - Public Repository: https://github.com/sebastienros/jint
     /// </summary>
-    public static class ScriptEngine
+    public class ScriptEngine : IModuleDrawable
     {
         #region "Declarations"
         /// <summary>
@@ -33,16 +34,13 @@ namespace SoulEngine.Scripting
         /// <summary>
         /// Setups the scripting engine.
         /// </summary>
-        public static void SetupScripting()
+        public bool Initialize()
         {
-            //Check if scripting is enabled.
-            if (!Settings.Scripting) return;
-
             //Define an internal list of exposed functions.
             exposedFunctions = new List<string>();
 
             //Add default functions.
-            ExposeFunction("getObjects", (Func<string>)getObjects);
+            ExposeFunction("getObjects", (Func<string>) getObjects);
             ExposeFunction("object", (Action<string>) selectObject);
             ExposeFunction("object", (Action<int>)selectObject);
             ExposeFunction("getLog", (Func<string>)getLog);
@@ -54,13 +52,15 @@ namespace SoulEngine.Scripting
             Interpreter.SetValue("Settings", new Settings());
             Interpreter.SetValue("Lines", Lines);
             Interpreter.SetValue("Rects", Rects);
+
+            return true;
         }
 
         /// <summary>
         /// Executes the provided line of script.
         /// </summary>
         /// <param name="Script">The script to execute as a string.</param>
-        public static JsValue ExecuteScript(string Script)
+        public JsValue ExecuteScript(string Script)
         {
             //Check if scripting is enabled.
             if (!Settings.Scripting) return "";
@@ -72,7 +72,7 @@ namespace SoulEngine.Scripting
             }
             catch (Exception e)
             {
-                if (!Debugging.DebugScene.consoleOpened) Debugging.Logger.Add(e.Message);
+                Context.Core.Module<ErrorManager>().RaiseError(e.Message, 50);
                 return JsValue.FromObject(Interpreter, "<color=#f44b42>" + e.Message + "</>\nFunctions you can use:\n" + help());
             }
         }
@@ -82,7 +82,7 @@ namespace SoulEngine.Scripting
         /// </summary>
         /// <param name="Name">The name the function will be called by in the script.</param>
         /// <param name="Function">The func object to register.</param>
-        public static void ExposeFunction(string Name, object Function)
+        public void ExposeFunction(string Name, object Function)
         {
             //Check if scripting is enabled.
             if (!Settings.Scripting) return;
@@ -125,7 +125,7 @@ namespace SoulEngine.Scripting
         /// Returns a colored script message.
         /// </summary>
         /// <param name="msg">The message to color.</param>
-        private static string ScriptMessage(string msg)
+        private string ScriptMessage(string msg)
         {
             return "<color=#42f4cb>" + msg + "</>";
         }
@@ -134,7 +134,7 @@ namespace SoulEngine.Scripting
         /// <summary>
         /// Returns all objects attached to the scene.
         /// </summary>
-        private static string getObjects()
+        private string getObjects()
         {
             return string.Join("\n", Context.Core.Scene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + 
                 (Context.Core.Scene.AttachedClusters.Count > 0 ? 
@@ -145,15 +145,15 @@ namespace SoulEngine.Scripting
         /// Draws a border around the object with the provided name.
         /// </summary>
         /// <param name="objectName">The name of the object to draw a border around.</param>
-        private static void selectObject(string objectName)
+        private void selectObject(string objectName)
         {
-            Debugging.DebugScene.selectedObject = objectName;
+            //Debugging.DebugScene.selectedObject = objectName;
         }
         /// <summary>
         /// Draws a border around the object with the provided index.
         /// </summary>
         /// <param name="objectName">The name of the object to draw a border around.</param>
-        private static void selectObject(int objectIndex)
+        private void selectObject(int objectIndex)
         {
             int index = 0;
             string name = null;
@@ -163,27 +163,27 @@ namespace SoulEngine.Scripting
                 index++;
                 if (index == objectIndex) break;
             }
-            Debugging.DebugScene.selectedObject = name;
+            //Debugging.DebugScene.selectedObject = name;
         }
         /// <summary>
         /// Prints the system log.
         /// </summary>
-        private static string getLog()
+        private string getLog()
         {
-            return string.Join("\n", Debugging.Logger.Log);
+            return string.Join("\n", Context.Core.Module<Logger>().GetLog());
         }
         /// <summary>
         /// Prints all exposed functions.
         /// </summary>
-        private static string help()
+        private string help()
         {
             return string.Join("\n", exposedFunctions);
         }
         /// <summary>
         /// Draws a line on the screen.
         /// </summary>
-        private static List<List<Vector2>> Lines = new List<List<Vector2>>();
-        private static void line(int x, int y, int x2, int y2)
+        private List<List<Vector2>> Lines = new List<List<Vector2>>();
+        private void line(int x, int y, int x2, int y2)
         {
             
             List<Vector2> temp = new List<Vector2>();
@@ -192,16 +192,16 @@ namespace SoulEngine.Scripting
             Lines.Add(temp);
             
         }
-        private static List<Rectangle> Rects = new List<Rectangle>();
-        private static void rect(int x, int y, int width, int height)
+        private List<Rectangle> Rects = new List<Rectangle>();
+        private void rect(int x, int y, int width, int height)
         {
             Rects.Add(new Rectangle(x, y, width, height));
         }
         #endregion
 
-        public static void Draw()
+        public void Draw()
         {
-            Context.ink.Start(Enums.DrawChannel.Screen);
+            Context.ink.Start(Enums.DrawMatrix.Screen);
             for (int i = 0; i < Lines.Count; i++)
             {
                 Context.ink.DrawLine(Lines[i][0], Lines[i][1], 1, Color.Red);

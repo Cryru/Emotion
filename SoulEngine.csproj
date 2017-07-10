@@ -61,18 +61,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Engine\Core\AssetManager.cs" />
-    <Compile Include="src\Engine\Core\Assets.cs" />
+    <Compile Include="src\Engine\Modules\AssetManager.cs" />
+    <Compile Include="src\Engine\Objects\Assets.cs" />
     <Compile Include="src\Engine\Core\Context.cs" />
     <Compile Include="src\Engine\Core\Core.cs" />
-    <Compile Include="src\Engine\Core\Helpers\Enums.cs" />
-    <Compile Include="src\Engine\Core\Helpers\Functions.cs" />
+    <Compile Include="src\Engine\Core\Enums.cs" />
+    <Compile Include="src\Engine\Modules\DebugModule.cs" />
+    <Compile Include="src\Engine\Modules\Interfaces\IModuleComposable.cs" />
+    <Compile Include="src\Engine\Modules\Interfaces\IModuleDrawable.cs" />
+    <Compile Include="src\Engine\Modules\TimingManager.cs" />
+    <Compile Include="src\Libraries\Functions.cs" />
     <Compile Include="src\Engine\Core\SoundEngine.cs" />
     <Compile Include="src\Engine\Core\Starter.cs" />
-    <Compile Include="src\Engine\Core\WindowManager.cs" />
-    <Compile Include="src\Engine\Debugging\DebugScene.cs" />
+    <Compile Include="src\Engine\Modules\WindowManager.cs" />
     <Compile Include="src\Engine\Debugging\DebugSocket.cs" />
-    <Compile Include="src\Engine\Debugging\Logger.cs" />
     <Compile Include="src\Engine\EventArgs\NetworkMessageEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\NetworkEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\MouseButtonEventArgs.cs" />
@@ -80,6 +82,10 @@
     <Compile Include="src\Engine\EventArgs\MouseMoveEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\KeyEventArgs.cs" />
     <Compile Include="src\Engine\EventArgs\ScrollbarEventArgs.cs" />
+    <Compile Include="src\Engine\Modules\ErrorManager.cs" />
+    <Compile Include="src\Engine\Modules\Interfaces\IModuleUpdatable.cs" />
+    <Compile Include="src\Engine\Modules\Interfaces\IModule.cs" />
+    <Compile Include="src\Engine\Modules\Logger.cs" />
     <Compile Include="src\Engine\Objects\DrawComponent.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\DrawData.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\ColorText.cs" />
@@ -109,7 +115,7 @@
     <Compile Include="src\Libraries\External\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="src\Libraries\Input.cs" />
     <Compile Include="src\Libraries\Scripting\LineScript.cs" />
-    <Compile Include="src\Libraries\Scripting\ScriptEngine.cs" />
+    <Compile Include="src\Engine\Modules\ScriptEngine.cs" />
     <Compile Include="src\Libraries\Settings.cs" />
     <Compile Include="src\Engine\Meta\Info.cs" />
     <Compile Include="src\Engine\Objects\Components\ActiveTexture.cs" />
@@ -132,6 +138,7 @@
     <Compile Include="src\Engine\Objects\ViewObjects\ViewObject.cs" />
     <Compile Include="src\Libraries\SoulServer\Message.cs" />
     <Compile Include="src\Libraries\SoulServer\Networking.cs" />
+    <Compile Include="src\Scenes\Loading.cs" />
     <Compile Include="src\User\Custom\Event Types.cs" />
     <Compile Include="src\User\Custom\Text Tags.cs" />
     <Compile Include="src\User\Scenes\ScenePrim.cs" />

@@ -12,7 +12,7 @@ using SoulEngine.Objects.Components.Helpers;
 using Microsoft.Xna.Framework.Audio;
 using System.Threading;
 
-namespace SoulEngine
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -21,9 +21,9 @@ namespace SoulEngine
     /// <summary>
     /// Manages asset integrity.
     /// </summary>
-    static class AssetManager
+    public class AssetManager : IModule
     {
-        #region "Global Assets"
+        #region Global Assets
         /// <summary>
         /// The texture loaded when an asset can't be found or loaded.
         /// </summary>
@@ -36,28 +36,33 @@ namespace SoulEngine
         /// The default font.
         /// </summary>
         public static SpriteFont DefaultFont;
+        #endregion
+
+        #region Instance Data
         /// <summary>
         /// The path to the assets meta file.
         /// </summary>
-        public static string assetsMetaPath = "Content" + Path.DirectorySeparatorChar + "meta.soul";
+        private string assetsMetaPath = "Content" + Path.DirectorySeparatorChar + "meta.soul";
+        /// <summary>
+        /// The assets meta file.
+        /// </summary>
+        public MFile metaSoul;
         #endregion
 
         /// <summary>
         /// Loads global assets used throughout the engine.
         /// </summary>
-        public static void LoadGlobal()
+        public bool Initialize()
         {
             try
             {
-                //Load the missingtexture.
+                // Load the missingtexture.
                 MissingTexture = Context.Core.Content.Load<Texture2D>("Engine/missing");
-                //Load the default font.
+
+                // Load the default font.
                 DefaultFont = Context.Core.Content.Load<SpriteFont>("Font/Default");
 
-                /*
-                 * Generate the blank texture by creating a new 1 by 1 texture and
-                 * inserting white color into it.
-                 */
+                // Generate a blank texture for solid colors.
                 BlankTexture = new Texture2D(Context.Graphics, 1, 1);
                 Color[] data = new Color[] { Color.White };
                 BlankTexture.SetData(data);
@@ -65,14 +70,51 @@ namespace SoulEngine
             }
             catch (Exception)
             {
-                throw new Exception("ERROR HANDLING - COULD NOT LOAD GLOBAL ASSETS");
+                Context.Core.Module<ErrorManager>().RaiseError("Couldn't load global assets.", 240);
+                return false;
             }
 
-            //Load text object tags.
+            // Load text object tags.
             TagFactory.Initialize();
+
+            // Load assets meta file.
+            if (Settings.EnforceAssetIntegrity)
+            {
+                /*
+                 * The meta.soul file is expected to a Soul Managed File with each key being a
+                 * file path relative to the Content folder and each value a hash of the file, 
+                 * as hashed by SoulLib. If encrypted the key from the settings file is used.
+                 */
+                if (!File.Exists(assetsMetaPath))
+                {
+                    Context.Core.Module<ErrorManager>().RaiseError("The meta.soul file is missing.", 241);
+                    return false;
+                }
+
+                string AssetMeta = Utils.ReadFile(assetsMetaPath);
+
+                if (Utils.ReadFile(assetsMetaPath) == "")
+                {
+                    Context.Core.Module<ErrorManager>().RaiseError("The meta.soul file is not formatted correctly.", 242);
+                    return false;
+                }
+
+                if (Soul.Encryption.MD5(AssetMeta) != Settings.MetaMD5)
+                {
+                    Context.Core.Module<ErrorManager>().RaiseError("The meta.soul hash is invalid.", 243);
+                    return false;
+                }
+
+                AssetMeta = "";
+
+                // Load the meta file as a Soul managed file.
+                metaSoul = new MFile(assetsMetaPath, null, Settings.SecurityKey);
+            }
+
+            return true;
         }
 
-        #region "Asset Loading"
+        #region Asset Loading
         /// <summary>
         /// Loads a texture asset into the current scene's content manager and returns it.
         /// </summary>
@@ -127,7 +169,7 @@ namespace SoulEngine
         public static T Asset<T>(string assetName, T ifMissing)
         {
             if (AssetExist(assetName))
-                if (Context.Core.Scene == null || assetName == "Engine/loadingscreen")
+                if (Context.Core.Scene == null)
                     return Context.Core.Content.Load<T>(assetName);
                 else
                     return Context.Core.Scene.Assets.Content.Load<T>(assetName);
@@ -143,78 +185,39 @@ namespace SoulEngine
         /// <param name="extension">The extension of the file we are looking for.</param>
         public static bool AssetExist(string name, string extension = ".xnb")
         {
-            //Assign the path of the file.
-            name = name.Replace('/', '@').Replace('\\', '@');
-            name = name.Replace('@', Path.DirectorySeparatorChar);
-            string contentpath = System.IO.Path.Combine("Content", name + extension);
-            //Check if the file exists.
-            if (File.Exists(contentpath))
+            // Convert the asset path to a platform agnostic file path.
+            name = Path.Combine("Content", 
+                name.Replace('/', '@').Replace('\\', '@').Replace('@', Path.DirectorySeparatorChar) + extension);
+
+            // Check if the file exists.
+            if (File.Exists(name))
             {
+                // Check if an asset meta file has been loaded.
+                if (Settings.EnforceAssetIntegrity &&
+                    Context.Core.isModuleLoaded<AssetManager>() &&
+                    Context.Core.Module<AssetManager>().metaSoul != null)
+                {
+                    // Get the asset's hash.
+                    string expectedHash = Context.Core.Module<AssetManager>().metaSoul.Content<string>(name);
+
+                    // Hash the asset.
+                    string actualHash = Soul.Encryption.MD5(Utils.ReadFile(name));
+
+                    // Check if the hashes match, and if not raise an error, and return false.
+                    if (expectedHash != actualHash)
+                    {
+                        Context.Core.Module<ErrorManager>().RaiseError("File hash doesn't match: " + name, 244);
+                        return false;
+                    }
+                }
+
+                // If no hash checking is required, the file exists.
                 return true;
             }
+
+            // The file doesn't exist.
             return false;
         }
 
-        /// <summary>
-        /// Reads the assets meta file, and applies checks for validity.
-        /// If true is returned then files are as they should be, otherwise false is returned.
-        /// Format: Asset Meta Generator Version 4
-        /// </summary>
-        public static void AssertAssets()
-        {
-            if (Settings.EnforceAssetIntegrity)
-            {
-                if (!File.Exists(assetsMetaPath)) throw new AssetsException("The assets meta file is missing");
-                if (Soul.Encryption.MD5(Soul.IO.Utils.ReadFile(assetsMetaPath)) != Settings.MetaMD5) throw new AssetsException("The assets meta file is corrupted");
-
-                Thread assert = new Thread(new ThreadStart(assertThread));
-                assert.Start();
-
-                //Wait for thread to activate.
-                while (!assert.IsAlive) ;
-            }
-        }
-
-        private static void assertThread()
-        {
-
-            /*
-             * The meta.soul file is expected to a Soul Managed File with each key being a
-             * file path relative to the Content folder and each value a hash of the file, 
-             * as hashed by SoulLib. If encrypted the key from the settings file is used.
-             */
-
-            MFile file = new MFile(assetsMetaPath, null, Settings.SecurityKey);
-
-            try
-            {
-                //Iterate through each file.
-                for (int i = 0; i < file.Keys.Count; i++)
-                {
-                    //Get the path of the file.
-                    string enc = file.Content<string>(file.Keys[i]);
-                    //Get the path of the file for all platforms.
-                    string currentFilePath = file.Keys[i].Replace('\\', Path.DirectorySeparatorChar);
-                    //Get the hash of the current file.
-                    string currentFileEnc = Soul.Encryption.MD5(Utils.ReadFile("Content" + Path.DirectorySeparatorChar + currentFilePath));
-                    //Check against the meta stored hash, if it doesn't match return false.
-                    if (currentFileEnc != enc)
-                    {
-                        throw new AssetsException(currentFilePath + " has been tampered with.");
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                throw new AssetsException("The meta.soul is corrupted or incorrect.");
-            }
-        }
-    }
-
-    public class AssetsException : Exception
-    {
-        public AssetsException(string message) : base(message)
-        {
-        }
     }
 }

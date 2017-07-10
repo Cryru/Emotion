@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TiledSharp;
 using SoulEngine.Objects.Components.Helpers;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects.Components
 {
