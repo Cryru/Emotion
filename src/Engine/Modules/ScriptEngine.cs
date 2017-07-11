@@ -136,9 +136,12 @@ namespace SoulEngine.Modules
         /// </summary>
         private string getObjects()
         {
-            return string.Join("\n", Context.Core.Scene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + 
-                (Context.Core.Scene.AttachedClusters.Count > 0 ? 
-                "\n" + string.Join("\n", Context.Core.Scene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components")) :
+            if (!Context.Core.isModuleLoaded<SceneManager>() && 
+                Context.Core.Module<SceneManager>().currentScene == null) return "No scene loaded.";
+
+            return string.Join("\n", Context.Core.Module<SceneManager>().currentScene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + 
+                (Context.Core.Module<SceneManager>().currentScene.AttachedClusters.Count > 0 ? 
+                "\n" + string.Join("\n", Context.Core.Module<SceneManager>().currentScene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components")) :
                 "");
         }
         /// <summary>
@@ -157,7 +160,7 @@ namespace SoulEngine.Modules
         {
             int index = 0;
             string name = null;
-            foreach (var item in Context.Core.Scene.AttachedObjects)
+            foreach (var item in Context.Core.Module<SceneManager>().currentScene.AttachedObjects)
             {
                 name = item.Key;
                 index++;

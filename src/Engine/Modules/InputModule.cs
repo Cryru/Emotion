@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using SoulEngine.Events;
 using SoulEngine.Modules;
 
-namespace SoulEngine
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -18,7 +18,7 @@ namespace SoulEngine
     /// <summary>
     /// Location, Size, and Rotation.
     /// </summary>
-    class Input
+    class InputModule : IModuleUpdatable
     {
         #region "States"
         public static KeyboardState currentFrameKeyState; //The keyboard state of the current frame. Used for button events.
@@ -61,11 +61,20 @@ namespace SoulEngine
         public static event EventHandler<MouseButtonEventArgs> OnMouseButtonUp;
         #endregion
 
+        public bool Initialize()
+        {
+            return true;
+        }
+
         /// <summary>
         /// Gets input data for the current frame.
         /// </summary>
-        public static void UpdateInput()
+        public void Update()
         {
+            // Carry over last frame's current as this frame's last.
+            lastFrameKeyState = currentFrameKeyState;
+            lastFrameMouseState = currentFrameMouseState;
+
             //Record the frame's keyboard and mouse states for the current frame.
             currentFrameKeyState = Keyboard.GetState();
             currentFrameMouseState = Mouse.GetState();
@@ -181,15 +190,6 @@ namespace SoulEngine
                 else
                     Settings.DisplayMode = Enums.DisplayMode.Windowed;
             }
-        }
-        /// <summary>
-        /// At the end of the frame moves the current frame variables to the last frame input variables.
-        /// </summary>
-        public static void UpdateInput_End()
-        {
-            //Assign this frame's code to be used as the last frame's code.
-            lastFrameKeyState = currentFrameKeyState;
-            lastFrameMouseState = currentFrameMouseState;
         }
 
         #region "Functions"

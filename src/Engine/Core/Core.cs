@@ -23,7 +23,7 @@ namespace SoulEngine
     /// </summary>
     public class Core : Game
     {
-        #region Declarations
+        #region Variables
         /// <summary>
         /// The time in milliseconds it took for the last frame to render.
         /// </summary>
@@ -31,18 +31,6 @@ namespace SoulEngine
         #endregion
 
         #region Systems
-        /// <summary>
-        /// The currently loaded scene.
-        /// </summary>
-        public Scene Scene;
-        /// <summary>
-        /// A scene waiting to be loaded.
-        /// </summary>
-        private Scene sceneLoadQueue;
-        /// <summary>
-        /// The loading scene.
-        /// </summary>
-        private Scene LoadingScene;
         /// <summary>
         /// Loaded modules.
         /// </summary>
@@ -52,6 +40,9 @@ namespace SoulEngine
             new AssetManager(),
             new WindowManager(),
             new TimingManager(),
+            new InputModule(),
+            new SceneManager(),
+            Settings.Networking ? new Networking() : null,
             Settings.Scripting ? new ScriptEngine() : null,
             Settings.Debug ? new DebugModule() : null
         };
@@ -63,10 +54,6 @@ namespace SoulEngine
         /// Used to check whether composing is done properly.
         /// </summary>
         public bool __composeAllowed = false;
-        /// <summary>
-        /// Used to prevent scenes being loaded outside of the queue system.
-        /// </summary>
-        public bool __sceneSetupAllowed = false;
         #endregion
 
         #region "Initialization"
@@ -106,28 +93,11 @@ namespace SoulEngine
             // Load modules.
             LoadModules();
 
-            // Load the loading screen scene.
-            LoadingScene = new Scenes.Loading();
-            LoadingScene.SetupScene(true);
-
-            //Setup networking if we have to.
-            Networking.Setup();
-
-            //Load the primary scene.
-            LoadScene(new ScenePrim());
-
             // Measure boot time.
             Starter.bootPerformance.Stop();
             if (Context.Core.isModuleLoaded<Logger>())
                 Context.Core.Module<Logger>().Add("Engine loading completed in: " + Starter.bootPerformance.ElapsedMilliseconds + "ms");
-
-            // Start update thread.
-            Thread updateThread = new Thread(new ThreadStart(Update));
-            updateThread.Start();
-
-            while(!updateThread.IsAlive) { }
         }
-        bool updateFinished = false;
         #endregion
 
         #region Module System
@@ -219,38 +189,13 @@ namespace SoulEngine
         /// <summary>
         /// Is executed every tick.
         /// </summary>
-        private void Update()
-        {
-            while(Content != null)
-            {
-                if (updateFinished) continue;
-
-                //If the game is not focused, don't update.
-                if (IsActive == false && Settings.PauseOnFocusLoss) continue;
-
-                //Update the sound engine.
-                SoundEngine.Update();
-
-                //Update the current scene if its loaded.
-                if (Scene != null && !__sceneSetupAllowed) Scene.UpdateHook();
-
-                updateFinished = true;
-            }
-        }
-
-        /// <summary>
-        /// Is executed every tick.
-        /// </summary>
         protected override void Update(GameTime gameTime)
         {
-            // If the game is not focused, don't update.
+            //If the game is not focused, don't update.
             if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
-            // Check if a scene is waiting to be loaded and if so load it.
-            SceneLoad();
-
-            //Update input module.
-            Input.UpdateInput();
+            //Update the sound engine.
+            SoundEngine.Update();
 
             // Run core modules that require updating.
             for (int i = 0; i < Modules.Count; i++)
@@ -260,9 +205,6 @@ namespace SoulEngine
                     ((IModuleUpdatable)Modules[i]).Update();
                 }
             }
-
-            //Update input module.
-            Input.UpdateInput_End();
         }
 
         /// <summary>
@@ -278,7 +220,6 @@ namespace SoulEngine
 
             // Compose textures, we do this first due to a bug which prevents us to switch render targets in between renders.
             __composeAllowed = true;
-            if (Scene != null && !__sceneSetupAllowed) Scene.Compose();
             // Run core modules that require composing.
             for (int i = 0; i < Modules.Count; i++)
             {
@@ -295,10 +236,6 @@ namespace SoulEngine
             Context.ink.Draw(AssetManager.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.FillColor);
             Context.ink.End();
 
-            //Draw the current scene if its loaded..
-            if (Scene != null && !__sceneSetupAllowed) Scene.DrawHook();
-            else if(LoadingScene != null) LoadingScene.DrawHook();
-
             // Run core modules that require drawing.
             for (int i = 0; i < Modules.Count; i++)
             {
@@ -307,54 +244,6 @@ namespace SoulEngine
                     ((IModuleDrawable) Modules[i]).Draw();
                 }
             }
-
-            updateFinished = false;
-        }
-        #endregion
-
-        #region "Scene System"
-        /// <summary>
-        /// Loads the provided scene at the next frame.
-        /// </summary>
-        /// <param name="Scene">The scene to load.</param>
-        public void LoadScene(Scene Scene)
-        {
-            // Add the scene to load to the queue.
-            sceneLoadQueue = Scene;
-        }
-        private void SceneLoad()
-        {
-            // Check if any scene to load.
-            if (sceneLoadQueue == null) return;
-
-            // Dispose of the current scene if any.
-            if (Scene != null) Scene.Dispose();
-
-            // Allow scene loading.
-            __sceneSetupAllowed = true;
-
-            // Trasfer the scene from the queue.
-            Scene = sceneLoadQueue;
-            sceneLoadQueue = null;
-
-            // Start loading the scene on another thread.
-            Thread loadThread = new Thread(new ThreadStart(SceneLoadThread));
-            loadThread.Start();
-
-            // Wait for thread to activate.
-            while (!loadThread.IsAlive) ;
-        }
-        private void SceneLoadThread()
-        {
-            // Initiate inner setup.
-            Scene.SetupScene();
-
-            // Disallow scene loading.
-            __sceneSetupAllowed = false;
-
-            // Log the scene being loaded.
-            if(Context.Core.isModuleLoaded<Logger>()) Context.Core.Module<Logger>().Add("Scene loaded: " + Context.Core.Scene.ToString().Replace("SoulEngine.", ""));
-           
         }
         #endregion
 
@@ -365,7 +254,7 @@ namespace SoulEngine
         /// </summary>
         private void Input_TextInput(object sender, TextInputEventArgs e)
         {
-            Input.triggerTextInput(sender, e);
+            InputModule.triggerTextInput(sender, e);
         }
         #endregion
     }

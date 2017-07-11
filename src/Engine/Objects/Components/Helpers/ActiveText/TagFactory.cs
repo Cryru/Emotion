@@ -29,6 +29,7 @@ namespace SoulEngine.Objects.Components.Helpers
             TagDict = new Dictionary<string, Type>();
             TagDict.Add("color", typeof(Tags.ColorText));
             TagDict.Add("border", typeof(Tags.Border));
+            TagDict.Add("click", typeof(Tags.onClick));
 
             //Add user tags to the dictionary.
             Usertags();

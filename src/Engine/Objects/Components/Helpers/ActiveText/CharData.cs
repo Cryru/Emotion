@@ -23,6 +23,8 @@ namespace SoulEngine.Objects.Components.Helpers
 
         public List<Tag> Tags = new List<Tag>();
 
+        public bool clickEvent;
+
         public CharData(string Content, Color Color, SpriteFont Font)
         {
             this.Content = Content;

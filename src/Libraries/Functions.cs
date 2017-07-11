@@ -363,23 +363,39 @@ namespace SoulEngine
             //Check if below scene priority.
             if (ObjectPriority < -1) return false;
 
-            bool inObject = ObjectBounds.Intersects(Position);
+            bool isInside = ObjectBounds.Intersects(Position);
 
             //Check if the mouse is within the bounds of the object.
-            if (!inObject) return false;
+            if (!isInside) return false;
 
+            if(inObject(Position, ObjectPriority - 1) == null)
+            {
+                return true;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the highest priority object the position is in.
+        /// </summary>
+        /// <param name="Position">The position to check against.</param>
+        /// <param name="ObjectPriority">The priority to check up to.</param>
+        /// <returns>The object the position is in, or null if none.</returns>
+        public static GameObject inObject(Vector2 Position, int ObjectPriority = -1, ObjectLayer Layer = ObjectLayer.UI)
+        {
             //Get the bounds of all other UI objects.  
-            List<GameObject> objects = Context.Core.Scene.AttachedObjects.Select(x => x.Value)
-                .Where(x => x.Layer == Enums.ObjectLayer.UI && x.Drawing == true && CheckOpacity(x)).ToList();
+            List<GameObject> objects = Context.Core.Module<SceneManager>().currentScene.AttachedObjects.Select(x => x.Value)
+                .Where(x => x.Layer == Layer && x.Drawing == true && CheckOpacity(x)).ToList();
 
             //Check if we should check clusters as well.
-            if (Context.Core.Scene.UIClusters)
+            if (Context.Core.Module<SceneManager>().currentScene.UIClusters)
             {
                 //Get the bounds of all clusters.
                 List<GameObject> clusters = new List<GameObject>();
 
                 //Get all objects within clusters that are on the UI layer.
-                foreach (var cluster in Context.Core.Scene.AttachedClusters)
+                foreach (var cluster in Context.Core.Module<SceneManager>().currentScene.AttachedClusters)
                 {
                     for (int c = 0; c < cluster.Value.Count; c++)
                     {
@@ -396,14 +412,14 @@ namespace SoulEngine
             //Check if any objects are blocking this one.
             for (int i = 0; i < objects.Count; i++)
             {
-                //Check if this is us, we don't care about what's below us so break.
+                // Check if reached threshold.
                 if (objects[i].Priority == ObjectPriority) break;
 
                 //Check if the mouse intersects with the bounds of the object.
-                if (objects[i].Bounds.Intersects(Position)) return false;
+                if (objects[i].Bounds.Intersects(Position)) return objects[i];
             }
 
-            return true;
+            return null;
         }
 
         /// <summary>

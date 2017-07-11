@@ -61,8 +61,14 @@ namespace SoulEngine
             set
             {
                 if (value == priority) return;
+
+                // Check if below 0.
+                if (value < 0) value = 0;
+
                 priority = value;
-                Context.Core.Scene.OrderObjects();
+
+                // Order the objects in the current scene.
+                if(Context.Core.isModuleLoaded<SceneManager>()) Context.Core.Module<SceneManager>().currentScene.OrderObjects();
             }
         }
         private int priority = 0;
@@ -237,7 +243,7 @@ namespace SoulEngine
         /// <summary>
         /// The list of components attached to this object. Accessed through functions.
         /// </summary>
-        private List<Component> Components = new List<Component>();
+        public List<Component> Components = new List<Component>();
         /// <summary>
         /// Returns the number of components attached to the object.
         /// </summary>
@@ -278,7 +284,7 @@ namespace SoulEngine
             }
 
             //Check if drawing bounds.
-            if (Settings.DrawBounds || (Name != null && Name != "" && Name == Context.Core.Module<DebugModule>().selectedObject))
+            if (Settings.DrawBounds)
             {
                 Context.ink.DrawRectangle(Bounds, Math.Max(1, Functions.ManualRatio(1, 540)), Color.Red);
             }   

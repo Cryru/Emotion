@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Enums;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects
 {
@@ -46,14 +47,14 @@ namespace SoulEngine.Objects
                 bar.Layer = ObjectLayer.UI;
                 bar.Priority = 0;
                 string nameBar = GenerateChildObjectName("scrollbar-bar");
-                Context.Core.Scene.AddObject(nameBar, bar);
+                Context.Core.Module<SceneManager>().currentScene.AddObject(nameBar, bar);
 
                 GameObject selector = GenericDrawObject;
                 selector.Layer = ObjectLayer.UI;
                 selector.AddComponent(new MouseInput());
                 selector.Priority = 1;
                 string nameSelect = GenerateChildObjectName("scrollbar-selector");
-                Context.Core.Scene.AddObject(nameSelect, selector);
+                Context.Core.Module<SceneManager>().currentScene.AddObject(nameSelect, selector);
 
                 Object.AddComponent(new Scrollbar(nameBar, nameSelect));
 
@@ -96,9 +97,9 @@ namespace SoulEngine.Objects
         /// Generates a unique name for a child object.
         /// </summary>
         /// <param name="Type">The type of object.</param>
-        private static string GenerateChildObjectName(string Type)
+        public static string GenerateChildObjectName(string Type)
         {
-            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" + Context.Core.Scene.ObjectCount +
+            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" + Context.Core.Module<SceneManager>().currentScene.ObjectCount +
                 "@" + DateTime.Now.Minute + ":" + DateTime.Now.Second + ":" + DateTime.Now.Millisecond;
         }
         #endregion

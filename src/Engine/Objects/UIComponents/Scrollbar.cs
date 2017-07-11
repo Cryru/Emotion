@@ -88,14 +88,14 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
-                return Context.Core.Scene.GetObject(barID);
+                return Context.Core.Module<SceneManager>().currentScene.GetObject(barID);
             }
         }
         private GameObject Selector
         {
             get
             {
-                return Context.Core.Scene.GetObject(selID);
+                return Context.Core.Module<SceneManager>().currentScene.GetObject(selID);
             }
         }
         private string barID;
@@ -136,9 +136,9 @@ namespace SoulEngine.Objects.Components
             //Hook events.
             Selector.Component<MouseInput>().OnClicked += FocusGain;
             Selector.Component<MouseInput>().OnClickOutside += FocusLost;
-            Input.OnMouseButtonUp += LetGo;
-            Input.OnMouseMove += ScrollbarMove;
-            Input.OnKeyDown += ScrollbarButton;
+            InputModule.OnMouseButtonUp += LetGo;
+            InputModule.OnMouseMove += ScrollbarMove;
+            InputModule.OnKeyDown += ScrollbarButton;
         }
 
         public override void Update()
@@ -219,8 +219,8 @@ namespace SoulEngine.Objects.Components
                 if (disposing)
                 {
                     //Remove children objects.
-                    Context.Core.Scene.RemoveObject(barID);
-                    Context.Core.Scene.RemoveObject(selID);
+                    Context.Core.Module<SceneManager>().currentScene.RemoveObject(barID);
+                    Context.Core.Module<SceneManager>().currentScene.RemoveObject(selID);
                 }
 
                 //Free resources.
