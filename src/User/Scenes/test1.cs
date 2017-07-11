@@ -1,22 +1,22 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using SoulEngine.Modules;
+using SoulEngine.Objects;
+using SoulEngine.Objects.Components;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SoulEngine.Objects;
-using SoulEngine.Objects.Components;
-using Microsoft.Xna.Framework;
-using SoulEngine.Modules;
 
 namespace SoulEngine.Scenes
 {
-    class StressTest : Scene
+    class test1 : Scene
     {
         public override void Start()
         {
             AddCluster("testCluster", new List<GameObject>());
 
-            int detail = 10;
+            int detail = 5;
 
             for (int x = 0; x <= Settings.Width; x += detail)
             {
@@ -27,8 +27,7 @@ namespace SoulEngine.Scenes
                     int C = Functions.generateRandomNumber(1, 255);
 
                     temp.AddComponent(new ActiveTexture(Enums.TextureMode.Stretch, AssetManager.BlankTexture));
-                    temp.Component<ActiveTexture>().Tint = new Color(C,
-                    C, C);
+                    temp.Component<ActiveTexture>().Tint = new Color(C, C, C);
 
                     temp.Size = new Vector2(detail, detail);
                     temp.X = x;
@@ -41,12 +40,17 @@ namespace SoulEngine.Scenes
 
         public override void Update()
         {
+
             for (int i = 0; i < GetCluster("testCluster").Count; i++)
             {
                 int C = Functions.generateRandomNumber(1, 255);
 
-                GetCluster("testCluster")[i].Component<ActiveTexture>().Tint = new Color(C,
-                    C, C);
+                GetCluster("testCluster")[i].Component<ActiveTexture>().Tint = new Color(C, C, C);
+            }
+
+            if (InputModule.isKeyDown(Microsoft.Xna.Framework.Input.Keys.D))
+            {
+                Context.Core.Module<SceneManager>().SwapScene("Prime");
             }
         }
     }

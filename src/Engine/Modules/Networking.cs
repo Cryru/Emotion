@@ -10,7 +10,7 @@ using System.Net;
 using SoulEngine.Enums;
 using SoulEngine.Modules;
 
-namespace SoulEngine
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -21,7 +21,7 @@ namespace SoulEngine
     /// <summary>
     /// Networking and Multiplayer support with SoulServer. EXPERIMENTAL 
     /// </summary>
-    public static class Networking
+    public class Networking : IModule
     {
         #region "Declarations"
         private static DateTime LastMessageTime;
@@ -49,7 +49,7 @@ namespace SoulEngine
                 NetworkStatus old = status;
                 status = value;
                 OnStatusChanged?.Invoke(null, new NetworkEventArgs(old));
-                Context.Core.Module<Logger>().Add("Network status changed " + old + " -> " + status);
+                if(Context.Core.isModuleLoaded<Logger>()) Context.Core.Module<Logger>().Add("Network status changed " + old + " -> " + status);
             }
         }
         private static NetworkStatus status = NetworkStatus.Disabled;
@@ -68,14 +68,13 @@ namespace SoulEngine
         /// <summary>
         /// Sets up networking.
         /// </summary>
-        public static void Setup()
+        public bool Initialize()
         {
-            //Check if networking is enabled.
-            if (!Settings.Networking) return;
-
             status = NetworkStatus.None;
             buffer = new byte[1024];
-            Context.Core.Module<ScriptEngine>().ExposeFunction("connect", (Func<string, int, string, string, bool>) Connect);
+            if (Context.Core.isModuleLoaded<ScriptEngine>()) Context.Core.Module<ScriptEngine>().ExposeFunction("connect", (Func<string, int, string, string, bool>) Connect);
+
+            return true;
         }
 
         /// <summary>

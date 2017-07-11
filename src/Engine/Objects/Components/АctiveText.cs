@@ -155,11 +155,18 @@ namespace SoulEngine.Objects.Components
         private int height = 0;
         private int drawlimit = -1;
         private List<TextLine> linesCache;
+        private List<Rectangle> clickRects = new List<Rectangle>();
         private Vector2 cachedSize;
         private string text = "";
         #endregion
         #region "Processed Text Data"
         private RenderTarget2D texture;
+        #endregion
+        #region Events
+        /// <summary>
+        /// Invoked when a letter with the <click> tag is clicked.
+        /// </summary>
+        public event EventHandler<EventArgs> OnLetterClicked;
         #endregion
         #endregion
 
@@ -226,6 +233,9 @@ namespace SoulEngine.Objects.Components
 
             //Check if no cache.
             if (linesCache == null) return;
+
+            // Clear the click detection rectangles;
+            clickRects.Clear();
 
             //Start composing on the render target.
             Context.ink.StartRenderTarget(ref texture, Width, Height);
@@ -296,6 +306,15 @@ namespace SoulEngine.Objects.Components
                     {
                         linesCache[y].Chars[x].Tags[t].Effect(linesCache[y].Chars[x], new DrawData(offsetX, offsetY));
                     }
+
+                    // Check for onClick event handle.
+                    if (linesCache[y].Chars[x].clickEvent)
+                    {
+                        clickRects.Add(new Rectangle(
+                                new Point(attachedObject.X + (int)offsetX, attachedObject.Y + (int)offsetY),
+                                new Point(stringWidth(linesCache[y].Chars[x].Content), stringHeight(linesCache[y].Chars[x].Content))
+                                ));
+                    }
                     
                     //Draw the character.
                     Context.ink.DrawString(Font, linesCache[y].Chars[x].Content, new Vector2(offsetX, offsetY), linesCache[y].Chars[x].Color * 1f);
@@ -343,14 +362,23 @@ namespace SoulEngine.Objects.Components
                 //Get the current character.
                 CharData current = new CharData(Text[i].ToString(), Color, Font);
 
+                // Check if the character is escaped.
+                bool isEscaped = i != 0 && Text[i - 1] == '\\';
+                bool isEscapedSecondCheck = i > 1 && Text[i - 2] == '\\';
+
                 //Check if opening a tag.
-                if (current.Content == "<")
+                if (current.Content == "<" && !isEscaped && !isEscapedSecondCheck)
                 {
                     //Read the tag info.
                     string tagInfo;
                     i = ReadTag(i, out tagInfo);
                     //Process the collected tag.
                     ProcessTagStack(tagStack, tagInfo);
+                    continue;
+                }
+
+                if(current.Content == "\\" && !isEscaped)
+                {
                     continue;
                 }
 
@@ -425,10 +453,33 @@ namespace SoulEngine.Objects.Components
         public override void Draw()
         {
             base.Draw(Width, Height);
+
+            // If drawing bounds, draw the click rects bounds.
+            if(Settings.DrawBounds)
+            {
+                for (int i = 0; i < clickRects.Count; i++)
+                {
+                    Context.ink.DrawRectangle(clickRects[i], 1, Color.Blue);
+                }
+            }
         }
         public override void Update()
         {
-
+            // Check all click rectangle events.
+            for (int i = 0; i < clickRects.Count; i++)
+            {
+                // Check if the mouse is within the click rect.
+                if (Functions.inObject(InputModule.getMousePos(), clickRects[i], attachedObject.Priority))
+                {
+                    // If it is, check if it was clicked.
+                    if(InputModule.LeftClickDownTrigger())
+                    {
+                        // Invoke event.
+                        OnLetterClicked?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+            }
+            
         }
         #endregion
 

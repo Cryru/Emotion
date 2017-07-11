@@ -13,7 +13,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SoulEngine.Modules;
 
-namespace SoulEngine
+namespace SoulEngine.Scenes
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -30,12 +30,26 @@ namespace SoulEngine
 
         public override void Start()
         {
-            Context.Core.LoadScene(new StressTest());
+            // Context.Core.LoadScene(new StressTest());
+            Context.Core.Module<SceneManager>().LoadScene("test", new test1(), false);
+
+            GameObject a = GameObject.GenericDrawObject;
+            a.Bounds = new Rectangle(100, 100, 100, 100);
+            AddObject("test object 1", a);
+
+            GameObject clickTest = GameObject.GenericTextObject;
+            clickTest.Component<ActiveText>().Text = "Test test test <click>CLICK ME</>wadasdsadasdasdasdas";
+            clickTest.Bounds = new Rectangle(200, 200, 100, 100);
+            AddObject("text link test", clickTest);
+
         }
 
         public override void Update()
         {
-
+            if (InputModule.isKeyDown(Microsoft.Xna.Framework.Input.Keys.A))
+            {
+                Context.Core.Module<SceneManager>().SwapScene("test");
+            }
         }
     }
 }

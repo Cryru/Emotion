@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SoulEngine.Events;
+using SoulEngine.Modules;
 
 namespace SoulEngine.Objects.Components
 {
@@ -68,10 +69,10 @@ namespace SoulEngine.Objects.Components
         {
             //Check if object we are attaching to is on the UI layer.
             if (attachedObject.Layer != Enums.ObjectLayer.UI) throw new Exception("Cannot attach UI component to an object not on the UI layer!");
-            Input.OnMouseMove += Input_OnMouseMove;
-            Input.OnMouseButtonDown += Input_OnMouseButtonDown;
-            Input.OnMouseButtonUp += Input_OnMouseButtonUp;
-            Input.OnMouseScroll += Input_OnMouseScroll;
+            InputModule.OnMouseMove += Input_OnMouseMove;
+            InputModule.OnMouseButtonDown += Input_OnMouseButtonDown;
+            InputModule.OnMouseButtonUp += Input_OnMouseButtonUp;
+            InputModule.OnMouseScroll += Input_OnMouseScroll;
         }
 
         #region "Event Handlers"
@@ -82,7 +83,7 @@ namespace SoulEngine.Objects.Components
         {
             if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool isIn = Functions.inObject(Input.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
+            bool isIn = Functions.inObject(InputModule.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
 
             if (isIn) OnMouseScroll?.Invoke(attachedObject, e);
         }
@@ -94,7 +95,7 @@ namespace SoulEngine.Objects.Components
         {
             if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool isIn = Functions.inObject(Input.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
+            bool isIn = Functions.inObject(InputModule.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
 
             if (isIn)
             {
@@ -110,7 +111,7 @@ namespace SoulEngine.Objects.Components
         {
             if (!attachedObject.Drawing || !Functions.CheckOpacity(attachedObject)) return;
 
-            bool isIn = Functions.inObject(Input.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
+            bool isIn = Functions.inObject(InputModule.getMousePos(), attachedObject.Bounds, attachedObject.Priority);
 
             if (isIn)
             {
@@ -162,10 +163,10 @@ namespace SoulEngine.Objects.Components
                 if (disposing)
                 {
                     //Detach from events.
-                    Input.OnMouseMove -= Input_OnMouseMove;
-                    Input.OnMouseButtonDown -= Input_OnMouseButtonDown;
-                    Input.OnMouseButtonUp -= Input_OnMouseButtonUp;
-                    Input.OnMouseScroll -= Input_OnMouseScroll;
+                    InputModule.OnMouseMove -= Input_OnMouseMove;
+                    InputModule.OnMouseButtonDown -= Input_OnMouseButtonDown;
+                    InputModule.OnMouseButtonUp -= Input_OnMouseButtonUp;
+                    InputModule.OnMouseScroll -= Input_OnMouseScroll;
                 }
 
                 attachedObject = null;

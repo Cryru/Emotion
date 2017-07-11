@@ -169,10 +169,10 @@ namespace SoulEngine.Modules
         public static T Asset<T>(string assetName, T ifMissing)
         {
             if (AssetExist(assetName))
-                if (Context.Core.Scene == null)
-                    return Context.Core.Content.Load<T>(assetName);
+                if (Context.Core.isModuleLoaded<SceneManager>() && Context.Core.Module<SceneManager>().currentScene != null)
+                    return Context.Core.Module<SceneManager>().currentScene.Assets.Content.Load<T>(assetName);
                 else
-                    return Context.Core.Scene.Assets.Content.Load<T>(assetName);
+                    return Context.Core.Content.Load<T>(assetName);
             else
                 return ifMissing;
         }

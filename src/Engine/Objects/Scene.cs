@@ -82,24 +82,15 @@ namespace SoulEngine.Objects
         /// <summary>
         /// Setups the scene as the current scene.
         /// </summary>
-        /// <param name="Force">Whether to force loading the scene.</param>
-        public void SetupScene(bool Force = false)
+        public void SetupScene()
         {
-            //Check if allowed to setup a new scene.
-            if (!Context.Core.__sceneSetupAllowed && !Force)
-            {
-                if (Context.Core.isModuleLoaded<ErrorManager>())
-                    Context.Core.Module<ErrorManager>().RaiseError("Scene setup must be done by the core, and not called directly.", 180);
-            }
-
-
             //Setup assets loader and objects dictionary.
             Assets = new Assets();
             Objects = new Dictionary<string, GameObject>();
             ObjectClusters = new Dictionary<string, List<GameObject>>();
 
             //Attach the mouse down event.
-            Input.OnMouseButtonDown += Input_OnMouseButtonDown;
+            InputModule.OnMouseButtonDown += Input_OnMouseButtonDown;
 
             //Run the start code.
             Start();
@@ -110,7 +101,7 @@ namespace SoulEngine.Objects
         /// </summary>
         private void Input_OnMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if(Functions.inObject(Input.getMousePos(), new Microsoft.Xna.Framework.Rectangle(0, 0, Settings.Width, Settings.Height), -1))
+            if(Functions.inObject(InputModule.getMousePos(), new Microsoft.Xna.Framework.Rectangle(0, 0, Settings.Width, Settings.Height), -1))
             {
                 OnClicked?.Invoke(this, e);
             }

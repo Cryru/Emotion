@@ -35,7 +35,9 @@ namespace SoulEngine.Modules
         // 50 - Javascript execution error.
         // 100 - Module failed to load.
         // 101 - Expected module wasn't loaded.
-        // 180 - Scene load called directly.
+        // 180 - Duplicate scene name.
+        // 181 - Tried to unload the current scene.
+        // 182 - Tried to swap to the current scene.
         // 240 - Global assets failed to load.
         // 241 - meta.soul - Missing.
         // 242 - meta.soul - Wrong format.

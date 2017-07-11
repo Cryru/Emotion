@@ -21,23 +21,40 @@ namespace SoulEngine.Modules
     /// </summary>
     public class DebugModule : IModuleUpdatable, IModuleDrawable, IModuleComposable
     {
-        private GameObject stats;
-        public string debugText;
 
+        #region Declarations
+        // Objects
+        private GameObject stats;
         private GameObject console;
+        private Ticker consoleBlinkTicker;
+
+        // Helpers
         private string consoleInput = "";
         private string previousInput = "";
         private string consoleOutput = Info.getInfo() + "\n" +
             "Start typing and press Enter to execute code. To scroll use the mouse wheel." + "\n" +
             "Use the arrows to navigate and the Up arrow to repeat the previous command.";
-        private string consoleBlinker = "|";
-        private Ticker consoleBlinkTicker;
-        private int blinkerLocation = 0;
+        public string debugText;
+        public string extraDebug;
 
-        //Console
+        // Console
+        /// <summary>
+        /// Whether the console is opened.
+        /// </summary>
         public bool consoleOpened = false;
-
-        public string selectedObject = "";
+        /// <summary>
+        /// Used to delay blinker movements.
+        /// </summary>
+        float delayer;
+        /// <summary>
+        /// The selection location.
+        /// </summary>
+        private int blinkerLocation = 0;
+        /// <summary>
+        /// The blinker symbol.
+        /// </summary>
+        private string consoleBlinker = "|";
+        #endregion
 
         /// <summary>
         /// Setups the scene as the current scene.
@@ -72,30 +89,39 @@ namespace SoulEngine.Modules
             // Ticker for the console blink.
             consoleBlinkTicker = new Ticker(300, -1, true);
 
-            Input.OnKeyDown += KeysManager;
+            InputModule.OnKeyDown += KeysManager;
             console.Component<MouseInput>().OnMouseScroll += ScrollManager;
-            Input.OnTextInput += ConsoleInput;
+            InputModule.OnTextInput += ConsoleInput;
             consoleBlinkTicker.OnTick += ConsoleBlinkToggle;
 
             // Refresh the console text.
             UpdateConsoleText();
 
+            // Hook script functions.
+            if(Context.Core.isModuleLoaded<ScriptEngine>())
+            {
+                Context.Core.Module<ScriptEngine>().ExposeFunction("select", (Action) selectObject);
+            }
+
             return true;
         }
 
-        float delayer;
+
         #region "Hooks"
         /// <summary>
         /// The core's hook for updating.
         /// </summary>
         public void Update()
         {
-            if(Context.Core.Scene != null)
+            if(Context.Core.isModuleLoaded<SceneManager>())
             {
-                stats.Component<ActiveText>().Text = (Context.Core.__sceneSetupAllowed ? "Loading: " : "") + Context.Core.Scene.ToString().Replace("SoulEngine.", "") + "\n" +
-               "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (debugText == null ? "" : "\n" + debugText);
+                stats.Component<ActiveText>().Text = Context.Core.Module<SceneManager>().Loading ? "Loading" : 
+                    Context.Core.Module<SceneManager>().currentScene.ToString().Replace("SoulEngine.Scenes.", "");
             }
-           
+
+            stats.Component<ActiveText>().Text += "\n" + "<border=#000000><color=#e2a712>FPS: " + FPS + "</></>" + (extraDebug == null ? "" : "\n" + extraDebug)
+                + (debugText == null ? "" : "\n" + debugText);
+
             stats.Width = stats.Component<ActiveText>().Width + Functions.ManualRatio(6, 540);
             stats.Height = stats.Component<ActiveText>().Height + Functions.ManualRatio(6, 540);
             stats.Update();
@@ -110,14 +136,47 @@ namespace SoulEngine.Modules
             {
                 delayer -= 100;
 
-                if (Input.isKeyDown(Microsoft.Xna.Framework.Input.Keys.Left))
+                if (InputModule.isKeyDown(Microsoft.Xna.Framework.Input.Keys.Left))
                 {
                     MoveBlinkerLeft();
                 }
 
-                if (Input.isKeyDown(Microsoft.Xna.Framework.Input.Keys.Right))
+                if (InputModule.isKeyDown(Microsoft.Xna.Framework.Input.Keys.Right))
                 {
                     MoveBlinkerRight();
+                }
+            }
+
+            // Check if in select mode.
+            if(selectMode)
+            {
+                extraDebug = "Select Mode";
+
+                // Check if the mouse is over something.
+                GameObject tempUI = Functions.inObject(InputModule.getMousePos(), -1, Enums.ObjectLayer.UI);
+                GameObject tempWorld = Functions.inObject(InputModule.getMousePos(), -1, Enums.ObjectLayer.World);
+
+                GameObject temp = tempUI;
+                if (tempUI == null) temp = tempWorld;
+                if (tempWorld == null) temp = null;
+
+                // If over something.
+                if (temp != null)
+                {
+                    extraDebug += "\n";
+
+                    extraDebug += "Name=" + temp.Name + "\n";
+                    extraDebug += "Layer=" + temp.Layer + "\n";
+                    extraDebug += "Position=" + temp.Bounds.ToString() + "\n";
+                    extraDebug += "Priority=" + temp.Priority + "\n";
+                    extraDebug += "Rotation=" + temp.Rotation + "\n";
+                    extraDebug += "Components " + "\n";
+
+                    foreach(var comp in temp.Components)
+                    {
+                        extraDebug += " " + comp.GetType().ToString() + "\n";
+                    }
+
                 }
             }
         }
@@ -185,6 +244,7 @@ namespace SoulEngine.Modules
 
             if (inputChar == "<") inputChar = "\\<";
             if (inputChar == ">") inputChar = "\\>";
+            if (inputChar == "\\") inputChar = "\\\\";
 
             if (inputChar != "\b")
             {
@@ -318,6 +378,16 @@ namespace SoulEngine.Modules
             {
                 ScrollUp();
             }
+        }
+        #endregion
+
+        #region Script Functions
+        bool selectMode = false;
+        string selectedObject = "";
+
+        private void selectObject()
+        {
+            selectMode = !selectMode;
         }
         #endregion
     }
