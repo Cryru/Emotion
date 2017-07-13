@@ -95,7 +95,6 @@ namespace SoulEngine
         /// </summary>
         public static bool Scripting = true;
         #endregion
-
         #region "Other Settings"
         /// <summary>
         /// Whether an external settings file should be loaded.

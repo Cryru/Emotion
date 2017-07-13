@@ -68,7 +68,8 @@ namespace SoulEngine
                 priority = value;
 
                 // Order the objects in the current scene.
-                if(Context.Core.isModuleLoaded<SceneManager>()) Context.Core.Module<SceneManager>().currentScene.OrderObjects();
+                if(Context.Core.isModuleLoaded<SceneManager>() && Context.Core.Module<SceneManager>().currentScene != null)
+                    Context.Core.Module<SceneManager>().currentScene.OrderObjects();
             }
         }
         private int priority = 0;

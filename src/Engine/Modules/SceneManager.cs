@@ -34,16 +34,6 @@ namespace SoulEngine.Modules
                 return scenesToLoad.Count > 0;
             }
         }
-        /// <summary>
-        /// Whether we are in debug mode.
-        /// </summary>
-        private bool Debugging
-        {
-            get
-            {
-                return Context.Core.isModuleLoaded<DebugModule>() && Context.Core.Module<DebugModule>().consoleOpened;
-            }
-        }
         #endregion
 
         public bool Initialize()
@@ -64,7 +54,7 @@ namespace SoulEngine.Modules
         public void Update()
         {
             // Check if debugging, in which case we want to not update the scene.
-            if(!Debugging)
+            if(!Context.Core.Paused)
             {
                 // Update the current scene if its loaded, if not the loading screen if its loaded.
                 if (currentScene != null && !Loading) currentScene.UpdateHook();

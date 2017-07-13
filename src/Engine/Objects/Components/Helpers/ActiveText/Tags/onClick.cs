@@ -17,11 +17,13 @@ namespace SoulEngine.Objects.Components.Helpers.Tags
     {
         public onClick(string Data) : base(Data)
         {
+
         }
 
         public override CharData Effect(CharData c, DrawData d)
         {
             c.clickEvent = true;
+            c.clickData = Data;
             return c;
         }
     }

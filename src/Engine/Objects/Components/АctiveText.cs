@@ -156,6 +156,7 @@ namespace SoulEngine.Objects.Components
         private int drawlimit = -1;
         private List<TextLine> linesCache;
         private List<Rectangle> clickRects = new List<Rectangle>();
+        private List<string> clickData = new List<string>();
         private Vector2 cachedSize;
         private string text = "";
         #endregion
@@ -166,7 +167,7 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Invoked when a letter with the <click> tag is clicked.
         /// </summary>
-        public event EventHandler<EventArgs> OnLetterClicked;
+        public event EventHandler<LetterClickEventArgs> OnLetterClicked;
         #endregion
         #endregion
 
@@ -236,6 +237,7 @@ namespace SoulEngine.Objects.Components
 
             // Clear the click detection rectangles;
             clickRects.Clear();
+            clickData.Clear();
 
             //Start composing on the render target.
             Context.ink.StartRenderTarget(ref texture, Width, Height);
@@ -314,6 +316,7 @@ namespace SoulEngine.Objects.Components
                                 new Point(attachedObject.X + (int)offsetX, attachedObject.Y + (int)offsetY),
                                 new Point(stringWidth(linesCache[y].Chars[x].Content), stringHeight(linesCache[y].Chars[x].Content))
                                 ));
+                        clickData.Add(linesCache[y].Chars[x].clickData);
                     }
                     
                     //Draw the character.
@@ -475,7 +478,7 @@ namespace SoulEngine.Objects.Components
                     if(InputModule.LeftClickDownTrigger())
                     {
                         // Invoke event.
-                        OnLetterClicked?.Invoke(this, EventArgs.Empty);
+                        OnLetterClicked?.Invoke(this, new LetterClickEventArgs(clickData[i]));
                     }
                 }
             }
@@ -511,14 +514,19 @@ namespace SoulEngine.Objects.Components
         /// <summary>
         /// Returns the width of a string.
         /// </summary>
-        /// <param name="line">The string to measure.</param>
+        /// <param name="text">The string to measure.</param>
         /// <returns>The width of the input string.</returns>
-        private int stringWidth(string text)
+        public int stringWidth(string text)
         {
             return (int) Math.Ceiling(Font.MeasureString(text).X);
         }
 
-        private int stringHeight(string text = " ")
+        /// <summary>
+        /// Returns the height of a string.
+        /// </summary>
+        /// <param name="text">The string to measure.</param>
+        /// <returns>The height of the input string.</returns>
+        public int stringHeight(string text = " ")
         {
             return (int) Math.Ceiling(Font.MeasureString(text).Y);
         }

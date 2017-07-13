@@ -99,7 +99,7 @@ namespace SoulEngine.Objects
         /// <param name="Type">The type of object.</param>
         public static string GenerateChildObjectName(string Type)
         {
-            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" + Context.Core.Module<SceneManager>().currentScene.ObjectCount +
+            return Type + "_" + Functions.generateRandomNumber(1, 255) + "N" +
                 "@" + DateTime.Now.Minute + ":" + DateTime.Now.Second + ":" + DateTime.Now.Millisecond;
         }
         #endregion

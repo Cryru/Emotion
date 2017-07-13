@@ -9,6 +9,7 @@ using SoulEngine.Objects.Components;
 using Microsoft.Xna.Framework;
 using SoulEngine.Scripting;
 using SoulEngine.Modules;
+using SoulEngine.Enums;
 
 namespace SoulEngine.Modules
 {
@@ -27,6 +28,9 @@ namespace SoulEngine.Modules
         private GameObject stats;
         private GameObject console;
         private Ticker consoleBlinkTicker;
+        private UIObject scroll;
+        private GameObject bar;
+        private GameObject selector;
 
         // Helpers
         private string consoleInput = "";
@@ -36,6 +40,16 @@ namespace SoulEngine.Modules
             "Use the arrows to navigate and the Up arrow to repeat the previous command.";
         public string debugText;
         public string extraDebug;
+
+        // Select helpers
+        /// <summary>
+        /// Whether select mode is on.
+        /// </summary>
+        bool selectMode = false;
+        /// <summary>
+        /// The selected object.
+        /// </summary>
+        public GameObject selectedObject;
 
         // Console
         /// <summary>
@@ -73,7 +87,7 @@ namespace SoulEngine.Modules
             stats.Component<ActiveText>().AutoHeight = true;
             stats.Component<ActiveText>().AutoWidth = true;
             stats.Component<ActiveText>().Padding = new Vector2(Functions.ManualRatio(3, 540), Functions.ManualRatio(3, 540));
-            
+
             // The console.
             console = GameObject.GenericDrawObject;
             console.Component<ActiveTexture>().ActualTexture = AssetManager.BlankTexture;
@@ -85,6 +99,30 @@ namespace SoulEngine.Modules
             console.Y = Settings.Height - console.Height;
             console.Layer = Enums.ObjectLayer.UI;
             console.AddComponent(new MouseInput());
+
+            // The console scrollbar.
+            bar = GameObject.GenericDrawObject;
+            bar.Layer = ObjectLayer.UI;
+            bar.Priority = 0;
+            bar.Height = Settings.Height / 2 - 30;
+            bar.Y = Settings.Height - console.Height;
+            bar.Width = 10;
+            bar.X = Settings.Width - 10;
+            bar.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
+            bar.Component<ActiveTexture>().Opacity = 0.7f;
+            bar.Component<ActiveTexture>().Tint = Color.Black;
+
+            selector = GameObject.GenericDrawObject;
+            selector.Layer = ObjectLayer.UI;
+            selector.AddComponent(new MouseInput());
+            selector.Priority = 1;
+            selector.Height = 10;
+            selector.Y = Settings.Height - 40;
+            selector.Width = 10;
+            selector.X = Settings.Width - 10;
+            selector.Component<ActiveTexture>().Texture = AssetManager.BlankTexture;
+            selector.Component<ActiveTexture>().Opacity = 1;
+            selector.Component<ActiveTexture>().Tint = Color.White;
 
             // Ticker for the console blink.
             consoleBlinkTicker = new Ticker(300, -1, true);
@@ -98,9 +136,22 @@ namespace SoulEngine.Modules
             UpdateConsoleText();
 
             // Hook script functions.
-            if(Context.Core.isModuleLoaded<ScriptEngine>())
+            if (Context.Core.isModuleLoaded<ScriptEngine>())
             {
-                Context.Core.Module<ScriptEngine>().ExposeFunction("select", (Action) selectObject);
+                Context.Core.Module<ScriptEngine>().ExposeFunction("getObjects", (Func<string>)getObjects, "Returns a list of objects attached to the current scene.");
+                Context.Core.Module<ScriptEngine>().ExposeFunction("select", (Action<string>)selectObject, "Selects an object by name.");
+                Context.Core.Module<ScriptEngine>().ExposeFunction("select", (Action)selectObject, "Enter select mode to select a game object.");
+                Context.Core.Module<ScriptEngine>().ExposeFunction("clean", (Action)reset, "Unselects any selected object");
+                Context.Core.Module<ScriptEngine>().helpDocumentation.Add("<color=#f2a841>selectedObject</> | The selected object.");
+                Context.Core.Module<ScriptEngine>().ExposeFunction("getLog", (Func<string>)getLog, "Returns the whole system log from the logger module.");
+                ScriptEngine.Interpreter.SetValue("Settings", new Settings());
+                Context.Core.Module<ScriptEngine>().helpDocumentation.Add("<color=#f2a841>Settings</> | The currently loaded engine settings.");
+                Context.Core.Module<ScriptEngine>().ExposeFunction("line", (Action<int, int, int, int>)line, "Draws a line between the specified coordinates.");
+                Context.Core.Module<ScriptEngine>().ExposeFunction("rect", (Action<int, int, int, int>)rect, "Draws a rectangle between the two specified points.");
+                ScriptEngine.Interpreter.SetValue("lines", Lines);
+                ScriptEngine.Interpreter.SetValue("rects", Rects);
+                Context.Core.Module<ScriptEngine>().helpDocumentation.Add("<color=#f2a841>rects</> | The debug rectangles currently drawing.");
+                Context.Core.Module<ScriptEngine>().helpDocumentation.Add("<color=#f2a841>lines</> | The debug lines currently drawing.");
             }
 
             return true;
@@ -113,9 +164,9 @@ namespace SoulEngine.Modules
         /// </summary>
         public void Update()
         {
-            if(Context.Core.isModuleLoaded<SceneManager>())
+            if (Context.Core.isModuleLoaded<SceneManager>())
             {
-                stats.Component<ActiveText>().Text = Context.Core.Module<SceneManager>().Loading ? "Loading" : 
+                stats.Component<ActiveText>().Text = Context.Core.Module<SceneManager>().Loading ? "Loading" :
                     Context.Core.Module<SceneManager>().currentScene.ToString().Replace("SoulEngine.Scenes.", "");
             }
 
@@ -128,7 +179,11 @@ namespace SoulEngine.Modules
 
             //Update display status.
             console.Drawing = consoleOpened;
+            bar.Drawing = consoleOpened && console.Component<ActiveText>().TextHeight > console.Height;
+            selector.Drawing = consoleOpened && console.Component<ActiveText>().TextHeight > console.Height;
             console.Update();
+            bar.Update();
+            selector.Update();
 
             //Update buttons on a delay.
             delayer += Context.Core.frameTime;
@@ -148,36 +203,14 @@ namespace SoulEngine.Modules
             }
 
             // Check if in select mode.
-            if(selectMode)
+            if (selectMode)
             {
-                extraDebug = "Select Mode";
+                mode_select();
+            }
 
-                // Check if the mouse is over something.
-                GameObject tempUI = Functions.inObject(InputModule.getMousePos(), -1, Enums.ObjectLayer.UI);
-                GameObject tempWorld = Functions.inObject(InputModule.getMousePos(), -1, Enums.ObjectLayer.World);
-
-                GameObject temp = tempUI;
-                if (tempUI == null) temp = tempWorld;
-                if (tempWorld == null) temp = null;
-
-                // If over something.
-                if (temp != null)
-                {
-                    extraDebug += "\n";
-
-                    extraDebug += "Name=" + temp.Name + "\n";
-                    extraDebug += "Layer=" + temp.Layer + "\n";
-                    extraDebug += "Position=" + temp.Bounds.ToString() + "\n";
-                    extraDebug += "Priority=" + temp.Priority + "\n";
-                    extraDebug += "Rotation=" + temp.Rotation + "\n";
-                    extraDebug += "Components " + "\n";
-
-                    foreach(var comp in temp.Components)
-                    {
-                        extraDebug += " " + comp.GetType().ToString() + "\n";
-                    }
-
-                }
+            if (selectedObject != null)
+            {
+                mode_object();
             }
         }
         /// <summary>
@@ -187,6 +220,8 @@ namespace SoulEngine.Modules
         {
             stats.Compose();
             console.Compose();
+            bar.Compose();
+            selector.Compose();
         }
         /// <summary>
         /// The core's hook for drawing.
@@ -197,8 +232,76 @@ namespace SoulEngine.Modules
 
             Context.ink.Start(Enums.DrawMatrix.Screen);
             stats.Draw();
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                Context.ink.DrawLine(Lines[i][0], Lines[i][1], 1, Color.Red);
+            }
+            for (int i = 0; i < Rects.Count; i++)
+            {
+                Context.ink.DrawRectangle(Rects[i], 1, Color.Red);
+            }
             console.Draw();
+            bar.Draw();
+            selector.Draw();
             Context.ink.End();
+        }
+        #endregion
+
+        #region DebugModes
+        private void mode_select()
+        {
+            extraDebug = "Select Mode";
+
+            // Check if the mouse is over something.
+            GameObject tempUI = Functions.inObject(InputModule.getMousePos(), -1, Enums.ObjectLayer.UI);
+            GameObject tempWorld = Functions.inObject(InputModule.getMousePos(), -1, Enums.ObjectLayer.World);
+
+            GameObject temp = tempUI;
+            if (tempUI == null) temp = tempWorld;
+            if (tempWorld == null) temp = null;
+
+            // If over something.
+            if (temp != null)
+            {
+                extraDebug += "\n" + helper_objectData(temp);
+            }
+
+            // Check if click.
+            if (InputModule.LeftClickDownTrigger())
+            {
+                // Select the object and exit out of select mode.
+                selectMode = false;
+                selectedObject = temp;
+                ScriptEngine.Interpreter.SetValue("selectedObject", selectedObject);
+            }
+        }
+        private void mode_object()
+        {
+            extraDebug = "\n" + helper_objectData(selectedObject);
+        }
+
+        private string helper_objectData(GameObject gameObject)
+        {
+            string returnData = "";
+
+            returnData += "Name=" + gameObject.Name + "\n";
+            returnData += "Layer=" + gameObject.Layer + "\n";
+            returnData += "Position=" + gameObject.Bounds.ToString() + "\n";
+            returnData += "Priority=" + gameObject.Priority + "\n";
+            returnData += "Rotation=" + gameObject.Rotation + "\n";
+            returnData += "Components " + "\n";
+
+            foreach (var comp in gameObject.Components)
+            {
+                returnData += "|-" + comp.GetType().ToString() + "\n";
+
+                foreach (var prop in comp.GetType().GetProperties())
+                {
+                    returnData += " |-" + prop.Name + "=" + prop.GetValue(comp, null) + "\n";
+                }
+            }
+
+            return returnData;
         }
         #endregion
 
@@ -276,8 +379,9 @@ namespace SoulEngine.Modules
             consoleInput = "";
 
             UpdateConsoleText();
-
             console.Component<ActiveText>().ScrollBottom();
+
+            UpdateConsoleText();
         }
         /// <summary>
         /// Updates the text that the console displays.
@@ -288,6 +392,20 @@ namespace SoulEngine.Modules
 
             console.Component<ActiveText>().Text = consoleOutput + "\n" + "> " + consoleInput.Substring(0, blinkerLocation) + consoleBlinker +
                 consoleInput.Substring(blinkerLocation);
+
+            // Set selector and bar.
+            if (console.Component<ActiveText>().TextHeight > console.Height)
+            {
+                int scrollLimit = console.Component<ActiveText>().TextHeight - console.Height;
+
+                int scrollAmount = (int)console.Component<ActiveText>().Scroll.Y * -1;
+
+                selector.Height = bar.Height - scrollLimit;
+
+                if (selector.Height < 0) selector.Height = 1;
+
+                selector.Y = ((bar.Y) + scrollAmount) + 4;
+            }
         }
 
         /// <summary>
@@ -382,12 +500,64 @@ namespace SoulEngine.Modules
         #endregion
 
         #region Script Functions
-        bool selectMode = false;
-        string selectedObject = "";
-
         private void selectObject()
         {
             selectMode = !selectMode;
+            selectedObject = null;
+            ScriptEngine.Interpreter.SetValue("selectedObject", selectedObject);
+        }
+        private void reset()
+        {
+            selectMode = false;
+            selectedObject = null;
+            ScriptEngine.Interpreter.SetValue("selectedObject", selectedObject);
+            extraDebug = "";
+        }
+        /// <summary>
+        /// Returns all objects attached to the scene.
+        /// </summary>
+        private string getObjects()
+        {
+            if (!Context.Core.isModuleLoaded<SceneManager>() &&
+                Context.Core.Module<SceneManager>().currentScene == null) return "No scene loaded.";
+
+            return string.Join("\n", Context.Core.Module<SceneManager>().currentScene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) +
+                (Context.Core.Module<SceneManager>().currentScene.AttachedClusters.Count > 0 ?
+                "\n" + string.Join("\n", Context.Core.Module<SceneManager>().currentScene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components")) :
+                "");
+        }
+        /// <summary>
+        /// Draws a border around the object with the provided name.
+        /// </summary>
+        /// <param name="objectName">The name of the object to draw a border around.</param>
+        private void selectObject(string objectName)
+        {
+            Context.Core.Module<DebugModule>().selectedObject = Context.Core.Module<SceneManager>().currentScene.GetObject(objectName);
+        }
+        /// <summary>
+        /// Prints the system log.
+        /// </summary>
+        private string getLog()
+        {
+            return string.Join("\n", Context.Core.Module<Logger>().GetLog());
+        }
+        /// <summary>
+        /// Draws a line on the screen.
+        /// </summary>
+        private List<List<Vector2>> Lines = new List<List<Vector2>>();
+        private void line(int x, int y, int x2, int y2)
+        {
+
+            List<Vector2> temp = new List<Vector2>();
+            temp.Add(new Vector2(x, y));
+            temp.Add(new Vector2(x2, y2));
+            Lines.Add(temp);
+
+        }
+        private List<Rectangle> Rects = new List<Rectangle>();
+        private void rect(int x, int y, int width, int height)
+        {
+            Rects.Add(new Rectangle(x, y, width, height));
         }
         #endregion
     }
