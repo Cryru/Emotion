@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SoulEngine
+namespace SoulEngine.Modules
 {
     //////////////////////////////////////////////////////////////////////////////
     // SoulEngine - A game engine based on the MonoGame Framework.              //
@@ -16,11 +16,16 @@ namespace SoulEngine
     /// <summary>
     /// An animation component. Requires an ActiveTexture to be drawn.
     /// </summary>
-    public static class SoundEngine
+    public class SoundEngine : IModuleUpdatable
     {
         #region "Declarations"
         private static Dictionary<SoundEffectInstance, string> SoundsPlaying = new Dictionary<SoundEffectInstance, string>();
         #endregion
+
+        public bool Initialize()
+        {
+            return true;
+        }
 
         /// <summary>
         /// Stops all sound on a particular channel.
@@ -82,7 +87,7 @@ namespace SoulEngine
         /// <summary>
         /// Updates the volume every frame.
         /// </summary>
-        public static void Update()
+        public void Update()
         {
             //Clamp within range.
             Settings.Volume = MathHelper.Clamp(Settings.Volume, 0, 100);

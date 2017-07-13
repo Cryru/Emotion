@@ -24,6 +24,7 @@ namespace SoulEngine.Objects.Components.Helpers
         public List<Tag> Tags = new List<Tag>();
 
         public bool clickEvent;
+        public string clickData;
 
         public CharData(string Content, Color Color, SpriteFont Font)
         {

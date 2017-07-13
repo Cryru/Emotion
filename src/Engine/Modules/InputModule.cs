@@ -63,7 +63,8 @@ namespace SoulEngine.Modules
 
         public bool Initialize()
         {
-            return true;
+            // Requires a scenemanager.
+            return Context.Core.isModuleLoaded<SceneManager>();
         }
 
         /// <summary>
@@ -71,6 +72,9 @@ namespace SoulEngine.Modules
         /// </summary>
         public void Update()
         {
+            // Check if a scene is loaded.
+            if (Context.Core.Module<SceneManager>().currentScene == null) return;
+
             // Carry over last frame's current as this frame's last.
             lastFrameKeyState = currentFrameKeyState;
             lastFrameMouseState = currentFrameMouseState;

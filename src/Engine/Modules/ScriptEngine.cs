@@ -18,7 +18,7 @@ namespace SoulEngine.Modules
     /// Used to run javascript.
     /// Uses Jint - Public Repository: https://github.com/sebastienros/jint
     /// </summary>
-    public class ScriptEngine : IModuleDrawable
+    public class ScriptEngine : IModule
     {
         #region "Declarations"
         /// <summary>
@@ -26,9 +26,9 @@ namespace SoulEngine.Modules
         /// </summary>
         public static Engine Interpreter = new Engine();
         /// <summary>
-        /// List of exposed functions.
+        /// List of exposed data and documentation. Used to generate the help menu.
         /// </summary>
-        private static List<string> exposedFunctions;
+        public List<string> helpDocumentation;
         #endregion
 
         /// <summary>
@@ -36,22 +36,12 @@ namespace SoulEngine.Modules
         /// </summary>
         public bool Initialize()
         {
-            //Define an internal list of exposed functions.
-            exposedFunctions = new List<string>();
+            // Define help documentation.
+            helpDocumentation = new List<string>();
 
             //Add default functions.
-            ExposeFunction("getObjects", (Func<string>) getObjects);
-            ExposeFunction("object", (Action<string>) selectObject);
-            ExposeFunction("object", (Action<int>)selectObject);
-            ExposeFunction("getLog", (Func<string>)getLog);
-            ExposeFunction("help", (Func<string>)help);
-            ExposeFunction("info", (Func<string>)Info.getInfo);
-            ExposeFunction("line", (Action<int, int, int, int>) line);
-            ExposeFunction("rect", (Action<int, int, int, int>) rect);
-
-            Interpreter.SetValue("Settings", new Settings());
-            Interpreter.SetValue("Lines", Lines);
-            Interpreter.SetValue("Rects", Rects);
+            ExposeFunction("help", (Func<string>)help, "Returns help on all exposed functions.");
+            ExposeFunction("info", (Func<string>)Info.getInfo, "Returns info on the engine.");
 
             return true;
         }
@@ -82,7 +72,8 @@ namespace SoulEngine.Modules
         /// </summary>
         /// <param name="Name">The name the function will be called by in the script.</param>
         /// <param name="Function">The func object to register.</param>
-        public void ExposeFunction(string Name, object Function)
+        /// <param name="Documentation">Documentation on what the function does.</param>
+        public void ExposeFunction(string Name, object Function, string Documentation = "")
         {
             //Check if scripting is enabled.
             if (!Settings.Scripting) return;
@@ -115,8 +106,13 @@ namespace SoulEngine.Modules
                 functionType = functionType.Replace("Action`", "");
                 returnType = "Nothing";
             }
+            if (functionType.Contains("Action"))
+            {
+                functionType = functionType.Replace("Action", "");
+                returnType = "Nothing";
+            }
 
-            exposedFunctions.Add("<color=#f2a841>" + Name + "</><color=#6bdd52>" + functionType + "</> => " + returnType);
+            helpDocumentation.Add("<color=#f2a841>" + Name + "</><color=#6bdd52>" + functionType + "</> => " + returnType + (Documentation != "" ? " | " + Documentation : ""));
 
             Interpreter.SetValue(Name, Function);
         }
@@ -131,89 +127,15 @@ namespace SoulEngine.Modules
         }
 
         #region "Default Script Functions"
-        /// <summary>
-        /// Returns all objects attached to the scene.
-        /// </summary>
-        private string getObjects()
-        {
-            if (!Context.Core.isModuleLoaded<SceneManager>() && 
-                Context.Core.Module<SceneManager>().currentScene == null) return "No scene loaded.";
+        
 
-            return string.Join("\n", Context.Core.Module<SceneManager>().currentScene.AttachedObjects.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.ComponentCount + "</> components")) + 
-                (Context.Core.Module<SceneManager>().currentScene.AttachedClusters.Count > 0 ? 
-                "\n" + string.Join("\n", Context.Core.Module<SceneManager>().currentScene.AttachedClusters.Select(x => "<color=#f2a841>" + x.Key + "</> - <color=#6bdd52>" + x.Value.Count + "</> components")) :
-                "");
-        }
-        /// <summary>
-        /// Draws a border around the object with the provided name.
-        /// </summary>
-        /// <param name="objectName">The name of the object to draw a border around.</param>
-        private void selectObject(string objectName)
-        {
-            //Debugging.DebugScene.selectedObject = objectName;
-        }
-        /// <summary>
-        /// Draws a border around the object with the provided index.
-        /// </summary>
-        /// <param name="objectName">The name of the object to draw a border around.</param>
-        private void selectObject(int objectIndex)
-        {
-            int index = 0;
-            string name = null;
-            foreach (var item in Context.Core.Module<SceneManager>().currentScene.AttachedObjects)
-            {
-                name = item.Key;
-                index++;
-                if (index == objectIndex) break;
-            }
-            //Debugging.DebugScene.selectedObject = name;
-        }
-        /// <summary>
-        /// Prints the system log.
-        /// </summary>
-        private string getLog()
-        {
-            return string.Join("\n", Context.Core.Module<Logger>().GetLog());
-        }
         /// <summary>
         /// Prints all exposed functions.
         /// </summary>
         private string help()
         {
-            return string.Join("\n", exposedFunctions);
-        }
-        /// <summary>
-        /// Draws a line on the screen.
-        /// </summary>
-        private List<List<Vector2>> Lines = new List<List<Vector2>>();
-        private void line(int x, int y, int x2, int y2)
-        {
-            
-            List<Vector2> temp = new List<Vector2>();
-            temp.Add(new Vector2(x, y));
-            temp.Add(new Vector2(x2, y2));
-            Lines.Add(temp);
-            
-        }
-        private List<Rectangle> Rects = new List<Rectangle>();
-        private void rect(int x, int y, int width, int height)
-        {
-            Rects.Add(new Rectangle(x, y, width, height));
+            return string.Join("\n", helpDocumentation);
         }
         #endregion
-
-        public void Draw()
-        {
-            Context.ink.Start(Enums.DrawMatrix.Screen);
-            for (int i = 0; i < Lines.Count; i++)
-            {
-                Context.ink.DrawLine(Lines[i][0], Lines[i][1], 1, Color.Red);
-            }
-            for (int i = 0; i < Rects.Count; i++)
-            {
-                Context.ink.DrawRectangle(Rects[i], 1, Color.Red);
-            }
-            Context.ink.End();
-        }
     }
 }

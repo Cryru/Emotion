@@ -17,6 +17,9 @@ namespace SoulEngine.Modules
         /// </summary>
         public void Draw()
         {
+            // If paused, don't update tickers.
+            if (Context.Core.Paused) return;
+
             // Run through all registered tickers.
             for (int i = Tickers.Count - 1; i >= 0; i--)
             {

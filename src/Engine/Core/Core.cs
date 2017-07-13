@@ -28,6 +28,15 @@ namespace SoulEngine
         /// The time in milliseconds it took for the last frame to render.
         /// </summary>
         public float frameTime = 0;
+
+        public bool Paused
+        {
+            get
+            {
+                return (Context.Core.isModuleLoaded<DebugModule>() && Context.Core.Module<DebugModule>().consoleOpened) ||
+                    (IsActive == false && Settings.PauseOnFocusLoss);
+            }
+        }
         #endregion
 
         #region Systems
@@ -40,8 +49,9 @@ namespace SoulEngine
             new AssetManager(),
             new WindowManager(),
             new TimingManager(),
-            new InputModule(),
             new SceneManager(),
+            new InputModule(),
+            new SoundEngine(),
             Settings.Networking ? new Networking() : null,
             Settings.Scripting ? new ScriptEngine() : null,
             Settings.Debug ? new DebugModule() : null
@@ -166,7 +176,7 @@ namespace SoulEngine
         {
             int id = ModulesIndex.IndexOf(typeof(T).ToString());
 
-            if(id == -1 && isModuleLoaded<ErrorManager>())
+            if (id == -1 && isModuleLoaded<ErrorManager>())
             {
                 Module<ErrorManager>().RaiseError("Expected module " + typeof(T).ToString() + " to be loaded.", 101);
             }
@@ -191,12 +201,6 @@ namespace SoulEngine
         /// </summary>
         protected override void Update(GameTime gameTime)
         {
-            //If the game is not focused, don't update.
-            if (IsActive == false && Settings.PauseOnFocusLoss) return;
-
-            //Update the sound engine.
-            SoundEngine.Update();
-
             // Run core modules that require updating.
             for (int i = 0; i < Modules.Count; i++)
             {
@@ -216,7 +220,7 @@ namespace SoulEngine
             if (IsActive == false && Settings.PauseOnFocusLoss) return;
 
             //Record frametime.
-            frameTime = (float) gameTime.ElapsedGameTime.TotalMilliseconds;
+            frameTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             // Compose textures, we do this first due to a bug which prevents us to switch render targets in between renders.
             __composeAllowed = true;
@@ -239,9 +243,9 @@ namespace SoulEngine
             // Run core modules that require drawing.
             for (int i = 0; i < Modules.Count; i++)
             {
-                if(Modules[i] is IModuleDrawable)
+                if (Modules[i] is IModuleDrawable)
                 {
-                    ((IModuleDrawable) Modules[i]).Draw();
+                    ((IModuleDrawable)Modules[i]).Draw();
                 }
             }
         }

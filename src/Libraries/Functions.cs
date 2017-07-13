@@ -384,7 +384,7 @@ namespace SoulEngine
         /// <returns>The object the position is in, or null if none.</returns>
         public static GameObject inObject(Vector2 Position, int ObjectPriority = -1, ObjectLayer Layer = ObjectLayer.UI)
         {
-            //Get the bounds of all other UI objects.  
+            // Get the bounds of all other UI objects.  
             List<GameObject> objects = Context.Core.Module<SceneManager>().currentScene.AttachedObjects.Select(x => x.Value)
                 .Where(x => x.Layer == Layer && x.Drawing == true && CheckOpacity(x)).ToList();
 

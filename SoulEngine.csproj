@@ -61,9 +61,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Engine\EventArgs\LetterClickEventArgs.cs" />
     <Compile Include="src\Engine\Modules\AssetManager.cs" />
     <Compile Include="src\Engine\Modules\InputModule.cs" />
     <Compile Include="src\Engine\Modules\SceneManager.cs" />
+    <Compile Include="src\Engine\Modules\SoundEngine.cs" />
     <Compile Include="src\Engine\Objects\Assets.cs" />
     <Compile Include="src\Engine\Core\Context.cs" />
     <Compile Include="src\Engine\Core\Core.cs" />
@@ -74,7 +76,6 @@
     <Compile Include="src\Engine\Modules\TimingManager.cs" />
     <Compile Include="src\Engine\Objects\Components\Helpers\ActiveText\Tags\onClick.cs" />
     <Compile Include="src\Libraries\Functions.cs" />
-    <Compile Include="src\Engine\Core\SoundEngine.cs" />
     <Compile Include="src\Engine\Core\Starter.cs" />
     <Compile Include="src\Engine\Modules\WindowManager.cs" />
     <Compile Include="src\Engine\Debugging\DebugSocket.cs" />

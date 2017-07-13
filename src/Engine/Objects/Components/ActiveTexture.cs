@@ -156,6 +156,8 @@ namespace SoulEngine.Objects.Components
         {
             get
             {
+                if (FrameSize.X == 0) return 0;
+
                 int fColumns = ActualTexture.Width / (int)FrameSize.X;
                 int fRows = ActualTexture.Height / (int)FrameSize.Y;
 
