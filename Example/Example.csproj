@@ -48,5 +48,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SoulEngine\SoulEngine.csproj">
+      <Project>{edbe1f02-0b03-4990-8811-aecaa30b4470}</Project>
+      <Name>SoulEngine</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
