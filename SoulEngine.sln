@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoulEngine", "SoulEngine\SoulEngine.csproj", "{EDBE1F02-0B03-4990-8811-AECAA30B4470}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoulEngine-GameExample", "SoulEngine_GameExample\SoulEngine-GameExample.csproj", "{CCE4C717-58DF-4D5E-B3A2-C6D7BE55D730}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{972939F6-479D-48E9-A6BB-E9B90CF0664A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{EDBE1F02-0B03-4990-8811-AECAA30B4470}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDBE1F02-0B03-4990-8811-AECAA30B4470}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDBE1F02-0B03-4990-8811-AECAA30B4470}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CCE4C717-58DF-4D5E-B3A2-C6D7BE55D730}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCE4C717-58DF-4D5E-B3A2-C6D7BE55D730}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCE4C717-58DF-4D5E-B3A2-C6D7BE55D730}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCE4C717-58DF-4D5E-B3A2-C6D7BE55D730}.Release|Any CPU.Build.0 = Release|Any CPU
+		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
