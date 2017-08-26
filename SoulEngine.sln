@@ -4,8 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoulEngine", "SoulEngine\SoulEngine.csproj", "{EDBE1F02-0B03-4990-8811-AECAA30B4470}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5} = {B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{972939F6-479D-48E9-A6BB-E9B90CF0664A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoulEngineBuildHelper", "SoulEngineBuildHelper\SoulEngineBuildHelper.csproj", "{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +20,10 @@ Global
 		{EDBE1F02-0B03-4990-8811-AECAA30B4470}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDBE1F02-0B03-4990-8811-AECAA30B4470}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDBE1F02-0B03-4990-8811-AECAA30B4470}.Release|Any CPU.Build.0 = Release|Any CPU
-		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{972939F6-479D-48E9-A6BB-E9B90CF0664A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,8 +5,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{EDBE1F02-0B03-4990-8811-AECAA30B4470}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>SoulEngine</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Soul</RootNamespace>
     <AssemblyName>SoulEngine</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -32,18 +32,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <StartupObject>Soul.Examples.ESScript.ElectricSleepViewer</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>
-    </ApplicationIcon>
+    <ApplicationIcon>SoulEngine2018.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Raya">
-      <HintPath>..\Libraries\Raya.dll</HintPath>
+    <Reference Include="Esprima, Version=1.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\Scripting\Esprima.dll</HintPath>
     </Reference>
-    <Reference Include="SoulLib">
-      <HintPath>..\Libraries\SoulLib.dll</HintPath>
+    <Reference Include="jint, Version=3.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\Scripting\jint.dll</HintPath>
+    </Reference>
+    <Reference Include="Raya, Version=1.3.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\Raya\Raya.dll</HintPath>
+    </Reference>
+    <Reference Include="SoulLib, Version=9.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\Utility\SoulLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,53 +64,47 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Engine.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Engine\AssetManager\Assets.cs" />
+    <Compile Include="Engine\Context.cs" />
+    <Compile Include="Engine\ECS\Actor.cs" />
+    <Compile Include="Engine\ECS\ActorObject.cs" />
+    <Compile Include="Engine\Enums\ShapeType.cs" />
+    <Compile Include="Engine\Meta.cs" />
+    <Compile Include="Engine\Objects\GameObject.cs" />
+    <Compile Include="Engine\Objects\Shape.cs" />
+    <Compile Include="Engine\Objects\Texture.cs" />
+    <Compile Include="Engine\Scene.cs" />
+    <Compile Include="Engine\SceneLoadArgs.cs" />
+    <Compile Include="Engine\Scenes\Loading.cs" />
+    <Compile Include="Engine\Settings.cs" />
+    <Compile Include="Engine\Error.cs" />
+    <Compile Include="Engine\Functions.cs" />
+    <Compile Include="Engine\Modules\Debug.cs" />
+    <Compile Include="Engine\Modules\Javascript.cs" />
+    <Compile Include="Engine\Interfaces\IScriptEngine.cs" />
+    <Compile Include="Examples\ESScript\ElectricSleepViewer.cs" />
+    <None Include="Examples\ESScript\ESScriptTree.cs" />
+    <Compile Include="Examples\ESScript\NodeLink.cs" />
+    <Compile Include="Examples\ESScript\ScriptNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Data\arial.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\x64\csfml-audio-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x64\csfml-graphics-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x64\csfml-system-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x64\csfml-window-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x64\libsndfile-1.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x64\openal32.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\csfml-audio-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\csfml-graphics-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\csfml-network-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\csfml-system-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\csfml-window-2.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\libsndfile-1.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\x86\openal32.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Examples\ESScript\About.txt" />
+    <Content Include="SoulEngine2018.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>"$(SolutionDir)SoulEngineBuildHelper\bin\$(Configuration)\SoulEngineBuildHelper.exe" "$(ProjectDir)\" "$(TargetDir)\"</PreBuildEvent>
+  </PropertyGroup>
 </Project>
