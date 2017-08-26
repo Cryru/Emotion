@@ -4,14 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Example
+namespace Soul.Engine.Enums
 {
-    class Program
+    public enum ShapeType
     {
-        static void Main(string[] args)
-        {
-            
-
-        }
+        Triangle,
+        Rectangle,
+        Circle
     }
 }
