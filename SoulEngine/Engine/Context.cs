@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Raya.Graphics;
 using Raya.System;
 using Soul.Engine.ECS;
+using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenes;
 
@@ -16,36 +18,72 @@ using Soul.Engine.Scenes;
 
 namespace Soul.Engine
 {
-    public class Context : Raya.System.Context
+    public class Context : Actor
     {
-        #region Objects
+        #region Information
+
+        /// <summary>
+        /// The time between frames. Used for accurate time keeping.
+        /// </summary>
+        public int FrameTime
+        {
+            get { return _frameTime; }
+        }
+
+        #endregion
+
+        #region Internals
+
+        /// <summary>
+        /// The modules to load on boot. Do not edit unless you know what you are doing.
+        /// </summary>
+        private static Type[] ModulesToLoad = {typeof(ScriptModule), typeof(DebugModule)};
+
+        /// <summary>
+        /// Internal frame time variable.
+        /// </summary>
+        private int _frameTime;
+
+        #endregion
+
+        #region Raya API
 
         /// <summary>
         /// The context within the actor system.
         /// </summary>
-        private Actor _contextActor;
+        private Raya.System.Context nativeContext;
 
         #endregion
 
         public Context(Scene startScene)
         {
+            // Define this context as the current.
+            Globals.Context = this;
+
+            // Create a Raya context.
+            nativeContext = new Raya.System.Context();
+
             // Start boot timer.
             Clock bootTime = new Clock();
 
-            // Send debugging boot messages.
-            Debug.DebugMessage("Boot", "Starting SoulEngine " + Assembly.GetExecutingAssembly().GetName().Version);
-            Debug.DebugMessage("Boot", "Using: ");
-            Debug.DebugMessage("Boot", "Raya " + Meta.Version);
-            Debug.DebugMessage("Boot", "SoulLib " + Info.SoulVersion);
+            // Setup logger.
+            // Start Soul logging.
+            Logger.Enabled = true;
+            Logger.LogLimit = 2;
+            Logger.Stamp = "==========\n" + "SoulEngine 2018 Log" + "\n==========";
 
-            // Define the context actor within the actor system.
-            _contextActor = new ActorObject();
+            // Send debugging boot messages.
+            DebugModule.DebugMessage(DebugMessageSource.Boot,
+                "Starting SoulEngine " + Assembly.GetExecutingAssembly().GetName().Version);
+            DebugModule.DebugMessage(DebugMessageSource.Boot, "Using: ");
+            DebugModule.DebugMessage(DebugMessageSource.Boot, "Raya " + Meta.Version);
+            DebugModule.DebugMessage(DebugMessageSource.Boot, "SoulLib " + Info.SoulVersion);
 
             // Create the window.
-            CreateWindow();
+            nativeContext.CreateWindow();
 
             // Hook logger to the closing events.
-            Closed += (sender, args) => Logger.ForceDump();
+            nativeContext.Closed += (sender, args) => Logger.ForceDump();
             AppDomain.CurrentDomain.UnhandledException += (sender, args) => Logger.ForceDump();
 
             // Load scene manager.
@@ -55,58 +93,70 @@ namespace Soul.Engine
             LoadModules();
 
             // Boot ready.
-            Debug.DebugMessage("Boot", "Boot took " + bootTime.ElapsedTime.AsMilliseconds() + " ms");
+            DebugModule.DebugMessage(DebugMessageSource.Boot,
+                "Boot took " + bootTime.ElapsedTime.AsMilliseconds() + " ms");
             bootTime.Dispose();
 
             // Load the starting scene, if any.
-            if(startScene != null) LoadScene("startScene", startScene, true);
+            if (startScene != null) LoadScene("startScene", startScene, true);
+
+            // Define the timing clock.
+            Clock timingClock = new Clock();
 
             // Start main loop.
-            while (Running)
+            while (nativeContext.Running)
             {
+                // Get the time since the last frame time timer restart, which is the time it took for the last frame to render.
+                _frameTime = timingClock.ElapsedTime.AsMilliseconds();
+
+                // Restart the frame time timer.
+                timingClock.Restart();
+
                 // Tick events and update Raya.
-                Tick();
+                nativeContext.Tick();
 
                 // Start drawing.
-                StartDraw();
+                nativeContext.StartDraw();
 
                 // Update module actors.
-                _contextActor.UpdateActor();
+                UpdateActor();
 
                 // Update the scene manager.
                 UpdateScene();
 
                 // Finish drawing frame.
-                EndDraw();
+                nativeContext.EndDraw();
             }
         }
-
-        #region Module Manager
-
-        /// <summary>
-        /// Type of modules to load on boot.
-        /// </summary>
-        public static List<Type> ModulesToLoad = new List<Type>();
 
         /// <summary>
         /// Loads all modules.
         /// </summary>
         private void LoadModules()
         {
-            // Start Soul logging.
-            Logger.Enabled = true;
-            Logger.LogLimit = 2;
-            Logger.Stamp = "==========\n" + "SoulEngine 2018 Log" + "\n==========";
-
-            // Add debugging module.
-            ModulesToLoad.Add(typeof(Debug));
-
             // Initiate engine modules.
             foreach (Type module in ModulesToLoad)
             {
                 Actor newModule = (Actor) Activator.CreateInstance(module, new object[] { });
-                _contextActor.AddChild(newModule);
+                AddChild(newModule);
             }
+        }
+
+        public override void Initialize()
+        {
+            // Context shouldn't be attached
+            Error.Raise(1, "The Context's Initialize shouldn't be called!");
+        }
+
+        public override void Update()
+        {
+        }
+
+        #region Drawing
+
+        public void Draw(Drawable drawable)
+        {
+            nativeContext.Draw(drawable);
         }
 
         #endregion
@@ -176,7 +226,7 @@ namespace Soul.Engine
             });
 
             // Send scene queue message.
-            Debug.DebugMessage("SceneManager", "Queued scene " + sceneName);
+            DebugModule.DebugMessage(DebugMessageSource.SceneManager, "Queued scene " + sceneName);
         }
 
         /// <summary>
@@ -206,7 +256,7 @@ namespace Soul.Engine
             CurrentScene = selectedScene;
 
             // Log the scene swap.
-            Debug.DebugMessage("SceneManager", "Swapped scene to " + sceneName);
+            DebugModule.DebugMessage(DebugMessageSource.SceneManager, "Swapped scene to " + sceneName);
         }
 
         /// <summary>
@@ -285,7 +335,8 @@ namespace Soul.Engine
             _scenesToLoad.RemoveAll(x => x == null);
 
             // Update the scene if it's loaded and not null, else update the loading screen.
-            if(CurrentScene != null && !Loading) CurrentScene.UpdateActor(); else if (_loadedScenes.ContainsKey("__loading__")) _loadedScenes["__loading__"].UpdateActor();
+            if (CurrentScene != null && !Loading) CurrentScene.UpdateActor();
+            else if (_loadedScenes.ContainsKey("__loading__")) _loadedScenes["__loading__"].UpdateActor();
         }
 
         /// <summary>
@@ -303,8 +354,9 @@ namespace Soul.Engine
             temp.Loaded = true;
 
             // Log the scene being loaded.
-            Debug.DebugMessage("SceneManager", "Loaded scene " + temp.Name);
+            DebugModule.DebugMessage(DebugMessageSource.SceneManager, "Loaded scene " + temp.Name);
         }
+
         #endregion
     }
 }

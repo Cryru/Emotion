@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Soul.Examples.ESScript.ElectricSleepViewer</StartupObject>
+    <StartupObject>Soul.Examples.Basic.ShapeTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>SoulEngine2018.ico</ApplicationIcon>
@@ -68,20 +68,22 @@
     <Compile Include="Engine\Context.cs" />
     <Compile Include="Engine\ECS\Actor.cs" />
     <Compile Include="Engine\ECS\ActorObject.cs" />
+    <Compile Include="Engine\Enums\DebugMessageSource.cs" />
     <Compile Include="Engine\Enums\ShapeType.cs" />
+    <Compile Include="Engine\Internal\AsyncScript.cs" />
     <Compile Include="Engine\Meta.cs" />
-    <Compile Include="Engine\Objects\GameObject.cs" />
-    <Compile Include="Engine\Objects\Shape.cs" />
+    <Compile Include="Engine\GameObject.cs" />
+    <Compile Include="Engine\Modules\ScriptModule.cs" />
+    <Compile Include="Engine\Objects\BasicShape.cs" />
     <Compile Include="Engine\Objects\Texture.cs" />
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\SceneLoadArgs.cs" />
     <Compile Include="Engine\Scenes\Loading.cs" />
-    <Compile Include="Engine\Settings.cs" />
+    <Compile Include="Engine\Globals.cs" />
     <Compile Include="Engine\Error.cs" />
     <Compile Include="Engine\Functions.cs" />
-    <Compile Include="Engine\Modules\Debug.cs" />
-    <Compile Include="Engine\Modules\Javascript.cs" />
-    <Compile Include="Engine\Interfaces\IScriptEngine.cs" />
+    <Compile Include="Engine\Modules\DebugModule.cs" />
+    <Compile Include="Examples\Basic\ShapeTest.cs" />
     <Compile Include="Examples\ESScript\ElectricSleepViewer.cs" />
     <None Include="Examples\ESScript\ESScriptTree.cs" />
     <Compile Include="Examples\ESScript\NodeLink.cs" />
@@ -95,6 +97,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Examples\Basic\About.txt" />
     <Content Include="Examples\ESScript\About.txt" />
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>

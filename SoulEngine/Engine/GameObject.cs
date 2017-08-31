@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Threading.Tasks;
 using Raya.Graphics;
 using Raya.Graphics.Primitives;
 using Raya.System;
@@ -10,7 +11,7 @@ using Soul.Engine.ECS;
 
 #endregion
 
-namespace Soul.Engine.Objects
+namespace Soul.Engine
 {
     public class GameObject : Actor
     {
@@ -24,6 +25,8 @@ namespace Soul.Engine.Objects
             get { return _size; }
             set
             {
+                if (_size == value) return;
+
                 _size = value;
                 _updateTransform = true;
                 onSizeChanged?.Invoke();
@@ -40,6 +43,8 @@ namespace Soul.Engine.Objects
             get { return _position; }
             set
             {
+                if (_position == value) return;
+
                 _position = value;
                 _updateTransform = true;
                 onPositionChanged?.Invoke();
@@ -56,13 +61,14 @@ namespace Soul.Engine.Objects
             get { return _origin; }
             set
             {
+                if (_origin == value) return;
+
                 _origin = value;
                 _updateTransform = true;
             }
         }
 
         private Vector2 _origin = new Vector2(0, 0);
-
 
         /// <summary>
         /// The object's rotation in radians.
@@ -72,8 +78,11 @@ namespace Soul.Engine.Objects
             get { return _rotation; }
             set
             {
+                if (_rotation == value) return;
+
                 _rotation = value;
                 _updateTransform = true;
+                onRotationChanged?.Invoke();
             }
         }
 
@@ -119,6 +128,66 @@ namespace Soul.Engine.Objects
         }
 
         private Transform _transform;
+
+        #endregion
+
+        #region Simplified Properties
+
+        /// <summary>
+        /// The position of the object within the X axis.
+        /// </summary>
+        public int X
+        {
+            get { return Position.X; }
+            set
+            {
+                if (Position.X == value) return;
+
+                Position = new Vector2(value, Y);
+            }
+        }
+
+        /// <summary>
+        /// The position of the object within the Y axis.
+        /// </summary>
+        public int Y
+        {
+            get { return Position.Y; }
+            set
+            {
+                if (Position.Y == value) return;
+
+                Position = new Vector2(X, value);
+            }
+        }
+
+        /// <summary>
+        /// The width of the object.
+        /// </summary>
+        public int Width
+        {
+            get { return Size.X; }
+            set
+            {
+                if (Size.X == value) return;
+
+                Size = new Vector2(value, Height);
+            }
+        }
+
+        /// <summary>
+        /// The height of the object.
+        /// </summary>
+        public int Height
+        {
+            get { return Size.Y; }
+            set
+            {
+                if (Size.Y == value) return;
+
+                Size = new Vector2(Width, value);
+            }
+        }
 
         #endregion
 

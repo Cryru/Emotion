@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace Soul.Engine.Enums
 {
     /// <summary>
-    /// Types of shapes for the BasicShape object.
+    /// Sources of debugging messages.
     /// </summary>
-    public enum ShapeType
+    public enum DebugMessageSource
     {
-        Line,
-        Triangle,
-        Rectangle,
-        Circle
+        Boot,
+        Error,
+        SceneManager,
+        ScriptModule
     }
 }
