@@ -21,16 +21,5 @@ namespace Soul.Engine
             //We add one because by Random.Next does not include max.
             return _generator.Next(min, max + 1);
         }
-
-        /// <summary>
-        /// Formats a debug message.
-        /// </summary>
-        /// <param name="left">Message on the left, usually the source or a code.</param>
-        /// <param name="right">Message on the right, usually the message itself.</param>
-        /// <returns></returns>
-        public static string FormatDebugMessage(string left, string right)
-        {
-            return "[" + left + "] " + right;
-        }
     }
 }

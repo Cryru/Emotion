@@ -72,7 +72,6 @@ namespace Soul.Engine.Objects
 
         #endregion
 
-
         public BasicShape()
         {
             _nativeObject = new Shape();
@@ -86,7 +85,12 @@ namespace Soul.Engine.Objects
         public override void Initialize()
         {
             // If the parent is a game object we want to hook up to the size changed event.
-            if (Parent is GameObject convParent) convParent.onSizeChanged += UpdateShapeType;
+            if (Parent is GameObject convParent)
+            {
+                convParent.onSizeChanged += UpdateShapeType;
+                convParent.onPositionChanged += UpdateShapePosition;
+                convParent.onRotationChanged += UpdateShapeRotation;
+            }
 
             // Generate shape data.
             UpdateShapeType();;
@@ -97,20 +101,47 @@ namespace Soul.Engine.Objects
             Console.WriteLine("DESTROYED");
 
             // If the parent is a game object free the event.
-            if (Parent is GameObject convParent) convParent.onSizeChanged -= UpdateShapeType;
+            if (Parent is GameObject convParent)
+            {
+                convParent.onSizeChanged -= UpdateShapeType;
+                convParent.onPositionChanged -= UpdateShapePosition;
+                convParent.onRotationChanged += UpdateShapeRotation;
+            }
         }
 
         public override void Update()
         {
-            Context.Current.Draw(_nativeObject);
+            Globals.Context.Draw(_nativeObject);
         }
 
         #region Internal
 
+        /// <summary>
+        /// Updates the native object shape's rotation according to the parent game object's rotation.
+        /// </summary>
+        private void UpdateShapeRotation()
+        {
+            _nativeObject.Rotation = ((GameObject)Parent).Rotation;
+        }
+
+        /// <summary>
+        /// Updates the native object shape's position according to the parent game object's position.
+        /// </summary>
+        private void UpdateShapePosition()
+        {
+            _nativeObject.Position = (Vector2f) ((GameObject) Parent).Position;
+        }
+
+        /// <summary>
+        /// Reconstructs the shape.
+        /// </summary>
         private void UpdateShapeType()
         {
             switch (_type)
             {
+                case ShapeType.Line:
+                    GenerateLine();
+                    break;
                 case ShapeType.Rectangle:
                     GenerateRectangle();
                     break;
@@ -130,6 +161,21 @@ namespace Soul.Engine.Objects
         #endregion
 
         #region Shape Templates
+
+        /// <summary>
+        /// Generates a line shape.
+        /// </summary>
+        private void GenerateLine()
+        {
+            if (_nativeObject.PointCount != 2) _nativeObject.SetPointCount(2);
+
+            Vector2 size = new Vector2(10, 10);
+            if (Parent is GameObject convParent) size = convParent.Size;
+
+            // Construct line points. The size will be the lines destination.
+            _nativeObject.SetPoint(0, new Vector2f(0, 0));
+            _nativeObject.SetPoint(1, new Vector2f(size.X, size.Y));
+        }
 
         /// <summary>
         /// Generates a rectangle shape.

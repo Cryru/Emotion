@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Soul.Engine.Modules;
+using Soul.Engine.Enums;
 
 namespace Soul.Engine
 {
@@ -21,13 +22,13 @@ namespace Soul.Engine
         public static void Raise(int code, string message, Severity severity = Severity.Normal)
         {
             // Format the error.
-            string errorMessage = Functions.FormatDebugMessage(code.ToString(), message);
+            string errorMessage = DebugModule.FormatDebugMessage(code.ToString(), message);
 
             // Log the error.
             Logger.Add(errorMessage);
 
             // Write the error to the debug.
-            Debug.DebugMessage("Error", errorMessage);
+            DebugModule.DebugMessage(DebugMessageSource.Error, errorMessage);
 
             // If severe error dump the log and exit.
             if (severity == Severity.Critical)
@@ -39,8 +40,10 @@ namespace Soul.Engine
 
         // Error List:
 
+        // 1 - Invalid function called.
         // 3 - Invalid argument passed.
-        // 50 - Javascript execution error.
+        // 50 - Script execution error.
+        // 51 - Script thread timed out.
         // 100 - Module failed to load.
         // 101 - Expected module wasn't loaded.
         // 180 - Duplicate scene name.
