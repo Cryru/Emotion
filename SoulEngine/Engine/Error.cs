@@ -22,13 +22,13 @@ namespace Soul.Engine
         public static void Raise(int code, string message, Severity severity = Severity.Normal)
         {
             // Format the error.
-            string errorMessage = DebugModule.FormatDebugMessage(code.ToString(), message);
+            string errorMessage = Debugger.FormatDebugMessage(code.ToString(), message);
 
             // Log the error.
             Logger.Add(errorMessage);
 
             // Write the error to the debug.
-            DebugModule.DebugMessage(DebugMessageSource.Error, errorMessage);
+            Debugger.DebugMessage(DebugMessageSource.Error, errorMessage);
 
             // If severe error dump the log and exit.
             if (severity == Severity.Critical)
@@ -40,6 +40,7 @@ namespace Soul.Engine
 
         // Error List:
 
+        // 0 - The core hasn't been started.
         // 1 - Invalid function called.
         // 3 - Invalid argument passed.
         // 50 - Script execution error.

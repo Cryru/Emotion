@@ -6,7 +6,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 using System.Threading;
-using Soul.Engine.ECS;
+using Raya.System;
 using Soul.Engine.Enums;
 
 #endregion
@@ -15,21 +15,21 @@ using Soul.Engine.Enums;
 
 namespace Soul.Engine.Modules
 {
-    public class DebugModule : Actor
+    public static class Debugger
     {
         #region Declarations
 
         /// <summary>
         /// The next debug command to process.
         /// </summary>
-        private string _command;
+        private static string _command;
 
         #endregion
 
         /// <summary>
         /// Initializes debug logic.
         /// </summary>
-        public override void Initialize()
+        public static void Start()
         {
             // If not debugging exit.
 #if !DEBUG
@@ -43,14 +43,14 @@ namespace Soul.Engine.Modules
             consoleThread.Start();
 
             // Expose debugging script functions.
-            Globals.Context.GetChild<ScriptModule>().Expose("reflect", (Func<object, string>) Reflect);
-            Globals.Context.GetChild<ScriptModule>().Expose("print", (Action<string>) Print);
+            ScriptEngine.Expose("reflect", (Func<object, string>)Reflect);
+            ScriptEngine.Expose("print", (Action<string>)Print);
         }
 
         /// <summary>
         /// Updates debug logic.
         /// </summary>
-        public override void Update()
+        public static void Update()
         {
 #if !DEBUG
             return;
@@ -60,7 +60,7 @@ namespace Soul.Engine.Modules
             if (_command != string.Empty)
             {
                 // Run the command through the scripting module.
-                Globals.Context.GetChild<ScriptModule>().RunScriptAsync(_command);
+                ScriptEngine.RunScriptAsync(_command);
 
                 // Clear the command.
                 _command = "";
@@ -70,9 +70,9 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Processes console input without blocking the engine.
         /// </summary>
-        private void ConsoleThread()
+        private static void ConsoleThread()
         {
-            while (Raya.System.Context.Current.Running)
+            while (Context.Current.Running)
             {
                 string readLine = Console.ReadLine();
                 if (readLine != null) _command = readLine.Trim(' ');
@@ -110,9 +110,6 @@ namespace Soul.Engine.Modules
                     break;
             }
 
-            // Run additional debugging code based on message signature.
-            skipPrint = DebuggingHooks(source, message, skipPrint);
-
             if (!skipPrint)
             {
                 Console.WriteLine(FormatDebugMessage(source.ToString(), message));
@@ -124,22 +121,6 @@ namespace Soul.Engine.Modules
             // Restore colors.
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Gray;
-        }
-
-        /// <summary>
-        /// Performs additional debugging functionality by using debug messages as events.
-        /// </summary>
-        /// <param name="source">The message source.</param>
-        /// <param name="message">The message itself.</param>
-        /// <param name="skipPrint">Whether to skip printing this message.</param>
-        /// <returns></returns>
-        public static bool DebuggingHooks(DebugMessageSource source, string message, bool skipPrint)
-        {
-            // Check if the scene has been swapped.
-            if (source == DebugMessageSource.SceneManager && message.Contains("Swapped scene to"))
-                Globals.Context.GetChild<ScriptModule>().Expose("objects", Globals.Context.CurrentScene.Children);
-
-            return skipPrint;
         }
 
         #region Functions
@@ -172,7 +153,9 @@ namespace Soul.Engine.Modules
             if (obj is IEnumerable)
                 text = "Cannot reflect IEnumerables.";
             else
-                foreach (PropertyInfo prop in obj.GetType().GetProperties())
+                foreach (PropertyInfo prop in obj.GetType()
+                    .GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
+                                   BindingFlags.DeclaredOnly))
                 {
                     if (text != "") text += "\n";
 
