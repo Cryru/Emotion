@@ -56,12 +56,12 @@ namespace Soul.Engine.Internal
         }
 
         /// <summary>
-        /// Updates the time for the script.
+        /// Updates the timeout timer for the script.
         /// </summary>
         /// <returns>Whether the thread has timed out.</returns>
         public bool UpdateTime()
         {
-            _timeoutTimer -= Globals.Context.FrameTime;
+            _timeoutTimer -= Core.FrameTime;
 
             if (_timeoutTimer <= 0)
             {

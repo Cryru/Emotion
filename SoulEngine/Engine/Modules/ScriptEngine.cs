@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Engine.Internal;
 
@@ -14,7 +13,7 @@ using Soul.Engine.Internal;
 
 namespace Soul.Engine.Modules
 {
-    public class ScriptModule : Actor
+    public static class ScriptEngine
     {
         #region Declarations
 
@@ -26,16 +25,16 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Currently running scripts.
         /// </summary>
-        private List<AsyncScript> _activeScripts;
+        private static List<AsyncScript> _activeScripts;
 
         /// <summary>
         /// Any script threads which take more milliseconds that specified here will be terminated.
         /// </summary>
-        private int threadTimeout = 300;
+        private static int threadTimeout = 300;
 
         #endregion
 
-        public override void Initialize()
+        public static void Start()
         {
             // Define the Jint engine.
             Interpreter = new Jint.Engine();
@@ -45,12 +44,9 @@ namespace Soul.Engine.Modules
 
             // Expose the list of threads.
             Expose("threads", _activeScripts);
-
-            // Expose context.
-            Expose("context", Globals.Context);
         }
 
-        public override void Update()
+        public static void Update()
         {
             // Loop through the active script threads to do some checks.
             for (int i = _activeScripts.Count - 1; i >= 0; i--)
@@ -72,7 +68,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="name"></param>
         /// <param name="exposedData"></param>
-        public void Expose(string name, object exposedData)
+        public static void Expose(string name, object exposedData)
         {
             Interpreter.SetValue(name, exposedData);
         }
@@ -82,7 +78,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="script">The script to execute.</param>
         /// <returns></returns>
-        public async Task<object> RunScriptAsync(string script)
+        public static async Task<object> RunScriptAsync(string script)
         {
             // Create a token for cancellation.
             CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -103,7 +99,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="script">The script to execute.</param>
         /// <returns></returns>
-        public object RunScript(string script)
+        public static object RunScript(string script)
         {
             try
             {
@@ -112,7 +108,7 @@ namespace Soul.Engine.Modules
 
                 // If it isn't empty log it.
                 if (scriptResponse != null)
-                    DebugModule.DebugMessage(DebugMessageSource.ScriptModule, scriptResponse.ToString());
+                    Debugger.DebugMessage(DebugMessageSource.ScriptModule, scriptResponse.ToString());
 
                 // Return the response.
                 return scriptResponse;

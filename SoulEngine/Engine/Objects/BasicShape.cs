@@ -28,6 +28,7 @@ namespace Soul.Engine.Objects
                 UpdateShapeType();
             }
         }
+
         private ShapeType _type = ShapeType.Rectangle;
 
         /// <summary>
@@ -38,6 +39,7 @@ namespace Soul.Engine.Objects
             get { return _nativeObject.FillColor; }
             set { _nativeObject.FillColor = value; }
         }
+
         /// <summary>
         /// The color of the shape's outline.
         /// </summary>
@@ -46,6 +48,7 @@ namespace Soul.Engine.Objects
             get { return _nativeObject.OutlineColor; }
             set { _nativeObject.OutlineColor = value; }
         }
+
         /// <summary>
         /// The thickness of the shape's outline.
         /// </summary>
@@ -61,9 +64,15 @@ namespace Soul.Engine.Objects
         public int CircleDetail
         {
             get { return _circleDetail; }
-            set { _circleDetail = value; UpdateShapeType(); }
+            set
+            {
+                _circleDetail = value;
+                UpdateShapeType();
+            }
         }
+
         private int _circleDetail = 30;
+
         #endregion
 
         #region Raya API
@@ -93,7 +102,8 @@ namespace Soul.Engine.Objects
             }
 
             // Generate shape data.
-            UpdateShapeType();;
+            UpdateShapeType();
+            ;
         }
 
         ~BasicShape()
@@ -111,7 +121,8 @@ namespace Soul.Engine.Objects
 
         public override void Update()
         {
-            Globals.Context.Draw(_nativeObject);
+            // Draw the Raya shape.
+            Core.Draw(_nativeObject);
         }
 
         #region Internal
@@ -121,7 +132,7 @@ namespace Soul.Engine.Objects
         /// </summary>
         private void UpdateShapeRotation()
         {
-            _nativeObject.Rotation = ((GameObject)Parent).Rotation;
+            _nativeObject.Rotation = ((GameObject) Parent).Rotation;
         }
 
         /// <summary>
@@ -205,7 +216,7 @@ namespace Soul.Engine.Objects
             if (Parent is GameObject convParent) size = convParent.Size;
 
             // Construct triangle points from parent size.
-            _nativeObject.SetPoint(0, new Vector2f((size.X / 2f) * -1, 0));
+            _nativeObject.SetPoint(0, new Vector2f(size.X / 2f * -1, 0));
             _nativeObject.SetPoint(1, new Vector2f(0, size.Y));
             _nativeObject.SetPoint(2, new Vector2f(size.X / 2f, 0));
         }
@@ -226,13 +237,14 @@ namespace Soul.Engine.Objects
             // Generate points.
             for (uint i = 0; i < CircleDetail; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / CircleDetail - Math.PI / 2);
-                float x = (float)Math.Cos(angle) * radius;
-                float y = (float)Math.Sin(angle) * radius;
+                float angle = (float) (i * 2 * Math.PI / CircleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
 
                 _nativeObject.SetPoint(i, new Vector2f(radius + x, radius + y));
-            }        
+            }
         }
+
         #endregion
     }
 }
