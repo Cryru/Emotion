@@ -62,6 +62,50 @@ namespace Soul.Engine.Modules
         /// </summary>
         public static void Update()
         {
+            // Check if any scene to load.
+            if (_scenesToLoad.Count > 0)
+                for (int i = 0; i < _scenesToLoad.Count; i++)
+                {
+                    // Check if loaded.
+                    if (_scenesToLoad[i] != null && _scenesToLoad[i].Loaded)
+                    {
+                        // Move the scene to the loaded scenes.
+                        _loadedScenes.Add(_scenesToLoad[i].Name, _scenesToLoad[i].Scene);
+
+                        // Check if we want to immediately swap to the new scene.
+                        if (_scenesToLoad[i].SwapTo)
+                            SwapScene(_scenesToLoad[i].Name);
+
+                        // Remove the scene from the list of to load, as its already loaded.
+                        _scenesToLoad[i] = null;
+                    }
+                    else
+                    {
+                        // Check if the scene has already been queued, to prevent thread spam.
+                        SceneLoadArgs sceneLoadArgs = _scenesToLoad[i];
+                        if (sceneLoadArgs != null && !sceneLoadArgs.Queued)
+                        {
+                            // Set queued flag.
+                            SceneLoadArgs loadArgs = _scenesToLoad[i];
+                            if (loadArgs != null) loadArgs.Queued = true;
+
+                            // If not loaded create a new load thread and start loading.
+                            Thread loadThread = new Thread(SceneLoadThread);
+                            loadThread.Start(_scenesToLoad[i]);
+                            // Wait for thread to activate.
+                            while (!loadThread.IsAlive)
+                            {
+                            }
+                        }
+                    }
+                }
+
+            // Trim nulls.
+            _scenesToLoad.RemoveAll(x => x == null);
+
+            // Update the scene if it's loaded and not null, else update the loading screen.
+            if (CurrentScene != null && !SceneLoading) CurrentScene.UpdateActor();
+            else if (_loadedScenes.ContainsKey("__loading__")) _loadedScenes["__loading__"].UpdateActor();
         }
 
         #region Functions
@@ -122,6 +166,9 @@ namespace Soul.Engine.Modules
 
             // Log the scene swap.
             Debugger.DebugMessage(DebugMessageSource.SceneManager, "Swapped scene to " + sceneName);
+
+            // Expose the scene to the script engine.
+            ScriptEngine.Expose("scene", CurrentScene);
         }
 
         /// <summary>
@@ -151,57 +198,6 @@ namespace Soul.Engine.Modules
         public static void UnloadScene(string sceneName)
         {
             UnloadScene(_loadedScenes[sceneName]);
-        }
-
-        /// <summary>
-        /// Updates the current scene.
-        /// </summary>
-        private static void UpdateScene()
-        {
-            // Check if any scene to load.
-            if (_scenesToLoad.Count > 0)
-                for (int i = 0; i < _scenesToLoad.Count; i++)
-                {
-                    // Check if loaded.
-                    if (_scenesToLoad[i] != null && _scenesToLoad[i].Loaded)
-                    {
-                        // Move the scene to the loaded scenes.
-                        _loadedScenes.Add(_scenesToLoad[i].Name, _scenesToLoad[i].Scene);
-
-                        // Check if we want to immediately swap to the new scene.
-                        if (_scenesToLoad[i].SwapTo)
-                            SwapScene(_scenesToLoad[i].Name);
-
-                        // Remove the scene from the list of to load, as its already loaded.
-                        _scenesToLoad[i] = null;
-                    }
-                    else
-                    {
-                        // Check if the scene has already been queued, to prevent thread spam.
-                        SceneLoadArgs sceneLoadArgs = _scenesToLoad[i];
-                        if (sceneLoadArgs != null && !sceneLoadArgs.Queued)
-                        {
-                            // Set queued flag.
-                            SceneLoadArgs loadArgs = _scenesToLoad[i];
-                            if (loadArgs != null) loadArgs.Queued = true;
-
-                            // If not loaded create a new load thread and start loading.
-                            Thread loadThread = new Thread(SceneLoadThread);
-                            loadThread.Start(_scenesToLoad[i]);
-                            // Wait for thread to activate.
-                            while (!loadThread.IsAlive)
-                            {
-                            }
-                        }
-                    }
-                }
-
-            // Trim nulls.
-            _scenesToLoad.RemoveAll(x => x == null);
-
-            // Update the scene if it's loaded and not null, else update the loading screen.
-            if (CurrentScene != null && !SceneLoading) CurrentScene.UpdateActor();
-            else if (_loadedScenes.ContainsKey("__loading__")) _loadedScenes["__loading__"].UpdateActor();
         }
 
         /// <summary>

@@ -103,7 +103,6 @@ namespace Soul.Engine.Objects
 
             // Generate shape data.
             UpdateShapeType();
-            ;
         }
 
         ~BasicShape()
@@ -132,7 +131,7 @@ namespace Soul.Engine.Objects
         /// </summary>
         private void UpdateShapeRotation()
         {
-            _nativeObject.Rotation = ((GameObject) Parent).Rotation;
+            _nativeObject.Rotation = ((GameObject) Parent).RotationDegree;
         }
 
         /// <summary>
@@ -141,6 +140,7 @@ namespace Soul.Engine.Objects
         private void UpdateShapePosition()
         {
             _nativeObject.Position = (Vector2f) ((GameObject) Parent).Position;
+            UpdateShapeType();
         }
 
         /// <summary>
@@ -181,11 +181,16 @@ namespace Soul.Engine.Objects
             if (_nativeObject.PointCount != 2) _nativeObject.SetPointCount(2);
 
             Vector2 size = new Vector2(10, 10);
-            if (Parent is GameObject convParent) size = convParent.Size;
+            Vector2 position = new Vector2(10, 10);
+            if (Parent is GameObject convParent)
+            {
+                size = convParent.Size;
+                position = convParent.Position;
+            }
 
             // Construct line points. The size will be the lines destination.
             _nativeObject.SetPoint(0, new Vector2f(0, 0));
-            _nativeObject.SetPoint(1, new Vector2f(size.X, size.Y));
+            _nativeObject.SetPoint(1, new Vector2f(size.X - position.X, size.Y - position.Y));
         }
 
         /// <summary>

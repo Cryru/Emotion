@@ -82,9 +82,9 @@ namespace Soul.Engine
             AppDomain.CurrentDomain.UnhandledException += (sender, args) => Logger.ForceDump();
 
             // Initiate modules.
+            ScriptEngine.Start();
             Debugger.Start();
             SceneManager.Start();
-            ScriptEngine.Start();
 
             // Boot ready.
             Debugger.DebugMessage(DebugMessageSource.Boot,
@@ -113,9 +113,9 @@ namespace Soul.Engine
                 _nativeContext.StartDraw();
 
                 // Update modules.
+                ScriptEngine.Update();
                 Debugger.Update();
                 SceneManager.Update();
-                ScriptEngine.Update();
 
                 // Finish drawing frame.
                 _nativeContext.EndDraw();
