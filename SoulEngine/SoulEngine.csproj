@@ -65,7 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\AssetManager\Assets.cs" />
-    <Compile Include="Engine\Context.cs" />
+    <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\Actor.cs" />
     <Compile Include="Engine\Enums\DebugMessageSource.cs" />
     <Compile Include="Engine\Enums\ShapeType.cs" />

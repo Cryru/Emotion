@@ -16,7 +16,7 @@ namespace Soul.Examples.Basic
         public static void Main(string[] args)
         {
             // Start the engine.
-            Context engineContext = new Context(new ShapeTest());
+            Core.Start(new ShapeTest());
         }
 
         public override void Initialize()
@@ -25,7 +25,7 @@ namespace Soul.Examples.Basic
             line.AddChild("line", new BasicShape());
             line.GetChild<BasicShape>("line").Type = ShapeType.Line;
             line.Size = new Vector2(50, 50);
-            line.Position = new Vector2(100, 100);
+            line.Position = new Vector2(100, 50);
 
             AddChild("line", line);
 

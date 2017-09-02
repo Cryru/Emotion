@@ -30,7 +30,7 @@ namespace Soul.Examples.ESScript
         public static void Main()
         {
             // Start the engine.
-            Context engineContext = new Context(new ElectricSleepViewer());
+            Core.Start(new ElectricSleepViewer());
         }
 
         public override void Initialize()
