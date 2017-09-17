@@ -52,7 +52,7 @@ namespace Soul.Engine.ECS
         /// <summary>
         /// Runs the actor's update code and updates the actor's children.
         /// </summary>
-        public void UpdateActor()
+        public virtual void UpdateActor()
         {
             if (Children != null)
                 foreach (Actor a in Children)

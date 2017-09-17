@@ -15,7 +15,7 @@ namespace Soul.Engine
 {
     public class GameObject : Actor
     {
-        #region Properties
+        #region Transformative Properties
 
         /// <summary>
         /// The object's size.
@@ -52,6 +52,23 @@ namespace Soul.Engine
         }
 
         private Vector2 _position = new Vector2(0, 0);
+
+        /// <summary>
+        /// The object's center.
+        /// </summary>
+        public Vector2 Center
+        {
+            get { return new Vector2(X + Width / 2, Y + Height / 2); }
+            set
+            {
+                // Transform the location.
+                value.X -= Width / 2;
+                value.Y -= Height / 2;
+
+                // Set the position.
+                Position = value;
+            }
+        }
 
         /// <summary>
         /// The object's origin.
@@ -107,8 +124,15 @@ namespace Soul.Engine
                 // If we don't need to update the transform, return it straight away.
                 if (!_updateTransform) return _transform;
 
-                // Otherwise update the transform.
+                // Otherwise update the transform flag, and update the transform.
                 _updateTransform = false;
+
+                //Vector2 Origin = Center;
+                //Vector2 Position = this.Position;
+
+                //Position.X -= Origin.X;
+                //Position.Y -= Origin.Y;
+
 
                 float cosine = (float) Math.Cos(_rotation);
                 float sine = (float) Math.Sin(_rotation);
@@ -208,6 +232,15 @@ namespace Soul.Engine
         {
         }
 
+        public override void UpdateActor()
+        {
+            // If the object is outside of the screen don't update it.
+            if (Core.NativeContext.Window.Viewport.IntersectsWith(Position))
+            {
+                base.UpdateActor();
+            }
+        }
+
         #region Events
 
         /// <summary>
@@ -224,11 +257,6 @@ namespace Soul.Engine
         /// The object's rotation has changed.
         /// </summary>
         public event Action onRotationChanged;
-
-        /// <summary>
-        /// The object's color has changed.
-        /// </summary>
-        public event Action onColorChanged;
 
         #endregion
     }

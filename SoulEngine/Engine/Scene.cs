@@ -15,6 +15,11 @@ namespace Soul.Engine
     /// </summary>
     public abstract class Scene : Actor, IDisposable
     {
+        /// <summary>
+        /// Whether the scene has physics.
+        /// </summary>
+        public bool HasPhysics = false;
+
         #region Disposing
         /// <summary>
         /// Disposing flag to detect redundant calls.
