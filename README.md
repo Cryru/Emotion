@@ -1,5 +1,6 @@
 <img src="Resources/SoulEngine2018.png" width=30%>
 
+[![Build status](https://ci.appveyor.com/api/projects/status/yv7u2a04tp1pgmew?svg=true)](https://ci.appveyor.com/project/Cryru/soulengine)
 
 ## What is it?
 
@@ -28,7 +29,7 @@ SoulEngine 2017 set the grounds for a clean engine structure, and even had some 
 - Asynchronous Javascript Scripting [&#10003;]
 - Actor System [&#10003;]
 - Scene System [&#10003;]
-- Drawing Primitive Shapes and Custom Polygons [&#10003;] - ShapeTest
+- Drawing Primitive Shapes and Custom Polygons [&#10003;] - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
 - Simple Input System [&#10003;]
 - Physics Engine [In Progress]
 
