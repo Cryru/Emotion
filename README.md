@@ -46,6 +46,6 @@ SoulEngine Build Helper - Built-in tool to help with building your projects.
 
 ## External Projects
 
-["TiledSharp"](https://github.com/marshallward/TiledSharp) - Parsing .tmx files.
+[TiledSharp](https://github.com/marshallward/TiledSharp) - Tiled integration.
 
-["Jint"](https://github.com/sebastienros/jint) - Javascript interpretation for the script engine.
+[Jint](https://github.com/sebastienros/jint) - Javascript engine.
