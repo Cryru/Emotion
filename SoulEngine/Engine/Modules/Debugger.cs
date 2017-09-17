@@ -45,6 +45,7 @@ namespace Soul.Engine.Modules
             // Expose debugging script functions.
             ScriptEngine.Expose("reflect", (Func<object, string>)Reflect);
             ScriptEngine.Expose("print", (Action<string>)Print);
+            ScriptEngine.Expose("fps", (Func<string>)FPS);
         }
 
         /// <summary>
@@ -90,37 +91,46 @@ namespace Soul.Engine.Modules
             return;
 #endif
 
-            // Whether to skip printing the message.
-            bool skipPrint = false;
-
-            // Check source to color.
-            switch (source)
+            lock (message)
             {
-                case DebugMessageSource.Error:
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    break;
-                case DebugMessageSource.ScriptModule:
-                    // Custom print code.
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write(FormatDebugMessage(source.ToString(), ""));
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(message);
-                    Console.WriteLine();
-                    skipPrint = true;
-                    break;
+                // Whether to skip printing the message.
+                bool skipPrint = false;
+
+                // Check source to color.
+                switch (source)
+                {
+                    case DebugMessageSource.Error:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                    case DebugMessageSource.ScriptModule:
+                        // Custom print code.
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write(FormatDebugMessage(source.ToString(), ""));
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write(message);
+                        Console.WriteLine();
+                        skipPrint = true;
+                        break;
+                    case DebugMessageSource.PhysicsModule:
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        break;
+                    case DebugMessageSource.SceneManager:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                }
+
+                if (!skipPrint)
+                {
+                    Console.WriteLine(FormatDebugMessage(source.ToString(), message));
+
+                    // Log the message, if it isn't an error. Errors are logged in the Error class as debugging might be turned off.
+                    if (source != DebugMessageSource.Error) Logger.Add(FormatDebugMessage(source.ToString(), message));
+                }
+
+                // Restore colors.
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Gray;
             }
-
-            if (!skipPrint)
-            {
-                Console.WriteLine(FormatDebugMessage(source.ToString(), message));
-
-                // Log the message, if it isn't an error. Errors are logged in the Error class as debugging might be turned off.
-                if (source != DebugMessageSource.Error) Logger.Add(FormatDebugMessage(source.ToString(), message));
-            }
-
-            // Restore colors.
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.Gray;
         }
 
         #region Functions
@@ -145,7 +155,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="obj">The object to reflect.</param>
         /// <returns>A string of all object data.</returns>
-        public static string Reflect(object obj)
+        private static string Reflect(object obj)
         {
             string text = "";
 
@@ -170,11 +180,19 @@ namespace Soul.Engine.Modules
         /// Prints a message to the console.
         /// </summary>
         /// <param name="text">The message to print.</param>
-        public static void Print(string text)
+        private static void Print(string text)
         {
             DebugMessage(DebugMessageSource.ScriptModule, text);
         }
 
+        /// <summary>
+        /// Returns the current frames per second the engine is running at.
+        /// </summary>
+        /// <returns>The current fps.</returns>
+        private static string FPS()
+        {
+            return (1000 / Core.FrameTime).ToString();
+        }
         #endregion
     }
 }

@@ -7,14 +7,12 @@ using System.Threading.Tasks;
 namespace Soul.Engine.Enums
 {
     /// <summary>
-    /// Sources of debugging messages.
+    /// Types of shapes a physics object can be.
     /// </summary>
-    public enum DebugMessageSource
+    public enum PhysicsShape
     {
-        Boot,
-        Error,
-        SceneManager,
-        ScriptModule,
-        PhysicsModule
+        Polygon,
+        Rectangle,
+        Circle
     }
 }

@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Soul.Examples.Basic.ShapeTest</StartupObject>
+    <StartupObject>Soul.Examples.Basic.PhysicsTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>SoulEngine2018.ico</ApplicationIcon>
@@ -54,6 +54,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Libraries\Utility\SoulLib.dll</HintPath>
     </Reference>
+    <Reference Include="SoulPhysics">
+      <HintPath>Libraries\SoulPhysics.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -68,13 +71,17 @@
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\Actor.cs" />
     <Compile Include="Engine\Enums\DebugMessageSource.cs" />
+    <Compile Include="Engine\Enums\PhysicsShape.cs" />
     <Compile Include="Engine\Enums\ShapeType.cs" />
     <Compile Include="Engine\Internal\AsyncScript.cs" />
     <Compile Include="Engine\Meta.cs" />
     <Compile Include="Engine\GameObject.cs" />
+    <Compile Include="Engine\Modules\PhysicsModule.cs" />
+    <Compile Include="Engine\Modules\Input.cs" />
     <Compile Include="Engine\Modules\SceneManager.cs" />
     <Compile Include="Engine\Modules\ScriptEngine.cs" />
     <Compile Include="Engine\Objects\BasicShape.cs" />
+    <Compile Include="Engine\Objects\PhysicsBody.cs" />
     <Compile Include="Engine\Objects\Texture.cs" />
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\SceneLoadArgs.cs" />
@@ -82,6 +89,7 @@
     <Compile Include="Engine\Error.cs" />
     <Compile Include="Engine\Functions.cs" />
     <Compile Include="Engine\Modules\Debugger.cs" />
+    <Compile Include="Examples\Basic\PhysicsTest.cs" />
     <Compile Include="Examples\Basic\ShapeTest.cs" />
     <Compile Include="Examples\ESScript\ElectricSleepViewer.cs" />
     <None Include="Examples\ESScript\ESScriptTree.cs" />

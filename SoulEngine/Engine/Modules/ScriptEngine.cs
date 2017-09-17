@@ -28,6 +28,11 @@ namespace Soul.Engine.Modules
         private static List<AsyncScript> _activeScripts;
 
         /// <summary>
+        /// A list of registered actions.
+        /// </summary>
+        private static List<Action> _registeredActions;
+
+        /// <summary>
         /// Any script threads which take more milliseconds that specified here will be terminated.
         /// </summary>
         private static int threadTimeout = 300;
@@ -44,6 +49,13 @@ namespace Soul.Engine.Modules
 
             // Expose the list of threads.
             Expose("threads", _activeScripts);
+
+            // Define a list of registered actions.
+            _registeredActions = new List<Action>();
+
+            // Expose the registered functions functions.
+            Expose("register", (Func<Action, int>)Register);
+            Expose("unregister", (Action<int>)Unregister);
         }
 
         public static void Update()
@@ -61,6 +73,16 @@ namespace Soul.Engine.Modules
                     if (_activeScripts[i].UpdateTime()) _activeScripts.RemoveAt(i);
                 }
             }
+
+            lock (_registeredActions)
+            {
+                // Run all registered actions.
+                foreach (Action a in _registeredActions)
+                {
+                    a?.Invoke();
+                }
+            }
+  
         }
 
         /// <summary>
@@ -70,28 +92,19 @@ namespace Soul.Engine.Modules
         /// <param name="exposedData"></param>
         public static void Expose(string name, object exposedData)
         {
-            Interpreter.SetValue(name, exposedData);
+            Interpreter?.SetValue(name, exposedData);
         }
 
         /// <summary>
         /// Executes the provided string on the Javascript engine asynchronously.
         /// </summary>
         /// <param name="script">The script to execute.</param>
+        /// <param name="looping">Whether the script is looping and shouldn't timeout.</param>
         /// <returns></returns>
-        public static async Task<object> RunScriptAsync(string script)
+        public static void RunScriptAsync(string script, bool looping = false)
         {
-            // Create a token for cancellation.
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
-            CancellationToken token = tokenSource.Token;
-
-            // Create the task.
-            Task<object> scriptTask = Task<object>.Factory.StartNew(() => RunScript(script), token);
-
-            // Add the token to the list of threads.
-            _activeScripts.Add(new AsyncScript(scriptTask, tokenSource, threadTimeout));
-
-            // Run the script asynchronously.
-            return await scriptTask;
+            // Create an async script and add it to the managing list.
+            _activeScripts?.Add(new AsyncScript(script, threadTimeout, looping));
         }
 
         /// <summary>
@@ -115,10 +128,54 @@ namespace Soul.Engine.Modules
             }
             catch (Exception e)
             {
+                // Check if thread error, which we handle inside the AsyncScript object with a clearer error.
+                if (e.Message == "Thread was being aborted.")
+                {
+                    return null;
+                }
+
                 // Raise a scripting error.
                 Error.Raise(50, e.Message);
                 return null;
             }
         }
+
+        #region Functions
+
+        /// <summary>
+        /// Registers a function to be executed every frame.
+        /// </summary>
+        /// <param name="function">The function to register.</param>
+        /// <returns>The index for the function.</returns>
+        private static int Register(Action function)
+        {
+            lock (_registeredActions)
+            {
+                // Check if the function has already been added.
+                if (_registeredActions.IndexOf(function) != -1) return -1;
+
+                // Get the future index.
+                int futureIndex = _registeredActions.Count;
+
+                // Add the function to the list.
+                _registeredActions.Add(function);
+
+                // Return the index.
+                return futureIndex;
+            }
+        }
+
+        /// <summary>
+        /// Unregisters a function to no longer be executed every frame.
+        /// </summary>
+        /// <param name="index">The index of the function to unregister.</param>
+        private static void Unregister(int index)
+        {
+            if (index < 0) return;
+            if (index > _registeredActions.Count - 1) return;
+
+            _registeredActions[index] = null;
+        }
+        #endregion
     }
 }

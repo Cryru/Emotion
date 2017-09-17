@@ -66,6 +66,9 @@ namespace Soul.Engine.Objects
             get { return _circleDetail; }
             set
             {
+                // Limit detail to 1000.
+                if (value > 1000) value = 1000;
+
                 _circleDetail = value;
                 UpdateShapeType();
             }
@@ -73,10 +76,27 @@ namespace Soul.Engine.Objects
 
         private int _circleDetail = 30;
 
+        /// <summary>
+        /// The vertex array to use if the shape type is Polygon.
+        /// </summary>
+        public Vector2[] PolygonVertices
+        {
+            get { return _polygonVertices; }
+            set
+            {
+                _polygonVertices = value;
+                UpdateShapeType();
+            }
+        }
+
+        private Vector2[] _polygonVertices;
+
         #endregion
 
         #region Raya API
-
+        /// <summary>
+        /// The shape object inside the Raya API.
+        /// </summary>
         private Shape _nativeObject;
 
         #endregion
@@ -86,36 +106,44 @@ namespace Soul.Engine.Objects
             _nativeObject = new Shape();
         }
 
-        public BasicShape(ShapeType type) : this()
+        /// <summary>
+        /// Create a new basic shape.
+        /// </summary>
+        /// <param name="type">The shape to display.</param>
+        /// <param name="polygonVertices">The vertices that make up the polygon, if the shape is polygon.</param>
+        public BasicShape(ShapeType type, Vector2[] polygonVertices = null) : this()
         {
             _type = type;
+            _polygonVertices = polygonVertices;
         }
 
         public override void Initialize()
         {
-            // If the parent is a game object we want to hook up to the size changed event.
-            if (Parent is GameObject convParent)
-            {
-                convParent.onSizeChanged += UpdateShapeType;
-                convParent.onPositionChanged += UpdateShapePosition;
-                convParent.onRotationChanged += UpdateShapeRotation;
-            }
+            // Hook up to events modifying the parent.
+            ((GameObject) Parent).onSizeChanged += UpdateShapeType;
+            ((GameObject) Parent).onPositionChanged += UpdateShapeData;
+            ((GameObject) Parent).onRotationChanged += UpdateShapeRotation;
 
             // Generate shape data.
             UpdateShapeType();
         }
 
-        ~BasicShape()
+        public void Destroy()
         {
-            Console.WriteLine("DESTROYED");
+            // Unhook events.
+            ((GameObject)Parent).onSizeChanged -= UpdateShapeType;
+            ((GameObject)Parent).onPositionChanged -= UpdateShapeData;
+            ((GameObject)Parent).onRotationChanged -= UpdateShapeRotation;
 
-            // If the parent is a game object free the event.
-            if (Parent is GameObject convParent)
+            // Unhook from parent.
+            int index = Parent.Children.IndexOf(this);
+            if (index != -1)
             {
-                convParent.onSizeChanged -= UpdateShapeType;
-                convParent.onPositionChanged -= UpdateShapePosition;
-                convParent.onRotationChanged += UpdateShapeRotation;
-            }
+                Parent.RemoveChild(index);
+            }      
+
+            // Dispose the native object.
+            _nativeObject.Dispose();
         }
 
         public override void Update()
@@ -126,21 +154,21 @@ namespace Soul.Engine.Objects
 
         #region Internal
 
+        private void UpdateShapeData()
+        {
+            // Set the native object's position to the SE object's position minus the origin so that the object will rotate from the center but position from the top left point.
+            _nativeObject.Position = (Vector2f)((GameObject)Parent).Position;
+            // Except for lines and polygons, because they shouldn't have a custom origin.
+            _nativeObject.Origin = _type != ShapeType.Line && _type != ShapeType.Polygon ? new Vector2f(((GameObject)Parent).Width / 2, ((GameObject)Parent).Height / 2) : new Vector2f(0, 0);
+            _nativeObject.Position = _nativeObject.Position + _nativeObject.Origin;
+        }
+
         /// <summary>
         /// Updates the native object shape's rotation according to the parent game object's rotation.
         /// </summary>
         private void UpdateShapeRotation()
         {
-            _nativeObject.Rotation = ((GameObject) Parent).RotationDegree;
-        }
-
-        /// <summary>
-        /// Updates the native object shape's position according to the parent game object's position.
-        /// </summary>
-        private void UpdateShapePosition()
-        {
-            _nativeObject.Position = (Vector2f) ((GameObject) Parent).Position;
-            UpdateShapeType();
+            _nativeObject.Rotation = ((GameObject) Parent).RotationDegree * -1;
         }
 
         /// <summary>
@@ -148,6 +176,10 @@ namespace Soul.Engine.Objects
         /// </summary>
         private void UpdateShapeType()
         {
+            // Update the shape's data.
+            UpdateShapeData();
+
+            // Generate the object based on the type.
             switch (_type)
             {
                 case ShapeType.Line:
@@ -161,6 +193,9 @@ namespace Soul.Engine.Objects
                     break;
                 case ShapeType.Triangle:
                     GenerateTriangle();
+                    break;
+                case ShapeType.Polygon:
+                    GeneratePolygon();
                     break;
                 default:
                     Error.Raise(3, "Unknown shape type.");
@@ -180,13 +215,8 @@ namespace Soul.Engine.Objects
         {
             if (_nativeObject.PointCount != 2) _nativeObject.SetPointCount(2);
 
-            Vector2 size = new Vector2(10, 10);
-            Vector2 position = new Vector2(10, 10);
-            if (Parent is GameObject convParent)
-            {
-                size = convParent.Size;
-                position = convParent.Position;
-            }
+            Vector2 size = ((GameObject)Parent).Size;
+            Vector2 position = ((GameObject)Parent).Position;
 
             // Construct line points. The size will be the lines destination.
             _nativeObject.SetPoint(0, new Vector2f(0, 0));
@@ -200,8 +230,7 @@ namespace Soul.Engine.Objects
         {
             if (_nativeObject.PointCount != 4) _nativeObject.SetPointCount(4);
 
-            Vector2 size = new Vector2(10, 10);
-            if (Parent is GameObject convParent) size = convParent.Size;
+            Vector2 size = ((GameObject)Parent).Size;
 
             // Construct rectangle points from parent size.
             _nativeObject.SetPoint(0, new Vector2f(0, 0));
@@ -217,13 +246,12 @@ namespace Soul.Engine.Objects
         {
             if (_nativeObject.PointCount != 3) _nativeObject.SetPointCount(3);
 
-            Vector2 size = new Vector2(10, 10);
-            if (Parent is GameObject convParent) size = convParent.Size;
+            Vector2 size = ((GameObject)Parent).Size;
 
             // Construct triangle points from parent size.
-            _nativeObject.SetPoint(0, new Vector2f(size.X / 2f * -1, 0));
-            _nativeObject.SetPoint(1, new Vector2f(0, size.Y));
-            _nativeObject.SetPoint(2, new Vector2f(size.X / 2f, 0));
+            _nativeObject.SetPoint(0, new Vector2f(0, 0));
+            _nativeObject.SetPoint(1, new Vector2f(size.X / 2f, size.Y));
+            _nativeObject.SetPoint(2, new Vector2f(size.X, 0));    
         }
 
         /// <summary>
@@ -233,11 +261,10 @@ namespace Soul.Engine.Objects
         {
             if (_nativeObject.PointCount != CircleDetail) _nativeObject.SetPointCount((uint) CircleDetail);
 
-            Vector2 size = new Vector2(10, 10);
-            if (Parent is GameObject convParent) size = convParent.Size;
+            Vector2 size = ((GameObject)Parent).Size;
 
             // Get the radius of the circle from the size. Whichever size is bigger.
-            float radius = Math.Max(size.X, size.Y);
+            float radius = Math.Max(size.X / 2, size.Y / 2);
 
             // Generate points.
             for (uint i = 0; i < CircleDetail; i++)
@@ -250,6 +277,19 @@ namespace Soul.Engine.Objects
             }
         }
 
+        /// <summary>
+        /// Generates a polygon shape.
+        /// </summary>
+        private void GeneratePolygon()
+        {
+            if (PolygonVertices == null) return;
+            if (_nativeObject.PointCount != PolygonVertices.Length) _nativeObject.SetPointCount((uint)PolygonVertices.Length);
+
+            for (uint i = 0; i < PolygonVertices.Length; i++)
+            {
+                _nativeObject.SetPoint(i, (Vector2f)PolygonVertices[i] );
+            }
+        }
         #endregion
     }
 }

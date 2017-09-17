@@ -14,6 +14,7 @@ namespace Soul.Engine.Enums
         Line,
         Triangle,
         Rectangle,
-        Circle
+        Circle,
+        Polygon
     }
 }
