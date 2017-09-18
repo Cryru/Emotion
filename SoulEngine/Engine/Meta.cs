@@ -11,6 +11,6 @@ namespace Soul.Engine
         /// <summary>
         /// The version of the engine.
         /// </summary>
-        public const string Version = "0.1";
+        public const string Version = "1";
     }
 }

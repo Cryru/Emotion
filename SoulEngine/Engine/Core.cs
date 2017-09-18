@@ -108,18 +108,20 @@ namespace Soul.Engine
                 // Restart the frame time timer.
                 timingClock.Restart();
 
+                // Update modules.
+                Input.Update();
+                ScriptEngine.Update();
+                Debugger.Update();
+                PhysicsModule.Update();
+
                 // Tick events and update Raya.
                 NativeContext.Tick();
 
                 // Start drawing.
                 NativeContext.StartDraw();
 
-                // Update modules.
-                Input.Update();
-                ScriptEngine.Update();
-                Debugger.Update();
+                // Update the screen manager.
                 SceneManager.Update();
-                PhysicsModule.Update();
 
                 // Finish drawing frame.
                 NativeContext.EndDraw();

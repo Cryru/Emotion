@@ -25,90 +25,115 @@ namespace Soul.Examples.Basic
             Core.Start(new PhysicsTest(), "physicsTest");
         }
 
+        #region Declarations
+
+        private ShapeType _currentShape = ShapeType.Rectangle;
+        private int _currentSize = 10;
+#endregion
+
         public override void Initialize()
         {
-            //GameObject ceiling = new GameObject();
-            //ceiling.Position = new Vector2(0, 0);
-            //ceiling.Size = new Vector2(Settings.Width, 5);
-            //ceiling.AddChild(new PhysicsBody(this, PhysicsShape.Rectangle));
-            //ceiling.AddChild(new BasicShape(ShapeType.Rectangle));
-            //ceiling.GetChild<BasicShape>().Color = Color.Black;
-            //ceiling.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
+            GameObject ceiling = new GameObject();
+            ceiling.Position = new Vector2(0, 0);
+            ceiling.Size = new Vector2(Settings.Width, 5);
+            ceiling.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
+            ceiling.AddChild(new BasicShape(ShapeType.Rectangle));
+            ceiling.GetChild<BasicShape>().Color = Color.Black;
+            ceiling.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
 
-            //AddChild("ceiling", ceiling);
+            AddChild("ceiling", ceiling);
 
-            //GameObject leftWall = new GameObject();
-            //leftWall.Position = new Vector2(0, 0);
-            //leftWall.Size = new Vector2(5, Settings.Height);
-            //leftWall.AddChild(new PhysicsBody(this, PhysicsShape.Rectangle));
-            //leftWall.AddChild(new BasicShape(ShapeType.Rectangle));
-            //leftWall.GetChild<BasicShape>().Color = Color.Black;
-            //leftWall.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
+            GameObject leftWall = new GameObject();
+            leftWall.Position = new Vector2(0, 0);
+            leftWall.Size = new Vector2(5, Settings.Height);
+            leftWall.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
+            leftWall.AddChild(new BasicShape(ShapeType.Rectangle));
+            leftWall.GetChild<BasicShape>().Color = Color.Black;
+            leftWall.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
 
-            //AddChild("leftWall", leftWall);
+            AddChild("leftWall", leftWall);
 
-            //GameObject rightWall = new GameObject();
-            //rightWall.Position = new Vector2(Settings.Width - 5, 0);
-            //rightWall.Size = new Vector2(5, Settings.Height);
-            //rightWall.AddChild(new PhysicsBody(this, PhysicsShape.Rectangle));
-            //rightWall.AddChild(new BasicShape(ShapeType.Rectangle));
-            //rightWall.GetChild<BasicShape>().Color = Color.Black;
-            //rightWall.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
+            GameObject rightWall = new GameObject();
+            rightWall.Position = new Vector2(Settings.Width - 5, 0);
+            rightWall.Size = new Vector2(5, Settings.Height);
+            rightWall.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
+            rightWall.AddChild(new BasicShape(ShapeType.Rectangle));
+            rightWall.GetChild<BasicShape>().Color = Color.Black;
+            rightWall.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
 
-            //AddChild("rightWall", rightWall);
+            AddChild("rightWall", rightWall);
 
             GameObject floor = new GameObject();
             floor.Position = new Vector2(0, Settings.Height - 15);
             floor.Size = new Vector2(Settings.Width, 15);
-            floor.AddChild(new PhysicsBody(this, PhysicsShape.Rectangle));
+            floor.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
             floor.AddChild(new BasicShape(ShapeType.Rectangle));
             floor.GetChild<BasicShape>().Color = Color.Black;
             floor.GetChild<PhysicsBody>().SimulationType = BodyType.Static;
 
             AddChild("floor", floor);
 
-            GameObject rect1 = new GameObject();
-            rect1.Position = new Vector2(50, 50);
-            rect1.Size = new Vector2(15, 15);
-            rect1.AddChild(new PhysicsBody(this, PhysicsShape.Rectangle));
-            rect1.AddChild(new BasicShape(ShapeType.Rectangle));
-            rect1.GetChild<BasicShape>().Color = Color.Black;
-            rect1.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
+            Vector2[] vert = { new Vector2(16, 43), new Vector2(12, -15), new Vector2(-10, -2) };
 
-            AddChild("rect1", rect1);
+            GameObject polygon = new GameObject();
+            polygon.Position = new Vector2(50, 50);
+            polygon.Size = new Vector2(50, 50);
+            polygon.AddChild(new PhysicsBody(this, ShapeType.Polygon, vert));
+            polygon.AddChild(new BasicShape(ShapeType.Polygon, vert));
+            polygon.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
+            polygon.GetChild<BasicShape>().Color = new Raya.Graphics.Color(255, 0, 0);
 
-            GameObject rect2 = new GameObject();
-            rect2.Position = new Vector2(50, 100);
-            rect2.Size = new Vector2(15, 15);
-            rect2.AddChild(new PhysicsBody(this, PhysicsShape.Rectangle));
-            rect2.AddChild(new BasicShape(ShapeType.Rectangle));
-            rect2.GetChild<BasicShape>().Color = Color.Black;
-            rect2.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
+            AddChild("polygon", polygon);
 
-            AddChild("rect2", rect2);
+            GameObject mouseIndicator = new GameObject();
+            mouseIndicator.AddChild(new BasicShape(ShapeType.Rectangle));
+            mouseIndicator.GetChild<BasicShape>().Color = new Color(255, 255, 255, 100);
+            mouseIndicator.GetChild<BasicShape>().OutlineColor = new Raya.Graphics.Color(255, 0, 0, 200);
+            mouseIndicator.GetChild<BasicShape>().OutlineThickness = 2;
 
-            //Vector2[] vert = {new Vector2(27, -32), new Vector2(-27, -35), new Vector2(3, 22)};
-
-            //GameObject physicsObject = new GameObject();
-            //physicsObject.Position = new Vector2(50, 50);
-            //physicsObject.Size = new Vector2(50, 50);
-            //physicsObject.AddChild(new PhysicsBody(this, PhysicsShape.Polygon, vert));
-            //physicsObject.AddChild(new BasicShape(ShapeType.Polygon, vert));
-            //physicsObject.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
-
-            //AddChild("physicsTest", physicsObject);
+            AddChild("mouseIndicator", mouseIndicator);
         }
 
         public override void Update()
         {
+            // Decide shape.
+            bool add = true;
             if (Input.MouseButtonHeld(Mouse.Button.Left))
             {
+                _currentShape = ShapeType.Rectangle;
+            }
+            else if (Input.MouseButtonHeld(Mouse.Button.Right))
+            {
+                _currentShape = ShapeType.Circle;
+            }
+            else
+            {
+                add = false;
+            }
+
+            // Check if size changed.
+            _currentSize += Input.MouseWheelScroll();
+
+            // Clamp.
+            if (_currentSize > 100) _currentSize = 100;
+            else if (_currentSize < 10) _currentSize = 10;
+
+            // Update mouse indicator.
+            GetChild<GameObject>("mouseIndicator").Center = Input.MousePosition;
+            GetChild<GameObject>("mouseIndicator").Size = new Vector2(_currentSize, _currentSize);
+            GetChild<GameObject>("mouseIndicator").GetChild<BasicShape>().Type = _currentShape;
+
+            // If clicked produce shapes.
+            if (add)
+            {
                 GameObject temp = new GameObject();
-                temp.Position = Input.MousePosition;
-                temp.Size = new Vector2(10, 10);
-                temp.AddChild(new PhysicsBody(this, PhysicsShape.Circle));
-                temp.AddChild(new BasicShape(ShapeType.Circle));
+                temp.Position = GetChild<GameObject>("mouseIndicator").Position;
+                temp.Size = new Vector2(_currentSize, _currentSize);
+                temp.AddChild(new PhysicsBody(this, _currentShape));
+                temp.AddChild(new BasicShape(_currentShape));
                 temp.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
+                temp.GetChild<BasicShape>().OutlineColor = Color.Black;
+                temp.GetChild<BasicShape>().OutlineThickness = 1;
 
                 AddChild(temp);
             }

@@ -66,7 +66,12 @@ namespace Soul.Engine.Modules
 
                 Mouse.SetPosition(value, Core.NativeContext.Window);
             }
-        } 
+        }
+
+        /// <summary>
+        /// The amount of mouse wheel scrolling done this frame.
+        /// </summary>
+        private static int _mouseScroll = 0;
         #endregion
 
 
@@ -99,6 +104,9 @@ namespace Soul.Engine.Modules
                 _mouseButtons.Add(b, false);
                 _mouseButtonsLastFrame.Add(b, false);
             }
+
+            // Hook up to the mouse wheel event.
+            Core.NativeContext.MouseWheelScrolled += NativeContext_MouseWheelScrolled;
         }
 
         /// <summary>
@@ -133,6 +141,9 @@ namespace Soul.Engine.Modules
                 // Update the current frame data.
                 _mouseButtons[button] = newValue;
             }
+
+            // Reset scroll.
+            _mouseScroll = 0;
 
             // Check if alt+enter are pressed for fullscreen.
             if (KeyHeld(Keyboard.Key.LAlt) && KeyPressed(Keyboard.Key.Return))
@@ -199,6 +210,25 @@ namespace Soul.Engine.Modules
             if (!Core.NativeContext.Window.Focused) return false;
 
             return _mouseButtonsLastFrame[button] && _mouseButtons[button];
+        }
+
+        /// <summary>
+        /// Returns the amount of mouse wheel scrolling done this frame.
+        /// </summary>
+        /// <returns></returns>
+        public static int MouseWheelScroll()
+        {
+            return _mouseScroll;
+        }
+
+        /// <summary>
+        /// The Raya mouse wheel event we are hooking up to.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private static void NativeContext_MouseWheelScrolled(object sender, Raya.Events.MouseWheelScrollEventArgs e)
+        {
+            _mouseScroll = (int) (e.Delta);
         }
 
         #endregion

@@ -36,7 +36,7 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// The scale at which to simulate physics.
         /// </summary>
-        public static float Scale = 2;
+        public static float Scale = 5;
 
         /// <summary>
         /// The scale at which to simulate physics in reverse.
@@ -49,7 +49,7 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// The physics gravity.
         /// </summary>
-        public static Soul.Physics.Common.Vector2 Gravity = new Soul.Physics.Common.Vector2(0, 1);
+        public static Soul.Physics.Common.Vector2 Gravity = new Soul.Physics.Common.Vector2(0, 9.8f);
 
         #endregion
 
@@ -69,7 +69,7 @@ namespace Soul.Engine.Modules
         {
             if (SceneManager.CurrentScene != null && SceneManager.CurrentScene.HasPhysics)
             {
-                CurrentWorld.Step(1000 / Core.FrameTime);
+                CurrentWorld.Step(Core.FrameTime / 1000f);
             }
         }
 
@@ -97,17 +97,17 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Converts the physics measurements to pixel measurements.
         /// </summary>
-        public static float PhysicsToPixel(float num)
+        public static Vector2f PhysicsToPixel(Physics.Common.Vector2 vec)
         {
-            return num * Scale;
+            return new Vector2f(vec.X, vec.Y) * Scale;
         }
 
         /// <summary>
         /// Converts the physics measurements to pixel measurements.
         /// </summary>
-        public static Vector2f PhysicsToPixel(Vector2f vec)
+        public static Vector2 PhysicsToPixel(float x, float y)
         {
-            return vec * Scale;
+            return new Vector2((int) (x * Scale), (int) (y * Scale));
         }
 
         /// <summary>
@@ -121,11 +121,18 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Converts the pixel measurements to physics measurements.
         /// </summary>
-        public static Vector2f PixelToPhysics(Vector2f vec)
+        public static Physics.Common.Vector2 PixelToPhysics(Vector2f vec)
         {
-            return vec * ScaleReverse;
+            return new Physics.Common.Vector2(vec.X, vec.Y) * ScaleReverse;
         }
 
+        /// <summary>
+        /// Converts the pixel measurements to physics measurements.
+        /// </summary>
+        public static Physics.Common.Vector2 PixelToPhysics(Vector2 vec)
+        {
+            return new Physics.Common.Vector2(vec.X, vec.Y) * ScaleReverse;
+        }
         #endregion
     }
 }

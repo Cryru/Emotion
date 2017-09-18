@@ -59,7 +59,7 @@ namespace Soul.Examples.Basic
             GameObject poly = new GameObject();
             poly.AddChild("poly", new BasicShape());
             poly.GetChild<BasicShape>("poly").Type = ShapeType.Polygon;
-            Vector2[] vert = { new Vector2(1, -19), new Vector2(18, -10), new Vector2(25, 5), new Vector2(23, 21), new Vector2(14, 28), new Vector2(4, 29), new Vector2(-5, 26), new Vector2(-14, 21) };
+            Vector2[] vert = { new Vector2(9, -9), new Vector2(15, 7), new Vector2(2, 16), new Vector2(-6, 19), new Vector2(-19, 5), new Vector2(-20, -4), new Vector2(-11, -14), new Vector2(-4, -15), new Vector2(4, -15) };
             poly.GetChild<BasicShape>().PolygonVertices = vert;
             poly.Position = new Vector2(450, 50);
 
@@ -68,42 +68,36 @@ namespace Soul.Examples.Basic
             // Spinning shapes.
 
             GameObject spinCircle = new GameObject();
-            spinCircle.AddChild("spinCircle", new BasicShape());
-            spinCircle.GetChild<BasicShape>("spinCircle").Type = ShapeType.Circle;
             spinCircle.Position = new Vector2(50, 150);
             spinCircle.Size = new Vector2(50, 50);
+            spinCircle.AddChild("spinCircle", new BasicShape(ShapeType.Circle));
 
             AddChild("spinCircle", spinCircle);
 
             GameObject spinLine = new GameObject();
-            spinLine.AddChild("spinLine", new BasicShape());
-            spinLine.GetChild<BasicShape>("spinLine").Type = ShapeType.Line;
             spinLine.Position = new Vector2(150, 150);
             spinLine.Size = new Vector2(200, 150);
+            spinLine.AddChild("spinLine", new BasicShape(ShapeType.Line));
 
             AddChild("spinLine", spinLine);
 
             GameObject spinRect = new GameObject();
-            spinRect.AddChild("spinRect", new BasicShape());
-            spinRect.GetChild<BasicShape>("spinRect").Type = ShapeType.Rectangle;
             spinRect.Position = new Vector2(250, 150);
             spinRect.Size = new Vector2(50, 50);
+            spinRect.AddChild("spinRect", new BasicShape(ShapeType.Rectangle));
 
             AddChild("spinRect", spinRect);
 
             GameObject spinTri = new GameObject();
-            spinTri.AddChild("spinTri", new BasicShape());
-            spinTri.GetChild<BasicShape>("spinTri").Type = ShapeType.Triangle;
             spinTri.Position = new Vector2(350, 150);
             spinTri.Size = new Vector2(50, 50);
+            spinTri.AddChild("spinTri", new BasicShape(ShapeType.Triangle));
 
             AddChild("spinTri", spinTri);
 
             GameObject spinPoly = new GameObject();
-            spinPoly.AddChild("spinPoly", new BasicShape());
-            spinPoly.GetChild<BasicShape>("spinPoly").Type = ShapeType.Polygon;
-            spinPoly.GetChild<BasicShape>().PolygonVertices = vert;
             spinPoly.Position = new Vector2(450, 150);
+            spinPoly.AddChild("spinPoly", new BasicShape(ShapeType.Polygon, vert));
 
             AddChild("spinPoly", spinPoly);
 
@@ -178,6 +172,9 @@ namespace Soul.Examples.Basic
             GameObject colorCircle = new GameObject();
             colorCircle.AddChild("colorCircle", new BasicShape());
             colorCircle.GetChild<BasicShape>("colorCircle").Type = ShapeType.Circle;
+            colorCircle.GetChild<BasicShape>("colorCircle").Color =
+                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                    Functions.GenerateRandomNumber(0, 255));
             colorCircle.Position = new Vector2(50, 350);
             colorCircle.Size = new Vector2(50, 50);
 
@@ -186,6 +183,9 @@ namespace Soul.Examples.Basic
             GameObject colorLine = new GameObject();
             colorLine.AddChild("colorLine", new BasicShape());
             colorLine.GetChild<BasicShape>("colorLine").Type = ShapeType.Line;
+            colorLine.GetChild<BasicShape>("colorLine").Color =
+                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                    Functions.GenerateRandomNumber(0, 255));
             colorLine.Position = new Vector2(150, 350);
             colorLine.Size = new Vector2(200, 350);
 
@@ -194,6 +194,9 @@ namespace Soul.Examples.Basic
             GameObject colorRect = new GameObject();
             colorRect.AddChild("colorRect", new BasicShape());
             colorRect.GetChild<BasicShape>("colorRect").Type = ShapeType.Rectangle;
+            colorRect.GetChild<BasicShape>("colorRect").Color =
+                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                    Functions.GenerateRandomNumber(0, 255));
             colorRect.Position = new Vector2(250, 350);
             colorRect.Size = new Vector2(50, 50);
 
@@ -202,6 +205,9 @@ namespace Soul.Examples.Basic
             GameObject colorTri = new GameObject();
             colorTri.AddChild("colorTri", new BasicShape());
             colorTri.GetChild<BasicShape>("colorTri").Type = ShapeType.Triangle;
+            colorTri.GetChild<BasicShape>("colorTri").Color =
+                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                    Functions.GenerateRandomNumber(0, 255));
             colorTri.Position = new Vector2(350, 350);
             colorTri.Size = new Vector2(50, 50);
 
@@ -210,6 +216,9 @@ namespace Soul.Examples.Basic
             GameObject colorPoly = new GameObject();
             colorPoly.AddChild("colorPoly", new BasicShape());
             colorPoly.GetChild<BasicShape>("colorPoly").Type = ShapeType.Polygon;
+            colorPoly.GetChild<BasicShape>("colorPoly").Color =
+                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                    Functions.GenerateRandomNumber(0, 255));
             colorPoly.GetChild<BasicShape>().PolygonVertices = vert;
             colorPoly.Position = new Vector2(450, 350);
 
@@ -221,13 +230,13 @@ namespace Soul.Examples.Basic
             ScriptEngine.Expose("colorRect", colorRect);
             ScriptEngine.Expose("colorTri", colorTri);
             ScriptEngine.Expose("colorPoly", colorPoly);
-            ScriptEngine.Expose("RandomizeColor", (Action<GameObject>) RandomizeColor);
+            ScriptEngine.Expose("ChangeColor", (Action<GameObject>)ChangeColor);
             ScriptEngine.RunScript("register(function() {" +
-                                        " RandomizeColor(colorCircle); " +
-                                        " RandomizeColor(colorLine); " +
-                                        " RandomizeColor(colorRect); " +
-                                        " RandomizeColor(colorTri); " +
-                                        " RandomizeColor(colorPoly); " +
+                                        " ChangeColor(colorCircle); " +
+                                        " ChangeColor(colorLine); " +
+                                        " ChangeColor(colorRect); " +
+                                        " ChangeColor(colorTri); " +
+                                        " ChangeColor(colorPoly); " +
                                         "});");
         }
 
@@ -236,9 +245,9 @@ namespace Soul.Examples.Basic
 
         }
 
-        private void RandomizeColor(GameObject obj)
+        private void ChangeColor(GameObject obj)
         {
-            obj.GetChild<BasicShape>().Color = new Raya.Graphics.Color(Utilities.GenerateRandomNumber(0, 255), Utilities.GenerateRandomNumber(0, 255), Utilities.GenerateRandomNumber(0, 255));
+            obj.GetChild<BasicShape>().Color = new Raya.Graphics.Color(obj.GetChild<BasicShape>().Color.R + 1, obj.GetChild<BasicShape>().Color.G + 1, obj.GetChild<BasicShape>().Color.B + 1);
         }
     }
 }

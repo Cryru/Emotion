@@ -99,6 +99,11 @@ namespace Soul.Engine.Modules
                 // Check source to color.
                 switch (source)
                 {
+                    case DebugMessageSource.Debug:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Debug Message: " + message);
+                        skipPrint = true;
+                        break;
                     case DebugMessageSource.Error:
                         Console.ForegroundColor = ConsoleColor.Red;
                         break;

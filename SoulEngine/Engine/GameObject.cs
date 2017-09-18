@@ -235,7 +235,12 @@ namespace Soul.Engine
         public override void UpdateActor()
         {
             // If the object is outside of the screen don't update it.
-            if (Core.NativeContext.Window.Viewport.IntersectsWith(Position))
+            Rectangle Screen = Core.NativeContext.Window.Viewport;
+            Screen.X -= 50;
+            Screen.Y -= 50;
+            Screen.Width += 100;
+            Screen.Height += 100;
+            if (Screen.IntersectsWith(Position))
             {
                 base.UpdateActor();
             }

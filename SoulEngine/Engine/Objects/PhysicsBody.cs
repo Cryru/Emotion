@@ -58,7 +58,7 @@ namespace Soul.Engine.Objects
         /// <summary>
         /// The body's shape template.
         /// </summary>
-        private PhysicsShape _shape;
+        private ShapeType _shape;
 
         /// <summary>
         /// The world this object belongs to.
@@ -88,7 +88,7 @@ namespace Soul.Engine.Objects
         /// <param name="scene">The scene this body will belong to.</param>
         /// <param name="shape">The collision shape to represent the body.</param>
         /// <param name="polygonVertices">The vertices that make up the polygon, if the shape is polygon.</param>
-        public PhysicsBody(Scene scene, PhysicsShape shape, Vector2[] polygonVertices = null)
+        public PhysicsBody(Scene scene, ShapeType shape, Vector2[] polygonVertices = null)
         {
             // Assign the physics world.
             PolygonVertices = polygonVertices;
@@ -101,7 +101,7 @@ namespace Soul.Engine.Objects
             _world = PhysicsModule.GetWorldForScene(scene);
 
             // Check if polygon shape and no vertices.
-            if (shape == PhysicsShape.Polygon && polygonVertices == null) _shape = PhysicsShape.Rectangle;
+            if (shape == ShapeType.Polygon && polygonVertices == null) _shape = ShapeType.Rectangle;
         }
 
 
@@ -123,7 +123,7 @@ namespace Soul.Engine.Objects
         public override void Update()
         {
             // Update the parent's position and rotation according to what's happening in the physics world.
-            ((GameObject) Parent).Center = (Vector2) PhysicsModule.PhysicsToPixel(new Vector2f(Body.Position.X, Body.Position.Y));
+            ((GameObject) Parent).Center = PhysicsModule.PhysicsToPixel(Body.Position.X, Body.Position.Y);
             ((GameObject) Parent).Rotation = Body.Rotation;
         }
 
@@ -147,32 +147,26 @@ namespace Soul.Engine.Objects
             // Create a body from the defined shape.
             switch (_shape)
             {
-                case PhysicsShape.Polygon:
+                case ShapeType.Polygon:
 
                     Vertices vertices = new Vertices(PolygonVertices.Length);
 
                     // Convert vertices from pixel coordinates to physics coordinates.
                     for (int i = 0; i < PolygonVertices.Length; i++)
                     {
-                        Soul.Physics.Common.Vector2 t = new Soul.Physics.Common.Vector2
-                        {
-                            X = PhysicsModule.PixelToPhysics(PolygonVertices[i].X),
-                            Y = PhysicsModule.PixelToPhysics(PolygonVertices[i].Y)
-                        };
-
-                        vertices.Add(t);
+                        vertices.Add(PhysicsModule.PixelToPhysics(PolygonVertices[i]));
                     }
                     // Create a polygon body from the vertices.
                     Body = BodyFactory.CreatePolygon(_world, vertices, Density,
                         this);
                     break;
-                case PhysicsShape.Rectangle:
+                case ShapeType.Rectangle:
                     // Create a body from a rectangle template.
                     Body = BodyFactory.CreateRectangle(_world,
                         PhysicsModule.PixelToPhysics(((GameObject) Parent).Width),
                         PhysicsModule.PixelToPhysics(((GameObject) Parent).Height), Density, this);
                     break;
-                case PhysicsShape.Circle:
+                case ShapeType.Circle:
                     // Create a body from a circle template.
                     Body = BodyFactory.CreateCircle(_world,
                         PhysicsModule.PixelToPhysics(Math.Max(((GameObject) Parent).Width / 2,
@@ -180,10 +174,7 @@ namespace Soul.Engine.Objects
                         Density, this);
                     break;
                 default:
-                    Error.Raise(3, "Unknown physics shape type.");
-                    Body = BodyFactory.CreateRectangle(_world,
-                        PhysicsModule.PixelToPhysics(((GameObject) Parent).Width),
-                        PhysicsModule.PixelToPhysics(((GameObject) Parent).Height), Density, this);
+                    Error.Raise(3, "Unknown physics shape type: " + _shape);
                     break;
             }
 
@@ -191,9 +182,8 @@ namespace Soul.Engine.Objects
             Body.BodyType = SimulationType;
 
             // Set the physics body's position according to the parent's center.
-            Vector2f temp = PhysicsModule.PixelToPhysics((Vector2f) ((GameObject) Parent).Center);
-            Body.Position = new Soul.Physics.Common.Vector2(temp.X, temp.Y);
-            
+            Body.Position = PhysicsModule.PixelToPhysics((Vector2f) ((GameObject) Parent).Center);
+
             // Attach to physics engine events.
             Body.OnCollision += CollisionEvent;
             Body.OnSeparation += CollisionEndEvent;

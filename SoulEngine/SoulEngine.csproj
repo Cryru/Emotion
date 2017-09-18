@@ -71,7 +71,6 @@
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\Actor.cs" />
     <Compile Include="Engine\Enums\DebugMessageSource.cs" />
-    <Compile Include="Engine\Enums\PhysicsShape.cs" />
     <Compile Include="Engine\Enums\ShapeType.cs" />
     <Compile Include="Engine\Internal\AsyncScript.cs" />
     <Compile Include="Engine\Meta.cs" />

@@ -77,9 +77,19 @@ namespace Soul.Engine.Modules
             lock (_registeredActions)
             {
                 // Run all registered actions.
-                foreach (Action a in _registeredActions)
+                for (int i = 0; i < _registeredActions.Count; i++)
                 {
-                    a?.Invoke();
+                    // Try to execute the registered action.
+                    try
+                    {
+                        _registeredActions[i]?.Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        // If it errors out then report the error.
+                        Error.Raise(52, i + ": " + e.Message);
+                        _registeredActions[i] = null;
+                    }
                 }
             }
   

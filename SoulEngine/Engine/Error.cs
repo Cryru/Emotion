@@ -45,6 +45,7 @@ namespace Soul.Engine
         // 3 - Invalid argument passed.
         // 50 - Script execution error.
         // 51 - Script thread timed out.
+        // 52 - Registered script function execution error.
         // 100 - Module failed to load.
         // 101 - Expected module wasn't loaded.
         // 180 - Duplicate scene name.

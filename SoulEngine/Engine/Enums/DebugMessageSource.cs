@@ -11,6 +11,7 @@ namespace Soul.Engine.Enums
     /// </summary>
     public enum DebugMessageSource
     {
+        Debug,
         Boot,
         Error,
         SceneManager,
