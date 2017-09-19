@@ -16,7 +16,7 @@ While I try to update the engine as often as possible, that is not always possib
 
 ## This Year's Idea
 
-SoulEngine 2017 set the grounds for a clean engine structure, and even had some game demos released in it. This year I'm planning to replace XNA/Monogame with a custom framework - [Raya](https://github.com/Cryru/Raya) to increase performance and allow me to build things at a lower level than before. In addition to that there will be improvements to the actor system with a more general abstract approach, and rethinking the debugging, error handling, and scripting systems. Other goals include better documentation, being able to cover the platforms last year's version could - Linux and Android, and demos for different functionality.
+SoulEngine 2017 set the grounds for a clean engine structure, and even had some game demos released in it. This year I'm planning to replace XNA/Monogame with a custom framework - [Raya](https://github.com/Cryru/Raya) to increase performance and allow me to build things at a lower level than before. In addition to that there will be improvements to the actor system with a more general abstract approach, and I'll be rethinking the debugging, error handling, and scripting systems. The goals for this year include better documentation, being able to cover the platforms last year's version could - Linux and Android, and creating demos for different functionality.
 
 ## Features and Progress
 

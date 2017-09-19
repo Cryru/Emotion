@@ -106,7 +106,7 @@ namespace Soul.Examples.ESScript
             if (temp.Emotion == Emotion.Unknown) return null;
 
             // Read file.
-            string[] lines = Utils.ReadFile(filePath, true);
+            string[] lines = IO.Operations.ReadFile(filePath, true);
 
             // Tracks choices in the current script.
             int choiceCount = 0;

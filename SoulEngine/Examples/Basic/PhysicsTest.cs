@@ -11,9 +11,8 @@ using Soul.Engine.Modules;
 using Soul.Engine.Objects;
 using Soul.Physics;
 using Soul.Physics.Dynamics;
-using Settings = Raya.System.Settings;
 using ShapeType = Soul.Engine.Enums.ShapeType;
-
+using Settings = Soul.Engine.Settings;
 #endregion
 
 namespace Soul.Examples.Basic
@@ -81,14 +80,14 @@ namespace Soul.Examples.Basic
             polygon.AddChild(new PhysicsBody(this, ShapeType.Polygon, vert));
             polygon.AddChild(new BasicShape(ShapeType.Polygon, vert));
             polygon.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
-            polygon.GetChild<BasicShape>().Color = new Raya.Graphics.Color(255, 0, 0);
+            polygon.GetChild<BasicShape>().Color = new Raya.Graphics.Primitives.Color(255, 0, 0);
 
             AddChild("polygon", polygon);
 
             GameObject mouseIndicator = new GameObject();
             mouseIndicator.AddChild(new BasicShape(ShapeType.Rectangle));
             mouseIndicator.GetChild<BasicShape>().Color = new Color(255, 255, 255, 100);
-            mouseIndicator.GetChild<BasicShape>().OutlineColor = new Raya.Graphics.Color(255, 0, 0, 200);
+            mouseIndicator.GetChild<BasicShape>().OutlineColor = new Raya.Graphics.Primitives.Color(255, 0, 0, 200);
             mouseIndicator.GetChild<BasicShape>().OutlineThickness = 2;
 
             AddChild("mouseIndicator", mouseIndicator);

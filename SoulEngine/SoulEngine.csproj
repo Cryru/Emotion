@@ -88,6 +88,7 @@
     <Compile Include="Engine\Error.cs" />
     <Compile Include="Engine\Functions.cs" />
     <Compile Include="Engine\Modules\Debugger.cs" />
+    <Compile Include="Engine\Settings.cs" />
     <Compile Include="Examples\Basic\PhysicsTest.cs" />
     <Compile Include="Examples\Basic\ShapeTest.cs" />
     <Compile Include="Examples\ESScript\ElectricSleepViewer.cs" />

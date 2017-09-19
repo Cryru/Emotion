@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Raya.Graphics;
+using Raya.Graphics.Primitives;
 
 namespace Examples.ESScripts
 {

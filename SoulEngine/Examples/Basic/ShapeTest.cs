@@ -122,7 +122,7 @@ namespace Soul.Examples.Basic
             outlineCircle.GetChild<BasicShape>("outlineCircle").Type = ShapeType.Circle;
             outlineCircle.Position = new Vector2(50, 250);
             outlineCircle.Size = new Vector2(50, 50);
-            outlineCircle.GetChild<BasicShape>().OutlineColor = Raya.Graphics.Color.Black;
+            outlineCircle.GetChild<BasicShape>().OutlineColor = Color.Black;
             outlineCircle.GetChild<BasicShape>().OutlineThickness = 2;
 
             AddChild("outlineCircle", outlineCircle);
@@ -132,7 +132,7 @@ namespace Soul.Examples.Basic
             outlineLine.GetChild<BasicShape>("outlineLine").Type = ShapeType.Line;
             outlineLine.Position = new Vector2(150, 250);
             outlineLine.Size = new Vector2(200, 250);
-            outlineLine.GetChild<BasicShape>().OutlineColor = Raya.Graphics.Color.Black;
+            outlineLine.GetChild<BasicShape>().OutlineColor = Color.Black;
             outlineLine.GetChild<BasicShape>().OutlineThickness = 2;
 
             AddChild("outlineLine", outlineLine);
@@ -142,7 +142,7 @@ namespace Soul.Examples.Basic
             outlineRect.GetChild<BasicShape>("outlineRect").Type = ShapeType.Rectangle;
             outlineRect.Position = new Vector2(250, 250);
             outlineRect.Size = new Vector2(50, 50);
-            outlineRect.GetChild<BasicShape>().OutlineColor = Raya.Graphics.Color.Black;
+            outlineRect.GetChild<BasicShape>().OutlineColor = Color.Black;
             outlineRect.GetChild<BasicShape>().OutlineThickness = 2;
 
             AddChild("outlineRect", outlineRect);
@@ -152,7 +152,7 @@ namespace Soul.Examples.Basic
             outlineTri.GetChild<BasicShape>("outlineTri").Type = ShapeType.Triangle;
             outlineTri.Position = new Vector2(350, 250);
             outlineTri.Size = new Vector2(50, 50);
-            outlineTri.GetChild<BasicShape>().OutlineColor = Raya.Graphics.Color.Black;
+            outlineTri.GetChild<BasicShape>().OutlineColor = Color.Black;
             outlineTri.GetChild<BasicShape>().OutlineThickness = 2;
 
             AddChild("outlineTri", outlineTri);
@@ -162,7 +162,7 @@ namespace Soul.Examples.Basic
             outlinePoly.GetChild<BasicShape>("outlinePoly").Type = ShapeType.Polygon;
             outlinePoly.GetChild<BasicShape>().PolygonVertices = vert;
             outlinePoly.Position = new Vector2(450, 250);
-            outlinePoly.GetChild<BasicShape>().OutlineColor = Raya.Graphics.Color.Black;
+            outlinePoly.GetChild<BasicShape>().OutlineColor = Color.Black;
             outlinePoly.GetChild<BasicShape>().OutlineThickness = 2;
 
             AddChild("outlinePoly", outlinePoly);
@@ -173,7 +173,7 @@ namespace Soul.Examples.Basic
             colorCircle.AddChild("colorCircle", new BasicShape());
             colorCircle.GetChild<BasicShape>("colorCircle").Type = ShapeType.Circle;
             colorCircle.GetChild<BasicShape>("colorCircle").Color =
-                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
                     Functions.GenerateRandomNumber(0, 255));
             colorCircle.Position = new Vector2(50, 350);
             colorCircle.Size = new Vector2(50, 50);
@@ -184,7 +184,7 @@ namespace Soul.Examples.Basic
             colorLine.AddChild("colorLine", new BasicShape());
             colorLine.GetChild<BasicShape>("colorLine").Type = ShapeType.Line;
             colorLine.GetChild<BasicShape>("colorLine").Color =
-                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
                     Functions.GenerateRandomNumber(0, 255));
             colorLine.Position = new Vector2(150, 350);
             colorLine.Size = new Vector2(200, 350);
@@ -195,7 +195,7 @@ namespace Soul.Examples.Basic
             colorRect.AddChild("colorRect", new BasicShape());
             colorRect.GetChild<BasicShape>("colorRect").Type = ShapeType.Rectangle;
             colorRect.GetChild<BasicShape>("colorRect").Color =
-                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
                     Functions.GenerateRandomNumber(0, 255));
             colorRect.Position = new Vector2(250, 350);
             colorRect.Size = new Vector2(50, 50);
@@ -206,7 +206,7 @@ namespace Soul.Examples.Basic
             colorTri.AddChild("colorTri", new BasicShape());
             colorTri.GetChild<BasicShape>("colorTri").Type = ShapeType.Triangle;
             colorTri.GetChild<BasicShape>("colorTri").Color =
-                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
                     Functions.GenerateRandomNumber(0, 255));
             colorTri.Position = new Vector2(350, 350);
             colorTri.Size = new Vector2(50, 50);
@@ -217,7 +217,7 @@ namespace Soul.Examples.Basic
             colorPoly.AddChild("colorPoly", new BasicShape());
             colorPoly.GetChild<BasicShape>("colorPoly").Type = ShapeType.Polygon;
             colorPoly.GetChild<BasicShape>("colorPoly").Color =
-                new Raya.Graphics.Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
+                new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
                     Functions.GenerateRandomNumber(0, 255));
             colorPoly.GetChild<BasicShape>().PolygonVertices = vert;
             colorPoly.Position = new Vector2(450, 350);
@@ -247,7 +247,7 @@ namespace Soul.Examples.Basic
 
         private void ChangeColor(GameObject obj)
         {
-            obj.GetChild<BasicShape>().Color = new Raya.Graphics.Color(obj.GetChild<BasicShape>().Color.R + 1, obj.GetChild<BasicShape>().Color.G + 1, obj.GetChild<BasicShape>().Color.B + 1);
+            obj.GetChild<BasicShape>().Color = new Color(obj.GetChild<BasicShape>().Color.R + 1, obj.GetChild<BasicShape>().Color.G + 1, obj.GetChild<BasicShape>().Color.B + 1);
         }
     }
 }

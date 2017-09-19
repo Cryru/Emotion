@@ -70,12 +70,15 @@ namespace Soul.Engine
             Debugger.DebugMessage(DebugMessageSource.Boot,
                 "Starting SoulEngine 2018 " + Assembly.GetExecutingAssembly().GetName().Version);
             Debugger.DebugMessage(DebugMessageSource.Boot, "Using: ");
-            Debugger.DebugMessage(DebugMessageSource.Boot, " |- Raya " + Raya.System.Meta.Version);
-            Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulLib " + Info.SoulVersion);
+            Debugger.DebugMessage(DebugMessageSource.Boot, " |- Raya " + Raya.Meta.Version);
+            Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulLib " + Soul.Meta.Version);
             Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulPhysics " + Physics.Meta.Version);
 
             // Create the window.
             NativeContext.CreateWindow();
+
+            // Apply settings.
+            Settings.ApplySettings();
 
             // Hook logger to the closing events.
             NativeContext.Closed += (sender, args) => Logger.ForceDump();
