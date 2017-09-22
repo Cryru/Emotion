@@ -15,6 +15,15 @@ namespace Soul.Engine
 {
     public static class Core
     {
+        #region Properties
+
+        /// <summary>
+        /// Whether the game is paused.
+        /// </summary>
+        public static bool Paused = false;
+
+        #endregion
+
         #region Information
 
         /// <summary>
@@ -82,14 +91,23 @@ namespace Soul.Engine
 
             // Hook logger to the closing events.
             NativeContext.Closed += (sender, args) => Logger.ForceDump();
+            NativeContext.LostFocus += (sender, args) =>
+            {
+                if (Settings.PauseOnFocusLoss) Paused = true;
+            };
+            NativeContext.GainedFocus += (sender, args) =>
+            {
+                if (Settings.PauseOnFocusLoss) Paused = false;
+            };
+
             AppDomain.CurrentDomain.UnhandledException += (sender, args) => Logger.ForceDump();
 
             // Initiate modules.
-            Input.Start();
-            ScriptEngine.Start();
-            Debugger.Start();
-            SceneManager.Start();
-            PhysicsModule.Start();
+            Input.Start(); // Input first.
+            ScriptEngine.Start(); // Scripting afterward as debugging depends on it.
+            Debugger.Start(); // Debugging then so we have it up early.
+            PhysicsModule.Start(); // Physics module is next as it's a user module.
+            SceneManager.Start(); // SceneManager is last because it's the primary user module and somewhat depends on Physics.
 
             // Boot ready.
             Debugger.DebugMessage(DebugMessageSource.Boot,
@@ -108,26 +126,39 @@ namespace Soul.Engine
                 // Get the time since the last frame time timer restart, which is the time it took for the last frame to render.
                 _frameTime = timingClock.ElapsedTime.AsMilliseconds();
 
-                // Restart the frame time timer.
+                // Check if the timer is 0, this happens when the game is paused.
+                if (_frameTime == 0 && Settings.FPSCap > 0)
+                {
+                    // In this case we correct it to the cap.
+                    _frameTime = 1000 / Settings.FPSCap;
+                }
+
+                // Restart the frame time timer, this is done first and outside of the pause loop to ensure timing is consistent always.
                 timingClock.Restart();
 
                 // Update modules.
-                Input.Update();
-                ScriptEngine.Update();
-                Debugger.Update();
-                PhysicsModule.Update();
+                Input.Update(); // Input first, as we want accurate input data for the frame, including the debugger.
+                Debugger.Update(); // Debugging second as the console can cause focus loss, and we want it to run as a priority. 
 
-                // Tick events and update Raya.
+                // Run Raya events, this is outside of the pause as it covers window events.
                 NativeContext.Tick();
 
-                // Start drawing.
-                NativeContext.StartDraw();
+                // If the game is paused don't run any game related modules and processes.
+                if (!Paused && (!Debugger.ManualMode || Debugger.AdvanceFrame))
+                {
+                    // Run game related modules.
+                    ScriptEngine.Update(); // Scripting first to update any script data.
+                    PhysicsModule.Update(); // Physics to update bodies.
 
-                // Update the screen manager.
-                SceneManager.Update();
+                    // Start drawing.
+                    NativeContext.StartDraw();
 
-                // Finish drawing frame.
-                NativeContext.EndDraw();
+                    // Update the screen manager.
+                    SceneManager.Update(); // The scene manager is last inside a draw cycle as data should already be updated and is up for being drawn.
+
+                    // Finish drawing frame.
+                    NativeContext.EndDraw();
+                }
             }
         }
 

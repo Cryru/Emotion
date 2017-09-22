@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 using System.Threading;
+using Raya.Input;
 using Raya.System;
 using Soul.Engine.Enums;
 
@@ -18,6 +19,25 @@ namespace Soul.Engine.Modules
     public static class Debugger
     {
         #region Declarations
+
+        #region Manual Mode
+
+        /// <summary>
+        /// Whether manual mode is on.
+        /// </summary>
+        public static bool ManualMode;
+
+        /// <summary>
+        /// Whether to advance the current frame when in manual mode.
+        /// </summary>
+        public static bool AdvanceFrame;
+
+        /// <summary>
+        /// The current manual mode frame.
+        /// </summary>
+        public static int ManualModeFrame;
+
+        #endregion
 
         /// <summary>
         /// The next debug command to process.
@@ -43,9 +63,10 @@ namespace Soul.Engine.Modules
             consoleThread.Start();
 
             // Expose debugging script functions.
-            ScriptEngine.Expose("reflect", (Func<object, string>)Reflect);
-            ScriptEngine.Expose("print", (Action<string>)Print);
-            ScriptEngine.Expose("fps", (Func<string>)FPS);
+            ScriptEngine.Expose("reflect", (Func<object, string>) Reflect);
+            ScriptEngine.Expose("print", (Action<string>) Print);
+            ScriptEngine.Expose("fps", (Func<string>) FPS);
+            ScriptEngine.Expose("manualMode", (Action) ToggleManualMode);
         }
 
         /// <summary>
@@ -65,6 +86,21 @@ namespace Soul.Engine.Modules
 
                 // Clear the command.
                 _command = "";
+            }
+
+            // If in manual mode check for inputs.
+            if (ManualMode)
+            {
+                // Reset frame advancement.
+                AdvanceFrame = false;
+
+                if (Input.KeyHeld(Keyboard.Key.F11) || Input.KeyPressed(Keyboard.Key.F10))
+                {
+                    AdvanceFrame = true;
+                    ManualModeFrame++;
+
+                    DebugMessage(DebugMessageSource.Debug, "Manual Mode Frame: " + ManualModeFrame);
+                }                  
             }
         }
 
@@ -198,6 +234,30 @@ namespace Soul.Engine.Modules
         {
             return (1000 / Core.FrameTime).ToString();
         }
+
+        /// <summary>
+        /// Activates manual loop mode.
+        /// </summary>
+        /// <returns></returns>
+        private static void ToggleManualMode()
+        {
+            ManualMode = !ManualMode;
+
+            if (ManualMode)
+            {
+                // Reset manual mode frame.
+                ManualModeFrame = 0;
+
+                DebugMessage(DebugMessageSource.Debug, "Manual mode activated.");
+                DebugMessage(DebugMessageSource.Debug, "Hold F11 to loop.");
+                DebugMessage(DebugMessageSource.Debug, "Press F10 to advance by one frame.");
+            }
+            else
+            {
+                DebugMessage(DebugMessageSource.Debug, "Manual mode deactivated.");
+            }
+        }
+
         #endregion
     }
 }

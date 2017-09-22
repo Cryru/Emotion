@@ -1,14 +1,8 @@
-﻿// Raya - A SFML based library for drawing and more.
-// Public Repository: https://github.com/Cryru/Raya
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
 
 #region Using
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using Raya.Enums;
-using Raya.Graphics;
 using Raya.Graphics.Primitives;
 
 #endregion
@@ -20,41 +14,6 @@ namespace Soul.Engine
     /// </summary>
     public static class Settings
     {
-
-        #region Render Settings
-
-        /// <summary>
-        /// The width of the render area.
-        /// </summary>
-        public static int Width
-        {
-            get { return _width; }
-            set
-            {
-                _width = value;
-
-                ApplySettings();
-            }
-        }
-        private static int _width = 960;
-
-        /// <summary>
-        /// The height of the render area.
-        /// </summary>
-        public static int Height
-        {
-            get { return _height; }
-            set
-            {
-                _height = value;
-
-                ApplySettings();
-            }
-        }
-        private static int _height = 540;
-
-        #endregion
-
         #region Window Settings
 
         /// <summary>
@@ -70,6 +29,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static int _wwidth = 960;
 
         /// <summary>
@@ -85,6 +45,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static int _wheight = 540;
 
         /// <summary>
@@ -100,6 +61,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static string _wtitle = "SoulEngine 2018";
 
         /// <summary>
@@ -115,11 +77,44 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static WindowMode _windowMode = WindowMode.Window;
 
         #endregion
 
         #region Drawing Settings
+
+        /// <summary>
+        /// The width of the render area.
+        /// </summary>
+        public static int Width
+        {
+            get { return _width; }
+            set
+            {
+                _width = value;
+
+                ApplySettings();
+            }
+        }
+
+        private static int _width = 960;
+
+        /// <summary>
+        /// The height of the render area.
+        /// </summary>
+        public static int Height
+        {
+            get { return _height; }
+            set
+            {
+                _height = value;
+
+                ApplySettings();
+            }
+        }
+
+        private static int _height = 540;
 
         /// <summary>
         /// Whether vertical synchronization is enabled.
@@ -134,6 +129,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static bool _vSync = true;
 
         /// <summary>
@@ -149,6 +145,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static int _fpsCap = 60;
 
         /// <summary>
@@ -164,6 +161,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static bool _renderMouse = true;
 
         /// <summary>
@@ -179,7 +177,8 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
-        private static bool _constrainMouse = false;
+
+        private static bool _constrainMouse;
 
         #endregion
 
@@ -198,6 +197,7 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static bool _keyRepeat = true;
 
         /// <summary>
@@ -213,7 +213,17 @@ namespace Soul.Engine
                 ApplySettings();
             }
         }
+
         private static int _joystickThreshold = 20;
+
+        #endregion
+
+        #region Other Settings
+
+        /// <summary>
+        /// Whether to pause the game when the window loses focus.
+        /// </summary>
+        public static bool PauseOnFocusLoss = true;
 
         #endregion
 
