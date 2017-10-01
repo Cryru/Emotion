@@ -16,6 +16,7 @@ namespace Soul.Engine.Enums
         Error,
         SceneManager,
         ScriptModule,
-        PhysicsModule
+        PhysicsModule,
+        Execution
     }
 }

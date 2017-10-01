@@ -45,7 +45,7 @@ namespace Soul.Engine.Modules
         static ScriptEngine()
         {
             // Define the Jint engine.
-            Interpreter = new Jint.Engine();
+            Interpreter = new Jint.Engine(cfg => cfg.AllowClr(typeof(Core).Assembly));
 
             // Define a list of script threads.
             _activeScripts = new List<AsyncScript>();

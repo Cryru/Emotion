@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using Raya.Input;
@@ -13,6 +14,7 @@ using Soul.Engine.Enums;
 #endregion
 
 #pragma warning disable 4014
+// ReSharper disable InconsistentlySynchronizedField
 
 namespace Soul.Engine.Modules
 {
@@ -44,6 +46,12 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static string _command;
 
+        /// <summary>
+        /// Sources to hide messages from.
+        /// </summary>
+        private static List<DebugMessageSource> _hiddenSources =
+            new List<DebugMessageSource> {DebugMessageSource.Execution};
+
         #endregion
 
         /// <summary>
@@ -67,6 +75,9 @@ namespace Soul.Engine.Modules
             ScriptEngine.Expose("print", (Action<string>) Print);
             ScriptEngine.Expose("fps", (Func<string>) FPS);
             ScriptEngine.Expose("manualMode", (Action) ToggleManualMode);
+            ScriptEngine.Expose("showSource", (Action<DebugMessageSource>) ShowMessageSource);
+            ScriptEngine.Expose("hideSource", (Action<DebugMessageSource>) HideMessageSource);
+            ScriptEngine.Expose("help", (Func<string, string>) DebugScriptHelp);
         }
 
         /// <summary>
@@ -100,11 +111,11 @@ namespace Soul.Engine.Modules
                     ManualModeFrame++;
 
                     DebugMessage(DebugMessageSource.Debug, "Manual Mode Frame: " + ManualModeFrame);
-                }                  
+                }
             }
 
             // Print the fps in the window title.
-            Core.NativeContext.Window.Title = Settings.WTitle + " " + FPS();
+            Core.NativeContext.Window.Title = Settings.WTitle + " FPS: " + FPS();
         }
 
         /// <summary>
@@ -119,6 +130,8 @@ namespace Soul.Engine.Modules
             }
         }
 
+        #region Functions
+
         /// <summary>
         /// Writes a debug message.
         /// </summary>
@@ -132,8 +145,8 @@ namespace Soul.Engine.Modules
 
             lock (message)
             {
-                // Whether to skip printing the message.
-                bool skipPrint = false;
+                // Whether to skip printing the message. By default messages in the hidden array are skipped.
+                bool skipPrint = _hiddenSources.IndexOf(source) != -1;
 
                 // Check source to color.
                 switch (source)
@@ -177,8 +190,6 @@ namespace Soul.Engine.Modules
             }
         }
 
-        #region Functions
-
         /// <summary>
         /// Formats a debug message.
         /// </summary>
@@ -188,6 +199,28 @@ namespace Soul.Engine.Modules
         public static string FormatDebugMessage(string left, string right)
         {
             return "[" + left + "] " + right;
+        }
+
+        /// <summary>
+        /// Hide the specified message source from being shown in the console.
+        /// </summary>
+        /// <param name="source">The message source to hide.</param>
+        public static void HideMessageSource(DebugMessageSource source)
+        {
+            if (_hiddenSources.IndexOf(source) != -1) return;
+
+            _hiddenSources.Add(source);
+        }
+
+        /// <summary>
+        /// Show the specified message source in the console.
+        /// </summary>
+        /// <param name="source">The message source to show.</param>
+        public static void ShowMessageSource(DebugMessageSource source)
+        {
+            if (_hiddenSources.IndexOf(source) == -1) return;
+
+            _hiddenSources.Remove(source);
         }
 
         #endregion
@@ -262,6 +295,38 @@ namespace Soul.Engine.Modules
             {
                 DebugMessage(DebugMessageSource.Debug, "Manual mode deactivated.");
             }
+        }
+
+        #endregion
+
+        #region Help Menu
+
+        private static string DebugScriptHelp(string query)
+        {
+            switch (query)
+            {
+                case "message sources":
+                case "source":
+                case "sources":
+                case "debug sources":
+                case "hideSource":
+                case "showSource":
+                    return "You can hide or show message sources using 'hideSource' and 'showSource' respectively. The sources are as follows: " + Help_GetMessageSources();
+            }
+
+            return query + " is not a valid query. Try the name of a function.";
+        }
+
+        private static string Help_GetMessageSources()
+        {
+            string formatted = "";
+
+            for (int i = 0; i < Enum.GetValues(typeof(DebugMessageSource)).Length; i++)
+            {
+                formatted += i + " " + Enum.GetName(typeof(DebugMessageSource), i);
+            }
+
+            return formatted;
         }
 
         #endregion

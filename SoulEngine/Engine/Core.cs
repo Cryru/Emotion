@@ -87,7 +87,7 @@ namespace Soul.Engine
 
             // Send debugging boot messages.
             Debugger.DebugMessage(DebugMessageSource.Boot,
-                "Starting SoulEngine 2018 " + Assembly.GetExecutingAssembly().GetName().Version);
+                "SoulEngine 2018 " + Assembly.GetExecutingAssembly().GetName().Version);
             Debugger.DebugMessage(DebugMessageSource.Boot, "Using: ");
             Debugger.DebugMessage(DebugMessageSource.Boot, " |- Raya " + Raya.Meta.Version);
             Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulLib " + Soul.Meta.Version);
