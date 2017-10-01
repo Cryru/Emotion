@@ -39,7 +39,10 @@ namespace Soul.Engine.Modules
 
         #endregion
 
-        public static void Start()
+        /// <summary>
+        /// Setup the module.
+        /// </summary>
+        static ScriptEngine()
         {
             // Define the Jint engine.
             Interpreter = new Jint.Engine();
@@ -58,6 +61,9 @@ namespace Soul.Engine.Modules
             Expose("unregister", (Action<int>)Unregister);
         }
 
+        /// <summary>
+        /// Update the module.
+        /// </summary>
         public static void Update()
         {
             // Loop through the active script threads to do some checks.

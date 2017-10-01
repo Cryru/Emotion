@@ -56,7 +56,7 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Setup the module.
         /// </summary>
-        public static void Start()
+        static PhysicsModule()
         {
             // Define a list of worlds.
             _physicsWorlds = new Dictionary<Scene, World>();

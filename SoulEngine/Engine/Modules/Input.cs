@@ -74,13 +74,20 @@ namespace Soul.Engine.Modules
         private static int _mouseScroll = 0;
         #endregion
 
+        #region Trackers
+
+        /// <summary>
+        /// Whether window was focused in the last frame. Used to track the first mouse click within the window.
+        /// </summary>
+        private static bool _lastFrameFocused = false;
+
+#endregion
 
         /// <summary>
         /// Setup the module.
         /// </summary>
-        public static void Start()
+        static Input()
         {
-
             // Define dictionaries.
             _keys = new Dictionary<Keyboard.Key, bool>();
             _keysLastFrame = new Dictionary<Keyboard.Key, bool>();
@@ -150,6 +157,10 @@ namespace Soul.Engine.Modules
                 Core.NativeContext.Window.Mode = Core.NativeContext.Window.Mode == WindowMode.Window
                     ? WindowMode.Borderless
                     : WindowMode.Window;
+
+
+            // Track focus.
+            _lastFrameFocused = Core.NativeContext.Window.Focused;
         }
 
         #region Keyboard
@@ -192,8 +203,8 @@ namespace Soul.Engine.Modules
         /// <returns>True when the button is pressed.</returns>
         public static bool MouseButtonPressed(Mouse.Button button)
         {
-            // Check if focused.
-            if (!Core.NativeContext.Window.Focused) return false;
+            // Check if the window was focused in the last frame.
+            if (!_lastFrameFocused) return false;
 
             // If the key was not pressed last frame and now is, then it was pressed.
             return !_mouseButtonsLastFrame[button] && _mouseButtons[button];
@@ -206,9 +217,6 @@ namespace Soul.Engine.Modules
         /// <returns>True if the button is being held, false otherwise.</returns>
         public static bool MouseButtonHeld(Mouse.Button button)
         {
-            // Check if focused.
-            if (!Core.NativeContext.Window.Focused) return false;
-
             return _mouseButtonsLastFrame[button] && _mouseButtons[button];
         }
 

@@ -49,7 +49,7 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Initializes debug logic.
         /// </summary>
-        public static void Start()
+        static Debugger()
         {
             // If not debugging exit.
 #if !DEBUG
@@ -70,7 +70,7 @@ namespace Soul.Engine.Modules
         }
 
         /// <summary>
-        /// Updates debug logic.
+        /// Updates the debug logic, doesn't run in release mode.
         /// </summary>
         public static void Update()
         {
@@ -102,6 +102,9 @@ namespace Soul.Engine.Modules
                     DebugMessage(DebugMessageSource.Debug, "Manual Mode Frame: " + ManualModeFrame);
                 }                  
             }
+
+            // Print the fps in the window title.
+            Core.NativeContext.Window.Title = Settings.WTitle + " " + FPS();
         }
 
         /// <summary>
@@ -232,6 +235,9 @@ namespace Soul.Engine.Modules
         /// <returns>The current fps.</returns>
         private static string FPS()
         {
+            // If paused or the frame time is zero then we are paused.
+            if (Core.Paused || Core.FrameTime == 0) return "Paused";
+
             return (1000 / Core.FrameTime).ToString();
         }
 

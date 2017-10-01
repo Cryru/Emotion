@@ -42,9 +42,9 @@ namespace Soul.Engine.Modules
         #endregion
 
         /// <summary>
-        /// Initializes the scene manager.
+        /// Setup the module.
         /// </summary>
-        public static void Start()
+        static SceneManager()
         {
             // Check if already loaded.
             if (_scenesToLoad != null) return;

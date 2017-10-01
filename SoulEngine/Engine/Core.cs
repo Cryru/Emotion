@@ -75,6 +75,16 @@ namespace Soul.Engine
             Logger.LogLimit = 2;
             Logger.Stamp = "==========\n" + "SoulEngine 2018 Log" + "\n==========";
 
+            // Create the window.
+            NativeContext.CreateWindow();
+
+            // Initiate modules.
+            Input.Update(); // Input first.
+            ScriptEngine.Update(); // Scripting afterward as debugging depends on it.
+            Debugger.Update(); // Debugging then so we have it up early.
+            PhysicsModule.Update(); // Physics module is next as it's a user module.
+            SceneManager.Update(); // SceneManager is last because it's the primary user module and somewhat depends on Physics.
+
             // Send debugging boot messages.
             Debugger.DebugMessage(DebugMessageSource.Boot,
                 "Starting SoulEngine 2018 " + Assembly.GetExecutingAssembly().GetName().Version);
@@ -82,9 +92,6 @@ namespace Soul.Engine
             Debugger.DebugMessage(DebugMessageSource.Boot, " |- Raya " + Raya.Meta.Version);
             Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulLib " + Soul.Meta.Version);
             Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulPhysics " + Physics.Meta.Version);
-
-            // Create the window.
-            NativeContext.CreateWindow();
 
             // Apply settings.
             Settings.ApplySettings();
@@ -101,13 +108,6 @@ namespace Soul.Engine
             };
 
             AppDomain.CurrentDomain.UnhandledException += (sender, args) => Logger.ForceDump();
-
-            // Initiate modules.
-            Input.Start(); // Input first.
-            ScriptEngine.Start(); // Scripting afterward as debugging depends on it.
-            Debugger.Start(); // Debugging then so we have it up early.
-            PhysicsModule.Start(); // Physics module is next as it's a user module.
-            SceneManager.Start(); // SceneManager is last because it's the primary user module and somewhat depends on Physics.
 
             // Boot ready.
             Debugger.DebugMessage(DebugMessageSource.Boot,
@@ -144,21 +144,20 @@ namespace Soul.Engine
                 NativeContext.Tick();
 
                 // If the game is paused don't run any game related modules and processes.
-                if (!Paused && (!Debugger.ManualMode || Debugger.AdvanceFrame))
-                {
-                    // Run game related modules.
-                    ScriptEngine.Update(); // Scripting first to update any script data.
-                    PhysicsModule.Update(); // Physics to update bodies.
+                if (Paused || (Debugger.ManualMode && !Debugger.AdvanceFrame)) continue;
 
-                    // Start drawing.
-                    NativeContext.StartDraw();
+                // Run game related modules.
+                ScriptEngine.Update(); // Scripting first to update any script data.
+                PhysicsModule.Update(); // Physics to update bodies.
 
-                    // Update the screen manager.
-                    SceneManager.Update(); // The scene manager is last inside a draw cycle as data should already be updated and is up for being drawn.
+                // Start drawing.
+                NativeContext.StartDraw();
 
-                    // Finish drawing frame.
-                    NativeContext.EndDraw();
-                }
+                // Update the screen manager.
+                SceneManager.Update(); // The scene manager is last inside a draw cycle as data should already be updated and is up for being drawn.
+
+                // Finish drawing frame.
+                NativeContext.EndDraw();
             }
         }
 
