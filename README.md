@@ -4,7 +4,7 @@
 
 ## What is it?
 
-SoulEngine is a 2D game engine based on the idea of low level code writing, flexibiliy, and DIY, as opposed to the script based, high level, tool approach big engines have, while still providing some of those features. Despite this, the point is not to complicate development, but rather make it easier and simpler while allowing the developer to maintain control and avoid reinventing the wheel. The true end goal of this project is to shorten the time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
+SoulEngine is a 2D game engine based on the idea of code writing, flexibiliy, and DIY, as opposed to the UI based, high level, tool approach big engines have, while still providing some of those features. Despite this, the point is not to complicate development, but rather make it easier and simpler while allowing the developer to maintain control and avoid reinventing the wheel. The true end goal of this project is to shorten the time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
 
 ## Updates
 
@@ -16,7 +16,9 @@ While I try to update the engine as often as possible, that is not always possib
 
 ## This Year's Idea
 
-SoulEngine 2017 set the grounds for a clean engine structure, and even had some game demos released in it. This year I'm planning to replace XNA/Monogame with a custom framework - [Raya](https://github.com/Cryru/Raya) to increase performance and allow me to build things at a lower level than before. In addition to that there will be improvements to the actor system with a more general abstract approach, and I'll be rethinking the debugging, error handling, and scripting systems. The goals for this year include better documentation, being able to cover the platforms last year's version could - Linux and Android, and creating demos for different functionality.
+SoulEngine 2017 set the grounds for the engine structure, even having some game demos released with it. This year XNA/Monogame will be replaced with a custom framework - [Raya](https://github.com/Cryru/Raya), and there will be a new actor system with a more general abstract approach, in addition to new debugging, error handling, and scripting systems. 
+
+The goals for this year include better documentation, better functionality, demos for different functionality, and more attention to detail.
 
 ## Features and Progress
 
