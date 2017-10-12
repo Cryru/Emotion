@@ -15,7 +15,7 @@ using ShapeType = Soul.Engine.Enums.ShapeType;
 using Settings = Soul.Engine.Settings;
 #endregion
 
-namespace Soul.Examples.Basic
+namespace Examples.Basic
 {
     public class PhysicsTest : Scene
     {

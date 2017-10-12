@@ -6,6 +6,7 @@ using System;
 using Raya.Graphics.Primitives;
 using Soul.Engine.ECS;
 using Soul.Engine.Enums;
+using Soul.Engine.Internal;
 using Soul.Engine.Modules;
 using Soul.Physics;
 using Soul.Physics.Common;

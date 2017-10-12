@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using Soul.Engine.Modules;
 using Soul.Engine.Enums;
 
-namespace Soul.Engine
+namespace Soul.Engine.Internal
 {
     /// <summary>
     /// Handles errors within SoulEngine.
     /// </summary>
-    public static class Error
+    internal static class Error
     {
         /// <summary>
         /// Raises an error.
@@ -19,7 +19,7 @@ namespace Soul.Engine
         /// <param name="code">The error's code.</param>
         /// <param name="message">The error's message.</param>
         /// <param name="severity">The severity of the error.</param>
-        public static void Raise(int code, string message, Severity severity = Severity.Normal)
+        internal static void Raise(int code, string message, Severity severity = Severity.Normal)
         {
             // Format the error.
             string errorMessage = Debugger.FormatDebugMessage(code.ToString(), message);
@@ -43,6 +43,7 @@ namespace Soul.Engine
         // 0 - The core hasn't been started.
         // 1 - Invalid function called.
         // 3 - Invalid argument passed.
+        // 4 - The child or child name is already attached to this parent.
         // 50 - Script execution error.
         // 51 - Script thread timed out.
         // 52 - Registered script function execution error.

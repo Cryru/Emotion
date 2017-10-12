@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Soul.Engine.Enums;
-using Soul.Engine.Scenes;
+using Soul.Engine.Internal;
 
 #endregion
 
@@ -54,7 +54,7 @@ namespace Soul.Engine.Modules
             _loadedScenes = new Dictionary<string, Scene>();
 
             // Load the loading scene, without swapping to it.
-            LoadScene("__loading__", new Loading());
+            if(Core.LoadingScene != null) LoadScene("__loading__", Core.LoadingScene);
         }
 
         /// <summary>
@@ -183,9 +183,6 @@ namespace Soul.Engine.Modules
                 Error.Raise(181, "Cannot unload the currently loaded scene. Swap it first.");
                 return;
             }
-
-            // Dispose of the current scene if any.
-            scene?.Dispose();
 
             // Remove the scene from the list of scenes.
             _loadedScenes.Remove(_loadedScenes.First(x => x.Value.Equals(scene)).Key);

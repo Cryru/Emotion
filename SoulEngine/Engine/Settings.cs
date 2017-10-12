@@ -218,6 +218,20 @@ namespace Soul.Engine
 
         #endregion
 
+        #region Asset Settings
+
+        /// <summary>
+        /// The hash of the meta of the assets blob.
+        /// </summary>
+        public const string MetaHash = "";
+
+        /// <summary>
+        /// The asset encryption key.
+        /// </summary>
+        public const string EncryptionKey = "";
+
+        #endregion
+
         #region Other Settings
 
         /// <summary>

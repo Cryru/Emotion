@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Raya.Enums;
+using Raya.Events;
 using Raya.Graphics.Primitives;
 using Raya.Input;
 
@@ -54,7 +55,8 @@ namespace Soul.Engine.Modules
                 Vector2 pos = Mouse.GetPosition(Core.NativeContext.Window);
 
                 // Check if within window.
-                if (pos.X >= 0 && pos.Y >= 0 && pos.X <= Core.NativeContext.Window.Size.X && pos.Y <= Core.NativeContext.Window.Size.Y) return pos;
+                if (pos.X >= 0 && pos.Y >= 0 && pos.X <= Core.NativeContext.Window.Size.X &&
+                    pos.Y <= Core.NativeContext.Window.Size.Y) return pos;
 
                 // If it wasn't within the window return 0,0.
                 return Vector2.Zero;
@@ -71,7 +73,8 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// The amount of mouse wheel scrolling done this frame.
         /// </summary>
-        private static int _mouseScroll = 0;
+        private static int _mouseScroll;
+
         #endregion
 
         #region Trackers
@@ -79,9 +82,9 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Whether window was focused in the last frame. Used to track the first mouse click within the window.
         /// </summary>
-        private static bool _lastFrameFocused = false;
+        private static bool _lastFrameFocused;
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Setup the module.
@@ -234,9 +237,9 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void NativeContext_MouseWheelScrolled(object sender, Raya.Events.MouseWheelScrollEventArgs e)
+        private static void NativeContext_MouseWheelScrolled(object sender, MouseWheelScrollEventArgs e)
         {
-            _mouseScroll = (int) (e.Delta);
+            _mouseScroll = (int) e.Delta;
         }
 
         #endregion

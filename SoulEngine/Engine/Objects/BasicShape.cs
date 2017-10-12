@@ -7,7 +7,7 @@ using Raya.Graphics;
 using Raya.Graphics.Primitives;
 using Soul.Engine.ECS;
 using Soul.Engine.Enums;
-using Soul.Engine.Modules;
+using Soul.Engine.Internal;
 
 #endregion
 
@@ -138,9 +138,7 @@ namespace Soul.Engine.Objects
             ((GameObject) Parent).onRotationChanged -= UpdateShapeRotation;
 
             // Unhook from parent.
-            int index = Parent.Children.IndexOf(this);
-            if (index != -1)
-                Parent.RemoveChild(index);
+            Parent.RemoveChild(this);
 
             // Dispose the native object.
             _nativeObject.Dispose();
@@ -157,10 +155,12 @@ namespace Soul.Engine.Objects
         private void UpdateShapeData()
         {
             // Set the native object's position to the SE object's position.
-            _nativeObject.Position = _type == ShapeType.Polygon ? (Vector2f)((GameObject)Parent).Center : (Vector2f) ((GameObject) Parent).Position;
+            _nativeObject.Position = _type == ShapeType.Polygon
+                ? (Vector2f) ((GameObject) Parent).Center
+                : (Vector2f) ((GameObject) Parent).Position;
             // Get the middle of the object to be the origin.
             _nativeObject.Origin = _type != ShapeType.Line && _type != ShapeType.Polygon
-                ? new Vector2f(((GameObject)Parent).Width / 2, ((GameObject)Parent).Height / 2)
+                ? new Vector2f(((GameObject) Parent).Width / 2, ((GameObject) Parent).Height / 2)
                 : new Vector2f(0, 0);
             _nativeObject.Position = _nativeObject.Position + _nativeObject.Origin;
         }

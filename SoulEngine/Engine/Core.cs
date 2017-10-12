@@ -7,6 +7,7 @@ using System.Reflection;
 using Raya.Graphics;
 using Raya.System;
 using Soul.Engine.Enums;
+using Soul.Engine.Internal;
 using Soul.Engine.Modules;
 
 #endregion
@@ -20,7 +21,7 @@ namespace Soul.Engine
         /// <summary>
         /// Whether the game is paused.
         /// </summary>
-        public static bool Paused = false;
+        public static bool Paused;
 
         #endregion
 
@@ -51,6 +52,11 @@ namespace Soul.Engine
             get { return NativeContext != null; }
         }
 
+        /// <summary>
+        /// The scene to display when loading another.
+        /// </summary>
+        internal static Scene LoadingScene;
+
         #endregion
 
         #region Raya API
@@ -62,8 +68,11 @@ namespace Soul.Engine
 
         #endregion
 
-        public static void Start(Scene startScene, string sceneName = "startScene")
+        public static void Start(Scene startScene, string sceneName = "startScene", Scene loadingScene = null)
         {
+            // Assign the loading scene.
+            LoadingScene = loadingScene;
+
             // Create a Raya context.
             NativeContext = new Context();
 
@@ -83,6 +92,7 @@ namespace Soul.Engine
             ScriptEngine.Update(); // Scripting afterward as debugging depends on it.
             Debugger.Update(); // Debugging then so we have it up early.
             PhysicsModule.Update(); // Physics module is next as it's a user module.
+            AssetLoader.Setup(); // The asset loader needs to be ready for the scene manager.
             SceneManager.Update(); // SceneManager is last because it's the primary user module and somewhat depends on Physics.
 
             // Send debugging boot messages.

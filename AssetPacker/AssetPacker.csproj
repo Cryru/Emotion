@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B6B9DB66-FB7D-45E0-8395-A428ADC8BAF5}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Soul.Engine.BuildHelper</RootNamespace>
-    <AssemblyName>BuildHelper</AssemblyName>
+    <RootNamespace>Soul.Engine.AssetPacker</RootNamespace>
+    <AssemblyName>AssetPacker</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -72,6 +72,13 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BrotliSharpLib, Version=0.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BrotliSharpLib.0.2.1\lib\net452\BrotliSharpLib.dll</HintPath>
+    </Reference>
+    <Reference Include="SoulLib, Version=9.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\SoulEngine\Libraries\Utility\SoulLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -82,13 +89,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssetMeta.cs" />
+    <Compile Include="AssetFile.cs" />
     <Compile Include="Meta.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

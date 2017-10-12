@@ -108,7 +108,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Engine\AssetManager\Assets.cs" />
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\Actor.cs" />
     <Compile Include="Engine\Enums\DebugMessageSource.cs" />
@@ -116,17 +115,16 @@
     <Compile Include="Engine\Internal\AsyncScript.cs" />
     <Compile Include="Engine\Meta.cs" />
     <Compile Include="Engine\GameObject.cs" />
+    <Compile Include="Engine\Modules\AssetLoader.cs" />
     <Compile Include="Engine\Modules\PhysicsModule.cs" />
     <Compile Include="Engine\Modules\Input.cs" />
     <Compile Include="Engine\Modules\SceneManager.cs" />
     <Compile Include="Engine\Modules\ScriptEngine.cs" />
     <Compile Include="Engine\Objects\BasicShape.cs" />
     <Compile Include="Engine\Objects\PhysicsBody.cs" />
-    <Compile Include="Engine\Objects\Texture.cs" />
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\SceneLoadArgs.cs" />
-    <Compile Include="Engine\Scenes\Loading.cs" />
-    <Compile Include="Engine\Error.cs" />
+    <Compile Include="Engine\Internal\Error.cs" />
     <Compile Include="Engine\Functions.cs" />
     <Compile Include="Engine\Modules\Debugger.cs" />
     <Compile Include="Engine\Settings.cs" />
@@ -134,11 +132,38 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Data\arial.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="lib\x64\csfml-audio-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x64\csfml-graphics-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x64\csfml-system-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x64\csfml-window-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x64\openal32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x86\csfml-audio-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x86\csfml-graphics-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x86\csfml-system-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x86\csfml-window-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\x86\openal32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>
   <ItemGroup />
@@ -148,6 +173,7 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>"$(SolutionDir)BuildHelper\bin\$(Configuration)\BuildHelper.exe" "$(ProjectDir)\" "$(TargetDir)\"</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>

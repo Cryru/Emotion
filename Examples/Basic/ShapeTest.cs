@@ -9,7 +9,7 @@ using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 using Soul.Engine.Objects;
 
-namespace Soul.Examples.Basic
+namespace Examples.Basic
 {
     public class ShapeTest : Scene
     {

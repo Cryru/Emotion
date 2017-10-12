@@ -152,6 +152,7 @@ namespace Soul.Engine.Modules
                 switch (source)
                 {
                     case DebugMessageSource.Debug:
+                        if (skipPrint) break;
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Debug Message: " + message);
                         skipPrint = true;
@@ -160,6 +161,7 @@ namespace Soul.Engine.Modules
                         Console.ForegroundColor = ConsoleColor.Red;
                         break;
                     case DebugMessageSource.ScriptModule:
+                        if (skipPrint) break;
                         // Custom print code.
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.Write(FormatDebugMessage(source.ToString(), ""));
@@ -319,11 +321,11 @@ namespace Soul.Engine.Modules
 
         private static string Help_GetMessageSources()
         {
-            string formatted = "";
+            string formatted = "\n";
 
             for (int i = 0; i < Enum.GetValues(typeof(DebugMessageSource)).Length; i++)
             {
-                formatted += i + " " + Enum.GetName(typeof(DebugMessageSource), i);
+                formatted += i + " " + Enum.GetName(typeof(DebugMessageSource), i) + "\n";
             }
 
             return formatted;
