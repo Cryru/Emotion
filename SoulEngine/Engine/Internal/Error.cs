@@ -40,25 +40,30 @@ namespace Soul.Engine.Internal
 
         // Error List:
 
+        // Core Errors
         // 0 - The core hasn't been started.
         // 1 - Invalid function called.
         // 3 - Invalid argument passed.
         // 4 - The child or child name is already attached to this parent.
+        // Scripting Errors
         // 50 - Script execution error.
         // 51 - Script thread timed out.
         // 52 - Registered script function execution error.
-        // 100 - Module failed to load.
-        // 101 - Expected module wasn't loaded.
+        // SceneLoader Errors
         // 180 - Duplicate scene name.
         // 181 - Tried to unload the current scene.
         // 182 - Tried to swap to the current scene.
         // 183 - Tried to swap to a scene that wasn't loaded.
-        // 240 - Global assets failed to load.
-        // 241 - meta.soul - Missing.
-        // 242 - meta.soul - Wrong format.
-        // 243 - meta.soul - Hash doesn't match expected.
-        // 244 - Asset validation failed.
+        // AssetLoader Errors
+        // 238 - Tried loading an asset insecurely with no asset folder.
+        // 239 - Tried loading an asset insecurely which doesn't exist.
+        // 240 - Exception when locking assets.
+        // 241 - Missing assets meta file.
+        // 242 - Wrong assets meta hash.
+        // 243 - Missing assets blob.
         // 244 - Failed to validate file.
+        // Special Errors
+        // 999 - SoulLib Error
     }
 
     public enum Severity

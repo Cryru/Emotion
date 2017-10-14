@@ -84,6 +84,9 @@ namespace Soul.Engine
             Logger.LogLimit = 2;
             Logger.Stamp = "==========\n" + "SoulEngine 2018 Log" + "\n==========";
 
+            // Connect to the SoulLib error manager.
+            ErrorManager.ErrorCallback += (error) => { Error.Raise(999, error, Severity.Critical); };
+
             // Create the window.
             NativeContext.CreateWindow();
 

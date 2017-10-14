@@ -3,8 +3,9 @@
 #region Using
 
 using System.Collections.Generic;
-using Soul.Engine.Internal;
 using System.Linq;
+using Soul.Engine.Internal;
+using Soul.Engine.Modules;
 
 #endregion
 
@@ -15,16 +16,6 @@ namespace Soul.Engine.ECS
         #region Properties
 
         /// <summary>
-        /// Actors children of this actor.
-        /// </summary>
-        private List<object> _children;
-
-        /// <summary>
-        /// Name index for named children.
-        /// </summary>
-        private Dictionary<string, int> _nameIndex;
-
-        /// <summary>
         /// The parent of this actor.
         /// </summary>
         public Actor Parent;
@@ -32,13 +23,38 @@ namespace Soul.Engine.ECS
         /// <summary>
         /// The number of children attached to this actor.
         /// </summary>
-        public int Count
+        public int ChildrenCount
         {
-            get
+            get { return _children?.Count ?? 0; }
+        }
+
+        /// <summary>
+        /// The priority of this actor. Higher priority children will be updated first.
+        /// </summary>
+        public int Priority
+        {
+            get { return _priority; }
+            set
             {
-                return _children?.Count ?? 0;
+                // Set the priority of the child.
+                _priority = value;
+
+                // Update the listing of the parent.
+                Parent?.UpdatePriority();
             }
         }
+
+        private int _priority;
+
+        #endregion
+
+        #region Internals
+
+        /// <summary>
+        /// The actor's children.
+        /// </summary>
+        private Dictionary<string, Actor> _children;
+
         #endregion
 
         /// <summary>
@@ -56,8 +72,9 @@ namespace Soul.Engine.ECS
         /// </summary>
         public virtual void UpdateActor()
         {
+            // If the children list has been initialized, update all children, then update the parent.
             if (_children != null)
-                foreach (Actor a in _children)
+                foreach (Actor a in _children.Values)
                 {
                     a.UpdateActor();
                 }
@@ -66,89 +83,45 @@ namespace Soul.Engine.ECS
         }
 
         /// <summary>
-        /// Attaches a child actor to this actor.
+        /// Attaches a child actor to this actor under an identifier name. [Primary]
         /// </summary>
+        /// <param name="name">The identifier to add the actor under.</param>
         /// <param name="actor">The child actor to attach.</param>
-        /// <returns>The index of the newly added child.</returns>
-        public int AddChild(Actor actor)
+        /// <returns>The name of the newly added child.</returns>
+        public string AddChild(string name, Actor actor)
         {
-            // Add the actor as an object.
-            int index = AddChild((object) actor);
+            // Check if the actor's children list has been initialized.
+            if (_children == null) _children = new Dictionary<string, Actor>();
+            // Check if that actor has already been added.
+            if (_children.ContainsValue(actor) || _children.ContainsKey(name))
+            {
+                Error.Raise(4, "The child or child name - " + name + " is already attached to this parent.");
+                return "";
+            }
+
+            // Add the actor under the name index.
+            _children.Add(name, actor);
 
             // Run initialization and parenting.
             actor.Parent = this;
             actor.Initialize();
 
-            return index;
+            // Update the priority list.
+            UpdatePriority();
+
+            Debugger.DebugMessage(Enums.DebugMessageSource.Execution, "ECS - Added child " + name);
+
+            return name;
         }
 
         /// <summary>
-        /// Attaches a child actor to this actor under an identifier name.
+        /// Attaches a child actor to this actor.
         /// </summary>
-        /// <param name="name">The identifier to add the actor under.</param>
         /// <param name="actor">The child actor to attach.</param>
-        /// <returns>The index of the newly added child.</returns>
-        public int AddChild(string name, Actor actor)
+        /// <returns>The name of the newly added child.</returns>
+        public string AddChild(Actor actor)
         {
-            // Check if this entry is already added.
-            if (_nameIndex == null) _nameIndex = new Dictionary<string, int>();
-            if (_children == null) _children = new List<object>();
-            if (_children.IndexOf(actor) != -1 || _nameIndex.ContainsKey(name))
-            {
-                Error.Raise(4, "The child or child name - " + name + " is already attached to this parent.");
-                return -1;
-            }
-
-            // Add the actor under the name index.
-            _nameIndex.Add(name, _children.Count);
-
-            // Add through normal function.
-            return AddChild(actor);
-        }
-
-        /// <summary>
-        /// Attaches an object as a child to this actor. [Primary function.]
-        /// </summary>
-        /// <param name="Object">The child object to attach.</param>
-        /// <returns>The index of the newly added child.</returns>
-        public int AddChild(object Object)
-        {
-            if (_children == null) _children = new List<object>();
-
-            if (_children.IndexOf(Object) != -1)
-            {
-                Error.Raise(4, "The child is already attached to this parent.");
-                return -1;
-            }
-
-            _children.Add(Object);
-
-            return _children.Count - 1;
-        }
-
-        /// <summary>
-        /// Attaches a child object to this actor under an identifier name. [Primary function.]
-        /// </summary>
-        /// <param name="name">The identifier to add the object under.</param>
-        /// <param name="Object">The child object to attach.</param>
-        /// <returns>The index of the newly added child.</returns>
-        public int AddChild(string name, object Object)
-        {
-            // Check if this entry is already added.
-            if (_nameIndex == null) _nameIndex = new Dictionary<string, int>();
-            if (_children.IndexOf(Object) != -1 || _nameIndex.ContainsKey(name))
-            {
-                Error.Raise(4, "The child is already attached to this parent.");
-                return -1;
-            }
-
-            // Add the actor under the name index.
-            _nameIndex.Add(name, _children.Count);
-
-            // Add through normal function.
-            AddChild(Object);
-
-            return _children.Count - 1;
+            return AddChild(actor.GetHashCode().ToString(), actor);
         }
 
         /// <summary>
@@ -162,7 +135,7 @@ namespace Soul.Engine.ECS
             if (_children == null) return default(T);
 
             // Loop through all children until we find one with the requested type.
-            foreach (object a in _children)
+            foreach (Actor a in _children.Values)
             {
                 if (a is T) return (T) System.Convert.ChangeType(a, typeof(T));
             }
@@ -178,32 +151,31 @@ namespace Soul.Engine.ECS
         /// <returns>The child itself or the default type value if not found.</returns>
         public T GetChild<T>(string name)
         {
-            // Check if the requested name exists in the name index.
-            if (!_nameIndex.ContainsKey(name)) return default(T);
+            // Check if the actor's children list has been initialized.
+            if (_children == null) return default(T);
 
-            // Get the index from the name index.
-            int index = _nameIndex[name];
+            // Check if the requested name is assigned.
+            if (!_children.ContainsKey(name)) return default(T);
 
             // Get the child from the index.
-            return GetChild<T>(index);
+            if (_children[name] is T) return (T)System.Convert.ChangeType(_children[name], typeof(T));
+
+            return default(T);
         }
 
         /// <summary>
-        /// Returns the child under the specified index.
+        /// Removes a child under an identifier name. [Primary]
         /// </summary>
-        /// <typeparam name="T">The type to return the child in.</typeparam>
-        /// <param name="index">The index of the child to return.</param>
-        /// <returns>The child itself or the default type value if not found.</returns>
-        public T GetChild<T>(int index)
+        /// <param name="name">The child under this name to remove.</param>
+        public void RemoveChild(string name)
         {
-            // Check if any children are attached, and if the index is correct.
-            if (_children == null || _children.Count - 1 < index || index < 0) return default(T);
+            // Check if the requested name is assigned.
+            if (_children == null || !_children.ContainsKey(name)) return;
 
-            // Check if right type, and if it is return it.
-            if (_children[index] is T) return (T)System.Convert.ChangeType(_children[index], typeof(T));
+            // Remove the child.
+            _children.Remove(name);
 
-            // If incorrect type return the default value for the requested type.
-            return default(T);
+            Debugger.DebugMessage(Enums.DebugMessageSource.Execution, "ECS - Removed child " + name);
         }
 
         /// <summary>
@@ -212,52 +184,15 @@ namespace Soul.Engine.ECS
         /// <typeparam name="T">The type of child to remove.</typeparam>
         public void RemoveChild<T>()
         {
-            // Check if any children are attached.
+            // Check if the actor's children list has been initialized.
             if (_children == null) return;
 
             // Loop through all children until we find one with the requested type.
-            foreach (Actor a in _children)
+            foreach (Actor a in _children.Values)
             {
                 if (!(a is T)) continue;
-                _children.Remove(a);
+                RemoveChild(a);
                 return;
-            }
-        }
-
-        /// <summary>
-        /// Removes a child under an identifier name.
-        /// </summary>
-        /// <param name="name">The child under this name to remove.</param>
-        public void RemoveChild(string name)
-        {
-            // Check if the requested name exists in the name index.
-            if (!_nameIndex.ContainsKey(name) || _children == null) return;
-
-            // Get the index from the name index.
-            int index = _nameIndex[name];
-
-            // Remove it from both indexes.
-            RemoveChild(index);
-            _nameIndex.Remove(name);
-        }
-
-        /// <summary>
-        /// Removes a child under the specified index.
-        /// </summary>
-        /// <param name="index">The index to remove a child under.</param>
-        public void RemoveChild(int index)
-        {
-            // Check if valid index.
-            if (_children == null || _children.Count - 1 < index || index < 0) return;
-
-            // Remove the child.
-            _children.RemoveAt(index);
-
-            // Check if the name index contains an entry for this.
-            KeyValuePair<string, int> entry = _nameIndex.FirstOrDefault(x => x.Value == index);
-            if (entry.Equals(default(KeyValuePair<string, int>)))
-            {
-                _nameIndex.Remove(entry.Key);
             }
         }
 
@@ -267,21 +202,29 @@ namespace Soul.Engine.ECS
         /// <param name="actor">The child actor to remove.</param>
         public void RemoveChild(Actor actor)
         {
-            // The index of the child within the list.
-            int childIndex = _children.IndexOf(actor);
+            // Check if the actor's children list has been initialized.
+            if (_children == null) return;
 
-            // Check if valid index.
-            if (actor == null || _children.IndexOf(actor) == -1) return;
+            // Get the key of the actor we want to remove.
+            KeyValuePair<string, Actor> foundEntry = _children.FirstOrDefault(x => x.Value == actor);
+
+            // Check if valid key was found.
+            if (foundEntry.Equals(default(KeyValuePair<string, Actor>))) return;
 
             // Remove the child.
-            _children.RemoveAt(childIndex);
-
-            // Check if the name index contains an entry for this.
-            KeyValuePair<string, int> entry = _nameIndex.FirstOrDefault(x => x.Value == childIndex);
-            if (entry.Equals(default(KeyValuePair<string, int>)))
-            {
-                _nameIndex.Remove(entry.Key);
-            }      
+            RemoveChild(foundEntry.Key);
         }
+
+        #region Private Helpers
+
+        /// <summary>
+        /// Updates the children's priority listing.
+        /// </summary>
+        internal void UpdatePriority()
+        {
+            _children = _children.OrderBy(x => x.Value.Priority).ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        #endregion
     }
 }

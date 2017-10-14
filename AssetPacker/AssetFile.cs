@@ -19,9 +19,9 @@ namespace Soul.Engine.AssetPacker
                 string strippedPath = Path.Replace(Program.AssetsPath + System.IO.Path.DirectorySeparatorChar, "")
                     .Replace(Program.CachePath + System.IO.Path.DirectorySeparatorChar, "");
 
-                string noExtension = strippedPath.Substring(0, strippedPath.IndexOf(".", StringComparison.Ordinal));
+                //string noExtension = strippedPath.Substring(0, strippedPath.IndexOf(".", StringComparison.Ordinal));
 
-                return noExtension;
+                return strippedPath;
             }
         }
 

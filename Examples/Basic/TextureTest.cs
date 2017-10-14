@@ -11,25 +11,29 @@ namespace Examples.Basic
 {
     public class TextureTest : Scene
     {
-
+        private Raya.Graphics.Sprite sprite;
 
         public static void Main(string[] args)
         {
+            // Lock assets.
+            Soul.Engine.Modules.AssetLoader.Lock("7B76987910917447042EAFE5CB089799", " nhx:Pq^Mx6%\"BT Rjc. <QI5dk^zy~b2uUqo`~/&ek(T+^e.HfM~Koc<>bVe3dT");
+
             // Start the engine.
             Core.Start(new TextureTest(), "textureTest");
         }
 
         public override void Initialize()
         {
-            byte[] data = Read.FileAsBytes("Assets//imageTest.png");
-            Raya.Graphics.Texture loadedTexture = new Raya.Graphics.Texture(data);
+            Soul.Engine.Modules.AssetLoader.LoadTexture("imageTest.png");
 
-            bool traktor = true;
+            //sprite = new Raya.Graphics.Sprite(loadedTexture);
+
+            //bool traktor = true;
         }
 
         public override void Update()
         {
-           
+            //Core.Draw(sprite);
         }
     }
 }

@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Examples.Basic.TextureTest</StartupObject>
+    <StartupObject>Examples.Basic.PhysicsTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -78,7 +78,8 @@
     <ApplicationIcon>SoulEngine2018.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Raya">
+    <Reference Include="Raya, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SoulEngine\Libraries\Raya\Raya.dll</HintPath>
     </Reference>
     <Reference Include="SoulLib">

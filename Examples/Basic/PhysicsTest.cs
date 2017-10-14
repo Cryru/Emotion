@@ -89,6 +89,7 @@ namespace Examples.Basic
             mouseIndicator.GetChild<BasicShape>().Color = new Color(255, 255, 255, 100);
             mouseIndicator.GetChild<BasicShape>().OutlineColor = new Raya.Graphics.Primitives.Color(255, 0, 0, 200);
             mouseIndicator.GetChild<BasicShape>().OutlineThickness = 2;
+            mouseIndicator.Priority = 1;
 
             AddChild("mouseIndicator", mouseIndicator);
         }

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using BrotliSharpLib;
 using Soul.Encryption;
 using Soul.IO;
 
@@ -213,7 +212,7 @@ namespace Soul.Engine.AssetPacker
             {
                 AssetFile temp = new AssetFile
                 {
-                    Path = fileName,
+                    Path = fileName.Replace(".fragment", ""),
                     TimeUpdated = File.GetLastWriteTime(fileName).Ticks
                 };
 
@@ -349,7 +348,7 @@ namespace Soul.Engine.AssetPacker
 
             // Read the file, compress it, and encrypt it.
             byte[] data = File.ReadAllBytes(file.Path);
-            byte[] compressedFile = Brotli.CompressBuffer(data, 0, data.Length, 1, 24);
+            byte[] compressedFile = Compression.CompressBrotli(data);
             byte[] encryptedData = _service.Encrypt(compressedFile);
 
             currentFileTracker.Stop();

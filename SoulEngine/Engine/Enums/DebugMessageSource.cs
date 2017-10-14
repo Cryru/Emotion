@@ -17,6 +17,7 @@ namespace Soul.Engine.Enums
         SceneManager,
         ScriptModule,
         PhysicsModule,
-        Execution
+        Execution,
+        AssetLoader
     }
 }

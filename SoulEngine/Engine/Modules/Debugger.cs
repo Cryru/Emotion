@@ -170,6 +170,7 @@ namespace Soul.Engine.Modules
                         Console.WriteLine();
                         skipPrint = true;
                         break;
+                    case DebugMessageSource.AssetLoader:
                     case DebugMessageSource.PhysicsModule:
                         Console.ForegroundColor = ConsoleColor.Magenta;
                         break;
@@ -316,7 +317,8 @@ namespace Soul.Engine.Modules
                     return "You can hide or show message sources using 'hideSource' and 'showSource' respectively. The sources are as follows: " + Help_GetMessageSources();
             }
 
-            return query + " is not a valid query. Try the name of a function.";
+            return query + " is not a valid query. Try the name of a function." + "\n" +
+                "showSource / hideSource - Display/Hide debug message sources.";
         }
 
         private static string Help_GetMessageSources()
