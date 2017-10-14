@@ -27,25 +27,31 @@ The goals for this year include better documentation, better functionality, demo
 - FPS Independent Timing [&#10003;]
 - Logging [&#10003;]
 - Debugging Console [&#10003;]
+  - Help Menu [In Development]
+  - Customizable Sources [&#10003;]
 - Error Handling System [&#10003;]
 - Asynchronous Javascript Scripting [&#10003;]
 - Actor System [&#10003;]
+  - Priority System [&#10003;]
 - Scene System [&#10003;]
 - Drawing Primitive Shapes and Custom Polygons [&#10003;] - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
 - Simple Input System [&#10003;]
 - Physics Engine [&#10003;] - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
+- Asset Packing, and Protection [In Development]
 
 ## Libraries Used:
 
 [Raya](https://github.com/Cryru/Raya) - Drawing and graphics, input, sound, and window management.
 
+[SoulLib](https://github.com/Cryru/SoulLib)
+
 [SoulPhysics](https://github.com/Cryru/SoulPhysics) - Physics.
 
 ## Tools:
 
-SoulEngine Build Helper - Built-in tool to help with building your projects.
+SoulEngine AssetPacker - Built-in tool to help with building your project assets.
 
-[Polygon-Tool](https://github.com/Cryru/Polygon-Tool) - Tool to help you create custom polygons.
+[Polygon-Tool](https://github.com/Cryru/Polygon-Tool) - Tool to help you create custom polygon vertices.
 
 ## External Projects
 
