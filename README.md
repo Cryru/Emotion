@@ -43,7 +43,7 @@ The goals for this year include better documentation, better functionality, demo
 
 [Raya](https://github.com/Cryru/Raya) - Drawing and graphics, input, sound, and window management.
 
-[SoulLib](https://github.com/Cryru/SoulLib)
+[SoulLib](https://github.com/Cryru/SoulLib) - IO, Encryption, Hashing, Compression, Extensions, ManagedFile and more...
 
 [SoulPhysics](https://github.com/Cryru/SoulPhysics) - Physics.
 
