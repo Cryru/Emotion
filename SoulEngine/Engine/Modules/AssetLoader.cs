@@ -126,8 +126,9 @@ namespace Soul.Engine.Modules
         /// Loads a file.
         /// </summary>
         /// <param name="name">The name of the file.</param>
+        /// <param name="safe">Whether to load it safely, if true exceptions are thrown on errors. </param>
         /// <returns>The file contents.</returns>
-        private static byte[] LoadFile(string name)
+        internal static byte[] LoadFile(string name, bool safe = true)
         {
             // Check which way we are reading data.
             if (_meta == null)
@@ -137,7 +138,7 @@ namespace Soul.Engine.Modules
                 // Insecure reading is done from the assets folder. Check if it exists.
                 if (!Directory.Exists("Assets"))
                 {
-                    Error.Raise(238, "Tried loading an asset insecurely with no asset folder.", Severity.Critical);
+                    Error.Raise(238, "Tried loading an asset insecurely with no asset folder.", safe ? Severity.Critical : Severity.Normal);
                     return null;
                 }
 
@@ -147,7 +148,7 @@ namespace Soul.Engine.Modules
                 // Check if the file exists.
                 if (!File.Exists(path))
                 {
-                    Error.Raise(239, "Tried loading an asset insecurely which doesn't exist.", Severity.Critical);
+                    Error.Raise(239, "Tried loading an asset insecurely which doesn't exist.", safe ? Severity.Critical : Severity.Normal);
                     return null;
                 }
 
@@ -186,7 +187,7 @@ namespace Soul.Engine.Modules
             catch (Exception)
             {
                 Error.Raise(246, "Asset " + name + "doesn't exist in meta.");
-                return new byte[] { 0 };
+                return null;
             }
 
             // Read the file from the blob.
@@ -214,7 +215,7 @@ namespace Soul.Engine.Modules
             else
             {
                 Error.Raise(244, "Failed to validate file hash or encryption.");
-                return new byte[] { 0 };
+                return null;
             }
         }
 

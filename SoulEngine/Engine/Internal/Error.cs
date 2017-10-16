@@ -46,6 +46,7 @@ namespace Soul.Engine.Internal
         // 1 - Invalid function called.
         // 3 - Invalid argument passed.
         // 4 - The child or child name is already attached to this parent.
+        // 5 - Failed to set window icon.
         // Scripting Errors
         // 50 - Script execution error.
         // 51 - Script thread timed out.

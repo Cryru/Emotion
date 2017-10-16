@@ -99,6 +99,22 @@ namespace Soul.Engine
             // Create the window.
             NativeContext.CreateWindow();
 
+            // Check for a window icon.
+            try
+            {
+                byte[] iconData = AssetLoader.LoadFile("Icon.png", false);
+                if (iconData != null)
+                {
+                    Image icon = new Image(iconData);
+                    NativeContext.Window.SetIcon((uint) icon.Size.X, (uint) icon.Size.Y, icon.Pixels);
+                    icon.Dispose();
+                }
+            }
+            catch (Exception)
+            {
+                Error.Raise(5, "Failed to set window icon.");
+            }
+
             // Initiate modules.
             Input.Update(); // Input first.
             ScriptEngine.Update(); // Scripting afterward as debugging depends on it.

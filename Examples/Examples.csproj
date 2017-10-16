@@ -105,9 +105,6 @@
     <None Include=".nobuild">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assets\folder test\font.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="ESScript\ESScriptTree.cs" />
     <Compile Include="ESScript\NodeLink.cs" />
     <Compile Include="ESScript\ScriptNode.cs" />
@@ -123,14 +120,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\folder test\testScript.script" />
+    <None Include="Assets\Icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="Basic\About.txt" />
     <None Include="Assets\imageTest.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="Assets\V_20170626_084129.mp4">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="ESScript\About.txt" />
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>

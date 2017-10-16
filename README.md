@@ -42,6 +42,10 @@ Future updates to Raya will be applied to the engine, including a planned cross-
 - Physics Engine [&#10003;] - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
 - Asset Packing, and Protection [&#10003;]
 - Texture Rendering and Animation [&#10003;] - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
+  - Supported: PNG, JPEG, BMP
+  - Unsupported: ICO
+- Window Icon [&#10003;]
+  - Note: To use include an Icon.png in your assets package.
 - Advanced Text Rendering With Markup [In Development]
 
 ## Libraries Used:
