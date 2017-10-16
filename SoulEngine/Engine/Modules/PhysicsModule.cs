@@ -3,7 +3,7 @@
 #region Using
 
 using System.Collections.Generic;
-using Raya.Graphics.Primitives;
+using Raya.Primitives;
 using Soul.Physics;
 using Soul.Physics.Dynamics;
 

@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Examples.Basic.PhysicsTest</StartupObject>
+    <StartupObject>Examples.Basic.ShapeTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -102,7 +102,10 @@
     <Compile Include="Basic\ShapeTest.cs" />
     <Compile Include="Basic\TextureTest.cs" />
     <Compile Include="ESScript\ElectricSleepViewer.cs" />
-    <None Include="Assets\font.ttf">
+    <None Include=".nobuild">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\folder test\font.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="ESScript\ESScriptTree.cs" />
@@ -120,22 +123,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\folder test\testScript.script" />
     <Content Include="Basic\About.txt" />
     <None Include="Assets\imageTest.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Include="Assets\folder test\P_20170418_144753_1_BF_p.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Assets\V_20170626_084129.mp4">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ESScript\About.txt" />
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Assets\folder test\NewFolder1\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

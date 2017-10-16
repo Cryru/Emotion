@@ -3,7 +3,7 @@
 #region Using
 
 using Raya.Enums;
-using Raya.Graphics.Primitives;
+using Raya.Primitives;
 
 #endregion
 

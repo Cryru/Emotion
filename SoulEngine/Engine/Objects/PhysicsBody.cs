@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using Raya.Graphics.Primitives;
 using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Engine.Internal;
@@ -13,7 +12,8 @@ using Soul.Physics.Common;
 using Soul.Physics.Dynamics;
 using Soul.Physics.Dynamics.Contacts;
 using Soul.Physics.Factories;
-using Vector2 = Raya.Graphics.Primitives.Vector2;
+using Raya.Primitives;
+using Vector2 = Raya.Primitives.Vector2;
 
 #endregion
 

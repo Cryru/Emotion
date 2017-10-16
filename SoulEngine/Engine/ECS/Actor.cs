@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Soul.Engine.Enums;
 using Soul.Engine.Internal;
 using Soul.Engine.Modules;
 
@@ -14,6 +15,11 @@ namespace Soul.Engine.ECS
     public abstract class Actor
     {
         #region Properties
+
+        /// <summary>
+        /// The name of the actor.
+        /// </summary>
+        public string Name = "Unnamed";
 
         /// <summary>
         /// The parent of this actor.
@@ -50,10 +56,17 @@ namespace Soul.Engine.ECS
 
         #region Internals
 
+#if DEBUG 
         /// <summary>
         /// The actor's children.
         /// </summary>
-        private Dictionary<string, Actor> _children;
+        public Dictionary<string, Actor> _children;
+#else
+        /// <summary>
+        /// The actor's children.
+        /// </summary>
+        protected Dictionary<string, Actor> _children;
+#endif
 
         #endregion
 
@@ -95,7 +108,7 @@ namespace Soul.Engine.ECS
             // Check if that actor has already been added.
             if (_children.ContainsValue(actor) || _children.ContainsKey(name))
             {
-                Error.Raise(4, "The child or child name - " + name + " is already attached to this parent.");
+                Error.Raise(4, "The child or child name - " + name + " is already attached to " + Name);
                 return "";
             }
 
@@ -103,13 +116,14 @@ namespace Soul.Engine.ECS
             _children.Add(name, actor);
 
             // Run initialization and parenting.
+            actor.Name = name;
             actor.Parent = this;
             actor.Initialize();
 
             // Update the priority list.
             UpdatePriority();
 
-            Debugger.DebugMessage(Enums.DebugMessageSource.Execution, "ECS - Added child " + name);
+            Debugger.DebugMessage(DebugMessageSource.Execution, "ECS - Added child " + name + " to " + Name);
 
             return name;
         }
@@ -158,7 +172,7 @@ namespace Soul.Engine.ECS
             if (!_children.ContainsKey(name)) return default(T);
 
             // Get the child from the index.
-            if (_children[name] is T) return (T)System.Convert.ChangeType(_children[name], typeof(T));
+            if (_children[name] is T) return (T) System.Convert.ChangeType(_children[name], typeof(T));
 
             return default(T);
         }
@@ -175,7 +189,7 @@ namespace Soul.Engine.ECS
             // Remove the child.
             _children.Remove(name);
 
-            Debugger.DebugMessage(Enums.DebugMessageSource.Execution, "ECS - Removed child " + name);
+            Debugger.DebugMessage(DebugMessageSource.Execution, "ECS - Removed child " + name + " from " + Name);
         }
 
         /// <summary>

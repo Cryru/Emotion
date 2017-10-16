@@ -20,6 +20,8 @@ SoulEngine 2017 set the grounds for the engine structure, even having some game 
 
 The goals for this year include better documentation, better functionality, demos for different functionality, and more attention to detail.
 
+Future updates to Raya will be applied to the engine, including a planned cross-platform rewrite.
+
 ## Features and Progress
 
 - Resolution Adaptation with Boxing [&#10003;]
@@ -35,9 +37,12 @@ The goals for this year include better documentation, better functionality, demo
   - Priority System [&#10003;]
 - Scene System [&#10003;]
 - Drawing Primitive Shapes and Custom Polygons [&#10003;] - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
+  - Texturing shapes [&#10003;]
 - Simple Input System [&#10003;]
 - Physics Engine [&#10003;] - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
-- Asset Packing, and Protection [In Development]
+- Asset Packing, and Protection [&#10003;]
+- Texture Rendering and Animation [&#10003;] - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
+- Advanced Text Rendering With Markup [In Development]
 
 ## Libraries Used:
 

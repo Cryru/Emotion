@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using Examples.ESScripts;
 using Raya.Graphics;
-using Raya.Graphics.Primitives;
+using Raya.Primitives;
 using Soul.Engine;
 using Soul.Engine.Enums;
 using Soul.Engine.Objects;

@@ -123,6 +123,7 @@
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\Actor.cs" />
     <Compile Include="Engine\Enums\DebugMessageSource.cs" />
+    <Compile Include="Engine\Enums\LoopType.cs" />
     <Compile Include="Engine\Enums\ShapeType.cs" />
     <Compile Include="Engine\Internal\AsyncScript.cs" />
     <Compile Include="Engine\Meta.cs" />
@@ -132,6 +133,7 @@
     <Compile Include="Engine\Modules\Input.cs" />
     <Compile Include="Engine\Modules\SceneManager.cs" />
     <Compile Include="Engine\Modules\ScriptEngine.cs" />
+    <Compile Include="Engine\Objects\Texture.cs" />
     <Compile Include="Engine\Objects\BasicShape.cs" />
     <Compile Include="Engine\Objects\PhysicsBody.cs" />
     <Compile Include="Engine\Scene.cs" />

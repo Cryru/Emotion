@@ -81,6 +81,13 @@ namespace Soul.Engine.AssetPacker
             // Apply settings.
             ApplySettings(args);
 
+            // Check for a nobuild file.
+            if (File.Exists(Path.Combine(OutputPath, ".nobuild")))
+            {
+                Console.WriteLine(".nobuild File found, not building.");
+                return;
+            }
+
             // Get the assets folder.
             AssetsPath = Path.Combine(OutputPath, "Assets");
             if (!Directory.Exists(AssetsPath))
@@ -129,7 +136,7 @@ namespace Soul.Engine.AssetPacker
             if (args.Length < 1)
             {
                 Console.WriteLine("No output file inputted, using execution folder.");
-                OutputPath = "";
+                OutputPath = "C:\\Users\\Vlad\\Desktop\\SoulEngine 2018\\Examples\\bin\\x64\\Debug";
             }
             else
             {
@@ -212,7 +219,7 @@ namespace Soul.Engine.AssetPacker
             {
                 AssetFile temp = new AssetFile
                 {
-                    Path = fileName.Replace(".fragment", ""),
+                    Path = fileName,
                     TimeUpdated = File.GetLastWriteTime(fileName).Ticks
                 };
 
@@ -257,6 +264,7 @@ namespace Soul.Engine.AssetPacker
             // Check for deleted files, those are the only left in the build files list.
             foreach (AssetFile builtFile in _builtFiles)
             {
+                
                 AssetFile temp = new AssetFile
                 {
                     Path = builtFile.Path,
@@ -348,13 +356,12 @@ namespace Soul.Engine.AssetPacker
 
             // Read the file, compress it, and encrypt it.
             byte[] data = File.ReadAllBytes(file.Path);
-            byte[] compressedFile = Compression.CompressBrotli(data);
-            byte[] encryptedData = _service.Encrypt(compressedFile);
+            // data = Compression.CompressBrotli(data);
 
             currentFileTracker.Stop();
 
             // Write the file.
-            Write.FileAsBytes(fragmentPath, encryptedData);
+            Write.FileAsBytes(fragmentPath, data);
 
             // Set the last write time to the unbuilt file's time.
             File.SetLastWriteTime(fragmentPath, new DateTime(file.TimeUpdated));
@@ -386,17 +393,19 @@ namespace Soul.Engine.AssetPacker
             {
                 byte[] content = Read.FileAsBytes(files[i]);
 
+                // Encrypt the data.
+                content = _service.Encrypt(content);
+
                 // Get data for the meta.
                 int start = (int) writer.Position;
                 string hash = System.Convert.ToBase64String(Hash.Md5(content));
 
                 writer.Write(content, 0, content.Length);
 
-                AssetFile file = new AssetFile();
-                file.Path = files[i];
+                AssetFile file = new AssetFile {Path = files[i]};
 
                 // Add the file to the meta.
-                metaFile.Edit(file.Name, new AssetMeta
+                metaFile.Edit(file.Name.Replace(".fragment", ""), new AssetMeta
                 {
                     Start = start,
                     Length = content.Length,
@@ -410,7 +419,7 @@ namespace Soul.Engine.AssetPacker
             string metaData = metaFile.Save();
             _metaHash = Hash.Md5(metaData);
 
-            Write.File(Path.Combine(OutputPath, ".buildData"), "MetaHash: " + _metaHash + "\n" + "EncryptionKey: " + EncryptionKey);
+            Write.File(Path.Combine(OutputPath, ".buildData"), "MetaHash: [" + _metaHash + "]\r\n" + "EncryptionKey: [" + _service.EncryptionKey + "]");
         }
 
         /// <summary>
@@ -420,14 +429,14 @@ namespace Soul.Engine.AssetPacker
         /// <returns></returns>
         private static string GenerateRandomString(int length)
         {
-            List<char> output = new List<char>();
+            List<byte> output = new List<byte>();
 
             for (int i = 0; i < length; i++)
             {
-                output.Add((char) Utilities.GenerateRandomNumber(32, 127));
+                output.Add((byte) Utilities.GenerateRandomNumber(0, 225));
             }
 
-            return string.Join("", output);
+            return System.Convert.ToBase64String(output.ToArray());
         }
     }
 

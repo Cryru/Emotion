@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Raya.Graphics.Primitives;
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
+
+#region Using
+
+using System;
+using Raya.Primitives;
 using Soul.Engine;
 using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 using Soul.Engine.Objects;
 
+#endregion
+
 namespace Examples.Basic
 {
     public class ShapeTest : Scene
     {
-
         public static void Main(string[] args)
         {
             // Start the engine.
@@ -59,7 +60,11 @@ namespace Examples.Basic
             GameObject poly = new GameObject();
             poly.AddChild("poly", new BasicShape());
             poly.GetChild<BasicShape>("poly").Type = ShapeType.Polygon;
-            Vector2[] vert = { new Vector2(9, -9), new Vector2(15, 7), new Vector2(2, 16), new Vector2(-6, 19), new Vector2(-19, 5), new Vector2(-20, -4), new Vector2(-11, -14), new Vector2(-4, -15), new Vector2(4, -15) };
+            Vector2[] vert =
+            {
+                new Vector2(9, -9), new Vector2(15, 7), new Vector2(2, 16), new Vector2(-6, 19), new Vector2(-19, 5),
+                new Vector2(-20, -4), new Vector2(-11, -14), new Vector2(-4, -15), new Vector2(4, -15)
+            };
             poly.GetChild<BasicShape>().PolygonVertices = vert;
             poly.Position = new Vector2(450, 50);
 
@@ -108,12 +113,12 @@ namespace Examples.Basic
             ScriptEngine.Expose("spinTri", spinTri);
             ScriptEngine.Expose("spinPoly", spinPoly);
             ScriptEngine.RunScript("register(function() {" +
-                                        " spinCircle.Rotation += 0.1; " +
-                                        " spinLine.Rotation += 0.1; " +
-                                        " spinRect.Rotation += 0.1; " +
-                                        " spinTri.Rotation += 0.1; " +
-                                        " spinPoly.Rotation += 0.1; " +
-                                        "});");
+                                   " spinCircle.Rotation += 0.1; " +
+                                   " spinLine.Rotation += 0.1; " +
+                                   " spinRect.Rotation += 0.1; " +
+                                   " spinTri.Rotation += 0.1; " +
+                                   " spinPoly.Rotation += 0.1; " +
+                                   "});");
 
             // Outlined shapes.
 
@@ -224,30 +229,78 @@ namespace Examples.Basic
 
             AddChild("colorPoly", colorPoly);
 
+            // Textured Shapes.
+
+            GameObject texturedCircle = new GameObject();
+            texturedCircle.AddChild("circle", new BasicShape());
+            texturedCircle.GetChild<BasicShape>("circle").Type = ShapeType.Circle;
+            texturedCircle.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            texturedCircle.Position = new Vector2(50, 450);
+            texturedCircle.Size = new Vector2(50, 50);
+
+            AddChild("texturedCircle", texturedCircle);
+
+            GameObject texturedLine = new GameObject();
+            texturedLine.AddChild("line", new BasicShape());
+            texturedLine.GetChild<BasicShape>("line").Type = ShapeType.Line;
+            texturedLine.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            texturedLine.Position = new Vector2(150, 450);
+            texturedLine.Size = new Vector2(200, 450);
+
+            AddChild("texturedLine", texturedLine);
+
+            GameObject texturedRect = new GameObject();
+            texturedRect.AddChild("rect", new BasicShape());
+            texturedRect.GetChild<BasicShape>("rect").Type = ShapeType.Rectangle;
+            texturedRect.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            texturedRect.Position = new Vector2(250, 450);
+            texturedRect.Size = new Vector2(50, 50);
+
+            AddChild("texturedRect", texturedRect);
+
+            GameObject texturedTriangle = new GameObject();
+            texturedTriangle.AddChild("tri", new BasicShape());
+            texturedTriangle.GetChild<BasicShape>("tri").Type = ShapeType.Triangle;
+            texturedTriangle.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            texturedTriangle.Position = new Vector2(350, 450);
+            texturedTriangle.Size = new Vector2(50, 50);
+
+            AddChild("texturedTriangle", texturedTriangle);
+
+            GameObject texturedPoly = new GameObject();
+            texturedPoly.AddChild("poly", new BasicShape());
+            texturedPoly.GetChild<BasicShape>("poly").Type = ShapeType.Polygon;
+            texturedPoly.GetChild<BasicShape>().PolygonVertices = vert;
+            texturedPoly.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            texturedPoly.GetChild<BasicShape>().GetChild<Texture>().Animate(new Vector2(50, 50), 200);
+            texturedPoly.Position = new Vector2(450, 450);
+
+            AddChild("texturedPoly", texturedPoly);
+
             // Change the shape colors with a script.
             ScriptEngine.Expose("colorCircle", colorCircle);
             ScriptEngine.Expose("colorLine", colorLine);
             ScriptEngine.Expose("colorRect", colorRect);
             ScriptEngine.Expose("colorTri", colorTri);
             ScriptEngine.Expose("colorPoly", colorPoly);
-            ScriptEngine.Expose("ChangeColor", (Action<GameObject>)ChangeColor);
+            ScriptEngine.Expose("ChangeColor", (Action<GameObject>) ChangeColor);
             ScriptEngine.RunScript("register(function() {" +
-                                        " ChangeColor(colorCircle); " +
-                                        " ChangeColor(colorLine); " +
-                                        " ChangeColor(colorRect); " +
-                                        " ChangeColor(colorTri); " +
-                                        " ChangeColor(colorPoly); " +
-                                        "});");
+                                   " ChangeColor(colorCircle); " +
+                                   " ChangeColor(colorLine); " +
+                                   " ChangeColor(colorRect); " +
+                                   " ChangeColor(colorTri); " +
+                                   " ChangeColor(colorPoly); " +
+                                   "});");
         }
 
         public override void Update()
         {
-
         }
 
         private void ChangeColor(GameObject obj)
         {
-            obj.GetChild<BasicShape>().Color = new Color(obj.GetChild<BasicShape>().Color.R + 1, obj.GetChild<BasicShape>().Color.G + 1, obj.GetChild<BasicShape>().Color.B + 1);
+            obj.GetChild<BasicShape>().Color = new Color(obj.GetChild<BasicShape>().Color.R + 1,
+                obj.GetChild<BasicShape>().Color.G + 1, obj.GetChild<BasicShape>().Color.B + 1);
         }
     }
 }

@@ -2,17 +2,14 @@
 
 #region Using
 
-using Raya.Graphics;
-using Raya.Graphics.Primitives;
 using Raya.Input;
+using Raya.Primitives;
 using Soul.Engine;
 using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 using Soul.Engine.Objects;
-using Soul.Physics;
 using Soul.Physics.Dynamics;
-using ShapeType = Soul.Engine.Enums.ShapeType;
-using Settings = Soul.Engine.Settings;
+
 #endregion
 
 namespace Examples.Basic
@@ -28,13 +25,16 @@ namespace Examples.Basic
 
         private ShapeType _currentShape = ShapeType.Rectangle;
         private int _currentSize = 10;
-#endregion
+
+        #endregion
 
         public override void Initialize()
         {
-            GameObject ceiling = new GameObject();
-            ceiling.Position = new Vector2(0, 0);
-            ceiling.Size = new Vector2(Settings.Width, 5);
+            GameObject ceiling = new GameObject
+            {
+                Position = new Vector2(0, 0),
+                Size = new Vector2(Settings.Width, 5)
+            };
             ceiling.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
             ceiling.AddChild(new BasicShape(ShapeType.Rectangle));
             ceiling.GetChild<BasicShape>().Color = Color.Black;
@@ -42,9 +42,11 @@ namespace Examples.Basic
 
             AddChild("ceiling", ceiling);
 
-            GameObject leftWall = new GameObject();
-            leftWall.Position = new Vector2(0, 0);
-            leftWall.Size = new Vector2(5, Settings.Height);
+            GameObject leftWall = new GameObject
+            {
+                Position = new Vector2(0, 0),
+                Size = new Vector2(5, Settings.Height)
+            };
             leftWall.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
             leftWall.AddChild(new BasicShape(ShapeType.Rectangle));
             leftWall.GetChild<BasicShape>().Color = Color.Black;
@@ -62,9 +64,11 @@ namespace Examples.Basic
 
             AddChild("rightWall", rightWall);
 
-            GameObject floor = new GameObject();
-            floor.Position = new Vector2(0, Settings.Height - 15);
-            floor.Size = new Vector2(Settings.Width, 15);
+            GameObject floor = new GameObject
+            {
+                Position = new Vector2(0, Settings.Height - 15),
+                Size = new Vector2(Settings.Width, 15)
+            };
             floor.AddChild(new PhysicsBody(this, ShapeType.Rectangle));
             floor.AddChild(new BasicShape(ShapeType.Rectangle));
             floor.GetChild<BasicShape>().Color = Color.Black;
@@ -72,22 +76,24 @@ namespace Examples.Basic
 
             AddChild("floor", floor);
 
-            Vector2[] vert = { new Vector2(16, 43), new Vector2(12, -15), new Vector2(-10, -2) };
+            Vector2[] vert = {new Vector2(16, 43), new Vector2(12, -15), new Vector2(-10, -2)};
 
-            GameObject polygon = new GameObject();
-            polygon.Position = new Vector2(50, 50);
-            polygon.Size = new Vector2(50, 50);
+            GameObject polygon = new GameObject
+            {
+                Position = new Vector2(50, 50),
+                Size = new Vector2(50, 50)
+            };
             polygon.AddChild(new PhysicsBody(this, ShapeType.Polygon, vert));
             polygon.AddChild(new BasicShape(ShapeType.Polygon, vert));
             polygon.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
-            polygon.GetChild<BasicShape>().Color = new Raya.Graphics.Primitives.Color(255, 0, 0);
+            polygon.GetChild<BasicShape>().Color = new Color(255, 0, 0);
 
             AddChild("polygon", polygon);
 
             GameObject mouseIndicator = new GameObject();
             mouseIndicator.AddChild(new BasicShape(ShapeType.Rectangle));
             mouseIndicator.GetChild<BasicShape>().Color = new Color(255, 255, 255, 100);
-            mouseIndicator.GetChild<BasicShape>().OutlineColor = new Raya.Graphics.Primitives.Color(255, 0, 0, 200);
+            mouseIndicator.GetChild<BasicShape>().OutlineColor = new Color(255, 0, 0, 200);
             mouseIndicator.GetChild<BasicShape>().OutlineThickness = 2;
             mouseIndicator.Priority = 1;
 
@@ -99,17 +105,11 @@ namespace Examples.Basic
             // Decide shape.
             bool add = true;
             if (Input.MouseButtonHeld(Mouse.Button.Left))
-            {
                 _currentShape = ShapeType.Rectangle;
-            }
             else if (Input.MouseButtonHeld(Mouse.Button.Right))
-            {
                 _currentShape = ShapeType.Circle;
-            }
             else
-            {
                 add = false;
-            }
 
             // Check if size changed.
             _currentSize += Input.MouseWheelScroll();

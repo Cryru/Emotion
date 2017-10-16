@@ -33,8 +33,9 @@ namespace Soul.Engine.Internal
             // If severe error dump the log and exit.
             if (severity == Severity.Critical)
             {
+                Core.NativeContext?.Window?.Close();
                 Logger.ForceDump();
-                throw new Exception(errorMessage);
+                throw new SoulEngineException(errorMessage);
             }
         }
 
@@ -61,7 +62,9 @@ namespace Soul.Engine.Internal
         // 241 - Missing assets meta file.
         // 242 - Wrong assets meta hash.
         // 243 - Missing assets blob.
-        // 244 - Failed to validate file.
+        // 244 - Failed to validate file hash or encryption.
+        // 245 - Failed to load asset {name} as a texture.
+        // 246 - Asset {name} doesn't exist in meta.
         // Special Errors
         // 999 - SoulLib Error
     }
@@ -70,5 +73,12 @@ namespace Soul.Engine.Internal
     {
         Normal,
         Critical
+    }
+
+    internal class SoulEngineException : Exception
+    {
+        public SoulEngineException(string message) : base(message)
+        {
+        }
     }
 }

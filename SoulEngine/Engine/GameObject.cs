@@ -3,9 +3,11 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Raya;
 using Raya.Graphics;
-using Raya.Graphics.Primitives;
+using Raya.Primitives;
 using Raya.System;
 using Soul.Engine.ECS;
 
@@ -112,6 +114,17 @@ namespace Soul.Engine
         {
             get { return (int) Helpers.ToDegrees(Rotation); }
             set { Rotation = Helpers.ToRadians(value); }
+        }
+
+        /// <summary>
+        /// The game's bounds.
+        /// </summary>
+        public Rectangle Bounds
+        {
+            get
+            {
+                return new Rectangle(Position, Size);
+            }
         }
 
         /// <summary>

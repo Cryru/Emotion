@@ -10,6 +10,7 @@ using System.Threading;
 using Raya.Input;
 using Raya.System;
 using Soul.Engine.Enums;
+using Soul.Engine.Objects;
 
 #endregion
 
@@ -41,6 +42,22 @@ namespace Soul.Engine.Modules
 
         #endregion
 
+        #region Select Mode
+
+        /// <summary>
+        /// Whether we are in select mode.
+        /// </summary>
+        public static bool SelectMode = false;
+
+        /// <summary>
+        /// The last selected object.
+        /// </summary>
+        private static GameObject _lastSelected;
+
+        #endregion
+
+
+
         /// <summary>
         /// The next debug command to process.
         /// </summary>
@@ -49,8 +66,8 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Sources to hide messages from.
         /// </summary>
-        private static List<DebugMessageSource> _hiddenSources =
-            new List<DebugMessageSource> {DebugMessageSource.Execution};
+        public static List<DebugMessageSource> HiddenSources =
+            new List<DebugMessageSource> {};
 
         #endregion
 
@@ -75,6 +92,10 @@ namespace Soul.Engine.Modules
             ScriptEngine.Expose("print", (Action<string>) Print);
             ScriptEngine.Expose("fps", (Func<string>) FPS);
             ScriptEngine.Expose("manualMode", (Action) ToggleManualMode);
+            ScriptEngine.Expose("selectMode", (Func<bool>) (() =>
+            {
+                return SelectMode = !SelectMode;
+            }));
             ScriptEngine.Expose("showSource", (Action<DebugMessageSource>) ShowMessageSource);
             ScriptEngine.Expose("hideSource", (Action<DebugMessageSource>) HideMessageSource);
             ScriptEngine.Expose("help", (Func<string, string>) DebugScriptHelp);
@@ -114,6 +135,21 @@ namespace Soul.Engine.Modules
                 }
             }
 
+            if (SelectMode)
+            {
+                GameObject mouseOvered = SceneManager.CurrentScene.GetMousedObject();
+
+                if (mouseOvered != null)
+                {
+                    if (mouseOvered != _lastSelected)
+                    {
+                        ScriptEngine.Expose("selected", _lastSelected);
+                        DebugMessage(DebugMessageSource.Debug, "You are selecting " + mouseOvered.Name + " who has " + mouseOvered.ChildrenCount + " children.");
+                        _lastSelected = mouseOvered;
+                    }
+                }
+            }
+
             // Print the fps in the window title.
             Core.NativeContext.Window.Title = Settings.WTitle + " FPS: " + FPS();
         }
@@ -146,7 +182,7 @@ namespace Soul.Engine.Modules
             lock (message)
             {
                 // Whether to skip printing the message. By default messages in the hidden array are skipped.
-                bool skipPrint = _hiddenSources.IndexOf(source) != -1;
+                bool skipPrint = HiddenSources.IndexOf(source) != -1;
 
                 // Check source to color.
                 switch (source)
@@ -210,9 +246,9 @@ namespace Soul.Engine.Modules
         /// <param name="source">The message source to hide.</param>
         public static void HideMessageSource(DebugMessageSource source)
         {
-            if (_hiddenSources.IndexOf(source) != -1) return;
+            if (HiddenSources.IndexOf(source) != -1) return;
 
-            _hiddenSources.Add(source);
+            HiddenSources.Add(source);
         }
 
         /// <summary>
@@ -221,9 +257,9 @@ namespace Soul.Engine.Modules
         /// <param name="source">The message source to show.</param>
         public static void ShowMessageSource(DebugMessageSource source)
         {
-            if (_hiddenSources.IndexOf(source) == -1) return;
+            if (HiddenSources.IndexOf(source) == -1) return;
 
-            _hiddenSources.Remove(source);
+            HiddenSources.Remove(source);
         }
 
         #endregion

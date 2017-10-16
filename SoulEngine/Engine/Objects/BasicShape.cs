@@ -4,7 +4,7 @@
 
 using System;
 using Raya.Graphics;
-using Raya.Graphics.Primitives;
+using Raya.Primitives;
 using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Engine.Internal;
@@ -100,6 +100,22 @@ namespace Soul.Engine.Objects
         /// The shape object inside the Raya API.
         /// </summary>
         private Shape _nativeObject;
+
+        /// <summary>
+        /// The shape's texture.
+        /// </summary>
+        internal Raya.Graphics.Texture Texture
+        {
+            set { _nativeObject.Texture = value; }
+        }
+
+        /// <summary>
+        /// The shape texture's draw area.
+        /// </summary>
+        internal Rectangle TextureRect
+        {
+            set { _nativeObject.TextureRect = value; }
+        }
 
         #endregion
 

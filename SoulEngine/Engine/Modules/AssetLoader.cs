@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Raya.Graphics;
 using Soul.IO;
@@ -21,17 +23,17 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Assets meta.
         /// </summary>
-        private static ManagedFile _meta = null;
+        private static ManagedFile _meta;
 
         /// <summary>
         /// The encrypting service.
         /// </summary>
-        private static SymmetricEncryptionService _encryptor = null;
+        private static SymmetricEncryptionService _encryptor;
 
         /// <summary>
         /// The assets blob reader.
         /// </summary>
-        private static FileStream _assetsBlob = null;
+        private static FileStream _assetsBlob;
 
         #endregion
 
@@ -72,10 +74,59 @@ namespace Soul.Engine.Modules
             if (readData == null) return;
 
             // Load the data into a texture and add it to the loaded list.
-            Texture texture = new Texture(readData);
-            _loadedTextures.Add(name, texture);
+            try
+            {
+                Texture texture = new Texture(readData)
+                // Apply default settings.
+                {
+                    Smooth = false,
+                    Repeated = true
+                };
+
+                
+
+                _loadedTextures.Add(name, texture);
+            }
+            catch (Exception)
+            {
+                Error.Raise(245, "Failed to load asset " + name + " as a texture.");
+            }
         }
 
+        /// <summary>
+        /// Unloads a loaded texture.
+        /// </summary>
+        /// <param name="name">The name of the texture to unload.</param>
+        public static void UnloadTexture(string name)
+        {
+            // Check if loaded.
+            if (_loadedTextures.ContainsKey(name))
+            {
+                // Dispose of it.
+                _loadedTextures[name].Dispose();
+                // Remove it from the list.
+                _loadedTextures.Remove(name);
+            }
+        }
+
+        /// <summary>
+        /// Returns the loaded texture. If it isn't loaded it will be.
+        /// </summary>
+        /// <param name="name">The name of the texture to get.</param>
+        public static Texture GetTexture(string name)
+        {
+            // Check if loaded.
+            if (!_loadedTextures.ContainsKey(name)) LoadTexture(name);
+
+            // Return the loaded texture.
+            return _loadedTextures[name];
+        }
+
+        /// <summary>
+        /// Loads a file.
+        /// </summary>
+        /// <param name="name">The name of the file.</param>
+        /// <returns>The file contents.</returns>
         private static byte[] LoadFile(string name)
         {
             // Check which way we are reading data.
@@ -120,9 +171,51 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="name">The file's name.</param>
         /// <returns>The file as bytes.</returns>
-        public static byte[] SecureReadFile(string name)
+        private static byte[] SecureReadFile(string name)
         {
-            return new byte[] {0};
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
+            AssetMeta assetMeta;
+
+            try
+            {
+                // Load the meta for the file.
+                assetMeta = _meta.Get<AssetMeta>(name);
+            }
+            catch (Exception)
+            {
+                Error.Raise(246, "Asset " + name + "doesn't exist in meta.");
+                return new byte[] { 0 };
+            }
+
+            // Read the file from the blob.
+            byte[] fileData = new byte[assetMeta.Length];
+            _assetsBlob.Position = assetMeta.Start;
+            _assetsBlob.Read(fileData, 0, assetMeta.Length);
+
+            // Validate the file hash.
+            string loadedFileHash = System.Convert.ToBase64String(Hash.Md5(fileData));
+            if (assetMeta.Hash == loadedFileHash)
+            {
+                Debugger.DebugMessage(Enums.DebugMessageSource.Execution, "AssetMeta - Validated hash of " + name);
+                
+                // Decrypt the data.
+                fileData = _encryptor.Decrypt(fileData);
+                // Decompress the data.
+                // fileData = Compression.DecompressBrotli(fileData);
+
+                Debugger.DebugMessage(Enums.DebugMessageSource.AssetLoader, "Loaded file " + name + " in " + timer.ElapsedMilliseconds + " ms");
+
+                // Return the file.
+                return fileData;
+
+            }
+            else
+            {
+                Error.Raise(244, "Failed to validate file hash or encryption.");
+                return new byte[] { 0 };
+            }
         }
 
         /// <summary>
@@ -130,7 +223,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         /// <param name="metaHash">The assets meta file's hash.</param>
         /// <param name="encryptionKey">The encryption key used when packing the assets.</param>
-        public static void Lock(string metaHash, string encryptionKey)
+        internal static void Lock(string metaHash, string encryptionKey)
         {
             try
             {
@@ -176,10 +269,30 @@ namespace Soul.Engine.Modules
             }
             catch (Exception e)
             {
-                Error.Raise(240, e.Message, Severity.Critical);
+                // Check if not an Error thrown exception.
+                if (!(e is SoulEngineException))
+                {
+                    Error.Raise(240, e.Message, Severity.Critical);
+                }
+                // Otherwise throw it.
+                else
+                {
+                    throw;
+                }
             }
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Meta for an asset file.
+    /// </summary>
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    internal class AssetMeta
+    {
+        public int Start { get; set; }
+        public int Length { get; set; }
+        public string Hash { get; set; }
     }
 }

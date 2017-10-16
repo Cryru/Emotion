@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Raya.Enums;
 using Raya.Events;
-using Raya.Graphics.Primitives;
 using Raya.Input;
+using Raya.Primitives;
 
 #endregion
 
@@ -124,42 +124,49 @@ namespace Soul.Engine.Modules
         /// </summary>
         public static void Update()
         {
-            // Update key data.
-            foreach (Keyboard.Key key in _keys.Keys.ToList())
+            if (!Core.Paused)
             {
-                // Get the new and old values.
-                bool oldValue = _keys[key];
-                bool newValue = Keyboard.IsKeyPressed(key);
+                // Update key data.
+                foreach (Keyboard.Key key in _keys.Keys.ToList())
+                {
+                    // Get the new and old values.
+                    bool oldValue = _keys[key];
+                    bool newValue = Keyboard.IsKeyPressed(key);
 
-                // Update the last frame data.
-                _keysLastFrame[key] = oldValue;
+                    // Update the last frame data.
+                    _keysLastFrame[key] = oldValue;
 
-                // Update the current frame data.
-                _keys[key] = newValue;
+                    // Update the current frame data.
+                    _keys[key] = newValue;
+                }
+
+                // Update mouse data.
+                foreach (Mouse.Button button in _mouseButtons.Keys.ToList())
+                {
+                    // Get the new and old values.
+                    bool oldValue = _mouseButtons[button];
+                    bool newValue = Mouse.IsButtonPressed(button);
+
+                    // Update the last frame data.
+                    _mouseButtonsLastFrame[button] = oldValue;
+
+                    // Update the current frame data.
+                    _mouseButtons[button] = newValue;
+                }
+
+                // Reset scroll.
+                _mouseScroll = 0;
+
+                // Check if alt+enter are pressed for fullscreen.
+                if (KeyHeld(Keyboard.Key.LAlt) && KeyPressed(Keyboard.Key.Return))
+                    Core.NativeContext.Window.Mode = Core.NativeContext.Window.Mode == WindowMode.Window
+                        ? WindowMode.Borderless
+                        : WindowMode.Window;
+
+                // Check if escape is pressed to exit.
+                if (KeyPressed(Keyboard.Key.Escape))
+                    Core.NativeContext.Quit();
             }
-
-            // Update mouse data.
-            foreach (Mouse.Button button in _mouseButtons.Keys.ToList())
-            {
-                // Get the new and old values.
-                bool oldValue = _mouseButtons[button];
-                bool newValue = Mouse.IsButtonPressed(button);
-
-                // Update the last frame data.
-                _mouseButtonsLastFrame[button] = oldValue;
-
-                // Update the current frame data.
-                _mouseButtons[button] = newValue;
-            }
-
-            // Reset scroll.
-            _mouseScroll = 0;
-
-            // Check if alt+enter are pressed for fullscreen.
-            if (KeyHeld(Keyboard.Key.LAlt) && KeyPressed(Keyboard.Key.Return))
-                Core.NativeContext.Window.Mode = Core.NativeContext.Window.Mode == WindowMode.Window
-                    ? WindowMode.Borderless
-                    : WindowMode.Window;
 
 
             // Track focus.

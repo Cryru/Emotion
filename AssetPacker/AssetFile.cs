@@ -17,7 +17,7 @@ namespace Soul.Engine.AssetPacker
             get
             {
                 string strippedPath = Path.Replace(Program.AssetsPath + System.IO.Path.DirectorySeparatorChar, "")
-                    .Replace(Program.CachePath + System.IO.Path.DirectorySeparatorChar, "");
+                    .Replace(Program.CachePath + System.IO.Path.DirectorySeparatorChar, "").Replace(".fragment", "");
 
                 //string noExtension = strippedPath.Substring(0, strippedPath.IndexOf(".", StringComparison.Ordinal));
 

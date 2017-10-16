@@ -4,6 +4,7 @@
 
 using System;
 using System.Reflection;
+using System.Threading;
 using Raya.Graphics;
 using Raya.System;
 using Soul.Engine.Enums;
@@ -68,7 +69,15 @@ namespace Soul.Engine
 
         #endregion
 
-        public static void Start(Scene startScene, string sceneName = "startScene", Scene loadingScene = null)
+        /// <summary>
+        /// Start the game engine.
+        /// </summary>
+        /// <param name="startScene">The first scene to load.</param>
+        /// <param name="sceneName">The name of the scene.</param>
+        /// <param name="loadingScene">A loading scene to load.</param>
+        /// <param name="metaHash">The hash of the meta assets file, if running in secure mode.</param>
+        /// <param name="assetEncryption">The asset encryption key, if running in secure mode.</param>
+        public static void Start(Scene startScene, string sceneName = "startScene", Scene loadingScene = null, string metaHash = "", string assetEncryption = "")
         {
             // Assign the loading scene.
             LoadingScene = loadingScene;
@@ -121,6 +130,14 @@ namespace Soul.Engine
             };
 
             AppDomain.CurrentDomain.UnhandledException += (sender, args) => Logger.ForceDump();
+            AppDomain.CurrentDomain.ProcessExit += (sender, args) => Logger.ForceDump();
+
+            // Check if running in secure mode.
+            if (metaHash != "" && assetEncryption != "")
+            {
+                // Lock the asset loader in that case.
+                AssetLoader.Lock(metaHash, assetEncryption);
+            }
 
             // Boot ready.
             Debugger.DebugMessage(DebugMessageSource.Boot,
@@ -139,7 +156,7 @@ namespace Soul.Engine
                 // Get the time since the last frame time timer restart, which is the time it took for the last frame to render.
                 _frameTime = timingClock.ElapsedTime.AsMilliseconds();
 
-                // Check if the timer is 0, this happens when the game is paused.
+                // Check if the timer is 0, this usually happens when the game is paused.
                 if (_frameTime == 0 && Settings.FPSCap > 0)
                 {
                     // In this case we correct it to the cap.
@@ -157,7 +174,14 @@ namespace Soul.Engine
                 NativeContext.Tick();
 
                 // If the game is paused don't run any game related modules and processes.
-                if (Paused || (Debugger.ManualMode && !Debugger.AdvanceFrame)) continue;
+                if (Paused || (Debugger.ManualMode && !Debugger.AdvanceFrame))
+                {
+                    // To prevent deadlock when debugging and such.
+                    if (_frameTime > 100) _frameTime = 16;
+
+                    Thread.Sleep(_frameTime);
+                    continue;
+                }
 
                 // Run game related modules.
                 ScriptEngine.Update(); // Scripting first to update any script data.
@@ -177,10 +201,20 @@ namespace Soul.Engine
         #region Drawing
 
         /// <summary>
-        /// Draws a drawable Raya object.
+        /// Draws a drawable Raya object on the current render target.
         /// </summary>
-        /// <param name="drawable"></param>
+        /// <param name="drawable">The object to draw.</param>
         public static void Draw(Drawable drawable)
+        {
+            Draw(drawable, Transform.Identity);
+        }
+
+        /// <summary>
+        /// Draws a drawable Raya object on the current render target, with the draw call modified by a transform.
+        /// </summary>
+        /// <param name="drawable">The object to draw.</param>
+        /// <param name="transform">The transform to warp it through</param>
+        public static void Draw(Drawable drawable, Transform transform)
         {
             if (NativeContext == null)
             {
@@ -188,8 +222,10 @@ namespace Soul.Engine
                 return;
             }
 
+            RenderStates states = RenderStates.Default;
+            states.Transform = transform;
 
-            NativeContext.Draw(drawable);
+            NativeContext.Draw(drawable, states);
         }
 
         #endregion
