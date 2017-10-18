@@ -37,12 +37,17 @@ namespace Soul.Engine.Modules
 
         #endregion
 
-        #region Properties
+        #region Loaded Assets Arrays
 
         /// <summary>
         /// Currently loaded textures.
         /// </summary>
         private static Dictionary<string, Texture> _loadedTextures;
+
+        /// <summary>
+        /// Currently loaded fonts.
+        /// </summary>
+        private static Dictionary<string, Font> _loadedFonts;
 
         #endregion
 
@@ -52,14 +57,17 @@ namespace Soul.Engine.Modules
         public static void Setup()
         {
             _loadedTextures = new Dictionary<string, Texture>();
+            _loadedFonts = new Dictionary<string, Font>();
         }
 
         #region Loading Functions
 
+        #region Texture
+
         /// <summary>
         /// Loads a texture with the provided name. If the texture is already loaded nothing is done.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The image file to load.</param>
         public static void LoadTexture(string name)
         {
             // Check if already loaded.
@@ -77,13 +85,13 @@ namespace Soul.Engine.Modules
             try
             {
                 Texture texture = new Texture(readData)
-                // Apply default settings.
-                {
-                    Smooth = false,
-                    Repeated = true
-                };
+                    // Apply default settings.
+                    {
+                        Smooth = false,
+                        Repeated = true
+                    };
 
-                
+
 
                 _loadedTextures.Add(name, texture);
             }
@@ -121,6 +129,70 @@ namespace Soul.Engine.Modules
             // Return the loaded texture.
             return _loadedTextures[name];
         }
+
+        #endregion
+
+        #region Font
+
+        /// <summary>
+        /// Loads a font with the provided name. If the font is already loaded nothing is done.
+        /// </summary>
+        /// <param name="name">The name of the font file to load.</param>
+        public static void LoadFont(string name)
+        {
+            // Check if already loaded.
+            if (_loadedFonts.ContainsKey(name))
+            {
+                Debugger.DebugMessage(Enums.DebugMessageSource.AssetLoader, "Tried to load already loaded font: " + name);
+            }
+
+            byte[] readData = LoadFile(name);
+
+            // Check if reading failed.
+            if (readData == null) return;
+
+            // Load the data into a font and add it to the loaded list.
+            try
+            {
+                Font font = new Font(readData);
+                _loadedFonts.Add(name, font);
+            }
+            catch (Exception)
+            {
+                Error.Raise(245, "Failed to load asset " + name + " as a font.");
+            }
+        }
+
+        /// <summary>
+        /// Unloads a loaded font.
+        /// </summary>
+        /// <param name="name">The name of the font to unload.</param>
+        public static void UnloadFont(string name)
+        {
+            // Check if loaded.
+            if (_loadedFonts.ContainsKey(name))
+            {
+                // Dispose of it.
+                _loadedFonts[name].Dispose();
+                // Remove it from the list.
+                _loadedFonts.Remove(name);
+            }
+        }
+
+        /// <summary>
+        /// Returns the loaded font. If it isn't loaded it will be.
+        /// </summary>
+        /// <param name="name">The name of the font to get.</param>
+        public static Font GetFont(string name)
+        {
+            // Check if loaded.
+            if (!_loadedFonts.ContainsKey(name)) LoadFont(name);
+
+            // Return the loaded font.
+            return _loadedFonts[name];
+        }
+
+        #endregion
 
         /// <summary>
         /// Loads a file.

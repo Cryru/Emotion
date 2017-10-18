@@ -50,16 +50,21 @@ namespace Soul.Engine.Modules
             get
             {
                 // Check if focused.
-                if (!Core.NativeContext.Window.Focused) return Vector2.Zero;
+                if (!Core.NativeContext.Window.Focused) return _mousePosition;
 
                 Vector2 pos = Mouse.GetPosition(Core.NativeContext.Window);
+                pos = (Vector2) Core.NativeContext.Window.MapPixelToCoords(pos);
 
                 // Check if within window.
                 if (pos.X >= 0 && pos.Y >= 0 && pos.X <= Core.NativeContext.Window.Size.X &&
-                    pos.Y <= Core.NativeContext.Window.Size.Y) return pos;
+                    pos.Y <= Core.NativeContext.Window.Size.Y)
+                {
+                    _mousePosition = pos;
+                    return pos;
+                }
 
                 // If it wasn't within the window return 0,0.
-                return Vector2.Zero;
+                return _mousePosition;
             }
             set
             {
@@ -69,6 +74,8 @@ namespace Soul.Engine.Modules
                 Mouse.SetPosition(value, Core.NativeContext.Window);
             }
         }
+
+        private static Vector2 _mousePosition;
 
         /// <summary>
         /// The amount of mouse wheel scrolling done this frame.
@@ -124,7 +131,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         public static void Update()
         {
-            if (!Core.Paused)
+            if (!Core.Paused || !Core.NativeContext.Window.Focused)
             {
                 // Update key data.
                 foreach (Keyboard.Key key in _keys.Keys.ToList())

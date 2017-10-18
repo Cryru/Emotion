@@ -223,7 +223,7 @@ namespace Soul.Engine
         /// <summary>
         /// Whether to pause the game when the window loses focus.
         /// </summary>
-        public static bool PauseOnFocusLoss = true;
+        public static bool PauseOnFocusLoss = false;
 
         #endregion
 

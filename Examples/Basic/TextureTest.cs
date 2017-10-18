@@ -17,7 +17,7 @@ namespace Examples.Basic
     {
         public static void Main(string[] args)
         {
-            // Start the engine with this scene and locked assets.
+            // Start the engine with this scene.
             Core.Start(
                 new TextureTest(),
                 "textureTest"

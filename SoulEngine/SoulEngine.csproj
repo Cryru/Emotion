@@ -128,11 +128,13 @@
     <Compile Include="Engine\Internal\AsyncScript.cs" />
     <Compile Include="Engine\Meta.cs" />
     <Compile Include="Engine\GameObject.cs" />
+    <Compile Include="Engine\Modules\TimerManager.cs" />
     <Compile Include="Engine\Modules\AssetLoader.cs" />
     <Compile Include="Engine\Modules\PhysicsModule.cs" />
     <Compile Include="Engine\Modules\Input.cs" />
     <Compile Include="Engine\Modules\SceneManager.cs" />
     <Compile Include="Engine\Modules\ScriptEngine.cs" />
+    <Compile Include="Engine\Objects\Text.cs" />
     <Compile Include="Engine\Objects\Texture.cs" />
     <Compile Include="Engine\Objects\BasicShape.cs" />
     <Compile Include="Engine\Objects\PhysicsBody.cs" />
@@ -142,6 +144,7 @@
     <Compile Include="Engine\Functions.cs" />
     <Compile Include="Engine\Modules\Debugger.cs" />
     <Compile Include="Engine\Settings.cs" />
+    <Compile Include="Engine\Timer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

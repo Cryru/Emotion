@@ -17,7 +17,7 @@ namespace Soul.Engine.Objects
         #region Properties
 
         /// <summary>
-        /// The shape's color.
+        /// The texture's color.
         /// </summary>
         public Color Color
         {

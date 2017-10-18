@@ -121,6 +121,7 @@ namespace Soul.Engine
             Debugger.Update(); // Debugging then so we have it up early.
             PhysicsModule.Update(); // Physics module is next as it's a user module.
             AssetLoader.Setup(); // The asset loader needs to be ready for the scene manager.
+            TimerManager.Setup(); // The timer module needs to be ready to be used by the scene manager.
             SceneManager.Update(); // SceneManager is last because it's the primary user module and somewhat depends on Physics.
 
             // Send debugging boot messages.
@@ -202,6 +203,7 @@ namespace Soul.Engine
                 // Run game related modules.
                 ScriptEngine.Update(); // Scripting first to update any script data.
                 PhysicsModule.Update(); // Physics to update bodies.
+                TimerManager.Update(); // Update all timers.
 
                 // Start drawing.
                 NativeContext.StartDraw();

@@ -22,8 +22,8 @@ namespace Soul.Examples.ESScript
     {
         private static string mapsPath;
         private static List<ScriptNode> Nodes = new List<ScriptNode>();
-        private static Text ToolTip;
-        private static Text fpsMeter;
+        private static Raya.Graphics.Text ToolTip;
+        private static Raya.Graphics.Text fpsMeter;
         private static int selectedNode = -1;
         private static bool moveMode = false;
 

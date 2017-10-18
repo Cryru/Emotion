@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Examples.Basic.ShapeTest</StartupObject>
+    <StartupObject>Examples.Basic.TextTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -100,10 +100,14 @@
   <ItemGroup>
     <Compile Include="Basic\PhysicsTest.cs" />
     <Compile Include="Basic\ShapeTest.cs" />
+    <Compile Include="Basic\TextTest.cs" />
     <Compile Include="Basic\TextureTest.cs" />
     <Compile Include="ESScript\ElectricSleepViewer.cs" />
     <None Include=".nobuild">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\testFont.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ESScript\ESScriptTree.cs" />
     <Compile Include="ESScript\NodeLink.cs" />
