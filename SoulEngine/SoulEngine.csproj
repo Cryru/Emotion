@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets" Condition="'$(Configuration)'!='Release' AND Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,11 +9,12 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Soul</RootNamespace>
     <AssemblyName>SoulEngine</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -81,6 +83,9 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BreathLib">
+      <HintPath>Libraries\Render\BreathLib.dll</HintPath>
+    </Reference>
     <Reference Include="Esprima, Version=1.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
       <HintPath>..\packages\Esprima.1.0.0-beta-001\lib\net45\Esprima.dll</HintPath>
     </Reference>
@@ -90,9 +95,8 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Raya, Version=1.3.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Libraries\Raya\Raya.dll</HintPath>
+    <Reference Include="OpenTK">
+      <HintPath>Libraries\Render\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="SoulLib, Version=9.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -102,86 +106,39 @@
       <HintPath>Libraries\SoulPhysics.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Diagnostics.Contracts" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime" />
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.0.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-    </Reference>
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\Core.cs" />
-    <Compile Include="Engine\ECS\Actor.cs" />
-    <Compile Include="Engine\Enums\DebugMessageSource.cs" />
-    <Compile Include="Engine\Enums\LoopType.cs" />
-    <Compile Include="Engine\Enums\ShapeType.cs" />
-    <Compile Include="Engine\Internal\AsyncScript.cs" />
+    <Compile Include="Engine\ECS\ComponentBase.cs" />
+    <Compile Include="Engine\ECS\Components\RenderData.cs" />
+    <Compile Include="Engine\ECS\Components\Transform.cs" />
+    <Compile Include="Engine\ECS\Entity.cs" />
+    <Compile Include="Engine\ECS\Systems\RenderSystem.cs" />
+    <Compile Include="Engine\Enums\ErrorOrigin.cs" />
+    <Compile Include="Engine\Enums\DebugMessageType.cs" />
+    <Compile Include="Engine\Modules\Debugging.cs" />
     <Compile Include="Engine\Meta.cs" />
-    <Compile Include="Engine\GameObject.cs" />
-    <Compile Include="Engine\Modules\TimerManager.cs" />
-    <Compile Include="Engine\Modules\AssetLoader.cs" />
-    <Compile Include="Engine\Modules\PhysicsModule.cs" />
-    <Compile Include="Engine\Modules\Input.cs" />
+    <Compile Include="Engine\Modules\ErrorHandling.cs" />
     <Compile Include="Engine\Modules\SceneManager.cs" />
-    <Compile Include="Engine\Modules\ScriptEngine.cs" />
-    <Compile Include="Engine\Objects\Text.cs" />
-    <Compile Include="Engine\Objects\Texture.cs" />
-    <Compile Include="Engine\Objects\BasicShape.cs" />
-    <Compile Include="Engine\Objects\PhysicsBody.cs" />
-    <Compile Include="Engine\Scene.cs" />
-    <Compile Include="Engine\SceneLoadArgs.cs" />
-    <Compile Include="Engine\Internal\Error.cs" />
-    <Compile Include="Engine\Functions.cs" />
-    <Compile Include="Engine\Modules\Debugger.cs" />
+    <Compile Include="Engine\Modules\Scripting.cs" />
+    <Compile Include="Engine\Scenography\Scene.cs" />
+    <Compile Include="Engine\Scenography\SceneLoadArgs.cs" />
     <Compile Include="Engine\Settings.cs" />
-    <Compile Include="Engine\Timer.cs" />
+    <Compile Include="Engine\ECS\SystemBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="ILMerge.props" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="lib\x64\csfml-audio-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x64\csfml-graphics-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x64\csfml-system-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x64\csfml-window-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x64\openal32.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x86\csfml-audio-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x86\csfml-graphics-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x86\csfml-system-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x86\csfml-window-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\x86\openal32.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Content Include="ILMergeOrder.txt" />
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>
   <ItemGroup />
@@ -194,4 +151,13 @@
     <PreBuildEvent>
     </PreBuildEvent>
   </PropertyGroup>
+  <Import Project="..\packages\NETStandard.Library.2.0.1\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.1\build\netstandard2.0\NETStandard.Library.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.1\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.1\build\netstandard2.0\NETStandard.Library.targets'))" />
+    <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props'))" />
+    <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets'))" />
+  </Target>
 </Project>

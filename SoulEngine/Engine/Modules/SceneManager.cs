@@ -2,11 +2,12 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Soul.Engine.Enums;
-using Soul.Engine.Internal;
+using Soul.Engine.Scenography;
 
 #endregion
 
@@ -14,84 +15,96 @@ namespace Soul.Engine.Modules
 {
     public static class SceneManager
     {
-        #region Declarations
-
-        /// <summary>
-        /// The scene currently running.
-        /// </summary>
-        public static Scene CurrentScene;
-
-        /// <summary>
-        /// A list of loaded scenes for hot swapping.
-        /// </summary>
-        private static Dictionary<string, Scene> _loadedScenes;
-
-        /// <summary>
-        /// The queue of scenes to load.
-        /// </summary>
-        private static List<SceneLoadArgs> _scenesToLoad;
+        #region Public
 
         /// <summary>
         /// Whether a scene is being loaded.
         /// </summary>
-        public static bool SceneLoading
+        public static bool isSceneLoading
         {
-            get { return _scenesToLoad.Count > 0; }
+            get { return ScenesToLoad.Count > 0; }
         }
 
         #endregion
 
+        #region Internals
+
+        /// <summary>
+        /// The scene currently running.
+        /// </summary>
+        internal static Scene CurrentScene;
+
+        /// <summary>
+        /// A list of loaded scenes for hot swapping.
+        /// </summary>
+        internal static Dictionary<string, Scene> LoadedScenes;
+
+        /// <summary>
+        /// The queue of scenes to load.
+        /// </summary>
+        internal static List<SceneLoadArgs> ScenesToLoad;
+
+        /// <summary>
+        /// The loading scene.
+        /// </summary>
+        internal static Scene LoadingScene;
+
+        #endregion
+
+        #region Module API
+
         /// <summary>
         /// Setup the module.
         /// </summary>
-        static SceneManager()
+        internal static void Setup()
         {
-            // Check if already loaded.
-            if (_scenesToLoad != null) return;
-
             // Initialize lists.
-            _scenesToLoad = new List<SceneLoadArgs>();
-            _loadedScenes = new Dictionary<string, Scene>();
+            ScenesToLoad = new List<SceneLoadArgs>();
+            LoadedScenes = new Dictionary<string, Scene>();
 
-            // Load the loading scene, without swapping to it.
-            if(Core.LoadingScene != null) LoadScene("__loading__", Core.LoadingScene);
+            // If a loading scene is set - initialize it and load it.
+            if (Settings.LoadingScene != null)
+            {
+                LoadingScene = (Scene) Activator.CreateInstance(Settings.LoadingScene);
+                LoadScene("__loading__", LoadingScene);
+            }
         }
 
         /// <summary>
         /// Updates the loaded scene, and any scene loading code.
         /// </summary>
-        public static void Update()
+        internal static void Update()
         {
             // Check if any scene to load.
-            if (_scenesToLoad.Count > 0)
-                for (int i = 0; i < _scenesToLoad.Count; i++)
+            if (ScenesToLoad.Count > 0)
+                for (int i = 0; i < ScenesToLoad.Count; i++)
                 {
                     // Check if loaded.
-                    if (_scenesToLoad[i] != null && _scenesToLoad[i].Loaded)
+                    if (ScenesToLoad[i] != null && ScenesToLoad[i].Loaded)
                     {
                         // Move the scene to the loaded scenes.
-                        _loadedScenes.Add(_scenesToLoad[i].Name, _scenesToLoad[i].Scene);
+                        LoadedScenes.Add(ScenesToLoad[i].Name, ScenesToLoad[i].Scene);
 
                         // Check if we want to immediately swap to the new scene.
-                        if (_scenesToLoad[i].SwapTo)
-                            SwapScene(_scenesToLoad[i].Name);
+                        if (ScenesToLoad[i].SwapTo)
+                            SwapScene(ScenesToLoad[i].Name);
 
                         // Remove the scene from the list of to load, as its already loaded.
-                        _scenesToLoad[i] = null;
+                        ScenesToLoad[i] = null;
                     }
                     else
                     {
                         // Check if the scene has already been queued, to prevent thread spam.
-                        SceneLoadArgs sceneLoadArgs = _scenesToLoad[i];
+                        SceneLoadArgs sceneLoadArgs = ScenesToLoad[i];
                         if (sceneLoadArgs != null && !sceneLoadArgs.Queued)
                         {
                             // Set queued flag.
-                            SceneLoadArgs loadArgs = _scenesToLoad[i];
+                            SceneLoadArgs loadArgs = ScenesToLoad[i];
                             if (loadArgs != null) loadArgs.Queued = true;
 
                             // If not loaded create a new load thread and start loading.
                             Thread loadThread = new Thread(SceneLoadThread);
-                            loadThread.Start(_scenesToLoad[i]);
+                            loadThread.Start(ScenesToLoad[i]);
                             // Wait for thread to activate.
                             while (!loadThread.IsAlive)
                             {
@@ -101,11 +114,20 @@ namespace Soul.Engine.Modules
                 }
 
             // Trim nulls.
-            _scenesToLoad.RemoveAll(x => x == null);
+            ScenesToLoad.RemoveAll(x => x == null);
 
-            // Update the scene if it's loaded and not null, else update the loading screen.
-            if (CurrentScene != null && !SceneLoading) CurrentScene.UpdateActor();
-            else if (_loadedScenes.ContainsKey("__loading__")) _loadedScenes["__loading__"].UpdateActor();
+            // Update the scene if it's not null and loaded, else update the loading screen.
+            if (CurrentScene != null && !isSceneLoading) CurrentScene.Run();
+            else if (LoadedScenes.ContainsKey("__loading__")) LoadedScenes["__loading__"].Run();
+        }
+
+        #endregion
+
+        internal static void Draw()
+        {
+            // Draw the scene if it's not null, and loaded else draw the loading screen.
+            if (CurrentScene != null && !isSceneLoading) CurrentScene.Draw();
+            else if (LoadedScenes.ContainsKey("__loading__")) LoadedScenes["__loading__"].Draw();
         }
 
         #region Functions
@@ -119,22 +141,24 @@ namespace Soul.Engine.Modules
         public static void LoadScene(string sceneName, Scene scene, bool swapTo = false)
         {
             // Check if that scene has already been loaded.
-            if (_loadedScenes.ContainsKey(sceneName))
+            if (LoadedScenes.ContainsKey(sceneName))
             {
-                Error.Raise(180, "A scene with that name has already been loaded.");
+                ErrorHandling.Raise(ErrorOrigin.SceneManager, "A scene with that name has already been loaded.");
                 return;
             }
 
             // Add a scene to load in the next loop.
-            _scenesToLoad.Add(new SceneLoadArgs
+            ScenesToLoad.Add(new SceneLoadArgs
             {
                 Scene = scene,
                 Name = sceneName,
                 SwapTo = swapTo
             });
 
-            // Send scene queue message.
-            Debugger.DebugMessage(DebugMessageSource.SceneManager, "Queued scene " + sceneName);
+#if DEBUG
+            // Send scene queue message to the debugger.
+            Debugging.DebugMessage(DebugMessageType.Info, "Queued scene " + sceneName);
+#endif
         }
 
 
@@ -145,30 +169,29 @@ namespace Soul.Engine.Modules
         public static void SwapScene(string sceneName)
         {
             // Check if the requested scene is a loaded scene.
-            if (!_loadedScenes.ContainsKey(sceneName))
+            if (!LoadedScenes.ContainsKey(sceneName))
             {
-                Error.Raise(183, "Cannot swap to a scene that isn't loaded.");
+                ErrorHandling.Raise(ErrorOrigin.SceneManager, "Cannot swap to a scene that isn't loaded.");
                 return;
             }
 
             // Select the scene.
-            Scene selectedScene = _loadedScenes[sceneName];
+            Scene selectedScene = LoadedScenes[sceneName];
 
             // Check if scene is current.
             if (CurrentScene != null && CurrentScene.Equals(selectedScene))
             {
-                Error.Raise(182, "Cannot swap to the currently loaded scene.");
+                ErrorHandling.Raise(ErrorOrigin.SceneManager, "Cannot swap to the currently loaded scene.");
                 return;
             }
 
             // Swap.
             CurrentScene = selectedScene;
 
-            // Log the scene swap.
-            Debugger.DebugMessage(DebugMessageSource.SceneManager, "Swapped scene to " + sceneName);
-
-            // Expose the scene to the script engine.
-            ScriptEngine.Expose("scene", CurrentScene);
+#if DEBUG
+            // Send scene queue message to the debugger.
+            Debugging.DebugMessage(DebugMessageType.Info, "Swapped scene to " + sceneName);
+#endif
         }
 
         /// <summary>
@@ -180,12 +203,13 @@ namespace Soul.Engine.Modules
             // Check if scene is current.
             if (CurrentScene.Equals(scene))
             {
-                Error.Raise(181, "Cannot unload the currently loaded scene. Swap it first.");
+                ErrorHandling.Raise(ErrorOrigin.SceneManager,
+                    "Cannot unload the currently loaded scene. Swap away from it first.");
                 return;
             }
 
             // Remove the scene from the list of scenes.
-            _loadedScenes.Remove(_loadedScenes.First(x => x.Value.Equals(scene)).Key);
+            LoadedScenes.Remove(LoadedScenes.First(x => x.Value.Equals(scene)).Key);
         }
 
         /// <summary>
@@ -194,7 +218,7 @@ namespace Soul.Engine.Modules
         /// <param name="sceneName">The name of the loaded scene to unload.</param>
         public static void UnloadScene(string sceneName)
         {
-            UnloadScene(_loadedScenes[sceneName]);
+            UnloadScene(LoadedScenes[sceneName]);
         }
 
         /// <summary>
@@ -206,13 +230,15 @@ namespace Soul.Engine.Modules
             SceneLoadArgs temp = (SceneLoadArgs) args;
 
             // Initiate inner setup.
-            temp.Scene.Initialize();
+            temp.Scene.InternalSetup();
 
             // Set the loaded flag to true.
             temp.Loaded = true;
 
-            // Log the scene being loaded.
-            Debugger.DebugMessage(DebugMessageSource.SceneManager, "Loaded scene " + temp.Name);
+#if DEBUG
+            // Send scene queue message to the debugger.
+            Debugging.DebugMessage(DebugMessageType.Info, "Loaded scene " + temp.Name);
+#endif
         }
 
         #endregion

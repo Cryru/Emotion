@@ -2,15 +2,17 @@
 
 #region Using
 
-using Raya.Enums;
-using Raya.Primitives;
 
 #endregion
+
+using System;
+using OpenTK;
+using Breath.Enums;
 
 namespace Soul.Engine
 {
     /// <summary>
-    /// Raya context global variables. Used for settings and others.
+    /// Engine settings. Most are applied only on Core setup.
     /// </summary>
     public static class Settings
     {
@@ -65,7 +67,7 @@ namespace Soul.Engine
         private static string _wtitle = "SoulEngine 2018";
 
         /// <summary>
-        /// What mode the window should start in.
+        /// What mode the window should be in.
         /// </summary>
         public static WindowMode WindowMode
         {
@@ -78,43 +80,35 @@ namespace Soul.Engine
             }
         }
 
-        private static WindowMode _windowMode = WindowMode.Window;
+        private static WindowMode _windowMode = WindowMode.Windowed;
 
         #endregion
 
-        #region Drawing Settings
+        #region First Run Settings
 
         /// <summary>
-        /// The width of the render area.
+        /// The width of the render area. Must be set before setup.
         /// </summary>
-        public static int Width
-        {
-            get { return _width; }
-            set
-            {
-                _width = value;
-
-                ApplySettings();
-            }
-        }
-
-        private static int _width = 960;
+        public static int Width = 960;
 
         /// <summary>
         /// The height of the render area.
         /// </summary>
-        public static int Height
-        {
-            get { return _height; }
-            set
-            {
-                _height = value;
+        public static int Height = 540;
 
-                ApplySettings();
-            }
-        }
+        /// <summary>
+        /// The FPS target. Must be set before setup.
+        /// </summary>
+        public static int FPS = 60;
 
-        private static int _height = 540;
+        /// <summary>
+        /// The TPS target. Must be set before setup.
+        /// </summary>
+        public static int TPS = 60;
+
+        #endregion
+
+        #region Drawing Settings
 
         /// <summary>
         /// Whether vertical synchronization is enabled.
@@ -131,22 +125,6 @@ namespace Soul.Engine
         }
 
         private static bool _vSync = true;
-
-        /// <summary>
-        /// The FPS cap.
-        /// </summary>
-        public static int FPSCap
-        {
-            get { return _fpsCap; }
-            set
-            {
-                _fpsCap = value;
-
-                ApplySettings();
-            }
-        }
-
-        private static int _fpsCap = 60;
 
         /// <summary>
         /// Whether to render the mouse.
@@ -225,23 +203,62 @@ namespace Soul.Engine
         /// </summary>
         public static bool PauseOnFocusLoss = false;
 
+        /// <summary>
+        /// The time to wait before ending a script.
+        /// </summary>
+        public static TimeSpan ScriptTimeout = new TimeSpan(0, 0, 1);
+
+        /// <summary>
+        /// The scene to use as a loading screen.
+        /// </summary>
+        public static Type LoadingScene = null;
+
         #endregion
 
-        public static void ApplySettings()
+        /// <summary>
+        /// Settings to apply before the window is created.
+        /// </summary>
+        internal static void ApplyPreSettings()
         {
-            // Check if a native context has been established.
-            if (Core.NativeContext == null || Core.NativeContext.Window == null) return;
-
-            Core.NativeContext.Window.Size = new Vector2(Width, Height);
-            Core.NativeContext.Window.RenderSize = new Vector2(WWidth, WHeight);
-            Core.NativeContext.Window.Title = WTitle;
-            Core.NativeContext.Window.Mode = WindowMode;
-            Core.NativeContext.Window.VSync = VSync;
-            Core.NativeContext.Window.FPSLimit = FPSCap;
-            Core.NativeContext.Window.RenderMouse = RenderMouse;
-            Core.NativeContext.Window.KeepMouseInside = ConstrainMouse;
-            Core.NativeContext.Window.KeyRepeat = KeyRepeat;
-            Core.NativeContext.Window.JoystickThreshold = JoystickThreshold;
+            Breath.Systems.Window.RenderSize = new Vector2(Width, Height);
         }
+
+        /// <summary>
+        /// Applies settings for when the context is first run.
+        /// </summary>
+        internal static void ApplyFirstRunSettings()
+        {
+            Core.BreathWin.TargetRenderFrequency = FPS;
+            Core.BreathWin.TargetUpdateFrequency = TPS;
+        }
+
+        /// <summary>
+        /// Apply runtime settings.
+        /// </summary>
+        internal static void ApplySettings()
+        {
+            if (Core.BreathWin == null) return;
+
+            Core.BreathWin.Width = WWidth;
+            Core.BreathWin.Height = WHeight;
+            Core.BreathWin.VSync = VSync ? VSyncMode.On : VSyncMode.Off;
+            Core.BreathWin.CursorVisible = RenderMouse;
+            Core.BreathWin.Title = WTitle;
+
+            Core.BreathWin.ChangeWindowMode(WindowMode);
+        }
+
+#if DEBUG
+
+        #region Debug Settings
+
+        /// <summary>
+        /// Whether debugging aggressively.
+        /// </summary>
+        internal static bool AggressiveDebug = true;
+
+        #endregion
+
+#endif
     }
 }

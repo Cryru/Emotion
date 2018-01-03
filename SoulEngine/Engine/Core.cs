@@ -3,13 +3,10 @@
 #region Using
 
 using System;
-using System.Reflection;
-using System.Threading;
-using Raya.Graphics;
-using Raya.System;
-using Soul.Engine.Enums;
-using Soul.Engine.Internal;
+using Breath.Systems;
+using OpenTK;
 using Soul.Engine.Modules;
+using Soul.Engine.Scenography;
 
 #endregion
 
@@ -17,233 +14,111 @@ namespace Soul.Engine
 {
     public static class Core
     {
-        #region Properties
+        #region Declarations
 
         /// <summary>
-        /// Whether the game is paused.
+        /// Whether the engine is running.
+        /// </summary>
+        public static bool Running { get; private set; }
+
+        /// <summary>
+        /// Whether the engine is paused. This is different from the game being paused. In this state nothing is rendered.
         /// </summary>
         public static bool Paused;
 
+        /// <summary>
+        /// The Breath window.
+        /// </summary>
+        internal static Window BreathWin;
+
         #endregion
 
-        #region Information
-
-        /// <summary>
-        /// The time between frames. Used for accurate time keeping.
-        /// </summary>
-        public static int FrameTime
+        public static void Setup(Scene startingScene)
         {
-            get { return _frameTime; }
+            // Set running to true.
+            Running = true;
+
+            // Load the error handling module first.
+            ErrorHandling.Setup();
+
+            // Load the scripting engine.
+            Scripting.Setup();
+#if DEBUG
+            // Load the debugging module.
+            Debugging.Setup();
+#endif
+
+            // Setup the scene manager and load the starting scene.
+            SceneManager.Setup();
+            SceneManager.LoadScene("start", startingScene, true);
+
+            // Start the main loop.
+            StartLoop();
         }
 
-        #endregion
-
-        #region Internals
+        #region Loops
 
         /// <summary>
-        /// Internal frame time variable.
+        /// Starts the main loop.
         /// </summary>
-        private static int _frameTime;
-
-        /// <summary>
-        /// Whether the engine has been started.
-        /// </summary>
-        private static bool Started
+        internal static void StartLoop()
         {
-            get { return NativeContext != null; }
-        }
+            // Apply pre-settings.
+            Settings.ApplyPreSettings();
 
-        /// <summary>
-        /// The scene to display when loading another.
-        /// </summary>
-        internal static Scene LoadingScene;
+            // Create a Breath window.
+            BreathWin = new Window(() => { }, Update, Draw);
 
-        #endregion
+            // Apply first run settings.
+            Settings.ApplyFirstRunSettings();
+            BreathWin.WindowBorder = WindowBorder.Fixed;
 
-        #region Raya API
-
-        /// <summary>
-        /// The Raya context.
-        /// </summary>
-        public static Context NativeContext;
-
-        #endregion
-
-        /// <summary>
-        /// Start the game engine.
-        /// </summary>
-        /// <param name="startScene">The first scene to load.</param>
-        /// <param name="sceneName">The name of the scene.</param>
-        /// <param name="loadingScene">A loading scene to load.</param>
-        /// <param name="metaHash">The hash of the meta assets file, if running in secure mode.</param>
-        /// <param name="assetEncryption">The asset encryption key, if running in secure mode.</param>
-        public static void Start(Scene startScene, string sceneName = "startScene", Scene loadingScene = null, string metaHash = "", string assetEncryption = "")
-        {
-            // Assign the loading scene.
-            LoadingScene = loadingScene;
-
-            // Create a Raya context.
-            NativeContext = new Context();
-
-            // Start boot timer.
-            Clock bootTime = new Clock();
-
-            // Setup logger.
-            Logger.Enabled = true;
-            Logger.LogLimit = 2;
-            Logger.Stamp = "==========\n" + "SoulEngine 2018 Log" + "\n==========";
-
-            // Connect to the SoulLib error manager.
-            ErrorManager.ErrorCallback += (error) => { Error.Raise(999, error, Severity.Critical); };
-
-            // Create the window.
-            NativeContext.CreateWindow();
-
-            // Check for a window icon.
-            try
-            {
-                byte[] iconData = AssetLoader.LoadFile("Icon.png", false);
-                if (iconData != null)
-                {
-                    Image icon = new Image(iconData);
-                    NativeContext.Window.SetIcon((uint) icon.Size.X, (uint) icon.Size.Y, icon.Pixels);
-                    icon.Dispose();
-                }
-            }
-            catch (Exception)
-            {
-                Error.Raise(5, "Failed to set window icon.");
-            }
-
-            // Initiate modules.
-            Input.Update(); // Input first.
-            ScriptEngine.Update(); // Scripting afterward as debugging depends on it.
-            Debugger.Update(); // Debugging then so we have it up early.
-            PhysicsModule.Update(); // Physics module is next as it's a user module.
-            AssetLoader.Setup(); // The asset loader needs to be ready for the scene manager.
-            TimerManager.Setup(); // The timer module needs to be ready to be used by the scene manager.
-            SceneManager.Update(); // SceneManager is last because it's the primary user module and somewhat depends on Physics.
-
-            // Send debugging boot messages.
-            Debugger.DebugMessage(DebugMessageSource.Boot,
-                "SoulEngine 2018 " + Assembly.GetExecutingAssembly().GetName().Version);
-            Debugger.DebugMessage(DebugMessageSource.Boot, "Using: ");
-            Debugger.DebugMessage(DebugMessageSource.Boot, " |- Raya " + Raya.Meta.Version);
-            Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulLib " + Soul.Meta.Version);
-            Debugger.DebugMessage(DebugMessageSource.Boot, " |- SoulPhysics " + Physics.Meta.Version);
-
-            // Apply settings.
+            // Apply runtime settings.
             Settings.ApplySettings();
 
-            // Hook logger to the closing events.
-            NativeContext.Closed += (sender, args) => Logger.ForceDump();
-            NativeContext.LostFocus += (sender, args) =>
-            {
-                if (Settings.PauseOnFocusLoss) Paused = true;
-            };
-            NativeContext.GainedFocus += (sender, args) =>
-            {
-                if (Settings.PauseOnFocusLoss) Paused = false;
-            };
+            // Hook up events.
+            BreathWin.FocusedChanged += (e, args) => { Paused = !BreathWin.Focused; };
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, args) => Logger.ForceDump();
-            AppDomain.CurrentDomain.ProcessExit += (sender, args) => Logger.ForceDump();
-
-            // Check if running in secure mode.
-            if (metaHash != "" && assetEncryption != "")
-            {
-                // Lock the asset loader in that case.
-                AssetLoader.Lock(metaHash, assetEncryption);
-            }
-
-            // Boot ready.
-            Debugger.DebugMessage(DebugMessageSource.Boot,
-                "Boot took " + bootTime.ElapsedTime.AsMilliseconds() + " ms");
-            bootTime.Dispose();
-
-            // Load the starting scene, if any.
-            if (startScene != null) SceneManager.LoadScene(sceneName, startScene, true);
-
-            // Define the timing clock.
-            Clock timingClock = new Clock();
-
-            // Start main loop.
-            while (NativeContext.Running)
-            {
-                // Get the time since the last frame time timer restart, which is the time it took for the last frame to render.
-                _frameTime = timingClock.ElapsedTime.AsMilliseconds();
-
-                // Check if the timer is 0, this usually happens when the game is paused.
-                if (_frameTime == 0 && Settings.FPSCap > 0)
-                {
-                    // In this case we correct it to the cap.
-                    _frameTime = 1000 / Settings.FPSCap;
-                }
-
-                // Restart the frame time timer, this is done first and outside of the pause loop to ensure timing is consistent always.
-                timingClock.Restart();
-
-                // Update modules.
-                Input.Update(); // Input first, as we want accurate input data for the frame, including the debugger.
-                Debugger.Update(); // Debugging second as the console can cause focus loss, and we want it to run as a priority. 
-
-                // Run Raya events, this is outside of the pause as it covers window events.
-                NativeContext.Tick();
-
-                // If the game is paused don't run any game related modules and processes.
-                if (Paused || (Debugger.ManualMode && !Debugger.AdvanceFrame))
-                {
-                    // To prevent deadlock when debugging and such.
-                    if (_frameTime > 100) _frameTime = 16;
-
-                    Thread.Sleep(_frameTime);
-                    continue;
-                }
-
-                // Run game related modules.
-                ScriptEngine.Update(); // Scripting first to update any script data.
-                PhysicsModule.Update(); // Physics to update bodies.
-                TimerManager.Update(); // Update all timers.
-
-                // Start drawing.
-                NativeContext.StartDraw();
-
-                // Update the screen manager.
-                SceneManager.Update(); // The scene manager is last inside a draw cycle as data should already be updated and is up for being drawn.
-
-                // Finish drawing frame.
-                NativeContext.EndDraw();
-            }
+            // Start the loop.
+            BreathWin.Start();
         }
 
-        #region Drawing
-
-        /// <summary>
-        /// Draws a drawable Raya object on the current render target.
-        /// </summary>
-        /// <param name="drawable">The object to draw.</param>
-        public static void Draw(Drawable drawable)
+        private static void Update()
         {
-            Draw(drawable, Transform.Identity);
+#if DEBUG
+            // Update the debugger.
+            Debugging.Update();
+#endif
+            // Check if paused.
+            if (Paused) return;
+
+            // Update the scene manager. This updates the scene loading, all loaded systems and components, and by proxy runs all the game logic.
+            SceneManager.Update();
         }
 
-        /// <summary>
-        /// Draws a drawable Raya object on the current render target, with the draw call modified by a transform.
-        /// </summary>
-        /// <param name="drawable">The object to draw.</param>
-        /// <param name="transform">The transform to warp it through</param>
-        public static void Draw(Drawable drawable, Transform transform)
+        private static void Draw()
         {
-            if (NativeContext == null)
-            {
-                Error.Raise(0, "SoulEngine's Core hasn't been started.", Severity.Critical);
-                return;
-            }
+            // Check if paused.
+            if (Paused) return;
 
-            RenderStates states = RenderStates.Default;
-            states.Transform = transform;
+            // Draw the current scene. This propagates to the draw hook inside the scene.
+            SceneManager.Draw();
+        }
 
-            NativeContext.Draw(drawable, states);
+        #endregion
+
+        #region Functions
+
+        /// <summary>
+        /// Stops engine execution.
+        /// </summary>
+        public static void Stop(bool error = false)
+        {
+            Running = false;
+            BreathWin.Close();
+            BreathWin.Exit();
+            BreathWin.Dispose();
+            Environment.Exit(error ? 1 : 0);
         }
 
         #endregion
