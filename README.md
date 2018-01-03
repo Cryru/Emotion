@@ -4,7 +4,7 @@
 
 ## What is it?
 
-SoulEngine is a 2D game engine based on the idea of code writing, flexibiliy, and DIY, as opposed to the UI based, high level, tool approach big engines have, while still providing some of those features. Despite this, the point is not to complicate development, but rather make it easier and simpler while allowing the developer to maintain control and avoid reinventing the wheel. The true end goal of this project is to shorten the time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
+todo
 
 ## Updates
 
@@ -16,41 +16,36 @@ While I try to update the engine as often as possible, that is not always possib
 
 ## This Year's Idea
 
-SoulEngine 2017 set the grounds for the engine structure, even having some game demos released with it. This year XNA/Monogame will be replaced with a custom framework - [Raya](https://github.com/Cryru/Raya), and there will be a new actor system with a more general abstract approach, in addition to new debugging, error handling, and scripting systems. 
-
-The goals for this year include better documentation, better functionality, demos for different functionality, and more attention to detail.
-
-Future updates to Raya will be applied to the engine, including a planned cross-platform rewrite.
+todo
 
 ## Features and Progress
 
-- Resolution Adaptation with Boxing [&#10003;]
-- Camera System [&#10003;]
-- FPS Independent Timing [&#10003;]
-- Logging [&#10003;]
+- Resolution Adaptation with Boxing [&#10003;] (Breath)
+- Borderless, Fullscreen, and Windowed Mode Switching
+- Camera System
+- FPS Independent Timing [&#10003;] (OpenTK)
+- Logging [&#10003;] (SoulLib)
 - Debugging Console [&#10003;]
-  - Help Menu [In Development]
-  - Customizable Sources [&#10003;]
+  - Help Menu
+  - Customizable Sources
 - Error Handling System [&#10003;]
-- Asynchronous Javascript Scripting [&#10003;]
-- Actor System [&#10003;]
-  - Priority System [&#10003;]
+- Asynchronous Javascript Scripting [&#10003;] (Jint)
+- Entity-Component-System Pattern [&#10003;]
 - Scene System [&#10003;]
-- Drawing Primitive Shapes and Custom Polygons [&#10003;] - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
-  - Texturing shapes [&#10003;]
-- Simple Input System [&#10003;]
-- Physics Engine [&#10003;] - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
+- Drawing Primitive Shapes and Custom Polygons [&#10003;] (Breath) - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
+  - Texturing shapes [&#10003;] (Breath)
+- Simple Input System
+- Physics Engine - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
 - Asset Packing, and Protection [&#10003;]
-- Texture Rendering and Animation [&#10003;] - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
+- Texture Rendering and Animation - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
   - Supported: PNG, JPEG, BMP
   - Unsupported: ICO
-- Window Icon [&#10003;]
-  - Note: To use include an Icon.png in your assets package.
-- Advanced Text Rendering With Markup [In Development]
+- Window Icon 
+- Advanced Text Rendering With Markup
 
 ## Libraries Used:
 
-[Raya](https://github.com/Cryru/Raya) - Drawing and graphics, input, sound, and window management.
+[Breath](https://github.com/Cryru/Breath) - Drawing and graphics, input, sound, and window management.
 
 [SoulLib](https://github.com/Cryru/SoulLib) - IO, Encryption, Hashing, Compression, Extensions, ManagedFile and more...
 
@@ -60,7 +55,7 @@ Future updates to Raya will be applied to the engine, including a planned cross-
 
 SoulEngine AssetPacker - Built-in tool to help with building your project assets.
 
-[Polygon-Tool](https://github.com/Cryru/Polygon-Tool) - Tool to help you create custom polygon vertices.
+[Polygon-Tool](https://github.com/Cryru/Polygon-Tool) - Tool for creating polygon vertices.
 
 ## External Projects
 
