@@ -48,26 +48,17 @@ namespace Soul.Engine
             Debugging.Setup();
 #endif
 
-            // Setup the scene manager and load the starting scene.
-            SceneManager.Setup();
-            SceneManager.LoadScene("start", startingScene, true);
-
-            // Start the main loop.
-            StartLoop();
-        }
-
-        #region Loops
-
-        /// <summary>
-        /// Starts the main loop.
-        /// </summary>
-        internal static void StartLoop()
-        {
             // Apply pre-settings.
             Settings.ApplyPreSettings();
 
             // Create a Breath window.
-            BreathWin = new Window(() => { }, Update, Draw);
+            BreathWin = new Window(() =>
+            {
+
+                // Setup the scene manager and load the starting scene.
+                SceneManager.Setup();
+                SceneManager.LoadScene("start", startingScene, true);
+            }, Update, Draw);
 
             // Apply first run settings.
             Settings.ApplyFirstRunSettings();
@@ -83,6 +74,8 @@ namespace Soul.Engine
             BreathWin.Start();
         }
 
+        #region Loops
+
         private static void Update()
         {
 #if DEBUG
@@ -92,15 +85,17 @@ namespace Soul.Engine
             // Check if paused.
             if (Paused) return;
 
+            // Update the scripting engine.
+            Scripting.Update();
+
             // Update the scene manager. This updates the scene loading, all loaded systems and components, and by proxy runs all the game logic.
             SceneManager.Update();
+
+            Window.Current.Title = "SE2018 DEMO " + (1000 / BreathWin.FrameTime);
         }
 
         private static void Draw()
         {
-            // Check if paused.
-            if (Paused) return;
-
             // Draw the current scene. This propagates to the draw hook inside the scene.
             SceneManager.Draw();
         }

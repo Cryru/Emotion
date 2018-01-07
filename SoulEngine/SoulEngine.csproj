@@ -115,10 +115,11 @@
   <ItemGroup>
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\ComponentBase.cs" />
-    <Compile Include="Engine\ECS\Components\RenderData.cs" />
+    <Compile Include="Engine\Graphics\Components\RenderData_Templates.cs" />
+    <Compile Include="Engine\Graphics\Components\RenderData.cs" />
     <Compile Include="Engine\ECS\Components\Transform.cs" />
     <Compile Include="Engine\ECS\Entity.cs" />
-    <Compile Include="Engine\ECS\Systems\RenderSystem.cs" />
+    <Compile Include="Engine\Graphics\Systems\RenderSystem.cs" />
     <Compile Include="Engine\Enums\ErrorOrigin.cs" />
     <Compile Include="Engine\Enums\DebugMessageType.cs" />
     <Compile Include="Engine\Modules\Debugging.cs" />
@@ -141,7 +142,9 @@
     <Content Include="ILMergeOrder.txt" />
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Engine\ECS\Systems\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

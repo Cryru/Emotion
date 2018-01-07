@@ -46,12 +46,3 @@ namespace Soul.Engine.Modules
         }
     }
 }
-
-/*
- * Error List:
- * ErrorOrigin.SceneManager, "A scene with that name has already been loaded."
- * ErrorOrigin.SceneManager, "Cannot swap to a scene that isn't loaded."
- * ErrorOrigin.SceneManager, "Cannot swap to the currently loaded scene."
- * ErrorOrigin.SceneManager, "Cannot unload the currently loaded scene. Swap away from it first."
- * ErrorOrigin.SceneLogic, "Tried to update an entity which isn't attached."
- */

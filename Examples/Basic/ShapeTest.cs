@@ -6,10 +6,13 @@ using System;
 using Breath.Graphics;
 using OpenTK;
 using Soul.Engine;
+using Soul.Engine.ECS;
+using Soul.Engine.ECS.Components;
 using Soul.Engine.Enums;
+using Soul.Engine.Graphics.Components;
 using Soul.Engine.Modules;
-using Soul.Engine.Objects;
-using Functions = Soul.Engine.Functions;
+using Soul.Engine.Scenography;
+using Soul.Physics.Collision.Shapes;
 
 #endregion
 
@@ -20,112 +23,241 @@ namespace Examples.Basic
         public static void Main(string[] args)
         {
             // Start the engine.
-            Core.Start(new ShapeTest(), "shapeTest");
+            Core.Setup(new ShapeTest());
         }
 
-        public override void Initialize()
+        protected override void Setup()
         {
-            // Shapes.
+            Vector2[] customPoly =
+            {
+                new Vector2(9, -9),
+                new Vector2(15, 7),
+                new Vector2(2, 16),
+                new Vector2(-6, 19),
+                new Vector2(-19, 5),
+                new Vector2(-20, -4),
+                new Vector2(-11, -14),
+                new Vector2(-4, -15),
+                new Vector2(4, -15)
+            };
 
-            GameObject circle = new GameObject();
-            circle.AddChild("circle", new BasicShape());
-            circle.GetChild<BasicShape>("circle").Type = ShapeType.Circle;
-            circle.Position = new Vector2(50, 50);
-            circle.Size = new Vector2(50, 50);
+            // Normal shapes
 
-            AddChild("circle", circle);
+            Entity circle = new Entity("circle");
+            circle.AttachComponent<Transform>();
+            circle.GetComponent<Transform>().Position = new Vector2(50, 50);
+            circle.GetComponent<Transform>().Size = new Vector2(50, 50);
+            circle.AttachComponent<RenderData>();
+            circle.GetComponent<RenderData>().ApplyTemplate_Circle();
 
-            //GameObject line = new GameObject();
-            //line.AddChild("line", new BasicShape());
-            //line.GetChild<BasicShape>("line").Type = ShapeType.Line;
-            //line.Position = new Vector2(150, 50);
-            //line.Size = new Vector2(200, 50);
+            AddEntity(circle);
 
-            //AddChild("line", line);
+            Entity line = new Entity("line");
+            line.AttachComponent<Transform>();
+            line.GetComponent<Transform>().Position = new Vector2(0, 0);
+            line.GetComponent<Transform>().Size = new Vector2(1, 1);
+            line.AttachComponent<RenderData>();
+            line.GetComponent<RenderData>().SetPointCount(2);
+            line.GetComponent<RenderData>().SetPoint(0, new Vector2(150, 50));
+            line.GetComponent<RenderData>().SetPoint(1, new Vector2(200, 50));
 
-            //GameObject rect = new GameObject();
-            //rect.AddChild("rect", new BasicShape());
-            //rect.GetChild<BasicShape>("rect").Type = ShapeType.Rectangle;
-            //rect.Position = new Vector2(250, 50);
-            //rect.Size = new Vector2(50, 50);
+            AddEntity(line);
 
-            //AddChild("rect", rect);
+            Entity rect = new Entity("rect");
+            rect.AttachComponent<Transform>();
+            rect.GetComponent<Transform>().Position = new Vector2(250, 50);
+            rect.GetComponent<Transform>().Size = new Vector2(50, 50);
+            rect.AttachComponent<RenderData>();
+            rect.GetComponent<RenderData>().ApplyTemplate_Rectangle();
 
-            //GameObject tri = new GameObject();
-            //tri.AddChild("tri", new BasicShape());
-            //tri.GetChild<BasicShape>("tri").Type = ShapeType.Triangle;
-            //tri.Position = new Vector2(350, 50);
-            //tri.Size = new Vector2(50, 50);
+            AddEntity(rect);
 
-            //AddChild("tri", tri);
+            Entity tri = new Entity("tri");
+            tri.AttachComponent<Transform>();
+            tri.GetComponent<Transform>().Position = new Vector2(350, 50);
+            tri.GetComponent<Transform>().Size = new Vector2(50, 50);
+            tri.AttachComponent<RenderData>();
+            tri.GetComponent<RenderData>().ApplyTemplate_Triangle();
 
-            //GameObject poly = new GameObject();
-            //poly.AddChild("poly", new BasicShape());
-            //poly.GetChild<BasicShape>("poly").Type = ShapeType.Polygon;
-            //Vector2[] vert =
-            //{
-            //    new Vector2(9, -9), new Vector2(15, 7), new Vector2(2, 16), new Vector2(-6, 19), new Vector2(-19, 5),
-            //    new Vector2(-20, -4), new Vector2(-11, -14), new Vector2(-4, -15), new Vector2(4, -15)
-            //};
-            //poly.GetChild<BasicShape>().PolygonVertices = vert;
-            //poly.Position = new Vector2(450, 50);
+            AddEntity(tri);
 
-            //AddChild("poly", poly);
+            Entity poly = new Entity("poly");
+            poly.AttachComponent<Transform>();
+            poly.GetComponent<Transform>().Position = new Vector2(450, 50);
+            poly.GetComponent<Transform>().Size = new Vector2(1, 1);
+            poly.AttachComponent<RenderData>();
+            poly.GetComponent<RenderData>().SetVertices(customPoly);
+
+            AddEntity(poly);
+
+            // Spinning shapes.
+
+            Entity spinCircle = new Entity("spinCircle");
+            spinCircle.AttachComponent<Transform>();
+            spinCircle.GetComponent<Transform>().Position = new Vector2(50, 150);
+            spinCircle.GetComponent<Transform>().Size = new Vector2(50, 50);
+            spinCircle.AttachComponent<RenderData>();
+            spinCircle.GetComponent<RenderData>().ApplyTemplate_Circle();
+
+            AddEntity(spinCircle);
+
+            Entity spinLine = new Entity("spinLine");
+            spinLine.AttachComponent<Transform>();
+            spinLine.GetComponent<Transform>().Position = new Vector2(0, 0);
+            spinLine.GetComponent<Transform>().Size = new Vector2(1, 1);
+            spinLine.AttachComponent<RenderData>();
+            spinLine.GetComponent<RenderData>().SetPointCount(2);
+            spinLine.GetComponent<RenderData>().SetPoint(0, new Vector2(150, 150));
+            spinLine.GetComponent<RenderData>().SetPoint(1, new Vector2(200, 150));
+
+            AddEntity(spinLine);
+
+            Entity spinRect = new Entity("spinRect");
+            spinRect.AttachComponent<Transform>();
+            spinRect.GetComponent<Transform>().Position = new Vector2(250, 150);
+            spinRect.GetComponent<Transform>().Size = new Vector2(50, 50);
+            spinRect.AttachComponent<RenderData>();
+            spinRect.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+
+            AddEntity(spinRect);
+
+            Entity spinTri = new Entity("spinTri");
+            spinTri.AttachComponent<Transform>();
+            spinTri.GetComponent<Transform>().Position = new Vector2(350, 150);
+            spinTri.GetComponent<Transform>().Size = new Vector2(50, 50);
+            spinTri.AttachComponent<RenderData>();
+            spinTri.GetComponent<RenderData>().ApplyTemplate_Triangle();
+
+            AddEntity(spinTri);
+
+            Entity spinPoly = new Entity("spinPoly");
+            spinPoly.AttachComponent<Transform>();
+            spinPoly.GetComponent<Transform>().Position = new Vector2(450, 150);
+            spinPoly.GetComponent<Transform>().Size = new Vector2(1, 1);
+            spinPoly.AttachComponent<RenderData>();
+            spinPoly.GetComponent<RenderData>().SetVertices(customPoly);
+
+            AddEntity(spinPoly);
+
+            // Spin the spinning objects with a script.
+            Scripting.Expose("spinCircle", spinCircle.GetComponent<Transform>());
+            Scripting.Expose("spinLine", spinLine.GetComponent<Transform>());
+            Scripting.Expose("spinRect", spinRect.GetComponent<Transform>());
+            Scripting.Expose("spinTri", spinTri.GetComponent<Transform>());
+            Scripting.Expose("spinPoly", spinPoly.GetComponent<Transform>());
+            Scripting.Register("" +
+                                   " spinCircle.Rotation += 3; " +
+                                   " spinLine.Rotation += 3; " +
+                                   " spinRect.Rotation += 3; " +
+                                   " spinTri.Rotation += 3; " +
+                                   " spinPoly.Rotation += 3; " +
+                                   "");
+
+            // Colored shapes.
+
+            Entity colorCircle = new Entity("colorCircle");
+            colorCircle.AttachComponent<Transform>();
+            colorCircle.GetComponent<Transform>().Position = new Vector2(50, 250);
+            colorCircle.GetComponent<Transform>().Size = new Vector2(50, 50);
+            colorCircle.AttachComponent<RenderData>();
+            colorCircle.GetComponent<RenderData>().ApplyTemplate_Circle();
+            colorCircle.GetComponent<RenderData>().Color =
+                new Color(
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                );
+
+            AddEntity(colorCircle);
+
+            Entity colorLine = new Entity("colorLine");
+            colorLine.AttachComponent<Transform>();
+            colorLine.GetComponent<Transform>().Position = new Vector2(0, 0);
+            colorLine.GetComponent<Transform>().Size = new Vector2(1, 1);
+            colorLine.AttachComponent<RenderData>();
+            colorLine.GetComponent<RenderData>().SetPointCount(2);
+            colorLine.GetComponent<RenderData>().SetPoint(0, new Vector2(150, 250));
+            colorLine.GetComponent<RenderData>().SetPoint(1, new Vector2(200, 250));
+            colorLine.GetComponent<RenderData>().Color =
+                new Color(
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                );
+
+            AddEntity(colorLine);
+
+            Entity colorRect = new Entity("colorRect");
+            colorRect.AttachComponent<Transform>();
+            colorRect.GetComponent<Transform>().Position = new Vector2(250, 250);
+            colorRect.GetComponent<Transform>().Size = new Vector2(50, 50);
+            colorRect.AttachComponent<RenderData>();
+            colorRect.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            colorRect.GetComponent<RenderData>().Color =
+                new Color(
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                );
+
+            AddEntity(colorRect);
+
+            Entity colorTri = new Entity("colorTri");
+            colorTri.AttachComponent<Transform>();
+            colorTri.GetComponent<Transform>().Position = new Vector2(350, 250);
+            colorTri.GetComponent<Transform>().Size = new Vector2(50, 50);
+            colorTri.AttachComponent<RenderData>();
+            colorTri.GetComponent<RenderData>().ApplyTemplate_Triangle();
+            colorTri.GetComponent<RenderData>().Color =
+                new Color(
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255),
+                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                );
+
+            AddEntity(colorTri);
+
+            Entity colorPoly = new Entity("colorPoly");
+            colorPoly.AttachComponent<Transform>();
+            colorPoly.GetComponent<Transform>().Position = new Vector2(450, 250);
+            colorPoly.GetComponent<Transform>().Size = new Vector2(1, 1);
+            colorPoly.AttachComponent<RenderData>();
+            colorPoly.GetComponent<RenderData>().SetVertices(customPoly);
+            colorPoly.GetComponent<RenderData>().Color =
+                    new Color(
+                        Soul.Utilities.GenerateRandomNumber(0, 255),
+                        Soul.Utilities.GenerateRandomNumber(0, 255),
+                        Soul.Utilities.GenerateRandomNumber(0, 255)
+                        );
+
+            AddEntity(colorPoly);
+
+            // Color the objects with a script.
+            Scripting.Expose("colorCircle", colorCircle.GetComponent<RenderData>());
+            Scripting.Expose("colorLine", colorLine.GetComponent<RenderData>());
+            Scripting.Expose("colorRect", colorRect.GetComponent<RenderData>());
+            Scripting.Expose("colorTri", colorTri.GetComponent<RenderData>());
+            Scripting.Expose("colorPoly", colorPoly.GetComponent<RenderData>());
+            Func<Color> genFunc = () => new Color(
+                Soul.Utilities.GenerateRandomNumber(0, 255),
+                Soul.Utilities.GenerateRandomNumber(0, 255),
+                Soul.Utilities.GenerateRandomNumber(0, 255)
+            );
+            Scripting.Expose("genColor", genFunc);
+            Scripting.Register("" +
+                               "if(new Date().getMilliseconds() % 16 == 0) {" +
+                               "  colorCircle.Color = genColor(); " +
+                               "  colorLine.Color = genColor(); " +
+                               "  colorRect.Color = genColor(); " +
+                               "  colorTri.Color = genColor(); " +
+                               "  colorPoly.Color = genColor(); " +
+                               "}" +
+                               "");
 
             //// Spinning shapes.
 
-            //GameObject spinCircle = new GameObject();
-            //spinCircle.Position = new Vector2(50, 150);
-            //spinCircle.Size = new Vector2(50, 50);
-            //spinCircle.AddChild("spinCircle", new BasicShape(ShapeType.Circle));
-
-            //AddChild("spinCircle", spinCircle);
-
-            //GameObject spinLine = new GameObject();
-            //spinLine.Position = new Vector2(150, 150);
-            //spinLine.Size = new Vector2(200, 150);
-            //spinLine.AddChild("spinLine", new BasicShape(ShapeType.Line));
-
-            //AddChild("spinLine", spinLine);
-
-            //GameObject spinRect = new GameObject();
-            //spinRect.Position = new Vector2(250, 150);
-            //spinRect.Size = new Vector2(50, 50);
-            //spinRect.AddChild("spinRect", new BasicShape(ShapeType.Rectangle));
-
-            //AddChild("spinRect", spinRect);
-
-            //GameObject spinTri = new GameObject();
-            //spinTri.Position = new Vector2(350, 150);
-            //spinTri.Size = new Vector2(50, 50);
-            //spinTri.AddChild("spinTri", new BasicShape(ShapeType.Triangle));
-
-            //AddChild("spinTri", spinTri);
-
-            //GameObject spinPoly = new GameObject();
-            //spinPoly.Position = new Vector2(450, 150);
-            //spinPoly.AddChild("spinPoly", new BasicShape(ShapeType.Polygon, vert));
-
-            //AddChild("spinPoly", spinPoly);
-
-            //// Spin the spinning objects with a script.
-            //ScriptEngine.Expose("spinCircle", spinCircle);
-            //ScriptEngine.Expose("spinLine", spinLine);
-            //ScriptEngine.Expose("spinRect", spinRect);
-            //ScriptEngine.Expose("spinTri", spinTri);
-            //ScriptEngine.Expose("spinPoly", spinPoly);
-            //ScriptEngine.RunScript("register(function() {" +
-            //                       " spinCircle.Rotation += 0.1; " +
-            //                       " spinLine.Rotation += 0.1; " +
-            //                       " spinRect.Rotation += 0.1; " +
-            //                       " spinTri.Rotation += 0.1; " +
-            //                       " spinPoly.Rotation += 0.1; " +
-            //                       "});");
-
-            //// Color changing shapes
-
-            //GameObject colorCircle = new GameObject();
-            //colorCircle.AddChild("colorCircle", new BasicShape());
+            //Entity colorCircle = new Entity();
+            //colorCircle.AddComponent("colorCircle", new BasicShape());
             //colorCircle.GetChild<BasicShape>("colorCircle").Type = ShapeType.Circle;
             //colorCircle.GetChild<BasicShape>("colorCircle").Color =
             //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
@@ -133,10 +265,10 @@ namespace Examples.Basic
             //colorCircle.Position = new Vector2(50, 350);
             //colorCircle.Size = new Vector2(50, 50);
 
-            //AddChild("colorCircle", colorCircle);
+            //AddComponent("colorCircle", colorCircle);
 
-            //GameObject colorLine = new GameObject();
-            //colorLine.AddChild("colorLine", new BasicShape());
+            //Entity colorLine = new Entity();
+            //colorLine.AddComponent("colorLine", new BasicShape());
             //colorLine.GetChild<BasicShape>("colorLine").Type = ShapeType.Line;
             //colorLine.GetChild<BasicShape>("colorLine").Color =
             //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
@@ -144,10 +276,10 @@ namespace Examples.Basic
             //colorLine.Position = new Vector2(150, 350);
             //colorLine.Size = new Vector2(200, 350);
 
-            //AddChild("colorLine", colorLine);
+            //AddComponent("colorLine", colorLine);
 
-            //GameObject colorRect = new GameObject();
-            //colorRect.AddChild("colorRect", new BasicShape());
+            //Entity colorRect = new Entity();
+            //colorRect.AddComponent("colorRect", new BasicShape());
             //colorRect.GetChild<BasicShape>("colorRect").Type = ShapeType.Rectangle;
             //colorRect.GetChild<BasicShape>("colorRect").Color =
             //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
@@ -155,10 +287,10 @@ namespace Examples.Basic
             //colorRect.Position = new Vector2(250, 350);
             //colorRect.Size = new Vector2(50, 50);
 
-            //AddChild("colorRect", colorRect);
+            //AddComponent("colorRect", colorRect);
 
-            //GameObject colorTri = new GameObject();
-            //colorTri.AddChild("colorTri", new BasicShape());
+            //Entity colorTri = new Entity();
+            //colorTri.AddComponent("colorTri", new BasicShape());
             //colorTri.GetChild<BasicShape>("colorTri").Type = ShapeType.Triangle;
             //colorTri.GetChild<BasicShape>("colorTri").Color =
             //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
@@ -166,10 +298,10 @@ namespace Examples.Basic
             //colorTri.Position = new Vector2(350, 350);
             //colorTri.Size = new Vector2(50, 50);
 
-            //AddChild("colorTri", colorTri);
+            //AddComponent("colorTri", colorTri);
 
-            //GameObject colorPoly = new GameObject();
-            //colorPoly.AddChild("colorPoly", new BasicShape());
+            //Entity colorPoly = new Entity();
+            //colorPoly.AddComponent("colorPoly", new BasicShape());
             //colorPoly.GetChild<BasicShape>("colorPoly").Type = ShapeType.Polygon;
             //colorPoly.GetChild<BasicShape>("colorPoly").Color =
             //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
@@ -177,55 +309,55 @@ namespace Examples.Basic
             //colorPoly.GetChild<BasicShape>().PolygonVertices = vert;
             //colorPoly.Position = new Vector2(450, 350);
 
-            //AddChild("colorPoly", colorPoly);
+            //AddComponent("colorPoly", colorPoly);
 
             //// Textured Shapes.
 
-            //GameObject texturedCircle = new GameObject();
-            //texturedCircle.AddChild("circle", new BasicShape());
+            //Entity texturedCircle = new Entity();
+            //texturedCircle.AddComponent("circle", new BasicShape());
             //texturedCircle.GetChild<BasicShape>("circle").Type = ShapeType.Circle;
-            //texturedCircle.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            //texturedCircle.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
             //texturedCircle.Position = new Vector2(50, 450);
             //texturedCircle.Size = new Vector2(50, 50);
 
-            //AddChild("texturedCircle", texturedCircle);
+            //AddComponent("texturedCircle", texturedCircle);
 
-            //GameObject texturedLine = new GameObject();
-            //texturedLine.AddChild("line", new BasicShape());
+            //Entity texturedLine = new Entity();
+            //texturedLine.AddComponent("line", new BasicShape());
             //texturedLine.GetChild<BasicShape>("line").Type = ShapeType.Line;
-            //texturedLine.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            //texturedLine.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
             //texturedLine.Position = new Vector2(150, 450);
             //texturedLine.Size = new Vector2(200, 450);
 
-            //AddChild("texturedLine", texturedLine);
+            //AddComponent("texturedLine", texturedLine);
 
-            //GameObject texturedRect = new GameObject();
-            //texturedRect.AddChild("rect", new BasicShape());
+            //Entity texturedRect = new Entity();
+            //texturedRect.AddComponent("rect", new BasicShape());
             //texturedRect.GetChild<BasicShape>("rect").Type = ShapeType.Rectangle;
-            //texturedRect.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            //texturedRect.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
             //texturedRect.Position = new Vector2(250, 450);
             //texturedRect.Size = new Vector2(50, 50);
 
-            //AddChild("texturedRect", texturedRect);
+            //AddComponent("texturedRect", texturedRect);
 
-            //GameObject texturedTriangle = new GameObject();
-            //texturedTriangle.AddChild("tri", new BasicShape());
+            //Entity texturedTriangle = new Entity();
+            //texturedTriangle.AddComponent("tri", new BasicShape());
             //texturedTriangle.GetChild<BasicShape>("tri").Type = ShapeType.Triangle;
-            //texturedTriangle.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            //texturedTriangle.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
             //texturedTriangle.Position = new Vector2(350, 450);
             //texturedTriangle.Size = new Vector2(50, 50);
 
-            //AddChild("texturedTriangle", texturedTriangle);
+            //AddComponent("texturedTriangle", texturedTriangle);
 
-            //GameObject texturedPoly = new GameObject();
-            //texturedPoly.AddChild("poly", new BasicShape());
+            //Entity texturedPoly = new Entity();
+            //texturedPoly.AddComponent("poly", new BasicShape());
             //texturedPoly.GetChild<BasicShape>("poly").Type = ShapeType.Polygon;
             //texturedPoly.GetChild<BasicShape>().PolygonVertices = vert;
-            //texturedPoly.GetChild<BasicShape>().AddChild("texture", new Texture("imageTest.png"));
+            //texturedPoly.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
             //texturedPoly.GetChild<BasicShape>().GetChild<Texture>().Animate(new Vector2(50, 50), 200);
             //texturedPoly.Position = new Vector2(450, 450);
 
-            //AddChild("texturedPoly", texturedPoly);
+            //AddComponent("texturedPoly", texturedPoly);
 
             //// Change the shape colors with a script.
             //ScriptEngine.Expose("colorCircle", colorCircle);
@@ -233,7 +365,7 @@ namespace Examples.Basic
             //ScriptEngine.Expose("colorRect", colorRect);
             //ScriptEngine.Expose("colorTri", colorTri);
             //ScriptEngine.Expose("colorPoly", colorPoly);
-            //ScriptEngine.Expose("ChangeColor", (Action<GameObject>) ChangeColor);
+            //ScriptEngine.Expose("ChangeColor", (Action<Entity>) ChangeColor);
             //ScriptEngine.RunScript("register(function() {" +
             //                       " ChangeColor(colorCircle); " +
             //                       " ChangeColor(colorLine); " +
@@ -243,19 +375,10 @@ namespace Examples.Basic
             //                       "});");
         }
 
-        public override void Update()
+        private void ChangeColor(Entity obj)
         {
-        }
-
-        public override void Draw()
-        {
-
-        }
-
-        private void ChangeColor(GameObject obj)
-        {
-            obj.GetChild<BasicShape>().Color = new Color(obj.GetChild<BasicShape>().Color.R + 1,
-                obj.GetChild<BasicShape>().Color.G + 1, obj.GetChild<BasicShape>().Color.B + 1);
+            obj.GetComponent<RenderData>().Color = new Color(obj.GetComponent<RenderData>().Color.R + 1,
+                obj.GetComponent<RenderData>().Color.G + 1, obj.GetComponent<RenderData>().Color.B + 1);
         }
     }
 }

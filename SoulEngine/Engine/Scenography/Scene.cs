@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Soul.Engine.ECS;
-using Soul.Engine.ECS.Systems;
 using Soul.Engine.Enums;
+using Soul.Engine.Graphics;
+using Soul.Engine.Graphics.Systems;
 using Soul.Engine.Modules;
 
 #endregion
@@ -98,7 +99,12 @@ namespace Soul.Engine.Scenography
         public void AddEntity(Entity entity)
         {
 #if DEBUG
-            Debugging.DebugMessage(DebugMessageType.InfoGreen, "Registered entity [" + entity.Name + "]");
+            if (RegisteredEntities.ContainsValue(entity))
+            {
+                Debugging.DebugMessage(DebugMessageType.Error, "Duplicate entity registration!");
+            }
+
+            Debugging.DebugMessage(DebugMessageType.InfoGreen, "Registered entity (" + RegisteredEntities.Count + ") [" + entity.Name + "]");
 #endif
             // Set parent.
             entity.SceneParent = this;
@@ -130,7 +136,7 @@ namespace Soul.Engine.Scenography
         {
 #if DEBUG
             Debugging.DebugMessage(DebugMessageType.InfoBlue,
-                "Running system [" + system + "] under id " + RunningSystems.Count);
+                "Registered system (" + RunningSystems.Count + ") [" + system + "]");
 #endif
 
             // Set the system's parent to this scene.
@@ -158,7 +164,7 @@ namespace Soul.Engine.Scenography
         public void RemoveSystem(SystemBase system)
         {
 #if DEBUG
-            Debugging.DebugMessage(DebugMessageType.InfoBlue, "Stopped running system [" + system + "]");
+            Debugging.DebugMessage(DebugMessageType.InfoBlue, "Removed system [" + system + "]");
 #endif
 
             RunningSystems.Remove(system);

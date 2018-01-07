@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using Soul.Engine.Enums;
 
 #endregion
@@ -12,12 +13,17 @@ namespace Soul.Engine.Modules
     /// <summary>
     /// The scripting engine host.
     /// </summary>
-    internal static class Scripting
+    public static class Scripting
     {
         /// <summary>
         /// The Jint-Javascript engine.
         /// </summary>
         internal static Jint.Engine Interpreter;
+
+        /// <summary>
+        /// A list of registered actions.
+        /// </summary>
+        private static List<string> _registeredActions;
 
         #region Module API
 
@@ -37,6 +43,21 @@ namespace Soul.Engine.Modules
                 opts.AllowDebuggerStatement();
 #endif
             });
+
+            _registeredActions = new List<string>();
+
+            // Expose the systemic script functions.
+            Expose("register", (Func<string, int>) Register);
+            Expose("unregister", (Action<int>) Unregister);
+        }
+
+        internal static void Update()
+        {
+            // Run all registered actions.
+            foreach (string script in _registeredActions)
+            {
+                Interpreter.Execute(script);
+            }
         }
 
         #endregion
@@ -89,6 +110,42 @@ namespace Soul.Engine.Modules
                 ErrorHandling.Raise(ErrorOrigin.Scripting, e.Message);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Registers a function to be executed every frame.
+        /// </summary>
+        /// <param name="function">The script to register.</param>
+        /// <returns>The index for the function.</returns>
+        public static int Register(string function)
+        {
+            // Check if the function has already been added.
+            if (_registeredActions.IndexOf(function) != -1) return -1;
+
+            // Get the future index.
+            int futureIndex = _registeredActions.Count;
+
+#if DEBUG
+            Debugging.DebugMessage(DebugMessageType.InfoGreen, "Registered script (" + futureIndex + ") {" + function.Replace("\n", "").Replace(" ", "") + "}");
+#endif
+
+            // Add the function to the list.
+            _registeredActions.Add(function);
+
+            // Return the index.
+            return futureIndex;
+        }
+
+        /// <summary>
+        /// Unregisters a function to no longer be executed every frame.
+        /// </summary>
+        /// <param name="index">The index of the function to unregister.</param>
+        private static void Unregister(int index)
+        {
+            if (index < 0) return;
+            if (index > _registeredActions.Count - 1) return;
+
+            _registeredActions[index] = null;
         }
 
         #endregion

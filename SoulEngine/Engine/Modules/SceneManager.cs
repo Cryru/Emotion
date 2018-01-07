@@ -79,38 +79,18 @@ namespace Soul.Engine.Modules
             if (ScenesToLoad.Count > 0)
                 for (int i = 0; i < ScenesToLoad.Count; i++)
                 {
-                    // Check if loaded.
-                    if (ScenesToLoad[i] != null && ScenesToLoad[i].Loaded)
-                    {
-                        // Move the scene to the loaded scenes.
-                        LoadedScenes.Add(ScenesToLoad[i].Name, ScenesToLoad[i].Scene);
+                    // Load the scene.
+                    ScenesToLoad[i].Scene.InternalSetup();
 
-                        // Check if we want to immediately swap to the new scene.
-                        if (ScenesToLoad[i].SwapTo)
-                            SwapScene(ScenesToLoad[i].Name);
+                    // Move the scene to the loaded scenes.
+                    LoadedScenes.Add(ScenesToLoad[i].Name, ScenesToLoad[i].Scene);
 
-                        // Remove the scene from the list of to load, as its already loaded.
-                        ScenesToLoad[i] = null;
-                    }
-                    else
-                    {
-                        // Check if the scene has already been queued, to prevent thread spam.
-                        SceneLoadArgs sceneLoadArgs = ScenesToLoad[i];
-                        if (sceneLoadArgs != null && !sceneLoadArgs.Queued)
-                        {
-                            // Set queued flag.
-                            SceneLoadArgs loadArgs = ScenesToLoad[i];
-                            if (loadArgs != null) loadArgs.Queued = true;
+                    // Check if we want to immediately swap to the new scene.
+                    if (ScenesToLoad[i].SwapTo)
+                        SwapScene(ScenesToLoad[i].Name);
 
-                            // If not loaded create a new load thread and start loading.
-                            Thread loadThread = new Thread(SceneLoadThread);
-                            loadThread.Start(ScenesToLoad[i]);
-                            // Wait for thread to activate.
-                            while (!loadThread.IsAlive)
-                            {
-                            }
-                        }
-                    }
+                    // Remove the scene from the list of to load, as its already loaded.
+                    ScenesToLoad[i] = null;
                 }
 
             // Trim nulls.
@@ -157,7 +137,7 @@ namespace Soul.Engine.Modules
 
 #if DEBUG
             // Send scene queue message to the debugger.
-            Debugging.DebugMessage(DebugMessageType.Info, "Queued scene " + sceneName);
+            Debugging.DebugMessage(DebugMessageType.Info, "Queued scene [" + sceneName + "]");
 #endif
         }
 
@@ -190,7 +170,7 @@ namespace Soul.Engine.Modules
 
 #if DEBUG
             // Send scene queue message to the debugger.
-            Debugging.DebugMessage(DebugMessageType.Info, "Swapped scene to " + sceneName);
+            Debugging.DebugMessage(DebugMessageType.Info, "Swapped scene to [" + sceneName + "]");
 #endif
         }
 
@@ -219,26 +199,6 @@ namespace Soul.Engine.Modules
         public static void UnloadScene(string sceneName)
         {
             UnloadScene(LoadedScenes[sceneName]);
-        }
-
-        /// <summary>
-        /// The thread which loads the next scene.
-        /// </summary>
-        /// <param name="args">The scene loading arguments.</param>
-        private static void SceneLoadThread(object args)
-        {
-            SceneLoadArgs temp = (SceneLoadArgs) args;
-
-            // Initiate inner setup.
-            temp.Scene.InternalSetup();
-
-            // Set the loaded flag to true.
-            temp.Loaded = true;
-
-#if DEBUG
-            // Send scene queue message to the debugger.
-            Debugging.DebugMessage(DebugMessageType.Info, "Loaded scene " + temp.Name);
-#endif
         }
 
         #endregion

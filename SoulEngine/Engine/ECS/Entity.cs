@@ -2,8 +2,8 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
-using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
 
 #if DEBUG
@@ -45,8 +45,11 @@ namespace Soul.Engine.ECS
 
         #region Component Control
 
-        public void AttachComponent(ComponentBase component)
+        public void AttachComponent<T>()
         {
+            // Instance the component.
+            ComponentBase component = (ComponentBase) Activator.CreateInstance(typeof(T));
+
             // Attach the component.
             Attached.Add(component);
 
@@ -69,6 +72,16 @@ namespace Soul.Engine.ECS
 
             // If one wasn't found return default T.
             return default(T);
+        }
+
+        /// <summary>
+        /// Returns an attached component of the specified id.
+        /// </summary>
+        /// <param name="id">The id of the component</param>
+        /// <returns>The component or null if not found.</returns>
+        public ComponentBase GetComponent(int id)
+        {
+            return id > Attached.Count ? null : Attached[id];
         }
 
         public void RemoveComponent(ComponentBase component)

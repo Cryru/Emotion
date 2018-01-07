@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
+using Soul.Engine.Graphics.Components;
 
 namespace Examples.Systems
 {
