@@ -29,7 +29,7 @@ namespace Soul.Engine.Graphics.Components
             _vertices = _rectangleVertices;
             VerticesVBO = RectangleVBO;
 
-            _hasUpdated = true;
+            HasUpdated = true;
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Soul.Engine.Graphics.Components
             _vertices = _triangleVertices;
             VerticesVBO = TriangleVBO;
 
-            _hasUpdated = true;
+            HasUpdated = true;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Soul.Engine.Graphics.Components
             _vertices = _circleVertices;
             VerticesVBO = CircleVBO;
 
-            _hasUpdated = true;
+            HasUpdated = true;
         }
 
         #endregion

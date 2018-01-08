@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
 
 namespace Soul.Engine.Enums
 {
+    /// <summary>
+    /// The origin system of an error.
+    /// </summary>
     public enum ErrorOrigin
     {
         Unknown = 0,
@@ -12,6 +12,7 @@ namespace Soul.Engine.Enums
         Scripting = 2,
         Breath = 3,
         SceneManager = 4,
-        SceneLogic = 5
+        SceneLogic = 5,
+        Physics = 6
     }
 }

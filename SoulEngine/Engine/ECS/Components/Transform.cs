@@ -21,7 +21,7 @@ namespace Soul.Engine.ECS.Components
             get { return _x; }
             set
             {
-                _hasUpdated = true;
+                HasUpdated = true;
                 _x = value;
             }
         }
@@ -36,7 +36,7 @@ namespace Soul.Engine.ECS.Components
             get { return _y; }
             set
             {
-                _hasUpdated = true;
+                HasUpdated = true;
                 _y = value;
             }
         }
@@ -51,7 +51,7 @@ namespace Soul.Engine.ECS.Components
             get { return _width; }
             set
             {
-                _hasUpdated = true;
+                HasUpdated = true;
                 _width = value;
             }
         }
@@ -66,7 +66,7 @@ namespace Soul.Engine.ECS.Components
             get { return _height; }
             set
             {
-                _hasUpdated = true;
+                HasUpdated = true;
                 _height = value;
             }
         }
@@ -74,24 +74,19 @@ namespace Soul.Engine.ECS.Components
         private float _height = 100;
 
         /// <summary>
-        /// The transform's rotation in degrees.
+        /// The transform's rotation in radians.
         /// </summary>
-        public int Rotation
+        public float Rotation
         {
             get { return _rotation; }
             set
             {
-                if (value > 360)
-                {
-                    value -= 360;
-                }
-
-                _hasUpdated = true;
+                HasUpdated = true;
                 _rotation = value;
             }
         }
 
-        private int _rotation = 0;
+        private float _rotation = 0;
 
         #endregion
 
@@ -105,9 +100,8 @@ namespace Soul.Engine.ECS.Components
             get { return new Vector2(X, Y); }
             set
             {
-                _hasUpdated = true;
-                _x = value.X;
-                _y = value.Y;
+                X = value.X;
+                Y = value.Y;
             }
         }
 
@@ -119,9 +113,8 @@ namespace Soul.Engine.ECS.Components
             get { return new Vector2(Width, Height); }
             set
             {
-                _hasUpdated = true;
-                _width = value.X;
-                _height = value.Y;
+                Width = value.X;
+                Height = value.Y;
             }
         }
 
@@ -136,13 +129,8 @@ namespace Soul.Engine.ECS.Components
             }
             set
             {
-                Rectangle temp = Bounds;
-
-                // Set the position by transforming it.
-                temp.X -= (int)value.X - Bounds.Width / 2;
-                temp.Y -= (int)value.Y - Bounds.Height / 2;
-
-                Bounds = temp;
+                X = value.X - Width / 2;
+                Y = value.Y - Height / 2;
             }
         }
 
@@ -154,10 +142,10 @@ namespace Soul.Engine.ECS.Components
             get { return new Rectangle(Position, Size); }
             set
             {
-                _x = value.X;
-                _y = value.Y;
-                _width = value.Width;
-                _height = value.Height;
+                X = value.X;
+                Y = value.Y;
+                Width = value.Width;
+                Height = value.Height;
             }
         }
 

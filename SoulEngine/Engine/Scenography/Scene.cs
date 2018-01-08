@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Soul.Engine.ECS;
+using Soul.Engine.ECS.Systems;
 using Soul.Engine.Enums;
 using Soul.Engine.Graphics;
 using Soul.Engine.Graphics.Systems;
@@ -50,6 +51,7 @@ namespace Soul.Engine.Scenography
         {
             // Load core systems.
             AddSystem(new RenderSystem());
+            AddSystem(new ComponentUpdateCleanup());
 
             // Load user setup.
             Setup();
@@ -65,6 +67,9 @@ namespace Soul.Engine.Scenography
         /// </summary>
         internal void Run()
         {
+            // Run update function.
+            Update();
+
             // Run systems.
             foreach (SystemBase sys in RunningSystems)
             {
@@ -78,6 +83,14 @@ namespace Soul.Engine.Scenography
         internal void Draw()
         {
             DrawHook?.Invoke();
+        }
+
+        /// <summary>
+        /// Is run every tick before systems.
+        /// </summary>
+        protected virtual void Update()
+        {
+            
         }
 
         #region Entity Related
@@ -147,18 +160,28 @@ namespace Soul.Engine.Scenography
 
             // If no requirements, skip.
             if (requirements != null)
+            {
                 foreach (Entity ent in RegisteredEntities.Values)
                 {
                     // Check if the entity has the required components attached.
-                    if (!requirements.Except(ent.Attached.Select(x => x.GetType())).Any())
+                    if (!requirements.Except(ent.Components.Select(x => x.GetType())).Any())
                         system.Links.Add(ent);
                 }
+            }
+            else
+            {
+                // If null, add all.
+                system.Links.AddRange(RegisteredEntities.Values);
+            }
 
             // Add the system to the running systems.
             RunningSystems.Add(system);
 
             // Run system setup code.
             system.Setup();
+
+            // Order systems by priority.
+            RunningSystems = RunningSystems.OrderBy(x => x.Priority).ToList();
         }
 
         public void RemoveSystem(SystemBase system)
@@ -190,13 +213,14 @@ namespace Soul.Engine.Scenography
             // Go through all systems.
             foreach (SystemBase system in RunningSystems)
             {
+                // If the system contains the entity, skip.
+                if (system.Links.IndexOf(entity) != -1) continue;
+
                 // Get requirements.
                 Type[] requirements = system.GetRequirements();
 
-                // If no requirements, skip.
-                if (requirements == null) continue;
-                // Check if the requirements for the system are met, and that the entity isn't already linked to this system.
-                if (!requirements.Except(entity.Attached.Select(x => x.GetType())).Any() && system.Links.IndexOf(entity) == -1)
+                // If null requirements or the requirements for the system are met - add.
+                if (requirements == null || !requirements.Except(entity.Components.Select(x => x.GetType())).Any())
                     system.Links.Add(entity);
             }
         }

@@ -61,17 +61,16 @@ namespace Soul.Engine
             }, Update, Draw);
 
             // Apply first run settings.
-            Settings.ApplyFirstRunSettings();
             BreathWin.WindowBorder = WindowBorder.Fixed;
 
             // Apply runtime settings.
-            Settings.ApplySettings();
+            //Settings.ApplySettings();
 
             // Hook up events.
             BreathWin.FocusedChanged += (e, args) => { Paused = !BreathWin.Focused; };
 
             // Start the loop.
-            BreathWin.Start();
+            BreathWin.Start((double) Settings.TPS, (double) Settings.FPS);
         }
 
         #region Loops
@@ -97,7 +96,7 @@ namespace Soul.Engine
         private static void Draw()
         {
             // Draw the current scene. This propagates to the draw hook inside the scene.
-            SceneManager.Draw();
+           SceneManager.Draw();
         }
 
         #endregion

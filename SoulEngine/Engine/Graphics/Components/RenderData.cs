@@ -22,7 +22,7 @@ namespace Soul.Engine.Graphics.Components
             get { return _color; }
             set
             {
-                _hasUpdated = true;
+                HasUpdated = true;
                 _color = value;
             }
         }
@@ -37,29 +37,12 @@ namespace Soul.Engine.Graphics.Components
             get { return _priority; }
             set
             {
-                _priorityUpdated = true;
+                HasUpdated = true;
                 _priority = value;
             }
         }
 
         private int _priority = 0;
-
-        /// <summary>
-        /// Whether the priority has updated since the last time this was called.
-        /// </summary>
-        public bool PriorityUpdated
-        {
-            get
-            {
-                // If it hasn't been updated return false.
-                if (!_priorityUpdated) return false;
-                // If it has then set the flag to false and return true.
-                _priorityUpdated = false;
-                return true;
-            }
-        }
-
-        protected bool _priorityUpdated = false;
 
         #region VBOs
 
@@ -136,7 +119,7 @@ namespace Soul.Engine.Graphics.Components
                 return;
 
             _vertices[index] = point;
-            _hasUpdated = true;
+            HasUpdated = true;
         }
 
         /// <summary>
@@ -149,7 +132,7 @@ namespace Soul.Engine.Graphics.Components
             VerticesVBO.Upload(_vertices);
             UpdateColor();
 
-            _hasUpdated = false;
+            HasUpdated = false;
         }
 
         #endregion

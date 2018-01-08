@@ -146,11 +146,11 @@ namespace Examples.Basic
             Scripting.Expose("spinTri", spinTri.GetComponent<Transform>());
             Scripting.Expose("spinPoly", spinPoly.GetComponent<Transform>());
             Scripting.Register("" +
-                                   " spinCircle.Rotation += 3; " +
-                                   " spinLine.Rotation += 3; " +
-                                   " spinRect.Rotation += 3; " +
-                                   " spinTri.Rotation += 3; " +
-                                   " spinPoly.Rotation += 3; " +
+                                   " spinCircle.Rotation += 0.1; " +
+                                   " spinLine.Rotation += 0.1; " +
+                                   " spinRect.Rotation += 0.1; " +
+                                   " spinTri.Rotation += 0.1; " +
+                                   " spinPoly.Rotation += 0.1; " +
                                    "");
 
             // Colored shapes.

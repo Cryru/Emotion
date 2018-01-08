@@ -38,12 +38,17 @@ namespace Soul.Engine.ECS
         /// <returns>The type components attached to an entity this system requires.</returns>
         protected internal abstract Type[] GetRequirements();
 
-        #region Pure Internals
+        /// <summary>
+        /// The running priority of the system. The higher the later it will be run.
+        /// </summary>
+        public int Priority = 0;
+
+        #region Internals
 
         /// <summary>
         /// Updates all links.
         /// </summary>
-        internal void Run()
+        protected internal virtual void Run()
         {
             foreach (Entity link in Links)
             {

@@ -97,7 +97,7 @@ namespace Soul.Engine
         public static int Height = 540;
 
         /// <summary>
-        /// The FPS target. Must be set before setup.
+        /// The FPS target. Must be set before setup. Leave at 0 - BUG
         /// </summary>
         public static int FPS = 60;
 
@@ -221,15 +221,6 @@ namespace Soul.Engine
         internal static void ApplyPreSettings()
         {
             Breath.Systems.Window.RenderSize = new Vector2(Width, Height);
-        }
-
-        /// <summary>
-        /// Applies settings for when the context is first run.
-        /// </summary>
-        internal static void ApplyFirstRunSettings()
-        {
-            Core.BreathWin.TargetRenderFrequency = FPS;
-            Core.BreathWin.TargetUpdateFrequency = TPS;
         }
 
         /// <summary>

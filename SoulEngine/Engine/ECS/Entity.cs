@@ -29,7 +29,7 @@ namespace Soul.Engine.ECS
         /// <summary>
         /// Components attached to this entity.
         /// </summary>
-        internal List<ComponentBase> Attached = new List<ComponentBase>();
+        internal List<ComponentBase> Components = new List<ComponentBase>();
 
         /// <summary>
         /// The parental scene of the entity.
@@ -45,16 +45,29 @@ namespace Soul.Engine.ECS
 
         #region Component Control
 
+        /// <summary>
+        /// Attach a component to the entity of the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type of component to add.</typeparam>
         public void AttachComponent<T>()
         {
             // Instance the component.
             ComponentBase component = (ComponentBase) Activator.CreateInstance(typeof(T));
 
             // Attach the component.
-            Attached.Add(component);
+            Components.Add(component);
 
             // Update the entity within the listing.
             SceneParent?.UpdateEntity(this);
+        }
+
+        /// <summary>
+        /// Returns the number of components attached to the entity.
+        /// </summary>
+        /// <returns>The number of components attached to the entity.</returns>
+        public int GetComponentCount()
+        {
+            return Components.Count;
         }
 
         /// <summary>
@@ -65,7 +78,7 @@ namespace Soul.Engine.ECS
         public T GetComponent<T>()
         {
             // Loop through all components until we find one of the requested type.
-            foreach (ComponentBase comp in Attached)
+            foreach (ComponentBase comp in Components)
             {
                 if (comp is T) return (T)System.Convert.ChangeType(comp, typeof(T));
             }
@@ -81,13 +94,13 @@ namespace Soul.Engine.ECS
         /// <returns>The component or null if not found.</returns>
         public ComponentBase GetComponent(int id)
         {
-            return id > Attached.Count ? null : Attached[id];
+            return id > Components.Count ? null : Components[id];
         }
 
         public void RemoveComponent(ComponentBase component)
         {
             // Remove the component from the entity list.
-            Attached.Remove(component);
+            Components.Remove(component);
 
             // Update the entity within the listing.
             SceneParent?.UpdateEntity(this);

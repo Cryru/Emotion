@@ -26,6 +26,8 @@ namespace Soul.Engine.Graphics.Systems
 
         protected internal override void Setup()
         {
+            // Set priority to highest so it is run almost last.
+            Priority = 9;
             // Hook up to drawing call of the scene.
             Parent.DrawHook = DrawHook;
         }
@@ -38,11 +40,10 @@ namespace Soul.Engine.Graphics.Systems
 
             // Check if the render data vertices have updated.
             if (renderData.HasUpdated)
+            {
                 renderData.UpdateVertices();
-
-            // Arrange priority if changed.
-            if (renderData.PriorityUpdated)
                 Links = Links.OrderBy((x) => x.GetComponent<RenderData>().Priority).ToList();
+            }                
 
             // Update the model matrix if the transform has updated.
             if (transform.HasUpdated)
@@ -56,28 +57,10 @@ namespace Soul.Engine.Graphics.Systems
                     // If a line the center is the first point.
                     center = renderData._vertices[0];
                 }
-                else // If not calculate bounds and center.
+                else
                 {
-                    // Calculate size.
-                    Vector2 calculatedSize = new Vector2(0, 0);
-
-                    for (int i = 0; i < renderData._vertices?.Length; i++)
-                    {
-                        if (renderData._vertices[i].X * transform.Size.X > calculatedSize.X)
-                            calculatedSize.X = (int) (renderData._vertices[i].X * transform.Size.X);
-                        else if (renderData._vertices[i].X * transform.Size.X < offset.X)
-                            offset.X = renderData._vertices[i].X * transform.Size.X;
-
-                        if (renderData._vertices[i].Y * transform.Size.Y > calculatedSize.Y)
-                            calculatedSize.Y = (int) (renderData._vertices[i].Y * transform.Size.Y);
-                        else if (renderData._vertices[i].Y * transform.Size.Y < offset.Y)
-                            offset.Y = renderData._vertices[i].Y * transform.Size.Y;
-                    }
-
-                    // Reverse offset.
-                    offset *= -1;
-                    // Subtract offset.
-                    calculatedSize = calculatedSize - offset;
+                    // Calculate the bounds of the vertices.
+                    Vector2 calculatedSize = Helpers.CalculateSizeFromVertices(renderData._vertices, transform.Size, out offset);
 
                     // Calculate center.
                     center = new Vector2(transform.X + calculatedSize.X / 2, transform.Y + calculatedSize.Y / 2);
@@ -88,7 +71,7 @@ namespace Soul.Engine.Graphics.Systems
                 // Perform rotation translation for rotating around the center.
                 Matrix4 rotation = 
                     Matrix4.CreateTranslation(-(center.X - transform.X), -(center.Y - transform.Y), 0) *
-                    Matrix4.CreateRotationZ(Convert.DegreesToRadians(transform.Rotation)) *
+                    Matrix4.CreateRotationZ(transform.Rotation) *
                     Matrix4.CreateTranslation(center.X - transform.X, center.Y - transform.Y, 0);
                 // Scale it up.
                 Matrix4 scale = Matrix4.CreateScale(transform.Width, transform.Height, 1);
