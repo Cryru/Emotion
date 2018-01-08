@@ -23,9 +23,6 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Rectangle()
         {
-            // Dump old VBO.
-            VerticesVBO?.Destroy();
-
             _vertices = _rectangleVertices;
             VerticesVBO = RectangleVBO;
 
@@ -37,9 +34,6 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Triangle()
         {           
-            // Dump old VBO.
-            VerticesVBO.Destroy();
-
             _vertices = _triangleVertices;
             VerticesVBO = TriangleVBO;
 
@@ -51,9 +45,6 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Circle()
         {
-            // Dump old VBO.
-            VerticesVBO.Destroy();
-
             _vertices = _circleVertices;
             VerticesVBO = CircleVBO;
 
@@ -142,7 +133,7 @@ namespace Soul.Engine.Graphics.Components
                 if (_circleVerticesHolder == null)
                 {
                     float radius = 0.5f;
-                    int detail = 30;
+                    int detail = 20;
 
                     Array.Resize(ref _circleVerticesHolder, detail);
 

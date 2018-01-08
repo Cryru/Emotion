@@ -130,6 +130,7 @@
     <Compile Include="Engine\Modules\Debugging.cs" />
     <Compile Include="Engine\Meta.cs" />
     <Compile Include="Engine\Modules\ErrorHandling.cs" />
+    <Compile Include="Engine\Modules\Input.cs" />
     <Compile Include="Engine\Modules\SceneManager.cs" />
     <Compile Include="Engine\Modules\Scripting.cs" />
     <Compile Include="Engine\Scenography\Scene.cs" />

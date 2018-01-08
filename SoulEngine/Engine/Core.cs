@@ -41,6 +41,9 @@ namespace Soul.Engine
             // Load the error handling module first.
             ErrorHandling.Setup();
 
+            // Load the input module.
+            Input.Setup();
+
             // Load the scripting engine.
             Scripting.Setup();
 #if DEBUG
@@ -64,7 +67,7 @@ namespace Soul.Engine
             BreathWin.WindowBorder = WindowBorder.Fixed;
 
             // Apply runtime settings.
-            //Settings.ApplySettings();
+            Settings.ApplySettings();
 
             // Hook up events.
             BreathWin.FocusedChanged += (e, args) => { Paused = !BreathWin.Focused; };
@@ -84,11 +87,17 @@ namespace Soul.Engine
             // Check if paused.
             if (Paused) return;
 
+            // Update input.
+            Input.Update();
+
             // Update the scripting engine.
             Scripting.Update();
 
             // Update the scene manager. This updates the scene loading, all loaded systems and components, and by proxy runs all the game logic.
             SceneManager.Update();
+
+            // End the input update.
+            Input.UpdateEnd();
 
             Window.Current.Title = "SE2018 DEMO " + (1000 / BreathWin.FrameTime);
         }

@@ -31,7 +31,7 @@ namespace Soul.Engine.Scenography
         /// <summary>
         /// Current scene entities.
         /// </summary>
-        internal Dictionary<string, Entity> RegisteredEntities;
+        protected Dictionary<string, Entity> RegisteredEntities;
 
         /// <summary>
         /// The drawing hook for the scene.

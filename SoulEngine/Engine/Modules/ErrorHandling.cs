@@ -22,6 +22,13 @@ namespace Soul.Engine.Modules
             ErrorHandler.ErrorCallback += error => { Raise(ErrorOrigin.Breath, error); };
         }
 
+        /// <summary>
+        /// Updates the module.
+        /// </summary>
+        internal static void Update()
+        {
+        }
+
         #endregion
 
         /// <summary>
@@ -32,7 +39,7 @@ namespace Soul.Engine.Modules
         internal static void Raise(ErrorOrigin origin, string errorMessage)
         {
             string errorFormatted = "(" + origin + ") " + errorMessage;
-            
+
 #if DEBUG
             // If debugging, log the error.
             Debugging.DebugMessage(DebugMessageType.Error, errorFormatted);

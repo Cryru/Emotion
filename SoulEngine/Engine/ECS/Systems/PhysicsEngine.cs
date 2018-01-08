@@ -12,6 +12,7 @@ using Soul.Physics.Common;
 using Soul.Physics.Dynamics;
 using Soul.Physics.Factories;
 using Transform = Soul.Engine.ECS.Components.Transform;
+using Vector2 = OpenTK.Vector2;
 
 namespace Soul.Engine.ECS.Systems
 {
@@ -51,7 +52,7 @@ namespace Soul.Engine.ECS.Systems
 
         public PhysicsEngine(Vector2 gravity)
         {
-            CurrentWorld = new World(gravity);
+            CurrentWorld = new World(new Physics.Common.Vector2(gravity.X, gravity.Y));
         }
 
         protected internal override Type[] GetRequirements()
@@ -168,7 +169,7 @@ namespace Soul.Engine.ECS.Systems
 
         protected internal override void Run()
         {
-            CurrentWorld.Step(Math.Min(Window.Current.FrameTime * 1000, 16));
+            CurrentWorld.Step(0.016f);
 
             base.Run();
         }
@@ -178,7 +179,7 @@ namespace Soul.Engine.ECS.Systems
         /// <summary>
         /// Converts the physics measurements to pixel measurements.
         /// </summary>
-        public static Vector2 PhysicsToPixel(Vector2 vec)
+        public static Vector2 PhysicsToPixel(Physics.Common.Vector2 vec)
         {
             return new Vector2(vec.X, vec.Y) * Scale;
         }
@@ -202,9 +203,9 @@ namespace Soul.Engine.ECS.Systems
         /// <summary>
         /// Converts the pixel measurements to physics measurements.
         /// </summary>
-        public static Vector2 PixelToPhysics(Vector2 vec)
+        public static Physics.Common.Vector2 PixelToPhysics(Vector2 vec)
         {
-            return new Vector2(vec.X, vec.Y) * ScaleReverse;
+            return new Physics.Common.Vector2(vec.X, vec.Y) * ScaleReverse;
         }
 
         #endregion

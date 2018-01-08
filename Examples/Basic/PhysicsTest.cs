@@ -3,6 +3,7 @@
 #region Using
 
 using Breath.Graphics;
+using Examples.Systems;
 using OpenTK;
 using OpenTK.Input;
 using Soul.Engine;
@@ -29,8 +30,9 @@ namespace Examples.Basic
 
         #region Declarations
 
-        //private ShapeType _currentShape = ShapeType.Rectangle;
-        //private int _currentSize = 10;
+        private PhysicsShapeType _currentShape = PhysicsShapeType.Rectangle;
+        private int _currentSize = 10;
+        private int entityCounter = 0;
 
         #endregion
 
@@ -99,55 +101,85 @@ namespace Examples.Basic
 
             AddEntity(poly);
 
+            Entity mouseIndicator = new Entity("mouseIndicator");
+            mouseIndicator.AttachComponent<Transform>();
+            mouseIndicator.GetComponent<Transform>().Position = new Vector2(0, Settings.Height - 15);
+            mouseIndicator.GetComponent<Transform>().Size = new Vector2(Settings.Width, 15);
+            mouseIndicator.AttachComponent<RenderData>();
+            mouseIndicator.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            mouseIndicator.GetComponent<RenderData>().Color = new Color(255, 0, 0, 100);
+            mouseIndicator.GetComponent<RenderData>().Priority = 100;
+
+            AddEntity(mouseIndicator);
+
             AddSystem(new PhysicsEngine(PhysicsEngine.DefaultGravity));
-
-            //GameObject mouseIndicator = new GameObject();
-            //mouseIndicator.AddChild(new BasicShape(ShapeType.Rectangle));
-            //mouseIndicator.GetChild<BasicShape>().Color = new Color(255, 255, 255, 100);
-            //mouseIndicator.GetChild<BasicShape>().OutlineColor = new Color(255, 0, 0, 200);
-            //mouseIndicator.GetChild<BasicShape>().OutlineThickness = 2;
-            //mouseIndicator.Priority = 1;
-
-            //AddChild("mouseIndicator", mouseIndicator);
+            AddSystem(new TransformCleanup());
         }
 
         protected override void Update()
         {
-            //// Decide shape.
-            //bool add = true;
-            //if (Input.MouseButtonHeld(Mouse.Button.Left))
-            //    _currentShape = ShapeType.Rectangle;
-            //else if (Input.MouseButtonHeld(Mouse.Button.Right))
-            //    _currentShape = ShapeType.Circle;
-            //else
-            //    add = false;
+            // Decide shape based on input.
+            bool add = true;
+            PhysicsShapeType newShape = _currentShape;
 
-            //// Check if size changed.
-            //_currentSize += Input.MouseWheelScroll();
+            if (Input.MouseButtonHeld(MouseButton.Left))
+                newShape = PhysicsShapeType.Rectangle;
+            else if (Input.MouseButtonHeld(MouseButton.Right))
+                newShape = PhysicsShapeType.Circle;
+            else
+                add = false;
 
-            //// Clamp.
-            //if (_currentSize > 100) _currentSize = 100;
-            //else if (_currentSize < 10) _currentSize = 10;
+            // Check if size changed.
+            _currentSize += Input.MouseWheelScroll();
 
-            //// Update mouse indicator.
-            //GetChild<GameObject>("mouseIndicator").Center = Input.MousePosition;
-            //GetChild<GameObject>("mouseIndicator").Size = new Vector2(_currentSize, _currentSize);
-            //GetChild<GameObject>("mouseIndicator").GetChild<BasicShape>().Type = _currentShape;
+            // Clamp.
+            if (_currentSize > 100) _currentSize = 100;
+            else if (_currentSize < 10) _currentSize = 10;
 
-            //// If clicked produce shapes.
-            //if (add)
-            //{
-            //    GameObject temp = new GameObject();
-            //    temp.Position = GetChild<GameObject>("mouseIndicator").Position;
-            //    temp.Size = new Vector2(_currentSize, _currentSize);
-            //    temp.AddChild(new PhysicsBody(this, _currentShape));
-            //    temp.AddChild(new BasicShape(_currentShape));
-            //    temp.GetChild<PhysicsBody>().SimulationType = BodyType.Dynamic;
-            //    temp.GetChild<BasicShape>().OutlineColor = Color.Black;
-            //    temp.GetChild<BasicShape>().OutlineThickness = 1;
+            // Update mouse indicator.
+            GetEntity("mouseIndicator").GetComponent<Transform>().Center = Input.MouseLocation();
+            GetEntity("mouseIndicator").GetComponent<Transform>().Size = new Vector2(_currentSize, _currentSize);
 
-            //    AddChild(temp);
-            //}
+            if (newShape != _currentShape)
+            {
+                switch (newShape)
+                {
+                    case PhysicsShapeType.Rectangle:
+                        GetEntity("mouseIndicator").GetComponent<RenderData>().ApplyTemplate_Rectangle();
+                        break;
+                    case PhysicsShapeType.Circle:
+                        GetEntity("mouseIndicator").GetComponent<RenderData>().ApplyTemplate_Circle();
+                        break;
+                }
+
+                _currentShape = newShape;
+            }
+
+            // If clicked produce shapes.
+            if (!add) return;
+            Entity spawnedEntity = new Entity("spawnedEntity" + entityCounter);
+            spawnedEntity.AttachComponent<Transform>();
+            spawnedEntity.GetComponent<Transform>().Size = new Vector2(_currentSize, _currentSize);
+            spawnedEntity.GetComponent<Transform>().Center = GetEntity("mouseIndicator").GetComponent<Transform>().Center;
+            spawnedEntity.AttachComponent<RenderData>();
+            switch (_currentShape)
+            {
+                case PhysicsShapeType.Rectangle:
+                    spawnedEntity.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+                    break;
+                case PhysicsShapeType.Circle:
+                    spawnedEntity.GetComponent<RenderData>().ApplyTemplate_Circle();
+                    break;
+            }
+
+            spawnedEntity.GetComponent<RenderData>().Color = Color.White;
+            spawnedEntity.AttachComponent<PhysicsObject>();
+            spawnedEntity.GetComponent<PhysicsObject>().SimulationType = BodyType.Dynamic;
+            spawnedEntity.GetComponent<PhysicsObject>().Shape = _currentShape;
+
+            AddEntity(spawnedEntity);
+
+            entityCounter++;
         }
     }
 }

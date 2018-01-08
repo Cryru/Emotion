@@ -110,7 +110,6 @@ namespace Soul.Engine.Graphics.Systems
                 renderData.ColorVBO.DisableShaderAttribute(1);
                 //_textureVBO?.DisableShaderAttribute(2);
 
-
                 // Restore normal MVP. (Maybe this isn't needed)
                 Window.Current.SetModelMatrix(Matrix4.Identity);
             }
