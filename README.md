@@ -26,8 +26,6 @@ todo
 - FPS Independent Timing [&#10003;] (OpenTK)
 - Logging [&#10003;] (SoulLib)
 - Debugging Console [&#10003;]
-  - Help Menu
-  - Customizable Sources
 - Error Handling System [&#10003;]
 - Asynchronous Javascript Scripting [&#10003;] (Jint)
 - Entity-Component-System Pattern [&#10003;]
@@ -35,7 +33,7 @@ todo
 - Drawing Primitive Shapes and Custom Polygons [&#10003;] (Breath) - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
   - Texturing shapes [&#10003;] (Breath)
 - Simple Input System
-- Physics Engine - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
+- Physics Engine [&#10003;] - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
 - Asset Packing, and Protection [&#10003;]
 - Texture Rendering and Animation - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
   - Supported: PNG, JPEG, BMP
