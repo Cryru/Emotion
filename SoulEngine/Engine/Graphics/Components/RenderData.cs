@@ -44,10 +44,34 @@ namespace Soul.Engine.Graphics.Components
 
         private int _priority = 0;
 
+        /// <summary>
+        /// The part of the texture to render.
+        /// </summary>
+        public Rectangle TextureArea
+        {
+            get { return _textureArea; }
+            set
+            {
+                // Check if textures have been applied.
+                if(TextureVBO == null || Texture == null) return;
+
+                Vector2[] vertices =
+                {
+                    new Vector2(value.X, value.Y + value.Height),
+                    new Vector2(value.X + value.Width, value.Y + value.Height),
+                    new Vector2(value.X + value.Width, value.Y),
+                    new Vector2(value.X, value.Y)
+                };
+                TextureVBO.Upload(vertices);
+                _textureArea = value;
+            }
+        }
+
         #region VBOs
 
         public VBO VerticesVBO = new VBO();
         public VBO ColorVBO = new VBO();
+        public VBO TextureVBO;
 
         #endregion
 
@@ -59,6 +83,10 @@ namespace Soul.Engine.Graphics.Components
         public Matrix4 ModelMatrix = Matrix4.Identity;
 
         internal Vector2[] _vertices = { };
+
+        internal Texture Texture;
+
+        private Rectangle _textureArea;
 
         #endregion
 
@@ -149,5 +177,19 @@ namespace Soul.Engine.Graphics.Components
 
         #endregion
 
+        #region Texture Functions
+
+        public void ApplyTexture(Texture texture)
+        {
+            // Generate a texture VBO if it doesn't exist.
+            if (TextureVBO == null) TextureVBO = new VBO();
+
+            Texture = texture;
+
+            // Set the texture area to full by default.
+            TextureArea = new Rectangle(0, 0, texture.Width, texture.Height);
+        }
+
+        #endregion
     }
 }

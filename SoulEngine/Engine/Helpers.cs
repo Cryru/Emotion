@@ -20,7 +20,7 @@ namespace Soul.Engine
         {
             // Instance variables.
             offset = new Vector2();
-            Vector2 calculatedSize = new Vector2(0, 0);
+            Vector2 calculatedSize = new Vector2(int.MinValue, int.MinValue);
 
             for (int i = 0; i < verts?.Length; i++)
             {

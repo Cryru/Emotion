@@ -94,13 +94,13 @@ namespace Soul.Engine.Graphics.Systems
                 // Compute the MVP for this object.
                 Window.Current.SetModelMatrix(renderData.ModelMatrix);
                 // If a texture is attached add the texture and model matrix.
-                //if (_texture != null)
-                //{
-                //    Window.Current.SetTextureModelMatrix(_texture.TextureModelMatrix);
-                //    Window.Current.SetTexture(_texture);
-                //}
+                if (renderData.Texture != null)
+                {
+                    Window.Current.SetTextureModelMatrix(renderData.Texture.TextureModelMatrix);
+                    Window.Current.SetTexture(renderData.Texture);
+                }
 
-                // _textureVBO?.EnableShaderAttribute(2, 2);
+                renderData.TextureVBO?.EnableShaderAttribute(2, 2);
                 renderData.ColorVBO.EnableShaderAttribute(1, 4);
                 renderData.VerticesVBO.EnableShaderAttribute(0, 2);
                 renderData.VerticesVBO.Draw(renderData.GetPointCount() == 2
@@ -108,7 +108,9 @@ namespace Soul.Engine.Graphics.Systems
                     : PrimitiveType.TriangleFan); // Force line drawing when 2 vertices.
                 renderData.VerticesVBO.DisableShaderAttribute(0);
                 renderData.ColorVBO.DisableShaderAttribute(1);
-                //_textureVBO?.DisableShaderAttribute(2);
+                renderData.TextureVBO?.DisableShaderAttribute(2);
+
+                Window.Current.StopUsingTexture();
 
                 // Restore normal MVP. (Maybe this isn't needed)
                 Window.Current.SetModelMatrix(Matrix4.Identity);

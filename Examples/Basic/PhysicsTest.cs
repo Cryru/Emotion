@@ -73,6 +73,7 @@ namespace Examples.Basic
             rightWall.GetComponent<PhysicsObject>().SimulationType = BodyType.Static;
 
             AddEntity(rightWall);
+            Scripting.Expose("rightWall", rightWall);
 
             Entity floor = new Entity("floor");
             floor.AttachComponent<Transform>();
@@ -86,18 +87,29 @@ namespace Examples.Basic
 
             AddEntity(floor);
 
-            Vector2[] vert = { new Vector2(16, 43), new Vector2(12, -15), new Vector2(-10, -2) };
+            Vector2[] customPoly =
+            {
+                new Vector2(9, -9),
+                new Vector2(15, 7),
+                new Vector2(2, 16),
+                new Vector2(-6, 19),
+                new Vector2(-19, 5),
+                new Vector2(-20, -4),
+                new Vector2(-11, -14),
+                new Vector2(-4, -15),
+                new Vector2(4, -15)
+            };
 
             Entity poly = new Entity("poly");
             poly.AttachComponent<Transform>();
             poly.GetComponent<Transform>().Position = new Vector2(450, 50);
             poly.GetComponent<Transform>().Size = new Vector2(1, 1);
             poly.AttachComponent<RenderData>();
-            poly.GetComponent<RenderData>().SetVertices(vert);
+            poly.GetComponent<RenderData>().SetVertices(customPoly);
             poly.GetComponent<RenderData>().Color = new Color(255, 0, 0);
             poly.AttachComponent<PhysicsObject>();
             poly.GetComponent<PhysicsObject>().Shape = PhysicsShapeType.Polygon;
-            poly.GetComponent<PhysicsObject>().PolygonVertices = vert;
+            poly.GetComponent<PhysicsObject>().PolygonVertices = customPoly;
 
             AddEntity(poly);
 

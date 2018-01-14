@@ -85,6 +85,7 @@ namespace Soul.Engine.AssetPacker
             if (File.Exists(Path.Combine(OutputPath, ".nobuild")))
             {
                 Console.WriteLine(".nobuild File found, not building.");
+                Console.ReadKey();
                 return;
             }
 
@@ -93,6 +94,7 @@ namespace Soul.Engine.AssetPacker
             if (!Directory.Exists(AssetsPath))
             {
                 Console.WriteLine("No 'Assets' folder found in the build location.");
+                Console.ReadKey();
                 return;
             }
 
@@ -121,6 +123,7 @@ namespace Soul.Engine.AssetPacker
 
             timeTracker.Stop();
             Console.WriteLine("Ready in " + timeTracker.ElapsedMilliseconds + " ms");
+            Console.ReadKey();
         }
 
 
@@ -136,7 +139,7 @@ namespace Soul.Engine.AssetPacker
             if (args.Length < 1)
             {
                 Console.WriteLine("No output file inputted, using execution folder.");
-                OutputPath = "C:\\Users\\Vlad\\Desktop\\SoulEngine 2018\\Examples\\bin\\x64\\Debug";
+                OutputPath = Environment.CurrentDirectory;
             }
             else
             {

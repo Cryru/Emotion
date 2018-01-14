@@ -13,6 +13,7 @@ namespace Soul.Engine.Enums
         Breath = 3,
         SceneManager = 4,
         SceneLogic = 5,
-        Physics = 6
+        Physics = 6,
+        AssetManager = 7
     }
 }

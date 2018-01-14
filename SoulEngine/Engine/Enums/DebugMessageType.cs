@@ -14,6 +14,7 @@ namespace Soul.Engine.Enums
         Info,
         InfoGreen,
         InfoBlue,
+        InfoDark,
         Warning,
         Error
     }

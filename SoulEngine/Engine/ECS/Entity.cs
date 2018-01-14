@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using Soul.Engine.ECS.Components;
+using Soul.Engine.Graphics.Components;
 using Soul.Engine.Scenography;
 
 #if DEBUG
@@ -107,5 +109,19 @@ namespace Soul.Engine.ECS
         }
 
         #endregion
+
+        /// <summary>
+        /// Creates a basic drawable entity.
+        /// </summary>
+        /// <param name="name">The name of the entity to create.</param>
+        /// <returns>An entity with a transform and renderdata with an applied rectangle.</returns>
+        public static Entity CreateBasicDrawable(string name)
+        {
+            Entity temp = new Entity(name);
+            temp.AttachComponent<Transform>();
+            temp.AttachComponent<RenderData>();
+            temp.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            return temp;
+        }
     }
 }

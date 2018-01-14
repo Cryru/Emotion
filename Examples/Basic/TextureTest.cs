@@ -1,4 +1,60 @@
-﻿//// SoulEngine - https://github.com/Cryru/SoulEngine
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
+
+#region Using
+
+using Breath.Graphics;
+using Examples.Systems;
+using OpenTK;
+using OpenTK.Input;
+using Soul.Engine;
+using Soul.Engine.ECS;
+using Soul.Engine.ECS.Components;
+using Soul.Engine.ECS.Systems;
+using Soul.Engine.Enums;
+using Soul.Engine.Graphics.Components;
+using Soul.Engine.Modules;
+using Soul.Engine.Scenography;
+using Soul.Physics.Collision.Shapes;
+using Soul.Physics.Dynamics;
+
+#endregion
+
+namespace Examples.Basic
+{
+    public class TextureTest : Scene
+    {
+        public static void Main()
+        {
+            Core.Setup(new TextureTest());
+        }
+
+        #region Declarations
+
+
+        #endregion
+
+        protected override void Setup()
+        {
+            // Load text texture.
+            AssetLoader.LoadTexture("imageTest.png");
+
+            Entity basicTexture = Entity.CreateBasicDrawable("basicTexture");
+            basicTexture.GetComponent<Transform>().Position = new Vector2(50, 50);
+            basicTexture.GetComponent<Transform>().Size = new Vector2(50, 50);
+            basicTexture.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+
+            AddEntity(basicTexture);
+
+        }
+
+        protected override void Update()
+        {
+
+        }
+    }
+}
+
+//// SoulEngine - https://github.com/Cryru/SoulEngine
 
 //#region Using
 

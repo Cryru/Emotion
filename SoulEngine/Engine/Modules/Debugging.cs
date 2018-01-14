@@ -148,6 +148,10 @@ namespace Soul.Engine.Modules
                     case DebugMessageType.InfoGreen:
                         Console.ForegroundColor = ConsoleColor.Green;
                         break;
+                    case DebugMessageType.InfoDark:
+                        Console.BackgroundColor = ConsoleColor.White;
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        break;
                     case DebugMessageType.Warning:
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         break;
@@ -158,6 +162,7 @@ namespace Soul.Engine.Modules
 
                 // Restore the normal color.
                 Console.ForegroundColor = ConsoleColor.Gray;
+                Console.BackgroundColor = ConsoleColor.Black;
             }
         }
 
@@ -170,7 +175,7 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static void SetupDebuggingLibrary()
         {
-            Scripting.Expose("test", (Action) Test);
+            Scripting.Expose("test", (Action)Test);
         }
 
         private static void Test()

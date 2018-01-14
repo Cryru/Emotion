@@ -55,13 +55,11 @@ namespace Soul.Engine
             Settings.ApplyPreSettings();
 
             // Create a Breath window.
-            BreathWin = new Window(() =>
-            {
+            BreathWin = new Window(null, Update, Draw);
 
-                // Setup the scene manager and load the starting scene.
-                SceneManager.Setup();
-                SceneManager.LoadScene("start", startingScene, true);
-            }, Update, Draw);
+            // Setup the scene manager and load the starting scene.
+            SceneManager.Setup();
+            SceneManager.LoadScene("start", startingScene, true);
 
             // Apply first run settings.
             BreathWin.WindowBorder = WindowBorder.Fixed;

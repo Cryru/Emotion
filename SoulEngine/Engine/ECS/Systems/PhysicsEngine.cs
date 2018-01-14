@@ -1,24 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Breath.Systems;
-using OpenTK;
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
+
+#region Using
+
+using System;
 using Soul.Engine.ECS.Components;
+using Soul.Engine.Enums;
 using Soul.Engine.Modules;
-using Soul.Physics.Collision.Shapes;
 using Soul.Physics.Common;
 using Soul.Physics.Dynamics;
 using Soul.Physics.Factories;
 using Transform = Soul.Engine.ECS.Components.Transform;
 using Vector2 = OpenTK.Vector2;
 
+#endregion
+
 namespace Soul.Engine.ECS.Systems
 {
     public class PhysicsEngine : SystemBase
     {
-
         #region Declarations
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace Soul.Engine.ECS.Systems
         /// <summary>
         /// The scale at which to simulate physics.
         /// </summary>
-        public static float Scale = 5;
+        public static float Scale = 6;
 
         /// <summary>
         /// The scale at which to simulate physics in reverse.
@@ -62,7 +61,6 @@ namespace Soul.Engine.ECS.Systems
 
         protected internal override void Setup()
         {
-
         }
 
         protected override void Update(Entity link)
@@ -73,19 +71,17 @@ namespace Soul.Engine.ECS.Systems
 
             // Recreate body if updated.
             if (physics.HasUpdated)
-            {
                 if (physics.Body != null)
                 {
                     if (physics.Body?.FixtureList != null) physics.Body.DestroyFixture(physics.Body.FixtureList[0]);
                     CurrentWorld.RemoveBody(physics.Body);
 
 #if DEBUG
-                    Debugging.DebugMessage(Enums.DebugMessageType.Warning,
+                    Debugging.DebugMessage(DebugMessageType.Warning,
                         "Destroyed a body at " + physics.Body.Position);
 #endif
                     physics.Body = null;
                 }
-            }
 
             // Create physics body if one is missing.
             if (physics.Body == null)
@@ -93,7 +89,7 @@ namespace Soul.Engine.ECS.Systems
                 // Create a body from the defined shape.
                 switch (physics.Shape)
                 {
-                    case Enums.PhysicsShapeType.Polygon:
+                    case PhysicsShapeType.Polygon:
 
                         Vertices vertices = new Vertices(physics.PolygonVertices.Length);
 
@@ -102,6 +98,7 @@ namespace Soul.Engine.ECS.Systems
                         {
                             vertices.Add(PixelToPhysics(vec));
                         }
+
                         // Create a polygon body from the vertices.
                         physics.Body = BodyFactory.CreatePolygon(
                             CurrentWorld,
@@ -112,10 +109,12 @@ namespace Soul.Engine.ECS.Systems
                         Vector2 offset;
                         Vector2 scale = new Vector2(1, 1);
 
-                        physics.PolygonSizeOffset = Helpers.CalculateSizeFromVertices(physics.PolygonVertices, scale, out offset) + offset;
+                        physics.PolygonSizeOffset =
+                            Helpers.CalculateSizeFromVertices(physics.PolygonVertices, scale, out offset);
+                        physics.PolygonSizeOffset += offset * 2;
 
                         break;
-                    case Enums.PhysicsShapeType.Rectangle:
+                    case PhysicsShapeType.Rectangle:
                         // Create a body from a rectangle template.
                         physics.Body = BodyFactory.CreateRectangle(
                             CurrentWorld,
@@ -124,7 +123,7 @@ namespace Soul.Engine.ECS.Systems
                             1,
                             link);
                         break;
-                    case Enums.PhysicsShapeType.Circle:
+                    case PhysicsShapeType.Circle:
                         // Create a body from a circle template.
                         physics.Body = BodyFactory.CreateCircle(
                             CurrentWorld,
@@ -132,7 +131,7 @@ namespace Soul.Engine.ECS.Systems
                             1, link);
                         break;
                     default:
-                        ErrorHandling.Raise(Enums.ErrorOrigin.Physics, "Unknown physics shape type: " + physics.Shape);
+                        ErrorHandling.Raise(ErrorOrigin.Physics, "Unknown physics shape type: " + physics.Shape);
                         break;
                 }
 
@@ -143,25 +142,36 @@ namespace Soul.Engine.ECS.Systems
                 physics.Body.BodyType = physics.SimulationType;
 
                 // Set the physics body's position according to the transform's center.
-                physics.Body.Position = PixelToPhysics(transform.Center);
-
+                if (physics.Shape != PhysicsShapeType.Polygon)
+                {
+                    physics.Body.Position = PixelToPhysics(transform.Center);
+                }
+                else
+                {
+                    // Bounds.X + Bounds.Width / 2, Bounds.Y + Bounds.Height / 2
+                    physics.Body.Position = PixelToPhysics(new Vector2(transform.X + physics.PolygonSizeOffset.X / 2, transform.Y + physics.PolygonSizeOffset.Y / 2));
+                }
+                
 #if DEBUG
-                Debugging.DebugMessage(Enums.DebugMessageType.InfoGreen,
+                Debugging.DebugMessage(DebugMessageType.InfoGreen,
                     "Created physics body of type " + physics.SimulationType + " and shape " + physics.Shape);
 #endif
             }
 
             // Update the entity's position and rotation according to what's happening in the physics world.
-            if (physics.Shape != Enums.PhysicsShapeType.Polygon)
+            if (physics.Shape != PhysicsShapeType.Polygon)
             {
-                transform.Center = PhysicsToPixel(physics.Body.Position.X, physics.Body.Position.Y);
+                // No need to update static.
+                if (physics.Body.BodyType != BodyType.Static)
+                    transform.Center = PhysicsToPixel(physics.Body.Position.X, physics.Body.Position.Y);
             }
             else
             {
-                Vector2 physicsSize = PhysicsToPixel(physics.Body.Position.X, physics.Body.Position.Y);
+                // Custom center implementation as the size of the polygon within the Transform is 1x1.
+                Vector2 physicsLocation = PhysicsToPixel(physics.Body.Position.X, physics.Body.Position.Y);
 
-                transform.X = physicsSize.X - physics.PolygonSizeOffset.X / 2;
-                transform.Y = physicsSize.Y - physics.PolygonSizeOffset.Y / 2;
+                transform.X = (int)(physicsLocation.X - physics.PolygonSizeOffset.X / 2);
+                transform.Y = (int)(physicsLocation.Y - physics.PolygonSizeOffset.Y / 2);
             }
 
             transform.Rotation = physics.Body.Rotation;
@@ -169,9 +179,9 @@ namespace Soul.Engine.ECS.Systems
 
         protected internal override void Run()
         {
-            CurrentWorld.Step(0.016f);
-
             base.Run();
+
+            CurrentWorld.Step(0.016f);
         }
 
         #region Helpers

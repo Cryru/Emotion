@@ -127,6 +127,7 @@
     <Compile Include="Engine\Enums\ErrorOrigin.cs" />
     <Compile Include="Engine\Enums\DebugMessageType.cs" />
     <Compile Include="Engine\Helpers.cs" />
+    <Compile Include="Engine\Modules\AssetManager.cs" />
     <Compile Include="Engine\Modules\Debugging.cs" />
     <Compile Include="Engine\Meta.cs" />
     <Compile Include="Engine\Modules\ErrorHandling.cs" />

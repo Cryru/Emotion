@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using Breath.Graphics;
 using OpenTK;
 
@@ -129,8 +130,8 @@ namespace Soul.Engine.ECS.Components
             }
             set
             {
-                X = value.X - Width / 2;
-                Y = value.Y - Height / 2;
+                X = (int) Math.Ceiling(value.X - Width / 2);
+                Y = (int) Math.Ceiling(value.Y - Height / 2);
             }
         }
 
