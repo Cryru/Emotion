@@ -61,6 +61,7 @@ namespace Soul.Engine.ECS.Systems
 
         protected internal override void Setup()
         {
+            Priority = 2;
         }
 
         protected override void Update(Entity link)

@@ -27,7 +27,7 @@ namespace Soul.Engine.Graphics.Systems
         protected internal override void Setup()
         {
             // Set priority to highest so it is run almost last.
-            Priority = 9;
+            Priority = 8;
             // Hook up to drawing call of the scene.
             Parent.DrawHook = DrawHook;
         }
