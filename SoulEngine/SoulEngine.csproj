@@ -115,9 +115,12 @@
   <ItemGroup>
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\ComponentBase.cs" />
+    <Compile Include="Engine\ECS\Components\AnimationData.cs" />
     <Compile Include="Engine\ECS\Components\PhysicsObject.cs" />
+    <Compile Include="Engine\ECS\Systems\Animator.cs" />
     <Compile Include="Engine\ECS\Systems\ComponentUpdateCleanup.cs" />
     <Compile Include="Engine\ECS\Systems\PhysicsEngine.cs" />
+    <Compile Include="Engine\Enums\AnimationLoopType.cs" />
     <Compile Include="Engine\Enums\PhysicsShapeType.cs" />
     <Compile Include="Engine\Graphics\Components\RenderData_Templates.cs" />
     <Compile Include="Engine\Graphics\Components\RenderData.cs" />
