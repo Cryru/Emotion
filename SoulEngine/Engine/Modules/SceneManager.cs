@@ -168,6 +168,8 @@ namespace Soul.Engine.Modules
             // Swap.
             CurrentScene = selectedScene;
 
+            Scripting.Expose("scene", CurrentScene);
+
 #if DEBUG
             // Send scene queue message to the debugger.
             Debugging.DebugMessage(DebugMessageType.Info, "Swapped scene to [" + sceneName + "]");

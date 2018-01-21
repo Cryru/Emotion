@@ -73,7 +73,6 @@ namespace Examples.Basic
             rightWall.GetComponent<PhysicsObject>().SimulationType = BodyType.Static;
 
             AddEntity(rightWall);
-            Scripting.Expose("rightWall", rightWall);
 
             Entity floor = new Entity("floor");
             floor.AttachComponent<Transform>();
