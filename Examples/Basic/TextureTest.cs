@@ -109,17 +109,16 @@ namespace Examples.Basic
             textureFrame.GetComponent<Transform>().Size = new Vector2(50, 50);
             textureFrame.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
             textureFrame.GetComponent<RenderData>().TextureArea = new Rectangle(55, 20, 50, 50);
-
+            textureFrame.GetComponent<RenderData>().TextureArea = new Rectangle(0, 50, 50, 50);
             AddEntity(textureFrame);
 
             Entity animatedFrame = Entity.CreateBasicDrawable("animatedFrame");
             animatedFrame.GetComponent<Transform>().Position = new Vector2(50, 230);
             animatedFrame.GetComponent<Transform>().Size = new Vector2(50, 50);
             animatedFrame.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
-            animatedFrame.GetComponent<RenderData>().TextureArea = new Rectangle(55, 20, 50, 50);
             animatedFrame.AttachComponent<AnimationData>();
             animatedFrame.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
-            animatedFrame.GetComponent<AnimationData>().FrameTime = 300;
+            animatedFrame.GetComponent<AnimationData>().FrameTime = 1000;
 
             AddEntity(animatedFrame);
 

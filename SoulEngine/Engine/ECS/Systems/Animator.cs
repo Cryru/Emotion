@@ -1,22 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
+
+#region Using
+
+using System;
+using Breath.Systems;
 using Soul.Engine.ECS.Components;
+using Soul.Engine.Enums;
 using Soul.Engine.Graphics.Components;
+
+#endregion
 
 namespace Soul.Engine.ECS.Systems
 {
     public class Animator : SystemBase
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         protected internal override Type[] GetRequirements()
         {
-            return new[] { typeof(RenderData), typeof(AnimationData) };
+            return new[] {typeof(RenderData), typeof(AnimationData)};
         }
 
         protected internal override void Setup()
@@ -27,7 +30,40 @@ namespace Soul.Engine.ECS.Systems
 
         protected override void Update(Entity link)
         {
-            
+            // Get components.
+            AnimationData animData = link.GetComponent<AnimationData>();
+            RenderData renderData = link.GetComponent<RenderData>();
+
+            // Check if calculated.
+            if (animData.HasUpdated)
+            {
+                animData.ResetFrame();
+                animData.CalculateFrames(renderData.Texture.Size);
+
+                // Set the texture to the new frame texture.
+                renderData.TextureArea = animData.CurrentFrameRect;
+            }
+
+            // Check if finished.
+            if (animData.Finished) return;
+
+            // Add to the animation data timer.
+            animData.Timer += Window.Current.FrameTime * 1000;
+
+            // Check if time has passed for a frame switch.
+            if (animData.Timer >= animData.FrameTime)
+            {
+                // Subtract frame time.
+                animData.Timer -= animData.FrameTime;
+
+                // Go to the next frame.
+                NextFrame(animData);
+
+                // Set the texture to the new frame texture.
+                renderData.TextureArea = animData.CurrentFrameRect;
+
+                Console.WriteLine("Current frame is " + (animData.CurrentFrame + 1) + " and rect is " + renderData.TextureArea);
+            }
         }
 
         #region Functions
@@ -35,94 +71,60 @@ namespace Soul.Engine.ECS.Systems
         /// <summary>
         /// Switches to the next frame.
         /// </summary>
-        public void NextFrame()
+        /// <param name="animData">The animation data to switch to the next frame.</param>
+        public void NextFrame(AnimationData animData)
         {
-            switch (LoopType)
+            switch (animData.LoopType)
             {
-                case LoopType.None:
+                case AnimationLoopType.None:
                     // If the global frame is the last frame.
-                    if (CurrentFrame == EndingFrame)
-                    {
-                        OnFinish?.Invoke(this);
-                        // Stop the timer.
-                        _timer = -2;
-                    }
+                    if (animData.CurrentFrame == animData.EndingFrame)
+                        animData.Finished = true;
                     else
-                    {
-                        // Increment the frame.
-                        CurrentFrame++;
-                    }
+                        animData.CurrentFrame++;
                     break;
-                case LoopType.Normal:
+                case AnimationLoopType.Normal:
                     // If the global frame is the last frame.
-                    if (CurrentFrame == EndingFrame)
-                    {
-                        //Loop to the starting frame.
-                        CurrentFrame = StartingFrame;
-
-                        // Call the loop event.
-                        OnFinish?.Invoke(this);
-                    }
+                    if (animData.CurrentFrameTotal == animData.EndingFrame)
+                        animData.CurrentFrameTotal = animData.StartingFrame;
                     else
-                    {
-                        // Increment the frame.
-                        CurrentFrame++;
-                    }
+                        animData.CurrentFrameTotal++;
                     break;
-                case LoopType.NormalThenReverse:
+                case AnimationLoopType.NormalThenReverse:
                     // If the global frame is the last frame and going in reverse or the first and not going in reverse.
-                    if (CurrentFrame == EndingFrame && _flagReverse == false ||
-                        CurrentFrame == StartingFrame && _flagReverse)
+                    if (animData.CurrentFrame == animData.EndingFrame && animData.InReverse == false ||
+                        animData.CurrentFrame == animData.StartingFrame && animData.InReverse)
                     {
                         // Change the reverse flag.
-                        _flagReverse = !_flagReverse;
-
-                        // Call the loop event.
-                        OnFinish?.Invoke(this);
+                        animData.InReverse = !animData.InReverse;
 
                         // Depending on the direction set the frame to be the appropriate one.
-                        CurrentFrame = _flagReverse ? EndingFrame - 1 : StartingFrame + 1;
+                        animData.CurrentFrame =
+                            animData.InReverse ? animData.EndingFrame - 1 : animData.StartingFrame + 1;
                     }
                     else
                     {
                         // Modify the current frame depending on the direction we are going in.
-                        if (_flagReverse)
-                            CurrentFrame--;
+                        if (animData.InReverse)
+                            animData.CurrentFrame--;
                         else
-                            CurrentFrame++;
+                            animData.CurrentFrame++;
                     }
-                    break;
-                case LoopType.Reverse:
-                    // If the global frame is the first frame.
-                    if (CurrentFrame == StartingFrame)
-                    {
-                        // Loop to the ending frame.
-                        CurrentFrame = EndingFrame;
 
-                        // Call the loop event.
-                        OnFinish?.Invoke(this);
-                    }
-                    else
-                    {
-                        // Otherwise decrement the frame, as we are going in reverse.
-                        CurrentFrame--;
-                    }
                     break;
-                case LoopType.NoneReverse:
+                case AnimationLoopType.Reverse:
                     // If the global frame is the first frame.
-                    if (CurrentFrame == StartingFrame)
-                    {
-                        // Call the finish event.
-                        OnFinish?.Invoke(this);
-
-                        // Stop the timer.
-                        _timer = -2;
-                    }
+                    if (animData.CurrentFrame == animData.StartingFrame)
+                        animData.CurrentFrame = animData.EndingFrame;
                     else
-                    {
-                        // Decrement the frame, as we are going in reverse.
-                        CurrentFrame--;
-                    }
+                        animData.CurrentFrame--;
+                    break;
+                case AnimationLoopType.NoneReverse:
+                    // If the global frame is the first frame.
+                    if (animData.CurrentFrame == animData.StartingFrame)
+                        animData.Finished = true;
+                    else
+                        animData.CurrentFrame--;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -130,6 +132,5 @@ namespace Soul.Engine.ECS.Systems
         }
 
         #endregion
-
     }
 }

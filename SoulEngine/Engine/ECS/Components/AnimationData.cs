@@ -125,6 +125,7 @@ namespace Soul.Engine.ECS.Components
         public int CurrentFrameTotal
         {
             get { return StartingFrame + CurrentFrame; }
+            set { CurrentFrame = value - StartingFrame; }
         }
 
         /// <summary>
@@ -135,8 +136,8 @@ namespace Soul.Engine.ECS.Components
             get
             {
                 // Get the current row and column.
-                int row = (int)(CurrentFrame / (float)_columns);
-                int column = CurrentFrame % _columns;
+                int row = (int)(CurrentFrameTotal / (float)_columns);
+                int column = CurrentFrameTotal % _columns;
 
                 // Generate texture rectangle from the current frame.
                 return new Rectangle(FrameSize.X * column + Spacing.X * (column + 1),
@@ -192,7 +193,7 @@ namespace Soul.Engine.ECS.Components
         /// <summary>
         /// Whether the animation is going in reverse.
         /// </summary>
-        private bool _flagReverse;
+        internal bool InReverse;
 
         /// <summary>
         /// The timer tracking frame changes.
@@ -205,7 +206,7 @@ namespace Soul.Engine.ECS.Components
         /// Calculates rows and columns from the frame size, spritesheet size, and spacing.
         /// </summary>
         /// <param name="spriteSheetSize">The total size of the spritesheet.</param>
-        private void CalculateFrames(Vector2 spriteSheetSize)
+        internal void CalculateFrames(Vector2 spriteSheetSize)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (_frameSize == null || _spacing == null) return;
@@ -225,7 +226,7 @@ namespace Soul.Engine.ECS.Components
         /// <summary>
         /// Resets the current frame.
         /// </summary>
-        private void ResetFrame()
+        public void ResetFrame()
         {
             // Set the current frame based on the loop type.
             switch (LoopType)
