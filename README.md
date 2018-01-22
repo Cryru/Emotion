@@ -16,9 +16,9 @@ While I try to update the engine as often as possible, most of the big features,
 
 ## This Year's Idea
 
-The goal of the 2018 version is to move away from XNA/Monogame. This is done by using a small library called Breath based on OpenTK allowing for more control over the OpenGL and OpenAL APIs, and easier cross-platform compatibility. This version always features a custom asset packer based on last version's asset loading extensions.
+The objective of the 2018 version is to move away from XNA/Monogame by using a small library called "Breath". It is based on OpenTK which allows for more control over the OpenGL and OpenAL APIs, in addition to making cross-platform compatibility more straight-forward. This version also features a custom asset packer based on last version's asset loading extensions.
 
-On the game development side 2018 introduces the concept of "systems". Classes which group entities based on components and execute code on them. Moving from 2017's EC (entity-component) model to a ECS (entity-component-system) model where components are pure data.
+On the game development side 2018 introduces the concept of "systems". Classes which group entities based on components and execute code on them. Upgrading from 2017's EC (entity-component) model to a ECS (entity-component-system) model where components are pure data.
 
 ## Features and Progress
 
