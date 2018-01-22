@@ -14,7 +14,6 @@ using Soul.Engine.Enums;
 using Soul.Engine.Graphics.Components;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
-using Soul.Physics.Collision.Shapes;
 using Soul.Physics.Dynamics;
 
 #endregion
@@ -32,7 +31,7 @@ namespace Examples.Basic
 
         private PhysicsShapeType _currentShape = PhysicsShapeType.Rectangle;
         private int _currentSize = 10;
-        private int entityCounter = 0;
+        private int _entityCounter;
 
         #endregion
 
@@ -131,7 +130,8 @@ namespace Examples.Basic
 
             // Clamp.
             if (_currentSize > 100) _currentSize = 100;
-            else if (_currentSize < 10) _currentSize = 10;
+            else if (_currentSize < 10)
+                _currentSize = 10;
 
             // Update mouse indicator.
             GetEntity("mouseIndicator").GetComponent<Transform>().Center = Input.MouseLocation();
@@ -154,10 +154,11 @@ namespace Examples.Basic
 
             // If clicked produce shapes.
             if (!add) return;
-            Entity spawnedEntity = new Entity("spawnedEntity" + entityCounter);
+            Entity spawnedEntity = new Entity("spawnedEntity" + _entityCounter);
             spawnedEntity.AttachComponent<Transform>();
             spawnedEntity.GetComponent<Transform>().Size = new Vector2(_currentSize, _currentSize);
-            spawnedEntity.GetComponent<Transform>().Center = GetEntity("mouseIndicator").GetComponent<Transform>().Center;
+            spawnedEntity.GetComponent<Transform>().Center =
+                GetEntity("mouseIndicator").GetComponent<Transform>().Center;
             spawnedEntity.AttachComponent<RenderData>();
             switch (_currentShape)
             {
@@ -176,7 +177,7 @@ namespace Examples.Basic
 
             AddEntity(spawnedEntity);
 
-            entityCounter++;
+            _entityCounter++;
         }
     }
 }

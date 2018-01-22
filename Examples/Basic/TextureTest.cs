@@ -3,19 +3,14 @@
 #region Using
 
 using Breath.Graphics;
-using Examples.Systems;
 using OpenTK;
-using OpenTK.Input;
 using Soul.Engine;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
-using Soul.Engine.ECS.Systems;
 using Soul.Engine.Enums;
 using Soul.Engine.Graphics.Components;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
-using Soul.Physics.Collision.Shapes;
-using Soul.Physics.Dynamics;
 
 #endregion
 
@@ -29,7 +24,6 @@ namespace Examples.Basic
         }
 
         #region Declarations
-
 
         #endregion
 
@@ -135,7 +129,8 @@ namespace Examples.Basic
             Entity animatedFrameNormalThenReverse = Entity.CreateBasicDrawable("animatedFrameNormalThenReverse");
             animatedFrameNormalThenReverse.GetComponent<Transform>().Position = new Vector2(50, 350);
             animatedFrameNormalThenReverse.GetComponent<Transform>().Size = new Vector2(50, 50);
-            animatedFrameNormalThenReverse.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+            animatedFrameNormalThenReverse.GetComponent<RenderData>()
+                .ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
             animatedFrameNormalThenReverse.AttachComponent<AnimationData>();
             animatedFrameNormalThenReverse.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
             animatedFrameNormalThenReverse.GetComponent<AnimationData>().FrameTime = 300;
@@ -181,7 +176,6 @@ namespace Examples.Basic
 
         protected override void Update()
         {
-
         }
     }
 }

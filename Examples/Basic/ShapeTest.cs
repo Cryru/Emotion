@@ -5,14 +5,13 @@
 using System;
 using Breath.Graphics;
 using OpenTK;
+using Soul;
 using Soul.Engine;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
-using Soul.Engine.Enums;
 using Soul.Engine.Graphics.Components;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
-using Soul.Physics.Collision.Shapes;
 
 #endregion
 
@@ -146,12 +145,12 @@ namespace Examples.Basic
             Scripting.Expose("spinTri", spinTri.GetComponent<Transform>());
             Scripting.Expose("spinPoly", spinPoly.GetComponent<Transform>());
             Scripting.Register("" +
-                                   " spinCircle.Rotation += 0.1; " +
-                                   " spinLine.Rotation += 0.1; " +
-                                   " spinRect.Rotation += 0.1; " +
-                                   " spinTri.Rotation += 0.1; " +
-                                   " spinPoly.Rotation += 0.1; " +
-                                   "");
+                               " spinCircle.Rotation += 0.1; " +
+                               " spinLine.Rotation += 0.1; " +
+                               " spinRect.Rotation += 0.1; " +
+                               " spinTri.Rotation += 0.1; " +
+                               " spinPoly.Rotation += 0.1; " +
+                               "");
 
             // Colored shapes.
 
@@ -163,9 +162,9 @@ namespace Examples.Basic
             colorCircle.GetComponent<RenderData>().ApplyTemplate_Circle();
             colorCircle.GetComponent<RenderData>().Color =
                 new Color(
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255)
                 );
 
             AddEntity(colorCircle);
@@ -180,9 +179,9 @@ namespace Examples.Basic
             colorLine.GetComponent<RenderData>().SetPoint(1, new Vector2(200, 250));
             colorLine.GetComponent<RenderData>().Color =
                 new Color(
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255)
                 );
 
             AddEntity(colorLine);
@@ -195,9 +194,9 @@ namespace Examples.Basic
             colorRect.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             colorRect.GetComponent<RenderData>().Color =
                 new Color(
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255)
                 );
 
             AddEntity(colorRect);
@@ -210,9 +209,9 @@ namespace Examples.Basic
             colorTri.GetComponent<RenderData>().ApplyTemplate_Triangle();
             colorTri.GetComponent<RenderData>().Color =
                 new Color(
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255),
-                    Soul.Utilities.GenerateRandomNumber(0, 255)
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255)
                 );
 
             AddEntity(colorTri);
@@ -224,11 +223,11 @@ namespace Examples.Basic
             colorPoly.AttachComponent<RenderData>();
             colorPoly.GetComponent<RenderData>().SetVertices(customPoly);
             colorPoly.GetComponent<RenderData>().Color =
-                    new Color(
-                        Soul.Utilities.GenerateRandomNumber(0, 255),
-                        Soul.Utilities.GenerateRandomNumber(0, 255),
-                        Soul.Utilities.GenerateRandomNumber(0, 255)
-                        );
+                new Color(
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255),
+                    Utilities.GenerateRandomNumber(0, 255)
+                );
 
             AddEntity(colorPoly);
 
@@ -239,9 +238,9 @@ namespace Examples.Basic
             Scripting.Expose("colorTri", colorTri.GetComponent<RenderData>());
             Scripting.Expose("colorPoly", colorPoly.GetComponent<RenderData>());
             Func<Color> genFunc = () => new Color(
-                Soul.Utilities.GenerateRandomNumber(0, 255),
-                Soul.Utilities.GenerateRandomNumber(0, 255),
-                Soul.Utilities.GenerateRandomNumber(0, 255)
+                Utilities.GenerateRandomNumber(0, 255),
+                Utilities.GenerateRandomNumber(0, 255),
+                Utilities.GenerateRandomNumber(0, 255)
             );
             Scripting.Expose("genColor", genFunc);
             Scripting.Register("" +

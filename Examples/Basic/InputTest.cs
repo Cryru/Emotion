@@ -1,11 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// SoulEngine - https://github.com/Cryru/SoulEngine
+
+#region Using
+
+using System;
+using OpenTK.Input;
 using Soul.Engine;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
+
+#endregion
 
 namespace Examples.Basic
 {
@@ -18,15 +21,14 @@ namespace Examples.Basic
 
         protected override void Setup()
         {
-            
         }
 
         protected override void Update()
         {
-            if (Input.KeyPressed(OpenTK.Input.Key.A)) Console.WriteLine("Pressed!");
-            if (Input.KeyHeld(OpenTK.Input.Key.A)) Console.WriteLine("HELD");
-            if (Input.MouseButtonPressed(OpenTK.Input.MouseButton.Left)) Console.WriteLine("MOUS PRES");
-            if (Input.MouseButtonHeld(OpenTK.Input.MouseButton.Left)) Console.WriteLine("MAUS HELD");
+            if (Input.KeyPressed(Key.A)) Console.WriteLine("Pressed!");
+            if (Input.KeyHeld(Key.A)) Console.WriteLine("HELD");
+            if (Input.MouseButtonPressed(MouseButton.Left)) Console.WriteLine("MOUS PRES");
+            if (Input.MouseButtonHeld(MouseButton.Left)) Console.WriteLine("MAUS HELD");
             if (Input.MouseWheelScroll() != 0) Console.WriteLine(Input.MouseWheelScroll());
             Console.WriteLine(Input.MouseLocation());
         }
