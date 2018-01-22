@@ -38,48 +38,36 @@ namespace Examples.Basic
 
         protected override void Setup()
         {
-            Entity ceiling = new Entity("ceiling");
-            ceiling.AttachComponent<Transform>();
+            Entity ceiling = Entity.CreateBasicDrawable("ceiling");
             ceiling.GetComponent<Transform>().Position = new Vector2(0, 0);
             ceiling.GetComponent<Transform>().Size = new Vector2(Settings.Width, 5);
-            ceiling.AttachComponent<RenderData>();
-            ceiling.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             ceiling.GetComponent<RenderData>().Color = Color.Black;
             ceiling.AttachComponent<PhysicsObject>();
             ceiling.GetComponent<PhysicsObject>().SimulationType = BodyType.Static;
 
             AddEntity(ceiling);
 
-            Entity leftWall = new Entity("leftWall");
-            leftWall.AttachComponent<Transform>();
+            Entity leftWall = Entity.CreateBasicDrawable("leftWall");
             leftWall.GetComponent<Transform>().Position = new Vector2(0, 0);
             leftWall.GetComponent<Transform>().Size = new Vector2(5, Settings.Height);
-            leftWall.AttachComponent<RenderData>();
-            leftWall.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             leftWall.GetComponent<RenderData>().Color = Color.Black;
             leftWall.AttachComponent<PhysicsObject>();
             leftWall.GetComponent<PhysicsObject>().SimulationType = BodyType.Static;
 
             AddEntity(leftWall);
 
-            Entity rightWall = new Entity("rightWall");
-            rightWall.AttachComponent<Transform>();
+            Entity rightWall = Entity.CreateBasicDrawable("rightWall");
             rightWall.GetComponent<Transform>().Position = new Vector2(Settings.Width - 5, 0);
             rightWall.GetComponent<Transform>().Size = new Vector2(5, Settings.Height);
-            rightWall.AttachComponent<RenderData>();
-            rightWall.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             rightWall.GetComponent<RenderData>().Color = Color.Black;
             rightWall.AttachComponent<PhysicsObject>();
             rightWall.GetComponent<PhysicsObject>().SimulationType = BodyType.Static;
 
             AddEntity(rightWall);
 
-            Entity floor = new Entity("floor");
-            floor.AttachComponent<Transform>();
+            Entity floor = Entity.CreateBasicDrawable("floor");
             floor.GetComponent<Transform>().Position = new Vector2(0, Settings.Height - 15);
             floor.GetComponent<Transform>().Size = new Vector2(Settings.Width, 15);
-            floor.AttachComponent<RenderData>();
-            floor.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             floor.GetComponent<RenderData>().Color = Color.Black;
             floor.AttachComponent<PhysicsObject>();
             floor.GetComponent<PhysicsObject>().SimulationType = BodyType.Static;
@@ -104,6 +92,7 @@ namespace Examples.Basic
             poly.GetComponent<Transform>().Position = new Vector2(450, 50);
             poly.GetComponent<Transform>().Size = new Vector2(1, 1);
             poly.AttachComponent<RenderData>();
+            poly.GetComponent<RenderData>().UpdateVertices();
             poly.GetComponent<RenderData>().SetVertices(customPoly);
             poly.GetComponent<RenderData>().Color = new Color(255, 0, 0);
             poly.AttachComponent<PhysicsObject>();
@@ -112,12 +101,9 @@ namespace Examples.Basic
 
             AddEntity(poly);
 
-            Entity mouseIndicator = new Entity("mouseIndicator");
-            mouseIndicator.AttachComponent<Transform>();
+            Entity mouseIndicator = Entity.CreateBasicDrawable("mouseIndicator");
             mouseIndicator.GetComponent<Transform>().Position = new Vector2(0, Settings.Height - 15);
             mouseIndicator.GetComponent<Transform>().Size = new Vector2(Settings.Width, 15);
-            mouseIndicator.AttachComponent<RenderData>();
-            mouseIndicator.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             mouseIndicator.GetComponent<RenderData>().Color = new Color(255, 0, 0, 100);
             mouseIndicator.GetComponent<RenderData>().Priority = 100;
 

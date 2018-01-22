@@ -126,7 +126,7 @@ namespace Soul.Engine.Modules
             int futureIndex = _registeredActions.Count;
 
 #if DEBUG
-            Debugging.DebugMessage(DebugMessageType.InfoGreen, "Registered script (" + futureIndex + ") {" + function.Replace("\n", "").Replace(" ", "") + "}");
+            Debugging.DebugMessage(DebugMessageType.InfoDark, "Registered script (" + futureIndex + ") {" + function.Replace("\n", "").Replace(" ", "") + "}");
 #endif
 
             // Add the function to the list.

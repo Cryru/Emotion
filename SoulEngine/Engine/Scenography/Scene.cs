@@ -52,6 +52,7 @@ namespace Soul.Engine.Scenography
             // Load core systems.
             AddSystem(new RenderSystem());
             AddSystem(new ComponentUpdateCleanup());
+            AddSystem(new Animator());
 
             // Load user setup.
             Setup();
