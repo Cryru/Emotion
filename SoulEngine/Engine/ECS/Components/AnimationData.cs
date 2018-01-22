@@ -53,7 +53,7 @@ namespace Soul.Engine.ECS.Components
         #region Animation Properties
 
         /// <summary>
-        /// The frame to start from.
+        /// The frame to start from. Zero indexed.
         /// </summary>
         public int StartingFrame
         {
@@ -72,7 +72,7 @@ namespace Soul.Engine.ECS.Components
         private int _startingFrame = 0;
 
         /// <summary>
-        /// The frame to loop at.
+        /// The frame to loop at. Zero indexed.
         /// </summary>
         public int EndingFrame
         {
@@ -122,10 +122,9 @@ namespace Soul.Engine.ECS.Components
         /// <summary>
         /// The id of the frame being displayed from the total amount.
         /// </summary>
-        public int CurrentFrameTotal
+        public int CurrentFrameScoped
         {
             get { return StartingFrame + CurrentFrame; }
-            set { CurrentFrame = value - StartingFrame; }
         }
 
         /// <summary>
@@ -136,8 +135,8 @@ namespace Soul.Engine.ECS.Components
             get
             {
                 // Get the current row and column.
-                int row = (int)(CurrentFrameTotal / (float)_columns);
-                int column = CurrentFrameTotal % _columns;
+                int row = (int)(CurrentFrame / (float)_columns);
+                int column = CurrentFrame % _columns;
 
                 // Generate texture rectangle from the current frame.
                 return new Rectangle(FrameSize.X * column + Spacing.X * (column + 1),

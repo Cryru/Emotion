@@ -61,8 +61,6 @@ namespace Soul.Engine.ECS.Systems
 
                 // Set the texture to the new frame texture.
                 renderData.TextureArea = animData.CurrentFrameRect;
-
-                Console.WriteLine("Current frame is " + (animData.CurrentFrame + 1) + " and rect is " + renderData.TextureArea);
             }
         }
 
@@ -85,10 +83,10 @@ namespace Soul.Engine.ECS.Systems
                     break;
                 case AnimationLoopType.Normal:
                     // If the global frame is the last frame.
-                    if (animData.CurrentFrameTotal == animData.EndingFrame)
-                        animData.CurrentFrameTotal = animData.StartingFrame;
+                    if (animData.CurrentFrame == animData.EndingFrame)
+                        animData.CurrentFrame = animData.StartingFrame;
                     else
-                        animData.CurrentFrameTotal++;
+                        animData.CurrentFrame++;
                     break;
                 case AnimationLoopType.NormalThenReverse:
                     // If the global frame is the last frame and going in reverse or the first and not going in reverse.

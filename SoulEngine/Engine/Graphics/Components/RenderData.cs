@@ -53,19 +53,31 @@ namespace Soul.Engine.Graphics.Components
             set
             {
                 // Check if textures have been applied.
-                if(TextureVBO == null || Texture == null) return;
+                if (TextureVBO == null || Texture == null) return;
 
-                Vector2[] vertices =
+                if (_textureVertices == null || _textureVertices.Length != 4)
                 {
-                    new Vector2(value.X, value.Y + value.Height),
-                    new Vector2(value.X + value.Width, value.Y + value.Height),
-                    new Vector2(value.X + value.Width, value.Y),
-                    new Vector2(value.X, value.Y)
-                };
-                TextureVBO.Upload(vertices);
+                    _textureVertices = new[] { new Vector2(), new Vector2(), new Vector2(), new Vector2() };
+                }
+
+                _textureVertices[0].X = value.X;
+                _textureVertices[0].Y = value.Y;
+
+                _textureVertices[1].X = value.X + value.Width;
+                _textureVertices[1].Y = value.Y;
+
+                _textureVertices[2].X = value.X + value.Width;
+                _textureVertices[2].Y = value.Y + value.Height;
+
+                _textureVertices[3].X = value.X;
+                _textureVertices[3].Y = value.Y + value.Height;
+
+                TextureVBO.Upload(_textureVertices);
                 _textureArea = value;
             }
         }
+
+        private Vector2[] _textureVertices;
 
         #region VBOs
 

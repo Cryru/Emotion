@@ -109,7 +109,6 @@ namespace Examples.Basic
             textureFrame.GetComponent<Transform>().Size = new Vector2(50, 50);
             textureFrame.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
             textureFrame.GetComponent<RenderData>().TextureArea = new Rectangle(55, 20, 50, 50);
-            textureFrame.GetComponent<RenderData>().TextureArea = new Rectangle(0, 50, 50, 50);
             AddEntity(textureFrame);
 
             Entity animatedFrame = Entity.CreateBasicDrawable("animatedFrame");
@@ -118,38 +117,66 @@ namespace Examples.Basic
             animatedFrame.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
             animatedFrame.AttachComponent<AnimationData>();
             animatedFrame.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
-            animatedFrame.GetComponent<AnimationData>().FrameTime = 1000;
+            animatedFrame.GetComponent<AnimationData>().FrameTime = 300;
 
             AddEntity(animatedFrame);
 
-            /*
-             * 
-             *
-            textureFrame.AddChild("animatedFrame", new Texture("imageTest.png"));
-            textureFrame.GetChild<Texture>("animatedFrame").Position = new Vector2(0, 60);
-            textureFrame.GetChild<Texture>("animatedFrame").Animate(new Vector2(50, 50), 300);
-            textureFrame.AddChild("animatedFrameReverse", new Texture("imageTest.png"));
-            textureFrame.GetChild<Texture>("animatedFrameReverse").Position = new Vector2(60, 60);
-            textureFrame.GetChild<Texture>("animatedFrameReverse").Animate(new Vector2(50, 50), 300, LoopType.Reverse);
-            textureFrame.AddChild("animatedFrameNormalThenReverse", new Texture("imageTest.png"));
-            textureFrame.GetChild<Texture>("animatedFrameNormalThenReverse").Position = new Vector2(120, 60);
-            textureFrame.GetChild<Texture>("animatedFrameNormalThenReverse")
-                .Animate(new Vector2(50, 50), 300, LoopType.NormalThenReverse);
-            textureFrame.AddChild("animatedFrameOnce", new Texture("imageTest.png"));
-            textureFrame.GetChild<Texture>("animatedFrameOnce").Position = new Vector2(0, 120);
-            textureFrame.GetChild<Texture>("animatedFrameOnce").Animate(new Vector2(50, 50), 300, LoopType.None);
-            textureFrame.AddChild("animatedFrameOnceReverse", new Texture("imageTest.png"));
-            textureFrame.GetChild<Texture>("animatedFrameOnceReverse").Position = new Vector2(60, 120);
-            textureFrame.GetChild<Texture>("animatedFrameOnceReverse")
-                .Animate(new Vector2(50, 50), 300, LoopType.NoneReverse);
-            textureFrame.AddChild("animatedLimitedRange", new Texture("imageTest.png"));
-            textureFrame.GetChild<Texture>("animatedLimitedRange").Position = new Vector2(120, 120);
-            textureFrame.GetChild<Texture>("animatedLimitedRange")
-                .Animate(new Vector2(50, 50), 300, LoopType.NormalThenReverse, 4, 6);
+            Entity animatedFrameReverse = Entity.CreateBasicDrawable("animatedFrameReverse");
+            animatedFrameReverse.GetComponent<Transform>().Position = new Vector2(50, 290);
+            animatedFrameReverse.GetComponent<Transform>().Size = new Vector2(50, 50);
+            animatedFrameReverse.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+            animatedFrameReverse.AttachComponent<AnimationData>();
+            animatedFrameReverse.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
+            animatedFrameReverse.GetComponent<AnimationData>().FrameTime = 300;
+            animatedFrameReverse.GetComponent<AnimationData>().LoopType = AnimationLoopType.Reverse;
 
-            AddChild("textureFrame", textureFrame);
-             * 
-             */
+            AddEntity(animatedFrameReverse);
+
+            Entity animatedFrameNormalThenReverse = Entity.CreateBasicDrawable("animatedFrameNormalThenReverse");
+            animatedFrameNormalThenReverse.GetComponent<Transform>().Position = new Vector2(50, 350);
+            animatedFrameNormalThenReverse.GetComponent<Transform>().Size = new Vector2(50, 50);
+            animatedFrameNormalThenReverse.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+            animatedFrameNormalThenReverse.AttachComponent<AnimationData>();
+            animatedFrameNormalThenReverse.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
+            animatedFrameNormalThenReverse.GetComponent<AnimationData>().FrameTime = 300;
+            animatedFrameNormalThenReverse.GetComponent<AnimationData>().LoopType = AnimationLoopType.NormalThenReverse;
+
+            AddEntity(animatedFrameNormalThenReverse);
+
+            Entity animatedFrameOnce = Entity.CreateBasicDrawable("animatedFrameOnce");
+            animatedFrameOnce.GetComponent<Transform>().Position = new Vector2(50, 410);
+            animatedFrameOnce.GetComponent<Transform>().Size = new Vector2(50, 50);
+            animatedFrameOnce.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+            animatedFrameOnce.AttachComponent<AnimationData>();
+            animatedFrameOnce.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
+            animatedFrameOnce.GetComponent<AnimationData>().FrameTime = 300;
+            animatedFrameOnce.GetComponent<AnimationData>().LoopType = AnimationLoopType.None;
+
+            AddEntity(animatedFrameOnce);
+
+            Entity animatedFrameOnceReverse = Entity.CreateBasicDrawable("animatedFrameOnceReverse");
+            animatedFrameOnceReverse.GetComponent<Transform>().Position = new Vector2(50, 470);
+            animatedFrameOnceReverse.GetComponent<Transform>().Size = new Vector2(50, 50);
+            animatedFrameOnceReverse.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+            animatedFrameOnceReverse.AttachComponent<AnimationData>();
+            animatedFrameOnceReverse.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
+            animatedFrameOnceReverse.GetComponent<AnimationData>().FrameTime = 300;
+            animatedFrameOnceReverse.GetComponent<AnimationData>().LoopType = AnimationLoopType.NoneReverse;
+
+            AddEntity(animatedFrameOnceReverse);
+
+            Entity animatedLimitedRange = Entity.CreateBasicDrawable("animatedLimitedRange");
+            animatedLimitedRange.GetComponent<Transform>().Position = new Vector2(110, 230);
+            animatedLimitedRange.GetComponent<Transform>().Size = new Vector2(50, 50);
+            animatedLimitedRange.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
+            animatedLimitedRange.AttachComponent<AnimationData>();
+            animatedLimitedRange.GetComponent<AnimationData>().FrameSize = new Vector2(50, 50);
+            animatedLimitedRange.GetComponent<AnimationData>().FrameTime = 300;
+            animatedLimitedRange.GetComponent<AnimationData>().StartingFrame = 3;
+            animatedLimitedRange.GetComponent<AnimationData>().EndingFrame = 5;
+            animatedLimitedRange.GetComponent<AnimationData>().LoopType = AnimationLoopType.Normal;
+
+            AddEntity(animatedLimitedRange);
         }
 
         protected override void Update()
