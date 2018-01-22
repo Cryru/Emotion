@@ -4,19 +4,21 @@
 
 ## What is it?
 
-todo
+SoulEngine is a 2D orientated game engine based on the idea of low level code writing, flexibility, and control as opposed to the higher level GUI approach big engines have. The project's goal is to provide easy to use, and understand, APIs and concepts for programmers which prefer to write code over dragging and dropping objects, and digging through menus.
 
 ## Updates
 
-While I try to update the engine as often as possible, that is not always possible as life gets in the way, so most of the big changes and rewrites are left to big yearly updates. This year's version can be found here and is in development, while older versions can be found at these links:
+While I try to update the engine as often as possible, most of the big features, refactorings, and rewrites are done in the form of big yearly updates. The newest version is found on the [master branch](https://github.com/Cryru/SoulEngine), while older versions can be found on the other branches, or at these links:
 
-* [SoulEngine 2017](https://github.com/Cryru/SoulEngine-2017)
-* [SoulEngine 2016](https://github.com/Cryru/SoulEngine-2016)
-* [SoulEngine 2016 Android](https://github.com/Cryru/SoulEngine-2016-Android)
+* [SoulEngine 2017](https://github.com/Cryru/SoulEngine/tree/2017)
+* [SoulEngine 2016](https://github.com/Cryru/SoulEngine/tree/2016)
+* [SoulEngine 2016 Android](https://github.com/Cryru/SoulEngine/tree/2016Android)
 
 ## This Year's Idea
 
-todo
+The goal of the 2018 version is to move away from XNA/Monogame. This is done by using a small library called Breath based on OpenTK allowing for more control over the OpenGL and OpenAL APIs, and easier cross-platform compatibility. This version always features a custom asset packer based on last version's asset loading extensions.
+
+On the game development side 2018 introduces the concept of "systems". Classes which group entities based on components and execute code on them. Moving from 2017's EC (entity-component) model to a ECS (entity-component-system) model where components are pure data.
 
 ## Features and Progress
 
@@ -32,13 +34,13 @@ todo
 - Scene System [&#10003;]
 - Drawing Primitive Shapes and Custom Polygons [&#10003;] (Breath) - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
   - Texturing shapes [&#10003;] (Breath)
-- Simple Input System
-- Physics Engine [&#10003;] - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
+- Mouse/Keyboard Input System [&#10003;] (OpenTK)
+- Physics Engine [&#10003;] (SoulPhysics) - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
 - Asset Packing, and Protection [&#10003;]
-- Texture Rendering and Animation - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
+- Texture Rendering and Animation [&#10003;] (Breath) - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
   - Supported: PNG, JPEG, BMP
   - Unsupported: ICO
-- Window Icon 
+- Window Icon and Native Stuff
 - Advanced Text Rendering With Markup
 
 ## Libraries Used:
