@@ -22,25 +22,25 @@ On the game development side 2018 introduces the concept of "systems". Classes w
 
 ## Features and Progress
 
+- Window Control [&#10003;] (OpenTK)
 - Resolution Adaptation with Boxing [&#10003;] (Breath)
-- Borderless, Fullscreen, and Windowed Mode Switching
+- Borderless, Fullscreen, and Windowed Mode Switching and Support
 - Camera System
 - FPS Independent Timing [&#10003;] (OpenTK)
 - Logging [&#10003;] (SoulLib)
 - Debugging Console [&#10003;]
 - Error Handling System [&#10003;]
 - Asynchronous Javascript Scripting [&#10003;] (Jint)
-- Entity-Component-System Pattern [&#10003;]
+- Entity-Component-System Pattern [&#10003;] - [Example](/SoulEngine/Examples/Basic/ECSTest.cs)
 - Scene System [&#10003;]
-- Drawing Primitive Shapes and Custom Polygons [&#10003;] (Breath) - [ShapeTest](/SoulEngine/Examples/Basic/ShapeTest.cs)
+- Drawing Primitive Shapes and Custom Polygons [&#10003;] (Breath) - [Example](/SoulEngine/Examples/Basic/ShapeTest.cs)
   - Texturing shapes [&#10003;] (Breath)
-- Mouse/Keyboard Input System [&#10003;] (OpenTK)
-- Physics Engine [&#10003;] (SoulPhysics) - [PhysicsTest](/SoulEngine/Examples/Basic/PhysicsTest.cs)
+- Mouse/Keyboard Input System [&#10003;] (OpenTK) - [Example](/SoulEngine/Examples/Basic/InputTest.cs)
+- Physics Engine [&#10003;] (SoulPhysics) - [Example](/SoulEngine/Examples/Basic/PhysicsTest.cs)
 - Asset Packing, and Protection [&#10003;]
-- Texture Rendering and Animation [&#10003;] (Breath) - [TextureTest](/SoulEngine/Examples/Basic/TextureTest.cs)
+- Texture Rendering and Animation [&#10003;] (Breath) - [Example](/SoulEngine/Examples/Basic/TextureTest.cs)
   - Supported: PNG, JPEG, BMP
   - Unsupported: ICO
-- Window Icon and Native Stuff
 - Advanced Text Rendering With Markup
 
 ## Libraries Used:
