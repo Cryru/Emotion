@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Soul.Engine.Enums;
 using Soul.Engine.Scenography;
 
@@ -98,7 +97,8 @@ namespace Soul.Engine.Modules
 
             // Update the scene if it's not null and loaded, else update the loading screen.
             if (CurrentScene != null && !isSceneLoading) CurrentScene.Run();
-            else if (LoadedScenes.ContainsKey("__loading__")) LoadedScenes["__loading__"].Run();
+            else if (LoadedScenes.ContainsKey("__loading__"))
+                LoadedScenes["__loading__"].Run();
         }
 
         #endregion
@@ -107,7 +107,8 @@ namespace Soul.Engine.Modules
         {
             // Draw the scene if it's not null, and loaded else draw the loading screen.
             if (CurrentScene != null && !isSceneLoading) CurrentScene.Draw();
-            else if (LoadedScenes.ContainsKey("__loading__")) LoadedScenes["__loading__"].Draw();
+            else if (LoadedScenes.ContainsKey("__loading__"))
+                LoadedScenes["__loading__"].Draw();
         }
 
         #region Functions

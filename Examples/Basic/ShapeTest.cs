@@ -253,125 +253,61 @@ namespace Examples.Basic
                                "}" +
                                "");
 
-            //// Spinning shapes.
+            // Textures Shapes
 
-            //Entity colorCircle = new Entity();
-            //colorCircle.AddComponent("colorCircle", new BasicShape());
-            //colorCircle.GetChild<BasicShape>("colorCircle").Type = ShapeType.Circle;
-            //colorCircle.GetChild<BasicShape>("colorCircle").Color =
-            //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
-            //        Functions.GenerateRandomNumber(0, 255));
-            //colorCircle.Position = new Vector2(50, 350);
-            //colorCircle.Size = new Vector2(50, 50);
+            AssetLoader.LoadTexture("imageTest.png");
 
-            //AddComponent("colorCircle", colorCircle);
+            Entity texturedCircle = new Entity("texturedCircle");
+            texturedCircle.AttachComponent<Transform>();
+            texturedCircle.GetComponent<Transform>().Position = new Vector2(50, 350);
+            texturedCircle.GetComponent<Transform>().Size = new Vector2(50, 50);
+            texturedCircle.AttachComponent<RenderData>();
+            texturedCircle.GetComponent<RenderData>().ApplyTemplate_Circle();
+            texturedCircle.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
 
-            //Entity colorLine = new Entity();
-            //colorLine.AddComponent("colorLine", new BasicShape());
-            //colorLine.GetChild<BasicShape>("colorLine").Type = ShapeType.Line;
-            //colorLine.GetChild<BasicShape>("colorLine").Color =
-            //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
-            //        Functions.GenerateRandomNumber(0, 255));
-            //colorLine.Position = new Vector2(150, 350);
-            //colorLine.Size = new Vector2(200, 350);
+            AddEntity(texturedCircle);
 
-            //AddComponent("colorLine", colorLine);
+            Entity texturedLine = new Entity("texturedLine");
+            texturedLine.AttachComponent<Transform>();
+            texturedLine.GetComponent<Transform>().Position = new Vector2(0, 0);
+            texturedLine.GetComponent<Transform>().Size = new Vector2(1, 1);
+            texturedLine.AttachComponent<RenderData>();
+            texturedLine.GetComponent<RenderData>().SetPointCount(2);
+            texturedLine.GetComponent<RenderData>().SetPoint(0, new Vector2(150, 350));
+            texturedLine.GetComponent<RenderData>().SetPoint(1, new Vector2(200, 350));
+            texturedLine.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
 
-            //Entity colorRect = new Entity();
-            //colorRect.AddComponent("colorRect", new BasicShape());
-            //colorRect.GetChild<BasicShape>("colorRect").Type = ShapeType.Rectangle;
-            //colorRect.GetChild<BasicShape>("colorRect").Color =
-            //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
-            //        Functions.GenerateRandomNumber(0, 255));
-            //colorRect.Position = new Vector2(250, 350);
-            //colorRect.Size = new Vector2(50, 50);
+            AddEntity(texturedLine);
 
-            //AddComponent("colorRect", colorRect);
+            Entity texturedRect = new Entity("texturedRect");
+            texturedRect.AttachComponent<Transform>();
+            texturedRect.GetComponent<Transform>().Position = new Vector2(250, 350);
+            texturedRect.GetComponent<Transform>().Size = new Vector2(50, 50);
+            texturedRect.AttachComponent<RenderData>();
+            texturedRect.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            texturedRect.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
 
-            //Entity colorTri = new Entity();
-            //colorTri.AddComponent("colorTri", new BasicShape());
-            //colorTri.GetChild<BasicShape>("colorTri").Type = ShapeType.Triangle;
-            //colorTri.GetChild<BasicShape>("colorTri").Color =
-            //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
-            //        Functions.GenerateRandomNumber(0, 255));
-            //colorTri.Position = new Vector2(350, 350);
-            //colorTri.Size = new Vector2(50, 50);
+            AddEntity(texturedRect);
 
-            //AddComponent("colorTri", colorTri);
+            Entity texturedTri = new Entity("texturedTri");
+            texturedTri.AttachComponent<Transform>();
+            texturedTri.GetComponent<Transform>().Position = new Vector2(350, 350);
+            texturedTri.GetComponent<Transform>().Size = new Vector2(50, 50);
+            texturedTri.AttachComponent<RenderData>();
+            texturedTri.GetComponent<RenderData>().ApplyTemplate_Triangle();
+            texturedTri.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
 
-            //Entity colorPoly = new Entity();
-            //colorPoly.AddComponent("colorPoly", new BasicShape());
-            //colorPoly.GetChild<BasicShape>("colorPoly").Type = ShapeType.Polygon;
-            //colorPoly.GetChild<BasicShape>("colorPoly").Color =
-            //    new Color(Functions.GenerateRandomNumber(0, 255), Functions.GenerateRandomNumber(0, 255),
-            //        Functions.GenerateRandomNumber(0, 255));
-            //colorPoly.GetChild<BasicShape>().PolygonVertices = vert;
-            //colorPoly.Position = new Vector2(450, 350);
+            AddEntity(texturedTri);
 
-            //AddComponent("colorPoly", colorPoly);
+            Entity texturedPoly = new Entity("texturedPoly");
+            texturedPoly.AttachComponent<Transform>();
+            texturedPoly.GetComponent<Transform>().Position = new Vector2(450, 350);
+            texturedPoly.GetComponent<Transform>().Size = new Vector2(1, 1);
+            texturedPoly.AttachComponent<RenderData>();
+            texturedPoly.GetComponent<RenderData>().SetVertices(customPoly);
+            texturedPoly.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("imageTest.png"));
 
-            //// Textured Shapes.
-
-            //Entity texturedCircle = new Entity();
-            //texturedCircle.AddComponent("circle", new BasicShape());
-            //texturedCircle.GetChild<BasicShape>("circle").Type = ShapeType.Circle;
-            //texturedCircle.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
-            //texturedCircle.Position = new Vector2(50, 450);
-            //texturedCircle.Size = new Vector2(50, 50);
-
-            //AddComponent("texturedCircle", texturedCircle);
-
-            //Entity texturedLine = new Entity();
-            //texturedLine.AddComponent("line", new BasicShape());
-            //texturedLine.GetChild<BasicShape>("line").Type = ShapeType.Line;
-            //texturedLine.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
-            //texturedLine.Position = new Vector2(150, 450);
-            //texturedLine.Size = new Vector2(200, 450);
-
-            //AddComponent("texturedLine", texturedLine);
-
-            //Entity texturedRect = new Entity();
-            //texturedRect.AddComponent("rect", new BasicShape());
-            //texturedRect.GetChild<BasicShape>("rect").Type = ShapeType.Rectangle;
-            //texturedRect.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
-            //texturedRect.Position = new Vector2(250, 450);
-            //texturedRect.Size = new Vector2(50, 50);
-
-            //AddComponent("texturedRect", texturedRect);
-
-            //Entity texturedTriangle = new Entity();
-            //texturedTriangle.AddComponent("tri", new BasicShape());
-            //texturedTriangle.GetChild<BasicShape>("tri").Type = ShapeType.Triangle;
-            //texturedTriangle.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
-            //texturedTriangle.Position = new Vector2(350, 450);
-            //texturedTriangle.Size = new Vector2(50, 50);
-
-            //AddComponent("texturedTriangle", texturedTriangle);
-
-            //Entity texturedPoly = new Entity();
-            //texturedPoly.AddComponent("poly", new BasicShape());
-            //texturedPoly.GetChild<BasicShape>("poly").Type = ShapeType.Polygon;
-            //texturedPoly.GetChild<BasicShape>().PolygonVertices = vert;
-            //texturedPoly.GetChild<BasicShape>().AddComponent("texture", new Texture("imageTest.png"));
-            //texturedPoly.GetChild<BasicShape>().GetChild<Texture>().Animate(new Vector2(50, 50), 200);
-            //texturedPoly.Position = new Vector2(450, 450);
-
-            //AddComponent("texturedPoly", texturedPoly);
-
-            //// Change the shape colors with a script.
-            //ScriptEngine.Expose("colorCircle", colorCircle);
-            //ScriptEngine.Expose("colorLine", colorLine);
-            //ScriptEngine.Expose("colorRect", colorRect);
-            //ScriptEngine.Expose("colorTri", colorTri);
-            //ScriptEngine.Expose("colorPoly", colorPoly);
-            //ScriptEngine.Expose("ChangeColor", (Action<Entity>) ChangeColor);
-            //ScriptEngine.RunScript("register(function() {" +
-            //                       " ChangeColor(colorCircle); " +
-            //                       " ChangeColor(colorLine); " +
-            //                       " ChangeColor(colorRect); " +
-            //                       " ChangeColor(colorTri); " +
-            //                       " ChangeColor(colorPoly); " +
-            //                       "});");
+            AddEntity(texturedPoly);
         }
 
         private void ChangeColor(Entity obj)

@@ -56,7 +56,7 @@ namespace Soul.Engine.ECS.Systems
 
         protected internal override Type[] GetRequirements()
         {
-            return new[] { typeof(PhysicsObject), typeof(Transform) };
+            return new[] {typeof(PhysicsObject), typeof(Transform)};
         }
 
         protected internal override void Setup()
@@ -144,17 +144,13 @@ namespace Soul.Engine.ECS.Systems
 
                 // Set the physics body's position according to the transform's center.
                 if (physics.Shape != PhysicsShapeType.Polygon)
-                {
                     physics.Body.Position = PixelToPhysics(transform.Center);
-                }
                 else
-                {
-                    // Bounds.X + Bounds.Width / 2, Bounds.Y + Bounds.Height / 2
-                    physics.Body.Position = PixelToPhysics(new Vector2(transform.X + physics.PolygonSizeOffset.X / 2, transform.Y + physics.PolygonSizeOffset.Y / 2));
-                }
-                
+                    physics.Body.Position = PixelToPhysics(new Vector2(transform.X + physics.PolygonSizeOffset.X / 2,
+                        transform.Y + physics.PolygonSizeOffset.Y / 2));
+
 #if DEBUG
-                Debugging.DebugMessage(DebugMessageType.InfoGreen,
+                Debugging.DebugMessage(ErrorOrigin.Physics,
                     "Created physics body of type " + physics.SimulationType + " and shape " + physics.Shape);
 #endif
             }
@@ -171,8 +167,8 @@ namespace Soul.Engine.ECS.Systems
                 // Custom center implementation as the size of the polygon within the Transform is 1x1.
                 Vector2 physicsLocation = PhysicsToPixel(physics.Body.Position.X, physics.Body.Position.Y);
 
-                transform.X = (int)(physicsLocation.X - physics.PolygonSizeOffset.X / 2);
-                transform.Y = (int)(physicsLocation.Y - physics.PolygonSizeOffset.Y / 2);
+                transform.X = (int) (physicsLocation.X - physics.PolygonSizeOffset.X / 2);
+                transform.Y = (int) (physicsLocation.Y - physics.PolygonSizeOffset.Y / 2);
             }
 
             transform.Rotation = physics.Body.Rotation;
@@ -200,7 +196,7 @@ namespace Soul.Engine.ECS.Systems
         /// </summary>
         public static Vector2 PhysicsToPixel(float x, float y)
         {
-            return new Vector2((int)(x * Scale), (int)(y * Scale));
+            return new Vector2((int) (x * Scale), (int) (y * Scale));
         }
 
         /// <summary>

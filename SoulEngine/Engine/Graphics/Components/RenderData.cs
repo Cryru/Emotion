@@ -49,17 +49,27 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public Rectangle TextureArea
         {
-            get { return _textureArea; }
+            get
+            {
+                // if the texture vvertices are a rectangle, generate a rectangle object from the vertices and return it.
+                if (_textureVertices != null && _textureVertices.Length == 4)
+                {
+                    return new Rectangle(_textureVertices[0].X, _textureVertices[0].Y, _textureVertices[2].X, _textureVertices[2].Y);
+                }
+
+                // Otherwise return a zero rectangle.
+                return Rectangle.Zero;
+            }
             set
             {
-                // Check if textures have been applied.
-                if (TextureVBO == null || Texture == null) return;
-
+                // Check if the texture vertices have been created, and are populated with a rectangle.
                 if (_textureVertices == null || _textureVertices.Length != 4)
                 {
+                    // Generate an empty rectangle.
                     _textureVertices = new[] { new Vector2(), new Vector2(), new Vector2(), new Vector2() };
                 }
 
+                // Resize rectangle to provided values.
                 _textureVertices[0].X = value.X;
                 _textureVertices[0].Y = value.Y;
 
@@ -72,12 +82,10 @@ namespace Soul.Engine.Graphics.Components
                 _textureVertices[3].X = value.X;
                 _textureVertices[3].Y = value.Y + value.Height;
 
-                TextureVBO.Upload(_textureVertices);
-                _textureArea = value;
+                // Upload.
+                SetTextureVertices(_textureVertices);
             }
         }
-
-        private Vector2[] _textureVertices;
 
         #region VBOs
 
@@ -94,11 +102,18 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public Matrix4 ModelMatrix = Matrix4.Identity;
 
-        internal Vector2[] _vertices = { };
+        /// <summary>
+        /// The vertices representing this object.
+        /// </summary>
+        internal Vector2[] Vertices = { };
 
+        /// <summary>
+        /// The texture to render on this object.
+        /// </summary>
         internal Texture Texture;
-
-        private Rectangle _textureArea;
+        
+        // The texture area as vertices.
+        private Vector2[] _textureVertices;
 
         #endregion
 
@@ -123,7 +138,7 @@ namespace Soul.Engine.Graphics.Components
         /// <returns>The number of points in the polygon.</returns>
         public int GetPointCount()
         {
-            return _vertices.Length;
+            return Vertices.Length;
         }
 
         /// <summary>
@@ -132,7 +147,7 @@ namespace Soul.Engine.Graphics.Components
         /// <param name="size">The number of points the polygon should have.</param>
         public void SetPointCount(int size)
         {
-            Array.Resize(ref _vertices, size);
+            Array.Resize(ref Vertices, size);
         }
 
         /// <summary>
@@ -142,10 +157,10 @@ namespace Soul.Engine.Graphics.Components
         /// <returns>The point with the specified index.</returns>
         public Vector2 GetPoint(int index)
         {
-            if (_vertices.Length - 1 < index || index < 0)
+            if (Vertices.Length - 1 < index || index < 0)
                 return Vector2.Zero;
 
-            return _vertices[index];
+            return Vertices[index];
         }
 
         /// <summary>
@@ -155,10 +170,10 @@ namespace Soul.Engine.Graphics.Components
         /// <param name="point">The point to change it with.</param>
         public void SetPoint(int index, Vector2 point)
         {
-            if (_vertices.Length - 1 < index || index < 0)
+            if (Vertices.Length - 1 < index || index < 0)
                 return;
 
-            _vertices[index] = point;
+            Vertices[index] = point;
             HasUpdated = true;
         }
 
@@ -167,12 +182,28 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void UpdateVertices()
         {
-            if (_vertices.Length == 0) return;
+            if (Vertices.Length == 0) return;
 
-            VerticesVBO.Upload(_vertices);
+            VerticesVBO.Upload(Vertices);
             UpdateColor();
 
             HasUpdated = false;
+        }
+
+        /// <summary>
+        /// Applies an array of vectors as the texture vertices.
+        /// </summary>
+        /// <param name="verts">The vertices to upload as texture vertices.</param>
+        public void SetTextureVertices(Vector2[] verts)
+        {
+            // Create a VBO if missing.
+            if (TextureVBO == null) TextureVBO = new VBO();
+
+            // Override vertices holder.
+            _textureVertices = verts;
+
+            // Upload.
+            TextureVBO.Upload(verts);
         }
 
         #endregion
@@ -184,7 +215,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         private void UpdateColor()
         {
-            ColorVBO.Upload(_color.ToVertexArray(_vertices.Length));
+            ColorVBO.Upload(_color.ToVertexArray(Vertices.Length));
         }
 
         #endregion
@@ -193,9 +224,6 @@ namespace Soul.Engine.Graphics.Components
 
         public void ApplyTexture(Texture texture)
         {
-            // Generate a texture VBO if it doesn't exist.
-            if (TextureVBO == null) TextureVBO = new VBO();
-
             Texture = texture;
 
             // Set the texture area to full by default.

@@ -109,7 +109,6 @@ namespace Examples.Basic
             AddEntity(mouseIndicator);
 
             AddSystem(new PhysicsEngine(PhysicsEngine.DefaultGravity));
-            AddSystem(new TransformCleanup());
         }
 
         protected override void Update()

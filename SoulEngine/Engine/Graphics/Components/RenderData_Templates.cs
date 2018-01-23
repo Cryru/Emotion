@@ -23,7 +23,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Rectangle()
         {
-            _vertices = _rectangleVertices;
+            Vertices = _rectangleVertices;
             VerticesVBO = RectangleVBO;
 
             HasUpdated = true;
@@ -34,7 +34,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Triangle()
         {           
-            _vertices = _triangleVertices;
+            Vertices = _triangleVertices;
             VerticesVBO = TriangleVBO;
 
             HasUpdated = true;
@@ -45,7 +45,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Circle()
         {
-            _vertices = _circleVertices;
+            Vertices = _circleVertices;
             VerticesVBO = CircleVBO;
 
             HasUpdated = true;

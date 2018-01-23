@@ -9,11 +9,11 @@ using Soul.Engine.Scenography;
 
 namespace Examples.Basic
 {
-    public class CoreTest : Scene
+    public class EntityCleanupTest : Scene
     {
         public static void Main()
         {
-            Core.Setup(new CoreTest());
+            Core.Setup(new EntityCleanupTest());
         }
 
         protected override void Setup()

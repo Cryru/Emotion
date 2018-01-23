@@ -52,15 +52,15 @@ namespace Soul.Engine.Graphics.Systems
                 Vector2 offset = new Vector2(0, 0);
 
                 // Check if a line.
-                if (renderData._vertices.Length == 2)
+                if (renderData.Vertices.Length == 2)
                 {
                     // If a line the center is the first point.
-                    center = renderData._vertices[0];
+                    center = renderData.Vertices[0];
                 }
                 else
                 {
                     // Calculate the bounds of the vertices.
-                    Vector2 calculatedSize = Helpers.CalculateSizeFromVertices(renderData._vertices, transform.Size, out offset);
+                    Vector2 calculatedSize = Helpers.CalculateSizeFromVertices(renderData.Vertices, transform.Size, out offset);
 
                     // Calculate center.
                     center = new Vector2(transform.X + calculatedSize.X / 2, transform.Y + calculatedSize.Y / 2);

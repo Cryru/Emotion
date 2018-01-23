@@ -31,7 +31,7 @@ namespace Soul.Engine.Scenography
         /// <summary>
         /// Current scene entities.
         /// </summary>
-        protected Dictionary<string, Entity> RegisteredEntities;
+        protected internal Dictionary<string, Entity> RegisteredEntities;
 
         /// <summary>
         /// The drawing hook for the scene.
@@ -183,6 +183,23 @@ namespace Soul.Engine.Scenography
 
             // Order systems by priority.
             RunningSystems = RunningSystems.OrderBy(x => x.Priority).ToList();
+        }
+
+        /// <summary>
+        /// Returns a running system of the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type of system to return, or the type default if no system of that type is running.</typeparam>
+        public T GetSystem<T>()
+        {
+            foreach (SystemBase sys in RunningSystems)
+            {
+                if (sys is T)
+                {
+                    return (T)System.Convert.ChangeType(sys, typeof(T));
+                }
+            }
+
+            return default(T);
         }
 
         public void RemoveSystem(SystemBase system)
