@@ -51,6 +51,11 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static string _command = "";
 
+        /// <summary>
+        /// The process handle of the application.
+        /// </summary>
+        private static Process _currentProcess;
+
         #endregion
 
         #region Module API
@@ -60,6 +65,9 @@ namespace Soul.Engine.Modules
         /// </summary>
         internal static void Setup()
         {
+            // Get the process.
+            _currentProcess = Process.GetCurrentProcess();
+
             // Start the boot timer.
             _bootTimer = new Stopwatch();
             _bootTimer.Start();
@@ -175,14 +183,19 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static void SetupDebuggingLibrary()
         {
-            Scripting.Expose("test", (Action)Test);
+            Scripting.Expose("help", (Action)Help);
+            Scripting.Expose("ram", (Func<string>)Ram);
         }
 
-        private static void Test()
+        private static string Ram()
         {
-            Settings.WWidth += 10;
+            return (_currentProcess.PrivateMemorySize64 / 1024 / 1024) + "mb";
         }
 
+        private static void Help()
+        {
+            Scripting.RunScript("Object.keys(this)");
+        }
         #endregion
     }
 }

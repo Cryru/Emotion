@@ -48,7 +48,7 @@ namespace Soul.Engine.ECS.Systems
             if (animData.Finished) return;
 
             // Add to the animation data timer.
-            animData.Timer += Window.Current.FrameTime * 1000;
+            animData.Timer += Window.Current.FrameTime;
 
             // Check if time has passed for a frame switch.
             if (animData.Timer >= animData.FrameTime)
