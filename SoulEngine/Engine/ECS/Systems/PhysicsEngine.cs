@@ -150,7 +150,7 @@ namespace Soul.Engine.ECS.Systems
                         transform.Y + physics.PolygonSizeOffset.Y / 2));
 
 #if DEBUG
-                Debugging.DebugMessage(ErrorOrigin.Physics,
+                Debugging.DebugMessage(DebugMessageType.InfoGreen,
                     "Created physics body of type " + physics.SimulationType + " and shape " + physics.Shape);
 #endif
             }
