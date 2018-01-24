@@ -6,11 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
+using System.Runtime.InteropServices;
 using Breath.Objects;
 using Soul.Encryption;
 using Soul.Engine.Enums;
 using Soul.IO;
+using SharpFont;
 
 #endregion
 
@@ -18,7 +22,7 @@ namespace Soul.Engine.Modules
 {
     public static class AssetLoader
     {
-        #region Secure Mode
+        #region Secure Mode Variables
 
         /// <summary>
         /// Assets meta.
@@ -44,6 +48,20 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static Dictionary<string, Texture> _loadedTextures = new Dictionary<string, Texture>();
 
+        /// <summary>
+        /// Currently loaded fonts.
+        /// </summary>
+        private static Dictionary<string, Font> _loadedFonts = new Dictionary<string, Font>();
+
+        #endregion
+
+        #region Others
+
+        /// <summary>
+        /// An instance of the Freetype library.
+        /// </summary>
+        internal static SharpFont.Library FreeTypeLib = new SharpFont.Library();
+
         #endregion
 
         #region Loading Functions
@@ -51,7 +69,7 @@ namespace Soul.Engine.Modules
         #region Texture
 
         /// <summary>
-        /// Loads a texture with the provided path. If the texture is already loaded nothing is done.
+        /// Loads a texture from the provided path. If the texture is already loaded nothing is done.
         /// </summary>
         /// <param name="path">The image file to load.</param>
         public static void LoadTexture(string path)
@@ -115,66 +133,111 @@ namespace Soul.Engine.Modules
 
         #endregion
 
-        //#region Font
+        #region Font
 
-        ///// <summary>
-        ///// Loads a font with the provided name. If the font is already loaded nothing is done.
-        ///// </summary>
-        ///// <param name="name">The name of the font file to load.</param>
-        //public static void LoadFont(string name)
-        //{
-        //    // Check if already loaded.
-        //    if (_loadedFonts.ContainsKey(name))
-        //        Debugger.DebugMessage(Enums.DebugMessageSource.AssetLoader,
-        //            "Tried to load already loaded font: " + name);
+        /// <summary>
+        /// Loads a font from the provided path. If the texture is already loaded nothing is done.
+        /// </summary>
+        /// <param name="path">The image file to load.</param>
+        public static void LoadFont(string path)
+        {
+#if DEBUG
+            // Check if already loaded.
+            if (_loadedTextures.ContainsKey(path))
+                Debugging.DebugMessage(DebugMessageType.Warning, "Tried to load already loaded font: " + path);
+#endif
 
-        //    byte[] readData = LoadFile(name);
+            byte[] readData = LoadFile(path);
 
-        //    // Check if reading failed.
-        //    if (readData == null) return;
+            // Check if reading failed.
+            if (readData == null) return;
 
-        //    // Load the data into a font and add it to the loaded list.
-        //    try
-        //    {
-        //        Font font = new Font(readData);
-        //        _loadedFonts.Add(name, font);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        Error.Raise(245, "Failed to load asset " + name + " as a font.");
-        //    }
-        //}
+            // Load the data into a texture and add it to the loaded list.
+            //try
+            //{
+                //// Load a font family from memory.
+                //FontFamily fontFamily;
+                //GCHandle handle = GCHandle.Alloc(readData, GCHandleType.Pinned);
+                //try {
+                //    IntPtr ptr = Marshal.UnsafeAddrOfPinnedArrayElement(readData, 0);
+                //    using (PrivateFontCollection pvc = new PrivateFontCollection()) {
+                //        pvc.AddMemoryFont(ptr, readData.Length);
+                //        fontFamily = pvc.Families[0];
+                //    }
+                //} finally {
+                //    handle.Free();
+                //}
 
-        ///// <summary>
-        ///// Unloads a loaded font.
-        ///// </summary>
-        ///// <param name="name">The name of the font to unload.</param>
-        //public static void UnloadFont(string name)
-        //{
-        //    // Check if loaded.
-        //    if (_loadedFonts.ContainsKey(name))
-        //    {
-        //        // Dispose of it.
-        //        _loadedFonts[name].Dispose();
-        //        // Remove it from the list.
-        //        _loadedFonts.Remove(name);
-        //    }
-        //}
 
-        ///// <summary>
-        ///// Returns the loaded font. If it isn't loaded it will be.
-        ///// </summary>
-        ///// <param name="name">The name of the font to get.</param>
-        //public static Font GetFont(string name)
-        //{
-        //    // Check if loaded.
-        //    if (!_loadedFonts.ContainsKey(name)) LoadFont(name);
+                //// Create a font with it.
+                //Font font = new Font(fontFamily, 50);
+                //_loadedFonts.Add(path, font);
 
-        //    // Return the loaded font.
-        //    return _loadedFonts[name];
-        //}
 
-        //#endregion
+                
+
+                //Bitmap a = new Bitmap(500, 500);
+                //System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(a);
+                //g.TextRenderingHint = TextRenderingHint.SingleBitPerPixel;
+                //g.DrawString("Hey Simo", font, Brushes.White, new PointF(0, 0));
+                //g.Save();
+
+                //Texture test = new Texture(null);
+                //test.Upload(a);
+                //_loadedTextures.Add("test", test);
+
+                // Load the freetype face.
+                Face face = new Face(FreeTypeLib, readData, 0);
+                //face.SetPixelSizes(50, 50);
+                face.LoadChar(face.GetCharIndex(35), LoadFlags.Default, LoadTarget.Normal);
+                var a = face.Glyph;
+                Bitmap b = a.Bitmap.ToGdipBitmap();
+
+                Texture t = new Texture(null);
+            t.Upload(b);
+                _loadedTextures.Add("test", t);
+
+#if DEBUG
+               // Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded font " + font.Name + " of size " + font.Size + " from [" + path + "]");
+#endif
+
+            //}
+            //catch (Exception e)
+            //{
+            //    ErrorHandling.Raise(ErrorOrigin.AssetManager, "Failed to load asset " + path + " as a font.");
+            //}
+        }
+
+        /// <summary>
+        /// Unloads a loaded font.
+        /// </summary>
+        /// <param name="name">The name of the font to unload.</param>
+        public static void UnloadFont(string name)
+        {
+            // Check if loaded.
+            if (_loadedFonts.ContainsKey(name))
+            {
+                // Dispose of it.
+                _loadedFonts[name].Dispose();
+                // Remove it from the list.
+                _loadedFonts.Remove(name);
+            }
+        }
+
+        /// <summary>
+        /// Returns the loaded font. If it isn't loaded it will be.
+        /// </summary>
+        /// <param name="name">The name of the font to get.</param>
+        public static Font GetFont(string name)
+        {
+            // Check if loaded.
+            if (!_loadedFonts.ContainsKey(name)) LoadFont(name);
+
+            // Return the loaded font.
+            return _loadedFonts[name];
+        }
+
+        #endregion
 
         /// <summary>
         /// Loads a file.
