@@ -183,13 +183,29 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static void SetupDebuggingLibrary()
         {
+            Scripting.Expose("log", (Action) Console.WriteLine);
             Scripting.Expose("help", (Action)Help);
-            Scripting.Expose("ram", (Func<string>)Ram);
+            Scripting.Expose("stats", (Func<string>)Statistics);
+            Scripting.Expose("dump", (Action) Dump);
         }
 
-        private static string Ram()
+        private static string Statistics()
         {
-            return (_currentProcess.PrivateMemorySize64 / 1024 / 1024) + "mb";
+            return "Ram Usage: " + (_currentProcess.PrivateMemorySize64 / 1024 / 1024) + "mb\n" + 
+                "Current Scene: " + SceneManager.CurrentScene.ToString() + "\n" +
+                "Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count + "\n" + 
+                "Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count;
+        }
+
+        private static void Dump()
+        {
+            Scripting.RunScript("" +
+                                "let registered = Object.keys(this);" +
+                                "log(registered);" +
+                                "for(let i = 0; i < registered.length; i++) {" +
+                                "   log(registered[i] + ' ' + this[registered[i]]);" +
+                                "}" +
+                                "");
         }
 
         private static void Help()

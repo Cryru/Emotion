@@ -147,7 +147,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="ILMerge.props" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
