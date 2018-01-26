@@ -25,12 +25,19 @@ namespace Examples.Basic
         {
             AssetLoader.LoadFont("testFont.ttf");
 
-            Entity basicTexture = Entity.CreateBasicDrawable("basicTexture");
-            basicTexture.GetComponent<Transform>().Position = new Vector2(0, 0);
-            basicTexture.GetComponent<Transform>().Size = new Vector2(500, 500);
-            basicTexture.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("test"));
-            basicTexture.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
-            AddEntity(basicTexture);
+            //Entity basicTexture = Entity.CreateBasicDrawable("basicTexture");
+            //basicTexture.GetComponent<Transform>().Position = new Vector2(0, 0);
+            //basicTexture.GetComponent<Transform>().Size = new Vector2(500, 500);
+            //basicTexture.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("test"));
+            //basicTexture.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
+            //AddEntity(basicTexture);
+
+            AssetLoader.GetFont("testFont.ttf").GetGlyph((char) 'A', 15);
+        }
+
+        protected override void Update()
+        {
+            bool breakpoint = true;
         }
     }
 }

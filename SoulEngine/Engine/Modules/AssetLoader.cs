@@ -6,15 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Drawing.Text;
 using System.IO;
-using System.Runtime.InteropServices;
 using Breath.Objects;
 using Soul.Encryption;
 using Soul.Engine.Enums;
 using Soul.IO;
 using SharpFont;
+using Soul.Engine.Graphics;
 
 #endregion
 
@@ -92,7 +90,7 @@ namespace Soul.Engine.Modules
                 _loadedTextures.Add(path, texture);
 
 #if DEBUG
-                    Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded a " + texture.Width + "x" + texture.Height + " texture from [" + path + "]");
+                Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded a " + texture.Width + "x" + texture.Height + " texture from [" + path + "]");
 #endif
 
             }
@@ -153,61 +151,20 @@ namespace Soul.Engine.Modules
             if (readData == null) return;
 
             // Load the data into a texture and add it to the loaded list.
-            //try
-            //{
-            // Load a font family from memory.
-            //FontFamily fontFamily;
-            //GCHandle handle = GCHandle.Alloc(readData, GCHandleType.Pinned);
-            //try
-            //{
-            //    IntPtr ptr = Marshal.UnsafeAddrOfPinnedArrayElement(readData, 0);
-            //    using (PrivateFontCollection pvc = new PrivateFontCollection())
-            //    {
-            //        pvc.AddMemoryFont(ptr, readData.Length);
-            //        fontFamily = pvc.Families[0];
-            //    }
-            //}
-            //finally
-            //{
-            //    handle.Free();
-            //}
-
-
-            //// Create a font with it.
-            //Font font = new Font(fontFamily, 50);
-            //_loadedFonts.Add(path, font);
-
-
-            //Bitmap a = new Bitmap(500, 500);
-            //System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(a);
-            //g.TextRenderingHint = TextRenderingHint.SingleBitPerPixel;
-            //g.DrawString("Hey Simooooooooooooo", font, Brushes.White, new RectangleF(0, 0, 500, 500));
-            //g.Save();
-
-            //Texture test = new Texture(null);
-            //test.Upload(a);
-            //_loadedTextures.Add("test", test);
-
-            // Load the freetype face.
-            Face face = new Face(FreeTypeLib, readData, 0);
-            face.SetPixelSizes(50, 50);
-            face.LoadChar((int) 'a', LoadFlags.Default, LoadTarget.Normal);
-            var a = face.Glyph;
-            Bitmap b = a.Bitmap.ToGdipBitmap();
-
-            //    Texture t = new Texture(null);
-            //t.Upload(b);
-            //    _loadedTextures.Add("test", t);
+            try
+            {
+                Font font = new Font(readData);
+                _loadedFonts.Add(path, font);
 
 #if DEBUG
-            // Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded font " + font.Name + " of size " + font.Size + " from [" + path + "]");
+                Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded font " + font.Name + " from [" + path + "]");
 #endif
 
-            //}
-            //catch (Exception e)
-            //{
-            //    ErrorHandling.Raise(ErrorOrigin.AssetManager, "Failed to load asset " + path + " as a font.");
-            //}
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.Raise(ErrorOrigin.AssetManager, "Failed to load asset " + path + " as a font.");
+            }
         }
 
         /// <summary>
@@ -395,7 +352,7 @@ namespace Soul.Engine.Modules
             catch (Exception e)
             {
                 // Check if an exception is thrown.
-                ErrorHandling.Raise(ErrorOrigin.AssetManager,  e.Message);
+                ErrorHandling.Raise(ErrorOrigin.AssetManager, e.Message);
             }
         }
 
