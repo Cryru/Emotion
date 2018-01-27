@@ -13,6 +13,7 @@ using Soul.Engine.Enums;
 using Soul.IO;
 using SharpFont;
 using Soul.Engine.Graphics;
+using Soul.Engine.Graphics.Text;
 
 #endregion
 
@@ -161,7 +162,7 @@ namespace Soul.Engine.Modules
 #endif
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 ErrorHandling.Raise(ErrorOrigin.AssetManager, "Failed to load asset " + path + " as a font.");
             }

@@ -2,7 +2,6 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\SharpFont.4.0.1\build\SharpFont.props" Condition="Exists('..\packages\SharpFont.4.0.1\build\SharpFont.props')" />
   <Import Project="..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props" Condition="Exists('..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props')" />
-  <Import Project="..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets" Condition="'$(Configuration)'!='Release' AND Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -125,14 +124,18 @@
     <Compile Include="Engine\ECS\Systems\PhysicsEngine.cs" />
     <Compile Include="Engine\Enums\AnimationLoopType.cs" />
     <Compile Include="Engine\Enums\PhysicsShapeType.cs" />
+    <Compile Include="Engine\Graphics\Components\TextData.cs" />
     <Compile Include="Engine\Graphics\Components\RenderData_Templates.cs" />
     <Compile Include="Engine\Graphics\Components\RenderData.cs" />
     <Compile Include="Engine\ECS\Components\Transform.cs" />
     <Compile Include="Engine\ECS\Entity.cs" />
-    <Compile Include="Engine\Graphics\Font.cs" />
+    <Compile Include="Engine\Graphics\Systems\TextRenderer.cs" />
+    <Compile Include="Engine\Graphics\Text\Font.cs" />
     <Compile Include="Engine\Graphics\Systems\RenderSystem.cs" />
     <Compile Include="Engine\Enums\ErrorOrigin.cs" />
     <Compile Include="Engine\Enums\DebugMessageType.cs" />
+    <Compile Include="Engine\Graphics\Text\Glyph.cs" />
+    <Compile Include="Engine\Graphics\Text\GlyphTable.cs" />
     <Compile Include="Engine\Helpers.cs" />
     <Compile Include="Engine\Modules\AssetLoader.cs" />
     <Compile Include="Engine\Modules\Debugging.cs" />
@@ -148,12 +151,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ILMerge.props" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ILMergeOrder.txt" />
     <Content Include="SoulEngine2018.ico" />
   </ItemGroup>
   <ItemGroup />
@@ -170,9 +171,8 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props'))" />
-    <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets'))" />
     <Error Condition="!Exists('..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props'))" />
     <Error Condition="!Exists('..\packages\SharpFont.4.0.1\build\SharpFont.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpFont.4.0.1\build\SharpFont.props'))" />
+    <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props'))" />
   </Target>
 </Project>

@@ -2,11 +2,14 @@
 
 #region Using
 
+using System;
+using System.Diagnostics;
 using OpenTK;
 using Soul.Engine;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
 using Soul.Engine.Graphics.Components;
+using Soul.Engine.Graphics.Text;
 using Soul.Engine.Scenography;
 using Soul.Engine.Modules;
 
@@ -24,15 +27,28 @@ namespace Examples.Basic
         protected override void Setup()
         {
             AssetLoader.LoadFont("testFont.ttf");
+            Font f = AssetLoader.GetFont("testFont.ttf");
 
-            //Entity basicTexture = Entity.CreateBasicDrawable("basicTexture");
-            //basicTexture.GetComponent<Transform>().Position = new Vector2(0, 0);
-            //basicTexture.GetComponent<Transform>().Size = new Vector2(500, 500);
-            //basicTexture.GetComponent<RenderData>().ApplyTexture(AssetLoader.GetTexture("test"));
-            //basicTexture.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
-            //AddEntity(basicTexture);
+            Glyph g = f.GetGlyph((char) 'A', 200);
 
-            AssetLoader.GetFont("testFont.ttf").GetGlyph((char) 'A', 15);
+
+            Entity basicTexture = Entity.CreateBasicDrawable("basicTexture");
+            basicTexture.GetComponent<Transform>().Position = new Vector2(0, 0);
+            basicTexture.GetComponent<Transform>().Size = new Vector2(500, 500);
+            basicTexture.GetComponent<RenderData>().ApplyTexture(g.GlyphTexture);
+            basicTexture.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
+            AddEntity(basicTexture);
+
+            Entity basicText = new Entity("basicText");
+            basicText.AttachComponent<Transform>();
+            basicText.GetComponent<Transform>().Position = new Vector2(100, 100);
+            basicText.GetComponent<Transform>().Size = new Vector2(500, 500);
+            basicText.AttachComponent<RenderData>();
+            basicText.GetComponent<RenderData>().ApplyTexture(g.GlyphTexture);
+            basicText.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
+            basicText.AttachComponent<TextData>();
+            basicText.GetComponent<TextData>().Text = "TEst test test test";
+            AddEntity(basicText);
         }
 
         protected override void Update()
