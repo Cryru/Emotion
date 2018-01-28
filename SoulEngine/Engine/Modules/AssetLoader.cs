@@ -87,7 +87,8 @@ namespace Soul.Engine.Modules
             // Load the data into a texture and add it to the loaded list.
             try
             {
-                Texture texture = new Texture(readData);
+                Texture texture = new Texture();
+                texture.Upload(readData);
                 _loadedTextures.Add(path, texture);
 
 #if DEBUG

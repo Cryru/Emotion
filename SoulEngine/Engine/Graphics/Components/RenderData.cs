@@ -15,6 +15,11 @@ namespace Soul.Engine.Graphics.Components
     public partial class RenderData : ComponentBase
     {
         /// <summary>
+        /// Whether to render.
+        /// </summary>
+        public bool Enabled = true;
+
+        /// <summary>
         /// The color of the drawable.
         /// </summary>
         public Color Color

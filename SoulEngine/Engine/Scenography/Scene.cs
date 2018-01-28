@@ -21,7 +21,7 @@ namespace Soul.Engine.Scenography
     /// </summary>
     public abstract class Scene
     {
-        #region System Management
+        #region Scene Objects
 
         /// <summary>
         /// Systems that are running.
@@ -32,11 +32,6 @@ namespace Soul.Engine.Scenography
         /// Current scene entities.
         /// </summary>
         protected internal Dictionary<string, Entity> RegisteredEntities;
-
-        /// <summary>
-        /// The drawing hook for the scene.
-        /// </summary>
-        internal Action DrawHook;
 
         #endregion
 
@@ -84,7 +79,11 @@ namespace Soul.Engine.Scenography
         /// </summary>
         internal void Draw()
         {
-            DrawHook?.Invoke();
+            // Run systems.
+            foreach (SystemBase sys in RunningSystems)
+            {
+                sys.DrawCycle();
+            }
         }
 
         /// <summary>
@@ -92,7 +91,7 @@ namespace Soul.Engine.Scenography
         /// </summary>
         protected virtual void Update()
         {
-            
+            // User code goes here.   
         }
 
         #region Entity Related
@@ -149,11 +148,6 @@ namespace Soul.Engine.Scenography
 
         public void AddSystem(SystemBase system)
         {
-#if DEBUG
-            Debugging.DebugMessage(DebugMessageType.InfoBlue,
-                "Registered system (" + RunningSystems.Count + ") [" + system + "]");
-#endif
-
             // Set the system's parent to this scene.
             system.Parent = this;
 
@@ -184,6 +178,11 @@ namespace Soul.Engine.Scenography
 
             // Order systems by priority.
             RunningSystems = RunningSystems.OrderBy(x => x.Priority).ToList();
+
+#if DEBUG
+            Debugging.DebugMessage(DebugMessageType.InfoBlue,
+                "Registered system (" + RunningSystems.Count + ") [" + system + "] with priority " + system.Priority);
+#endif
         }
 
         /// <summary>

@@ -2,7 +2,9 @@
 
 #region Using
 
+using Breath.Objects;
 using Soul.Engine.ECS;
+using Soul.Engine.Graphics.Text;
 
 #endregion
 
@@ -42,5 +44,15 @@ namespace Soul.Engine.Graphics.Components
         }
 
         private int _size = 10;
+
+        /// <summary>
+        /// A cached render of the text.
+        /// </summary>
+        public RenderTarget CachedRender;
+
+        /// <summary>
+        /// The font to use.
+        /// </summary>
+        public Font Font;
     }
 }

@@ -3,13 +3,13 @@
 #region Using
 
 using System;
+using System.Linq;
 using Breath.Systems;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
 using Soul.Engine.Graphics.Components;
-using System.Linq;
 
 #endregion
 
@@ -28,8 +28,9 @@ namespace Soul.Engine.Graphics.Systems
         {
             // Set priority to highest so it is run almost last.
             Priority = 8;
-            // Hook up to drawing call of the scene.
-            Parent.DrawHook = DrawHook;
+
+            // Declare drawing intention.
+            Draws = true;
         }
 
         protected override void Update(Entity entity)
@@ -42,8 +43,8 @@ namespace Soul.Engine.Graphics.Systems
             if (renderData.HasUpdated)
             {
                 renderData.UpdateVertices();
-                Links = Links.OrderBy((x) => x.GetComponent<RenderData>().Priority).ToList();
-            }                
+                Links = Links.OrderBy(x => x.GetComponent<RenderData>().Priority).ToList();
+            }
 
             // Update the model matrix if the transform has updated.
             if (transform.HasUpdated)
@@ -60,7 +61,8 @@ namespace Soul.Engine.Graphics.Systems
                 else
                 {
                     // Calculate the bounds of the vertices.
-                    Vector2 calculatedSize = Helpers.CalculateSizeFromVertices(renderData.Vertices, transform.Size, out offset);
+                    Vector2 calculatedSize =
+                        Helpers.CalculateSizeFromVertices(renderData.Vertices, transform.Size, out offset);
 
                     // Calculate center.
                     center = new Vector2(transform.X + calculatedSize.X / 2, transform.Y + calculatedSize.Y / 2);
@@ -69,7 +71,7 @@ namespace Soul.Engine.Graphics.Systems
                 // Perform moving.
                 Matrix4 translation = Matrix4.CreateTranslation(transform.X + offset.X, transform.Y + offset.Y, 0);
                 // Perform rotation translation for rotating around the center.
-                Matrix4 rotation = 
+                Matrix4 rotation =
                     Matrix4.CreateTranslation(-(center.X - transform.X), -(center.Y - transform.Y), 0) *
                     Matrix4.CreateRotationZ(transform.Rotation) *
                     Matrix4.CreateTranslation(center.X - transform.X, center.Y - transform.Y, 0);
@@ -80,41 +82,36 @@ namespace Soul.Engine.Graphics.Systems
             }
         }
 
-        #endregion
-
-        #region Draw Code
-
-        private void DrawHook()
+        protected override void Draw(Entity link)
         {
-            // Draw all drawables.
-            foreach (Entity link in Links)
+            RenderData renderData = link.GetComponent<RenderData>();
+
+            // Check whether to render.
+            if(!renderData.Enabled) return;
+
+            // Compute the MVP for this object.
+            Window.Current.SetModelMatrix(renderData.ModelMatrix);
+            // If a texture is attached add the texture and model matrix.
+            if (renderData.Texture != null)
             {
-                RenderData renderData = link.GetComponent<RenderData>();
-
-                // Compute the MVP for this object.
-                Window.Current.SetModelMatrix(renderData.ModelMatrix);
-                // If a texture is attached add the texture and model matrix.
-                if (renderData.Texture != null)
-                {
-                    Window.Current.SetTextureModelMatrix(renderData.Texture.TextureModelMatrix);
-                    Window.Current.SetTexture(renderData.Texture);
-                }
-
-                renderData.TextureVBO?.EnableShaderAttribute(2, 2);
-                renderData.ColorVBO.EnableShaderAttribute(1, 4);
-                renderData.VerticesVBO.EnableShaderAttribute(0, 2);
-                renderData.VerticesVBO.Draw(renderData.GetPointCount() == 2
-                    ? PrimitiveType.Lines
-                    : PrimitiveType.TriangleFan); // Force line drawing when 2 vertices.
-                renderData.VerticesVBO.DisableShaderAttribute(0);
-                renderData.ColorVBO.DisableShaderAttribute(1);
-                renderData.TextureVBO?.DisableShaderAttribute(2);
-
-                Window.Current.StopUsingTexture();
-
-                // Restore normal MVP. (Maybe this isn't needed)
-                Window.Current.SetModelMatrix(Matrix4.Identity);
+                Window.Current.SetTextureModelMatrix(renderData.Texture.TextureModelMatrix);
+                Window.Current.SetTexture(renderData.Texture);
             }
+
+            renderData.TextureVBO?.EnableShaderAttribute(2, 2);
+            renderData.ColorVBO.EnableShaderAttribute(1, 4);
+            renderData.VerticesVBO.EnableShaderAttribute(0, 2);
+            renderData.VerticesVBO.Draw(renderData.GetPointCount() == 2
+                ? PrimitiveType.Lines
+                : PrimitiveType.TriangleFan); // Force line drawing when 2 vertices.
+            renderData.VerticesVBO.DisableShaderAttribute(0);
+            renderData.ColorVBO.DisableShaderAttribute(1);
+            renderData.TextureVBO?.DisableShaderAttribute(2);
+
+            Window.Current.StopUsingTexture();
+
+            // Restore normal MVP.
+            Window.Current.SetModelMatrix(Matrix4.Identity);
         }
 
         #endregion

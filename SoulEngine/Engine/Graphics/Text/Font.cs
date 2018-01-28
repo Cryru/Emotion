@@ -21,15 +21,14 @@ namespace Soul.Engine.Graphics.Text
         /// The name of the font.
         /// </summary>
         public string Name;
-
         #endregion
 
         #region Data
-
+        
         /// <summary>
         /// The font face.
         /// </summary>
-        private Face _face;
+        public Face _face;
 
         /// <summary>
         /// A cache of glyphs.
@@ -43,7 +42,7 @@ namespace Soul.Engine.Graphics.Text
         /// <summary>
         /// The size of the character last rendered.
         /// </summary>
-        private int _characterSizeLast = 10;
+        private uint _characterSizeLast = 10;
 
         #endregion
 
@@ -59,6 +58,9 @@ namespace Soul.Engine.Graphics.Text
             Name = _face.FamilyName;
 
             _cachedGlyphs = new GlyphTable(Name);
+
+            // Set default size.
+            _face.SetPixelSizes(0, _characterSizeLast);
         }
 
         /// <summary>
@@ -131,9 +133,13 @@ namespace Soul.Engine.Graphics.Text
         private Glyph LoadGlyph(char charCode, uint characterSize)
         {
             // Check if we have to set pixel size. This is a slow operation so we need to avoid calling it too often.
-            if (_characterSizeLast != characterSize) _face.SetPixelSizes(0, characterSize);
+            if (_characterSizeLast != characterSize)
+            {
+                _face.SetPixelSizes(0, characterSize);
+                _characterSizeLast = characterSize;
+            }
 
-            _face.LoadChar(charCode, LoadFlags.NoAutohint, LoadTarget.Normal);
+            _face.LoadChar(charCode, LoadFlags.Default, LoadTarget.Normal);
 
             GlyphSlot freeTypeGlyph = _face.Glyph;
             freeTypeGlyph.RenderGlyph(RenderMode.Normal);
@@ -141,12 +147,12 @@ namespace Soul.Engine.Graphics.Text
             // Convert the character to bitmap.
             FTBitmap freeTypeBitmap = _face.Glyph.Bitmap;
 
-#if DEBUG
             if (freeTypeBitmap.Width == 0 && freeTypeBitmap.Rows == 0)
-                Debugging.DebugMessage(DebugMessageType.Error, "Font glyph is empty: " + Name + " - " + charCode);
-#endif
+            {
+                return new Glyph(null, freeTypeGlyph, _face.Glyph.BitmapTop, _face.Glyph.BitmapLeft);
+            }
 
-            Glyph g =  new Glyph(freeTypeBitmap.ToGdipBitmap(), freeTypeGlyph);
+            Glyph g =  new Glyph(freeTypeBitmap.ToGdipBitmap(), freeTypeGlyph, _face.Glyph.BitmapTop, _face.Glyph.BitmapLeft);
             freeTypeBitmap.Dispose();
             return g;
         }

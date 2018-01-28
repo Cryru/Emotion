@@ -1,8 +1,12 @@
 ﻿// SoulEngine - https://github.com/Cryru/SoulEngine
 
+#region Using
+
 using System;
 using System.Collections.Generic;
 using Soul.Engine.Scenography;
+
+#endregion
 
 namespace Soul.Engine.ECS
 {
@@ -27,10 +31,16 @@ namespace Soul.Engine.ECS
         protected internal abstract void Setup();
 
         /// <summary>
-        /// Updates the system.
+        /// Updates a system link.
         /// </summary>
         /// <param name="link">The link to update the system for.</param>
         protected abstract void Update(Entity link);
+
+        /// <summary>
+        /// Draws a system link.
+        /// </summary>
+        /// <param name="link">The link to draw.</param>
+        protected virtual void Draw(Entity link) {}
 
         /// <summary>
         /// Get the requirement for this system.
@@ -42,6 +52,11 @@ namespace Soul.Engine.ECS
         /// The running priority of the system. The higher the later it will be run.
         /// </summary>
         public int Priority = 0;
+
+        /// <summary>
+        /// Whether the system draws.
+        /// </summary>
+        public bool Draws { get; protected set; } = false;
 
         #region Internals
 
@@ -56,7 +71,20 @@ namespace Soul.Engine.ECS
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Draws all entities if the system is drawable.
+        /// </summary>
+        protected internal virtual void DrawCycle()
+        {
+            // Check if the system is drawable.
+            if (!Draws) return;
 
+            foreach (Entity link in Links)
+            {
+                Draw(link);
+            }
+        }
+
+        #endregion
     }
 }

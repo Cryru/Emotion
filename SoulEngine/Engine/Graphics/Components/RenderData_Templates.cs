@@ -23,7 +23,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Rectangle()
         {
-            Vertices = _rectangleVertices;
+            Vertices = RectangleVertices;
             VerticesVBO = RectangleVBO;
 
             HasUpdated = true;
@@ -34,7 +34,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Triangle()
         {           
-            Vertices = _triangleVertices;
+            Vertices = TriangleVertices;
             VerticesVBO = TriangleVBO;
 
             HasUpdated = true;
@@ -45,7 +45,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         public void ApplyTemplate_Circle()
         {
-            Vertices = _circleVertices;
+            Vertices = CircleVertices;
             VerticesVBO = CircleVBO;
 
             HasUpdated = true;
@@ -55,14 +55,14 @@ namespace Soul.Engine.Graphics.Components
 
         #region Rectangle
 
-        private static VBO RectangleVBO
+        internal static VBO RectangleVBO
         {
             get
             {
                 if (_rectangleVBOHolder == null)
                 {
                     _rectangleVBOHolder = new VBO();
-                    _rectangleVBOHolder.Upload(_rectangleVertices);
+                    _rectangleVBOHolder.Upload(RectangleVertices);
                 }
 
                 return _rectangleVBOHolder;
@@ -71,7 +71,7 @@ namespace Soul.Engine.Graphics.Components
 
         private static VBO _rectangleVBOHolder;
 
-        private static Vector2[] _rectangleVertices =
+        internal static Vector2[] RectangleVertices =
         {
             new Vector2(0, 0),
             new Vector2(1, 0),
@@ -83,14 +83,14 @@ namespace Soul.Engine.Graphics.Components
 
         #region Triangle
 
-        private static VBO TriangleVBO
+        internal static VBO TriangleVBO
         {
             get
             {
                 if (_triangleVBOHolder == null)
                 {
                     _triangleVBOHolder = new VBO();
-                    _triangleVBOHolder.Upload(_triangleVertices);
+                    _triangleVBOHolder.Upload(TriangleVertices);
                 }
 
                 return _triangleVBOHolder;
@@ -99,7 +99,7 @@ namespace Soul.Engine.Graphics.Components
 
         private static VBO _triangleVBOHolder;
 
-        private static Vector2[] _triangleVertices =
+        internal static Vector2[] TriangleVertices =
         {
             new Vector2(0, 0),
             new Vector2(1, 0),
@@ -117,7 +117,7 @@ namespace Soul.Engine.Graphics.Components
                 if (_circleVBOHolder == null)
                 {
                     _circleVBOHolder = new VBO();
-                    _circleVBOHolder.Upload(_circleVertices);
+                    _circleVBOHolder.Upload(CircleVertices);
                 }
 
                 return _circleVBOHolder;
@@ -126,7 +126,7 @@ namespace Soul.Engine.Graphics.Components
 
         private static VBO _circleVBOHolder;
 
-        private static Vector2[] _circleVertices
+        internal static Vector2[] CircleVertices
         {
             get
             {
