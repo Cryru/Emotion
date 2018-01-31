@@ -88,8 +88,8 @@ namespace Soul.Engine.Graphics.Systems
                 {
                     new Vector2(0, 0),
                     new Vector2(1, 0),
-                    new Vector2(1, -1),
-                    new Vector2(0, -1)
+                    new Vector2(1, 1),
+                    new Vector2(0, 1)
                 };
                 fullTextureVBO.Upload(vecs);
 
@@ -114,19 +114,14 @@ namespace Soul.Engine.Graphics.Systems
                 {
                     Glyph glyph = textData.Font.GetGlyph(c, (uint)textData.Size);
                     Texture texture = glyph.GlyphTexture;
-
-                    // Get distance between yMax and glyph height.
-                    int topOffset = ConvertToPixels(((textData.Font._face.BBox.Top - textData.Font._face.BBox.Bottom) / 64) - glyph.FreeTypeGlyph.Metrics.Height.ToInt32());
-                    y = topOffset;
-                    x += 20;
                     //401 in Text.cpp SFML
-                    
+                    y = texture.Height;
 
                     //y = (textData.Font._face.BBox.Top >> 6);
                     //x += (int) textData.Font.GetKerning(prevChar, c);
                     //prevChar = c;//(int) (glyph.FreeTypeGlyph.Metrics.Width + glyph.FreeTypeGlyph.Metrics.HorizontalBearingX);
 
-                    Matrix4 scale = Matrix4.CreateScale((int) glyph.FreeTypeGlyph.Metrics.Width, (int) glyph.FreeTypeGlyph.Metrics.Height, 1);
+                    Matrix4 scale = Matrix4.CreateScale((int) glyph.FreeTypeGlyph.Metrics.Width, (int) glyph.FreeTypeGlyph.Metrics.Height * -1, 1);
                     Matrix4 translation = Matrix4.CreateTranslation(x, y, 0);
                     Matrix4 currentGlyphMatrix = scale * translation;
 
@@ -134,7 +129,7 @@ namespace Soul.Engine.Graphics.Systems
                     {
                         Window.Current.SetModelMatrix(currentGlyphMatrix);
 
-                        Window.Current.SetTextureModelMatrix(Matrix4.CreateScale(1, -1, 1));
+                        Window.Current.SetTextureModelMatrix(Matrix4.CreateScale(1, 1, 1));
                         Window.Current.SetTexture(texture);
 
                         fullTextureVBO.EnableShaderAttribute(2, 2); // texture
@@ -150,7 +145,14 @@ namespace Soul.Engine.Graphics.Systems
                         Window.Current.SetModelMatrix(Matrix4.Identity);
                     }                    
 
-                    // process typewriter movement here
+                    
+                    // Get distance between yMax and glyph height.
+                    int topOffset = (ConvertToPixels(textData.Font._face.BBox.Top / 64) * textData.Size);
+                    if (texture != null)
+                    {
+                        x +=  texture.Width;
+                    }
+
                 }
 
                 //RenderTarget.StopUsing();
