@@ -4,7 +4,7 @@
 
 ## What is it?
 
-SoulEngine is a 2D orientated game engine based on the idea of low level code writing, flexibility, and control as opposed to the higher level GUI approach big engines have. The project's goal is to provide easy to use, and understand, APIs and concepts for programmers which prefer to write code over dragging and dropping objects, and digging through menus.
+SoulEngine is a 2D orientated game engine based on the idea of low-level code writing, flexibility, and control as opposed to the higher level GUI approach big engines have. The project's goal is to provide easy to use and understand, APIs and concepts for programmers which prefer to write code over dragging and dropping objects and digging through menus.
 
 ## Updates
 
