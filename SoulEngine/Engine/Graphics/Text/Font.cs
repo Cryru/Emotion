@@ -67,7 +67,7 @@ namespace Soul.Engine.Graphics.Text
         /// Returns a glyph.
         /// </summary>
         /// <param name="charCode">The charcode of the glyph to return.</param>
-        /// <param name="characterSize">The size of the character to render.</param>
+        /// <param name="characterSize">The size of the character to render IN PIXELS.</param>
         /// <returns>A glyph object containing a rendered glyph and metadata.</returns>
         public Glyph GetGlyph(char charCode, uint characterSize)
         {
@@ -111,20 +111,6 @@ namespace Soul.Engine.Graphics.Text
             }
 
             // No kerning, or error.
-            return 0;
-        }
-
-        /// <summary>
-        /// Get the line spacing of the font.
-        /// </summary>
-        /// <returns>The spacing between the lines.</returns>
-        public float GetFaceSpacing()
-        {
-            if (_face != null)
-            {
-                return (float) _face.Size.Metrics.Height / (1 << 6);
-            }
-
             return 0;
         }
 

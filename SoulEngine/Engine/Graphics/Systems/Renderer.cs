@@ -15,7 +15,7 @@ using Soul.Engine.Graphics.Components;
 
 namespace Soul.Engine.Graphics.Systems
 {
-    internal class RenderSystem : SystemBase
+    internal class Renderer : SystemBase
     {
         #region System API
 

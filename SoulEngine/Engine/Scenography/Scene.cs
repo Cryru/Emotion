@@ -45,7 +45,7 @@ namespace Soul.Engine.Scenography
         internal void InternalSetup()
         {
             // Load core systems.
-            AddSystem(new RenderSystem());
+            AddSystem(new Renderer());
             AddSystem(new ComponentUpdateCleanup());
             AddSystem(new Animator());
             AddSystem(new TextRenderer());

@@ -43,22 +43,24 @@ On the game development side 2018 introduces the concept of "systems". Classes w
   - Unsupported: ICO
 - Advanced Text Rendering With Markup
 
-## Libraries Used:
+## Own Libraries Used:
 
-[Breath](https://github.com/Cryru/Breath) - Drawing and graphics, input, sound, and window management.
+[Breath](https://github.com/Cryru/Breath) - Drawing, texture loading, input, sound, window management, and more...
 
 [SoulLib](https://github.com/Cryru/SoulLib) - IO, Encryption, Hashing, Compression, Extensions, ManagedFile and more...
 
 [SoulPhysics](https://github.com/Cryru/SoulPhysics) - Physics.
-
-## Tools:
-
-SoulEngine AssetPacker - Built-in tool to help with building your project assets.
-
-[Polygon-Tool](https://github.com/Cryru/Polygon-Tool) - Tool for creating polygon vertices.
 
 ## External Projects
 
 [TiledSharp](https://github.com/marshallward/TiledSharp) - Tiled integration.
 
 [Jint](https://github.com/sebastienros/jint) - Javascript engine.
+
+[SharpFont](https://github.com/Robmaister/SharpFont) - C# bindings for Freetype. Used for font loading and rendering.
+
+## Tools:
+
+SoulEngine AssetPacker - Built-in tool to help with building your project assets.
+
+[Polygon-Tool](https://github.com/Cryru/Polygon-Tool) - Tool for creating polygon vertices.

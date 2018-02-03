@@ -51,9 +51,9 @@ namespace Examples.Basic
             basicText.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
             basicText.GetComponent<RenderData>().Enabled = false;
             basicText.AttachComponent<TextData>();
-            basicText.GetComponent<TextData>().Text = "Zdrasti Mitak kak si";//ello sir! How art thou?";
+            basicText.GetComponent<TextData>().Text = "Hel\tlo sir!\nHow art thou?hhweifhewofhoewfhoewfihweoifhwoeifhoewfhoiwefhweoifhoewioefwoifhowehfi\nwihwehofewfweohf";
             basicText.GetComponent<TextData>().Font = AssetLoader.GetFont("testFont.ttf");
-            basicText.GetComponent<TextData>().Size = 155;
+            basicText.GetComponent<TextData>().Size = 50;
             AddEntity(basicText);
         }
 

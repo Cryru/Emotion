@@ -131,7 +131,7 @@
     <Compile Include="Engine\ECS\Entity.cs" />
     <Compile Include="Engine\Graphics\Systems\TextRenderer.cs" />
     <Compile Include="Engine\Graphics\Text\Font.cs" />
-    <Compile Include="Engine\Graphics\Systems\RenderSystem.cs" />
+    <Compile Include="Engine\Graphics\Systems\Renderer.cs" />
     <Compile Include="Engine\Enums\ErrorOrigin.cs" />
     <Compile Include="Engine\Enums\DebugMessageType.cs" />
     <Compile Include="Engine\Graphics\Text\Glyph.cs" />

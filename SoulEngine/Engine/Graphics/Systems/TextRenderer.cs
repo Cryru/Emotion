@@ -9,8 +9,10 @@ using Breath.Systems;
 using OpenTK;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
+using Soul.Engine.Enums;
 using Soul.Engine.Graphics.Components;
 using Soul.Engine.Graphics.Text;
+using Soul.Engine.Modules;
 
 #endregion
 
@@ -22,7 +24,7 @@ namespace Soul.Engine.Graphics.Systems
 
         protected internal override Type[] GetRequirements()
         {
-            return new[] {typeof(RenderData), typeof(TextData), typeof(Transform)};
+            return new[] { typeof(RenderData), typeof(TextData), typeof(Transform) };
         }
 
         protected internal override void Setup()
@@ -53,24 +55,21 @@ namespace Soul.Engine.Graphics.Systems
 
             // Check if transform size has changed.
             if (transform.HasUpdated || needRerender)
-            {
-                // If the cache render doesn't exist or is of a different size.
                 if (textData.CachedRender == null || textData.CachedRender.InternalTexture.Size != transform.Size)
                 {
                     // Clear if any.
                     textData.CachedRender?.Destroy();
                     // Remake it.
-                    textData.CachedRender = new Breath.Objects.RenderTarget((int) transform.Width, (int) transform.Height);
+                    textData.CachedRender = new RenderTarget((int)transform.Width, (int)transform.Height);
                     // The cache was just remade, so we need a new one.
                     needRerender = true;
                 }
-            }
 
             // Check if the text data has changed.
             if (textData.HasUpdated || needRerender || true)
             {
                 VBO vertVBO = new VBO();
-                Vector2[] vertVec = new[]
+                Vector2[] vertVec =
                 {
                     new Vector2(0, 0),
                     new Vector2(1, 0),
@@ -84,7 +83,7 @@ namespace Soul.Engine.Graphics.Systems
                 whiteColorVBO.Upload(whiteCol.ToVertexArray(4));
 
                 VBO fullTextureVBO = new VBO();
-                Vector2[] vecs = new[]
+                Vector2[] vecs =
                 {
                     new Vector2(0, 0),
                     new Vector2(1, 0),
@@ -93,38 +92,47 @@ namespace Soul.Engine.Graphics.Systems
                 };
                 fullTextureVBO.Upload(vecs);
 
-                // Create a model matrix for the letters.
-                //Matrix4 rotation =
-                //    Matrix4.CreateTranslation(-(transform.Center.X - transform.X), -(transform.Center.Y - transform.Y), 0) *
-                //    Matrix4.CreateRotationZ(transform.Rotation) *
-                //    Matrix4.CreateTranslation(transform.Center.X - transform.X, transform.Center.Y - transform.Y, 0);
-                //Matrix4 scale = Matrix4.CreateScale(1, -1, 1);
-
-                //Matrix4 rotationAndScale = scale;
-
                 // Render text.
-                //textData.CachedRender.Use();
+                textData.CachedRender.Use();
 
+                // Rendering metrics.
                 int x = 0;
                 int y = 0;
-                char prevChar = (char) 0;
+                char prevChar = (char)0;
 
                 // For each character.
                 foreach (char c in textData.Text)
                 {
                     Glyph glyph = textData.Font.GetGlyph(c, (uint)textData.Size);
                     Texture texture = glyph.GlyphTexture;
-                    //401 in Text.cpp SFML
-                    y = texture.Height;
 
-                    //y = (textData.Font._face.BBox.Top >> 6);
-                    //x += (int) textData.Font.GetKerning(prevChar, c);
-                    //prevChar = c;//(int) (glyph.FreeTypeGlyph.Metrics.Width + glyph.FreeTypeGlyph.Metrics.HorizontalBearingX);
+                    // Special character handling.
+                    switch (c)
+                    {
+                        case '\n':
+                            // New line.
+                            y += textData.Font._face.Height / 64;
+                            x = 0;
+                            continue;
+                        case '\r':
+                            // Windows new line.
+                            continue;
+                        case '\t':
+                            // Tab.
+                            x += glyph.FreeTypeGlyph.Metrics.HorizontalAdvance.ToInt32() * 2;
+                            continue;
+                    }
 
-                    Matrix4 scale = Matrix4.CreateScale((int) glyph.FreeTypeGlyph.Metrics.Width, (int) glyph.FreeTypeGlyph.Metrics.Height * -1, 1);
-                    Matrix4 translation = Matrix4.CreateTranslation(x, y, 0);
+                    // Set the top offset.
+                    int topOffset = y + textData.Font._face.Height / 64 - glyph.Top;
+
+                    // Generate matrices.
+                    Matrix4 scale = Matrix4.CreateScale((int)glyph.FreeTypeGlyph.Metrics.Width,
+                        (int)glyph.FreeTypeGlyph.Metrics.Height, 1);
+                    Matrix4 translation = Matrix4.CreateTranslation(x, topOffset, 0);
                     Matrix4 currentGlyphMatrix = scale * translation;
 
+                    // If there is a texture draw it.
                     if (texture != null)
                     {
                         Window.Current.SetModelMatrix(currentGlyphMatrix);
@@ -143,30 +151,22 @@ namespace Soul.Engine.Graphics.Systems
                         Window.Current.StopUsingTexture();
 
                         Window.Current.SetModelMatrix(Matrix4.Identity);
-                    }                    
-
-                    
-                    // Get distance between yMax and glyph height.
-                    int topOffset = (ConvertToPixels(textData.Font._face.BBox.Top / 64) * textData.Size);
-                    if (texture != null)
-                    {
-                        x +=  texture.Width;
                     }
 
+                    // Advance the width by the glyph advance and add kerning.
+                    x += glyph.FreeTypeGlyph.Metrics.HorizontalAdvance.ToInt32() + (int)Math.Ceiling(textData.Font.GetKerning(prevChar, c));
+
+                    // Assign previous character.
+                    prevChar = c;
                 }
 
-                //RenderTarget.StopUsing();
+                RenderTarget.StopUsing();
 
                 // Set render data texture to the cached text.
-                //renderData.Texture = textData.CachedRender.InternalTexture;
+                renderData.ApplyTexture(textData.CachedRender.InternalTexture);
             }
         }
 
         #endregion
-
-        public int ConvertToPixels(float value)
-        {
-            return (int) value >> 6;
-        }
     }
 }
