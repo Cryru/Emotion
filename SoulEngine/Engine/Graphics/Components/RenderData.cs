@@ -47,7 +47,7 @@ namespace Soul.Engine.Graphics.Components
             }
         }
 
-        private int _priority = 0;
+        private int _priority;
 
         /// <summary>
         /// The part of the texture to render.
@@ -58,9 +58,8 @@ namespace Soul.Engine.Graphics.Components
             {
                 // if the texture vvertices are a rectangle, generate a rectangle object from the vertices and return it.
                 if (_textureVertices != null && _textureVertices.Length == 4)
-                {
-                    return new Rectangle(_textureVertices[0].X, _textureVertices[0].Y, _textureVertices[2].X, _textureVertices[2].Y);
-                }
+                    return new Rectangle(_textureVertices[0].X, _textureVertices[0].Y, _textureVertices[2].X,
+                        _textureVertices[2].Y);
 
                 // Otherwise return a zero rectangle.
                 return Rectangle.Zero;
@@ -69,10 +68,7 @@ namespace Soul.Engine.Graphics.Components
             {
                 // Check if the texture vertices have been created, and are populated with a rectangle.
                 if (_textureVertices == null || _textureVertices.Length != 4)
-                {
-                    // Generate an empty rectangle.
-                    _textureVertices = new[] { new Vector2(), new Vector2(), new Vector2(), new Vector2() };
-                }
+                    _textureVertices = new[] {new Vector2(), new Vector2(), new Vector2(), new Vector2()};
 
                 // Resize rectangle to provided values.
                 _textureVertices[0].X = value.X;
@@ -116,7 +112,7 @@ namespace Soul.Engine.Graphics.Components
         /// The texture to render on this object.
         /// </summary>
         internal Texture Texture;
-        
+
         // The texture area as vertices.
         private Vector2[] _textureVertices;
 

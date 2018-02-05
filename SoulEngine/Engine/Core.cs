@@ -33,6 +33,10 @@ namespace Soul.Engine
 
         #endregion
 
+        /// <summary>
+        /// Setups SoulEngine.
+        /// </summary>
+        /// <param name="startingScene">The scene to start with.</param>
         public static void Setup(Scene startingScene)
         {
             // Set running to true.
@@ -51,11 +55,8 @@ namespace Soul.Engine
             Debugging.Setup();
 #endif
 
-            // Apply pre-settings.
-            Settings.ApplyPreSettings();
-
             // Create a Breath window.
-            BreathWin = new Window(null, Update, Draw);
+            BreathWin = new Window(null, Update, Draw, new Vector2(Settings.Width, Settings.Height));
 
             // Setup the scene manager and load the starting scene.
             SceneManager.Setup();
@@ -71,7 +72,7 @@ namespace Soul.Engine
             BreathWin.FocusedChanged += (e, args) => { Paused = !BreathWin.Focused; };
 
             // Start the loop.
-            BreathWin.Start((double) Settings.TPS, (double) Settings.FPS);
+            BreathWin.Start(Settings.TPS, Settings.FPS);
         }
 
         #region Loops
@@ -97,13 +98,13 @@ namespace Soul.Engine
             // End the input update.
             Input.UpdateEnd();
 
-            Window.Current.Title = "SE2018 DEMO " + (1000 / BreathWin.FrameTime);
+            BreathWin.Title = "SE2018 DEMO " + 1000 / BreathWin.FrameTime;
         }
 
         private static void Draw()
         {
             // Draw the current scene. This propagates to the draw hook inside the scene.
-           SceneManager.Draw();
+            SceneManager.Draw();
         }
 
         #endregion

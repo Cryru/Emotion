@@ -48,20 +48,19 @@ namespace Soul.Engine.ECS.Systems
             if (animData.Finished) return;
 
             // Add to the animation data timer.
-            animData.Timer += Window.Current.FrameTime;
+            animData.Timer += Core.BreathWin.FrameTime;
 
             // Check if time has passed for a frame switch.
-            if (animData.Timer >= animData.FrameTime)
-            {
-                // Subtract frame time.
-                animData.Timer -= animData.FrameTime;
+            if (!(animData.Timer >= animData.FrameTime)) return;
 
-                // Go to the next frame.
-                NextFrame(animData);
+            // Subtract frame time.
+            animData.Timer -= animData.FrameTime;
 
-                // Set the texture to the new frame texture.
-                renderData.TextureArea = animData.CurrentFrameRect;
-            }
+            // Go to the next frame.
+            NextFrame(animData);
+
+            // Set the texture to the new frame texture.
+            renderData.TextureArea = animData.CurrentFrameRect;
         }
 
         #region Functions

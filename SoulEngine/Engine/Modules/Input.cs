@@ -157,7 +157,7 @@ namespace Soul.Engine.Modules
         /// <returns>The location of the mouse as Vector2 in window coordinates.</returns>
         public static Vector2 MouseLocation()
         {
-            return new Vector2(Window.Current.Mouse.X, Window.Current.Mouse.Y);
+            return new Vector2(Core.BreathWin.Mouse.X, Core.BreathWin.Mouse.Y);
         }
 
         #endregion

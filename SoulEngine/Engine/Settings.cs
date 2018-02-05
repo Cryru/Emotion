@@ -92,7 +92,7 @@ namespace Soul.Engine
         public static int Width = 960;
 
         /// <summary>
-        /// The height of the render area.
+        /// The height of the render area. Must be set before setup.
         /// </summary>
         public static int Height = 540;
 
@@ -214,14 +214,6 @@ namespace Soul.Engine
         public static Type LoadingScene = null;
 
         #endregion
-
-        /// <summary>
-        /// Settings to apply before the window is created.
-        /// </summary>
-        internal static void ApplyPreSettings()
-        {
-            Breath.Systems.Window.RenderSize = new Vector2(Width, Height);
-        }
 
         /// <summary>
         /// Apply runtime settings.

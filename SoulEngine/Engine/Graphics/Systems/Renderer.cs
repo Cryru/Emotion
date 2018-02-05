@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Breath.Objects;
 using Breath.Systems;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -90,12 +91,12 @@ namespace Soul.Engine.Graphics.Systems
             if(!renderData.Enabled) return;
 
             // Compute the MVP for this object.
-            Window.Current.SetModelMatrix(renderData.ModelMatrix);
+            Core.BreathWin.SetModelMatrix(renderData.ModelMatrix);
             // If a texture is attached add the texture and model matrix.
             if (renderData.Texture != null)
             {
-                Window.Current.SetTextureModelMatrix(renderData.Texture.TextureModelMatrix);
-                Window.Current.SetTexture(renderData.Texture);
+                Core.BreathWin.SetTextureModelMatrix(renderData.Texture.TextureModelMatrix);
+                Core.BreathWin.SetTexture(renderData.Texture);
             }
 
             renderData.TextureVBO?.EnableShaderAttribute(2, 2);
@@ -108,10 +109,10 @@ namespace Soul.Engine.Graphics.Systems
             renderData.ColorVBO.DisableShaderAttribute(1);
             renderData.TextureVBO?.DisableShaderAttribute(2);
 
-            Window.Current.StopUsingTexture();
+            Texture.StopUsing();
 
             // Restore normal MVP.
-            Window.Current.SetModelMatrix(Matrix4.Identity);
+            Core.BreathWin.SetModelMatrix(Matrix4.Identity);
         }
 
         #endregion

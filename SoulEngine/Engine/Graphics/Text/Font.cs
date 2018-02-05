@@ -3,7 +3,6 @@
 #region Using
 
 using SharpFont;
-using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 
 #endregion
@@ -21,14 +20,15 @@ namespace Soul.Engine.Graphics.Text
         /// The name of the font.
         /// </summary>
         public string Name;
+
         #endregion
 
-        #region Data
+        #region Private Data
         
         /// <summary>
         /// The font face.
         /// </summary>
-        public Face _face;
+        private Face _face;
 
         /// <summary>
         /// A cache of glyphs.
@@ -64,7 +64,7 @@ namespace Soul.Engine.Graphics.Text
         }
 
         /// <summary>
-        /// Returns a glyph.
+        /// If the glyph is loaded, returns it from the cache, otherwise loads it.
         /// </summary>
         /// <param name="charCode">The charcode of the glyph to return.</param>
         /// <param name="characterSize">The size of the character to render IN PIXELS.</param>
@@ -91,31 +91,34 @@ namespace Soul.Engine.Graphics.Text
             // Null characters have no kerning.
             if (charOne == 0 || charTwo == 0) return 0;
 
-            if (_face != null && _face.HasKerning)
+            // No kerning, return 0.
+            if (_face == null || !_face.HasKerning) return 0;
+
+            // Convert the characters to glyph index.
+            uint indexOne = _face.GetCharIndex(charOne);
+            uint indexTwo = _face.GetCharIndex(charTwo);
+
+            // Get the kerning.
+            FTVector26Dot6 kerning = _face.GetKerning(indexOne, indexTwo, KerningMode.Default);
+
+            // X advance is already in pixels for bitmap fonts.
+            if (_face.IsScalable)
             {
-                // Convert the characters to glyph index.
-                uint indexOne = _face.GetCharIndex(charOne);
-                uint indexTwo = _face.GetCharIndex(charTwo);
-
-                // Get the kerning.
-                FTVector26Dot6 kerning = _face.GetKerning(indexOne, indexTwo, KerningMode.Default);
-
-                // X advance is already in pixels for bitmap fonts.
-                if (_face.IsScalable)
-                {
-                    return (float) kerning.X;
-                }
-
-                // Convert to pixels.
-                return (float) kerning.X / (1 << 6);
+                return (float) kerning.X;
             }
 
-            // No kerning, or error.
-            return 0;
+            // Convert to pixels.
+            return (float) kerning.X / (1 << 6);
         }
 
-        #region Local
+        #region Private Functions
 
+        /// <summary>
+        /// Loads a new glyph. Used by GetGlyph to cache glyphs.
+        /// </summary>
+        /// <param name="charCode">The character of the glyph to load.</param>
+        /// <param name="characterSize">The size to load.</param>
+        /// <returns>A loaded glyph.</returns>
         private Glyph LoadGlyph(char charCode, uint characterSize)
         {
             // Check if we have to set pixel size. This is a slow operation so we need to avoid calling it too often.
@@ -125,22 +128,34 @@ namespace Soul.Engine.Graphics.Text
                 _characterSizeLast = characterSize;
             }
 
+            // Load the glyph for the character.
             _face.LoadChar(charCode, LoadFlags.Default, LoadTarget.Normal);
 
+            // Get the FreeType glyph and render it.
+            _face.Glyph.RenderGlyph(RenderMode.Normal);
             GlyphSlot freeTypeGlyph = _face.Glyph;
-            freeTypeGlyph.RenderGlyph(RenderMode.Normal);
 
-            // Convert the character to bitmap.
+            // Create the SoulEngine glyph.
+            GlyphMetrics glyphMetrics = freeTypeGlyph.Metrics;
+            Glyph seGlyph =  new Glyph(
+                freeTypeGlyph.BitmapTop,
+                _face.Height / 64 - freeTypeGlyph.BitmapTop,
+                glyphMetrics.HorizontalAdvance.ToInt32(),
+                _face.Size.Metrics.Height.ToInt32(),
+                glyphMetrics.Width.ToInt32(),
+                glyphMetrics.Height.ToInt32()
+                );
+
+            // Convert the rendered data to a bitmap.
             FTBitmap freeTypeBitmap = _face.Glyph.Bitmap;
 
-            if (freeTypeBitmap.Width == 0 && freeTypeBitmap.Rows == 0)
+            // Check if it isn't empty.
+            if (freeTypeBitmap.Width != 0 && freeTypeBitmap.Rows != 0)
             {
-                return new Glyph(null, freeTypeGlyph, _face.Glyph.BitmapTop, _face.Glyph.BitmapLeft);
+                seGlyph.SetTexture(freeTypeBitmap.ToGdipBitmap());
             }
 
-            Glyph g =  new Glyph(freeTypeBitmap.ToGdipBitmap(), freeTypeGlyph, _face.Glyph.BitmapTop, _face.Glyph.BitmapLeft);
-            freeTypeBitmap.Dispose();
-            return g;
+            return seGlyph;
         }
 
         #endregion

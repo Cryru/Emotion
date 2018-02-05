@@ -5,14 +5,12 @@
 using System;
 using Breath.Graphics;
 using Breath.Objects;
-using Breath.Systems;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
-using Soul.Engine.Enums;
 using Soul.Engine.Graphics.Components;
 using Soul.Engine.Graphics.Text;
-using Soul.Engine.Modules;
 
 #endregion
 
@@ -24,7 +22,7 @@ namespace Soul.Engine.Graphics.Systems
 
         protected internal override Type[] GetRequirements()
         {
-            return new[] { typeof(RenderData), typeof(TextData), typeof(Transform) };
+            return new[] {typeof(RenderData), typeof(TextData), typeof(Transform)};
         }
 
         protected internal override void Setup()
@@ -60,7 +58,7 @@ namespace Soul.Engine.Graphics.Systems
                     // Clear if any.
                     textData.CachedRender?.Destroy();
                     // Remake it.
-                    textData.CachedRender = new RenderTarget((int)transform.Width, (int)transform.Height);
+                    textData.CachedRender = new RenderTarget((int) transform.Width, (int) transform.Height);
                     // The cache was just remade, so we need a new one.
                     needRerender = true;
                 }
@@ -68,42 +66,19 @@ namespace Soul.Engine.Graphics.Systems
             // Check if the text data has changed.
             if (textData.HasUpdated || needRerender || true)
             {
-                VBO vertVBO = new VBO();
-                Vector2[] vertVec =
-                {
-                    new Vector2(0, 0),
-                    new Vector2(1, 0),
-                    new Vector2(1, 1),
-                    new Vector2(0, 1)
-                };
-                vertVBO.Upload(vertVec);
-
-                VBO whiteColorVBO = new VBO();
-                Color whiteCol = Color.White;
-                whiteColorVBO.Upload(whiteCol.ToVertexArray(4));
-
-                VBO fullTextureVBO = new VBO();
-                Vector2[] vecs =
-                {
-                    new Vector2(0, 0),
-                    new Vector2(1, 0),
-                    new Vector2(1, 1),
-                    new Vector2(0, 1)
-                };
-                fullTextureVBO.Upload(vecs);
-
                 // Render text.
                 textData.CachedRender.Use();
-
+                //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                //GL.ClearColor(255, 0, 220, 255);
                 // Rendering metrics.
                 int x = 0;
                 int y = 0;
-                char prevChar = (char)0;
+                char prevChar = (char) 0;
 
                 // For each character.
                 foreach (char c in textData.Text)
                 {
-                    Glyph glyph = textData.Font.GetGlyph(c, (uint)textData.Size);
+                    Glyph glyph = textData.Font.GetGlyph(c, (uint) textData.Size);
                     Texture texture = glyph.GlyphTexture;
 
                     // Special character handling.
@@ -111,7 +86,7 @@ namespace Soul.Engine.Graphics.Systems
                     {
                         case '\n':
                             // New line.
-                            y += textData.Font._face.Height / 64;
+                            y += glyph.FontMax;
                             x = 0;
                             continue;
                         case '\r':
@@ -119,42 +94,41 @@ namespace Soul.Engine.Graphics.Systems
                             continue;
                         case '\t':
                             // Tab.
-                            x += glyph.FreeTypeGlyph.Metrics.HorizontalAdvance.ToInt32() * 2;
+                            x += glyph.Width * 2;
                             continue;
                     }
 
-                    // Set the top offset.
-                    int topOffset = y + textData.Font._face.Height / 64 - glyph.Top;
+                    // Add the top offset.
+                    int topOffset = y + glyph.TopOffset;
 
                     // Generate matrices.
-                    Matrix4 scale = Matrix4.CreateScale((int)glyph.FreeTypeGlyph.Metrics.Width,
-                        (int)glyph.FreeTypeGlyph.Metrics.Height, 1);
+                    Matrix4 scale = Matrix4.CreateScale((int) glyph.Width, (int) glyph.Height, 1);
                     Matrix4 translation = Matrix4.CreateTranslation(x, topOffset, 0);
                     Matrix4 currentGlyphMatrix = scale * translation;
 
                     // If there is a texture draw it.
                     if (texture != null)
                     {
-                        Window.Current.SetModelMatrix(currentGlyphMatrix);
+                        Core.BreathWin.SetModelMatrix(currentGlyphMatrix);
 
-                        Window.Current.SetTextureModelMatrix(Matrix4.CreateScale(1, 1, 1));
-                        Window.Current.SetTexture(texture);
+                        Core.BreathWin.SetTextureModelMatrix(Matrix4.CreateScale(1, 1, 1));
+                        Core.BreathWin.SetTexture(texture);
 
-                        fullTextureVBO.EnableShaderAttribute(2, 2); // texture
+                        RenderData.RectangleVBO.EnableShaderAttribute(2, 2); // texture
                         renderData.ColorVBO.EnableShaderAttribute(1, 4); // color
-                        vertVBO.EnableShaderAttribute(0, 2); // vert
-                        vertVBO.Draw();
-                        vertVBO.DisableShaderAttribute(0);
+                        RenderData.RectangleVBO.EnableShaderAttribute(0, 2); // vert
+                        RenderData.RectangleVBO.Draw();
+                        RenderData.RectangleVBO.DisableShaderAttribute(0);
                         renderData.ColorVBO.DisableShaderAttribute(1);
-                        fullTextureVBO.DisableShaderAttribute(2);
+                        RenderData.RectangleVBO.DisableShaderAttribute(2);
 
-                        Window.Current.StopUsingTexture();
-
-                        Window.Current.SetModelMatrix(Matrix4.Identity);
+                        Texture.StopUsing();
+                        Core.BreathWin.SetModelMatrix(Matrix4.Identity);
                     }
 
                     // Advance the width by the glyph advance and add kerning.
-                    x += glyph.FreeTypeGlyph.Metrics.HorizontalAdvance.ToInt32() + (int)Math.Ceiling(textData.Font.GetKerning(prevChar, c));
+                    x += glyph.Advance +
+                         (int) Math.Ceiling(textData.Font.GetKerning(prevChar, c));
 
                     // Assign previous character.
                     prevChar = c;

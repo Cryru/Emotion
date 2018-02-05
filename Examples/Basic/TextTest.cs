@@ -28,30 +28,16 @@ namespace Examples.Basic
         protected override void Setup()
         {
             AssetLoader.LoadFont("testFont.ttf");
-            Font f = AssetLoader.GetFont("testFont.ttf");
-
-            RenderTarget renderTarget = new RenderTarget(200, 200);
-            //renderTarget.Use();
-
-            Glyph g = f.GetGlyph((char) 'A', 200);
-
-            //Entity basicTexture = Entity.CreateBasicDrawable("basicTexture");
-            //basicTexture.GetComponent<Transform>().Position = new Vector2(0, 0);
-            //basicTexture.GetComponent<Transform>().Size = new Vector2(500, 500);
-            //basicTexture.GetComponent<RenderData>().ApplyTexture(g.GlyphTexture);
-            //basicTexture.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
-            //AddEntity(basicTexture);
 
             Entity basicText = new Entity("basicText");
             basicText.AttachComponent<Transform>();
-            basicText.GetComponent<Transform>().Position = new Vector2(100, 100);
-            basicText.GetComponent<Transform>().Size = new Vector2(400, 200);
+            basicText.GetComponent<Transform>().Position = new Vector2(0, 0);
+            basicText.GetComponent<Transform>().Size = new Vector2(960, 540);
             basicText.AttachComponent<RenderData>();
             basicText.GetComponent<RenderData>().ApplyTemplate_Rectangle();
-            basicText.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
-            basicText.GetComponent<RenderData>().Enabled = false;
+            //basicText.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
             basicText.AttachComponent<TextData>();
-            basicText.GetComponent<TextData>().Text = "Hel\tlo sir!\nHow art thou?hhweifhewofhoewfhoewfihweoifhwoeifhoewfhoiwefhweoifhoewioefwoifhowehfi\nwihwehofewfweohf";
+            basicText.GetComponent<TextData>().Text = "ggggg\nsfewfwefewfwefwefwefwe";
             basicText.GetComponent<TextData>().Font = AssetLoader.GetFont("testFont.ttf");
             basicText.GetComponent<TextData>().Size = 50;
             AddEntity(basicText);

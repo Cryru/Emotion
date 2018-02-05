@@ -1,9 +1,11 @@
 ﻿// SoulEngine - https://github.com/Cryru/SoulEngine
 
-using System;
+#region Using
+
 using System.Drawing;
 using Breath.Objects;
-using SharpFont;
+
+#endregion
 
 namespace Soul.Engine.Graphics.Text
 {
@@ -13,32 +15,63 @@ namespace Soul.Engine.Graphics.Text
         /// An OpenGL texture holding the glyph.
         /// </summary>
         public Texture GlyphTexture;
-        /// <summary>
-        /// A Freetype object with glyph data.
-        /// </summary>
-        public GlyphSlot FreeTypeGlyph;
 
-        public int Top;
-        public int Left;
+        #region Metrics
 
         /// <summary>
-        /// Load a new glyph from bitmap data and a freetype glyph.
+        /// The size of the glyph bitmap.
         /// </summary>
-        /// <param name="data">The bitmap data containing the character.</param>
-        /// <param name="freeTypeGlyph">The freetype object representing the glyph.</param>
-        public Glyph(Bitmap data, GlyphSlot freeTypeGlyph, int top, int left)
+        public int Top { get; }
+
+        /// <summary>
+        /// The offset from the top so the glyph lays on the baseline.
+        /// </summary>
+        public int TopOffset { get; }
+
+        /// <summary>
+        /// The glyph advance AKA where the next glyph should begin.
+        /// </summary>
+        public int Advance { get; }
+
+        /// <summary>
+        /// The maximum size a glyph can be within the font.
+        /// </summary>
+        public int FontMax { get; }
+
+        /// <summary>
+        /// The width of the glyph.
+        /// </summary>
+        public int Width { get; }
+
+        /// <summary>
+        /// The height of the glyph.
+        /// </summary>
+        public int Height { get; }
+
+        #endregion
+
+        /// <summary>
+        /// Load a new glyph.
+        /// </summary>
+        public Glyph(int top, int topOffset, int advance, int fontMax, int width, int height)
         {
-            FreeTypeGlyph = freeTypeGlyph;
             Top = top;
-            Left = left;
+            TopOffset = topOffset;
+            Advance = advance;
+            FontMax = fontMax;
+            Width = width;
+            Height = height;
+        }
 
-            if (data != null)
-            {
-                data.Save("test.png");
-                GlyphTexture = new Texture();
-                GlyphTexture.Upload(data);
-                data.Dispose();
-            }
+        /// <summary>
+        /// Sets the glyph's texture.
+        /// </summary>
+        /// <param name="bitmap"></param>
+        public void SetTexture(Bitmap bitmap)
+        {
+            GlyphTexture = new Texture();
+            GlyphTexture.Upload(bitmap);
+            bitmap.Dispose();
         }
 
         /// <summary>
@@ -46,7 +79,6 @@ namespace Soul.Engine.Graphics.Text
         /// </summary>
         public void Dispose()
         {
-            FreeTypeGlyph = null;
             GlyphTexture.Destroy();
             GlyphTexture = null;
         }
