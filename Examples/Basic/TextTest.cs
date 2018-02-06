@@ -31,7 +31,7 @@ namespace Examples.Basic
 
             Entity basicText = new Entity("basicText");
             basicText.AttachComponent<Transform>();
-            basicText.GetComponent<Transform>().Position = new Vector2(0, 0);
+            basicText.GetComponent<Transform>().Position = new Vector2(100, 100);
             basicText.GetComponent<Transform>().Size = new Vector2(960, 540);
             basicText.AttachComponent<RenderData>();
             basicText.GetComponent<RenderData>().ApplyTemplate_Rectangle();

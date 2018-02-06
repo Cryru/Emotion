@@ -99,7 +99,7 @@ namespace Soul.Engine
         /// <summary>
         /// The FPS target. Must be set before setup. Leave at 0 - BUG
         /// </summary>
-        public static int FPS = 60;
+        public static int FPS = 0;
 
         /// <summary>
         /// The TPS target. Must be set before setup.

@@ -42,9 +42,6 @@ namespace Soul.Engine
             // Set running to true.
             Running = true;
 
-            // Load the error handling module first.
-            ErrorHandling.Setup();
-
             // Load the input module.
             Input.Setup();
 

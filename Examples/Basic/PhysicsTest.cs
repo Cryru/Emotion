@@ -2,7 +2,7 @@
 
 #region Using
 
-using Breath.Graphics;
+using Breath.Primitives;
 using Examples.Systems;
 using OpenTK;
 using OpenTK.Input;

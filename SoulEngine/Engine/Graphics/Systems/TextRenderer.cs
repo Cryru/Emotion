@@ -3,8 +3,9 @@
 #region Using
 
 using System;
-using Breath.Graphics;
+using Breath.Primitives;
 using Breath.Objects;
+using Breath.Systems;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Soul.Engine.ECS;
@@ -53,7 +54,7 @@ namespace Soul.Engine.Graphics.Systems
 
             // Check if transform size has changed.
             if (transform.HasUpdated || needRerender)
-                if (textData.CachedRender == null || textData.CachedRender.InternalTexture.Size != transform.Size)
+                if (textData.CachedRender == null || textData.CachedRender.Texture.Size != transform.Size)
                 {
                     // Clear if any.
                     textData.CachedRender?.Destroy();
@@ -64,10 +65,10 @@ namespace Soul.Engine.Graphics.Systems
                 }
 
             // Check if the text data has changed.
-            if (textData.HasUpdated || needRerender || true)
+            if (textData.HasUpdated || needRerender)
             {
                 // Render text.
-                textData.CachedRender.Use();
+                Core.BreathWin.DrawOnTarget(textData.CachedRender);
                 //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 //GL.ClearColor(255, 0, 220, 255);
                 // Rendering metrics.
@@ -104,14 +105,13 @@ namespace Soul.Engine.Graphics.Systems
                     // Generate matrices.
                     Matrix4 scale = Matrix4.CreateScale((int) glyph.Width, (int) glyph.Height, 1);
                     Matrix4 translation = Matrix4.CreateTranslation(x, topOffset, 0);
-                    Matrix4 currentGlyphMatrix = scale * translation;
 
                     // If there is a texture draw it.
                     if (texture != null)
                     {
-                        Core.BreathWin.SetModelMatrix(currentGlyphMatrix);
+                        Core.BreathWin.SetModelMatrix(scale * translation);
 
-                        Core.BreathWin.SetTextureModelMatrix(Matrix4.CreateScale(1, 1, 1));
+                        //Core.BreathWin.SetTextureModelMatrix(texture.TextureModelMatrix);
                         Core.BreathWin.SetTexture(texture);
 
                         RenderData.RectangleVBO.EnableShaderAttribute(2, 2); // texture
@@ -122,7 +122,7 @@ namespace Soul.Engine.Graphics.Systems
                         renderData.ColorVBO.DisableShaderAttribute(1);
                         RenderData.RectangleVBO.DisableShaderAttribute(2);
 
-                        Texture.StopUsing();
+                        texture.StopUsing();
                         Core.BreathWin.SetModelMatrix(Matrix4.Identity);
                     }
 
@@ -134,10 +134,10 @@ namespace Soul.Engine.Graphics.Systems
                     prevChar = c;
                 }
 
-                RenderTarget.StopUsing();
+                Core.BreathWin.DrawNormally();
 
                 // Set render data texture to the cached text.
-                renderData.ApplyTexture(textData.CachedRender.InternalTexture);
+                renderData.ApplyTexture(textData.CachedRender.Texture);
             }
         }
 

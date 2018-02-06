@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Breath.Graphics;
+using Breath.Primitives;
 using Breath.Objects;
 using OpenTK;
 using Soul.Engine.ECS;

@@ -12,26 +12,6 @@ namespace Soul.Engine.Modules
 {
     internal static class ErrorHandling
     {
-        #region Module API
-
-        /// <summary>
-        /// Initializes the module.
-        /// </summary>
-        internal static void Setup()
-        {
-            // Connect to the Breath error manager.
-            ErrorHandler.ErrorCallback += error => { Raise(ErrorOrigin.Breath, error); };
-        }
-
-        /// <summary>
-        /// Updates the module.
-        /// </summary>
-        internal static void Update()
-        {
-        }
-
-        #endregion
-
         /// <summary>
         /// Raises an error.
         /// </summary>

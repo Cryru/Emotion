@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Breath.Graphics;
+using Breath.Primitives;
 using OpenTK;
 using Soul.Engine.Enums;
 
