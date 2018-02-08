@@ -77,7 +77,7 @@ namespace Soul.Engine.Modules
                 "SoulEngine 2018 " + Assembly.GetExecutingAssembly().GetName().Version);
             DebugMessage(DebugMessageType.Info, "Using: ");
             DebugMessage(DebugMessageType.Info, " |- Breath: v" + Breath.Meta.Version);
-            DebugMessage(DebugMessageType.Info, " |- SoulLib: v" + Soul.Library.Meta.Version);
+            DebugMessage(DebugMessageType.Info, " |- SoulLib: v" + Library.Meta.Version);
             DebugMessage(DebugMessageType.Info, " |- SoulPhysics: v" + Physics.Meta.Version);
 
             // Setup the debugging library.
@@ -183,35 +183,41 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static void SetupDebuggingLibrary()
         {
-            Scripting.Expose("log", (Action) Console.WriteLine);
-            Scripting.Expose("help", (Action)Help);
-            Scripting.Expose("stats", (Func<string>)Statistics);
+            Scripting.Expose("log", (Action<string>) (msg => DebugMessage(DebugMessageType.InfoBlue, msg)));
+            Scripting.Expose("help", (Action) Help);
+            Scripting.Expose("stats", (Func<string>) Statistics);
             Scripting.Expose("dump", (Action) Dump);
         }
 
         private static string Statistics()
         {
-            return "Ram Usage: " + (_currentProcess.PrivateMemorySize64 / 1024 / 1024) + "mb\n" + 
-                "Current Scene: " + SceneManager.CurrentScene.ToString() + "\n" +
-                "Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count + "\n" + 
-                "Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count;
+            return "Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb\n" +
+                   "Current Scene: " + SceneManager.CurrentScene + "\n" +
+                   "Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count + "\n" +
+                   "Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count;
         }
 
         private static void Dump()
         {
-            Scripting.RunScript("" +
-                                "let registered = Object.keys(this);" +
-                                "log(registered);" +
-                                "for(let i = 0; i < registered.length; i++) {" +
-                                "   log(registered[i] + ' ' + this[registered[i]]);" +
-                                "}" +
-                                "");
+            Scripting.RunScript(@"
+              let registered = Object.keys(this);
+          
+              for (let i = 0; i < registered.length; i++) {
+                  let message = registered[i];
+          
+                  try {
+                      message += ' ' + this[registered[i]];
+                  } catch (e) { }
+          
+                  log(message);
+              }");
         }
 
         private static void Help()
         {
             Scripting.RunScript("Object.keys(this)");
         }
+
         #endregion
     }
 }

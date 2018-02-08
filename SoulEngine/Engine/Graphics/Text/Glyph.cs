@@ -70,7 +70,7 @@ namespace Soul.Engine.Graphics.Text
         public void SetTexture(Bitmap bitmap)
         {
             GlyphTexture = new Texture();
-            GlyphTexture.Upload(bitmap);
+            GlyphTexture.Upload(bitmap, OpenTK.Graphics.OpenGL.PixelFormat.Red);
             bitmap.Dispose();
         }
 

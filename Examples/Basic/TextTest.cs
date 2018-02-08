@@ -32,14 +32,14 @@ namespace Examples.Basic
             Entity basicText = new Entity("basicText");
             basicText.AttachComponent<Transform>();
             basicText.GetComponent<Transform>().Position = new Vector2(100, 100);
-            basicText.GetComponent<Transform>().Size = new Vector2(960, 540);
+            basicText.GetComponent<Transform>().Size = new Vector2(500, 500);
             basicText.AttachComponent<RenderData>();
             basicText.GetComponent<RenderData>().ApplyTemplate_Rectangle();
-            //basicText.GetComponent<RenderData>().Color = new Breath.Graphics.Color(255, 0, 0);
+            basicText.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
             basicText.AttachComponent<TextData>();
-            basicText.GetComponent<TextData>().Text = "ggggg\nsfewfwefewfwefwefwefwe";
+            basicText.GetComponent<TextData>().Text = "Test test\nnew_line@test!";
             basicText.GetComponent<TextData>().Font = AssetLoader.GetFont("testFont.ttf");
-            basicText.GetComponent<TextData>().Size = 50;
+            basicText.GetComponent<TextData>().Size = 100;
             AddEntity(basicText);
         }
 

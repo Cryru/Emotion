@@ -69,8 +69,6 @@ namespace Soul.Engine.Graphics.Systems
             {
                 // Render text.
                 Core.BreathWin.DrawOnTarget(textData.CachedRender);
-                //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                //GL.ClearColor(255, 0, 220, 255);
                 // Rendering metrics.
                 int x = 0;
                 int y = 0;
@@ -111,7 +109,6 @@ namespace Soul.Engine.Graphics.Systems
                     {
                         Core.BreathWin.SetModelMatrix(scale * translation);
 
-                        //Core.BreathWin.SetTextureModelMatrix(texture.TextureModelMatrix);
                         Core.BreathWin.SetTexture(texture);
 
                         RenderData.RectangleVBO.EnableShaderAttribute(2, 2); // texture

@@ -78,9 +78,15 @@ namespace Soul.Engine.Modules
         /// Executes the provided string on the Javascript engine.
         /// </summary>
         /// <param name="script">The script to execute.</param>
+        /// <param name="safe">Whether to run the script safely.</param>
         /// <returns></returns>
-        public static object RunScript(string script)
+        public static object RunScript(string script, bool safe = true)
         {
+            if (safe)
+            {
+                script = "(function () {" + script + "})()";
+            }
+
             try
             {
                 // Run the script and get the response.
