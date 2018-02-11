@@ -67,7 +67,7 @@ namespace Soul.Engine.Graphics.Text
         /// <summary>
         /// If the glyph is loaded, returns it from the cache, otherwise loads it.
         /// </summary>
-        /// <param name="charCode">The charcode of the glyph to return.</param>
+        /// <param name="charCode">The character the glyph should be of.</param>
         /// <param name="characterSize">The size of the character to render IN PIXELS.</param>
         /// <returns>A glyph object containing a rendered glyph and metadata.</returns>
         public Glyph GetGlyph(char charCode, uint characterSize)

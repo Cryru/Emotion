@@ -84,6 +84,17 @@ namespace Soul.Engine.Modules
         {
             _keys = Keyboard.GetState();
             _mouse = Mouse.GetState();
+
+            // Alt + Enter to toggle between Fullscreen and Windowed.
+            if (KeyHeld(Key.AltLeft) && KeyPressed(Key.Enter))
+            {
+                Core.BreathWin.ChangeWindowMode(Core.BreathWin.WindowMode == Breath.Enums.WindowMode.Windowed
+                    ? Breath.Enums.WindowMode.Borderless
+                    : Breath.Enums.WindowMode.Windowed);
+            }
+
+            // Escape closes everything.
+            if (KeyPressed(Key.Escape)) Core.Stop();
         }
 
         internal static void UpdateEnd()

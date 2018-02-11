@@ -29,17 +29,17 @@ namespace Examples.Basic
         {
             AssetLoader.LoadFont("testFont.ttf");
 
-            Entity line = new Entity("line");
-            line.AttachComponent<Transform>();
-            line.GetComponent<Transform>().Position = new Vector2(100, 100);
-            line.GetComponent<Transform>().Size = new Vector2(1, 1);
-            line.AttachComponent<RenderData>();
-            line.GetComponent<RenderData>().SetPointCount(2);
-            line.GetComponent<RenderData>().SetPoint(0, new Vector2(0, 0));
-            line.GetComponent<RenderData>().SetPoint(1, new Vector2(800, 0));
-            line.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
-            line.GetComponent<RenderData>().Priority = 2;
-            AddEntity(line);
+            Entity lineTop = new Entity("lineTop");
+            lineTop.AttachComponent<Transform>();
+            lineTop.GetComponent<Transform>().Position = new Vector2(100, 100);
+            lineTop.GetComponent<Transform>().Size = new Vector2(1, 1);
+            lineTop.AttachComponent<RenderData>();
+            lineTop.GetComponent<RenderData>().SetPointCount(2);
+            lineTop.GetComponent<RenderData>().SetPoint(0, new Vector2(0, 0));
+            lineTop.GetComponent<RenderData>().SetPoint(1, new Vector2(500, 0));
+            lineTop.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
+            lineTop.GetComponent<RenderData>().Priority = 2;
+            AddEntity(lineTop);
 
             Entity lineLeft = new Entity("lineLeft");
             lineLeft.AttachComponent<Transform>();
@@ -55,39 +55,39 @@ namespace Examples.Basic
 
             Entity newLine = new Entity("newLine");
             newLine.AttachComponent<Transform>();
-            newLine.GetComponent<Transform>().Position = new Vector2(0, 0);
+            newLine.GetComponent<Transform>().Position = new Vector2(100, 100);
             newLine.GetComponent<Transform>().Size = new Vector2(1, 1);
             newLine.AttachComponent<RenderData>();
             newLine.GetComponent<RenderData>().SetPointCount(2);
-            newLine.GetComponent<RenderData>().SetPoint(0, new Vector2(1, 122));
-            newLine.GetComponent<RenderData>().SetPoint(1, new Vector2(400, 122));
+            newLine.GetComponent<RenderData>().SetPoint(0, new Vector2(0, 29));
+            newLine.GetComponent<RenderData>().SetPoint(1, new Vector2(500, 29));
             newLine.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
             newLine.GetComponent<RenderData>().Priority = 2;
             AddEntity(newLine);
 
-            Entity lineBottom = new Entity("lineBottom");
-            lineBottom.AttachComponent<Transform>();
-            lineBottom.GetComponent<Transform>().Position = new Vector2(0, 0);
-            lineBottom.GetComponent<Transform>().Size = new Vector2(1, 1);
-            lineBottom.AttachComponent<RenderData>();
-            lineBottom.GetComponent<RenderData>().SetPointCount(2);
-            lineBottom.GetComponent<RenderData>().SetPoint(0, new Vector2(1, 400));
-            lineBottom.GetComponent<RenderData>().SetPoint(1, new Vector2(400, 400));
-            lineBottom.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
-            lineBottom.GetComponent<RenderData>().Priority = 2;
-            AddEntity(lineBottom);
+            Entity lineRight = new Entity("lineRight");
+            lineRight.AttachComponent<Transform>();
+            lineRight.GetComponent<Transform>().Position = new Vector2(100, 100);
+            lineRight.GetComponent<Transform>().Size = new Vector2(1, 1);
+            lineRight.AttachComponent<RenderData>();
+            lineRight.GetComponent<RenderData>().SetPointCount(2);
+            lineRight.GetComponent<RenderData>().SetPoint(0, new Vector2(500, 0));
+            lineRight.GetComponent<RenderData>().SetPoint(1, new Vector2(500, 400));
+            lineRight.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
+            lineRight.GetComponent<RenderData>().Priority = 2;
+            AddEntity(lineRight);
 
             Entity basicText = new Entity("basicText");
             basicText.AttachComponent<Transform>();
             basicText.GetComponent<Transform>().Position = new Vector2(100, 100);
-            basicText.GetComponent<Transform>().Size = new Vector2(900, 400);
+            basicText.GetComponent<Transform>().Size = new Vector2(500, 400);
             basicText.AttachComponent<RenderData>();
             basicText.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             basicText.GetComponent<RenderData>().Color = new Breath.Primitives.Color(212, 244, 66);
             basicText.AttachComponent<TextData>();
-            basicText.GetComponent<TextData>().Text = "Abcdefg\nhijklmnoAB";
+            basicText.GetComponent<TextData>().Text = "Lorem Ipsum is simply dummy text of the printing and typesetting\nindustry. Lorem Ipsum has been the industry's standard dummy\ntext ever since the 1500s, when an unknown printer took a galley\nof type and scrambled it to make a type specimen book.\n";
             basicText.GetComponent<TextData>().Font = AssetLoader.GetFont("testFont.ttf");
-            basicText.GetComponent<TextData>().Size = 50;
+            basicText.GetComponent<TextData>().Size = 25;
             AddEntity(basicText);
         }
 

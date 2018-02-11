@@ -70,6 +70,7 @@ namespace Soul.Engine.Graphics.Text
         /// <param name="bitmap"></param>
         public void SetTexture(Bitmap bitmap)
         {
+            
             GlyphTexture = new Texture();
             GlyphTexture.Use();
             // Apply a swizzle mask so the letters can be colored.
@@ -77,8 +78,8 @@ namespace Soul.Engine.Graphics.Text
             // Green - 0x1904
             // Blue - 0x1905
             // Alpha - 0x1906
-            int[] swizzleMask = { 1, 1, 1, 0x1906 };
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleRgba, swizzleMask);
+            //int[] swizzleMask = { 0x1906, 0x1906, 0x1906, 0x1906 };
+            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleRgba, swizzleMask);
             GlyphTexture.StopUsing();
             GlyphTexture.Upload(bitmap);
             bitmap.Dispose();
