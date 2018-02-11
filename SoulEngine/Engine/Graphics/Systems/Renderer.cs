@@ -109,7 +109,7 @@ namespace Soul.Engine.Graphics.Systems
             renderData.ColorVBO.DisableShaderAttribute(1);
             renderData.TextureVBO?.DisableShaderAttribute(2);
 
-            renderData.Texture.StopUsing();
+            renderData.Texture?.StopUsing();
 
             // Restore normal MVP.
             Core.BreathWin.SetModelMatrix(Matrix4.Identity);

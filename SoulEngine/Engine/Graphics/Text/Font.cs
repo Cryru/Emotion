@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using SharpFont;
 using Soul.Engine.Modules;
 
@@ -99,7 +100,7 @@ namespace Soul.Engine.Graphics.Text
             uint indexTwo = _face.GetCharIndex(charTwo);
 
             // Get the kerning.
-            FTVector26Dot6 kerning = _face.GetKerning(indexOne, indexTwo, KerningMode.Default);
+            FTVector26Dot6 kerning = _face.GetKerning(indexOne, indexTwo, KerningMode.Unfitted);
 
             // X advance is already in pixels for bitmap fonts.
             if (_face.IsScalable)
@@ -108,7 +109,7 @@ namespace Soul.Engine.Graphics.Text
             }
 
             // Convert to pixels.
-            return (float) kerning.X / (1 << 6);
+            return (float) kerning.X / 64;
         }
 
         #region Private Functions
@@ -137,13 +138,14 @@ namespace Soul.Engine.Graphics.Text
 
             // Create the SoulEngine glyph.
             GlyphMetrics glyphMetrics = freeTypeGlyph.Metrics;
-            Glyph seGlyph =  new Glyph(
-                freeTypeGlyph.BitmapTop,
-                _face.Height / 64 - freeTypeGlyph.BitmapTop,
-                glyphMetrics.HorizontalAdvance.ToInt32(),
-                _face.Size.Metrics.Height.ToInt32(),
+
+            Glyph seGlyph = new Glyph(
+                _face.Size.Metrics.Ascender.ToInt32() - Math.Abs(freeTypeGlyph.BitmapTop),
+                glyphMetrics.HorizontalBearingX.ToInt32(),
+                (int) (_face.Size.Metrics.Height.ToInt32()),
                 glyphMetrics.Width.ToInt32(),
-                glyphMetrics.Height.ToInt32()
+                glyphMetrics.Height.ToInt32(),
+                glyphMetrics.HorizontalAdvance.ToInt32()
                 );
 
             // Convert the rendered data to a bitmap.

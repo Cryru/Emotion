@@ -45,12 +45,12 @@ namespace Soul.Engine.Modules
         /// <summary>
         /// Currently loaded textures.
         /// </summary>
-        private static Dictionary<string, Texture> _loadedTextures = new Dictionary<string, Texture>();
+        internal static Dictionary<string, Texture> LoadedTextures = new Dictionary<string, Texture>();
 
         /// <summary>
         /// Currently loaded fonts.
         /// </summary>
-        private static Dictionary<string, Font> _loadedFonts = new Dictionary<string, Font>();
+        internal static Dictionary<string, Font> LoadedFonts = new Dictionary<string, Font>();
 
         #endregion
 
@@ -75,7 +75,7 @@ namespace Soul.Engine.Modules
         {
 #if DEBUG
             // Check if already loaded.
-            if (_loadedTextures.ContainsKey(path))
+            if (LoadedTextures.ContainsKey(path))
                 Debugging.DebugMessage(DebugMessageType.Warning, "Tried to load already loaded texture: " + path);
 #endif
 
@@ -89,7 +89,7 @@ namespace Soul.Engine.Modules
             {
                 Texture texture = new Texture();
                 texture.Upload(readData);
-                _loadedTextures.Add(path, texture);
+                LoadedTextures.Add(path, texture);
 
 #if DEBUG
                 Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded a " + texture.Width + "x" + texture.Height + " texture from [" + path + "]");
@@ -109,12 +109,12 @@ namespace Soul.Engine.Modules
         public static void UnloadTexture(string path)
         {
             // Check if loaded.
-            if (_loadedTextures.ContainsKey(path))
+            if (LoadedTextures.ContainsKey(path))
             {
                 // Dispose of it.
-                _loadedTextures[path].Destroy();
+                LoadedTextures[path].Destroy();
                 // Remove it from the list.
-                _loadedTextures.Remove(path);
+                LoadedTextures.Remove(path);
             }
         }
 
@@ -125,10 +125,10 @@ namespace Soul.Engine.Modules
         public static Texture GetTexture(string path)
         {
             // Check if loaded.
-            if (!_loadedTextures.ContainsKey(path)) LoadTexture(path);
+            if (!LoadedTextures.ContainsKey(path)) LoadTexture(path);
 
             // Return the loaded texture.
-            return _loadedTextures[path];
+            return LoadedTextures[path];
         }
 
         #endregion
@@ -143,7 +143,7 @@ namespace Soul.Engine.Modules
         {
 #if DEBUG
             // Check if already loaded.
-            if (_loadedTextures.ContainsKey(path))
+            if (LoadedTextures.ContainsKey(path))
                 Debugging.DebugMessage(DebugMessageType.Warning, "Tried to load already loaded font: " + path);
 #endif
 
@@ -156,7 +156,7 @@ namespace Soul.Engine.Modules
             try
             {
                 Font font = new Font(readData);
-                _loadedFonts.Add(path, font);
+                LoadedFonts.Add(path, font);
 
 #if DEBUG
                 Debugging.DebugMessage(DebugMessageType.InfoDark, "Loaded font " + font.Name + " from [" + path + "]");
@@ -176,12 +176,12 @@ namespace Soul.Engine.Modules
         public static void UnloadFont(string name)
         {
             // Check if loaded.
-            if (_loadedFonts.ContainsKey(name))
+            if (LoadedFonts.ContainsKey(name))
             {
                 // Dispose of it.
-                _loadedFonts[name].Dispose();
+                LoadedFonts[name].Dispose();
                 // Remove it from the list.
-                _loadedFonts.Remove(name);
+                LoadedFonts.Remove(name);
             }
         }
 
@@ -192,10 +192,10 @@ namespace Soul.Engine.Modules
         public static Font GetFont(string name)
         {
             // Check if loaded.
-            if (!_loadedFonts.ContainsKey(name)) LoadFont(name);
+            if (!LoadedFonts.ContainsKey(name)) LoadFont(name);
 
             // Return the loaded font.
-            return _loadedFonts[name];
+            return LoadedFonts[name];
         }
 
         #endregion

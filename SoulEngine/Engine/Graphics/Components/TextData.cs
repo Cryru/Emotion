@@ -47,6 +47,11 @@ namespace Soul.Engine.Graphics.Components
         private int _size = 10;
 
         /// <summary>
+        /// Whether the text render needs to be rerendered.
+        /// </summary>
+        public bool NeedRerender { get; internal set; }
+
+        /// <summary>
         /// A cached render of the text.
         /// </summary>
         public RenderTarget CachedRender;

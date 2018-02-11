@@ -5,9 +5,11 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
+using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Logging;
 
@@ -183,18 +185,35 @@ namespace Soul.Engine.Modules
         /// </summary>
         private static void SetupDebuggingLibrary()
         {
-            Scripting.Expose("log", (Action<string>) (msg => DebugMessage(DebugMessageType.InfoBlue, msg)));
-            Scripting.Expose("help", (Action) Help);
-            Scripting.Expose("stats", (Func<string>) Statistics);
-            Scripting.Expose("dump", (Action) Dump);
+            Scripting.Expose("log", (Action<string>)(msg => DebugMessage(DebugMessageType.InfoBlue, msg)));
+            Scripting.Expose("help", (Action)Help);
+            Scripting.Expose("stats", (Action)Statistics);
+            Scripting.Expose("dump", (Action)Dump);
         }
 
-        private static string Statistics()
+        private static void Statistics()
         {
-            return "Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb\n" +
-                   "Current Scene: " + SceneManager.CurrentScene + "\n" +
-                   "Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count + "\n" +
-                   "Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count;
+            string data = "Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb";
+            data += "\\n" + "|- Textures: " + AssetLoader.LoadedTextures.Count;
+            data += "\\n" + "|- Fonts: " + AssetLoader.LoadedFonts.Count;
+
+            data += "\\nCurrent Scene: " + SceneManager.CurrentScene + 
+                    "\\n|- Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count;
+
+            foreach (KeyValuePair<string, Entity> entity in SceneManager.CurrentScene?.RegisteredEntities)
+            {
+                data += "\\n" + "    |- [" + entity.Key + "] " + entity.Value.Components.Count + " Components.";
+            }
+
+            data += "\\n|- Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count;
+
+            foreach (SystemBase sys in SceneManager.CurrentScene?.RunningSystems)
+            {
+                data += "\\n" + "    |- [" + sys.Priority + "] " +
+                    sys;
+            }
+
+            Scripting.RunScript("log('" + data + "');");
         }
 
         private static void Dump()
@@ -215,7 +234,7 @@ namespace Soul.Engine.Modules
 
         private static void Help()
         {
-            Scripting.RunScript("Object.keys(this)");
+            Scripting.RunScript("log('SoulEngine 2018 Scripting Help Menu\nIN DEVELOPMENT')");
         }
 
         #endregion

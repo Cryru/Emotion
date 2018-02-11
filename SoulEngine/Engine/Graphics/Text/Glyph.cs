@@ -4,6 +4,7 @@
 
 using System.Drawing;
 using Breath.Objects;
+using OpenTK.Graphics.OpenGL;
 
 #endregion
 
@@ -19,24 +20,19 @@ namespace Soul.Engine.Graphics.Text
         #region Metrics
 
         /// <summary>
-        /// The size of the glyph bitmap.
-        /// </summary>
-        public int Top { get; }
-
-        /// <summary>
-        /// The offset from the top so the glyph lays on the baseline.
+        /// The offset from the top so the glyph lays on the baseline within the SE rendering.
         /// </summary>
         public int TopOffset { get; }
 
         /// <summary>
-        /// The glyph advance AKA where the next glyph should begin.
+        /// The distance between the previous pen position and the next one. Subtract the BearingX to obtain the distance to next.
         /// </summary>
         public int Advance { get; }
 
         /// <summary>
-        /// The maximum size a glyph can be within the font.
+        /// The space between neew lines.
         /// </summary>
-        public int FontMax { get; }
+        public int NewLineSpace { get; }
 
         /// <summary>
         /// The width of the glyph.
@@ -48,19 +44,24 @@ namespace Soul.Engine.Graphics.Text
         /// </summary>
         public int Height { get; }
 
+        /// <summary>
+        /// The distance between the previous pen position and the start of the glyph.
+        /// </summary>
+        public int BearingX;
+
         #endregion
 
         /// <summary>
         /// Load a new glyph.
         /// </summary>
-        public Glyph(int top, int topOffset, int advance, int fontMax, int width, int height)
+        public Glyph(int topOffset, int bearingX, int newLineSpace, int width, int height, int advance)
         {
-            Top = top;
             TopOffset = topOffset;
-            Advance = advance;
-            FontMax = fontMax;
+            BearingX = bearingX;
+            NewLineSpace = newLineSpace;
             Width = width;
             Height = height;
+            Advance = advance;
         }
 
         /// <summary>
@@ -70,7 +71,16 @@ namespace Soul.Engine.Graphics.Text
         public void SetTexture(Bitmap bitmap)
         {
             GlyphTexture = new Texture();
-            GlyphTexture.Upload(bitmap, OpenTK.Graphics.OpenGL.PixelFormat.Red);
+            GlyphTexture.Use();
+            // Apply a swizzle mask so the letters can be colored.
+            // Red - 0x1903
+            // Green - 0x1904
+            // Blue - 0x1905
+            // Alpha - 0x1906
+            int[] swizzleMask = { 1, 1, 1, 0x1906 };
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleRgba, swizzleMask);
+            GlyphTexture.StopUsing();
+            GlyphTexture.Upload(bitmap);
             bitmap.Dispose();
         }
 
