@@ -5,6 +5,7 @@
 using System;
 using Breath.Primitives;
 using Breath.Objects;
+using Breath.Systems;
 using OpenTK;
 using Soul.Engine.ECS;
 
@@ -56,7 +57,7 @@ namespace Soul.Engine.Graphics.Components
         {
             get
             {
-                // if the texture vvertices are a rectangle, generate a rectangle object from the vertices and return it.
+                // if the texture vertices are a rectangle, generate a rectangle object from the vertices and return it.
                 if (_textureVertices != null && _textureVertices.Length == 4)
                     return new Rectangle(_textureVertices[0].X, _textureVertices[0].Y, _textureVertices[2].X,
                         _textureVertices[2].Y);
@@ -88,15 +89,12 @@ namespace Soul.Engine.Graphics.Components
             }
         }
 
-        #region VBOs
-
-        public VBO VerticesVBO = new VBO();
-        public VBO ColorVBO = new VBO();
-        public VBO TextureVBO;
-
-        #endregion
-
         #region Objects
+
+        /// <summary>
+        /// The renderable.
+        /// </summary>
+        public Drawable BreathDrawable = new Drawable(new VBO(), new VBO(), null, null);
 
         /// <summary>
         /// The model matrix.
@@ -107,11 +105,6 @@ namespace Soul.Engine.Graphics.Components
         /// The vertices representing this object.
         /// </summary>
         internal Vector2[] Vertices = { };
-
-        /// <summary>
-        /// The texture to render on this object.
-        /// </summary>
-        internal Texture Texture;
 
         // The texture area as vertices.
         private Vector2[] _textureVertices;
@@ -185,7 +178,7 @@ namespace Soul.Engine.Graphics.Components
         {
             if (Vertices.Length == 0) return;
 
-            VerticesVBO.Upload(Vertices);
+            BreathDrawable.VerticesVBO.Upload(Vertices);
             UpdateColor();
 
             HasUpdated = false;
@@ -198,13 +191,13 @@ namespace Soul.Engine.Graphics.Components
         public void SetTextureVertices(Vector2[] verts)
         {
             // Create a VBO if missing.
-            if (TextureVBO == null) TextureVBO = new VBO();
+            if (BreathDrawable.TextureVBO == null) BreathDrawable.TextureVBO = new VBO();
 
             // Override vertices holder.
             _textureVertices = verts;
 
             // Upload.
-            TextureVBO.Upload(verts);
+            BreathDrawable.TextureVBO.Upload(verts);
         }
 
         #endregion
@@ -216,7 +209,7 @@ namespace Soul.Engine.Graphics.Components
         /// </summary>
         private void UpdateColor()
         {
-            ColorVBO.Upload(_color.ToVertexArray(Vertices.Length));
+            BreathDrawable.ColorVBO.Upload(_color.ToVertexArray(Vertices.Length));
         }
 
         #endregion
@@ -225,7 +218,7 @@ namespace Soul.Engine.Graphics.Components
 
         public void ApplyTexture(Texture texture)
         {
-            Texture = texture;
+            BreathDrawable.Texture = texture;
 
             // Set the texture area to full by default.
             TextureArea = new Rectangle(0, 0, texture.Width, texture.Height);

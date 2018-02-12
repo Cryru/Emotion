@@ -87,7 +87,7 @@ namespace Examples.Basic
             basicText.AttachComponent<TextData>();
             basicText.GetComponent<TextData>().Text = "Lorem Ipsum is simply dummy text of the printing and typesetting\nindustry. Lorem Ipsum has been the industry's standard dummy\ntext ever since the 1500s, when an unknown printer took a galley\nof type and scrambled it to make a type specimen book.\n";
             basicText.GetComponent<TextData>().Font = AssetLoader.GetFont("testFont.ttf");
-            basicText.GetComponent<TextData>().Size = 100;
+            basicText.GetComponent<TextData>().Size = 25;
             AddEntity(basicText);
         }
 

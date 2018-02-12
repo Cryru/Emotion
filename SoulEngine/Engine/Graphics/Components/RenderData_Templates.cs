@@ -24,7 +24,7 @@ namespace Soul.Engine.Graphics.Components
         public void ApplyTemplate_Rectangle()
         {
             Vertices = RectangleVertices;
-            VerticesVBO = RectangleVBO;
+            BreathDrawable.VerticesVBO = RectangleVBO;
 
             HasUpdated = true;
         }
@@ -35,7 +35,7 @@ namespace Soul.Engine.Graphics.Components
         public void ApplyTemplate_Triangle()
         {           
             Vertices = TriangleVertices;
-            VerticesVBO = TriangleVBO;
+            BreathDrawable.VerticesVBO = TriangleVBO;
 
             HasUpdated = true;
         }
@@ -46,7 +46,7 @@ namespace Soul.Engine.Graphics.Components
         public void ApplyTemplate_Circle()
         {
             Vertices = CircleVertices;
-            VerticesVBO = CircleVBO;
+            BreathDrawable.VerticesVBO = CircleVBO;
 
             HasUpdated = true;
         }

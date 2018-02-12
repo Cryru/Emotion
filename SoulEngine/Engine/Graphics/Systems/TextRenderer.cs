@@ -4,6 +4,7 @@
 
 using System;
 using Breath.Objects;
+using Breath.Primitives;
 using Breath.Systems;
 using OpenTK;
 using Soul.Engine.ECS;
@@ -19,17 +20,20 @@ namespace Soul.Engine.Graphics.Systems
     {
         #region Properties
 
+        /// <summary>
+        /// Default white VBO. Text is rendered white and then colored via the render data.
+        /// </summary>
+        private static VBO _whiteColorVBO;
+
+        /// <summary>
+        /// The GL Program used for text rendering.
+        /// </summary>
         private static GlProgram _textRenderingProgram;
-
-        #endregion
-
-        #region Shaders
 
         /// <summary>
         /// The default vertex shader.
         /// </summary>
-        private static string _vertexShader = @"
-        #version 330 core
+        private const string VertexShader = @"#version 330 core
         
         layout(location = 0) in vec2 position;
         layout(location = 1) in vec4 vertColor;
@@ -51,14 +55,12 @@ namespace Soul.Engine.Graphics.Systems
         	// Pass data onto the fragment shader.
         	fragColor = vertColor;
         	UV = textureModel * vec4(vertexUV, 1, 1);
-        }
-        ";
+        }";
 
         /// <summary>
         /// The text rendering fragment shader - allows us to color letters.
         /// </summary>
-        private static string _fragmentShader = @"
-        #version 330 core
+        private const string FragmentShader = @"#version 330 core
         
         in vec4 fragColor;
         in vec4 UV;
@@ -69,18 +71,21 @@ namespace Soul.Engine.Graphics.Systems
         
         void main(){
           color = vec4(texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a);
-        }
-        ";
+        }";
 
         #endregion
 
         static TextRenderer()
         {
+            // Setup white color VBO.
+            _whiteColorVBO = new VBO();
+            _whiteColorVBO.Upload(Color.White.ToVertexArray(4));
+
             // Setup program.
             _textRenderingProgram = new GlProgram();
 
-            Shader defaultVertex = new Shader(OpenTK.Graphics.OpenGL.ShaderType.VertexShader, _vertexShader);
-            Shader textFragment = new Shader(OpenTK.Graphics.OpenGL.ShaderType.FragmentShader, _fragmentShader);
+            Shader defaultVertex = new Shader(OpenTK.Graphics.OpenGL.ShaderType.VertexShader, VertexShader);
+            Shader textFragment = new Shader(OpenTK.Graphics.OpenGL.ShaderType.FragmentShader, FragmentShader);
 
             _textRenderingProgram.AttachShader(defaultVertex);
             _textRenderingProgram.AttachShader(textFragment);
@@ -152,7 +157,6 @@ namespace Soul.Engine.Graphics.Systems
 
             // Use the text rendering program.
             Core.BreathWin.SetProgram(_textRenderingProgram);
-            Core.BreathWin.SetTextureModelMatrix(Matrix4.Identity);
 
             // Render text.
             Core.BreathWin.DrawOnTarget(textData.CachedRender);
@@ -196,20 +200,8 @@ namespace Soul.Engine.Graphics.Systems
                 // If there is a texture draw it.
                 if (texture != null)
                 {
-                    Core.BreathWin.SetModelMatrix(scale * translation);
-
-                    Core.BreathWin.SetTexture(texture);
-
-                    RenderData.RectangleVBO.EnableShaderAttribute(2, 2); // texture
-                    renderData.ColorVBO.EnableShaderAttribute(1, 4); // color
-                    RenderData.RectangleVBO.EnableShaderAttribute(0, 2); // vert
-                    RenderData.RectangleVBO.Draw();
-                    RenderData.RectangleVBO.DisableShaderAttribute(0);
-                    renderData.ColorVBO.DisableShaderAttribute(1);
-                    RenderData.RectangleVBO.DisableShaderAttribute(2);
-
-                    texture.StopUsing();
-                    Core.BreathWin.SetModelMatrix(Matrix4.Identity);
+                    Core.BreathWin.Draw(RenderData.RectangleVBO, _whiteColorVBO, RenderData.RectangleVBO, texture,
+                        scale * translation);
                 }
 
                 // Advance the x position by the glyph advance and add kerning. (Kerning might be broken.)
@@ -220,7 +212,8 @@ namespace Soul.Engine.Graphics.Systems
                 prevChar = c;
             }
 
-            Core.BreathWin.DrawNormally();
+            // Restore default drawing.
+            Core.BreathWin.DrawOnTheScreen();
             Core.BreathWin.SetDefaultProgram();
 
             // Set render data texture to the cached text.

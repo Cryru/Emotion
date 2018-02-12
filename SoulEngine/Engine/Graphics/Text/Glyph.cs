@@ -4,6 +4,7 @@
 
 using System.Drawing;
 using Breath.Objects;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 #endregion
@@ -82,6 +83,8 @@ namespace Soul.Engine.Graphics.Text
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleRgba, swizzleMask);
             GlyphTexture.StopUsing();
             GlyphTexture.Upload(bitmap);
+            // Overwrite the texture model matrix.
+            GlyphTexture.TextureModelMatrix = Matrix4.Identity;
             bitmap.Dispose();
         }
 

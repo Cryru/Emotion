@@ -38,7 +38,7 @@ namespace Soul.Engine.ECS.Systems
             if (animData.HasUpdated)
             {
                 animData.ResetFrame();
-                animData.CalculateFrames(renderData.Texture.Size);
+                animData.CalculateFrames(renderData.BreathDrawable.Texture.Size);
 
                 // Set the texture to the new frame texture.
                 renderData.TextureArea = animData.CurrentFrameRect;

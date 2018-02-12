@@ -90,29 +90,10 @@ namespace Soul.Engine.Graphics.Systems
             // Check whether to render.
             if(!renderData.Enabled) return;
 
-            // Compute the MVP for this object.
-            Core.BreathWin.SetModelMatrix(renderData.ModelMatrix);
-            // If a texture is attached add the texture and model matrix.
-            if (renderData.Texture != null)
-            {
-                Core.BreathWin.SetTextureModelMatrix(renderData.Texture.TextureModelMatrix);
-                Core.BreathWin.SetTexture(renderData.Texture);
-            }
-
-            renderData.TextureVBO?.EnableShaderAttribute(2, 2);
-            renderData.ColorVBO.EnableShaderAttribute(1, 4);
-            renderData.VerticesVBO.EnableShaderAttribute(0, 2);
-            renderData.VerticesVBO.Draw(renderData.GetPointCount() == 2
+            // Render the drawable.
+            Core.BreathWin.Draw(renderData.BreathDrawable, renderData.ModelMatrix, renderData.GetPointCount() == 2
                 ? PrimitiveType.Lines
-                : PrimitiveType.TriangleFan); // Force line drawing when 2 vertices.
-            renderData.VerticesVBO.DisableShaderAttribute(0);
-            renderData.ColorVBO.DisableShaderAttribute(1);
-            renderData.TextureVBO?.DisableShaderAttribute(2);
-
-            renderData.Texture?.StopUsing();
-
-            // Restore normal MVP.
-            Core.BreathWin.SetModelMatrix(Matrix4.Identity);
+                : PrimitiveType.TriangleFan);
         }
 
         #endregion
