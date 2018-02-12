@@ -222,8 +222,7 @@ namespace Soul.Engine
         {
             if (Core.BreathWin == null) return;
 
-            Core.BreathWin.Width = WWidth;
-            Core.BreathWin.Height = WHeight;
+            Core.BreathWin.Size = new System.Drawing.Size(WWidth, WHeight);
             Core.BreathWin.VSync = VSync ? VSyncMode.On : VSyncMode.Off;
             Core.BreathWin.CursorVisible = RenderMouse;
             Core.BreathWin.Title = WTitle;

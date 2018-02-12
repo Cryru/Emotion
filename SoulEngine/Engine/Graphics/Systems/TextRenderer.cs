@@ -7,6 +7,7 @@ using Breath.Objects;
 using Breath.Primitives;
 using Breath.Systems;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
 using Soul.Engine.Graphics.Components;
@@ -160,6 +161,10 @@ namespace Soul.Engine.Graphics.Systems
 
             // Render text.
             Core.BreathWin.DrawOnTarget(textData.CachedRender);
+            GL.ClearColor(0, 0, 0, 0);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+            //GL.BlendFuncSeparate(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha, BlendingFactorSrc.One,
+            //    BlendingFactorDest.OneMinusSrcAlpha);
 
             // Rendering metrics.
             int x = 0;

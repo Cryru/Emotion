@@ -130,7 +130,7 @@ namespace Soul.Engine.Graphics.Text
             }
 
             // Load the glyph for the character.
-            _face.LoadChar(charCode, LoadFlags.Default, LoadTarget.Normal);
+            _face.LoadChar(charCode, LoadFlags.Monochrome, LoadTarget.Normal);
 
             // Get the FreeType glyph and render it.
             _face.Glyph.RenderGlyph(RenderMode.Normal);

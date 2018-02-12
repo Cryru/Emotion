@@ -59,9 +59,6 @@ namespace Soul.Engine
             SceneManager.Setup();
             SceneManager.LoadScene("start", startingScene, true);
 
-            // Apply first run settings.
-            BreathWin.WindowBorder = WindowBorder.Fixed;
-
             // Apply runtime settings.
             Settings.ApplySettings();
 

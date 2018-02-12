@@ -22,6 +22,8 @@ namespace Examples.Basic
     {
         public static void Main()
         {
+            Settings.Width = 1920;
+            Settings.Height = 1080;
             Core.Setup(new TextTest());
         }
 
@@ -98,6 +100,12 @@ namespace Examples.Basic
             if (Input.KeyPressed(OpenTK.Input.Key.A))
             {
                 GetEntity("basicText").GetComponent<TextData>().Text += "A";
+            }
+
+
+            if (Input.KeyPressed(OpenTK.Input.Key.BackSpace) && GetEntity("basicText").GetComponent<TextData>().Text.Length > 0)
+            {
+                GetEntity("basicText").GetComponent<TextData>().Text = GetEntity("basicText").GetComponent<TextData>().Text.Substring(0, GetEntity("basicText").GetComponent<TextData>().Text.Length - 1);
             }
         }
     }
