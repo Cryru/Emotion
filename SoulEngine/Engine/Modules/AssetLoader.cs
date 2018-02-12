@@ -219,7 +219,7 @@ namespace Soul.Engine.Modules
                 if (!Directory.Exists("Assets"))
                 {
                     ErrorHandling.Raise(ErrorOrigin.AssetManager,
-                        "Tried loading an asset insecurely, but no assets folder exists.");
+                        "Tried loading an asset insecurely - " + path + " , but no assets folder exists.");
                     return null;
                 }
 
@@ -318,6 +318,9 @@ namespace Soul.Engine.Modules
                 {
                     // Tried to lock with no meta file?
                     ErrorHandling.Raise(ErrorOrigin.AssetManager, "Missing assets meta.");
+#if DEBUG
+                    Core.Stop();
+#endif
                     return;
                 }
 
@@ -325,6 +328,9 @@ namespace Soul.Engine.Modules
                 if (!File.Exists("assets.soul"))
                 {
                     ErrorHandling.Raise(ErrorOrigin.AssetManager, "Missing assets blob.");
+#if DEBUG
+                    Core.Stop();
+#endif
                     return;
                 }
 
@@ -345,6 +351,9 @@ namespace Soul.Engine.Modules
                 if (metaHash != hash)
                 {
                     ErrorHandling.Raise(ErrorOrigin.AssetManager, "Assets meta hash is invalid.");
+#if DEBUG
+                    Core.Stop();
+#endif
                     return;
                 }
 
@@ -355,6 +364,9 @@ namespace Soul.Engine.Modules
             {
                 // Check if an exception is thrown.
                 ErrorHandling.Raise(ErrorOrigin.AssetManager, e.Message);
+#if DEBUG
+                Core.Stop();
+#endif
             }
         }
 

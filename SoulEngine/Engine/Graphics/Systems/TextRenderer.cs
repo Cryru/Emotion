@@ -68,7 +68,7 @@ namespace Soul.Engine.Graphics.Systems
         uniform sampler2D textureSampler;
         
         void main(){
-          color = vec4(fragColor.r, fragColor.g, fragColor.b, texture(textureSampler, UV.xy).a);
+          color = vec4(texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a);
         }
         ";
 

@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.IO;
 using Breath.Systems;
 using Soul.Engine.Enums;
 
@@ -25,8 +26,8 @@ namespace Soul.Engine.Modules
             // If debugging, log the error.
             Debugging.DebugMessage(DebugMessageType.Error, errorFormatted);
 #else // Write a crash report.
-            System.IO.Directory.CreateDirectory("Errors");
-            IO.Write.File("CrashReport_ " + DateTime.Now.ToFileTime(), errorFormatted);
+            Directory.CreateDirectory("Errors");
+            IO.Write.File("Errors" + Path.DirectorySeparatorChar + "CrashReport_ " + DateTime.Now.ToFileTime(), errorFormatted);
 
             // Close the engine.
             Core.Stop(true);
