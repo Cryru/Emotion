@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.Drawing;
 using Breath.Objects;
 using OpenTK;
@@ -68,24 +69,30 @@ namespace Soul.Engine.Graphics.Text
         /// <summary>
         /// Sets the glyph's texture.
         /// </summary>
-        /// <param name="bitmap"></param>
+        /// <param name="bitmap">A GDI bitmap representing the texture.</param>
         public void SetTexture(Bitmap bitmap)
         {
-            
             GlyphTexture = new Texture();
-            GlyphTexture.Use();
-            // Apply a swizzle mask so the letters can be colored.
-            // Red - 0x1903
-            // Green - 0x1904
-            // Blue - 0x1905
-            // Alpha - 0x1906
-            //int[] swizzleMask = { 0x1906, 0x1906, 0x1906, 0x1906 };
-            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleRgba, swizzleMask);
-            GlyphTexture.StopUsing();
             GlyphTexture.Upload(bitmap);
             // Overwrite the texture model matrix.
             GlyphTexture.TextureModelMatrix = Matrix4.Identity;
             bitmap.Dispose();
+        }
+
+        /// <summary>
+        /// Sets the glyph's texture.
+        /// </summary>
+        /// <param name="bitmap"></param>
+        public void SetTexture(byte[] bitmap, int width, int height)
+        {
+            GlyphTexture = new Texture();
+            GlyphTexture.Use();
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Alpha, width, height, 0,
+                PixelFormat.Alpha, PixelType.UnsignedByte, bitmap);
+            GlyphTexture.StopUsing();
+            //GlyphTexture.Upload(bitmap);
+            // Overwrite the texture model matrix.
+            GlyphTexture.TextureModelMatrix = Matrix4.Identity;
         }
 
         /// <summary>

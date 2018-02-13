@@ -130,19 +130,18 @@ namespace Soul.Engine.Graphics.Text
             }
 
             // Load the glyph for the character.
-            _face.LoadChar(charCode, LoadFlags.Monochrome, LoadTarget.Normal);
-
-            // Get the FreeType glyph and render it.
-            _face.Glyph.RenderGlyph(RenderMode.Normal);
+            _face.LoadChar(charCode, LoadFlags.Render, LoadTarget.Normal);
+            
+            // Get the FreeType glyph.
             GlyphSlot freeTypeGlyph = _face.Glyph;
-
-            // Create the SoulEngine glyph.
+            // Get the scaled metrics.
             GlyphMetrics glyphMetrics = freeTypeGlyph.Metrics;
 
+            // Create the SoulEngine glyph.
             Glyph seGlyph = new Glyph(
                 _face.Size.Metrics.Ascender.ToInt32() - Math.Abs(freeTypeGlyph.BitmapTop),
                 glyphMetrics.HorizontalBearingX.ToInt32(),
-                (int) (_face.Size.Metrics.Height.ToInt32()),
+                (_face.Size.Metrics.Height.ToInt32()),
                 glyphMetrics.Width.ToInt32(),
                 glyphMetrics.Height.ToInt32(),
                 glyphMetrics.HorizontalAdvance.ToInt32()

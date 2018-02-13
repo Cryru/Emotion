@@ -11,8 +11,6 @@ using Breath.Objects;
 using Soul.Encryption;
 using Soul.Engine.Enums;
 using Soul.IO;
-using SharpFont;
-using Soul.Engine.Graphics;
 using Soul.Engine.Graphics.Text;
 
 #endregion
@@ -108,6 +106,8 @@ namespace Soul.Engine.Modules
         /// <param name="path">The name of the texture to unload.</param>
         public static void UnloadTexture(string path)
         {
+            path = path.ToLower();
+
             // Check if loaded.
             if (LoadedTextures.ContainsKey(path))
             {
@@ -124,6 +124,8 @@ namespace Soul.Engine.Modules
         /// <param name="path">The name of the texture to get.</param>
         public static Texture GetTexture(string path)
         {
+            path = path.ToLower();
+
             // Check if loaded.
             if (!LoadedTextures.ContainsKey(path)) LoadTexture(path);
 
@@ -175,6 +177,8 @@ namespace Soul.Engine.Modules
         /// <param name="name">The name of the font to unload.</param>
         public static void UnloadFont(string name)
         {
+            name = name.ToLower();
+
             // Check if loaded.
             if (LoadedFonts.ContainsKey(name))
             {
@@ -191,6 +195,8 @@ namespace Soul.Engine.Modules
         /// <param name="name">The name of the font to get.</param>
         public static Font GetFont(string name)
         {
+            name = name.ToLower();
+
             // Check if loaded.
             if (!LoadedFonts.ContainsKey(name)) LoadFont(name);
 
@@ -207,6 +213,8 @@ namespace Soul.Engine.Modules
         /// <returns>The file contents.</returns>
         internal static byte[] LoadFile(string path)
         {
+            path = path.ToLower();
+
             // Check which way we are reading data.
             if (_meta == null)
             {

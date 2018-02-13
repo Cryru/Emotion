@@ -22,6 +22,11 @@ namespace Soul.Engine.Graphics.Systems
         #region Properties
 
         /// <summary>
+        /// The scale to render text at.
+        /// </summary>
+        private const int FontScale = 1;
+
+        /// <summary>
         /// Default white VBO. Text is rendered white and then colored via the render data.
         /// </summary>
         private static VBO _whiteColorVBO;
@@ -71,7 +76,10 @@ namespace Soul.Engine.Graphics.Systems
         uniform sampler2D textureSampler;
         
         void main(){
-          color = vec4(texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a, texture(textureSampler, UV.xy).a);
+          float a = texture(textureSampler, UV.xy).a;
+
+    
+          color = vec4(1, 1, 1, a);
         }";
 
         #endregion
@@ -85,8 +93,8 @@ namespace Soul.Engine.Graphics.Systems
             // Setup program.
             _textRenderingProgram = new GlProgram();
 
-            Shader defaultVertex = new Shader(OpenTK.Graphics.OpenGL.ShaderType.VertexShader, VertexShader);
-            Shader textFragment = new Shader(OpenTK.Graphics.OpenGL.ShaderType.FragmentShader, FragmentShader);
+            Shader defaultVertex = new Shader(ShaderType.VertexShader, VertexShader);
+            Shader textFragment = new Shader(ShaderType.FragmentShader, FragmentShader);
 
             _textRenderingProgram.AttachShader(defaultVertex);
             _textRenderingProgram.AttachShader(textFragment);
@@ -135,7 +143,7 @@ namespace Soul.Engine.Graphics.Systems
                     // Clear if any.
                     textData.CachedRender?.Destroy();
                     // Remake it.
-                    textData.CachedRender = new RenderTarget((int)transform.Width, (int)transform.Height);
+                    textData.CachedRender = new RenderTarget((int)transform.Width * FontScale, (int)transform.Height * FontScale);
                     // The cache was just remade, so we need to render.
                     needRender = true;
                 }
@@ -161,10 +169,7 @@ namespace Soul.Engine.Graphics.Systems
 
             // Render text.
             Core.BreathWin.DrawOnTarget(textData.CachedRender);
-            GL.ClearColor(0, 0, 0, 0);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-            //GL.BlendFuncSeparate(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha, BlendingFactorSrc.One,
-            //    BlendingFactorDest.OneMinusSrcAlpha);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             // Rendering metrics.
             int x = 0;
@@ -174,7 +179,7 @@ namespace Soul.Engine.Graphics.Systems
             // For each character.
             foreach (char c in textData.Text)
             {
-                Glyph glyph = textData.Font.GetGlyph(c, (uint)textData.Size);
+                Glyph glyph = textData.Font.GetGlyph(c, (uint) (textData.Size * FontScale));
                 Texture texture = glyph.GlyphTexture;
 
                 // Special character handling.
@@ -198,13 +203,13 @@ namespace Soul.Engine.Graphics.Systems
                 int topOffset = glyph.TopOffset + y;
                 x += glyph.BearingX;
 
-                // Generate matrices.
-                Matrix4 scale = Matrix4.CreateScale(glyph.Width, glyph.Height, 1);
-                Matrix4 translation = Matrix4.CreateTranslation(x, topOffset, 0);
-
                 // If there is a texture draw it.
                 if (texture != null)
                 {
+                    // Generate matrices.
+                    Matrix4 scale = Matrix4.CreateScale(texture.Width, texture.Height, 1);
+                    Matrix4 translation = Matrix4.CreateTranslation(x, topOffset, 0);
+
                     Core.BreathWin.Draw(RenderData.RectangleVBO, _whiteColorVBO, RenderData.RectangleVBO, texture,
                         scale * translation);
                 }

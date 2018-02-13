@@ -84,7 +84,7 @@ namespace Soul.Engine
 
         #endregion
 
-        #region First Run Settings
+        #region Drawing Settings
 
         /// <summary>
         /// The width of the render area. Must be set before setup.
@@ -105,10 +105,6 @@ namespace Soul.Engine
         /// The TPS target. Must be set before setup.
         /// </summary>
         public static int TPS = 60;
-
-        #endregion
-
-        #region Drawing Settings
 
         /// <summary>
         /// Whether vertical synchronization is enabled.
@@ -222,7 +218,7 @@ namespace Soul.Engine
         {
             if (Core.BreathWin == null) return;
 
-            Core.BreathWin.Size = new System.Drawing.Size(WWidth, WHeight);
+            Core.BreathWin.ClientSize = new System.Drawing.Size(WWidth, WHeight);
             Core.BreathWin.VSync = VSync ? VSyncMode.On : VSyncMode.Off;
             Core.BreathWin.CursorVisible = RenderMouse;
             Core.BreathWin.Title = WTitle;

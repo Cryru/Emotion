@@ -13,6 +13,7 @@ using Soul.Engine.Graphics.Text;
 using Soul.Engine.Scenography;
 using Soul.Engine.Modules;
 using Breath.Objects;
+using Breath.Primitives;
 
 #endregion
 
@@ -20,92 +21,103 @@ namespace Examples.Basic
 {
     public class TextTest : Scene
     {
+        private bool _isArial = true;
+
         public static void Main()
         {
-            Settings.Width = 1920;
-            Settings.Height = 1080;
             Core.Setup(new TextTest());
         }
 
         protected override void Setup()
         {
-            AssetLoader.LoadFont("testFont.ttf");
+            AssetLoader.LoadFont("Arial.ttf");
+            AssetLoader.LoadFont("ElectricSleep.ttf");
 
-            Entity lineTop = new Entity("lineTop");
-            lineTop.AttachComponent<Transform>();
-            lineTop.GetComponent<Transform>().Position = new Vector2(100, 100);
-            lineTop.GetComponent<Transform>().Size = new Vector2(1, 1);
-            lineTop.AttachComponent<RenderData>();
-            lineTop.GetComponent<RenderData>().SetPointCount(2);
-            lineTop.GetComponent<RenderData>().SetPoint(0, new Vector2(0, 0));
-            lineTop.GetComponent<RenderData>().SetPoint(1, new Vector2(500, 0));
-            lineTop.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
-            lineTop.GetComponent<RenderData>().Priority = 2;
-            AddEntity(lineTop);
+            Entity background = Entity.CreateBasicDrawable("background");
+            background.GetComponent<Transform>().Bounds = new Rectangle(0, 0, 960, 540);
+            background.GetComponent<RenderData>().Color = new Color(255, 255, 255);
+            AddEntity(background);
 
-            Entity lineLeft = new Entity("lineLeft");
-            lineLeft.AttachComponent<Transform>();
-            lineLeft.GetComponent<Transform>().Position = new Vector2(100, 100);
-            lineLeft.GetComponent<Transform>().Size = new Vector2(1, 1);
-            lineLeft.AttachComponent<RenderData>();
-            lineLeft.GetComponent<RenderData>().SetPointCount(2);
-            lineLeft.GetComponent<RenderData>().SetPoint(0, new Vector2(0, 0));
-            lineLeft.GetComponent<RenderData>().SetPoint(1, new Vector2(0, 400));
-            lineLeft.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
-            lineLeft.GetComponent<RenderData>().Priority = 2;
-            AddEntity(lineLeft);
+            Entity textSmall = new Entity("textSmall");
+            textSmall.AttachComponent<Transform>();
+            textSmall.GetComponent<Transform>().Position = new Vector2(50, 30);
+            textSmall.GetComponent<Transform>().Size = new Vector2(900, 50);
+            textSmall.AttachComponent<RenderData>();
+            textSmall.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            textSmall.GetComponent<RenderData>().Color = new Color(86, 123, 137);
+            textSmall.AttachComponent<TextData>();
+            textSmall.GetComponent<TextData>().Text =
+                "Lorem Ipsum is simply dummy text of the printing and typesetting industry.";
+            textSmall.GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+            textSmall.GetComponent<TextData>().Size = 20;
+            AddEntity(textSmall);
 
-            Entity newLine = new Entity("newLine");
-            newLine.AttachComponent<Transform>();
-            newLine.GetComponent<Transform>().Position = new Vector2(100, 100);
-            newLine.GetComponent<Transform>().Size = new Vector2(1, 1);
-            newLine.AttachComponent<RenderData>();
-            newLine.GetComponent<RenderData>().SetPointCount(2);
-            newLine.GetComponent<RenderData>().SetPoint(0, new Vector2(0, 29));
-            newLine.GetComponent<RenderData>().SetPoint(1, new Vector2(500, 29));
-            newLine.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
-            newLine.GetComponent<RenderData>().Priority = 2;
-            AddEntity(newLine);
+            Entity textMedium = new Entity("textMedium");
+            textMedium.AttachComponent<Transform>();
+            textMedium.GetComponent<Transform>().Position = new Vector2(50, 70);
+            textMedium.GetComponent<Transform>().Size = new Vector2(900, 100);
+            textMedium.AttachComponent<RenderData>();
+            textMedium.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            textMedium.GetComponent<RenderData>().Color = new Breath.Primitives.Color(212, 66, 244);
+            textMedium.AttachComponent<TextData>();
+            textMedium.GetComponent<TextData>().Text =
+                "Lorem Ipsum is simply dummy text of the printing\nand typesetting industry.";
+            textMedium.GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+            textMedium.GetComponent<TextData>().Size = 40;
+            AddEntity(textMedium);
 
-            Entity lineRight = new Entity("lineRight");
-            lineRight.AttachComponent<Transform>();
-            lineRight.GetComponent<Transform>().Position = new Vector2(100, 100);
-            lineRight.GetComponent<Transform>().Size = new Vector2(1, 1);
-            lineRight.AttachComponent<RenderData>();
-            lineRight.GetComponent<RenderData>().SetPointCount(2);
-            lineRight.GetComponent<RenderData>().SetPoint(0, new Vector2(500, 0));
-            lineRight.GetComponent<RenderData>().SetPoint(1, new Vector2(500, 400));
-            lineRight.GetComponent<RenderData>().Color = new Breath.Primitives.Color(255, 0, 0);
-            lineRight.GetComponent<RenderData>().Priority = 2;
-            AddEntity(lineRight);
-
-            Entity basicText = new Entity("basicText");
-            basicText.AttachComponent<Transform>();
-            basicText.GetComponent<Transform>().Position = new Vector2(100, 100);
-            basicText.GetComponent<Transform>().Size = new Vector2(500, 400);
-            basicText.AttachComponent<RenderData>();
-            basicText.GetComponent<RenderData>().ApplyTemplate_Rectangle();
-            //basicText.GetComponent<RenderData>().Color = new Breath.Primitives.Color(212, 244, 66);
-            basicText.AttachComponent<TextData>();
-            basicText.GetComponent<TextData>().Text = "Lorem Ipsum is simply dummy text of the printing and typesetting\nindustry. Lorem Ipsum has been the industry's standard dummy\ntext ever since the 1500s, when an unknown printer took a galley\nof type and scrambled it to make a type specimen book.\n";
-            basicText.GetComponent<TextData>().Font = AssetLoader.GetFont("testFont.ttf");
-            basicText.GetComponent<TextData>().Size = 25;
-            AddEntity(basicText);
+            Entity textLarge = new Entity("textLarge");
+            textLarge.AttachComponent<Transform>();
+            textLarge.GetComponent<Transform>().Position = new Vector2(50, 170);
+            textLarge.GetComponent<Transform>().Size = new Vector2(900, 350);
+            textLarge.AttachComponent<RenderData>();
+            textLarge.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            textLarge.GetComponent<RenderData>().Color = new Breath.Primitives.Color(212, 244, 66);
+            textLarge.AttachComponent<TextData>();
+            textLarge.GetComponent<TextData>().Text =
+                "Lorem Ipsum is simply\ndummy text of the\nprinting and typesetting\nindustry.";
+            textLarge.GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+            textLarge.GetComponent<TextData>().Size = 80;
+            AddEntity(textLarge);
         }
 
         protected override void Update()
         {
             bool breakpoint = true;
 
-            if (Input.KeyPressed(OpenTK.Input.Key.A))
+            if (Input.KeyPressed(OpenTK.Input.Key.Space))
             {
-                GetEntity("basicText").GetComponent<TextData>().Text += "A";
-            }
+                if (_isArial)
+                {
+                    GetEntity("textSmall").GetComponent<TextData>().Font = AssetLoader.GetFont("ElectricSleep.ttf");
+                    GetEntity("textSmall").GetComponent<TextData>().Text =
+                        GetEntity("textSmall").GetComponent<TextData>().Text.ToUpper();
 
+                    GetEntity("textMedium").GetComponent<TextData>().Font = AssetLoader.GetFont("ElectricSleep.ttf");
+                    GetEntity("textMedium").GetComponent<TextData>().Text =
+                        GetEntity("textMedium").GetComponent<TextData>().Text.ToUpper();
 
-            if (Input.KeyPressed(OpenTK.Input.Key.BackSpace) && GetEntity("basicText").GetComponent<TextData>().Text.Length > 0)
-            {
-                GetEntity("basicText").GetComponent<TextData>().Text = GetEntity("basicText").GetComponent<TextData>().Text.Substring(0, GetEntity("basicText").GetComponent<TextData>().Text.Length - 1);
+                    GetEntity("textLarge").GetComponent<TextData>().Font = AssetLoader.GetFont("ElectricSleep.ttf");
+                    GetEntity("textLarge").GetComponent<TextData>().Text =
+                        GetEntity("textLarge").GetComponent<TextData>().Text.ToUpper();
+                    _isArial = false;
+                }
+                else
+                {
+                    GetEntity("textSmall").GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+                    GetEntity("textSmall").GetComponent<TextData>().Text =
+                        GetEntity("textSmall").GetComponent<TextData>().Text.ToUpper();
+
+                    GetEntity("textMedium").GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+                    GetEntity("textMedium").GetComponent<TextData>().Text =
+                        GetEntity("textMedium").GetComponent<TextData>().Text.ToUpper();
+
+                    GetEntity("textLarge").GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+                    GetEntity("textLarge").GetComponent<TextData>().Text =
+                        GetEntity("textLarge").GetComponent<TextData>().Text.ToUpper();
+                    _isArial = true;
+                }
+
             }
         }
     }

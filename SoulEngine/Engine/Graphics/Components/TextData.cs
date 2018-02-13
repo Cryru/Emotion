@@ -59,6 +59,19 @@ namespace Soul.Engine.Graphics.Components
         /// <summary>
         /// The font to use.
         /// </summary>
-        public Font Font;
+        public Font Font
+        {
+            get
+            {
+                return _font;
+            }
+            set
+            {
+                HasUpdated = true;
+                _font = value;
+            }
+        }
+
+        private Font _font;
     }
 }

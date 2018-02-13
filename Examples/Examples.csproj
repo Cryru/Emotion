@@ -117,7 +117,10 @@
     <None Include=".nobuild">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assets\testFont.ttf">
+    <None Include="Assets\Arial.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\ElectricSleep.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Properties\AssemblyInfo.cs" />
