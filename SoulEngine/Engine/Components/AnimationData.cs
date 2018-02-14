@@ -139,8 +139,8 @@ namespace Soul.Engine.ECS.Components
                 int column = CurrentFrame % _columns;
 
                 // Generate texture rectangle from the current frame.
-                return new Rectangle(FrameSize.X * column + Spacing.X * (column + 1),
-                    FrameSize.Y * row + Spacing.Y * (row + 1), FrameSize.X, FrameSize.Y);
+                return new Rectangle((int)(FrameSize.X * column + Spacing.X * (column + 1)),
+                    (int)(FrameSize.Y * row + Spacing.Y * (row + 1)), (int)FrameSize.X, (int)FrameSize.Y);
             }
         }
 

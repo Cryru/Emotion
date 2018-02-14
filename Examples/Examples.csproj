@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Examples.Basic.TextTest</StartupObject>
+    <StartupObject>Examples.Basic.PhysicsTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -106,11 +106,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Basic\MemoryTest.cs" />
     <Compile Include="Basic\ECSTest.cs" />
     <Compile Include="Basic\InputTest.cs" />
     <Compile Include="Basic\PhysicsTest.cs" />
     <Compile Include="Basic\EntityCleanupTest.cs" />
-    <Compile Include="Systems\TestSystem.cs" />
     <Compile Include="Basic\ShapeTest.cs" />
     <Compile Include="Basic\TextTest.cs" />
     <Compile Include="Basic\TextureTest.cs" />

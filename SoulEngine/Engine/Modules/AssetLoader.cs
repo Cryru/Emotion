@@ -71,6 +71,8 @@ namespace Soul.Engine.Modules
         /// <param name="path">The image file to load.</param>
         public static void LoadTexture(string path)
         {
+            path = path.ToLower();
+
 #if DEBUG
             // Check if already loaded.
             if (LoadedTextures.ContainsKey(path))
@@ -143,6 +145,8 @@ namespace Soul.Engine.Modules
         /// <param name="path">The image file to load.</param>
         public static void LoadFont(string path)
         {
+            path = path.ToLower();
+
 #if DEBUG
             // Check if already loaded.
             if (LoadedTextures.ContainsKey(path))

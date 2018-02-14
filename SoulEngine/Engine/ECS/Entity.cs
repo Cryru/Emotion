@@ -114,12 +114,27 @@ namespace Soul.Engine.ECS
         /// Creates a basic drawable entity.
         /// </summary>
         /// <param name="name">The name of the entity to create.</param>
-        /// <returns>An entity with a transform and renderdata with an applied rectangle.</returns>
+        /// <returns>An entity with a transform and render data with an applied rectangle.</returns>
         public static Entity CreateBasicDrawable(string name)
         {
             Entity temp = new Entity(name);
             temp.AttachComponent<Transform>();
             temp.AttachComponent<RenderData>();
+            temp.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            return temp;
+        }
+
+        /// <summary>
+        /// Creates a basic text entity.
+        /// </summary>
+        /// <param name="name">The name of the entity to create.</param>
+        /// <returns>An entity with a transform and render data and text data.</returns>
+        public static Entity CreateBasicText(string name)
+        {
+            Entity temp = new Entity(name);
+            temp.AttachComponent<Transform>();
+            temp.AttachComponent<RenderData>();
+            temp.AttachComponent<TextData>();
             temp.GetComponent<RenderData>().ApplyTemplate_Rectangle();
             return temp;
         }

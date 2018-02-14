@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Examples.Systems;
 using Soul.Engine.ECS;
 using Soul.Engine.ECS.Components;
 using Soul.Engine.Graphics.Components;
@@ -21,8 +20,6 @@ namespace Examples.Basic
 
         protected override void Setup()
         {
-            AddSystem(new TestSystem());
-
             Entity a = new Entity("test1");
             a.AttachComponent<Transform>();
             a.AttachComponent<RenderData>();
@@ -33,8 +30,6 @@ namespace Examples.Basic
             AddEntity(b);
 
             Scripting.Expose("obj", a);
-
-            AddSystem(new TestSystem());
         }
 
     }

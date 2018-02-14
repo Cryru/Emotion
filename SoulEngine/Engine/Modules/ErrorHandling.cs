@@ -2,9 +2,11 @@
 
 #region Using
 
+#if !DEBUG
 using System;
 using System.IO;
-using Breath.Systems;
+#endif
+
 using Soul.Engine.Enums;
 
 #endregion

@@ -33,11 +33,6 @@ namespace Examples.Basic
             AssetLoader.LoadFont("Arial.ttf");
             AssetLoader.LoadFont("ElectricSleep.ttf");
 
-            Entity background = Entity.CreateBasicDrawable("background");
-            background.GetComponent<Transform>().Bounds = new Rectangle(0, 0, 960, 540);
-            background.GetComponent<RenderData>().Color = new Color(255, 255, 255);
-            AddEntity(background);
-
             Entity textSmall = new Entity("textSmall");
             textSmall.AttachComponent<Transform>();
             textSmall.GetComponent<Transform>().Position = new Vector2(50, 30);

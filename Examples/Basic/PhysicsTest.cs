@@ -2,8 +2,8 @@
 
 #region Using
 
+using System;
 using Breath.Primitives;
-using Examples.Systems;
 using OpenTK;
 using OpenTK.Input;
 using Soul.Engine;
@@ -37,6 +37,8 @@ namespace Examples.Basic
 
         protected override void Setup()
         {
+            AssetLoader.LoadFont("Arial.ttf");
+
             Entity ceiling = Entity.CreateBasicDrawable("ceiling");
             ceiling.GetComponent<Transform>().Position = new Vector2(0, 0);
             ceiling.GetComponent<Transform>().Size = new Vector2(Settings.Width, 5);
@@ -109,10 +111,30 @@ namespace Examples.Basic
             AddEntity(mouseIndicator);
 
             AddSystem(new PhysicsEngine(PhysicsEngine.DefaultGravity));
+
+            Entity fpsMeter = Entity.CreateBasicText("fpsIndicator");
+            fpsMeter.GetComponent<TextData>().Font = AssetLoader.GetFont("Arial.ttf");
+            fpsMeter.GetComponent<TextData>().Size = 20;
+            fpsMeter.GetComponent<Transform>().Size = new Vector2(100, 30);
+            fpsMeter.GetComponent<Transform>().Position = new Vector2(0, 0);
+            fpsMeter.GetComponent<RenderData>().Color = new Color("#f4d742");
+
+            AddEntity(fpsMeter);
         }
+
+        private DateTime _currentSecond = DateTime.Now;
 
         protected override void Update()
         {
+            // Update FPS.
+            if (_currentSecond.Second != DateTime.Now.Second)
+            {
+                float fps = (1000f / Core.BreathWin.FrameTime);
+
+                GetEntity("fpsIndicator").GetComponent<TextData>().Text = "FPS: " + fps;
+                _currentSecond = DateTime.Now;
+            }
+
             // Decide shape based on input.
             bool add = true;
             PhysicsShapeType newShape = _currentShape;

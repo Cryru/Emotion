@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Logging;
 
@@ -193,27 +193,33 @@ namespace Soul.Engine.Modules
 
         private static void Statistics()
         {
-            string data = "Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb";
-            data += "\\n" + "|- Textures: " + AssetLoader.LoadedTextures.Count;
-            data += "\\n" + "|- Fonts: " + AssetLoader.LoadedFonts.Count;
+            List<string> data = new List<string>();
 
-            data += "\\nCurrent Scene: " + SceneManager.CurrentScene + 
-                    "\\n|- Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count;
+            data.Add("Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb");
+            data.Add("Current Scene: " + SceneManager.CurrentScene);
 
-            foreach (KeyValuePair<string, Entity> entity in SceneManager.CurrentScene?.RegisteredEntities)
+            // Assets
+            data.Add("|- Assets");
+            data.Add("    |- Textures: " + AssetLoader.LoadedTextures.Count);
+            data.AddRange(AssetLoader.LoadedTextures.Select(texture => "        |- [" + texture.Key + "] " + texture.Value.Width + "x" + texture.Value.Height));
+
+            data.Add("    |- Fonts: " + AssetLoader.LoadedFonts.Count);
+            data.AddRange(AssetLoader.LoadedFonts.Select(font => "        |- [" + font.Key + "] " + font.Value.Name));
+
+            // Entities
+            data.Add("|- Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count);
+            if (SceneManager.CurrentScene?.RegisteredEntities != null)
             {
-                data += "\\n" + "    |- [" + entity.Key + "] " + entity.Value.Components.Count + " Components.";
+                data.AddRange(from entity in SceneManager.CurrentScene?.RegisteredEntities select "    |- [" + entity.Key + "] " + entity.Value.Components.Count + " Components");
             }
 
-            data += "\\n|- Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count;
-
-            foreach (SystemBase sys in SceneManager.CurrentScene?.RunningSystems)
+            data.Add("|- Running Systems: " + SceneManager.CurrentScene?.RunningSystems.Count);
+            if (SceneManager.CurrentScene?.RunningSystems != null)
             {
-                data += "\\n" + "    |- [" + sys.Priority + "] " +
-                    sys;
+                data.AddRange(from sys in SceneManager.CurrentScene?.RunningSystems select "    |- [" + sys.Priority + "] " + sys + " - " + sys.Links.Count + " Links");
             }
 
-            Scripting.RunScript("log('" + data + "');");
+            Scripting.RunScript("log('" + string.Join("\\n", data) + "');");
         }
 
         private static void Dump()

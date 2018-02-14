@@ -29,7 +29,7 @@ namespace Soul.Engine
         /// <summary>
         /// The Breath window.
         /// </summary>
-        internal static Window BreathWin;
+        public static Window BreathWin;
 
         #endregion
 

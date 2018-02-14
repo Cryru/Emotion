@@ -117,17 +117,17 @@
   <ItemGroup>
     <Compile Include="Engine\Core.cs" />
     <Compile Include="Engine\ECS\ComponentBase.cs" />
-    <Compile Include="Engine\ECS\Components\AnimationData.cs" />
-    <Compile Include="Engine\ECS\Components\PhysicsObject.cs" />
-    <Compile Include="Engine\ECS\Systems\Animator.cs" />
-    <Compile Include="Engine\ECS\Systems\ComponentUpdateCleanup.cs" />
-    <Compile Include="Engine\ECS\Systems\PhysicsEngine.cs" />
+    <Compile Include="Engine\Components\AnimationData.cs" />
+    <Compile Include="Engine\Components\PhysicsObject.cs" />
+    <Compile Include="Engine\Graphics\Systems\Animator.cs" />
+    <Compile Include="Engine\Systems\ComponentUpdateCleanup.cs" />
+    <Compile Include="Engine\Systems\PhysicsEngine.cs" />
     <Compile Include="Engine\Enums\AnimationLoopType.cs" />
     <Compile Include="Engine\Enums\PhysicsShapeType.cs" />
     <Compile Include="Engine\Graphics\Components\TextData.cs" />
     <Compile Include="Engine\Graphics\Components\RenderData_Templates.cs" />
     <Compile Include="Engine\Graphics\Components\RenderData.cs" />
-    <Compile Include="Engine\ECS\Components\Transform.cs" />
+    <Compile Include="Engine\Components\Transform.cs" />
     <Compile Include="Engine\ECS\Entity.cs" />
     <Compile Include="Engine\Graphics\Systems\TextRenderer.cs" />
     <Compile Include="Engine\Graphics\Text\Font.cs" />

@@ -80,22 +80,6 @@ namespace Soul.Engine.Graphics.Text
         }
 
         /// <summary>
-        /// Sets the glyph's texture.
-        /// </summary>
-        /// <param name="bitmap"></param>
-        public void SetTexture(byte[] bitmap, int width, int height)
-        {
-            GlyphTexture = new Texture();
-            GlyphTexture.Use();
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Alpha, width, height, 0,
-                PixelFormat.Alpha, PixelType.UnsignedByte, bitmap);
-            GlyphTexture.StopUsing();
-            //GlyphTexture.Upload(bitmap);
-            // Overwrite the texture model matrix.
-            GlyphTexture.TextureModelMatrix = Matrix4.Identity;
-        }
-
-        /// <summary>
         /// Destroy the glyph.
         /// </summary>
         public void Dispose()

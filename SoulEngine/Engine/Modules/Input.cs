@@ -51,30 +51,6 @@ namespace Soul.Engine.Modules
             _mouse = Mouse.GetState();
             _keysLastFrame = _keys;
             _mouseLastFrame = _mouse;
-            //            _keysLastFrame = new Dictionary<Keyboard.Key, bool>();
-            //            _mouseButtons = new Dictionary<Mouse.Button, bool>();
-            //            _mouseButtonsLastFrame = new Dictionary<Mouse.Button, bool>();
-
-            //            // Get a list of keys.
-            //            Keyboard.Key[] keyList = Enum.GetValues(typeof(Keyboard.Key)).Cast<Keyboard.Key>().ToArray();
-            //            Mouse.Button[] mouseButtonList = Enum.GetValues(typeof(Mouse.Button)).Cast<Mouse.Button>().ToArray();
-
-            //            // Generate the key dictionary.
-            //            foreach (Keyboard.Key k in keyList)
-            //            {
-            //                _keys.Add(k, false);
-            //                _keysLastFrame.Add(k, false);
-            //            }
-
-            //            // Generate the mouse dictionary.
-            //            foreach (Mouse.Button b in mouseButtonList)
-            //            {
-            //                _mouseButtons.Add(b, false);
-            //                _mouseButtonsLastFrame.Add(b, false);
-            //            }
-
-            //            // Hook up to the mouse wheel event.
-            //            Core.NativeContext.MouseWheelScrolled += NativeContext_MouseWheelScrolled;
         }
 
         /// <summary>
@@ -159,7 +135,7 @@ namespace Soul.Engine.Modules
         /// <returns>A value representing the direction of any scrolling done.</returns>
         public static int MouseWheelScroll()
         {
-            return (int) _mouse.ScrollWheelValue - _mouseLastFrame.ScrollWheelValue;
+            return _mouse.ScrollWheelValue - _mouseLastFrame.ScrollWheelValue;
         }
 
         /// <summary>
