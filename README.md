@@ -16,7 +16,9 @@ While I try to update the engine as often as possible, most of the big features,
 
 ## This Year's Idea
 
-The objective of the 2018 version is to move away from XNA/Monogame by using a small library called "Breath". It is based on OpenTK which allows for more control over the OpenGL and OpenAL APIs, in addition to making cross-platform compatibility more straight-forward. This version also features a custom asset packer based on last version's asset loading extensions.
+The objective of the 2018 version is to move away from XNA/Monogame by using a small library called "Breath". It is based on OpenTK which allows for more control over the OpenGL and OpenAL APIs, in addition to making more of the engine in-house.
+
+This version also features a custom asset packer based on last version's asset loading extensions, which allows for more control over the assets you load and their importing.
 
 On the game development side 2018 introduces the concept of "systems". Classes which group entities based on components and execute code on them. Upgrading from 2017's EC (entity-component) model to a ECS (entity-component-system) model where components are pure data.
 
@@ -24,13 +26,15 @@ On the game development side 2018 introduces the concept of "systems". Classes w
 
 - Window Control [&#10003;] (OpenTK)
 - Resolution Adaptation with Boxing [&#10003;] (Breath)
-- Borderless, Fullscreen, and Windowed Mode Switching and Support
+- Borderless, Fullscreen, and Windowed Mode Switching and Support [&#10003;] (Breath)
+- Tiled Integration
 - Camera System
 - FPS Independent Timing [&#10003;] (OpenTK)
 - Logging [&#10003;] (SoulLib)
 - Debugging Console [&#10003;]
+- Debugging and Diagnosing API
 - Error Handling System [&#10003;]
-- Asynchronous Javascript Scripting [&#10003;] (Jint)
+- Javascript Scripting [&#10003;] (Jint)
 - Entity-Component-System Pattern [&#10003;] - [Example](/SoulEngine/Examples/Basic/ECSTest.cs)
 - Scene System [&#10003;]
 - Drawing Primitive Shapes and Custom Polygons [&#10003;] (Breath) - [Example](/SoulEngine/Examples/Basic/ShapeTest.cs)
@@ -41,7 +45,9 @@ On the game development side 2018 introduces the concept of "systems". Classes w
 - Texture Rendering and Animation [&#10003;] (Breath) - [Example](/SoulEngine/Examples/Basic/TextureTest.cs)
   - Supported: PNG, JPEG, BMP
   - Unsupported: ICO
-- Advanced Text Rendering With Markup
+- Text Rendering - [Example](/SoulEngine/Examples/Basic/TextTest.cs)
+- Text Wrapping and Formatting
+- Custom Markup
 
 ## Own Libraries Used:
 

@@ -2,12 +2,16 @@
 
 #region Using
 
-
 #endregion
 
+#region Using
+
 using System;
-using OpenTK;
+using System.Drawing;
 using Breath.Enums;
+using OpenTK;
+
+#endregion
 
 namespace Soul.Engine
 {
@@ -23,7 +27,7 @@ namespace Soul.Engine
         /// </summary>
         public static int WWidth
         {
-            get { return _wwidth; }
+            get => _wwidth;
             set
             {
                 _wwidth = value;
@@ -39,7 +43,7 @@ namespace Soul.Engine
         /// </summary>
         public static int WHeight
         {
-            get { return _wheight; }
+            get => _wheight;
             set
             {
                 _wheight = value;
@@ -55,7 +59,7 @@ namespace Soul.Engine
         /// </summary>
         public static string WTitle
         {
-            get { return _wtitle; }
+            get => _wtitle;
             set
             {
                 _wtitle = value;
@@ -71,7 +75,7 @@ namespace Soul.Engine
         /// </summary>
         public static WindowMode WindowMode
         {
-            get { return _windowMode; }
+            get => _windowMode;
             set
             {
                 _windowMode = value;
@@ -104,14 +108,14 @@ namespace Soul.Engine
         /// <summary>
         /// The TPS target. Must be set before setup.
         /// </summary>
-        public static int TPS = 60;
+        public static int TPS = 0;
 
         /// <summary>
         /// Whether vertical synchronization is enabled.
         /// </summary>
         public static bool VSync
         {
-            get { return _vSync; }
+            get => _vSync;
             set
             {
                 _vSync = value;
@@ -127,7 +131,7 @@ namespace Soul.Engine
         /// </summary>
         public static bool RenderMouse
         {
-            get { return _renderMouse; }
+            get => _renderMouse;
             set
             {
                 _renderMouse = value;
@@ -143,7 +147,7 @@ namespace Soul.Engine
         /// </summary>
         public static bool ConstrainMouse
         {
-            get { return _constrainMouse; }
+            get => _constrainMouse;
             set
             {
                 _constrainMouse = value;
@@ -163,7 +167,7 @@ namespace Soul.Engine
         /// </summary>
         public static bool KeyRepeat
         {
-            get { return _keyRepeat; }
+            get => _keyRepeat;
             set
             {
                 _keyRepeat = value;
@@ -179,7 +183,7 @@ namespace Soul.Engine
         /// </summary>
         public static int JoystickThreshold
         {
-            get { return _joystickThreshold; }
+            get => _joystickThreshold;
             set
             {
                 _joystickThreshold = value;
@@ -218,7 +222,7 @@ namespace Soul.Engine
         {
             if (Core.BreathWin == null) return;
 
-            Core.BreathWin.ClientSize = new System.Drawing.Size(WWidth, WHeight);
+            Core.BreathWin.ClientSize = new Size(WWidth, WHeight);
             Core.BreathWin.VSync = VSync ? VSyncMode.On : VSyncMode.Off;
             Core.BreathWin.CursorVisible = RenderMouse;
             Core.BreathWin.Title = WTitle;

@@ -91,8 +91,6 @@ namespace Soul.Engine
 
             // End the input update.
             Input.UpdateEnd();
-
-            BreathWin.Title = "SE2018 DEMO " + 1000 / BreathWin.FrameTime;
         }
 
         private static void Draw()

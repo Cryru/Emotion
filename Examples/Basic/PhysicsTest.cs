@@ -126,14 +126,14 @@ namespace Examples.Basic
 
         protected override void Update()
         {
-            // Update FPS.
-            if (_currentSecond.Second != DateTime.Now.Second)
-            {
-                float fps = (1000f / Core.BreathWin.FrameTime);
+            //// Update FPS.
+            //if (_currentSecond.Second != DateTime.Now.Second)
+            //{
+                
+            //    _currentSecond = DateTime.Now;
+            //}
 
-                GetEntity("fpsIndicator").GetComponent<TextData>().Text = "FPS: " + fps;
-                _currentSecond = DateTime.Now;
-            }
+            GetEntity("fpsIndicator").GetComponent<TextData>().Text = "FPS: " + Core.BreathWin.RenderFrequency;
 
             // Decide shape based on input.
             bool add = true;

@@ -178,7 +178,7 @@ namespace Soul.Engine.ECS.Systems
         {
             base.Run();
 
-            CurrentWorld.Step(0.016f);
+            CurrentWorld.Step((float) Core.BreathWin.RenderTime);
         }
 
         #region Helpers

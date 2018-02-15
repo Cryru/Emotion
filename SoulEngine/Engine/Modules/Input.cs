@@ -2,6 +2,8 @@
 
 #region Using
 
+using System;
+using System.Drawing;
 using Breath.Systems;
 using OpenTK;
 using OpenTK.Input;
@@ -144,7 +146,16 @@ namespace Soul.Engine.Modules
         /// <returns>The location of the mouse as Vector2 in window coordinates.</returns>
         public static Vector2 MouseLocation()
         {
-            return new Vector2(Core.BreathWin.Mouse.X, Core.BreathWin.Mouse.Y);
+            Vector2 renderSize = Core.BreathWin.RenderSize;
+            Size windowSize = Core.BreathWin.ClientSize;
+            Vector2 mouseLocation = new Vector2(Core.BreathWin.Mouse.X, Core.BreathWin.Mouse.Y);
+
+            int smallerValueRender = (int) Math.Min(renderSize.X, renderSize.Y);
+            int smallerValueWindow = Math.Min(windowSize.Width, windowSize.Height);
+
+            mouseLocation = (mouseLocation * smallerValueRender) / smallerValueWindow;
+
+            return mouseLocation;
         }
 
         #endregion

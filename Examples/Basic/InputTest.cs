@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using OpenTK.Input;
 using Soul.Engine;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
@@ -25,12 +24,12 @@ namespace Examples.Basic
 
         protected override void Update()
         {
-            if (Input.KeyPressed(Key.A)) Console.WriteLine("Pressed!");
-            if (Input.KeyHeld(Key.A)) Console.WriteLine("HELD");
-            if (Input.MouseButtonPressed(MouseButton.Left)) Console.WriteLine("MOUS PRES");
-            if (Input.MouseButtonHeld(MouseButton.Left)) Console.WriteLine("MAUS HELD");
-            if (Input.MouseWheelScroll() != 0) Console.WriteLine(Input.MouseWheelScroll());
-            Console.WriteLine(Input.MouseLocation());
+            if (Input.KeyPressed(OpenTK.Input.Key.A)) Console.WriteLine("Pressed A!");
+            if (Input.KeyHeld(OpenTK.Input.Key.A)) Console.WriteLine("Holding A...");
+            if (Input.MouseButtonPressed(OpenTK.Input.MouseButton.Left)) Console.WriteLine("Mouse Pressed");
+            if (Input.MouseButtonHeld(OpenTK.Input.MouseButton.Left)) Console.WriteLine("Mouse Held");
+            if (Input.MouseWheelScroll() != 0) Console.WriteLine("Scroll Value: " + Input.MouseWheelScroll());
+            if (Input.KeyPressed(OpenTK.Input.Key.Space)) Console.WriteLine("Mouse is at: " + Input.MouseLocation());
         }
     }
 }
