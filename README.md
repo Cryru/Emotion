@@ -4,7 +4,7 @@
 
 ## What is it?
 
-SoulEngine is a 2D Monogame orientated game engine based on the idea of low-level code writing, flexibility, DIY, and control. The project's goal is to provide easy to use and understand APIs and concepts for programmers in order to shorted the amount of time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
+SoulEngine is a 2D Monogame orientated game engine based on the idea of low-level code writing, flexibility, DIY, and control. The project's goal is to provide easy to use and understand APIs and concepts for programmers in order to shorten the amount of time it takes between coming up with an idea, getting a prototype ready, and eventually releasing a product.
 
 ## Updates
 
@@ -36,7 +36,7 @@ The objective of the 2018 version is to iterate and improve on last year's versi
 - Asset Packing, and Protection [&#10003;]
 - Easy Animation [&#10003;] (Breath)
 - Text Wrapping and Formatting
-- Custom Markup
+- Custom Text Markup
 
 ## Own Libraries Used:
 
@@ -48,10 +48,10 @@ The objective of the 2018 version is to iterate and improve on last year's versi
 
 [TiledSharp](https://github.com/marshallward/TiledSharp) - Tiled integration.
 
-[MonoGame](https://github.com/MonoGame/MonoGame) - Base-framework.
+[MonoGame](https://github.com/MonoGame/MonoGame) - Framework.
 
 [Jint](https://github.com/sebastienros/jint) - Javascript engine.
 
 ## Tools:
 
-SoulEngine AssetPacker - Built-in tool to help with building and protecting your assets.
+AssetPacker - Built-in tool to help with building and protecting your assets.
