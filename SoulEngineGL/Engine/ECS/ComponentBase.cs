@@ -7,9 +7,5 @@ namespace Soul.Engine.ECS
     /// </summary>
     public class ComponentBase
     {
-        /// <summary>
-        /// Whether the component has updated this frame.
-        /// </summary>
-        public bool HasUpdated;
     }
 }

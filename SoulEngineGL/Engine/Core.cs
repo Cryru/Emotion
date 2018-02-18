@@ -3,8 +3,10 @@
 #region Using
 
 using System;
+using System.Reflection;
 using Microsoft.Xna.Framework;
 using Soul.Engine.Diagnostics;
+using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 using Soul.Engine.Scenography;
 
@@ -58,7 +60,6 @@ namespace Soul.Engine
 
                 // Load the provided first scene.
                 SceneManager.LoadScene("0", startingScene, true);
-
             }, Update, Draw);
 
             // Run the context.
@@ -67,26 +68,6 @@ namespace Soul.Engine
             // Shutdown.
             Context.Dispose();
             Environment.Exit(0);
-
-            //            // Load the input module.
-            //            Input.Setup();
-
-
-            //            // Create a Breath window.
-            //            BreathWin = new Window(null, Update, Draw, new Vector2(Settings.Width, Settings.Height));
-
-            //            // Setup the scene manager and load the starting scene.
-            //            SceneManager.Setup();
-            //            SceneManager.LoadScene("start", startingScene, true);
-
-            //            // Apply runtime settings.
-            //            Settings.ApplySettings();
-
-            //            // Hook up events.
-            //            BreathWin.FocusedChanged += (e, args) => { Paused = !BreathWin.Focused; };
-
-            //            // Start the loop.
-            //            BreathWin.Start(Settings.TPS, Settings.FPS);
         }
 
         public static void Update()
@@ -100,17 +81,14 @@ namespace Soul.Engine
             //            // Check if paused.
             //            if (Paused) return;
 
-            //            // Update input.
-            //            Input.Update();
+            // Update input.
+            Input.Update();
 
-            //            // Update the scripting engine.
-            //            Scripting.Update();
+            // Update the scripting engine.
+            Scripting.Update();
 
             // Update the scene manager. This updates the scene loading, and the current scene.
             SceneManager.Update();
-
-            //            // End the input update.
-            //            Input.UpdateEnd();
         }
 
         private static void Draw()
@@ -120,8 +98,16 @@ namespace Soul.Engine
             // Clear the screen.
             Context.GraphicsDevice.Clear(Color.Black);
 
+            // Display drawable area.
+            Context.Ink.Start(DrawLocation.Screen);
+            Context.Ink.Draw(AssetLoader.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.CornflowerBlue);
+            Context.Ink.Stop();
+
             // Draw the current scene. This propagates to the draw hook inside the scene.
             SceneManager.Draw();
+
+            // Cleanup.
+            if ((bool)Context.Ink.Tag) Context.Ink.Stop();
         }
 
         /// <summary>

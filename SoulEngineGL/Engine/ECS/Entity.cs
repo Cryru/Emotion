@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Soul.Engine.Components;
 using Soul.Engine.Scenography;
 
 #if DEBUG
@@ -18,12 +20,29 @@ namespace Soul.Engine.ECS
     /// <summary>
     /// An entity object, to be controlled by systems.
     /// </summary>
-    public class Entity
+    public partial class Entity
     {
         /// <summary>
         /// The name of the entity.
         /// </summary>
         public string Name { get; protected set; }
+
+        /// <summary>
+        /// The priority of the entity. The larger it is the sooner it will be executed.
+        /// </summary>
+        public int Priority
+        {
+            get => _priority;
+            set
+            {
+                _priority = value;
+
+                // Reorder entities.
+                SceneParent?.OrderEntities();
+            }
+        }
+
+        private int _priority;
 
         #region Internals
 
@@ -167,12 +186,14 @@ namespace Soul.Engine.ECS
         /// </summary>
         /// <param name="name">The name of the entity to create.</param>
         /// <returns>An entity with a transform and render data with an applied rectangle.</returns>
-        public static Entity CreateBasicDrawable(string name)
+        public static Entity CreateBasicDrawable(string name, Vector2 position, Vector2 size)
         {
-            Entity temp = new Entity(name);
-            //temp.AttachComponent<Transform>();
-            //temp.AttachComponent<RenderData>();
-            //temp.GetComponent<RenderData>().ApplyTemplate_Rectangle();
+            Entity temp = new Entity(name)
+            {
+                Position = position,
+                Size = size
+            };
+            temp.AttachComponent<RenderData>();
             return temp;
         }
 
@@ -184,7 +205,6 @@ namespace Soul.Engine.ECS
         public static Entity CreateBasicText(string name)
         {
             Entity temp = new Entity(name);
-            //temp.AttachComponent<Transform>();
             //temp.AttachComponent<RenderData>();
             //temp.AttachComponent<TextData>();
             //temp.GetComponent<RenderData>().ApplyTemplate_Rectangle();

@@ -35,7 +35,7 @@ namespace Soul.Engine.ECS
         /// Draws a system link.
         /// </summary>
         /// <param name="link">The link to draw.</param>
-        internal virtual void Draw(Entity link) {}
+        internal virtual void Draw(Entity link) { }
 
         /// <summary>
         /// Get the requirement for this system.
@@ -47,10 +47,5 @@ namespace Soul.Engine.ECS
         /// The running order of the system. The higher the later it will be run.
         /// </summary>
         public int Order = 0;
-
-        /// <summary>
-        /// Whether the system draws.
-        /// </summary>
-        public bool Draws { get; protected set; } = false;
     }
 }

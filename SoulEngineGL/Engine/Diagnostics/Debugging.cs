@@ -214,7 +214,8 @@ namespace Soul.Engine.Diagnostics
             List<string> data = new List<string>
             {
                 "Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb",
-                "Current Scene: " + SceneManager.CurrentScene
+                "Current Scene: " + SceneManager.CurrentScene,
+                "FPS: " + (1000f / Core.Context.Frametime)
             };
 
             return string.Join("\n", data);

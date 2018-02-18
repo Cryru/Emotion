@@ -141,6 +141,11 @@ namespace Soul.Engine
 
         private static bool _renderMouse = true;
 
+        /// <summary>
+        /// Whether to smooth rendering.
+        /// </summary>
+        public static bool Smooth = false;
+
         #endregion
 
         #region Other Settings

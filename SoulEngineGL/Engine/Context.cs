@@ -20,6 +20,11 @@ namespace Soul.Engine
         /// </summary>
         public SpriteBatch Ink;
 
+        /// <summary>
+        /// The time it took for the last frame to render in ms.
+        /// </summary>
+        public float Frametime;
+
         #region Callbacks
 
         /// <summary>
@@ -85,6 +90,8 @@ namespace Soul.Engine
         /// <param name="gameTime"></param>
         protected override void Draw(GameTime gameTime)
         {
+            Frametime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
             _onDraw?.Invoke();
 
             base.Draw(gameTime);

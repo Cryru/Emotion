@@ -9,6 +9,7 @@ using Soul.Engine.Diagnostics;
 using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Engine.Modules;
+using Soul.Engine.Systems;
 
 #endregion
 
@@ -43,10 +44,9 @@ namespace Soul.Engine.Scenography
         internal void InternalSetup()
         {
             // Load core systems.
-            //AddSystem(new Renderer());
-            //AddSystem(new ComponentUpdateCleanup());
-            //AddSystem(new Animator());
-            //AddSystem(new TextRenderer());
+            AddSystem(new Renderer());
+            AddSystem(new Animator());
+            AddSystem(new TextRenderer());
 
             // Load user setup.
             Setup();
@@ -120,8 +120,20 @@ namespace Soul.Engine.Scenography
             // Add to list.
             RegisteredEntities.Add(entity.Name, entity);
 
+            // Order entities by priority.
+            OrderEntities();
+
             // Update it.
             UpdateEntity(entity);
+        }
+
+        /// <summary>
+        /// Ensures entity priority.
+        /// </summary>
+        public void OrderEntities()
+        {
+            // Reorder entities.
+            RegisteredEntities = RegisteredEntities.OrderBy(x => x.Value.Priority).ToDictionary(x => x.Key, x => x.Value);
         }
 
         /// <summary>
@@ -227,7 +239,6 @@ namespace Soul.Engine.Scenography
 
                 // Get requirements.
                 Type[] requirements = sys.GetRequirements();
-
 
                 // If null requirements or the requirements for the system are met - add.
                 if (requirements == null || !requirements.Except(entity.Components.Select(x => x.GetType())).Any())

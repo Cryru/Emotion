@@ -7,7 +7,7 @@ using Soul.Engine.Modules;
 
 #endregion
 
-namespace Soul.Engine.Display
+namespace Soul.Engine
 {
     /// <summary>
     /// A 2D camera.
@@ -55,8 +55,7 @@ namespace Soul.Engine.Display
                 Matrix.CreateTranslation(new Vector3(Bounds.Center.ToVector2(), 0.0f)); // Apply the center as origin of the rotation and zoom.
 
             // Multiply by the screen matrix.
-            return cameraMatrix * Matrix.CreateScale((float) Core.Context.GraphicsDevice.Viewport.Width / Settings.Width,
-                       (float) Core.Context.GraphicsDevice.Viewport.Height / Settings.Height, 1.0f);;
+            return cameraMatrix * WindowManager.GetScreenMatrix();
         }
     }
 }

@@ -4,7 +4,7 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Soul.Engine.Display;
+using Soul.Engine.Enums;
 using DisplayMode = Soul.Engine.Enums.DisplayMode;
 
 #endregion
@@ -16,6 +16,11 @@ namespace Soul.Engine.Modules
     /// </summary>
     public class WindowManager
     {
+        /// <summary>
+        /// The current drawing location.
+        /// </summary>
+        public static DrawLocation CurrentLocation = DrawLocation.None;
+
         /// <summary>
         /// The 2D camera viewport.
         /// </summary>
@@ -97,6 +102,16 @@ namespace Soul.Engine.Modules
         {
             return new Vector2(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width,
                 GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
+        }
+
+        /// <summary>
+        /// Returns the matrix of the screen.
+        /// </summary>
+        /// <returns>The matrix of the screen.</returns>
+        public static Matrix GetScreenMatrix()
+        {
+            return Matrix.CreateScale((float)Core.Context.GraphicsDevice.Viewport.Width / Settings.Width,
+                (float)Core.Context.GraphicsDevice.Viewport.Height / Settings.Height, 1.0f);
         }
 
         /// <summary>
