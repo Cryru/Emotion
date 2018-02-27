@@ -7,5 +7,9 @@ namespace Soul.Engine.ECS
     /// </summary>
     public class ComponentBase
     {
+        /// <summary>
+        /// The entity this component is attached to.
+        /// </summary>
+        public Entity Parent;
     }
 }

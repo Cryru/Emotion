@@ -24,7 +24,7 @@ namespace Soul.Engine.Systems
         protected internal override void Setup()
         {
             // Initialize the tag dictionary.
-            if (TagFactory.TagDict == null) TagFactory.Initialize();
+            if (TagFactory.TagDict == null || TagFactory.TagDict.Count == 0) TagFactory.Initialize();
 
             // We need this to run before any rendering.
             Order = 10;

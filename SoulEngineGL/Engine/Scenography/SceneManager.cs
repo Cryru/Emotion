@@ -127,7 +127,7 @@ namespace Soul.Engine.Scenography
             // Check if that scene has already been loaded.
             if (LoadedScenes.ContainsKey(sceneName))
             {
-                ErrorHandling.Raise(DiagnosticMessageType.SceneManager, "A scene with that name has already been loaded.");
+                ErrorHandling.Raise(DiagnosticMessageType.SceneManager, "A scene with that name (" + sceneName + ") has already been loaded.");
                 return;
             }
 
@@ -155,7 +155,7 @@ namespace Soul.Engine.Scenography
             // Check if the requested scene is a loaded scene.
             if (!LoadedScenes.ContainsKey(sceneName))
             {
-                ErrorHandling.Raise(DiagnosticMessageType.SceneManager, "Cannot swap to a scene that isn't loaded.");
+                ErrorHandling.Raise(DiagnosticMessageType.SceneManager, "Cannot swap to a scene of name " + sceneName + " that isn't loaded.");
                 return;
             }
 
@@ -215,8 +215,8 @@ namespace Soul.Engine.Scenography
         {
             SceneLoadArgs temp = (SceneLoadArgs)args;
 
-            // Initiate loading.
-            temp.Scene.InternalSetup();
+            // Initiate loading. For the loading scene don't load full.
+            temp.Scene.InternalSetup(temp.Name != "__loading__");
 
 #if DEBUG
             // Send scene queue message to the debugger.

@@ -13,10 +13,11 @@ namespace Soul.Engine.Components
 {
     public class RenderData : ComponentBase
     {
-        public Texture2D Texture;
-        public Rectangle? TextureArea;
-        public DrawLocation DrawLocation = DrawLocation.Screen;
-        public Color Tint = Color.White;
-        public bool Visible = true;
+        public Texture2D Texture { get; set; }
+        public Rectangle? TextureArea { get; set; }
+        public DrawLocation DrawLocation { get; set; } = DrawLocation.Screen;
+        public Color Tint { get; set; } = Color.White;
+        public float Opacity { get; set; } = 1f;
+        public bool Visible { get; set; } = true;
     }
 }

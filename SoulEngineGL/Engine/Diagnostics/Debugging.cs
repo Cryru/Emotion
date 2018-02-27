@@ -51,11 +51,6 @@ namespace Soul.Engine.Diagnostics
 
         #endregion
 
-        /// <summary>
-        /// The process handle of the application.
-        /// </summary>
-        private static Process _currentProcess;
-
         #endregion
 
         #region Module API
@@ -65,9 +60,6 @@ namespace Soul.Engine.Diagnostics
         /// </summary>
         internal static void Setup()
         {
-            // Get the process.
-            _currentProcess = Process.GetCurrentProcess();
-
             // Start the boot timer.
             _bootTimer = new Stopwatch();
             _bootTimer.Start();
@@ -179,46 +171,9 @@ namespace Soul.Engine.Diagnostics
         {
             Scripting.Expose("log", (Action<string>)(msg => DebugMessage(DiagnosticMessageType.Debugger, msg)));
             Scripting.Expose("help", (Action)Help);
-            Scripting.Expose("stats", (Func<string>)Statistics);
-            Scripting.Expose("getEntities", (Func<string>) GetEntities);
+            Scripting.Expose("stats", (Func<string>) ScriptLibrary.Statistics);
+            Scripting.Expose("getEntities", (Func<string>) ScriptLibrary.GetEntities);
             Scripting.Expose("dump", (Action)Dump);
-        }
-
-        private static string GetEntities()
-        {
-            List<string> data = new List<string> {"Entities: " + SceneManager.CurrentScene?.RegisteredEntities.Count};
-
-
-            foreach (KeyValuePair<string, Entity> entity in SceneManager.CurrentScene?.RegisteredEntities)
-            {
-                data.Add(" " + entity.Key);
-
-                data.Add("   Components: " + entity.Value.Components.Count);
-                foreach (ComponentBase attachedComponent in entity.Value.Components)
-                {
-                    data.Add("     |- " + attachedComponent);
-                }
-
-                data.Add("   Systems: " + entity.Value.LinkedSystems.Length);
-                foreach (SystemBase linkedSystem in entity.Value.LinkedSystems)
-                {
-                    data.Add("     |- " + linkedSystem);
-                }
-            }
-
-            return string.Join("\n", data);
-        }
-
-        private static string Statistics()
-        {
-            List<string> data = new List<string>
-            {
-                "Ram Usage: " + _currentProcess.PrivateMemorySize64 / 1024 / 1024 + "mb",
-                "Current Scene: " + SceneManager.CurrentScene,
-                "FPS: " + (1000f / Core.Context.Frametime)
-            };
-
-            return string.Join("\n", data);
         }
 
         private static void Dump()

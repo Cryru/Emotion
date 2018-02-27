@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Soul.Engine.Diagnostics;
@@ -28,6 +29,11 @@ namespace Soul.Engine
         /// </summary>
         public static Context Context;
 
+        /// <summary>
+        /// The currently running process.
+        /// </summary>
+        public static Process Process;
+
         #endregion
 
         /// <summary>
@@ -36,6 +42,9 @@ namespace Soul.Engine
         /// <param name="startingScene">The scene to start with.</param>
         public static void Setup(Scene startingScene)
         {
+            // Get the process.
+            Process = Process.GetCurrentProcess();
+
             // Create a context.
             Context = new Context(() =>
             {
@@ -62,8 +71,15 @@ namespace Soul.Engine
                 SceneManager.LoadScene("0", startingScene, true);
             }, Update, Draw);
 
-            // Run the context.
-            Context.Run();
+            try
+            {
+                // Run the context.
+                Context.Run();
+            }
+            catch (Exception e)
+            {
+                ErrorHandling.Raise(DiagnosticMessageType.Core, "Framework error:\n================================\n" + e.Message + "\n================================");
+            }
 
             // Shutdown.
             Context.Dispose();
@@ -100,7 +116,7 @@ namespace Soul.Engine
 
             // Display drawable area.
             Context.Ink.Start(DrawLocation.Screen);
-            Context.Ink.Draw(AssetLoader.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Color.CornflowerBlue);
+            Context.Ink.Draw(AssetLoader.BlankTexture, new Rectangle(0, 0, Settings.Width, Settings.Height), Settings.ClearColor);
             Context.Ink.Stop();
 
             // Draw the current scene. This propagates to the draw hook inside the scene.

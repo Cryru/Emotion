@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
 using Soul.Engine.Scenography;
 
 #endregion
@@ -18,7 +17,12 @@ namespace Soul.Engine.ECS
         /// <summary>
         /// The scene this system is running under.
         /// </summary>
-        protected internal Scene Parent;
+        internal Scene Parent { get; set; }
+
+        /// <summary>
+        /// The running order of the system. The higher the later it will be run.
+        /// </summary>
+        public int Order { get; set; }
 
         /// <summary>
         /// Setup the system.
@@ -35,17 +39,14 @@ namespace Soul.Engine.ECS
         /// Draws a system link.
         /// </summary>
         /// <param name="link">The link to draw.</param>
-        internal virtual void Draw(Entity link) { }
+        internal virtual void Draw(Entity link)
+        {
+        }
 
         /// <summary>
         /// Get the requirement for this system.
         /// </summary>
         /// <returns>The type components attached to an entity this system requires.</returns>
         protected internal abstract Type[] GetRequirements();
-
-        /// <summary>
-        /// The running order of the system. The higher the later it will be run.
-        /// </summary>
-        public int Order = 0;
     }
 }

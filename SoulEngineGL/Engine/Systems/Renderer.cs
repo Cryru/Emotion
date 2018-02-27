@@ -41,19 +41,13 @@ namespace Soul.Engine.Systems
             // Offset location for centered rotation.
             Rectangle drawBounds = new Rectangle((int) (link.X + link.Width / 2), (int) (link.Y + link.Height / 2), (int) link.Width, (int) link.Height);
 
-            // Check if the drawing location is the same as expected.
-            //if (WindowManager.CurrentLocation != renderData.DrawLocation)
-            //{
-            //    // Check if started.
-            //    if ((bool)Core.Context.Ink.Tag) Core.Context.Ink.Stop();
-                
-            //}
             Core.Context.Ink.Start(renderData.DrawLocation);
+
             Core.Context.Ink.Draw(
                 texture,
                 drawBounds,
                 textureArea,
-                renderData.Tint,
+                renderData.Tint * renderData.Opacity,
                 link.Rotation,
                 new Vector2((float) textureArea.Width / 2, (float) textureArea.Height / 2),
                 SpriteEffects.None,

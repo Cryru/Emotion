@@ -18,7 +18,7 @@ namespace Soul.Engine.Components
         /// <summary>
         /// Whether frame calculation has passed.
         /// </summary>
-        public bool FramesCalculated = false;
+        public bool FramesCalculated { get; set; }
 
         /// <summary>
         /// The size of individual frames.

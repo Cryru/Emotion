@@ -9,6 +9,7 @@ using System.IO;
 
 using System;
 using System.IO;
+using Soul.Engine.Diagnostics;
 using Soul.Engine.Enums;
 using Soul.IO;
 
@@ -29,11 +30,29 @@ namespace Soul.Engine.Modules
 
             // Write a crash report.
             Directory.CreateDirectory("Errors");
+
+            string report = "";
+
+            // Collect statistics.
+            AddReportHeader("Statistics Dump", ScriptLibrary.Statistics(), ref report);
+
+            // Add entities
+            AddReportHeader("Entities Dump", ScriptLibrary.GetEntities(), ref report);
+
+            // Add error.
+            AddReportHeader("Crashing Error", errorFormatted, ref report);
+
             Write.File("Errors" + Path.DirectorySeparatorChar + "CrashReport_ " + DateTime.Now.ToFileTime(),
-                errorFormatted);
+                report);
 
             // Close the engine.
             Core.Stop();
+        }
+
+        private static void AddReportHeader(string headerName, string headerData, ref string report)
+        {
+            report += "\n----------------------------------------\n" + headerName +
+                      ":\n----------------------------------------\n" + headerData;
         }
     }
 }

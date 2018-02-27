@@ -7,6 +7,7 @@
 #region Using
 
 using System;
+using Microsoft.Xna.Framework;
 using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 
@@ -146,7 +147,26 @@ namespace Soul.Engine
         /// </summary>
         public static bool Smooth = false;
 
+        /// <summary>
+        /// The color to clear the screen with.
+        /// </summary>
+        public static Color ClearColor = Color.CornflowerBlue;
+
         #endregion
+
+        #region Sound Settings
+
+        /// <summary>
+        /// Whether sound is on.
+        /// </summary>
+        public static bool Sound = true;
+
+        /// <summary>
+        /// The master volume of all sound channels.
+        /// </summary>
+        public static int Volume = 100;
+
+#endregion
 
         #region Other Settings
 
@@ -172,6 +192,8 @@ namespace Soul.Engine
         /// </summary>
         internal static void ApplySettings()
         {
+            if (Core.Context == null) return;
+
             Core.Context.IsMouseVisible = RenderMouse;
             Core.Context.IsFixedTimeStep = FPS > 0;
             Core.Context.TargetElapsedTime =

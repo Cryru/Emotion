@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Soul.Engine.Components;
 using Soul.Engine.Scenography;
 
 #if DEBUG
@@ -28,11 +26,16 @@ namespace Soul.Engine.ECS
         public string Name { get; protected set; }
 
         /// <summary>
+        /// Whether the entity is running.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
         /// The priority of the entity. The larger it is the sooner it will be executed.
         /// </summary>
         public int Priority
         {
-            get => _priority;
+            get { return _priority; }
             set
             {
                 _priority = value;
@@ -49,17 +52,17 @@ namespace Soul.Engine.ECS
         /// <summary>
         /// Components attached to this entity.
         /// </summary>
-        internal List<ComponentBase> Components = new List<ComponentBase>();
+        internal List<ComponentBase> Components { get; set; } = new List<ComponentBase>();
 
         /// <summary>
         /// Systems this entity is linked to.
         /// </summary>
-        internal SystemBase[] LinkedSystems = {};
+        internal SystemBase[] LinkedSystems { get; set; } = { };
 
         /// <summary>
         /// The parental scene of the entity.
         /// </summary>
-        internal Scene SceneParent;
+        internal Scene SceneParent { get; set; }
 
         #endregion
 
@@ -105,7 +108,7 @@ namespace Soul.Engine.ECS
             // Loop through all components until we find one of the requested type.
             foreach (ComponentBase comp in Components)
             {
-                if (comp is T) return (T)System.Convert.ChangeType(comp, typeof(T));
+                if (comp is T) return (T) System.Convert.ChangeType(comp, typeof(T));
             }
 
             // If one wasn't found return default T.
@@ -137,8 +140,12 @@ namespace Soul.Engine.ECS
 
         public void LinkToSystem(SystemBase sys)
         {
+            // Copy the linked system array.
+            SystemBase[] temp = LinkedSystems;
             // Resize the array so the new system can fit in.
-            Array.Resize(ref LinkedSystems, LinkedSystems.Length + 1);
+            Array.Resize(ref temp, LinkedSystems.Length + 1);
+            // Copy back.
+            LinkedSystems = temp;
 
             // Add the system.
             LinkedSystems[LinkedSystems.Length - 1] = sys;
@@ -173,6 +180,8 @@ namespace Soul.Engine.ECS
         /// </summary>
         internal void Draw()
         {
+            if (!Enabled) return;
+
             foreach (SystemBase sys in LinkedSystems)
             {
                 sys.Draw(this);
@@ -180,35 +189,5 @@ namespace Soul.Engine.ECS
         }
 
         #endregion
-
-        /// <summary>
-        /// Creates a basic drawable entity.
-        /// </summary>
-        /// <param name="name">The name of the entity to create.</param>
-        /// <returns>An entity with a transform and render data with an applied rectangle.</returns>
-        public static Entity CreateBasicDrawable(string name, Vector2 position, Vector2 size)
-        {
-            Entity temp = new Entity(name)
-            {
-                Position = position,
-                Size = size
-            };
-            temp.AttachComponent<RenderData>();
-            return temp;
-        }
-
-        /// <summary>
-        /// Creates a basic text entity.
-        /// </summary>
-        /// <param name="name">The name of the entity to create.</param>
-        /// <returns>An entity with a transform and render data and text data.</returns>
-        public static Entity CreateBasicText(string name)
-        {
-            Entity temp = new Entity(name);
-            //temp.AttachComponent<RenderData>();
-            //temp.AttachComponent<TextData>();
-            //temp.GetComponent<RenderData>().ApplyTemplate_Rectangle();
-            return temp;
-        }
     }
 }

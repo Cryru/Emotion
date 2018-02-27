@@ -10,6 +10,7 @@ using Soul.Engine.ECS;
 using Soul.Engine.Enums;
 using Soul.Engine.Modules;
 using Soul.Engine.Systems;
+using Soul.Engine.Systems.UI;
 
 #endregion
 
@@ -41,12 +42,21 @@ namespace Soul.Engine.Scenography
             RegisteredEntities = new Dictionary<string, Entity>();
         }
 
-        internal void InternalSetup()
+        /// <summary>
+        /// Performs a setup of the scene.
+        /// </summary>
+        /// <param name="full">Whether to load all systems or a lite version.</param>
+        internal void InternalSetup(bool full = true)
         {
             // Load core systems.
             AddSystem(new Renderer());
-            AddSystem(new Animator());
-            AddSystem(new TextRenderer());
+
+            if (full)
+            {
+                AddSystem(new Animator());
+                AddSystem(new TextRenderer());
+                AddSystem(new MouseEvents());
+            }
 
             // Load user setup.
             Setup();
@@ -112,7 +122,7 @@ namespace Soul.Engine.Scenography
                 Debugging.DebugMessage(DiagnosticMessageType.Error, "Duplicate entity registration!");
 
             Debugging.DebugMessage(DiagnosticMessageType.Scene,
-                "Registered entity (" + RegisteredEntities.Count + ") [" + entity.Name + "]");
+                "Registered entity (" + RegisteredEntities.Count + ") [" + entity.Name + "] to scene " + this);
 #endif
             // Set parent.
             entity.SceneParent = this;
@@ -143,7 +153,7 @@ namespace Soul.Engine.Scenography
         public void RemoveEntity(string name)
         {
 #if DEBUG
-            Debugging.DebugMessage(DiagnosticMessageType.Scene, "Removed entity [" + name + "]");
+            Debugging.DebugMessage(DiagnosticMessageType.Scene, "Removed entity [" + name + "] from scene " + this);
 #endif
 
             //TODO
@@ -184,7 +194,7 @@ namespace Soul.Engine.Scenography
 
 #if DEBUG
             Debugging.DebugMessage(DiagnosticMessageType.Scene,
-                "Registered system (" + RunningSystems.Count + ") [" + system + "] with priority " + system.Order);
+                "Registered system (" + RunningSystems.Count + ") [" + system + "] with priority " + system.Order + " to scene " + this);
 #endif
         }
 
@@ -209,7 +219,7 @@ namespace Soul.Engine.Scenography
         public void RemoveSystem(SystemBase system)
         {
 #if DEBUG
-            Debugging.DebugMessage(DiagnosticMessageType.Scene, "Removed system [" + system + "]");
+            Debugging.DebugMessage(DiagnosticMessageType.Scene, "Removed system [" + system + "] from scene " + this);
 #endif
 
             //TODO
@@ -228,7 +238,7 @@ namespace Soul.Engine.Scenography
             // Check if the provided entity is attached to this scene at all.
             if (!RegisteredEntities.ContainsValue(entity))
             {
-                ErrorHandling.Raise(DiagnosticMessageType.Scene, "Tried to update an entity which isn't attached.");
+                ErrorHandling.Raise(DiagnosticMessageType.Scene, "Tried to update an entity which isn't attached with name " + entity.Name);
                 return;
             }
 
