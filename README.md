@@ -16,42 +16,4 @@ While I try to update the engine as often as possible, most of the big features,
 
 ## This Year's Idea
 
-The objective of the 2018 version is to iterate and improve on last year's version by introducing the concept of "systems". Classes which group entities based on components and execute code on them. Upgrading from 2017's EC (entity-component) model to a ECS (entity-component-system) model where components are pure data.
-
-## Features and Progress
-
-- Resolution Adaptation with Boxing [&#10003;]
-- Borderless, Fullscreen, and Windowed Mode Switching and Support [&#10003;]
-- Tiled Integration
-- Camera System [&#10003;]
-- FPS Independent Timing [&#10003;]
-- Logging [&#10003;] (SoulLib)
-- Debugging Console [&#10003;]
-- Debugging and Diagnosing API
-- Error Handling System [&#10003;]
-- Javascript Scripting [&#10003;] (Jint)
-- Entity-Component-System Pattern [&#10003;]
-- Scene System [&#10003;]
-- Physics Engine [&#10003;] (SoulPhysics)
-- Asset Packing, and Protection [&#10003;]
-- Easy Animation [&#10003;] (Breath)
-- Text Wrapping and Formatting
-- Custom Text Markup
-
-## Own Libraries Used:
-
-[SoulLib](https://github.com/Cryru/SoulLib) - IO, Encryption, Hashing, Compression, Extensions, ManagedFile and more...
-
-[SoulPhysics](https://github.com/Cryru/SoulPhysics) - Physics.
-
-## External Projects
-
-[TiledSharp](https://github.com/marshallward/TiledSharp) - Tiled integration.
-
-[MonoGame](https://github.com/MonoGame/MonoGame) - Framework.
-
-[Jint](https://github.com/sebastienros/jint) - Javascript engine.
-
-## Tools:
-
-AssetPacker - Built-in tool to help with building and protecting your assets.
+SoulEngine 2018 is on hold.
