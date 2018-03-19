@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmotionCore", "EmotionCore\EmotionCore.csproj", "{723C67BD-47EE-482D-BC0D-728211D7F5F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmotionSandbox", "EmotionSandbox\EmotionSandbox.csproj", "{B92229FC-31CA-4A51-B22C-D63A891FC28B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealerGame", "HealerGame\HealerGame.csproj", "{555F39CF-5DCE-4CB8-8A83-37549768AB92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{723C67BD-47EE-482D-BC0D-728211D7F5F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{723C67BD-47EE-482D-BC0D-728211D7F5F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{723C67BD-47EE-482D-BC0D-728211D7F5F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{723C67BD-47EE-482D-BC0D-728211D7F5F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B92229FC-31CA-4A51-B22C-D63A891FC28B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B92229FC-31CA-4A51-B22C-D63A891FC28B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B92229FC-31CA-4A51-B22C-D63A891FC28B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B92229FC-31CA-4A51-B22C-D63A891FC28B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{555F39CF-5DCE-4CB8-8A83-37549768AB92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{555F39CF-5DCE-4CB8-8A83-37549768AB92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{555F39CF-5DCE-4CB8-8A83-37549768AB92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{555F39CF-5DCE-4CB8-8A83-37549768AB92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {86E75EC3-459F-498F-85CD-714CDB25253B}
+	EndGlobalSection
+EndGlobal
