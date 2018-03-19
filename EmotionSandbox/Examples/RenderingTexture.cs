@@ -4,19 +4,19 @@
 
 using System.Drawing;
 using System.IO;
-using Emotion;
-using Emotion.Objects;
+using Emotion.Assets;
+using Emotion.Engine;
 
 #endregion
 
-namespace EmotionSandbox
+namespace EmotionSandbox.Examples
 {
-    internal class Program
+    public class RenderingTexture
     {
         private static Context _context;
         private static Texture _texture;
 
-        private static void Main(string[] args)
+        public static void Main()
         {
             _context = new Context();
 

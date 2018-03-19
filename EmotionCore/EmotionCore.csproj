@@ -68,17 +68,17 @@
     <Compile Include="src\External\SDL2-CS\SDL2_image.cs" />
     <Compile Include="src\External\SDL2-CS\SDL2_mixer.cs" />
     <Compile Include="src\External\SDL2-CS\SDL2_ttf.cs" />
-    <Compile Include="src\Context.cs" />
+    <Compile Include="src\Engine\Context.cs" />
     <Compile Include="src\External\Windows.cs" />
     <Compile Include="src\Modules\AssetLoader.cs" />
     <Compile Include="src\Modules\Input.cs" />
     <Compile Include="src\Objects\Bases\Transform.cs" />
-    <Compile Include="src\Objects\Camera.cs" />
+    <Compile Include="src\Objects\Game\Camera.cs" />
     <Compile Include="src\Objects\Game\Map.cs" />
-    <Compile Include="src\Objects\Renderer.cs" />
+    <Compile Include="src\Engine\Renderer.cs" />
     <Compile Include="src\Objects\Settings.cs" />
-    <Compile Include="src\Objects\Texture.cs" />
-    <Compile Include="src\Objects\Window.cs" />
+    <Compile Include="src\Assets\Texture.cs" />
+    <Compile Include="src\Engine\Window.cs" />
     <Compile Include="src\Helpers.cs" />
     <Compile Include="src\Systems\Debugging.cs" />
     <Compile Include="src\Systems\ExternalErrorHandler.cs" />
@@ -90,6 +90,7 @@
     <Content Include="Libraries\External\x86\SDL2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="src\Meta.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

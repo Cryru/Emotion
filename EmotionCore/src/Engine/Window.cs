@@ -4,12 +4,12 @@
 
 using System;
 using System.Drawing;
-using Emotion.Modules;
+using Emotion.Systems;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Objects
+namespace Emotion.Engine
 {
     public class Window
     {

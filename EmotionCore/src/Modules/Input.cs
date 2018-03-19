@@ -28,7 +28,7 @@ namespace Emotion.Modules
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns>Whether the key is pressed or not.</returns>
-        public bool isKeyDown(string key)
+        public bool IsKeyDown(string key)
         {
             // Get the scan code of the key.
             int scanCode = (int) SDL.SDL_GetScancodeFromName(key);

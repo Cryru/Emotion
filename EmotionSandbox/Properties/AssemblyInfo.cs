@@ -1,17 +1,22 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
+using System.Reflection;
 using System.Runtime.InteropServices;
+
+#endregion
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("EmotionSandbox")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Example for Emtoion, a simple 2D game engine.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("EmotionSandbox")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("www.cryru.info")]
+[assembly: AssemblyProduct("Emotion")]
+[assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: AssemblyTrademark("Vlad 'Cryru' Abadzhiev")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -32,5 +37,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion(Emotion.Meta.Version)]
+[assembly: AssemblyFileVersion(Emotion.Meta.Version)]

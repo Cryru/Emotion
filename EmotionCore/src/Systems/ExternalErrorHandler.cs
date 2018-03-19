@@ -3,13 +3,11 @@
 #region Using
 
 using System;
-using Emotion.External;
-using Emotion.Systems;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Modules
+namespace Emotion.Systems
 {
     public static class ExternalErrorHandler
     {
@@ -31,19 +29,6 @@ namespace Emotion.Modules
         internal static IntPtr CheckError(IntPtr response, bool invert = false)
         {
             if (response == IntPtr.Zero && !invert || response != IntPtr.Zero && invert) ProcessError();
-
-            return response;
-        }
-
-        /// <summary>
-        /// todo
-        /// </summary>
-        /// <param name="response"></param>
-        /// <param name="invert"></param>
-        /// <returns></returns>
-        internal static bool CheckError(bool response, bool invert = false)
-        {
-            if (response && !invert || !response && invert) ProcessError();
 
             return response;
         }

@@ -12,7 +12,7 @@ using SDL2;
 
 #endregion
 
-namespace Emotion
+namespace Emotion.Engine
 {
     public class Context
     {

@@ -7,7 +7,7 @@ using Emotion.Objects.Bases;
 
 #endregion
 
-namespace Emotion.Objects
+namespace Emotion.Objects.Game
 {
     public class Camera : Transform
     {

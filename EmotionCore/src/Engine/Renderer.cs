@@ -4,12 +4,14 @@
 
 using System;
 using System.Drawing;
-using Emotion.Modules;
+using Emotion.Assets;
+using Emotion.Objects.Game;
+using Emotion.Systems;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Objects
+namespace Emotion.Engine
 {
     public class Renderer
     {
