@@ -11,4 +11,4 @@ SoulEngine was a 2D game engine based on the idea of low-level code writing, fle
 
 ## Successor
 
-A successor engine is in the works.
+A successor is under development [here](https://github.com/Cryru/SoulEngine/tree/emotion)
