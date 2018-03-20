@@ -5,6 +5,8 @@
 #region Using
 
 using System;
+using System.Drawing;
+using Emotion.Engine;
 
 #endregion
 
@@ -20,6 +22,24 @@ namespace Emotion.Systems
         {
             Console.WriteLine(message);
         }
+
+        public static void DebugLoop(Context context)
+        {
+            // Check if there is an attached renderer with a camera.
+            if (context.Renderer?.Camera != null)
+            {
+                CameraBoundDraw(context.Renderer);
+            }
+        }
+
+        #region Debug Drawing
+
+        private static void CameraBoundDraw(Renderer renderer)
+        {
+            renderer.DrawRectangle(renderer.Camera.InnerBounds, Color.Yellow);
+        }
+
+        #endregion
     }
 }
 #endif

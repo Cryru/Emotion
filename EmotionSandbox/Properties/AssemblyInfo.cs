@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("EmotionSandbox")]
-[assembly: AssemblyDescription("Example for Emtoion, a simple 2D game engine.")]
+[assembly: AssemblyDescription("Examples for Emotion, a simple 2D game engine.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("www.cryru.info")]
 [assembly: AssemblyProduct("Emotion")]

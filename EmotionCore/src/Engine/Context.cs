@@ -42,12 +42,12 @@ namespace Emotion.Engine
         /// <summary>
         /// The context's window.
         /// </summary>
-        public Window Window;
+        public Window Window { get; private set; }
 
         /// <summary>
         /// The context's renderer.
         /// </summary>
-        public Renderer Renderer;
+        public Renderer Renderer { get; private set; }
 
         #endregion
 
@@ -56,12 +56,12 @@ namespace Emotion.Engine
         /// <summary>
         /// Module which handles loading assets and storing assets.
         /// </summary>
-        public AssetLoader AssetLoader;
+        public AssetLoader AssetLoader { get; private set; }
 
         /// <summary>
         /// Module which handles user input.
         /// </summary>
-        public Input Input;
+        public Input Input { get; private set; }
 
         #endregion
 
@@ -191,6 +191,11 @@ namespace Emotion.Engine
 
             Draw?.Invoke();
 
+#if DEBUG
+            // Debug drawing.
+            Debugging.DebugLoop(this);
+#endif
+           
             // Swap buffers.
             Renderer.Present();
         }
