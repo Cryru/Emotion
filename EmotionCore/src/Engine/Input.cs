@@ -1,5 +1,7 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System;
@@ -8,7 +10,7 @@ using SDL2;
 
 #endregion
 
-namespace Emotion.Modules
+namespace Emotion.Engine
 {
     public class Input
     {
@@ -38,3 +40,5 @@ namespace Emotion.Modules
         #endregion
     }
 }
+
+#endif

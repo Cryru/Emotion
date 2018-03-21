@@ -1,17 +1,18 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using Emotion.Engine;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Assets
+namespace Emotion.Engine.Assets
 {
     public class Texture
     {
@@ -62,3 +63,5 @@ namespace Emotion.Assets
         #endregion
     }
 }
+
+#endif

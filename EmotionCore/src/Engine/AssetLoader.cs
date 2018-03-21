@@ -1,15 +1,16 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Assets;
-using Emotion.Engine;
+using Emotion.Engine.Assets;
 
 #endregion
 
-namespace Emotion.Modules
+namespace Emotion.Engine
 {
     public class AssetLoader
     {
@@ -99,3 +100,5 @@ namespace Emotion.Modules
         #endregion
     }
 }
+
+#endif

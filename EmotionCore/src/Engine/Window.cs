@@ -1,10 +1,11 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System;
 using System.Drawing;
-using Emotion.Systems;
 using SDL2;
 
 #endregion
@@ -61,7 +62,7 @@ namespace Emotion.Engine
             _title = Context.InitialSettings.WindowTitle;
 
             // Create the window within SDL.
-            Pointer = ExternalErrorHandler.CheckError(SDL.SDL_CreateWindow(
+            Pointer = SDLErrorHandler.CheckError(SDL.SDL_CreateWindow(
                 Context.InitialSettings.WindowTitle,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
@@ -71,7 +72,9 @@ namespace Emotion.Engine
             ));
 
             // Get the window's surface.
-            Surface = ExternalErrorHandler.CheckError(SDL.SDL_GetWindowSurface(Pointer));
+            Surface = SDLErrorHandler.CheckError(SDL.SDL_GetWindowSurface(Pointer));
         }
     }
 }
+
+#endif

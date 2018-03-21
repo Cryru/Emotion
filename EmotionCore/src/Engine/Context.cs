@@ -1,11 +1,12 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System;
 using System.Diagnostics;
 using Emotion.External;
-using Emotion.Modules;
 using Emotion.Objects;
 using Emotion.Systems;
 using SDL2;
@@ -39,6 +40,10 @@ namespace Emotion.Engine
         /// </summary>
         internal Settings InitialSettings;
 
+        #endregion
+
+        #region Modules
+
         /// <summary>
         /// The context's window.
         /// </summary>
@@ -49,17 +54,13 @@ namespace Emotion.Engine
         /// </summary>
         public Renderer Renderer { get; private set; }
 
-        #endregion
-
-        #region Modules
-
         /// <summary>
-        /// Module which handles loading assets and storing assets.
+        /// Handles loading assets and storing assets.
         /// </summary>
         public AssetLoader AssetLoader { get; private set; }
 
         /// <summary>
-        /// Module which handles user input.
+        /// Handles user input.
         /// </summary>
         public Input Input { get; private set; }
 
@@ -95,7 +96,7 @@ namespace Emotion.Engine
             // Set the DLL path on Windows.
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
+                Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\SDL2\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
 
                 // Bypass an issue with SDL and debugging on Windows.
                 if (Debugger.IsAttached)
@@ -113,10 +114,10 @@ namespace Emotion.Engine
             config?.Invoke(InitialSettings);
 
             // Initialize SDL.
-            ExternalErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
+            SDLErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
 
             // Enable double buffering.
-            ExternalErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
+            SDLErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
 
             // Create a window.
             Window = new Window(this);
@@ -195,7 +196,7 @@ namespace Emotion.Engine
             // Debug drawing.
             Debugging.DebugLoop(this);
 #endif
-           
+
             // Swap buffers.
             Renderer.Present();
         }
@@ -222,3 +223,5 @@ namespace Emotion.Engine
         }
     }
 }
+
+#endif

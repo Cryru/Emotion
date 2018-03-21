@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Emotion.Assets;
 using Emotion.Engine;
-using Emotion.Modules;
+using Emotion.Engine.Assets;
 using Emotion.Objects.Bases;
 using TiledSharp;
 

@@ -37,6 +37,7 @@ namespace Emotion.Systems
         private static void CameraBoundDraw(Renderer renderer)
         {
             renderer.DrawRectangle(renderer.Camera.InnerBounds, Color.Yellow);
+            renderer.DrawRectangle(renderer.Camera.Bounds, Color.Green);
         }
 
         #endregion

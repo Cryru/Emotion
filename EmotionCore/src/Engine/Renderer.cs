@@ -1,12 +1,13 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System;
 using System.Drawing;
-using Emotion.Assets;
+using Emotion.Engine.Assets;
 using Emotion.Objects.Game;
-using Emotion.Systems;
 using SDL2;
 
 #endregion
@@ -34,13 +35,13 @@ namespace Emotion.Engine
             Context = context;
 
             // Create a renderer.
-            Pointer = ExternalErrorHandler.CheckError(SDL.SDL_CreateRenderer(Context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
+            Pointer = SDLErrorHandler.CheckError(SDL.SDL_CreateRenderer(Context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
 
             // Create an OpenGL Context.
-            GLContext = ExternalErrorHandler.CheckError(SDL.SDL_GL_CreateContext(Context.Window.Pointer));
+            GLContext = SDLErrorHandler.CheckError(SDL.SDL_GL_CreateContext(Context.Window.Pointer));
 
             // Set the render size.
-            ExternalErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));
+            SDLErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));
             RenderSize = new Point(context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight);
         }
 
@@ -90,7 +91,7 @@ namespace Emotion.Engine
                 des.y -= Camera.Bounds.Y;
             }
 
-            ExternalErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, ref src, ref des), true);
+            SDLErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, ref src, ref des), true);
         }
 
         /// <summary>
@@ -110,7 +111,7 @@ namespace Emotion.Engine
                 des.y -= Camera.Bounds.Y;
             }
 
-            ExternalErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
+            SDLErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
         }
 
         /// <summary>
@@ -156,3 +157,5 @@ namespace Emotion.Engine
         #endregion
     }
 }
+
+#endif

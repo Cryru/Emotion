@@ -4,8 +4,8 @@
 
 using System.Drawing;
 using System.IO;
-using Emotion.Assets;
 using Emotion.Engine;
+using Emotion.Engine.Assets;
 
 #endregion
 

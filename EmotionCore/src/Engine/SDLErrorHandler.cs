@@ -1,15 +1,18 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#if SDL2
+
 #region Using
 
 using System;
+using Emotion.Systems;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Systems
+namespace Emotion.Engine
 {
-    public static class ExternalErrorHandler
+    public static class SDLErrorHandler
     {
         /// <summary>
         /// Raises an error if the response is less than 0.
@@ -51,3 +54,5 @@ namespace Emotion.Systems
         }
     }
 }
+
+#endif
