@@ -5,9 +5,9 @@
 #region Using
 
 using System;
-using System.Drawing;
 using Emotion.Engine.Assets;
 using Emotion.Objects.Game;
+using Emotion.Primitives;
 using SDL2;
 
 #endregion
@@ -21,7 +21,7 @@ namespace Emotion.Engine
         /// <summary>
         /// The resolution to render at.
         /// </summary>
-        public Point RenderSize { get; private set; }
+        public Vector2 RenderSize { get; private set; }
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace Emotion.Engine
 
             // Set the render size.
             SDLErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));
-            RenderSize = new Point(context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight);
+            RenderSize = new Vector2(context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight);
         }
 
         #region Primary Functions
@@ -81,14 +81,14 @@ namespace Emotion.Engine
         /// <param name="camera">Whether to draw through the current camera, or on the screen.</param>
         public void DrawTexture(Texture texture, Rectangle location, Rectangle source, bool camera = true)
         {
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = location.X, y = location.Y, h = location.Height, w = location.Width};
-            SDL.SDL_Rect src = new SDL.SDL_Rect {x = source.X, y = source.Y, h = source.Height, w = source.Width};
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
+            SDL.SDL_Rect src = new SDL.SDL_Rect {x = (int) source.X, y = (int) source.Y, h =(int)  source.Height, w = (int) source.Width};
 
             // Add camera.
             if (Camera != null && camera)
             {
-                des.x -= Camera.Bounds.X;
-                des.y -= Camera.Bounds.Y;
+                des.x -= (int) Camera.Bounds.X;
+                des.y -= (int) Camera.Bounds.Y;
             }
 
             SDLErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, ref src, ref des), true);
@@ -102,13 +102,13 @@ namespace Emotion.Engine
         /// <param name="camera">Whether to draw through the current camera, or on the screen.</param>
         public void DrawTexture(Texture texture, Rectangle location, bool camera = true)
         {
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = location.X, y = location.Y, h = location.Height, w = location.Width};
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w =(int) location.Width};
 
             // Add camera.
             if (Camera != null && camera)
             {
-                des.x -= Camera.Bounds.X;
-                des.y -= Camera.Bounds.Y;
+                des.x -= (int) Camera.Bounds.X;
+                des.y -= (int) Camera.Bounds.Y;
             }
 
             SDLErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
@@ -126,13 +126,13 @@ namespace Emotion.Engine
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
 
             // Transform rect to sdl rect.
-            SDL.SDL_Rect re = new SDL.SDL_Rect {x = rect.X, y = rect.Y, h = rect.Height, w = rect.Width};
+            SDL.SDL_Rect re = new SDL.SDL_Rect {x = (int) rect.X, y = (int) rect.Y, h = (int) rect.Height, w = (int) rect.Width};
 
             // Add camera.
             if (Camera != null && camera)
             {
-                re.x -= Camera.Bounds.X;
-                re.y -= Camera.Bounds.Y;
+                re.x -= (int) Camera.Bounds.X;
+                re.y -= (int) Camera.Bounds.Y;
             }
 
             SDL.SDL_RenderDrawRect(Pointer, ref re);

@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using Emotion.Engine;
 using Emotion.Engine.Assets;
 using Emotion.Objects.Bases;
+using Emotion.Primitives;
 using TiledSharp;
 
 #endregion
@@ -59,7 +59,7 @@ namespace Emotion.Objects.Game
             }
 
             // Calculate size.
-            Bounds.Size = new Size(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
         }
 
         /// <summary>

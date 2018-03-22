@@ -6,6 +6,8 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Emotion.Objects.Game;
+using Emotion.Primitives;
 using SDL2;
 
 #endregion
@@ -35,6 +37,21 @@ namespace Emotion.Engine
             // Get the scan code of the key.
             int scanCode = (int) SDL.SDL_GetScancodeFromName(key);
             return _keyStateArray[scanCode] != 0;
+        }
+
+        #endregion
+
+        #region Mouse
+
+        /// <summary>
+        /// Returns the mouse position.
+        /// </summary>
+        /// <returns>The mouse position.</returns>
+        public Vector2 GetMousePosition(Camera camera = null)
+        {
+            SDL.SDL_GetMouseState(out int x, out int y);
+
+            return camera == null ? new Vector2(x, y) : new Vector2(x + camera.Bounds.X, y + camera.Bounds.Y);
         }
 
         #endregion

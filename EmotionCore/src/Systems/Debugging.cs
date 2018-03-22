@@ -5,8 +5,8 @@
 #region Using
 
 using System;
-using System.Drawing;
 using Emotion.Engine;
+using Emotion.Primitives;
 
 #endregion
 
@@ -30,14 +30,35 @@ namespace Emotion.Systems
             {
                 CameraBoundDraw(context.Renderer);
             }
+
+            MouseBoundDraw(context.Renderer, context.Input);
         }
 
         #region Debug Drawing
 
         private static void CameraBoundDraw(Renderer renderer)
         {
+            // Draw bounds.
             renderer.DrawRectangle(renderer.Camera.InnerBounds, Color.Yellow);
-            renderer.DrawRectangle(renderer.Camera.Bounds, Color.Green);
+            renderer.DrawRectangle(renderer.Camera.Bounds, Color.Yellow);
+
+            // Draw center.
+            Rectangle centerDraw = new Rectangle(0, 0, 10, 10);
+            centerDraw.X = (int) renderer.Camera.Bounds.Center.X - centerDraw.Width / 2;
+            centerDraw.Y = (int) renderer.Camera.Bounds.Center.Y - centerDraw.Height / 2;
+
+            renderer.DrawRectangle(centerDraw, Color.Yellow);
+        }
+
+        private static void MouseBoundDraw(Renderer renderer, Input input)
+        {
+            Vector2 mouseLocation = input.GetMousePosition();
+
+            Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
+            mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
+            mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
+
+            renderer.DrawRectangle(mouseBounds, Color.Pink, false);
         }
 
         #endregion

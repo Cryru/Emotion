@@ -2,10 +2,10 @@
 
 #region Using
 
-using System.Drawing;
 using System.IO;
 using Emotion.Engine;
 using Emotion.Engine.Assets;
+using Emotion.Primitives;
 
 #endregion
 

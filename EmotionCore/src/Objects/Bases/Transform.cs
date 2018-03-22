@@ -2,7 +2,7 @@
 
 #region Using
 
-using System.Drawing;
+using Emotion.Primitives;
 
 #endregion
 
@@ -14,19 +14,6 @@ namespace Emotion.Objects.Bases
         /// The object's position and size.
         /// </summary>
         public Rectangle Bounds;
-
-        /// <summary>
-        /// The object's center.
-        /// </summary>
-        public Point Center
-        {
-            get => new Point(Bounds.X + Bounds.Width / 2, Bounds.Y + Bounds.Height / 2);
-            set
-            {
-                Bounds.X = value.X - Bounds.Width / 2;
-                Bounds.Y = value.Y - Bounds.Height / 2;
-            }
-        }
 
         public Transform(Rectangle bounds)
         {

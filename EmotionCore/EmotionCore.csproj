@@ -71,6 +71,7 @@
     <Compile Include="src\External\Windows.cs" />
     <Compile Include="src\Engine\AssetLoader.cs" />
     <Compile Include="src\Engine\Input.cs" />
+    <Compile Include="src\GameMath.cs" />
     <Compile Include="src\Objects\Bases\Transform.cs" />
     <Compile Include="src\Objects\Game\Camera.cs" />
     <Compile Include="src\Objects\Game\Map.cs" />
@@ -79,6 +80,9 @@
     <Compile Include="src\Engine\Assets\Texture.cs" />
     <Compile Include="src\Engine\Window.cs" />
     <Compile Include="src\Helpers.cs" />
+    <Compile Include="src\Primitives\Color.cs" />
+    <Compile Include="src\Primitives\Rectangle.cs" />
+    <Compile Include="src\Primitives\Vector2.cs" />
     <Compile Include="src\Systems\Debugging.cs" />
     <Compile Include="src\Engine\SDLErrorHandler.cs" />
   </ItemGroup>
