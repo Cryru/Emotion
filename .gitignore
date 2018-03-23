@@ -17,19 +17,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Other
-
-# =========================
-# Operating System Files
-# =========================
-
-# OSX
-# =========================
-
-.DS_Store
-.AppleDouble
-.LSOverride
-
 # Thumbnails
 ._*
 
@@ -44,22 +31,15 @@ bin
 .vs
 obj
 
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-
 # Tests
 .axocover
 TestResults
-SoulLib.sln.DotSettings.user
-
-docs/LastBuild.log
 
 # Nuget
 packages/*
 
 # Emotion Games
 HealerGame
+
+# Other
+Emotion.sln
