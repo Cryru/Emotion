@@ -85,6 +85,7 @@
     <Compile Include="src\Primitives\Vector2.cs" />
     <Compile Include="src\Systems\Debugging.cs" />
     <Compile Include="src\Engine\SDLErrorHandler.cs" />
+    <Compile Include="src\Systems\EmptySystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\External\SDL2\x64\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
