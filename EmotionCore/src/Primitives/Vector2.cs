@@ -351,6 +351,9 @@ namespace Emotion.Primitives
 
         public void Normalize()
         {
+            // Prevents NaN:NaN
+            if(X == 0 && Y == 0) return;
+
             float val = 1.0f / (float) Math.Sqrt(X * X + Y * Y);
             X *= val;
             Y *= val;
@@ -411,7 +414,6 @@ namespace Emotion.Primitives
         }
 
         #endregion Public Methods
-
 
         #region Operators
 

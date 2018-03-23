@@ -77,7 +77,17 @@ namespace Emotion.Primitives
             }
         }
 
-        #endregion Public Properties
+        public Vector2 Center
+        {
+            get => new Vector2(X + Width / 2, Y + Height / 2);
+            set
+            {
+                X = value.X - Width / 2;
+                Y = value.Y - Height / 2;
+            }
+        }
+
+        #endregion
 
         #region Constructors
 
@@ -90,7 +100,6 @@ namespace Emotion.Primitives
         }
 
         #endregion Constructors
-
 
         #region Public Methods
 
@@ -130,17 +139,6 @@ namespace Emotion.Primitives
             X += offsetX;
             Y += offsetY;
         }
-
-        public Vector2 Center
-        {
-            get => new Vector2(X + Width / 2, Y + Height / 2);
-            set
-            {
-                X = value.X - Width / 2;
-                Y = value.Y - Height / 2;
-            }
-        }
-
 
         public void Inflate(float horizontalValue, float verticalValue)
         {

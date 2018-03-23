@@ -72,8 +72,10 @@
     <Compile Include="src\Engine\AssetLoader.cs" />
     <Compile Include="src\Engine\Input.cs" />
     <Compile Include="src\GameMath.cs" />
+    <Compile Include="src\Objects\Bases\Camera.cs" />
     <Compile Include="src\Objects\Bases\Transform.cs" />
-    <Compile Include="src\Objects\Game\Camera.cs" />
+    <Compile Include="src\Objects\Game\TargetCamera.cs" />
+    <Compile Include="src\Objects\Game\MouseCamera.cs" />
     <Compile Include="src\Objects\Game\Map.cs" />
     <Compile Include="src\Engine\Renderer.cs" />
     <Compile Include="src\Objects\Settings.cs" />

@@ -6,6 +6,7 @@
 
 using System;
 using Emotion.Engine.Assets;
+using Emotion.Objects.Bases;
 using Emotion.Objects.Game;
 using Emotion.Primitives;
 using SDL2;
