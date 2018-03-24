@@ -145,7 +145,7 @@ namespace Emotion.Engine
                 // Calculate delta time.
                 _last = _now;
                 _now = SDL.SDL_GetPerformanceCounter();
-                FrameTime = (_now - _last) * 1000 / SDL.SDL_GetPerformanceFrequency();
+                FrameTime = GameMath.Clamp((_now - _last) * 1000 / SDL.SDL_GetPerformanceFrequency(), 1, 1000);
 
                 // Update SDL.
                 HandleEvents();

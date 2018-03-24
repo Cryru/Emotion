@@ -67,6 +67,16 @@ namespace Emotion.Primitives
             get => Y + Height;
         }
 
+        public Vector2 Location
+        {
+            get => new Vector2(X, Y);
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+            }
+        }
+
         public Vector2 Size
         {
             get => new Vector2(Width, Height);
