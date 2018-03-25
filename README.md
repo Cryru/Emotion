@@ -1,6 +1,8 @@
 # Emotion
 <img src="EmotionLogo.png" width="128px" />
 
+[![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff?svg=true)](https://ci.appveyor.com/project/Cryru/emotion)
+
 ## What is it?
 
 Emotion is a simplistic 2D game engine written in C#, based on the SDL2 framework.
