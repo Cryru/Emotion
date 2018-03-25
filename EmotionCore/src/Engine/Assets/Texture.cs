@@ -5,9 +5,8 @@
 #region Using
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
+using FreeImageAPI;
 using SDL2;
 
 #endregion
@@ -20,16 +19,16 @@ namespace Emotion.Engine.Assets
 
         public Texture(Context context, byte[] textureBytes)
         {
-            // Put the bytes into a stream..
+            // Put the bytes into a stream.
             using (MemoryStream stream = new MemoryStream(textureBytes))
             {
-                // Create a System.Drawing bitmap from it.
-                Bitmap temp = new Bitmap(stream);
+                // Load a free image bitmap from memory.
+                FIBITMAP freeImageBitmap = FreeImage.LoadFromStream(stream);
 
-                // Convert to bitmap.
                 using (MemoryStream bmpConverted = new MemoryStream())
                 {
-                    temp.Save(bmpConverted, ImageFormat.Bmp);
+                    // Convert it to a BMP format.
+                    FreeImage.SaveToStream(freeImageBitmap, bmpConverted, FREE_IMAGE_FORMAT.FIF_BMP);
 
                     // Get the converted bytes and convert to a pointer.
                     byte[] memoryToBytes = bmpConverted.ToArray();
@@ -46,6 +45,8 @@ namespace Emotion.Engine.Assets
                     // Free memory.
                     SDL.SDL_FreeSurface(surface);
                 }
+
+                freeImageBitmap.SetNull();
             }
         }
 

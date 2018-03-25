@@ -96,7 +96,7 @@ namespace Emotion.Engine
             // Set the DLL path on Windows.
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\SDL2\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
+                Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
 
                 // Bypass an issue with SDL and debugging on Windows.
                 if (Debugger.IsAttached)

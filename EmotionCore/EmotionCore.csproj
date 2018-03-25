@@ -34,9 +34,11 @@
     <RootNamespace>Emotion</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeImage-dotnet-core.4.3.6\lib\net40\FreeImage-dotnet-core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -61,7 +63,6 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibConstants.cs" />
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Extensions.cs" />
     <Compile Include="src\External\SDL2-CS\StringMarshaler.cs" />
     <Compile Include="src\External\SDL2-CS\SDL2.cs" />
     <Compile Include="src\External\SDL2-CS\SDLImage.cs" />
@@ -90,10 +91,16 @@
     <Compile Include="src\Systems\EmptySystem.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Libraries\External\SDL2\x64\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
+    <Content Include="Libraries\External\x64\FreeImage.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libraries\External\SDL2\x86\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
+    <Content Include="Libraries\External\x64\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\External\x86\FreeImage.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\External\x86\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="src\Meta.cs" />
@@ -102,12 +109,13 @@
     <None Include="EmotionCore.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\External\SDL2\x64\libSDL2-2.0.so.0">
+    <None Include="Libraries\External\x64\libSDL2-2.0.so.0">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\External\SDL2\x86\libSDL2-2.0.so.0">
+    <None Include="Libraries\External\x86\libSDL2-2.0.so.0">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

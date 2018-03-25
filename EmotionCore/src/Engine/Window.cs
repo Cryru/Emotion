@@ -5,7 +5,7 @@
 #region Using
 
 using System;
-using System.Drawing;
+using Emotion.Primitives;
 using SDL2;
 
 #endregion
@@ -34,15 +34,15 @@ namespace Emotion.Engine
         /// <summary>
         /// The size of the window.
         /// </summary>
-        public Point Size
+        public Vector2 Size
         {
             get
             {
                 SDL.SDL_GetWindowSize(Pointer, out int w, out int h);
 
-                return new Point(w, h);
+                return new Vector2(w, h);
             }
-            set => SDL.SDL_SetWindowSize(Pointer, value.X, value.Y);
+            set => SDL.SDL_SetWindowSize(Pointer, (int) value.X, (int) value.Y);
         }
 
         #endregion
