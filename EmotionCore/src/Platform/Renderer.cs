@@ -5,7 +5,7 @@
 #region Using
 
 using System;
-using Emotion.Objects.Bases;
+using Emotion.Game.Objects.Camera;
 using Emotion.Platform.Assets;
 using Emotion.Primitives;
 using SDL2;
@@ -28,7 +28,7 @@ namespace Emotion.Platform
         internal Context Context;
         internal IntPtr Pointer;
         internal IntPtr GLContext;
-        internal Camera Camera;
+        internal CameraBase Camera;
 
         internal Renderer(Context context)
         {
@@ -149,7 +149,7 @@ namespace Emotion.Platform
         /// Sets the renderer's camera.
         /// </summary>
         /// <param name="camera">The camera to bind to the renderer.</param>
-        public void SetCamera(Camera camera)
+        public void SetCamera(CameraBase camera)
         {
             Camera = camera;
         }

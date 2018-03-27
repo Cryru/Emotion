@@ -3,14 +3,14 @@
 #region Using
 
 using System;
-using Emotion.Objects.Bases;
+using Emotion.Game.Components;
 using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Objects.Bases
+namespace Emotion.Game.Objects.Camera
 {
-    public class Camera : Transform
+    public class CameraBase : Transform
     {
         #region Properties
 
@@ -21,7 +21,7 @@ namespace Emotion.Objects.Bases
 
         #endregion
 
-        public Camera(Rectangle bounds) : base(bounds)
+        public CameraBase(Rectangle bounds) : base(bounds)
         {
         }
 

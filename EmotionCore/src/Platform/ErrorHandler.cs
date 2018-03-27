@@ -6,7 +6,9 @@
 
 using System;
 using Emotion.Engine;
+#if DEBUG
 using Emotion.Engine.Debugging;
+#endif
 using SDL2;
 
 #endregion
@@ -44,11 +46,8 @@ namespace Emotion.Platform
         {
             string error = SDL.SDL_GetError();
 
-            //todo
 #if DEBUG
-
-            Debugger.Log(error);
-
+            Debugger.Log(MessageType.Error, MessageSource.Platform, error);
 #endif
 
             throw new Exception("External Error: " + error);

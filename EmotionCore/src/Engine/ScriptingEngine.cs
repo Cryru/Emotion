@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#if DEBUG
 using Emotion.Engine.Debugging;
-using Emotion.Objects;
+#endif
 using Emotion.Platform;
 
 namespace Emotion.Engine
@@ -15,7 +16,7 @@ namespace Emotion.Engine
         /// </summary>
         internal Jint.Engine Interpreter;
 
-        #region Module API
+#region Module API
 
         /// <summary>
         /// Initializes the module.
@@ -35,9 +36,9 @@ namespace Emotion.Engine
             });
         }
 
-        #endregion
+#endregion
 
-        #region Functions
+#region Functions
 
         /// <summary>
         /// Exposes an object or function to be accessible from inside the scripting engine.
@@ -70,7 +71,7 @@ namespace Emotion.Engine
 #if DEBUG
                 // If it isn't empty log it.
                 if (scriptResponse != null)
-                    Debugger.Log(MessageType.Info, scriptResponse.ToString());
+                    Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, scriptResponse.ToString());
 #endif
                 // Return the response.
                 return scriptResponse;
@@ -87,7 +88,7 @@ namespace Emotion.Engine
             }
         }
 
-        #endregion
+#endregion
     }
 
 }

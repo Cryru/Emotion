@@ -6,7 +6,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Objects.Bases
+namespace Emotion.Game.Components
 {
     public class Transform
     {

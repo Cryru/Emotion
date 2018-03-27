@@ -11,6 +11,7 @@ namespace Emotion.Engine.Debugging
 
         // Platform related.
         PlatformCore,
+        Platform,
         Renderer,
         AssetLoader,
     }

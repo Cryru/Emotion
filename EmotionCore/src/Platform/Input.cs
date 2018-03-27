@@ -6,7 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Emotion.Objects.Bases;
+using Emotion.Game.Objects.Camera;
 using Emotion.Primitives;
 using SDL2;
 
@@ -47,7 +47,7 @@ namespace Emotion.Platform
         /// Returns the mouse position.
         /// </summary>
         /// <returns>The mouse position.</returns>
-        public Vector2 GetMousePosition(Camera camera = null)
+        public Vector2 GetMousePosition(CameraBase camera = null)
         {
             SDL.SDL_GetMouseState(out int x, out int y);
 

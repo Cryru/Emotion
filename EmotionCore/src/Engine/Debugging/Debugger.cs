@@ -5,8 +5,13 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading;
 using Emotion.Platform;
 using Emotion.Primitives;
+using Soul.Logging;
 
 #endregion
 
@@ -14,41 +19,104 @@ namespace Emotion.Engine.Debugging
 {
     public static class Debugger
     {
+        #region Declarations
+
         /// <summary>
-        /// Add a message to the debug log.
+        /// A Soul.Logging service which logs all debug messages to a file.
         /// </summary>
-        /// <param name="message">The message to add.</param>
-        public static void Log(string message)
+        private static ImmediateLoggingService _logger = new ImmediateLoggingService
         {
-            Console.WriteLine(message);
+            LogLimit = 10,
+            Limit = 2000,
+            Stamp = "Emotion Engine Log"
+        };
+
+        /// <summary>
+        /// An empty object used as a mutex when writing log messages.
+        /// </summary>
+        private static object _mutexLock = new object();
+
+        /// <summary>
+        /// The next debug command to process.
+        /// </summary>
+        private static string _command = "";
+
+        /// <summary>
+        /// The process handle of the application.
+        /// </summary>
+        private static Process _currentProcess = Process.GetCurrentProcess();
+
+        #endregion
+
+        /// <summary>
+        /// Setup the debugger.
+        /// </summary>
+        static Debugger()
+        {
+            // Start the console thread.
+            Thread consoleThread = new Thread(ConsoleThread);
+            consoleThread.Start();
+            while(!consoleThread.IsAlive) { }
         }
 
         /// <summary>
-        /// Add a message to the debug log.
+        /// Logs a message.
         /// </summary>
-        /// <param name="message">The message to add.</param>
-        public static void Log(MessageType type, string message)
-        {
-            Console.WriteLine(message);
-        }
-
-        /// <summary>
-        /// Add a message to the debug log.
-        /// </summary>
-        /// <param name="message">The message to add.</param>
+        /// <param name="type">The type of message to log.</param>
+        /// <param name="source">The source of the message.</param>
+        /// <param name="message">The message itself.</param>
         public static void Log(MessageType type, MessageSource source, string message)
         {
-            Console.WriteLine(message);
+            // Prevent logging from multiple threads messing up coloring and logging.
+            lock (_mutexLock)
+            {
+                // Change the color of the log depending on the type.
+                switch (type)
+                {
+                    case MessageType.Error:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                    case MessageType.Info:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        break;
+                    case MessageType.Trace:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                    case MessageType.Warning:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                }
+
+                _logger.Log("[" + type + "-" + source + "] " + message);
+                Console.WriteLine(message);
+
+                // Restore the normal color.
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.BackgroundColor = ConsoleColor.Black;
+            }
         }
 
+        /// <summary>
+        /// Is run every tick by the platform context.
+        /// </summary>
+        /// <param name="context"></param>
         public static void DebugLoop(Context context)
         {
+            // Check if there is a command to execute.
+            if (_command != string.Empty)
+            {
+                context.ScriptingEngine.RunScript(_command);
+                _command = "";
+            }
+
             // Check if there is an attached renderer with a camera.
             if (context.Renderer?.Camera != null)
             {
+                // Draw its bounds.
                 CameraBoundDraw(context.Renderer);
             }
 
+            // Draw the mouse cursor location.
             MouseBoundDraw(context.Renderer, context.Input);
         }
 
@@ -76,6 +144,22 @@ namespace Emotion.Engine.Debugging
             mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
 
             renderer.DrawRectangle(mouseBounds, Color.Pink, false);
+        }
+
+        #endregion
+
+        #region Scripting
+
+        /// <summary>
+        /// Processes console input without blocking the engine.
+        /// </summary>
+        private static void ConsoleThread()
+        {
+            while (!_currentProcess.HasExited)
+            {
+                string readLine = Console.ReadLine();
+                if (readLine != null) _command = readLine.Trim(' ');
+            }
         }
 
         #endregion

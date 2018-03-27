@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Objects.Bases;
+using Emotion.Game.Components;
 using Emotion.Platform;
 using Emotion.Platform.Assets;
 using Emotion.Primitives;
@@ -13,9 +13,9 @@ using TiledSharp;
 
 #endregion
 
-namespace Emotion.Objects.Game
+namespace Emotion.Game.Objects
 {
-    public sealed class Map : Transform
+    public class Map : Transform
     {
         #region Properties
 

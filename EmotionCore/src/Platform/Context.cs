@@ -5,11 +5,13 @@
 #region Using
 
 using System;
+using Emotion.Engine;
 using Emotion.Engine.Objects;
 using Emotion.External;
-using Emotion.Objects;
 using SDL2;
-using Debugger = Emotion.Engine.Debugging.Debugger;
+#if DEBUG
+using Emotion.Engine.Debugging;
+#endif
 using Emotion.Platform.Assets;
 using Emotion.Platform.Base;
 
@@ -67,6 +69,15 @@ namespace Emotion.Platform
         public Input Input { get; private set; }
 
         #endregion
+
+        #region Engine Modules
+
+        /// <summary>
+        /// Handles JS scripting.
+        /// </summary>
+        public ScriptingEngine ScriptingEngine;
+
+#endregion
 
         #region Variables
 
@@ -130,11 +141,10 @@ namespace Emotion.Platform
             // Load modules.
             AssetLoader = new Loader(this);
             Input = new Input();
+            ScriptingEngine = new ScriptingEngine();
 
 #if DEBUG
-
-            Debugger.Log("Context created!");
-
+            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
 #endif
         }
 
@@ -147,6 +157,7 @@ namespace Emotion.Platform
                 // Calculate delta time.
                 _last = _now;
                 _now = SDL.SDL_GetPerformanceCounter();
+                // Minimum is 1ms, maximum is 1s.
                 FrameTime = GameMath.Clamp((_now - _last) * 1000 / SDL.SDL_GetPerformanceFrequency(), 1, 1000);
 
                 // Update SDL.

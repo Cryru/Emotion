@@ -3,17 +3,16 @@
 #region Using
 
 using System;
-using Emotion.Objects.Bases;
 using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Objects.Game
+namespace Emotion.Game.Objects.Camera
 {
     /// <summary>
     /// A camera which follows the target closely.
     /// </summary>
-    public sealed class TargetCamera : Camera
+    public sealed class TargetCamera : CameraBase
     {
         /// <summary>
         /// The speed at which the camera should move. From 0 to 1, 0 being an immovable camera, and 1 being always at the target.
