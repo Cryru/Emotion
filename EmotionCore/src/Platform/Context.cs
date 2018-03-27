@@ -5,17 +5,19 @@
 #region Using
 
 using System;
-using System.Diagnostics;
+using Emotion.Engine.Objects;
 using Emotion.External;
 using Emotion.Objects;
-using Emotion.Systems;
 using SDL2;
+using Debugger = Emotion.Engine.Debugging.Debugger;
+using Emotion.Platform.Assets;
+using Emotion.Platform.Base;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public class Context
+    public sealed class Context : ContextBase
     {
         #region Declarations
 
@@ -42,7 +44,7 @@ namespace Emotion.Engine
 
         #endregion
 
-        #region Modules
+        #region Platform Modules
 
         /// <summary>
         /// The context's window.
@@ -57,7 +59,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Handles loading assets and storing assets.
         /// </summary>
-        public AssetLoader AssetLoader { get; private set; }
+        public Loader AssetLoader { get; private set; }
 
         /// <summary>
         /// Handles user input.
@@ -99,7 +101,7 @@ namespace Emotion.Engine
                 Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
 
                 // Bypass an issue with SDL and debugging on Windows.
-                if (Debugger.IsAttached)
+                if (System.Diagnostics.Debugger.IsAttached)
                     SDL.SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
             }
         }
@@ -114,10 +116,10 @@ namespace Emotion.Engine
             config?.Invoke(InitialSettings);
 
             // Initialize SDL.
-            SDLErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
+            ErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
 
             // Enable double buffering.
-            SDLErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
+            ErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
 
             // Create a window.
             Window = new Window(this);
@@ -126,12 +128,12 @@ namespace Emotion.Engine
             Renderer = new Renderer(this);
 
             // Load modules.
-            AssetLoader = new AssetLoader(this);
+            AssetLoader = new Loader(this);
             Input = new Input();
 
 #if DEBUG
 
-            Debugging.Log("Context created!");
+            Debugger.Log("Context created!");
 
 #endif
         }
@@ -194,7 +196,7 @@ namespace Emotion.Engine
 
 #if DEBUG
             // Debug drawing.
-            Debugging.DebugLoop(this);
+            Debugger.DebugLoop(this);
 #endif
 
             // Swap buffers.

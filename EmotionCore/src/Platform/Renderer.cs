@@ -5,17 +5,16 @@
 #region Using
 
 using System;
-using Emotion.Engine.Assets;
 using Emotion.Objects.Bases;
-using Emotion.Objects.Game;
+using Emotion.Platform.Assets;
 using Emotion.Primitives;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public class Renderer
+    public sealed class Renderer
     {
         #region Properties
 
@@ -36,13 +35,13 @@ namespace Emotion.Engine
             Context = context;
 
             // Create a renderer.
-            Pointer = SDLErrorHandler.CheckError(SDL.SDL_CreateRenderer(Context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
+            Pointer = ErrorHandler.CheckError(SDL.SDL_CreateRenderer(Context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
 
             // Create an OpenGL Context.
-            GLContext = SDLErrorHandler.CheckError(SDL.SDL_GL_CreateContext(Context.Window.Pointer));
+            GLContext = ErrorHandler.CheckError(SDL.SDL_GL_CreateContext(Context.Window.Pointer));
 
             // Set the render size.
-            SDLErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));
+            ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));
             RenderSize = new Vector2(context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight);
         }
 
@@ -92,7 +91,7 @@ namespace Emotion.Engine
                 des.y -= (int) Camera.Bounds.Y;
             }
 
-            SDLErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, ref src, ref des), true);
+            ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, ref src, ref des), true);
         }
 
         /// <summary>
@@ -112,7 +111,7 @@ namespace Emotion.Engine
                 des.y -= (int) Camera.Bounds.Y;
             }
 
-            SDLErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
+            ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
         }
 
         /// <summary>

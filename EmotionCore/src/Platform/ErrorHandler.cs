@@ -5,14 +5,15 @@
 #region Using
 
 using System;
-using Emotion.Systems;
+using Emotion.Engine;
+using Emotion.Engine.Debugging;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public static class SDLErrorHandler
+    public static class ErrorHandler
     {
         /// <summary>
         /// Raises an error if the response is less than 0.
@@ -46,7 +47,7 @@ namespace Emotion.Engine
             //todo
 #if DEBUG
 
-            Debugging.Log(error);
+            Debugger.Log(error);
 
 #endif
 

@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Engine;
-using Emotion.Engine.Assets;
 using Emotion.Objects.Bases;
+using Emotion.Platform;
+using Emotion.Platform.Assets;
 using Emotion.Primitives;
 using TiledSharp;
 
@@ -15,7 +15,7 @@ using TiledSharp;
 
 namespace Emotion.Objects.Game
 {
-    public class Map : Transform
+    public sealed class Map : Transform
     {
         #region Properties
 
@@ -38,7 +38,7 @@ namespace Emotion.Objects.Game
         /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(AssetLoader assetLoader, string mapPath, string tileSetFolder) : base(new Rectangle(0, 0, 0, 0))
+        public Map(Loader assetLoader, string mapPath, string tileSetFolder) : base(new Rectangle(0, 0, 0, 0))
         {
             // Load the map from the data as a stream.
             using (MemoryStream mapFileStream = new MemoryStream(assetLoader.GetFile(mapPath)))

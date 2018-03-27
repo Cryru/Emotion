@@ -5,20 +5,38 @@
 #region Using
 
 using System;
-using Emotion.Engine;
+using Emotion.Platform;
 using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Systems
+namespace Emotion.Engine.Debugging
 {
-    public static class Debugging
+    public static class Debugger
     {
         /// <summary>
         /// Add a message to the debug log.
         /// </summary>
         /// <param name="message">The message to add.</param>
         public static void Log(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
+        /// Add a message to the debug log.
+        /// </summary>
+        /// <param name="message">The message to add.</param>
+        public static void Log(MessageType type, string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
+        /// Add a message to the debug log.
+        /// </summary>
+        /// <param name="message">The message to add.</param>
+        public static void Log(MessageType type, MessageSource source, string message)
         {
             Console.WriteLine(message);
         }

@@ -7,15 +7,14 @@
 using System;
 using System.Runtime.InteropServices;
 using Emotion.Objects.Bases;
-using Emotion.Objects.Game;
 using Emotion.Primitives;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public class Input
+    public sealed class Input
     {
         private byte[] _keyStateArray = new byte[512];
 
