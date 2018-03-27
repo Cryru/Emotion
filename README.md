@@ -1,7 +1,7 @@
 # Emotion
 <img src="EmotionLogo.png" width="128px" />
 
-[![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff?svg=true)](https://ci.appveyor.com/project/Cryru/emotion)
+[![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff/branch/master?svg=true)](https://ci.appveyor.com/project/Cryru/emotion/branch/master)
 
 ## What is it?
 
