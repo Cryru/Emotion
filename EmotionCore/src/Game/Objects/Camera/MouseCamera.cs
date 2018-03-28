@@ -2,9 +2,7 @@
 
 #region Using
 
-using System;
 using Emotion.Platform;
-using Emotion.Platform.Assets;
 using Emotion.Primitives;
 
 #endregion
@@ -16,11 +14,11 @@ namespace Emotion.Game.Objects.Camera
     /// </summary>
     public sealed class MouseCamera : CameraBase
     {
-
         #region Properties
 
         /// <summary>
-        /// The maximum distance the camera can be between the target and the location of the mouse. From 0 to 1, 0 being exactly at the target, and 1 being exactly at the mouse pointer.
+        /// The maximum distance the camera can be between the target and the location of the mouse. From 0 to 1, 0 being exactly
+        /// at the target, and 1 being exactly at the mouse pointer.
         /// </summary>
         public float CameraMaxDistance = 0.3f;
 
@@ -35,7 +33,6 @@ namespace Emotion.Game.Objects.Camera
 
         public MouseCamera(Rectangle bounds) : base(bounds)
         {
-            
         }
 
         public void Update(Input input)

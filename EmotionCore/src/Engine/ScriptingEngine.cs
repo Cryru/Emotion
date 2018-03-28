@@ -1,22 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
+using System;
+using Emotion.Platform;
 #if DEBUG
 using Emotion.Engine.Debugging;
+
 #endif
-using Emotion.Platform;
+
+#endregion
 
 namespace Emotion.Engine
 {
     public sealed class ScriptingEngine
     {
         /// <summary>
-        /// The Jint-Javascript engine.
+        /// An instance of a JS interpreter.
         /// </summary>
-        internal Jint.Engine Interpreter;
+        private Jint.Engine _interpreter;
 
-#region Module API
+        #region Module API
 
         /// <summary>
         /// Initializes the module.
@@ -24,7 +28,7 @@ namespace Emotion.Engine
         internal void Setup(Context context)
         {
             // Define the Jint engine.
-            Interpreter = new Jint.Engine(opts =>
+            _interpreter = new Jint.Engine(opts =>
             {
                 // Set scripting timeout.
                 opts.TimeoutInterval(context.InitialSettings.ScriptTimeout);
@@ -36,9 +40,9 @@ namespace Emotion.Engine
             });
         }
 
-#endregion
+        #endregion
 
-#region Functions
+        #region Functions
 
         /// <summary>
         /// Exposes an object or function to be accessible from inside the scripting engine.
@@ -47,7 +51,7 @@ namespace Emotion.Engine
         /// <param name="exposedData">The data to expose.</param>
         public void Expose(string name, object exposedData)
         {
-            Interpreter.SetValue(name, exposedData);
+            _interpreter.SetValue(name, exposedData);
         }
 
         /// <summary>
@@ -58,15 +62,12 @@ namespace Emotion.Engine
         /// <returns></returns>
         public object RunScript(string script, bool safe = true)
         {
-            if (safe)
-            {
-                script = "(function () {" + script + "})()";
-            }
+            if (safe) script = "(function () {" + script + "})()";
 
             try
             {
                 // Run the script and get the response.
-                object scriptResponse = Interpreter.Execute(script).GetCompletionValue();
+                object scriptResponse = _interpreter.Execute(script).GetCompletionValue();
 
 #if DEBUG
                 // If it isn't empty log it.
@@ -88,7 +89,6 @@ namespace Emotion.Engine
             }
         }
 
-#endregion
+        #endregion
     }
-
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Emotion.Game.Components;
+using Emotion.Game.Pieces;
 using Emotion.Platform;
 using Emotion.Platform.Assets;
 using Emotion.Primitives;
@@ -129,23 +130,18 @@ namespace Emotion.Game.Objects
 
                         tsId = i;
                     }
+
                     if (tsId > 0) tsOffset -= TiledMap.Tilesets[tsId].FirstGid - 1;
                     tsOffset -= 1;
                     TmxTileset ts = TiledMap.Tilesets[tsId];
 
                     // Check if the current tileset has animated tiles.
                     if (ts.Tiles.Count > 0)
-                    {
-                        // Check if rendering an animated tile.
                         foreach (AnimatedTile cachedTile in AnimatedTiles)
                         {
                             // In that case set the tsOffset to the current frame.
-                            if (cachedTile.Id == tsOffset)
-                            {
-                                tsOffset = cachedTile.FrameId;
-                            }
+                            if (cachedTile.Id == tsOffset) tsOffset = cachedTile.FrameId;
                         }
-                    }
 
                     // Get tile image properties.
                     int tiColumn = tsOffset % (ts.Columns ?? 0);

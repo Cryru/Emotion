@@ -8,12 +8,13 @@ using System;
 using Emotion.Engine;
 using Emotion.Engine.Objects;
 using Emotion.External;
+using Emotion.Platform.Assets;
+using Emotion.Platform.Base;
 using SDL2;
+using Debugger = System.Diagnostics.Debugger;
 #if DEBUG
 using Emotion.Engine.Debugging;
 #endif
-using Emotion.Platform.Assets;
-using Emotion.Platform.Base;
 
 #endregion
 
@@ -77,7 +78,7 @@ namespace Emotion.Platform
         /// </summary>
         public ScriptingEngine ScriptingEngine;
 
-#endregion
+        #endregion
 
         #region Variables
 
@@ -112,7 +113,7 @@ namespace Emotion.Platform
                 Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
 
                 // Bypass an issue with SDL and debugging on Windows.
-                if (System.Diagnostics.Debugger.IsAttached)
+                if (Debugger.IsAttached)
                     SDL.SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
             }
         }
@@ -144,7 +145,7 @@ namespace Emotion.Platform
             ScriptingEngine = new ScriptingEngine();
 
 #if DEBUG
-            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
+            Engine.Debugging.Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
 #endif
         }
 
@@ -207,7 +208,7 @@ namespace Emotion.Platform
 
 #if DEBUG
             // Debug drawing.
-            Debugger.DebugLoop(this);
+            Engine.Debugging.Debugger.DebugLoop(this);
 #endif
 
             // Swap buffers.

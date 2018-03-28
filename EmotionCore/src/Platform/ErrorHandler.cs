@@ -5,11 +5,10 @@
 #region Using
 
 using System;
-using Emotion.Engine;
+using SDL2;
 #if DEBUG
 using Emotion.Engine.Debugging;
 #endif
-using SDL2;
 
 #endregion
 

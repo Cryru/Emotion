@@ -2,7 +2,6 @@
 
 #region Using
 
-using System;
 using Emotion.Game.Components;
 using Emotion.Primitives;
 

@@ -7,7 +7,7 @@ using TiledSharp;
 
 #endregion
 
-namespace Emotion.Objects.Game
+namespace Emotion.Game.Pieces
 {
     /// <summary>
     /// An internal object to be used by the map object to animate tiles.

@@ -1,4 +1,6 @@
-﻿#if DEBUG
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#if DEBUG
 
 namespace Emotion.Engine.Debugging
 {
@@ -14,6 +16,9 @@ namespace Emotion.Engine.Debugging
         Platform,
         Renderer,
         AssetLoader,
+
+        // User
+        Game
     }
 }
 

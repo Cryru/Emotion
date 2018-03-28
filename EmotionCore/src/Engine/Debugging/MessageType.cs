@@ -1,4 +1,6 @@
-﻿#if DEBUG
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#if DEBUG
 
 namespace Emotion.Engine.Debugging
 {

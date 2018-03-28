@@ -1,6 +1,10 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#region Using
+
 using System;
+
+#endregion
 
 namespace Emotion.Engine.Objects
 {

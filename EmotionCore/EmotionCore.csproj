@@ -45,12 +45,6 @@
       <HintPath>..\packages\Jint.2.11.58\lib\net40\Jint.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Soul.Core">
-      <HintPath>Libraries\Soul\Soul.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Soul.Encryption">
-      <HintPath>Libraries\Soul\Soul.Encryption.dll</HintPath>
-    </Reference>
     <Reference Include="Soul.Logging">
       <HintPath>Libraries\Soul\Soul.Logging.dll</HintPath>
     </Reference>
@@ -105,7 +99,7 @@
     <Compile Include="src\Engine\Objects\Settings.cs" />
     <Compile Include="src\Platform\Assets\Texture.cs" />
     <Compile Include="src\Platform\Window.cs" />
-    <Compile Include="src\Objects\Game\AnimatedTile.cs" />
+    <Compile Include="src\Game\Pieces\AnimatedTile.cs" />
     <Compile Include="src\Helpers.cs" />
     <Compile Include="src\Primitives\Color.cs" />
     <Compile Include="src\Primitives\Rectangle.cs" />

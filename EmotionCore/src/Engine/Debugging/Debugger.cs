@@ -5,9 +5,7 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 using Emotion.Platform;
 using Emotion.Primitives;
@@ -56,7 +54,9 @@ namespace Emotion.Engine.Debugging
             // Start the console thread.
             Thread consoleThread = new Thread(ConsoleThread);
             consoleThread.Start();
-            while(!consoleThread.IsAlive) { }
+            while (!consoleThread.IsAlive)
+            {
+            }
         }
 
         /// <summary>
@@ -87,6 +87,7 @@ namespace Emotion.Engine.Debugging
                         break;
                 }
 
+                // Log and display the message.
                 _logger.Log("[" + type + "-" + source + "] " + message);
                 Console.WriteLine(message);
 
@@ -99,7 +100,7 @@ namespace Emotion.Engine.Debugging
         /// <summary>
         /// Is run every tick by the platform context.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">The context updating the debugger.</param>
         public static void DebugLoop(Context context)
         {
             // Check if there is a command to execute.
@@ -110,11 +111,7 @@ namespace Emotion.Engine.Debugging
             }
 
             // Check if there is an attached renderer with a camera.
-            if (context.Renderer?.Camera != null)
-            {
-                // Draw its bounds.
-                CameraBoundDraw(context.Renderer);
-            }
+            if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
 
             // Draw the mouse cursor location.
             MouseBoundDraw(context.Renderer, context.Input);

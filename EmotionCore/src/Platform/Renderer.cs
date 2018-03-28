@@ -82,7 +82,7 @@ namespace Emotion.Platform
         public void DrawTexture(Texture texture, Rectangle location, Rectangle source, bool camera = true)
         {
             SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
-            SDL.SDL_Rect src = new SDL.SDL_Rect {x = (int) source.X, y = (int) source.Y, h =(int)  source.Height, w = (int) source.Width};
+            SDL.SDL_Rect src = new SDL.SDL_Rect {x = (int) source.X, y = (int) source.Y, h = (int) source.Height, w = (int) source.Width};
 
             // Add camera.
             if (Camera != null && camera)
@@ -102,7 +102,7 @@ namespace Emotion.Platform
         /// <param name="camera">Whether to draw through the current camera, or on the screen.</param>
         public void DrawTexture(Texture texture, Rectangle location, bool camera = true)
         {
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w =(int) location.Width};
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
 
             // Add camera.
             if (Camera != null && camera)

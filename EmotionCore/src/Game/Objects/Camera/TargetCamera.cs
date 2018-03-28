@@ -2,7 +2,6 @@
 
 #region Using
 
-using System;
 using Emotion.Primitives;
 
 #endregion
@@ -21,7 +20,6 @@ namespace Emotion.Game.Objects.Camera
 
         public TargetCamera(Rectangle bounds) : base(bounds)
         {
-           
         }
 
         public void Update(float frameTime)
