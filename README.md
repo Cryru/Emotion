@@ -13,7 +13,7 @@ Read more about this project's ancestry, and how it came to be [here](Documents/
 
 You will need a C# IDE, and some programming ability, as this engine doesn't provide a drag-and-drop interface, or any interface at all for that matter.
 
-For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
+For examples you can refer to the [EmotionSandbox](EmotionSandbox) project, or you can read the documentation within the source folders starting at the [src folder](/EmotionCore/src).
 
 ## Notes
 
