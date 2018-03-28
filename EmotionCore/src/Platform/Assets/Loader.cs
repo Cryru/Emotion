@@ -4,6 +4,7 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -36,15 +37,14 @@ namespace Emotion.Platform.Assets
         /// <summary>
         /// Loads a texture.
         /// </summary>
-        /// <param name="path">The path of the texture image to load.</param>
+        /// <param name="path">An engine path to the texture to load.</param>
         public Texture LoadTexture(string path)
         {
             string parsedPath = PathToCrossPlatform(path);
 
             if (!File.Exists(parsedPath))
             {
-                //todo raise error.
-                return null;
+                throw new Exception("The file " + parsedPath + " could not be found.");
             } 
 
             // Load the bytes of the file.

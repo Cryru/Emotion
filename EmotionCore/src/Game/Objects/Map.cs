@@ -88,10 +88,11 @@ namespace Emotion.Game.Objects
         /// Draw the map using the specified renderer.
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
-        public void Draw(Renderer renderer)
+        /// <param name="frametime">The time passed since the last frame.</param>
+        public void Draw(Renderer renderer, float frameTime)
         {
             // Update animated tiles.
-            UpdateAnimatedTiles(renderer.Context.FrameTime);
+            UpdateAnimatedTiles(frameTime);
 
             // layer - The map layer currently drawing.
             // t - The tile currently drawing from [layer]. 

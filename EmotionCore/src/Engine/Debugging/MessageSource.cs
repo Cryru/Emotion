@@ -6,6 +6,9 @@ namespace Emotion.Engine.Debugging
 {
     public enum MessageSource
     {
+        Other,
+
+        // Emotion
         Engine,
         Debugger,
         FileManager,

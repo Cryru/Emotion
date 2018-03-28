@@ -25,6 +25,9 @@ namespace Emotion.Engine.Objects
 
         #endregion
 
+        /// <summary>
+        /// The maximum time a script can run before it is stopped.
+        /// </summary>
         public TimeSpan ScriptTimeout = new TimeSpan(0, 0, 0, 0, 500);
     }
 }

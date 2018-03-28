@@ -11,9 +11,9 @@ using Emotion.External;
 using Emotion.Platform.Assets;
 using Emotion.Platform.Base;
 using SDL2;
-using Debugger = System.Diagnostics.Debugger;
 #if DEBUG
 using Emotion.Engine.Debugging;
+
 #endif
 
 #endregion
@@ -78,6 +78,15 @@ namespace Emotion.Platform
         /// </summary>
         public ScriptingEngine ScriptingEngine;
 
+#if DEBUG
+
+        /// <summary>
+        /// Handles diagnostics and debugging.
+        /// </summary>
+        public Debugger Debugger;
+
+#endif
+
         #endregion
 
         #region Variables
@@ -113,7 +122,7 @@ namespace Emotion.Platform
                 Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
 
                 // Bypass an issue with SDL and debugging on Windows.
-                if (Debugger.IsAttached)
+                if (System.Diagnostics.Debugger.IsAttached)
                     SDL.SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
             }
         }
@@ -145,9 +154,22 @@ namespace Emotion.Platform
             ScriptingEngine = new ScriptingEngine();
 
 #if DEBUG
-            Engine.Debugging.Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
+            Debugger = new Debugger(this);
+            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
 #endif
         }
+
+        /// <summary>
+        /// Start running the context.
+        /// </summary>
+        public void Start(Action draw)
+        {
+            Draw = draw;
+
+            Loop();
+        }
+
+        #region Loop Parts
 
         private void Loop()
         {
@@ -182,8 +204,6 @@ namespace Emotion.Platform
             SDL.SDL_Quit();
         }
 
-        #region Loop Parts
-
         private void HandleEvents()
         {
             // Loop while there are events to process.
@@ -208,7 +228,7 @@ namespace Emotion.Platform
 
 #if DEBUG
             // Debug drawing.
-            Engine.Debugging.Debugger.DebugLoop(this);
+            Debugger.DebugLoop();
 #endif
 
             // Swap buffers.
@@ -216,16 +236,6 @@ namespace Emotion.Platform
         }
 
         #endregion
-
-        /// <summary>
-        /// Start running the context.
-        /// </summary>
-        public void Start(Action draw)
-        {
-            Draw = draw;
-
-            Loop();
-        }
 
         /// <summary>
         /// Stops running the context.

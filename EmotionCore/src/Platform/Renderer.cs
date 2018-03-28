@@ -25,20 +25,21 @@ namespace Emotion.Platform
 
         #endregion
 
-        internal Context Context;
+        #region Declarations
+
         internal IntPtr Pointer;
         internal IntPtr GLContext;
         internal CameraBase Camera;
 
+        #endregion
+
         internal Renderer(Context context)
         {
-            Context = context;
-
             // Create a renderer.
-            Pointer = ErrorHandler.CheckError(SDL.SDL_CreateRenderer(Context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
+            Pointer = ErrorHandler.CheckError(SDL.SDL_CreateRenderer(context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
 
             // Create an OpenGL Context.
-            GLContext = ErrorHandler.CheckError(SDL.SDL_GL_CreateContext(Context.Window.Pointer));
+            GLContext = ErrorHandler.CheckError(SDL.SDL_GL_CreateContext(context.Window.Pointer));
 
             // Set the render size.
             ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));

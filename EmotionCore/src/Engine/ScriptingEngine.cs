@@ -15,23 +15,29 @@ namespace Emotion.Engine
 {
     public sealed class ScriptingEngine
     {
+        #region Declarations
+
         /// <summary>
         /// An instance of a JS interpreter.
         /// </summary>
         private Jint.Engine _interpreter;
 
-        #region Module API
+        private Context _context;
+
+        #endregion
 
         /// <summary>
         /// Initializes the module.
         /// </summary>
         internal void Setup(Context context)
         {
+            _context = context;
+
             // Define the Jint engine.
             _interpreter = new Jint.Engine(opts =>
             {
                 // Set scripting timeout.
-                opts.TimeoutInterval(context.InitialSettings.ScriptTimeout);
+                opts.TimeoutInterval(_context.InitialSettings.ScriptTimeout);
 #if DEBUG
                 // Enable scripting debugging.
                 opts.DebugMode();
@@ -39,8 +45,6 @@ namespace Emotion.Engine
 #endif
             });
         }
-
-        #endregion
 
         #region Functions
 
@@ -72,7 +76,7 @@ namespace Emotion.Engine
 #if DEBUG
                 // If it isn't empty log it.
                 if (scriptResponse != null)
-                    Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, scriptResponse.ToString());
+                    _context.Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, scriptResponse.ToString());
 #endif
                 // Return the response.
                 return scriptResponse;
@@ -82,8 +86,8 @@ namespace Emotion.Engine
                 // Check if timeout, and if not throw an exception.
                 if (e.Message != "The operation has timed out.") throw e;
 #if DEBUG
-                Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "A script has timed out.");
-                Debugger.Log(MessageType.Trace, MessageSource.ScriptingEngine, " " + script);
+                _context.Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "A script has timed out.");
+                _context.Debugger.Log(MessageType.Trace, MessageSource.ScriptingEngine, " " + script);
 #endif
                 return null;
             }

@@ -15,14 +15,14 @@ using Soul.Logging;
 
 namespace Emotion.Engine.Debugging
 {
-    public static class Debugger
+    public class Debugger
     {
         #region Declarations
 
         /// <summary>
         /// A Soul.Logging service which logs all debug messages to a file.
         /// </summary>
-        private static ImmediateLoggingService _logger = new ImmediateLoggingService
+        private ImmediateLoggingService _logger = new ImmediateLoggingService
         {
             LogLimit = 10,
             Limit = 2000,
@@ -32,25 +32,32 @@ namespace Emotion.Engine.Debugging
         /// <summary>
         /// An empty object used as a mutex when writing log messages.
         /// </summary>
-        private static object _mutexLock = new object();
+        private object _mutexLock = new object();
 
         /// <summary>
         /// The next debug command to process.
         /// </summary>
-        private static string _command = "";
+        private string _command = "";
 
         /// <summary>
         /// The process handle of the application.
         /// </summary>
-        private static Process _currentProcess = Process.GetCurrentProcess();
+        private Process _currentProcess = Process.GetCurrentProcess();
+
+        /// <summary>
+        /// The context the debugger is under.
+        /// </summary>
+        private Context _context;
 
         #endregion
 
         /// <summary>
         /// Setup the debugger.
         /// </summary>
-        static Debugger()
+        public Debugger(Context context)
         {
+            _context = context;
+
             // Start the console thread.
             Thread consoleThread = new Thread(ConsoleThread);
             consoleThread.Start();
@@ -65,7 +72,7 @@ namespace Emotion.Engine.Debugging
         /// <param name="type">The type of message to log.</param>
         /// <param name="source">The source of the message.</param>
         /// <param name="message">The message itself.</param>
-        public static void Log(MessageType type, MessageSource source, string message)
+        public void Log(MessageType type, MessageSource source, string message)
         {
             // Prevent logging from multiple threads messing up coloring and logging.
             lock (_mutexLock)
@@ -101,25 +108,25 @@ namespace Emotion.Engine.Debugging
         /// Is run every tick by the platform context.
         /// </summary>
         /// <param name="context">The context updating the debugger.</param>
-        public static void DebugLoop(Context context)
+        public void DebugLoop()
         {
             // Check if there is a command to execute.
             if (_command != string.Empty)
             {
-                context.ScriptingEngine.RunScript(_command);
+                _context.ScriptingEngine.RunScript(_command);
                 _command = "";
             }
 
             // Check if there is an attached renderer with a camera.
-            if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
+            if (_context.Renderer?.Camera != null) CameraBoundDraw(_context.Renderer);
 
             // Draw the mouse cursor location.
-            MouseBoundDraw(context.Renderer, context.Input);
+            MouseBoundDraw(_context.Renderer, _context.Input);
         }
 
         #region Debug Drawing
 
-        private static void CameraBoundDraw(Renderer renderer)
+        private void CameraBoundDraw(Renderer renderer)
         {
             // Draw bounds.
             renderer.DrawRectangle(renderer.Camera.Bounds, Color.Yellow);
@@ -132,7 +139,7 @@ namespace Emotion.Engine.Debugging
             renderer.DrawRectangle(centerDraw, Color.Yellow);
         }
 
-        private static void MouseBoundDraw(Renderer renderer, Input input)
+        private void MouseBoundDraw(Renderer renderer, Input input)
         {
             Vector2 mouseLocation = input.GetMousePosition();
 
@@ -150,7 +157,7 @@ namespace Emotion.Engine.Debugging
         /// <summary>
         /// Processes console input without blocking the engine.
         /// </summary>
-        private static void ConsoleThread()
+        private void ConsoleThread()
         {
             while (!_currentProcess.HasExited)
             {

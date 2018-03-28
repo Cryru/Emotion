@@ -47,27 +47,30 @@ namespace Emotion.Platform
 
         #endregion
 
-        internal Context Context;
+        #region Declarations
+
         internal IntPtr Pointer;
         internal IntPtr Surface;
+
+        #endregion
 
         /// <summary>
         /// Create a new window.
         /// </summary>
         internal Window(Context context)
         {
-            Context = context;
+            Context context1 = context;
 
             // Copy to properties.
-            _title = Context.InitialSettings.WindowTitle;
+            _title = context1.InitialSettings.WindowTitle;
 
             // Create the window within SDL.
             Pointer = ErrorHandler.CheckError(SDL.SDL_CreateWindow(
-                Context.InitialSettings.WindowTitle,
+                context1.InitialSettings.WindowTitle,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
-                Context.InitialSettings.WindowWidth,
-                Context.InitialSettings.WindowHeight,
+                context1.InitialSettings.WindowWidth,
+                context1.InitialSettings.WindowHeight,
                 SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS | SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS
             ));
 
