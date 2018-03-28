@@ -3,8 +3,8 @@
 #region Using
 
 using System.IO;
-using Emotion.Engine;
-using Emotion.Engine.Assets;
+using Emotion.Platform;
+using Emotion.Platform.Assets;
 using Emotion.Primitives;
 
 #endregion
@@ -20,7 +20,7 @@ namespace EmotionSandbox.Examples
         {
             _context = new Context();
 
-            byte[] data = File.ReadAllBytes("test.png");
+            byte[] data = File.ReadAllBytes("Assets" + Path.DirectorySeparatorChar + "test.png");
             _texture = new Texture(_context, data);
 
             _context.Start(Draw);
@@ -28,7 +28,7 @@ namespace EmotionSandbox.Examples
 
         private static void Draw()
         {
-            _context.Renderer.DrawTexture(_texture, new Rectangle(0, 0, 100, 100), new Rectangle(0, 0, 100, 100));
+            _context.Renderer.DrawTexture(_texture, new Rectangle(0, 0, 100, 100), new Rectangle(0, 0, 200, 200));
         }
     }
 }

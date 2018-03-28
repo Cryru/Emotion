@@ -10,9 +10,9 @@ using SDL2;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public class Window
+    public sealed class Window
     {
         #region Properties
 
@@ -62,7 +62,7 @@ namespace Emotion.Engine
             _title = Context.InitialSettings.WindowTitle;
 
             // Create the window within SDL.
-            Pointer = SDLErrorHandler.CheckError(SDL.SDL_CreateWindow(
+            Pointer = ErrorHandler.CheckError(SDL.SDL_CreateWindow(
                 Context.InitialSettings.WindowTitle,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
@@ -72,7 +72,7 @@ namespace Emotion.Engine
             ));
 
             // Get the window's surface.
-            Surface = SDLErrorHandler.CheckError(SDL.SDL_GetWindowSurface(Pointer));
+            Surface = ErrorHandler.CheckError(SDL.SDL_GetWindowSurface(Pointer));
         }
     }
 }

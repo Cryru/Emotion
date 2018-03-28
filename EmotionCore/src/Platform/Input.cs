@@ -6,15 +6,15 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Emotion.Objects.Bases;
+using Emotion.Game.Objects.Camera;
 using Emotion.Primitives;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public class Input
+    public sealed class Input
     {
         private byte[] _keyStateArray = new byte[512];
 
@@ -47,7 +47,7 @@ namespace Emotion.Engine
         /// Returns the mouse position.
         /// </summary>
         /// <returns>The mouse position.</returns>
-        public Vector2 GetMousePosition(Camera camera = null)
+        public Vector2 GetMousePosition(CameraBase camera = null)
         {
             SDL.SDL_GetMouseState(out int x, out int y);
 

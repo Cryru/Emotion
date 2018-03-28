@@ -3,18 +3,18 @@
 #region Using
 
 using System;
-using Emotion.Engine;
-using Emotion.Objects.Bases;
+using Emotion.Platform;
+using Emotion.Platform.Assets;
 using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Objects.Game
+namespace Emotion.Game.Objects.Camera
 {
     /// <summary>
     /// A camera which centers on the target but uses input from the mouse to determine location.
     /// </summary>
-    public sealed class MouseCamera : Camera
+    public sealed class MouseCamera : CameraBase
     {
 
         #region Properties

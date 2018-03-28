@@ -5,17 +5,21 @@
 #region Using
 
 using System;
-using System.Diagnostics;
+using Emotion.Engine;
+using Emotion.Engine.Objects;
 using Emotion.External;
-using Emotion.Objects;
-using Emotion.Systems;
 using SDL2;
+#if DEBUG
+using Emotion.Engine.Debugging;
+#endif
+using Emotion.Platform.Assets;
+using Emotion.Platform.Base;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform
 {
-    public class Context
+    public sealed class Context : ContextBase
     {
         #region Declarations
 
@@ -42,7 +46,7 @@ namespace Emotion.Engine
 
         #endregion
 
-        #region Modules
+        #region Platform Modules
 
         /// <summary>
         /// The context's window.
@@ -57,7 +61,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Handles loading assets and storing assets.
         /// </summary>
-        public AssetLoader AssetLoader { get; private set; }
+        public Loader AssetLoader { get; private set; }
 
         /// <summary>
         /// Handles user input.
@@ -65,6 +69,15 @@ namespace Emotion.Engine
         public Input Input { get; private set; }
 
         #endregion
+
+        #region Engine Modules
+
+        /// <summary>
+        /// Handles JS scripting.
+        /// </summary>
+        public ScriptingEngine ScriptingEngine;
+
+#endregion
 
         #region Variables
 
@@ -99,7 +112,7 @@ namespace Emotion.Engine
                 Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
 
                 // Bypass an issue with SDL and debugging on Windows.
-                if (Debugger.IsAttached)
+                if (System.Diagnostics.Debugger.IsAttached)
                     SDL.SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
             }
         }
@@ -114,10 +127,10 @@ namespace Emotion.Engine
             config?.Invoke(InitialSettings);
 
             // Initialize SDL.
-            SDLErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
+            ErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
 
             // Enable double buffering.
-            SDLErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
+            ErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
 
             // Create a window.
             Window = new Window(this);
@@ -126,13 +139,12 @@ namespace Emotion.Engine
             Renderer = new Renderer(this);
 
             // Load modules.
-            AssetLoader = new AssetLoader(this);
+            AssetLoader = new Loader(this);
             Input = new Input();
+            ScriptingEngine = new ScriptingEngine();
 
 #if DEBUG
-
-            Debugging.Log("Context created!");
-
+            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
 #endif
         }
 
@@ -145,6 +157,7 @@ namespace Emotion.Engine
                 // Calculate delta time.
                 _last = _now;
                 _now = SDL.SDL_GetPerformanceCounter();
+                // Minimum is 1ms, maximum is 1s.
                 FrameTime = GameMath.Clamp((_now - _last) * 1000 / SDL.SDL_GetPerformanceFrequency(), 1, 1000);
 
                 // Update SDL.
@@ -194,7 +207,7 @@ namespace Emotion.Engine
 
 #if DEBUG
             // Debug drawing.
-            Debugging.DebugLoop(this);
+            Debugger.DebugLoop(this);
 #endif
 
             // Swap buffers.

@@ -10,6 +10,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release-SDL2|AnyCPU'">
     <OutputPath>bin\Release-SDL2\</OutputPath>
@@ -20,9 +21,12 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ProjectGuid>{723C67BD-47EE-482D-BC0D-728211D7F5F1}</ProjectGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -37,8 +41,22 @@
     <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\FreeImage-dotnet-core.4.3.6\lib\net40\FreeImage-dotnet-core.dll</HintPath>
     </Reference>
+    <Reference Include="Jint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Jint.2.11.58\lib\net40\Jint.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Soul.Core">
+      <HintPath>Libraries\Soul\Soul.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Soul.Encryption">
+      <HintPath>Libraries\Soul\Soul.Encryption.dll</HintPath>
+    </Reference>
+    <Reference Include="Soul.Logging">
+      <HintPath>Libraries\Soul\Soul.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -63,33 +81,37 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibConstants.cs" />
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Engine\Debugging\MessageSource.cs" />
+    <Compile Include="src\Engine\Debugging\MessageType.cs" />
+    <Compile Include="src\Engine\FileManager.cs" />
+    <Compile Include="src\Engine\ScriptingEngine.cs" />
     <Compile Include="src\External\SDL2-CS\StringMarshaler.cs" />
     <Compile Include="src\External\SDL2-CS\SDL2.cs" />
     <Compile Include="src\External\SDL2-CS\SDLImage.cs" />
     <Compile Include="src\External\SDL2-CS\SDLMixer.cs" />
     <Compile Include="src\External\SDL2-CS\SDLTTF.cs" />
-    <Compile Include="src\Engine\Context.cs" />
+    <Compile Include="src\Platform\Base\ContextBase.cs" />
+    <Compile Include="src\Platform\Context.cs" />
     <Compile Include="src\External\Windows.cs" />
-    <Compile Include="src\Engine\AssetLoader.cs" />
-    <Compile Include="src\Engine\Input.cs" />
+    <Compile Include="src\Platform\Assets\Loader.cs" />
+    <Compile Include="src\Platform\Input.cs" />
     <Compile Include="src\GameMath.cs" />
-    <Compile Include="src\Objects\Bases\Camera.cs" />
-    <Compile Include="src\Objects\Bases\Transform.cs" />
+    <Compile Include="src\Game\Objects\Camera\CameraBase.cs" />
+    <Compile Include="src\Game\Components\Transform.cs" />
+    <Compile Include="src\Game\Objects\Camera\TargetCamera.cs" />
+    <Compile Include="src\Game\Objects\Camera\MouseCamera.cs" />
+    <Compile Include="src\Game\Objects\Map.cs" />
+    <Compile Include="src\Platform\Renderer.cs" />
+    <Compile Include="src\Engine\Objects\Settings.cs" />
+    <Compile Include="src\Platform\Assets\Texture.cs" />
+    <Compile Include="src\Platform\Window.cs" />
     <Compile Include="src\Objects\Game\AnimatedTile.cs" />
-    <Compile Include="src\Objects\Game\TargetCamera.cs" />
-    <Compile Include="src\Objects\Game\MouseCamera.cs" />
-    <Compile Include="src\Objects\Game\Map.cs" />
-    <Compile Include="src\Engine\Renderer.cs" />
-    <Compile Include="src\Objects\Settings.cs" />
-    <Compile Include="src\Engine\Assets\Texture.cs" />
-    <Compile Include="src\Engine\Window.cs" />
     <Compile Include="src\Helpers.cs" />
     <Compile Include="src\Primitives\Color.cs" />
     <Compile Include="src\Primitives\Rectangle.cs" />
     <Compile Include="src\Primitives\Vector2.cs" />
-    <Compile Include="src\Systems\Debugging.cs" />
-    <Compile Include="src\Engine\SDLErrorHandler.cs" />
-    <Compile Include="src\Systems\EmptySystem.cs" />
+    <Compile Include="src\Engine\Debugging\Debugger.cs" />
+    <Compile Include="src\Platform\ErrorHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\External\x64\FreeImage.dll">
@@ -118,5 +140,6 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

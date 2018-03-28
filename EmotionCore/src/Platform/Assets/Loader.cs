@@ -6,13 +6,12 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Engine.Assets;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.Platform.Assets
 {
-    public class AssetLoader
+    public class Loader
     {
         #region Declarations
 
@@ -26,7 +25,7 @@ namespace Emotion.Engine
 
         #endregion
 
-        public AssetLoader(Context context)
+        public Loader(Context context)
         {
             _context = context;
             _loadedTextures = new Dictionary<string, Texture>();

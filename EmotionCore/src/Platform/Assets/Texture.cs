@@ -6,13 +6,13 @@
 
 using System;
 using System.IO;
+using Emotion.Platform;
 using FreeImageAPI;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Engine.Assets
-{
+namespace Emotion.Platform.Assets { 
     public class Texture
     {
         internal IntPtr Pointer;
