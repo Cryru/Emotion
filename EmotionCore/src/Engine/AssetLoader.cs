@@ -40,8 +40,16 @@ namespace Emotion.Engine
         /// <param name="path">The path of the texture image to load.</param>
         public Texture LoadTexture(string path)
         {
+            string parsedPath = PathToCrossPlatform(path);
+
+            if (!File.Exists(parsedPath))
+            {
+                //todo raise error.
+                return null;
+            } 
+
             // Load the bytes of the file.
-            byte[] data = File.ReadAllBytes(PathToCrossPlatform(path));
+            byte[] data = File.ReadAllBytes(parsedPath);
             // Add it to the list of loaded textures.
             _loadedTextures.Add(PathToEnginePath(path), new Texture(_context, data));
 

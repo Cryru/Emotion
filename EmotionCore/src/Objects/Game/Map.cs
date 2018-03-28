@@ -27,10 +27,27 @@ namespace Emotion.Objects.Game
             get => TiledMap.Layers[0].Tiles.Count;
         }
 
+        /// <summary>
+        /// The width of the map in tiles.
+        /// </summary>
+        public int MapWidth
+        {
+            get => TiledMap.Width;
+        }
+
+        /// <summary>
+        /// The height of the map in tiles.
+        /// </summary>
+        public int MapHeight
+        {
+            get => TiledMap.Height;
+        }
+
         #endregion
 
         protected TmxMap TiledMap;
         protected List<Texture> Tilesets;
+        protected List<AnimatedTile> AnimatedTiles;
 
         /// <summary>
         /// Create a new map object from a Tiled map.
@@ -60,6 +77,10 @@ namespace Emotion.Objects.Game
 
             // Calculate size.
             Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+
+            // Animated tile logic.
+            AnimatedTiles = new List<AnimatedTile>();
+            CacheAnimatedTiles();
         }
 
         /// <summary>
@@ -68,10 +89,20 @@ namespace Emotion.Objects.Game
         /// <param name="renderer">The renderer to use to draw the map.</param>
         public void Draw(Renderer renderer)
         {
-            // t - The current tile. A rectangle within pixel space and an id within the ts.
-            // ts - Current tileset. An id and image within the map containing the ti.
-            // tst - The current tilesets tiles. Ts data about the t objects it contains.
-            // ti - The tile image, a rectangle within the ts which represents the image of t.
+            // Update animated tiles.
+            UpdateAnimatedTiles(renderer.Context.FrameTime);
+
+            // layer - The map layer currently drawing.
+            // t - The tile currently drawing from [layer]. 
+            //      tId - The id of the tile within all tilesets combined.
+            //      tRect - The location [t] should be drawn to.
+            // ts - The tileset of [t]. 
+            //      tsId - The id of [ts] within the collection.
+            //      tsOffset - The [tId] within the scope of the current tileset. An id and image within the map containing the ti.
+            // ti - The tile image, within the [ts] which represents the image of [tsOffset].
+            //      tiColumn - The Y coordinate of the [ti] within the [ts].
+            //      tiRow - The X coordinate of the [ti] within the [ts].
+            //      tiRect - The rectangle where the [ti] is located within the [ts] texture.
 
             // Go through all map layers.
             foreach (TmxLayer layer in TiledMap.Layers)
@@ -88,47 +119,51 @@ namespace Emotion.Objects.Game
                     // If the tile is empty skip it.
                     if (tId == 0) continue;
 
-                    // Get the tileset of the layer.
+                    // Find which tileset the tId belongs in.
                     int tsId = 0;
                     int tsOffset = tId;
-                    int tsLoopLast = 0;
-
-                    for (int ts = 0; ts < TiledMap.Tilesets.Count; ts++)
+                    for (int i = 0; i < TiledMap.Tilesets.Count; i++)
                     {
                         // Check if the id we need is beyond the current tileset.
-                        if (tId < TiledMap.Tilesets[ts].FirstGid) break;
+                        if (tId < TiledMap.Tilesets[i].FirstGid) break;
 
-                        tsId = ts;
-                        tsLoopLast = ts;
+                        tsId = i;
+                    }
+                    if (tsId > 0) tsOffset -= TiledMap.Tilesets[tsId].FirstGid - 1;
+                    tsOffset -= 1;
+                    TmxTileset ts = TiledMap.Tilesets[tsId];
+
+                    // Check if the current tileset has animated tiles.
+                    if (ts.Tiles.Count > 0)
+                    {
+                        // Check if rendering an animated tile.
+                        foreach (AnimatedTile cachedTile in AnimatedTiles)
+                        {
+                            // In that case set the tsOffset to the current frame.
+                            if (cachedTile.Id == tsOffset)
+                            {
+                                tsOffset = cachedTile.FrameId;
+                            }
+                        }
                     }
 
-                    if (tsLoopLast > 0) tsOffset -= TiledMap.Tilesets[tsLoopLast].FirstGid - 1;
-
-                    TmxTileset tsObject = TiledMap.Tilesets[tsId];
-
-                    // Get tileset properties.
-                    int tstWidth = tsObject.TileWidth;
-                    int tstHeight = tsObject.TileHeight;
-                    int tsColumns = tsObject.Columns ?? 0;
-
                     // Get tile image properties.
-                    int tiFrame = tsOffset - 1;
-                    int tiColumn = tiFrame % tsColumns;
-                    int tiRow = (int) (tiFrame / (double) tsColumns);
-                    Rectangle tiRect = new Rectangle(tstWidth * tiColumn, tstHeight * tiRow, tstWidth, tstHeight);
+                    int tiColumn = tsOffset % (ts.Columns ?? 0);
+                    int tiRow = (int) (tsOffset / (double) (ts.Columns ?? 0));
+                    Rectangle tiRect = new Rectangle(ts.TileWidth * tiColumn, ts.TileHeight * tiRow, ts.TileWidth, ts.TileHeight);
 
                     // Get tile properties.
                     int tX = t % TiledMap.Width * TiledMap.TileWidth;
                     int tY = (int) ((float) Math.Floor(t / (double) TiledMap.Width) * TiledMap.TileHeight);
 
                     // Add margins and spacing.
-                    tiRect.X += tsObject.Margin;
-                    tiRect.Y += tsObject.Margin;
-                    tiRect.X += tsObject.Spacing * tiColumn;
-                    tiRect.Y += tsObject.Spacing * tiRow;
+                    tiRect.X += ts.Margin;
+                    tiRect.Y += ts.Margin;
+                    tiRect.X += ts.Spacing * tiColumn;
+                    tiRect.Y += ts.Spacing * tiRow;
 
                     // Get the location of the tile.
-                    Rectangle tRect = new Rectangle(tX, tY, tstWidth, tstHeight);
+                    Rectangle tRect = new Rectangle(tX, tY, ts.TileWidth, ts.TileHeight);
 
                     // Add map position.
                     tRect.X += Bounds.X;
@@ -140,6 +175,40 @@ namespace Emotion.Objects.Game
                 }
             }
         }
+
+        #region Animated Tiles
+
+        /// <summary>
+        /// Cached all animated tiles in memory and tracks their animations.
+        /// </summary>
+        private void CacheAnimatedTiles()
+        {
+            foreach (TmxTileset tileset in TiledMap.Tilesets)
+            {
+                // Check if the tileset has animated tiles.
+                if (tileset.Tiles.Count <= 0) continue;
+
+                // Cache them all.
+                foreach (TmxTilesetTile animatedTile in tileset.Tiles)
+                {
+                    AnimatedTiles.Add(new AnimatedTile(animatedTile.Id, animatedTile.AnimationFrames));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the animations of all cached animated tiles.
+        /// </summary>
+        /// <param name="time">The amount of time which has passed since the last update.</param>
+        private void UpdateAnimatedTiles(float time)
+        {
+            foreach (AnimatedTile cachedTile in AnimatedTiles)
+            {
+                cachedTile.Update(time);
+            }
+        }
+
+        #endregion
 
         #region Functions
 
@@ -185,7 +254,7 @@ namespace Emotion.Objects.Game
 
         #endregion
 
-        #region PixelLocators
+        #region Measurement Functions
 
         /// <summary>
         /// Returns the pixel bounds of the tile from its id.
@@ -193,7 +262,7 @@ namespace Emotion.Objects.Game
         /// <param name="coordinate">The tile coordinate.</param>
         /// <param name="layer">The layer the tile is on.</param>
         /// <returns>The pixel bounds within the map rendering of the tile.</returns>
-        public Rectangle TileBoundsFromId(int coordinate, int layer = 0)
+        public Rectangle GetTileBoundsFromId(int coordinate, int layer = 0)
         {
             // Check if out of range, and if not return the tile location from the id.
             return coordinate >= TiledMap.Layers[layer].Tiles.Count
@@ -204,6 +273,28 @@ namespace Emotion.Objects.Game
                     TiledMap.TileWidth,
                     TiledMap.TileHeight
                 );
+        }
+
+        /// <summary>
+        /// Returns the id of the tile at the specified coordinates.
+        /// </summary>
+        /// <param name="location">The coordinates in world space you want to sample.</param>
+        /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
+        public int GetTileIdFromBounds(Vector2 location)
+        {
+            int left = (int) Math.Max(0, location.X / 32);
+            int top = (int) Math.Max(0, location.Y / 32);
+
+            return left + top * TiledMap.Width;
+        }
+
+        #endregion
+
+        #region Low Level
+
+        public TmxLayerTile GetTileDataFromId(int coordinate, int layer)
+        {
+            return TiledMap.Layers[layer].Tiles[coordinate];
         }
 
         #endregion

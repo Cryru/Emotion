@@ -75,6 +75,7 @@
     <Compile Include="src\GameMath.cs" />
     <Compile Include="src\Objects\Bases\Camera.cs" />
     <Compile Include="src\Objects\Bases\Transform.cs" />
+    <Compile Include="src\Objects\Game\AnimatedTile.cs" />
     <Compile Include="src\Objects\Game\TargetCamera.cs" />
     <Compile Include="src\Objects\Game\MouseCamera.cs" />
     <Compile Include="src\Objects\Game\Map.cs" />

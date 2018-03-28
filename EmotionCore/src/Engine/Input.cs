@@ -7,7 +7,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Emotion.Objects.Bases;
-using Emotion.Objects.Game;
 using Emotion.Primitives;
 using SDL2;
 
@@ -53,6 +52,14 @@ namespace Emotion.Engine
             SDL.SDL_GetMouseState(out int x, out int y);
 
             return camera == null ? new Vector2(x, y) : new Vector2(x + camera.Bounds.X, y + camera.Bounds.Y);
+        }
+
+        public bool IsMouseKeyDown(uint mouseButton = 1)
+        {
+            // Left - 1
+            // Right - 4
+            // Middle - 3
+            return SDL.SDL_GetMouseState(IntPtr.Zero, IntPtr.Zero) == mouseButton;
         }
 
         #endregion
