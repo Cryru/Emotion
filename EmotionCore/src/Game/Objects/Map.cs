@@ -9,7 +9,6 @@ using Emotion.Game.Components;
 using Emotion.Game.Pieces;
 using Emotion.Platform.SDL2;
 using Emotion.Platform.SDL2.Assets;
-using Emotion.Platform.SDL2.Objects;
 using Emotion.Primitives;
 using TiledSharp;
 
@@ -41,7 +40,6 @@ namespace Emotion.Game.Objects
         {
             // Load the map from the data as a stream.
             using (MemoryStream mapFileStream = new MemoryStream(assetLoader.GetFile(mapPath)))
-            using (MemoryStream mapFileStream = new MemoryStream(context.AssetLoader.GetFile(mapPath)))
             {
                 TiledMap = new TmxMap(mapFileStream);
             }
@@ -64,7 +62,6 @@ namespace Emotion.Game.Objects
             // Animated tile logic.
             AnimatedTiles = new List<AnimatedTile>();
             CacheAnimatedTiles();
-
         }
 
         /// <summary>
@@ -184,6 +181,7 @@ namespace Emotion.Game.Objects
         {
             foreach (AnimatedTile cachedTile in AnimatedTiles)
             {
+                cachedTile.Update(time);
             }
         }
 
