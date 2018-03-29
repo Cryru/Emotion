@@ -59,18 +59,16 @@ namespace Emotion.Platform.SDL2
         /// </summary>
         internal Window(Context context)
         {
-            Context context1 = context;
-
             // Copy to properties.
-            _title = context1.InitialSettings.WindowTitle;
+            _title = context.InitialSettings.WindowTitle;
 
             // Create the window within SDL.
             Pointer = ErrorHandler.CheckError(SDL.SDL_CreateWindow(
-                context1.InitialSettings.WindowTitle,
+                context.InitialSettings.WindowTitle,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
-                context1.InitialSettings.WindowWidth,
-                context1.InitialSettings.WindowHeight,
+                context.InitialSettings.WindowWidth,
+                context.InitialSettings.WindowHeight,
                 SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS | SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS
             ));
 
