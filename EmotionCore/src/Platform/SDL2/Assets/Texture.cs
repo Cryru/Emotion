@@ -6,24 +6,35 @@
 
 using System;
 using System.IO;
-using Emotion.Platform;
+using Emotion.Platform.Base.Assets;
 using FreeImageAPI;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Platform.Assets { 
-    public class Texture
+namespace Emotion.Platform.SDL2.Assets
+{
+    /// <inheritdoc />
+    public class Texture : TextureBase
     {
         internal IntPtr Pointer;
 
-        public Texture(Context context, byte[] textureBytes)
+        /// <summary>
+        /// Create a texture from a file. This is used by the asset loader.
+        /// </summary>
+        /// <param name="renderer">The renderer which will render the texture.</param>
+        /// <param name="textureBytes">The bytes representing the file the texture is loaded from.</param>
+        internal Texture(Renderer renderer, byte[] textureBytes)
         {
             // Put the bytes into a stream.
             using (MemoryStream stream = new MemoryStream(textureBytes))
             {
                 // Load a free image bitmap from memory.
                 FIBITMAP freeImageBitmap = FreeImage.LoadFromStream(stream);
+
+                // Assign size.
+                Width = (int) FreeImage.GetWidth(freeImageBitmap);
+                Height = (int) FreeImage.GetHeight(freeImageBitmap);
 
                 using (MemoryStream bmpConverted = new MemoryStream())
                 {
@@ -40,7 +51,7 @@ namespace Emotion.Platform.Assets {
                     IntPtr surface = SDL.SDL_LoadBMP_RW(sdlStream, 1);
 
                     // Convert the surface to a texture.
-                    Pointer = SDL.SDL_CreateTextureFromSurface(context.Renderer.Pointer, surface);
+                    Pointer = SDL.SDL_CreateTextureFromSurface(renderer.Pointer, surface);
 
                     // Free memory.
                     SDL.SDL_FreeSurface(surface);
@@ -48,6 +59,10 @@ namespace Emotion.Platform.Assets {
 
                 freeImageBitmap.SetNull();
             }
+        }
+
+        public Texture()
+        {
         }
 
         #region Functions

@@ -4,6 +4,7 @@
 
 using System;
 using Emotion.Platform;
+using Emotion.Platform.Base;
 #if DEBUG
 using Emotion.Engine.Debugging;
 
@@ -22,14 +23,18 @@ namespace Emotion.Engine
         /// </summary>
         private Jint.Engine _interpreter;
 
-        private Context _context;
+        /// <summary>
+        /// The context the scripting engine is running under.
+        /// </summary>
+        private ContextBase _context;
 
         #endregion
 
         /// <summary>
         /// Initializes the module.
         /// </summary>
-        internal void Setup(Context context)
+        /// <param name="context">The context the scripting engine will run under.</param>
+        internal void Setup(ContextBase context)
         {
             _context = context;
 

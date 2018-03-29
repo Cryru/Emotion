@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Platform;
+using Emotion.Platform.SDL2;
 using Emotion.Primitives;
 
 #endregion

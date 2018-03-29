@@ -5,14 +5,15 @@
 #region Using
 
 using System;
+using Emotion.Platform.SDL2.Base;
 using Emotion.Primitives;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Platform.SDL2
 {
-    public sealed class Window
+    public sealed class Window : NativeObject
     {
         #region Properties
 
@@ -49,7 +50,6 @@ namespace Emotion.Platform
 
         #region Declarations
 
-        internal IntPtr Pointer;
         internal IntPtr Surface;
 
         #endregion

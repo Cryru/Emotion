@@ -7,10 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using SDL2;
 
 #endregion
 
-namespace Emotion.Platform.Assets
+namespace Emotion.Platform.SDL2.Assets
 {
     public class Loader
     {
@@ -40,20 +41,24 @@ namespace Emotion.Platform.Assets
         /// <param name="path">An engine path to the texture to load.</param>
         public Texture LoadTexture(string path)
         {
-            string parsedPath = PathToCrossPlatform(path);
-
-            if (!File.Exists(parsedPath))
-            {
-                throw new Exception("The file " + parsedPath + " could not be found.");
-            } 
-
-            // Load the bytes of the file.
-            byte[] data = File.ReadAllBytes(parsedPath);
             // Add it to the list of loaded textures.
-            _loadedTextures.Add(PathToEnginePath(path), new Texture(_context, data));
+            _loadedTextures.Add(PathToEnginePath(path), new Texture(_context.Renderer, ReadFile(path)));
 
             // Return the just loaded texture.
             return GetTexture(path);
+        }
+
+        /// <summary>
+        /// Unloads a loaded texture, freeing memory.
+        /// </summary>
+        /// <param name="path">An engine path to the texture to unload.</param>
+        public void UnloadTexture(string path)
+        {
+            string enginePath = PathToEnginePath(path);
+
+            // Destroy the texture and remove it from the loaded list.
+            SDL.SDL_DestroyTexture(_loadedTextures[enginePath].Pointer);
+            _loadedTextures.Remove(enginePath);
         }
 
         /// <summary>
@@ -83,6 +88,24 @@ namespace Emotion.Platform.Assets
         #endregion
 
         #region Helpers
+
+        /// <summary>
+        /// Reads a file and returns its contents as a byte array.
+        /// </summary>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>The contents of the file as a byte array.</returns>
+        private byte[] ReadFile(string path)
+        {
+            string parsedPath = PathToCrossPlatform(path);
+
+            if (!File.Exists(parsedPath))
+            {
+                throw new Exception("The file " + parsedPath + " could not be found.");
+            } 
+
+            // Load the bytes of the file.
+            return File.ReadAllBytes(parsedPath);
+        }
 
         /// <summary>
         /// Converts the provided path to an engine universal format,

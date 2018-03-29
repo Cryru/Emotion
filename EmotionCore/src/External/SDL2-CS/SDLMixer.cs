@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable once CheckNamespace
 namespace SDL2
 {
-    public static class SDLMixer
+    internal static class SDLMixer
     {
         #region SDL2# Variables
 

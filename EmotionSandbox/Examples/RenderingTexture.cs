@@ -2,9 +2,8 @@
 
 #region Using
 
-using System.IO;
-using Emotion.Platform;
-using Emotion.Platform.Assets;
+using Emotion.Platform.SDL2;
+using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 
 #endregion
@@ -18,10 +17,15 @@ namespace EmotionSandbox.Examples
 
         public static void Main()
         {
-            _context = new Context();
+            _context = new Context
+            {
+                AssetLoader =
+                {
+                    RootDirectory = "Assets"
+                }
+            };
 
-            byte[] data = File.ReadAllBytes("Assets" + Path.DirectorySeparatorChar + "test.png");
-            _texture = new Texture(_context, data);
+            _texture = _context.AssetLoader.LoadTexture("test.png");
 
             _context.Start(Draw);
         }

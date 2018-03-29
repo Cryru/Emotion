@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using Emotion.Game.Components;
 using Emotion.Game.Pieces;
-using Emotion.Platform;
-using Emotion.Platform.Assets;
+using Emotion.Platform.SDL2;
+using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 using TiledSharp;
 
@@ -88,7 +88,7 @@ namespace Emotion.Game.Objects
         /// Draw the map using the specified renderer.
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
-        /// <param name="frametime">The time passed since the last frame.</param>
+        /// <param name="frameTime">The time passed since the last frame.</param>
         public void Draw(Renderer renderer, float frameTime)
         {
             // Update animated tiles.
@@ -214,7 +214,7 @@ namespace Emotion.Game.Objects
         /// </summary>
         /// <param name="name">The layer name to check.</param>
         /// <returns>The id of the layer matching the specified name or -1 if none found.</returns>
-        public int GetLayerByName(string name)
+        public int GetLayerIdFromName(string name)
         {
             for (int i = 0; i < TiledMap.Layers.Count; i++)
             {
@@ -251,25 +251,23 @@ namespace Emotion.Game.Objects
 
         #endregion
 
-        #region Measurement Functions
+        #region Bounds Functions
 
         /// <summary>
         /// Returns the pixel bounds of the tile from its id.
         /// </summary>
         /// <param name="coordinate">The tile coordinate.</param>
         /// <param name="layer">The layer the tile is on.</param>
-        /// <returns>The pixel bounds within the map rendering of the tile.</returns>
+        /// <returns>The pixel bounds within the map rendering of the tile..</returns>
         public Rectangle GetTileBoundsFromId(int coordinate, int layer = 0)
         {
             // Check if out of range, and if not return the tile location from the id.
-            return coordinate >= TiledMap.Layers[layer].Tiles.Count
-                ? Rectangle.Empty
-                : new Rectangle(
-                    Bounds.X + TiledMap.Layers[layer].Tiles[coordinate].X * TiledMap.TileWidth,
-                    Bounds.Y + TiledMap.Layers[layer].Tiles[coordinate].Y * TiledMap.TileHeight,
-                    TiledMap.TileWidth,
-                    TiledMap.TileHeight
-                );
+            return new Rectangle(
+                Bounds.X + TiledMap.Layers[layer].Tiles[coordinate].X * TiledMap.TileWidth,
+                Bounds.Y + TiledMap.Layers[layer].Tiles[coordinate].Y * TiledMap.TileHeight,
+                TiledMap.TileWidth,
+                TiledMap.TileHeight
+            );
         }
 
         /// <summary>
@@ -285,13 +283,40 @@ namespace Emotion.Game.Objects
             return left + top * TiledMap.Width;
         }
 
+        /// <summary>
+        /// Returns a two dimensional coordinate representing the provided tile coordinate.
+        /// </summary>
+        /// <param name="coordinate">The tile coordinate.</param>
+        /// <param name="layer">The layer the tile is on.</param>
+        /// <returns>The two dimensional coordinate equivalent of the one dimensional coordinate provided.</returns>
+        public Vector2 GetTile2DFromId(int coordinate, int layer = 0)
+        {
+            return new Vector2(TiledMap.Layers[layer].Tiles[coordinate].X, TiledMap.Layers[layer].Tiles[coordinate].Y);
+        }
+
         #endregion
 
         #region Low Level
 
+        /// <summary>
+        /// Returns a TiledSharp tile for the tile at the specified coordinate on the specified layer.
+        /// </summary>
+        /// <param name="coordinate">The coordinate of the tile to return.</param>
+        /// <param name="layer">The layer of the tile to return.</param>
+        /// <returns>A TiledSharp tile object.</returns>
         public TmxLayerTile GetTileDataFromId(int coordinate, int layer)
         {
             return TiledMap.Layers[layer].Tiles[coordinate];
+        }
+
+        /// <summary>
+        /// Returns the layer with the specified layer id.
+        /// </summary>
+        /// <param name="layerId">The layer id of the layer to return.</param>
+        /// <returns>The layer with the specified id.</returns>
+        public TmxLayer GetLayerFromId(int layerId)
+        {
+            return TiledMap.Layers[layerId];
         }
 
         #endregion

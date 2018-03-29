@@ -8,8 +8,8 @@ using System;
 using Emotion.Engine;
 using Emotion.Engine.Objects;
 using Emotion.External;
-using Emotion.Platform.Assets;
 using Emotion.Platform.Base;
+using Emotion.Platform.SDL2.Assets;
 using SDL2;
 #if DEBUG
 using Emotion.Engine.Debugging;
@@ -18,7 +18,7 @@ using Emotion.Engine.Debugging;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Platform.SDL2
 {
     public sealed class Context : ContextBase
     {
@@ -38,16 +38,17 @@ namespace Emotion.Platform
 
         #endregion
 
-        #region Objects
+        #region Platform Modules
 
         /// <summary>
-        /// The context's initial settings.
+        /// SDL2 Renderer.
         /// </summary>
-        internal Settings InitialSettings;
+        public new Renderer Renderer { get; private set; }
 
-        #endregion
-
-        #region Platform Modules
+        /// <summary>
+        /// SDL2 Input.
+        /// </summary>
+        public new Input Input { get; private set; }
 
         /// <summary>
         /// The context's window.
@@ -55,37 +56,9 @@ namespace Emotion.Platform
         public Window Window { get; private set; }
 
         /// <summary>
-        /// The context's renderer.
-        /// </summary>
-        public Renderer Renderer { get; private set; }
-
-        /// <summary>
         /// Handles loading assets and storing assets.
         /// </summary>
         public Loader AssetLoader { get; private set; }
-
-        /// <summary>
-        /// Handles user input.
-        /// </summary>
-        public Input Input { get; private set; }
-
-        #endregion
-
-        #region Engine Modules
-
-        /// <summary>
-        /// Handles JS scripting.
-        /// </summary>
-        public ScriptingEngine ScriptingEngine;
-
-#if DEBUG
-
-        /// <summary>
-        /// Handles diagnostics and debugging.
-        /// </summary>
-        public Debugger Debugger;
-
-#endif
 
         #endregion
 
@@ -155,6 +128,7 @@ namespace Emotion.Platform
 
 #if DEBUG
             Debugger = new Debugger(this);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
             Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
 #endif
         }
@@ -183,11 +157,15 @@ namespace Emotion.Platform
                 // Minimum is 1ms, maximum is 1s.
                 FrameTime = GameMath.Clamp((_now - _last) * 1000 / SDL.SDL_GetPerformanceFrequency(), 1, 1000);
 
+                // Update input module. This is done before events are handled so it can clear states from the previous frame.
+                Input.UpdateInputs();
+
                 // Update SDL.
                 HandleEvents();
-                // Update Emotion.
-                Input.UpdateInputs();
-                // Update drawing and user logic.
+                // Check if an event caused a closing.
+                if (Running == false) break;
+
+                // Update user logic.
                 DrawLogic();
             }
 
@@ -214,6 +192,12 @@ namespace Emotion.Platform
                 {
                     case SDL.SDL_EventType.SDL_QUIT:
                         Quit();
+                        break;
+                    case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                        Input.MouseStatePressed[currentEvent.button.button - 1] = false;
+                        break;
+                    case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                        Input.MouseStatePressed[currentEvent.button.button - 1] = true;
                         break;
                 }
             }

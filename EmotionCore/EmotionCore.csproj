@@ -11,6 +11,8 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release-SDL2|AnyCPU'">
     <OutputPath>bin\Release-SDL2\</OutputPath>
@@ -83,27 +85,37 @@
     <Compile Include="src\External\SDL2-CS\SDLImage.cs" />
     <Compile Include="src\External\SDL2-CS\SDLMixer.cs" />
     <Compile Include="src\External\SDL2-CS\SDLTTF.cs" />
+    <Compile Include="src\Game\AStar\Analysis.cs" />
+    <Compile Include="src\Game\AStar\Grid.cs" />
+    <Compile Include="src\Game\AStar\Node.cs" />
+    <Compile Include="src\Platform\Base\Assets\TextureBase.cs" />
     <Compile Include="src\Platform\Base\ContextBase.cs" />
-    <Compile Include="src\Platform\Context.cs" />
+    <Compile Include="src\Platform\Base\Enums\MouseKeys.cs" />
+    <Compile Include="src\Platform\Base\Interfaces\IDestroyable.cs" />
+    <Compile Include="src\Platform\Base\IInput.cs" />
+    <Compile Include="src\Platform\Base\IRenderer.cs" />
+    <Compile Include="src\Platform\SDL2\Base\NativeObject.cs" />
+    <Compile Include="src\Platform\SDL2\Context.cs" />
     <Compile Include="src\External\Windows.cs" />
-    <Compile Include="src\Platform\Assets\Loader.cs" />
-    <Compile Include="src\Platform\Input.cs" />
+    <Compile Include="src\Platform\SDL2\Assets\Loader.cs" />
+    <Compile Include="src\Platform\SDL2\Input.cs" />
     <Compile Include="src\GameMath.cs" />
     <Compile Include="src\Game\Objects\Camera\CameraBase.cs" />
     <Compile Include="src\Game\Components\Transform.cs" />
     <Compile Include="src\Game\Objects\Camera\TargetCamera.cs" />
     <Compile Include="src\Game\Objects\Camera\MouseCamera.cs" />
     <Compile Include="src\Game\Objects\Map.cs" />
-    <Compile Include="src\Platform\Renderer.cs" />
+    <Compile Include="src\Platform\SDL2\Objects\RenderTarget.cs" />
+    <Compile Include="src\Platform\SDL2\Renderer.cs" />
     <Compile Include="src\Engine\Objects\Settings.cs" />
-    <Compile Include="src\Platform\Assets\Texture.cs" />
-    <Compile Include="src\Platform\Window.cs" />
+    <Compile Include="src\Platform\SDL2\Assets\Texture.cs" />
+    <Compile Include="src\Platform\SDL2\Window.cs" />
     <Compile Include="src\Game\Pieces\AnimatedTile.cs" />
     <Compile Include="src\Primitives\Color.cs" />
     <Compile Include="src\Primitives\Rectangle.cs" />
     <Compile Include="src\Primitives\Vector2.cs" />
     <Compile Include="src\Engine\Debugging\Debugger.cs" />
-    <Compile Include="src\Platform\ErrorHandler.cs" />
+    <Compile Include="src\Platform\SDL2\ErrorHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\External\x64\FreeImage.dll">

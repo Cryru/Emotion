@@ -1,4 +1,5 @@
 #if SDL2
+#pragma warning disable 0649
 
 #region License
 /* SDL2# - C# Wrapper for SDL2
@@ -41,7 +42,7 @@ namespace SDL2
     /// <summary>
     /// Entry point for all SDL-related (non-extension) types and methods
     /// </summary>
-    public static class SDL
+    internal static class SDL
     {
         #region SDL2# Variables
 
@@ -5689,4 +5690,5 @@ namespace SDL2
     }
 }
 
+#pragma warning restore
 #endif

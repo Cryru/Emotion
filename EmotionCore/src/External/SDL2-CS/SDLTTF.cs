@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable once CheckNamespace
 namespace SDL2
 {
-    public static class SDLTtf
+    internal static class SDLTtf
     {
         #region SDL2# Variables
 

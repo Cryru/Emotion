@@ -6,15 +6,19 @@
 
 using System;
 using Emotion.Game.Objects.Camera;
-using Emotion.Platform.Assets;
+using Emotion.Platform.Base;
+using Emotion.Platform.SDL2.Assets;
+using Emotion.Platform.SDL2.Base;
+using Emotion.Platform.SDL2.Objects;
 using Emotion.Primitives;
 using SDL2;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Platform.SDL2
 {
-    public sealed class Renderer
+    /// <inheritdoc cref="IRenderer" />
+    public sealed class Renderer : NativeObject, IRenderer
     {
         #region Properties
 
@@ -27,7 +31,6 @@ namespace Emotion.Platform
 
         #region Declarations
 
-        internal IntPtr Pointer;
         internal IntPtr GLContext;
         internal CameraBase Camera;
 
@@ -115,6 +118,27 @@ namespace Emotion.Platform
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
         }
 
+        public void DrawRectangleOutline(Rectangle rect, Color color, bool camera = true)
+        {
+            // Set color.
+            SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
+
+            // Transform rect to sdl rect.
+            SDL.SDL_Rect re = new SDL.SDL_Rect {x = (int) rect.X, y = (int) rect.Y, h = (int) rect.Height, w = (int) rect.Width};
+
+            // Add camera.
+            if (Camera != null && camera)
+            {
+                re.x -= (int) Camera.Bounds.X;
+                re.y -= (int) Camera.Bounds.Y;
+            }
+
+            SDL.SDL_RenderDrawRect(Pointer, ref re);
+
+            // Return original black.
+            SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
+        }
+
         /// <summary>
         /// Draws a rectangle on the screen.
         /// </summary>
@@ -136,7 +160,7 @@ namespace Emotion.Platform
                 re.y -= (int) Camera.Bounds.Y;
             }
 
-            SDL.SDL_RenderDrawRect(Pointer, ref re);
+            SDL.SDL_RenderFillRect(Pointer, ref re);
 
             // Return original black.
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
@@ -144,15 +168,29 @@ namespace Emotion.Platform
 
         #endregion
 
-        #region Camera
+        #region RenderTarget Functions
 
         /// <summary>
-        /// Sets the renderer's camera.
+        /// Starts rendering on the specified render target, or null to render to the window.
         /// </summary>
-        /// <param name="camera">The camera to bind to the renderer.</param>
+        /// <param name="target">The render target to render to, or null to render to the window.</param>
+        public void SetRenderTarget(RenderTarget target)
+        {
+            SDL.SDL_SetRenderTarget(Pointer, target?.Pointer ?? IntPtr.Zero);
+        }
+
+        #endregion
+
+        #region Camera
+
         public void SetCamera(CameraBase camera)
         {
             Camera = camera;
+        }
+
+        public CameraBase GetCamera()
+        {
+            return Camera;
         }
 
         #endregion

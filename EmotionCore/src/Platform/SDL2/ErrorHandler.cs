@@ -12,7 +12,7 @@ using SDL2;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Platform.SDL2
 {
     internal static class ErrorHandler
     {

@@ -7,7 +7,8 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Emotion.Platform;
+using Emotion.Game.Objects.Camera;
+using Emotion.Platform.Base;
 using Emotion.Primitives;
 using Soul.Logging;
 
@@ -47,14 +48,14 @@ namespace Emotion.Engine.Debugging
         /// <summary>
         /// The context the debugger is under.
         /// </summary>
-        private Context _context;
+        private ContextBase _context;
 
         #endregion
 
         /// <summary>
         /// Setup the debugger.
         /// </summary>
-        public Debugger(Context context)
+        public Debugger(ContextBase context)
         {
             _context = context;
 
@@ -84,13 +85,16 @@ namespace Emotion.Engine.Debugging
                         Console.ForegroundColor = ConsoleColor.Red;
                         break;
                     case MessageType.Info:
-                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.Cyan;
                         break;
                     case MessageType.Trace:
                         Console.ForegroundColor = ConsoleColor.White;
                         break;
                     case MessageType.Warning:
                         Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    default:
+                        Console.ForegroundColor = ConsoleColor.Gray;
                         break;
                 }
 
@@ -107,7 +111,6 @@ namespace Emotion.Engine.Debugging
         /// <summary>
         /// Is run every tick by the platform context.
         /// </summary>
-        /// <param name="context">The context updating the debugger.</param>
         public void DebugLoop()
         {
             // Check if there is a command to execute.
@@ -118,7 +121,7 @@ namespace Emotion.Engine.Debugging
             }
 
             // Check if there is an attached renderer with a camera.
-            if (_context.Renderer?.Camera != null) CameraBoundDraw(_context.Renderer);
+            if (_context.Renderer?.GetCamera() != null) CameraBoundDraw(_context.Renderer);
 
             // Draw the mouse cursor location.
             MouseBoundDraw(_context.Renderer, _context.Input);
@@ -126,20 +129,22 @@ namespace Emotion.Engine.Debugging
 
         #region Debug Drawing
 
-        private void CameraBoundDraw(Renderer renderer)
+        private static void CameraBoundDraw(IRenderer renderer)
         {
+            CameraBase camera = renderer.GetCamera();
+
             // Draw bounds.
-            renderer.DrawRectangle(renderer.Camera.Bounds, Color.Yellow);
+            renderer.DrawRectangleOutline(camera.Bounds, Color.Yellow);
 
             // Draw center.
             Rectangle centerDraw = new Rectangle(0, 0, 10, 10);
-            centerDraw.X = (int) renderer.Camera.Bounds.Center.X - centerDraw.Width / 2;
-            centerDraw.Y = (int) renderer.Camera.Bounds.Center.Y - centerDraw.Height / 2;
+            centerDraw.X = (int) camera.Bounds.Center.X - centerDraw.Width / 2;
+            centerDraw.Y = (int) camera.Bounds.Center.Y - centerDraw.Height / 2;
 
-            renderer.DrawRectangle(centerDraw, Color.Yellow);
+            renderer.DrawRectangleOutline(centerDraw, Color.Yellow);
         }
 
-        private void MouseBoundDraw(Renderer renderer, Input input)
+        private static void MouseBoundDraw(IRenderer renderer, IInput input)
         {
             Vector2 mouseLocation = input.GetMousePosition();
 
@@ -147,7 +152,7 @@ namespace Emotion.Engine.Debugging
             mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
             mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
 
-            renderer.DrawRectangle(mouseBounds, Color.Pink, false);
+            renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
         }
 
         #endregion
