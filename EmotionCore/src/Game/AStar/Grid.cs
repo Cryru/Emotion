@@ -28,15 +28,15 @@ namespace Emotion.Game.AStar
         /// </summary>
         public Grid(Map map, int layerId)
         {
-            _nodes = new Node[map.MapWidth, map.MapHeight];
+            _nodes = new Node[map.TiledMap.Width, map.TiledMap.Height];
 
-            TmxLayer mapLayer = map.GetLayerFromId(layerId);
+            TmxLayer mapLayer = map.TiledMap.Layers[layerId];
 
 
             // f(n) = g(n) + h(n)
-            for (int x = 0; x < map.MapWidth; x++)
+            for (int x = 0; x < map.TiledMap.Width; x++)
             {
-                for (int y = 0; y < map.MapHeight; y++)
+                for (int y = 0; y < map.TiledMap.Height; y++)
                 {
                     
                 }

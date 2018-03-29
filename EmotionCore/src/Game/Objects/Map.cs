@@ -9,6 +9,7 @@ using Emotion.Game.Components;
 using Emotion.Game.Pieces;
 using Emotion.Platform.SDL2;
 using Emotion.Platform.SDL2.Assets;
+using Emotion.Platform.SDL2.Objects;
 using Emotion.Primitives;
 using TiledSharp;
 
@@ -21,32 +22,12 @@ namespace Emotion.Game.Objects
         #region Properties
 
         /// <summary>
-        /// The number of tiles per layer.
+        /// The TiledSharp object the map is using.
         /// </summary>
-        public int TilesPerLayer
-        {
-            get => TiledMap.Layers[0].Tiles.Count;
-        }
-
-        /// <summary>
-        /// The width of the map in tiles.
-        /// </summary>
-        public int MapWidth
-        {
-            get => TiledMap.Width;
-        }
-
-        /// <summary>
-        /// The height of the map in tiles.
-        /// </summary>
-        public int MapHeight
-        {
-            get => TiledMap.Height;
-        }
+        public TmxMap TiledMap { get; protected set; }
 
         #endregion
 
-        protected TmxMap TiledMap;
         protected List<Texture> Tilesets;
         protected List<AnimatedTile> AnimatedTiles;
 
@@ -60,6 +41,7 @@ namespace Emotion.Game.Objects
         {
             // Load the map from the data as a stream.
             using (MemoryStream mapFileStream = new MemoryStream(assetLoader.GetFile(mapPath)))
+            using (MemoryStream mapFileStream = new MemoryStream(context.AssetLoader.GetFile(mapPath)))
             {
                 TiledMap = new TmxMap(mapFileStream);
             }
@@ -82,6 +64,7 @@ namespace Emotion.Game.Objects
             // Animated tile logic.
             AnimatedTiles = new List<AnimatedTile>();
             CacheAnimatedTiles();
+
         }
 
         /// <summary>
@@ -201,7 +184,6 @@ namespace Emotion.Game.Objects
         {
             foreach (AnimatedTile cachedTile in AnimatedTiles)
             {
-                cachedTile.Update(time);
             }
         }
 
@@ -292,31 +274,6 @@ namespace Emotion.Game.Objects
         public Vector2 GetTile2DFromId(int coordinate, int layer = 0)
         {
             return new Vector2(TiledMap.Layers[layer].Tiles[coordinate].X, TiledMap.Layers[layer].Tiles[coordinate].Y);
-        }
-
-        #endregion
-
-        #region Low Level
-
-        /// <summary>
-        /// Returns a TiledSharp tile for the tile at the specified coordinate on the specified layer.
-        /// </summary>
-        /// <param name="coordinate">The coordinate of the tile to return.</param>
-        /// <param name="layer">The layer of the tile to return.</param>
-        /// <returns>A TiledSharp tile object.</returns>
-        public TmxLayerTile GetTileDataFromId(int coordinate, int layer)
-        {
-            return TiledMap.Layers[layer].Tiles[coordinate];
-        }
-
-        /// <summary>
-        /// Returns the layer with the specified layer id.
-        /// </summary>
-        /// <param name="layerId">The layer id of the layer to return.</param>
-        /// <returns>The layer with the specified id.</returns>
-        public TmxLayer GetLayerFromId(int layerId)
-        {
-            return TiledMap.Layers[layerId];
         }
 
         #endregion

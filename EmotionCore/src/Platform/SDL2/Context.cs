@@ -120,10 +120,12 @@ namespace Emotion.Platform.SDL2
 
             // Create a renderer.
             Renderer = new Renderer(this);
+            base.Renderer = Renderer;
 
             // Load modules.
             AssetLoader = new Loader(this);
             Input = new Input();
+            base.Input = Input;
             ScriptingEngine = new ScriptingEngine();
 
 #if DEBUG
