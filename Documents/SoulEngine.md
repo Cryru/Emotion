@@ -12,7 +12,7 @@ After developing SoulEngine for 3 years parallel to some game development I real
 
 ### So?
 
-I've restarted the project under the name "Emotion" and with different goals in mind. First of all I am going to develop the engine alongside my games rather than instead of. Secondly, I'm going to aim for reusing code as much as possible as opposed to deleting everything all the time, as this: 
+I've restarted the project under the name "Emotion" and with different goals in mind. First of all I am going to develop the engine alongside my games rather than instead of. Secondly, I'm going to aim for reusing code as much as possible as opposed to deleting and rewriting everything all the time, as this: 
 
 <img src=http://i.imgur.com/XxvfIR7.png /> 
 
