@@ -23,6 +23,7 @@ namespace Emotion.Platform.SDL2
 
         private byte[] _keyStateArray = new byte[512];
 
+        internal Vector2 MousePosition = new Vector2(0, 0);
         private bool[] _mouseStateHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         internal bool[] MouseStatePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
 
@@ -66,9 +67,7 @@ namespace Emotion.Platform.SDL2
 
         public Vector2 GetMousePosition(CameraBase camera = null)
         {
-            SDL.SDL_GetMouseState(out int x, out int y);
-
-            return camera == null ? new Vector2(x, y) : new Vector2(x + camera.Bounds.X, y + camera.Bounds.Y);
+            return camera == null ? MousePosition : new Vector2(MousePosition.X + camera.Bounds.X, MousePosition.Y + camera.Bounds.Y);
         }
 
         /// <summary>

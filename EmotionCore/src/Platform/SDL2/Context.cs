@@ -10,6 +10,7 @@ using Emotion.Engine.Objects;
 using Emotion.External;
 using Emotion.Platform.Base;
 using Emotion.Platform.SDL2.Assets;
+using Emotion.Primitives;
 using SDL2;
 #if DEBUG
 using Emotion.Engine.Debugging;
@@ -200,6 +201,9 @@ namespace Emotion.Platform.SDL2
                         break;
                     case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
                         Input.MouseStatePressed[currentEvent.button.button - 1] = true;
+                        break;
+                    case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                        Input.MousePosition = new Vector2(currentEvent.motion.x, currentEvent.motion.y);
                         break;
                 }
             }
