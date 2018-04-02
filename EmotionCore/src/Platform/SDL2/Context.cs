@@ -5,6 +5,7 @@
 #region Using
 
 using System;
+using System.Diagnostics;
 using Emotion.Engine;
 using Emotion.Engine.Objects;
 using Emotion.External;
@@ -12,6 +13,7 @@ using Emotion.Platform.Base;
 using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 using SDL2;
+using Debugger = Emotion.Engine.Debugging.Debugger;
 #if DEBUG
 using Emotion.Engine.Debugging;
 
@@ -151,9 +153,12 @@ namespace Emotion.Platform.SDL2
         private void Loop()
         {
             Running = true;
+            Stopwatch frameCapTimer = new Stopwatch();
 
             while (Running)
             {
+                frameCapTimer.Restart();
+
                 // Calculate delta time.
                 _last = _now;
                 _now = SDL.SDL_GetPerformanceCounter();
@@ -170,6 +175,15 @@ namespace Emotion.Platform.SDL2
 
                 // Update user logic.
                 DrawLogic();
+
+                // Check if capping fps, and not enough time has passed.
+                if (InitialSettings.CapFPS > 0)
+                {
+                    // Get difference between expected and actual.
+                    float difference = 1000 / InitialSettings.CapFPS - frameCapTimer.ElapsedMilliseconds;
+
+                    if (difference > 0) SDL.SDL_Delay((uint) difference);
+                }
             }
 
             // Context has stopped running - cleanup.

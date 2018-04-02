@@ -74,7 +74,7 @@ namespace Emotion.Platform.SDL2
 
         #endregion
 
-        #region Drawing Functions
+        #region Texture Functions
 
         /// <summary>
         /// Draws a texture.
@@ -117,6 +117,10 @@ namespace Emotion.Platform.SDL2
 
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
         }
+
+        #endregion
+
+        #region Rectangle Drawing
 
         public void DrawRectangleOutline(Rectangle rect, Color color, bool camera = true)
         {
@@ -161,6 +165,31 @@ namespace Emotion.Platform.SDL2
             }
 
             SDL.SDL_RenderFillRect(Pointer, ref re);
+
+            // Return original black.
+            SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
+        }
+
+        #endregion
+
+        #region Line Drawing
+
+        public void DrawLine(Vector2 start, Vector2 end, Color color, bool camera = true)
+        {
+            // Set color.
+            SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
+
+            // Add camera.
+            if (Camera != null && camera)
+            {
+                start.X -= (int) Camera.Bounds.X;
+                end.X -= (int) Camera.Bounds.X;
+                start.Y -= (int) Camera.Bounds.Y;
+                end.Y -= (int) Camera.Bounds.Y;
+            }
+
+            // Draw the line.
+            SDL.SDL_RenderDrawLine(Pointer, (int) start.X, (int) start.Y, (int) end.X, (int) end.Y);
 
             // Return original black.
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);

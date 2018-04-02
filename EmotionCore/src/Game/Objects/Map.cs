@@ -209,7 +209,7 @@ namespace Emotion.Game.Objects
         /// <param name="coordinate"></param>
         /// <param name="layer"></param>
         /// <returns></returns>
-        public int GetTileIdInLayer(int coordinate, int layer)
+        public int GetTileImageIdInLayer(int coordinate, int layer)
         {
             // Check if layer is out of bounds.
             if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;

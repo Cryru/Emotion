@@ -41,10 +41,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FreeImage-dotnet-core.4.3.6\lib\net40\FreeImage-dotnet-core.dll</HintPath>
+      <HintPath>..\packages\FreeImage-dotnet-core.4.3.6\lib\net45\FreeImage-dotnet-core.dll</HintPath>
     </Reference>
     <Reference Include="Jint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Jint.2.11.58\lib\net40\Jint.dll</HintPath>
+      <HintPath>..\packages\Jint.2.11.58\lib\net45\Jint.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Soul.Logging">
@@ -85,7 +85,7 @@
     <Compile Include="src\External\SDL2-CS\SDLImage.cs" />
     <Compile Include="src\External\SDL2-CS\SDLMixer.cs" />
     <Compile Include="src\External\SDL2-CS\SDLTTF.cs" />
-    <Compile Include="src\Game\AStar\Analysis.cs" />
+    <Compile Include="src\Game\AStar\Path.cs" />
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />
     <Compile Include="src\Platform\Base\Assets\TextureBase.cs" />

@@ -23,6 +23,8 @@ namespace Emotion.Engine.Objects
         public int RenderWidth = 960;
         public int RenderHeight = 540;
 
+        public int CapFPS = 60;
+
         #endregion
 
         /// <summary>
