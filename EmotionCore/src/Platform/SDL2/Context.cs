@@ -13,8 +13,8 @@ using Emotion.Platform.Base;
 using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 using SDL2;
-using Debugger = Emotion.Engine.Debugging.Debugger;
 #if DEBUG
+using Debugger = Emotion.Engine.Debugging.Debugger;
 using Emotion.Engine.Debugging;
 
 #endif
