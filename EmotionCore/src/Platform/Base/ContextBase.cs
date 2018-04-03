@@ -15,6 +15,20 @@ namespace Emotion.Platform.Base
 {
     public abstract class ContextBase
     {
+        #region Properties
+
+        /// <summary>
+        /// Whether the context is running.
+        /// </summary>
+        public bool Running { get; protected set; }
+
+        /// <summary>
+        /// The time it took to render the last frame.
+        /// </summary>
+        public float FrameTime { get; protected set; }
+
+        #endregion
+
         #region Objects
 
         /// <summary>
@@ -36,6 +50,11 @@ namespace Emotion.Platform.Base
         /// </summary>
         public Debugger Debugger { get; protected set; }
 #endif
+
+        /// <summary>
+        /// Module which manages the different layers which make up the game.
+        /// </summary>
+        public LayerManager LayerManager { get; protected set; }
 
         #endregion
 

@@ -79,6 +79,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Engine\Debugging\MessageSource.cs" />
     <Compile Include="src\Engine\Debugging\MessageType.cs" />
+    <Compile Include="src\Engine\LayerManager.cs" />
+    <Compile Include="src\Engine\Objects\Layer.cs" />
     <Compile Include="src\Engine\ScriptingEngine.cs" />
     <Compile Include="src\External\SDL2-CS\StringMarshaler.cs" />
     <Compile Include="src\External\SDL2-CS\SDL2.cs" />

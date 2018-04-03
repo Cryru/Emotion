@@ -13,6 +13,7 @@ namespace Emotion.Engine.Debugging
         Debugger,
         FileManager,
         ScriptingEngine,
+        LayerManager,
 
         // Platform related.
         PlatformCore,

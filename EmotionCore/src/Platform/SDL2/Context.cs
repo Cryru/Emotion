@@ -27,20 +27,6 @@ namespace Emotion.Platform.SDL2
     {
         #region Declarations
 
-        #region Properties
-
-        /// <summary>
-        /// Whether the context is running.
-        /// </summary>
-        public bool Running { get; private set; }
-
-        /// <summary>
-        /// The time it took to render the last frame.
-        /// </summary>
-        public float FrameTime { get; private set; }
-
-        #endregion
-
         #region Platform Modules
 
         /// <summary>
@@ -81,12 +67,6 @@ namespace Emotion.Platform.SDL2
 
         #endregion
 
-        #region Hooks
-
-        public Action Draw;
-
-        #endregion
-
         /// <summary>
         /// Initiates external libraries and pre-initialization. Is run once for all instances.
         /// </summary>
@@ -108,6 +88,12 @@ namespace Emotion.Platform.SDL2
         /// </summary>
         public Context(Action<Settings> config = null)
         {
+#if DEBUG
+            Debugger = new Debugger(this);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
+            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
+#endif
+
             // Apply settings.
             InitialSettings = new Settings();
             config?.Invoke(InitialSettings);
@@ -130,22 +116,24 @@ namespace Emotion.Platform.SDL2
             Input = new Input();
             base.Input = Input;
             ScriptingEngine = new ScriptingEngine();
-
-#if DEBUG
-            Debugger = new Debugger(this);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
-            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
-#endif
+            LayerManager = new LayerManager(this);
         }
 
         /// <summary>
-        /// Start running the context.
+        /// Start running the engine. Blocking.
         /// </summary>
-        public void Start(Action draw)
+        public void Start()
         {
-            Draw = draw;
-
             Loop();
+        }
+
+        /// <summary>
+        /// Stops running the context.
+        /// </summary>
+        public void Quit()
+        {
+            // Stop running.
+            Running = false;
         }
 
         #region Loop Parts
@@ -165,16 +153,26 @@ namespace Emotion.Platform.SDL2
                 // Minimum is 1ms, maximum is 1s.
                 FrameTime = GameMath.Clamp((_now - _last) * 1000 / SDL.SDL_GetPerformanceFrequency(), 1, 1000);
 
+                // Run layer updates.
+                LayerManager.Update();
+
+                // Clear the screen.
+                Renderer.Clear();
+
+                // Run layer draws.
+                LayerManager.Draw();
+#if DEBUG
+                // Debug drawing.
+                Debugger.DebugLoop();
+#endif
                 // Update input module. This is done before events are handled so it can clear states from the previous frame.
                 Input.UpdateInputs();
 
-                // Update SDL.
+                // Update SDL events.
                 HandleEvents();
-                // Check if an event caused a closing.
-                if (Running == false) break;
 
-                // Update user logic.
-                DrawLogic();
+                // Swap buffers.
+                Renderer.Present();
 
                 // Check if capping fps, and not enough time has passed.
                 if (InitialSettings.CapFPS > 0)
@@ -182,7 +180,12 @@ namespace Emotion.Platform.SDL2
                     // Get difference between expected and actual.
                     float difference = 1000 / InitialSettings.CapFPS - frameCapTimer.ElapsedMilliseconds;
 
+                    // Wait for the amount of different to smooth out fps.
                     if (difference > 0) SDL.SDL_Delay((uint) difference);
+                }
+                else
+                {
+                    SDL.SDL_Delay(1);
                 }
             }
 
@@ -223,32 +226,7 @@ namespace Emotion.Platform.SDL2
             }
         }
 
-        private void DrawLogic()
-        {
-            // Clear the screen.
-            Renderer.Clear();
-
-            Draw?.Invoke();
-
-#if DEBUG
-            // Debug drawing.
-            Debugger.DebugLoop();
-#endif
-
-            // Swap buffers.
-            Renderer.Present();
-        }
-
         #endregion
-
-        /// <summary>
-        /// Stops running the context.
-        /// </summary>
-        public void Quit()
-        {
-            // Stop running.
-            Running = false;
-        }
     }
 }
 

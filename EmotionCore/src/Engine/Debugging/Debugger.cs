@@ -99,8 +99,8 @@ namespace Emotion.Engine.Debugging
                 }
 
                 // Log and display the message.
-                _logger.Log("[" + type + "-" + source + "] " + message);
-                Console.WriteLine(message);
+                _logger.Log( "[" + type + "-" + source + "] " + message);
+                Console.WriteLine( "[" + source + "] " + message);
 
                 // Restore the normal color.
                 Console.ForegroundColor = ConsoleColor.Gray;
