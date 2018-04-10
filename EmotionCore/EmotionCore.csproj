@@ -82,11 +82,11 @@
     <Compile Include="src\Engine\LayerManager.cs" />
     <Compile Include="src\Engine\Objects\Layer.cs" />
     <Compile Include="src\Engine\ScriptingEngine.cs" />
-    <Compile Include="src\External\SDL2-CS\StringMarshaler.cs" />
-    <Compile Include="src\External\SDL2-CS\SDL2.cs" />
-    <Compile Include="src\External\SDL2-CS\SDLImage.cs" />
-    <Compile Include="src\External\SDL2-CS\SDLMixer.cs" />
-    <Compile Include="src\External\SDL2-CS\SDLTTF.cs" />
+    <Compile Include="Libraries\SDL2-CS\StringMarshaler.cs" />
+    <Compile Include="Libraries\SDL2-CS\SDL2.cs" />
+    <Compile Include="Libraries\SDL2-CS\SDLImage.cs" />
+    <Compile Include="Libraries\SDL2-CS\SDLMixer.cs" />
+    <Compile Include="Libraries\SDL2-CS\SDLTTF.cs" />
     <Compile Include="src\Game\AStar\Path.cs" />
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />

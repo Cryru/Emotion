@@ -2,13 +2,15 @@
 
 #region Using
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Emotion.Engine.Debugging;
+using System.Threading.Tasks;
 using Emotion.Engine.Objects;
 using Emotion.Platform.Base;
+#if DEBUG
+using Emotion.Engine.Debugging;
+
+#endif
 
 #endregion
 
@@ -18,22 +20,12 @@ namespace Emotion.Engine
     {
         private ContextBase _context;
         private Dictionary<string, Layer> _loadedLayers;
-        private Dictionary<string, Layer> _unloadingLayers;
-        private Dictionary<string, Layer> _loadingLayers;
 
         public LayerManager(ContextBase context)
         {
             _context = context;
 
             _loadedLayers = new Dictionary<string, Layer>();
-            _unloadingLayers = new Dictionary<string, Layer>();
-            _loadingLayers = new Dictionary<string, Layer>();
-
-            Thread loadingThread = new Thread(LoadingThread);
-            loadingThread.Start();
-
-            Thread unloadingThread = new Thread(UnloadingThread);
-            unloadingThread.Start();
         }
 
         #region Loops
@@ -48,15 +40,8 @@ namespace Emotion.Engine
             {
                 if (!layer.ToUnload) continue;
                 _loadedLayers.Remove(layer.Name);
-                _unloadingLayers.Add(layer.Name, layer);
-            }
-
-            // Process layers which are loaded.
-            foreach (Layer layer in _loadingLayers.Values.ToList())
-            {
-                if (!layer.Loaded) continue;
-                _loadingLayers.Remove(layer.Name);
-                _loadedLayers.Add(layer.Name, layer);
+                Task unloadLayer = new Task(() => UnloadLayer(layer));
+                unloadLayer.Start();
             }
 
             // Update loaded layers.
@@ -87,11 +72,18 @@ namespace Emotion.Engine
         /// <param name="layer">The layer to load.</param>
         /// <param name="name">The name to alias the layer under.</param>
         /// <param name="priority">The layer update and draw priority.</param>
-        public void Add(Layer layer, string name, int priority)
+        public Task Add(Layer layer, string name, int priority)
         {
+#if DEBUG
+            _context.Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Added layer [" + name + "]");
+#endif
+
             layer.Priority = priority;
             layer.Name = name;
-            _loadingLayers.Add(name, layer);
+
+            Task loadLayer = new Task(() => LoadLayer(layer));
+            loadLayer.Start();
+            return loadLayer;
         }
 
         /// <summary>
@@ -101,16 +93,9 @@ namespace Emotion.Engine
         /// <returns>The layer with the provided name, or null if none found.</returns>
         public Layer Get(string name)
         {
-            if (_loadedLayers.ContainsKey(name))
-            {
-                return _loadedLayers[name];
-            }
-            else if (_loadingLayers.ContainsKey(name))
-            {
-                return _loadingLayers[name];
-            }
+            if (_loadedLayers.ContainsKey(name)) return _loadedLayers[name];
 
-            return null;
+            return _loadedLayers.ContainsKey(name) ? _loadedLayers[name] : null;
         }
 
         /// <summary>
@@ -128,7 +113,6 @@ namespace Emotion.Engine
         /// <param name="layer">The layer to unload.</param>
         public void Remove(Layer layer)
         {
-            if (!_loadingLayers.ContainsValue(layer)) throw new Exception("Tried to unload a layer in a manager which didn't load it.");
             layer.ToUnload = true;
         }
 
@@ -136,38 +120,22 @@ namespace Emotion.Engine
 
         #region Threads
 
-        private void LoadingThread()
+        private void LoadLayer(Layer layer)
         {
-#if DEBUG
-            _context.Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Layer loading thread has started.");
-#endif
+            layer.Load();
+            _loadedLayers.Add(layer.Name, layer);
 
-            while (_context.Running)
-            {
-                foreach (Layer layer in _loadingLayers.Values.ToList())
-                {
-                    if (layer.Loaded) continue;
-                    layer.Load();
-                    layer.Loaded = true;
-                }
-            }
+#if DEBUG
+            _context.Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Loaded layer [" + layer.Name + "]");
+#endif
         }
 
-        private void UnloadingThread()
+        private void UnloadLayer(Layer layer)
         {
+            layer.Unload();
 #if DEBUG
-            _context.Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Layer unloading thread has started.");
+            _context.Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Unloaded layer [" + layer.Name + "]");
 #endif
-
-            while (_context.Running)
-            {
-                foreach (Layer layer in _unloadingLayers.Values.ToList())
-                {
-                    if (!layer.ToUnload) continue;
-                    layer.Unload();
-                    _unloadingLayers.Remove(layer.Name);
-                }
-            }
         }
 
         #endregion

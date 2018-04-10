@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmotionCore", "EmotionCore\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmotionSandbox", "EmotionSandbox\EmotionSandbox.csproj", "{B92229FC-31CA-4A51-B22C-D63A891FC28B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealerGame", "HealerGame\HealerGame.csproj", "{555F39CF-5DCE-4CB8-8A83-37549768AB92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug-SDL2|Any CPU = Debug-SDL2|Any CPU
