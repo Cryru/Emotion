@@ -100,6 +100,7 @@ namespace Emotion.Platform.SDL2
 
             // Initialize SDL.
             ErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
+            ErrorHandler.CheckError(SDLTtf.TTF_Init());
 
             // Enable double buffering.
             ErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));

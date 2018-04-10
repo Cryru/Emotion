@@ -197,6 +197,34 @@ namespace Emotion.Platform.SDL2
 
         #endregion
 
+        #region Text Drawing
+
+        public void DrawText(Font font, string text, Color color, Vector2 location, int size)
+        {
+            SDL.SDL_Color platformColor = new SDL.SDL_Color
+            {
+                r = color.R,
+                g = color.G,
+                b = color.B
+            };
+
+            IntPtr fontPointer = font.GetSize(size);
+
+            IntPtr messageSurface = SDLTtf.TTF_RenderText_Solid(fontPointer, text, platformColor);
+            IntPtr messageTexture = SDL.SDL_CreateTextureFromSurface(Pointer, messageSurface);
+            SDL.SDL_FreeSurface(messageSurface);
+
+            SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
+
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = h, w = w};
+
+            ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, messageTexture, IntPtr.Zero, ref des), true);
+
+            SDL.SDL_DestroyTexture(messageTexture);
+        }
+
+        #endregion
+
         #region RenderTarget Functions
 
         /// <summary>

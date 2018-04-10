@@ -91,6 +91,7 @@
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />
     <Compile Include="src\Platform\Base\Assets\TextureBase.cs" />
+    <Compile Include="src\Platform\Assets\Font.cs" />
     <Compile Include="src\Platform\Base\ContextBase.cs" />
     <Compile Include="src\Platform\Base\Enums\MouseKeys.cs" />
     <Compile Include="src\Platform\Base\Interfaces\IDestroyable.cs" />
@@ -123,16 +124,34 @@
     <Content Include="Libraries\External\x64\FreeImage.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Libraries\External\x64\libfreetype-6.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Libraries\External\x64\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Libraries\External\x64\SDL2_ttf.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\External\x64\zlib1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Libraries\External\x86\FreeImage.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\External\x86\libfreetype-6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Libraries\External\x86\SDL2.dll" Condition="$(DefineConstants.Contains('SDL2'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="src\Meta.cs" />
+    <Content Include="Libraries\External\x86\SDL2_ttf.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\External\x86\zlib1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="EmotionCore.dll.config">

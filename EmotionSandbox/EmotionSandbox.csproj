@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.RenderingTexture</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.RenderingText</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -68,11 +68,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Examples\RenderingText.cs" />
     <Compile Include="Examples\RenderingTexture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Content Include="Assets\ElectricSleepFont.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EmotionCore\EmotionCore.csproj">
