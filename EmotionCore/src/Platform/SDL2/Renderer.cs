@@ -199,6 +199,14 @@ namespace Emotion.Platform.SDL2
 
         #region Text Drawing
 
+        /// <summary>
+        /// Draws text to the screen.
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="text"></param>
+        /// <param name="color"></param>
+        /// <param name="location"></param>
+        /// <param name="size"></param>
         public void DrawText(Font font, string text, Color color, Vector2 location, int size)
         {
             SDL.SDL_Color platformColor = new SDL.SDL_Color

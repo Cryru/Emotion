@@ -91,7 +91,7 @@
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />
     <Compile Include="src\Platform\Base\Assets\TextureBase.cs" />
-    <Compile Include="src\Platform\Assets\Font.cs" />
+    <Compile Include="src\Platform\SDL2\Assets\Font.cs" />
     <Compile Include="src\Platform\Base\ContextBase.cs" />
     <Compile Include="src\Platform\Base\Enums\MouseKeys.cs" />
     <Compile Include="src\Platform\Base\Interfaces\IDestroyable.cs" />
