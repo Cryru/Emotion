@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine.Objects;
 using Emotion.Platform.SDL2;
 using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
@@ -10,7 +11,7 @@ using Emotion.Primitives;
 
 namespace EmotionSandbox.Examples
 {
-    public class RenderingTexture
+    public class RenderingTexture : Layer
     {
         private static Context _context;
         private static Texture _texture;
@@ -25,14 +26,28 @@ namespace EmotionSandbox.Examples
                 }
             };
 
-            _texture = _context.AssetLoader.LoadTexture("test.png");
 
-            _context.Start(Draw);
+            _context.Start();
         }
 
-        private static void Draw()
+        public override void Load()
+        {
+            _texture = _context.AssetLoader.LoadTexture("test.png");
+        }
+
+        public override void Draw()
         {
             _context.Renderer.DrawTexture(_texture, new Rectangle(0, 0, 100, 100), new Rectangle(0, 0, 200, 200));
+        }
+
+        public override void Update()
+        {
+            
+        }
+
+        public override void Unload()
+        {
+            
         }
     }
 }
