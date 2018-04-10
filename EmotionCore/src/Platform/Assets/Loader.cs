@@ -18,6 +18,7 @@ namespace Emotion.Platform.Assets
 
         private Context _context;
         private Dictionary<string, Texture> _loadedTextures;
+        private Dictionary<string, Font> _loadedFonts;
 
         /// <summary>
         /// The root directory in which assets are located.
@@ -30,6 +31,7 @@ namespace Emotion.Platform.Assets
         {
             _context = context;
             _loadedTextures = new Dictionary<string, Texture>();
+            _loadedFonts = new Dictionary<string, Font>();
         }
 
         #region Texture
@@ -64,6 +66,42 @@ namespace Emotion.Platform.Assets
         public Texture GetTexture(string path)
         {
             return _loadedTextures[PathToEnginePath(path)];
+        }
+
+        #endregion
+
+        #region Font
+
+        /// <summary>
+        /// Loads a font.
+        /// </summary>
+        /// <param name="path">An engine path to the font to load.</param>
+        public Font LoadFont(string path)
+        {
+            string parsedPath = PathToCrossPlatform(path);
+
+            if (!File.Exists(parsedPath))
+            {
+                throw new Exception("The file " + parsedPath + " could not be found.");
+            }
+
+            // Load the bytes of the file.
+            byte[] data = File.ReadAllBytes(parsedPath);
+            // Add it to the list of loaded fonts.
+            _loadedFonts.Add(PathToEnginePath(path), new Font(data));
+
+            // Return the just loaded font.
+            return GetFont(path);
+        }
+
+        /// <summary>
+        /// Returns a loaded font.
+        /// </summary>
+        /// <param name="path">The path of the loaded font.</param>
+        /// <returns>A loaded font.</returns>
+        public Font GetFont(string path)
+        {
+            return _loadedFonts[PathToEnginePath(path)];
         }
 
         #endregion
