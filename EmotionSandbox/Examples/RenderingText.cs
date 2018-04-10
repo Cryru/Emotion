@@ -26,7 +26,7 @@ namespace EmotionSandbox.Examples
                 }
             };
 
-
+            _context.LayerManager.Add(new RenderingText(), "Text Example", 0);
             _context.Start();
         }
 
