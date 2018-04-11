@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using Emotion.Engine.Enums;
 
 #endregion
 
@@ -15,6 +16,7 @@ namespace Emotion.Engine.Objects
         public string WindowTitle = "Untitled";
         public int WindowWidth = 960;
         public int WindowHeight = 540;
+        public WindowMode WindowMode = WindowMode.Windowed;
 
         #endregion
 

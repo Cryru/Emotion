@@ -14,7 +14,7 @@ namespace EmotionSandbox.Examples
     public class RenderingTexture : Layer
     {
         private static Context _context;
-        private static Texture _texture;
+        private Texture _texture;
 
         public static void Main()
         {

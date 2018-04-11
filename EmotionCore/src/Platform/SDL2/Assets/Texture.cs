@@ -45,7 +45,7 @@ namespace Emotion.Platform.SDL2.Assets
                     byte[] memoryToBytes = bmpConverted.ToArray();
 
                     // Convert to an SDL stream.
-                    IntPtr sdlStream = SDL.SDL_RWFromMem(memoryToBytes, memoryToBytes.Length);
+                    IntPtr sdlStream = SDL.SDL_RWFromConstMem(memoryToBytes, memoryToBytes.Length);
 
                     // Get the SDL surface.
                     IntPtr surface = SDL.SDL_LoadBMP_RW(sdlStream, 1);

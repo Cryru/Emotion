@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using Emotion.Engine;
+using Emotion.Engine.Enums;
 using Emotion.Engine.Objects;
 using Emotion.External;
 using Emotion.Platform.Base;
@@ -95,8 +96,8 @@ namespace Emotion.Platform.SDL2
 #endif
 
             // Apply settings.
-            InitialSettings = new Settings();
-            config?.Invoke(InitialSettings);
+            Settings = new Settings();
+            config?.Invoke(Settings);
 
             // Initialize SDL.
             ErrorHandler.CheckError(SDL.SDL_Init(SDL.SDL_INIT_VIDEO));
@@ -114,24 +115,38 @@ namespace Emotion.Platform.SDL2
 
             // Load modules.
             AssetLoader = new Loader(this);
-            Input = new Input();
+            Input = new Input(this);
             base.Input = Input;
             ScriptingEngine = new ScriptingEngine();
             LayerManager = new LayerManager(this);
         }
 
-        /// <summary>
-        /// Start running the engine. Blocking.
-        /// </summary>
-        public void Start()
+        public override void ApplySettings()
+        {
+            // Apply window mode.
+            switch (Settings.WindowMode)
+            {
+                case WindowMode.Borderless:
+                    SDL.SDL_SetWindowFullscreen(Window.Pointer, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    break;
+                case WindowMode.Fullscreen:
+                    SDL.SDL_SetWindowFullscreen(Window.Pointer, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    break;
+                case WindowMode.Windowed:
+                default:
+                    SDL.SDL_SetWindowFullscreen(Window.Pointer, 0);
+                    break;
+            }
+
+
+        }
+
+        public override void Start()
         {
             Loop();
         }
 
-        /// <summary>
-        /// Stops running the context.
-        /// </summary>
-        public void Quit()
+        public override void Quit()
         {
             // Stop running.
             Running = false;
@@ -176,13 +191,13 @@ namespace Emotion.Platform.SDL2
                 Renderer.Present();
 
                 // Check if capping fps, and not enough time has passed.
-                if (InitialSettings.CapFPS > 0)
+                if (Settings.CapFPS > 0)
                 {
                     // Get difference between expected and actual.
-                    float difference = 1000 / InitialSettings.CapFPS - frameCapTimer.ElapsedMilliseconds;
+                    float difference = 1000 / Settings.CapFPS - frameCapTimer.ElapsedMilliseconds;
 
                     // Wait for the amount of different to smooth out fps.
-                    if (difference > 0) SDL.SDL_Delay((uint) difference);
+                    if (difference > 0) SDL.SDL_Delay((uint)difference);
                 }
                 else
                 {
@@ -197,7 +212,7 @@ namespace Emotion.Platform.SDL2
             // Dereference objects.
             Window = null;
             Renderer = null;
-            InitialSettings = null;
+            Settings = null;
 
             // Cleanup external.
             SDL.SDL_Quit();

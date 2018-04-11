@@ -34,7 +34,7 @@ namespace Emotion.Platform.Base
         /// <summary>
         /// The context's initial settings.
         /// </summary>
-        internal Settings InitialSettings;
+        public Settings Settings;
 
         #endregion
 
@@ -71,5 +71,20 @@ namespace Emotion.Platform.Base
         public IInput Input { get; protected set; }
 
         #endregion
+
+        /// <summary>
+        /// Start running the engine loop. Blocking.
+        /// </summary>
+        public abstract void Start();
+        
+        /// <summary>
+        /// Stops running the engine.
+        /// </summary>
+        public abstract void Quit();
+
+        /// <summary>
+        /// Applies any changes made to the settings object.
+        /// </summary>
+        public abstract void ApplySettings();
     }
 }

@@ -42,7 +42,7 @@ namespace Emotion.Engine
             _interpreter = new Jint.Engine(opts =>
             {
                 // Set scripting timeout.
-                opts.TimeoutInterval(_context.InitialSettings.ScriptTimeout);
+                opts.TimeoutInterval(_context.Settings.ScriptTimeout);
 #if DEBUG
                 // Enable scripting debugging.
                 opts.DebugMode();

@@ -5,6 +5,7 @@
 #region Using
 
 using System;
+using Emotion.Engine.Enums;
 using Emotion.Platform.SDL2.Base;
 using Emotion.Primitives;
 using SDL2;
@@ -57,23 +58,32 @@ namespace Emotion.Platform.SDL2
         /// <summary>
         /// Create a new window.
         /// </summary>
+        /// <param name="context">The context which will spawn the window.</param>
         internal Window(Context context)
         {
             // Copy to properties.
-            _title = context.InitialSettings.WindowTitle;
+            _title = context.Settings.WindowTitle;
 
             // Create the window within SDL.
             Pointer = ErrorHandler.CheckError(SDL.SDL_CreateWindow(
-                context.InitialSettings.WindowTitle,
+                context.Settings.WindowTitle,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
-                context.InitialSettings.WindowWidth,
-                context.InitialSettings.WindowHeight,
+                context.Settings.WindowWidth,
+                context.Settings.WindowHeight,
                 SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS | SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS
             ));
 
             // Get the window's surface.
             Surface = ErrorHandler.CheckError(SDL.SDL_GetWindowSurface(Pointer));
+        }
+
+        /// <summary>
+        /// Destroys the window, closing it and freeing resources.
+        /// </summary>
+        internal void Destroy()
+        {
+            SDL.SDL_DestroyWindow(Pointer);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace EmotionSandbox.Examples
     public class RenderingText : Layer
     {
         private static Context _context;
-        private static Font _font;
+        private Font _font;
 
         public static void Main()
         {

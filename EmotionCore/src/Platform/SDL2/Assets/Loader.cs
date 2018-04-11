@@ -24,7 +24,7 @@ namespace Emotion.Platform.SDL2.Assets
         /// <summary>
         /// The root directory in which assets are located.
         /// </summary>
-        public string RootDirectory;
+        public string RootDirectory = "Assets";
 
         #endregion
 

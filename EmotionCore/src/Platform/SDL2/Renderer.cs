@@ -45,8 +45,13 @@ namespace Emotion.Platform.SDL2
             GLContext = ErrorHandler.CheckError(SDL.SDL_GL_CreateContext(context.Window.Pointer));
 
             // Set the render size.
-            ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight));
-            RenderSize = new Vector2(context.InitialSettings.RenderWidth, context.InitialSettings.RenderHeight);
+            ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.Settings.RenderWidth, context.Settings.RenderHeight));
+            RenderSize = new Vector2(context.Settings.RenderWidth, context.Settings.RenderHeight);
+        }
+
+        internal void Destroy()
+        {
+            SDL.SDL_DestroyRenderer(Pointer);
         }
 
         #region Primary Functions
@@ -207,7 +212,8 @@ namespace Emotion.Platform.SDL2
         /// <param name="color"></param>
         /// <param name="location"></param>
         /// <param name="size"></param>
-        public void DrawText(Font font, string text, Color color, Vector2 location, int size)
+        /// <param name="camera"></param>
+        public void DrawText(Font font, string text, Color color, Vector2 location, int size, bool camera = true)
         {
             SDL.SDL_Color platformColor = new SDL.SDL_Color
             {
@@ -223,6 +229,13 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_FreeSurface(messageSurface);
 
             SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
+
+            // Add camera.
+            if (Camera != null && camera)
+            {
+                location.X -= (int) Camera.Bounds.X;
+                location.Y -= (int) Camera.Bounds.Y;
+            }
 
             SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = h, w = w};
 
