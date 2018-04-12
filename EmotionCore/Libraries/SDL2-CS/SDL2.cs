@@ -2071,6 +2071,13 @@ namespace SDL2
 
         /* renderer refers to an SDL_Renderer* */
         [DllImport(nativeLibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SDL_RenderSetIntegerScale(
+            IntPtr renderer,
+            SDL_bool enable
+        );
+        
+        /* renderer refers to an SDL_Renderer* */
+        [DllImport(nativeLibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SDL_RenderSetScale(
             IntPtr renderer,
             float scaleX,

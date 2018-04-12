@@ -46,6 +46,7 @@ namespace Emotion.Platform.SDL2
 
             // Set the render size.
             ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.Settings.RenderWidth, context.Settings.RenderHeight));
+            
             RenderSize = new Vector2(context.Settings.RenderWidth, context.Settings.RenderHeight);
         }
 
@@ -59,9 +60,15 @@ namespace Emotion.Platform.SDL2
         /// <summary>
         /// Clears everything drawn on the screen.
         /// </summary>
-        public void Clear()
-        {
+        public void Clear(Color color)
+        {            
+            // Set color.
+            SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
+
             SDL.SDL_RenderClear(Pointer);
+
+            // Return default black.
+            SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
         }
 
         /// <summary>
@@ -144,7 +151,7 @@ namespace Emotion.Platform.SDL2
 
             SDL.SDL_RenderDrawRect(Pointer, ref re);
 
-            // Return original black.
+            // Return default black.
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
         }
 
@@ -215,20 +222,13 @@ namespace Emotion.Platform.SDL2
         /// <param name="camera"></param>
         public void DrawText(Font font, string text, Color color, Vector2 location, int size, bool camera = true)
         {
+            // Convert color to platform color.
             SDL.SDL_Color platformColor = new SDL.SDL_Color
             {
                 r = color.R,
                 g = color.G,
                 b = color.B
             };
-
-            IntPtr fontPointer = font.GetSize(size);
-
-            IntPtr messageSurface = SDLTtf.TTF_RenderText_Solid(fontPointer, text, platformColor);
-            IntPtr messageTexture = SDL.SDL_CreateTextureFromSurface(Pointer, messageSurface);
-            SDL.SDL_FreeSurface(messageSurface);
-
-            SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
 
             // Add camera.
             if (Camera != null && camera)
@@ -237,10 +237,24 @@ namespace Emotion.Platform.SDL2
                 location.Y -= (int) Camera.Bounds.Y;
             }
 
+            // Get a pointer to the font at the specified size.
+            IntPtr fontPointer = font.GetSize(size);
+
+            // Render the text to a surface, then copy it to a texture, and free the surface.
+            IntPtr messageSurface = SDLTtf.TTF_RenderText_Solid(fontPointer, text, platformColor);
+            IntPtr messageTexture = SDL.SDL_CreateTextureFromSurface(Pointer, messageSurface);
+            SDL.SDL_FreeSurface(messageSurface);
+
+            // Get the size of the text.
+            SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
+
+            // Determine the destination rectangle of the text.
             SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = h, w = w};
 
+            // Render the text texture.
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, messageTexture, IntPtr.Zero, ref des), true);
 
+            // Cleanup.
             SDL.SDL_DestroyTexture(messageTexture);
         }
 

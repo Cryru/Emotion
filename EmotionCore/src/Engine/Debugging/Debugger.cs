@@ -164,7 +164,7 @@ namespace Emotion.Engine.Debugging
         /// </summary>
         private void ConsoleThread()
         {
-            while (!_currentProcess.HasExited)
+            while (_context.Running)
             {
                 string readLine = Console.ReadLine();
                 if (readLine != null) _command = readLine.Trim(' ');

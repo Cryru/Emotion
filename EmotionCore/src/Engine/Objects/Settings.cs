@@ -4,6 +4,7 @@
 
 using System;
 using Emotion.Engine.Enums;
+using Emotion.Primitives;
 
 #endregion
 
@@ -21,6 +22,8 @@ namespace Emotion.Engine.Objects
         #endregion
 
         #region Render Settings
+
+        public Color ClearColor = Color.Black;
 
         public int RenderWidth = 960;
         public int RenderHeight = 540;

@@ -105,6 +105,8 @@ namespace Emotion.Platform.SDL2
 
             // Enable double buffering.
             ErrorHandler.CheckError(SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1));
+            // Ensure pixel perfect drawing.
+            ErrorHandler.CheckError(SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "0") == SDL.SDL_bool.SDL_TRUE ? 1 : 0);
 
             // Create a window.
             Window = new Window(this);
@@ -117,7 +119,7 @@ namespace Emotion.Platform.SDL2
             AssetLoader = new Loader(this);
             Input = new Input(this);
             base.Input = Input;
-            ScriptingEngine = new ScriptingEngine();
+            ScriptingEngine = new ScriptingEngine(this);
             LayerManager = new LayerManager(this);
         }
 
@@ -132,7 +134,6 @@ namespace Emotion.Platform.SDL2
                 case WindowMode.Fullscreen:
                     SDL.SDL_SetWindowFullscreen(Window.Pointer, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
-                case WindowMode.Windowed:
                 default:
                     SDL.SDL_SetWindowFullscreen(Window.Pointer, 0);
                     break;
@@ -173,7 +174,7 @@ namespace Emotion.Platform.SDL2
                 LayerManager.Update();
 
                 // Clear the screen.
-                Renderer.Clear();
+                Renderer.Clear(Settings.ClearColor);
 
                 // Run layer draws.
                 LayerManager.Draw();
@@ -206,8 +207,8 @@ namespace Emotion.Platform.SDL2
             }
 
             // Context has stopped running - cleanup.
-
-            // todo: object destroy
+            Window.Destroy();
+            Renderer.Destroy();
 
             // Dereference objects.
             Window = null;
@@ -216,6 +217,9 @@ namespace Emotion.Platform.SDL2
 
             // Cleanup external.
             SDL.SDL_Quit();
+
+            // Close application.
+            Environment.Exit(1);
         }
 
         private void HandleEvents()

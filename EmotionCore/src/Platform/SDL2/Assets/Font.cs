@@ -36,7 +36,7 @@ namespace Emotion.Platform.SDL2.Assets
             // Check if the requested size is already loaded.
             if (_sizePointers.ContainsKey(size)) return _sizePointers[size];
 
-            // Load into SDL the requested size.
+            // Load into SDL the font at the requested size.
 
             // Convert to an SDL stream.
             IntPtr streamPointer = SDL.SDL_RWFromConstMem(FontBytes, FontBytes.Length);

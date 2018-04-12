@@ -34,7 +34,7 @@ namespace Emotion.Engine
         /// Initializes the module.
         /// </summary>
         /// <param name="context">The context the scripting engine will run under.</param>
-        internal void Setup(ContextBase context)
+        internal ScriptingEngine(ContextBase context)
         {
             _context = context;
 

@@ -19,3 +19,7 @@ I've restarted the project under the name "Emotion" and with different goals in 
 is absolute insane and unproductive.
 
 Maybe I'll get it right this time? Probably not.
+
+### XNA vs Going Your Own Way
+
+MonoGame is an amazing project but I feel it is held back by being a continuation of XNA rather than its own thing. Emotion will not be based on it due to many reasons, but mainly because of its pipeline, and lack of lower level control. 
