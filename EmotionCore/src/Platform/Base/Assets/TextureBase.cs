@@ -20,5 +20,7 @@ namespace Emotion.Platform.Base.Assets
         public int Height { get; protected set; }
 
         #endregion
+
+        public abstract void Destroy();
     }
 }

@@ -19,11 +19,8 @@ namespace Emotion.Platform.SDL2.Objects
         /// <param name="renderer">The renderer which will render the render target.</param>
         /// <param name="width">The width of the render target.</param>
         /// <param name="height">The height of the render target.</param>
-        public RenderTarget(Renderer renderer, int width, int height)
+        public RenderTarget(Renderer renderer, int width, int height) : base(width, height)
         {
-            Width = width;
-            Height = height;
-
             Pointer = ErrorHandler.CheckError(SDL.SDL_CreateTexture(renderer.Pointer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, width, height));
         }
     }

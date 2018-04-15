@@ -46,7 +46,7 @@ namespace Emotion.Platform.SDL2
 
             // Set the render size.
             ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.Settings.RenderWidth, context.Settings.RenderHeight));
-            
+
             RenderSize = new Vector2(context.Settings.RenderWidth, context.Settings.RenderHeight);
         }
 
@@ -61,7 +61,7 @@ namespace Emotion.Platform.SDL2
         /// Clears everything drawn on the screen.
         /// </summary>
         public void Clear(Color color)
-        {            
+        {
             // Set color.
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
 
@@ -97,14 +97,14 @@ namespace Emotion.Platform.SDL2
         /// <param name="camera">Whether to draw through the current camera, or on the screen.</param>
         public void DrawTexture(Texture texture, Rectangle location, Rectangle source, bool camera = true)
         {
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
-            SDL.SDL_Rect src = new SDL.SDL_Rect {x = (int) source.X, y = (int) source.Y, h = (int) source.Height, w = (int) source.Width};
+            SDL.SDL_Rect des = new SDL.SDL_Rect { x = (int)location.X, y = (int)location.Y, h = (int)location.Height, w = (int)location.Width };
+            SDL.SDL_Rect src = new SDL.SDL_Rect { x = (int)source.X, y = (int)source.Y, h = (int)source.Height, w = (int)source.Width };
 
             // Add camera.
             if (Camera != null && camera)
             {
-                des.x -= (int) Camera.Bounds.X;
-                des.y -= (int) Camera.Bounds.Y;
+                des.x -= (int)Camera.Bounds.X;
+                des.y -= (int)Camera.Bounds.Y;
             }
 
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, ref src, ref des), true);
@@ -118,13 +118,13 @@ namespace Emotion.Platform.SDL2
         /// <param name="camera">Whether to draw through the current camera, or on the screen.</param>
         public void DrawTexture(Texture texture, Rectangle location, bool camera = true)
         {
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
+            SDL.SDL_Rect des = new SDL.SDL_Rect { x = (int)location.X, y = (int)location.Y, h = (int)location.Height, w = (int)location.Width };
 
             // Add camera.
             if (Camera != null && camera)
             {
-                des.x -= (int) Camera.Bounds.X;
-                des.y -= (int) Camera.Bounds.Y;
+                des.x -= (int)Camera.Bounds.X;
+                des.y -= (int)Camera.Bounds.Y;
             }
 
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, texture.Pointer, IntPtr.Zero, ref des), true);
@@ -140,13 +140,13 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
 
             // Transform rect to sdl rect.
-            SDL.SDL_Rect re = new SDL.SDL_Rect {x = (int) rect.X, y = (int) rect.Y, h = (int) rect.Height, w = (int) rect.Width};
+            SDL.SDL_Rect re = new SDL.SDL_Rect { x = (int)rect.X, y = (int)rect.Y, h = (int)rect.Height, w = (int)rect.Width };
 
             // Add camera.
             if (Camera != null && camera)
             {
-                re.x -= (int) Camera.Bounds.X;
-                re.y -= (int) Camera.Bounds.Y;
+                re.x -= (int)Camera.Bounds.X;
+                re.y -= (int)Camera.Bounds.Y;
             }
 
             SDL.SDL_RenderDrawRect(Pointer, ref re);
@@ -167,13 +167,13 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
 
             // Transform rect to sdl rect.
-            SDL.SDL_Rect re = new SDL.SDL_Rect {x = (int) rect.X, y = (int) rect.Y, h = (int) rect.Height, w = (int) rect.Width};
+            SDL.SDL_Rect re = new SDL.SDL_Rect { x = (int)rect.X, y = (int)rect.Y, h = (int)rect.Height, w = (int)rect.Width };
 
             // Add camera.
             if (Camera != null && camera)
             {
-                re.x -= (int) Camera.Bounds.X;
-                re.y -= (int) Camera.Bounds.Y;
+                re.x -= (int)Camera.Bounds.X;
+                re.y -= (int)Camera.Bounds.Y;
             }
 
             SDL.SDL_RenderFillRect(Pointer, ref re);
@@ -194,14 +194,14 @@ namespace Emotion.Platform.SDL2
             // Add camera.
             if (Camera != null && camera)
             {
-                start.X -= (int) Camera.Bounds.X;
-                end.X -= (int) Camera.Bounds.X;
-                start.Y -= (int) Camera.Bounds.Y;
-                end.Y -= (int) Camera.Bounds.Y;
+                start.X -= (int)Camera.Bounds.X;
+                end.X -= (int)Camera.Bounds.X;
+                start.Y -= (int)Camera.Bounds.Y;
+                end.Y -= (int)Camera.Bounds.Y;
             }
 
             // Draw the line.
-            SDL.SDL_RenderDrawLine(Pointer, (int) start.X, (int) start.Y, (int) end.X, (int) end.Y);
+            SDL.SDL_RenderDrawLine(Pointer, (int)start.X, (int)start.Y, (int)end.X, (int)end.Y);
 
             // Return original black.
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
@@ -210,6 +210,61 @@ namespace Emotion.Platform.SDL2
         #endregion
 
         #region Text Drawing
+
+        private TextDrawingSession _session;
+
+        public void TextSessionStart(Font font, int size, int width, int height)
+        {
+            // Get a pointer to the font at the specified size.
+            _session = new TextDrawingSession
+            {
+                Font = font.GetSize(size),
+                Surface = SDL.SDL_CreateRGBSurface(0, width, height, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff),
+                Cache = new Texture(width, height)
+            };
+            _session.FontAscent = SDLTtf.TTF_FontAscent(_session.Font);
+        }
+
+        public void TextSessionAddGlyph(char glyphChar, Color color, int xOffset, int yOffset)
+        {
+            // Convert color to platform color.
+            SDL.SDL_Color platformColor = new SDL.SDL_Color
+            {
+                r = color.R,
+                g = color.G,
+                b = color.B
+            };
+
+            IntPtr glyph = SDLTtf.TTF_RenderGlyph_Solid(_session.Font, glyphChar, platformColor);
+
+            // Get glyph data.
+            ErrorHandler.CheckError(SDLTtf.TTF_GlyphMetrics(_session.Font, glyphChar, out int minX, out int maxX, out int minY, out int maxY, out int advance));
+
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = xOffset + _session.XOffset + minX, y = yOffset + _session.YOffset + (_session.FontAscent - maxY), w = 0, h = SDLTtf.TTF_FontHeight(_session.Font)};
+            _session.XOffset += advance;
+            SDL.SDL_BlitSurface(glyph, IntPtr.Zero, _session.Surface, ref des);
+        }
+
+        public void TextSessionNewLine()
+        {
+            _session.XOffset = 0;
+            _session.YOffset += SDLTtf.TTF_FontLineSkip(_session.Font);
+        }
+
+        public Texture TextSessionEnd()
+        {
+            // Get the resulting texture from the session.
+            Texture resultTexture = _session.Cache;
+            // Set it up.
+            resultTexture.Pointer = SDL.SDL_CreateTextureFromSurface(Pointer, _session.Surface);
+
+            // Free resources.
+            SDL.SDL_FreeSurface(_session.Cache.Pointer);
+            _session = null;
+
+            // Return it.
+            return resultTexture;
+        }
 
         /// <summary>
         /// Draws text to the screen.
@@ -233,8 +288,8 @@ namespace Emotion.Platform.SDL2
             // Add camera.
             if (Camera != null && camera)
             {
-                location.X -= (int) Camera.Bounds.X;
-                location.Y -= (int) Camera.Bounds.Y;
+                location.X -= (int)Camera.Bounds.X;
+                location.Y -= (int)Camera.Bounds.Y;
             }
 
             // Get a pointer to the font at the specified size.
@@ -249,7 +304,7 @@ namespace Emotion.Platform.SDL2
             Vector2 calcSize = font.MeasureString(text, size);
 
             // Determine the destination rectangle of the text.
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) calcSize.Y, w = (int) calcSize.X};
+            SDL.SDL_Rect des = new SDL.SDL_Rect { x = (int)location.X, y = (int)location.Y, h = (int)calcSize.Y, w = (int)calcSize.X };
 
             // Render the text texture.
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, messageTexture, IntPtr.Zero, ref des), true);

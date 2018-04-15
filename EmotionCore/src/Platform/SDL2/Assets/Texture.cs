@@ -61,8 +61,15 @@ namespace Emotion.Platform.SDL2.Assets
             }
         }
 
-        public Texture()
+        public Texture(int width, int height)
         {
+            Width = width;
+            Height = height;
+        }
+
+        public override void Destroy()
+        {
+            SDL.SDL_DestroyTexture(Pointer);
         }
 
         #region Functions

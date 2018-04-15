@@ -110,6 +110,7 @@
     <Compile Include="src\Game\Objects\Camera\MouseCamera.cs" />
     <Compile Include="src\Game\Objects\Map.cs" />
     <Compile Include="src\Platform\SDL2\Objects\RenderTarget.cs" />
+    <Compile Include="src\Platform\SDL2\Objects\TextDrawingSession.cs" />
     <Compile Include="src\Platform\SDL2\Renderer.cs" />
     <Compile Include="src\Engine\Objects\Settings.cs" />
     <Compile Include="src\Platform\SDL2\Assets\Texture.cs" />
