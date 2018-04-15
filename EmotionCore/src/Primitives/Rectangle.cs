@@ -34,7 +34,7 @@ SOFTWARE.
 namespace Emotion.Primitives
 {
     /// <summary>
-    /// Rectangle class from MonoGame. Modified.
+    /// A rectangle object
     /// </summary>
     public struct Rectangle : IEquatable<Rectangle>
     {
@@ -50,21 +50,25 @@ namespace Emotion.Primitives
         public float Left
         {
             get => X;
+            set => X = value;
         }
 
         public float Right
         {
             get => X + Width;
+            set => X = value - Width;
         }
 
         public float Top
         {
             get => Y;
+            set => Y = value;
         }
 
         public float Bottom
         {
             get => Y + Height;
+            set => Y = value - Height;
         }
 
         public Vector2 Location
@@ -138,24 +142,24 @@ namespace Emotion.Primitives
             return !(a == b);
         }
 
-        public void Offset(Vector2 offset)
-        {
-            X += offset.X;
-            Y += offset.Y;
-        }
-
-        public void Offset(float offsetX, float offsetY)
-        {
-            X += offsetX;
-            Y += offsetY;
-        }
-
-        public void Inflate(float horizontalValue, float verticalValue)
+        public Rectangle Inflate(float horizontalValue, float verticalValue)
         {
             X -= horizontalValue;
             Y -= verticalValue;
             Width += horizontalValue * 2;
             Height += verticalValue * 2;
+
+            return this;
+        }
+
+        public Rectangle Deflate(float horizontalValue, float verticalValue)
+        {
+            X += horizontalValue;
+            Y += verticalValue;
+            Width -= horizontalValue * 2;
+            Height -= verticalValue * 2;
+
+            return this;
         }
 
         public bool IsEmpty
@@ -192,16 +196,6 @@ namespace Emotion.Primitives
             );
         }
 
-
-        public void Intersects(ref Rectangle value, out bool result)
-        {
-            result = !(value.Left > Right
-                       || value.Right < Left
-                       || value.Top > Bottom
-                       || value.Bottom < Top
-            );
-        }
-
-        #endregion Public Methods
+        #endregion
     }
 }

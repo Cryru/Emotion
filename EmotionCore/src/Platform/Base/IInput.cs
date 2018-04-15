@@ -24,5 +24,23 @@ namespace Emotion.Platform.Base
         Vector2 GetMousePosition(CameraBase camera = null);
 
         #endregion
+
+        #region Keyboard
+
+        /// <summary>
+        /// Returns whether the key is being held down.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <returns>Whether the key is being held down.</returns>
+        bool IsKeyHeld(string key);
+
+        /// <summary>
+        /// Returns whether the key was pressed down.
+        /// </summary>
+        /// <param name="key">The key ot check.</param>
+        /// <returns>Whether the key was pressed down.</returns>
+        bool IsKeyDown(string key);
+
+        #endregion
     }
 }

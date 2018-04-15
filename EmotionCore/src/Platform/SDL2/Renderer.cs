@@ -246,16 +246,41 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_FreeSurface(messageSurface);
 
             // Get the size of the text.
-            SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
+            Vector2 calcSize = font.MeasureString(text, size);
 
             // Determine the destination rectangle of the text.
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = h, w = w};
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) calcSize.Y, w = (int) calcSize.X};
 
             // Render the text texture.
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, messageTexture, IntPtr.Zero, ref des), true);
 
             // Cleanup.
             SDL.SDL_DestroyTexture(messageTexture);
+        }
+
+        /// <summary>
+        /// Draws text to the screen.
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="text"></param>
+        /// <param name="color"></param>
+        /// <param name="location"></param>
+        /// <param name="size"></param>
+        /// <param name="camera"></param>
+        public void DrawText(Font font, string[] text, Color color, Vector2 location, int size, bool camera = true)
+        {
+            // Get a pointer to the font at the specified size.
+            IntPtr fontPointer = font.GetSize(size);
+
+            int skip = SDLTtf.TTF_FontLineSkip(fontPointer);
+
+            // Render each line.
+            for (int i = 0; i < text.Length; i++)
+            {
+                location.Y += skip * i;
+
+                DrawText(font, text[i], color, location, size, camera);
+            }
         }
 
         #endregion

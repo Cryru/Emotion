@@ -71,11 +71,6 @@ namespace Emotion.Platform.SDL2
 
         #region Keyboard
 
-        /// <summary>
-        /// Returns whether the key is being held down.
-        /// </summary>
-        /// <param name="key">The key to check.</param>
-        /// <returns>Whether the key is being held down.</returns>
         public bool IsKeyHeld(string key)
         {
             // Get the scan code of the key.
@@ -83,11 +78,6 @@ namespace Emotion.Platform.SDL2
             return _keyStateArray[scanCode] != 0;
         }
 
-        /// <summary>
-        /// Returns whether the key was pressed down.
-        /// </summary>
-        /// <param name="key">The key ot check.</param>
-        /// <returns>Whether the key was pressed down.</returns>
         public bool IsKeyDown(string key)
         {
             // Get the scan code of the key.

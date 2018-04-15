@@ -1,5 +1,7 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+using Emotion.Platform.Base;
+
 namespace Emotion.Engine.Objects
 {
     public abstract class Layer
@@ -16,7 +18,7 @@ namespace Emotion.Engine.Objects
         internal string Name = "";
         internal int Priority = 0;
         internal bool ToUnload = false;
-        internal bool Loaded = false;
+        public ContextBase Context { get; internal set; }
 
         public abstract void Load();
         public abstract void Update();

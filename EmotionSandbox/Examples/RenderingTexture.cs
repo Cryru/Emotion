@@ -18,13 +18,7 @@ namespace EmotionSandbox.Examples
 
         public static void Main()
         {
-            _context = new Context
-            {
-                AssetLoader =
-                {
-                    RootDirectory = "Assets"
-                }
-            };
+            _context = new Context();
 
             _context.LayerManager.Add(new RenderingTexture(), "Texture Example", 0);
             _context.Start();

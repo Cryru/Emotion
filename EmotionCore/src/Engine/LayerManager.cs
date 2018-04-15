@@ -80,6 +80,7 @@ namespace Emotion.Engine
 
             layer.Priority = priority;
             layer.Name = name;
+            layer.Context = _context;
 
             Task loadLayer = new Task(() => LoadLayer(layer));
             loadLayer.Start();

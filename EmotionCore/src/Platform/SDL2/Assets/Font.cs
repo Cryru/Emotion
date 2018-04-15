@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Emotion.Primitives;
 using SDL2;
 
 #endregion
@@ -45,6 +46,20 @@ namespace Emotion.Platform.SDL2.Assets
             IntPtr sizePointer = ErrorHandler.CheckError(SDLTtf.TTF_OpenFontRW(streamPointer, 1, size));
             _sizePointers.Add(size, sizePointer);
             return sizePointer;
+        }
+
+        public Vector2 MeasureString(string text, int size)
+        {
+            IntPtr fontPointer = GetSize(size);
+            SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
+
+            return new Vector2(w, h);
+        }
+
+        public int LineSpacing(int size)
+        {
+            IntPtr fontPointer = GetSize(size);
+            return SDLTtf.TTF_FontLineSkip(fontPointer);
         }
     }
 }

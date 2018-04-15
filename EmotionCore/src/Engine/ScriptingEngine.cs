@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using Emotion.Platform;
 using Emotion.Platform.Base;
 #if DEBUG
 using Emotion.Engine.Debugging;
@@ -81,7 +80,7 @@ namespace Emotion.Engine
 #if DEBUG
                 // If it isn't empty log it.
                 if (scriptResponse != null)
-                    _context.Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, scriptResponse.ToString());
+                    _context.Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, "Script executed, result: " + scriptResponse);
 #endif
                 // Return the response.
                 return scriptResponse;
