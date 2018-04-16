@@ -2,8 +2,7 @@
 
 #region Using
 
-using Emotion.Platform;
-using Emotion.Platform.SDL2;
+using Emotion.Platform.Base;
 using Emotion.Primitives;
 
 #endregion
@@ -36,7 +35,7 @@ namespace Emotion.Game.Objects.Camera
         {
         }
 
-        public void Update(Input input)
+        public void Update(IInput input)
         {
             // Check if no target.
             if (Target == null) return;

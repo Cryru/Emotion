@@ -17,9 +17,9 @@ namespace Emotion.Platform.SDL2.Assets
     {
         #region Declarations
 
-        private Context _context;
-        private Dictionary<string, Texture> _loadedTextures;
-        private Dictionary<string, Font> _loadedFonts;
+        private SDLContext _context;
+        private Dictionary<string, SDLTexture> _loadedTextures;
+        private Dictionary<string, SDLFont> _loadedFonts;
 
         /// <summary>
         /// The root directory in which assets are located.
@@ -28,11 +28,11 @@ namespace Emotion.Platform.SDL2.Assets
 
         #endregion
 
-        public Loader(Context context)
+        public Loader(SDLContext context)
         {
             _context = context;
-            _loadedTextures = new Dictionary<string, Texture>();
-            _loadedFonts = new Dictionary<string, Font>();
+            _loadedTextures = new Dictionary<string, SDLTexture>();
+            _loadedFonts = new Dictionary<string, SDLFont>();
         }
 
         #region Texture
@@ -41,10 +41,10 @@ namespace Emotion.Platform.SDL2.Assets
         /// Loads a texture.
         /// </summary>
         /// <param name="path">An engine path to the texture to load.</param>
-        public Texture LoadTexture(string path)
+        public SDLTexture LoadTexture(string path)
         {
             // Add it to the list of loaded textures.
-            _loadedTextures.Add(PathToEnginePath(path), new Texture(_context.Renderer, ReadFile(path)));
+            _loadedTextures.Add(PathToEnginePath(path), new SDLTexture(_context.Renderer, ReadFile(path)));
 
             // Return the just loaded texture.
             return GetTexture(path);
@@ -68,7 +68,7 @@ namespace Emotion.Platform.SDL2.Assets
         /// </summary>
         /// <param name="path">The path of the loaded texture.</param>
         /// <returns>A loaded texture.</returns>
-        public Texture GetTexture(string path)
+        public SDLTexture GetTexture(string path)
         {
             return _loadedTextures[PathToEnginePath(path)];
         }
@@ -81,19 +81,16 @@ namespace Emotion.Platform.SDL2.Assets
         /// Loads a font.
         /// </summary>
         /// <param name="path">An engine path to the font to load.</param>
-        public Font LoadFont(string path)
+        public SDLFont LoadFont(string path)
         {
             string parsedPath = PathToCrossPlatform(path);
 
-            if (!File.Exists(parsedPath))
-            {
-                throw new Exception("The file " + parsedPath + " could not be found.");
-            }
+            if (!File.Exists(parsedPath)) throw new Exception("The file " + parsedPath + " could not be found.");
 
             // Load the bytes of the file.
             byte[] data = File.ReadAllBytes(parsedPath);
             // Add it to the list of loaded fonts.
-            _loadedFonts.Add(PathToEnginePath(path), new Font(data));
+            _loadedFonts.Add(PathToEnginePath(path), new SDLFont(data));
 
             // Return the just loaded font.
             return GetFont(path);
@@ -104,7 +101,7 @@ namespace Emotion.Platform.SDL2.Assets
         /// </summary>
         /// <param name="path">The path of the loaded font.</param>
         /// <returns>A loaded font.</returns>
-        public Font GetFont(string path)
+        public SDLFont GetFont(string path)
         {
             return _loadedFonts[PathToEnginePath(path)];
         }
@@ -136,10 +133,7 @@ namespace Emotion.Platform.SDL2.Assets
         {
             string parsedPath = PathToCrossPlatform(path);
 
-            if (!File.Exists(parsedPath))
-            {
-                throw new Exception("The file " + parsedPath + " could not be found.");
-            } 
+            if (!File.Exists(parsedPath)) throw new Exception("The file " + parsedPath + " could not be found.");
 
             // Load the bytes of the file.
             return File.ReadAllBytes(parsedPath);

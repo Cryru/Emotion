@@ -18,7 +18,7 @@ using SDL2;
 namespace Emotion.Platform.SDL2
 {
     /// <inheritdoc />
-    public sealed class Input : IInput
+    public sealed class SDLInput : IInput
     {
         #region State Trackers
 
@@ -31,9 +31,9 @@ namespace Emotion.Platform.SDL2
 
         #endregion
 
-        private Context _context;
+        private SDLContext _context;
 
-        internal Input(Context context)
+        internal SDLInput(SDLContext context)
         {
             _context = context;
         }

@@ -15,7 +15,7 @@ using SDL2;
 namespace Emotion.Platform.SDL2.Assets
 {
     /// <inheritdoc />
-    public class Texture : TextureBase
+    public class SDLTexture : Texture
     {
         internal IntPtr Pointer;
 
@@ -24,7 +24,7 @@ namespace Emotion.Platform.SDL2.Assets
         /// </summary>
         /// <param name="renderer">The renderer which will render the texture.</param>
         /// <param name="textureBytes">The bytes representing the file the texture is loaded from.</param>
-        internal Texture(Renderer renderer, byte[] textureBytes)
+        internal SDLTexture(SDLRenderer renderer, byte[] textureBytes)
         {
             // Put the bytes into a stream.
             using (MemoryStream stream = new MemoryStream(textureBytes))
@@ -61,7 +61,7 @@ namespace Emotion.Platform.SDL2.Assets
             }
         }
 
-        public Texture(int width, int height)
+        public SDLTexture(int width, int height)
         {
             Width = width;
             Height = height;

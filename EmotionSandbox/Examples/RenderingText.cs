@@ -5,6 +5,7 @@
 using Emotion.Engine.Objects;
 using Emotion.Platform.SDL2;
 using Emotion.Platform.SDL2.Assets;
+using Emotion.Platform.SDL2.Objects;
 using Emotion.Primitives;
 
 #endregion
@@ -13,13 +14,13 @@ namespace EmotionSandbox.Examples
 {
     public class RenderingText : Layer
     {
-        private static Context _context;
-        private Font _font;
-        private Texture _cachedTextRender;
+        private static SDLContext _context;
+        private SDLFont _font;
+        private SDLTexture _cachedTextRender;
 
         public static void Main()
         {
-            _context = new Context();
+            _context = new SDLContext();
 
             _context.LayerManager.Add(new RenderingText(), "Text Example", 0);
             _context.Start();
@@ -32,21 +33,24 @@ namespace EmotionSandbox.Examples
 
         public override void Draw()
         {
-            string text = ".".ToUpper();
+            // Show direct SDL ttf rendering.
+            _context.Renderer.DrawText(_font, "Hello! I am text being rendered using SDL.TTF.".ToUpper(), Color.White, new Vector2(50, 50), 40);
 
-            _context.Renderer.DrawText(_font, text, Color.White, new Vector2(0, 0), 40);
+            // Check if need to render.
             if (_cachedTextRender == null)
             {
-                _context.Renderer.TextSessionStart(_font, 40, 550, 300);
-                for (int i = 0; i < text.Length; i++)
+                // Render.
+                TextDrawingSession session = _context.Renderer.TextSessionStart(_font, 40, 800, 300);
+                foreach (char c in "Hello! I am text being rendered using a text session!".ToUpper())
                 {
-                    _context.Renderer.TextSessionAddGlyph(text[i], Color.White, 0, 0);
+                    _context.Renderer.TextSessionAddGlyph(session, c, Color.White);
                 }
-                _cachedTextRender = _context.Renderer.TextSessionEnd();
+                _cachedTextRender = _context.Renderer.TextSessionEnd(session, true);
             }
 
+            // Render cached.
             _context.Renderer.DrawTexture(_cachedTextRender,
-                new Rectangle(0, 0, _cachedTextRender.Width, _cachedTextRender.Height));
+                new Rectangle(50, 100, _cachedTextRender.Width, _cachedTextRender.Height));
         }
 
         public override void Update()

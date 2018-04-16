@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Emotion.Platform.Base.Assets;
 using Emotion.Primitives;
 using SDL2;
 
@@ -13,7 +14,8 @@ using SDL2;
 
 namespace Emotion.Platform.SDL2.Assets
 {
-    public class Font
+    /// <inheritdoc />
+    public class SDLFont : Font
     {
         /// <summary>
         /// A pointer to font's stream bytes.
@@ -25,7 +27,7 @@ namespace Emotion.Platform.SDL2.Assets
         /// </summary>
         private Dictionary<int, IntPtr> _sizePointers;
 
-        public Font(byte[] fontBytes)
+        public SDLFont(byte[] fontBytes)
         {
             _sizePointers = new Dictionary<int, IntPtr>();
 
@@ -37,8 +39,6 @@ namespace Emotion.Platform.SDL2.Assets
             // Check if the requested size is already loaded.
             if (_sizePointers.ContainsKey(size)) return _sizePointers[size];
 
-            // Load into SDL the font at the requested size.
-
             // Convert to an SDL stream.
             IntPtr streamPointer = SDL.SDL_RWFromConstMem(FontBytes, FontBytes.Length);
 
@@ -48,7 +48,7 @@ namespace Emotion.Platform.SDL2.Assets
             return sizePointer;
         }
 
-        public Vector2 MeasureString(string text, int size)
+        public override Vector2 MeasureString(string text, int size)
         {
             IntPtr fontPointer = GetSize(size);
             SDLTtf.TTF_SizeText(fontPointer, text, out int w, out int h);
@@ -56,10 +56,20 @@ namespace Emotion.Platform.SDL2.Assets
             return new Vector2(w, h);
         }
 
-        public int LineSpacing(int size)
+        public override int LineSpacing(int size)
         {
             IntPtr fontPointer = GetSize(size);
             return SDLTtf.TTF_FontLineSkip(fontPointer);
+        }
+
+        public override void Destroy()
+        {
+            foreach (KeyValuePair<int, IntPtr> currentPointer in _sizePointers)
+            {
+                SDLTtf.TTF_CloseFont(currentPointer.Value);
+            }
+
+            _sizePointers.Clear();
         }
     }
 }

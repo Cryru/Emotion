@@ -14,7 +14,7 @@ using SDL2;
 
 namespace Emotion.Platform.SDL2
 {
-    public sealed class Window : NativeObject
+    public sealed class SDLWindow : NativeObject
     {
         #region Properties
 
@@ -59,7 +59,7 @@ namespace Emotion.Platform.SDL2
         /// Create a new window.
         /// </summary>
         /// <param name="context">The context which will spawn the window.</param>
-        internal Window(Context context)
+        internal SDLWindow(SDLContext context)
         {
             // Copy to properties.
             _title = context.Settings.WindowTitle;

@@ -18,10 +18,10 @@ namespace Emotion.Engine
 {
     public class LayerManager
     {
-        private ContextBase _context;
+        private Context _context;
         private Dictionary<string, Layer> _loadedLayers;
 
-        public LayerManager(ContextBase context)
+        public LayerManager(Context context)
         {
             _context = context;
 

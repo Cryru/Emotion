@@ -18,7 +18,7 @@ namespace Emotion.Engine.Objects
         internal string Name = "";
         internal int Priority = 0;
         internal bool ToUnload = false;
-        public ContextBase Context { get; internal set; }
+        public Context Context { get; internal set; }
 
         public abstract void Load();
         public abstract void Update();

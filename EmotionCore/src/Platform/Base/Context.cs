@@ -13,7 +13,7 @@ using Emotion.Engine.Debugging;
 
 namespace Emotion.Platform.Base
 {
-    public abstract class ContextBase
+    public abstract class Context
     {
         #region Properties
 

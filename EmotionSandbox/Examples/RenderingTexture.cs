@@ -13,12 +13,12 @@ namespace EmotionSandbox.Examples
 {
     public class RenderingTexture : Layer
     {
-        private static Context _context;
-        private Texture _texture;
+        private static SDLContext _context;
+        private SDLTexture _texture;
 
         public static void Main()
         {
-            _context = new Context();
+            _context = new SDLContext();
 
             _context.LayerManager.Add(new RenderingTexture(), "Texture Example", 0);
             _context.Start();

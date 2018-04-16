@@ -24,7 +24,7 @@ using Emotion.Engine.Debugging;
 
 namespace Emotion.Platform.SDL2
 {
-    public sealed class Context : ContextBase
+    public sealed class SDLContext : Context
     {
         #region Declarations
 
@@ -33,17 +33,17 @@ namespace Emotion.Platform.SDL2
         /// <summary>
         /// SDL2 Renderer.
         /// </summary>
-        public new Renderer Renderer { get; private set; }
+        public new SDLRenderer Renderer { get; private set; }
 
         /// <summary>
         /// SDL2 Input.
         /// </summary>
-        public new Input Input { get; private set; }
+        public new SDLInput Input { get; private set; }
 
         /// <summary>
         /// The context's window.
         /// </summary>
-        public Window Window { get; private set; }
+        public SDLWindow Window { get; private set; }
 
         /// <summary>
         /// Handles loading assets and storing assets.
@@ -71,7 +71,7 @@ namespace Emotion.Platform.SDL2
         /// <summary>
         /// Initiates external libraries and pre-initialization. Is run once for all instances.
         /// </summary>
-        static Context()
+        static SDLContext()
         {
             // Set the DLL path on Windows.
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -87,7 +87,7 @@ namespace Emotion.Platform.SDL2
         /// <summary>
         /// Create a new Emotion context.
         /// </summary>
-        public Context(Action<Settings> config = null)
+        public SDLContext(Action<Settings> config = null)
         {
 #if DEBUG
             Debugger = new Debugger(this);
@@ -109,15 +109,15 @@ namespace Emotion.Platform.SDL2
             ErrorHandler.CheckError(SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "0") == SDL.SDL_bool.SDL_TRUE ? 1 : 0);
 
             // Create a window.
-            Window = new Window(this);
+            Window = new SDLWindow(this);
 
             // Create a renderer.
-            Renderer = new Renderer(this);
+            Renderer = new SDLRenderer(this);
             base.Renderer = Renderer;
 
             // Load modules.
             AssetLoader = new Loader(this);
-            Input = new Input(this);
+            Input = new SDLInput(this);
             base.Input = Input;
             ScriptingEngine = new ScriptingEngine(this);
             LayerManager = new LayerManager(this);

@@ -25,7 +25,7 @@ namespace Emotion.Engine
         /// <summary>
         /// The context the scripting engine is running under.
         /// </summary>
-        private ContextBase _context;
+        private Context _context;
 
         #endregion
 
@@ -33,7 +33,7 @@ namespace Emotion.Engine
         /// Initializes the module.
         /// </summary>
         /// <param name="context">The context the scripting engine will run under.</param>
-        internal ScriptingEngine(ContextBase context)
+        internal ScriptingEngine(Context context)
         {
             _context = context;
 

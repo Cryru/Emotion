@@ -1,20 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#if SDL2
+
+#region Using
+
+using System;
 using Emotion.Platform.SDL2.Assets;
+
+#endregion
 
 namespace Emotion.Platform.SDL2.Objects
 {
+    /// <summary>
+    /// A text drawing session. Used as an object holder by the Renderer when rendering text.
+    /// </summary>
     public class TextDrawingSession
     {
-        public IntPtr Font;
-        public IntPtr Surface;
-        public Texture Cache;
+        internal IntPtr Font;
+        internal IntPtr Surface;
+        internal SDLTexture Cache;
 
-        public int FontAscent;
-        public int YOffset;
-        public int XOffset;
+        internal int FontAscent;
+        internal int YOffset;
+        internal int XOffset;
+
+        public bool Finalized { get; internal set; }
     }
 }
+
+#endif

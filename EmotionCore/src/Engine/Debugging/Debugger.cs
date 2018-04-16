@@ -48,14 +48,14 @@ namespace Emotion.Engine.Debugging
         /// <summary>
         /// The context the debugger is under.
         /// </summary>
-        private ContextBase _context;
+        private Context _context;
 
         #endregion
 
         /// <summary>
         /// Setup the debugger.
         /// </summary>
-        public Debugger(ContextBase context)
+        public Debugger(Context context)
         {
             _context = context;
 

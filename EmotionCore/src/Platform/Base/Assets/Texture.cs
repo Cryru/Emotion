@@ -1,11 +1,17 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#region Using
+
+using Emotion.Platform.Base.Interfaces;
+
+#endregion
+
 namespace Emotion.Platform.Base.Assets
 {
     /// <summary>
     /// An image loaded into memory which can be drawn to the screen. Managed by the platform's asset loader.
     /// </summary>
-    public abstract class TextureBase
+    public abstract class Texture : IDestroyable
     {
         #region Properties
 

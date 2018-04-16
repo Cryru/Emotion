@@ -5,7 +5,7 @@ namespace Emotion.Platform.Base.Interfaces
     public interface IDestroyable
     {
         /// <summary>
-        /// Cleanup resources used.
+        /// Cleanup resources used by the object.
         /// </summary>
         void Destroy();
     }

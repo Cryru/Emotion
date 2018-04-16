@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Emotion.Game.Components;
 using Emotion.Game.Pieces;
-using Emotion.Platform.SDL2;
+using Emotion.Platform.Base;
 using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 using TiledSharp;
@@ -27,7 +27,7 @@ namespace Emotion.Game.Objects
 
         #endregion
 
-        protected List<Texture> Tilesets;
+        protected List<SDLTexture> Tilesets;
         protected List<AnimatedTile> AnimatedTiles;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Emotion.Game.Objects
                 TiledMap = new TmxMap(mapFileStream);
             }
 
-            Tilesets = new List<Texture>();
+            Tilesets = new List<SDLTexture>();
 
             // Load all map tilesets.
             foreach (TmxTileset tileset in TiledMap.Tilesets)
@@ -52,7 +52,7 @@ namespace Emotion.Game.Objects
                 string tilesetFile = tileset.Image.Source;
                 tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
 
-                Texture temp = assetLoader.LoadTexture(tileSetFolder + '/' + tilesetFile);
+                SDLTexture temp = assetLoader.LoadTexture(tileSetFolder + '/' + tilesetFile);
                 Tilesets.Add(temp);
             }
 
@@ -69,7 +69,7 @@ namespace Emotion.Game.Objects
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
         /// <param name="frameTime">The time passed since the last frame.</param>
-        public void Draw(Renderer renderer, float frameTime)
+        public void Draw(IRenderer renderer, float frameTime)
         {
             // Update animated tiles.
             UpdateAnimatedTiles(frameTime);
