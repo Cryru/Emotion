@@ -8,6 +8,7 @@ using System;
 using Emotion.Game.Objects.Camera;
 using Emotion.Platform.Base;
 using Emotion.Platform.Base.Assets;
+using Emotion.Platform.Base.Objects;
 using Emotion.Platform.SDL2.Assets;
 using Emotion.Platform.SDL2.Base;
 using Emotion.Platform.SDL2.Objects;
@@ -18,22 +19,19 @@ using SDL2;
 
 namespace Emotion.Platform.SDL2
 {
-    /// <inheritdoc cref="IRenderer" />
-    public sealed class SDLRenderer : NativeObject, IRenderer
+    /// <inheritdoc cref="Renderer" />
+    public sealed class SDLRenderer : Renderer, INativeObject
     {
         #region Properties
 
-        /// <summary>
-        /// The resolution to render at.
-        /// </summary>
-        public Vector2 RenderSize { get; private set; }
+        public override Vector2 RenderSize { get; protected set; }
 
-        #endregion
+        public override CameraBase Camera { get; set; }
 
-        #region Declarations
+        /// <inheritdoc />
+        public IntPtr Pointer { get; set; }
 
         internal IntPtr GLContext;
-        internal CameraBase Camera;
 
         #endregion
 
@@ -58,7 +56,7 @@ namespace Emotion.Platform.SDL2
 
         #region Primary Functions
 
-        public void Clear(Color color)
+        public override void Clear(Color color)
         {
             // Set color.
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
@@ -69,7 +67,7 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
         }
 
-        public void Present()
+        public override void Present()
         {
             SDL.SDL_RenderPresent(Pointer);
         }
@@ -83,7 +81,21 @@ namespace Emotion.Platform.SDL2
 
         #region Texture Functions
 
-        public void DrawTexture(Texture texture, Rectangle location, Rectangle source, bool camera = true)
+        public override void DrawTexture(Texture texture, Rectangle location, Rectangle source, float opacity, bool camera = true)
+        {
+            SDLTexture sdlTexture = (SDLTexture) texture;
+
+            // Set the opacity to the requested one.
+            sdlTexture.SetAlpha((byte) (opacity * 255));
+
+            // Draw the texture.
+            DrawTexture(texture, location, source, camera);
+
+            // Revert opacity to maximum.
+            sdlTexture.SetAlpha(255);
+        }
+
+        public override void DrawTexture(Texture texture, Rectangle location, Rectangle source, bool camera = true)
         {
             SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
             SDL.SDL_Rect src = new SDL.SDL_Rect {x = (int) source.X, y = (int) source.Y, h = (int) source.Height, w = (int) source.Width};
@@ -98,7 +110,7 @@ namespace Emotion.Platform.SDL2
             ErrorHandler.CheckError(SDL.SDL_RenderCopy(Pointer, ((SDLTexture) texture).Pointer, ref src, ref des), true);
         }
 
-        public void DrawTexture(Texture texture, Rectangle location, bool camera = true)
+        public override void DrawTexture(Texture texture, Rectangle location, bool camera = true)
         {
             SDL.SDL_Rect des = new SDL.SDL_Rect {x = (int) location.X, y = (int) location.Y, h = (int) location.Height, w = (int) location.Width};
 
@@ -116,7 +128,7 @@ namespace Emotion.Platform.SDL2
 
         #region Primitive Drawing
 
-        public void DrawRectangleOutline(Rectangle rect, Color color, bool camera = true)
+        public override void DrawRectangleOutline(Rectangle rect, Color color, bool camera = true)
         {
             // Set color.
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
@@ -137,7 +149,7 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
         }
 
-        public void DrawRectangle(Rectangle rect, Color color, bool camera = true)
+        public override void DrawRectangle(Rectangle rect, Color color, bool camera = true)
         {
             // Set color.
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
@@ -158,7 +170,7 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_SetRenderDrawColor(Pointer, 0, 0, 0, 255);
         }
 
-        public void DrawLine(Vector2 start, Vector2 end, Color color, bool camera = true)
+        public override void DrawLine(Vector2 start, Vector2 end, Color color, bool camera = true)
         {
             // Set color.
             SDL.SDL_SetRenderDrawColor(Pointer, color.R, color.G, color.B, color.A);
@@ -183,108 +195,22 @@ namespace Emotion.Platform.SDL2
 
         #region Text Drawing
 
-        /// <summary>
-        /// Begin a text rendering session.
-        /// </summary>
-        /// <param name="font">The font to use.</param>
-        /// <param name="size">The font size to use.</param>
-        /// <param name="width">The width of the final resulting texture.</param>
-        /// <param name="height">The height of the final resulting texture.</param>
-        /// <returns>A text drawing session.</returns>
-        public TextDrawingSession TextSessionStart(SDLFont font, int size, int width, int height)
+        public override TextDrawingSession StartTextSession(Font font, int fontSize, int width, int height)
         {
             // Get a pointer to the font at the specified size.
-            TextDrawingSession session = new TextDrawingSession
+            SDLTextDrawingSession session = new SDLTextDrawingSession
             {
-                Font = font.GetSize(size),
-                Surface = SDL.SDL_CreateRGBSurface(0, width, height, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff),
-                Cache = new SDLTexture(width, height)
+                Font = ((SDLFont) font).GetSize(fontSize),
+                Size = new Vector2(width, height),
+                Renderer = this
             };
             session.FontAscent = SDLTtf.TTF_FontAscent(session.Font);
+            session.Reset();
 
             return session;
         }
 
-        /// <summary>
-        /// Add a glyph to a text rendering session. The glyph is automatically positioned to be after the previous one.
-        /// </summary>
-        /// <param name="session">The text rendering session to add a glyph to.</param>
-        /// <param name="glyphChar">The glyph to add.</param>
-        /// <param name="color">The glyph color.</param>
-        /// <param name="xOffset">The x offset to render the glyph at.</param>
-        /// <param name="yOffset">The y offset to render the glyph at.</param>
-        public void TextSessionAddGlyph(TextDrawingSession session, char glyphChar, Color color, int xOffset = 0, int yOffset = 0)
-        {
-            if (session == null || session.Finalized) throw new Exception("Cannot add a glyph to a non-existent or finalized state.");
-
-            // Convert color to platform color.
-            SDL.SDL_Color platformColor = new SDL.SDL_Color
-            {
-                r = color.R,
-                g = color.G,
-                b = color.B
-            };
-
-            IntPtr glyph = ErrorHandler.CheckError(SDLTtf.TTF_RenderGlyph_Solid(session.Font, glyphChar, platformColor));
-
-            // Get glyph data.
-            ErrorHandler.CheckError(SDLTtf.TTF_GlyphMetrics(session.Font, glyphChar, out int minX, out int _, out int _, out int _, out int advance));
-
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = xOffset + session.XOffset + minX, y = yOffset + session.YOffset, w = 0, h = 0};
-            session.XOffset += advance;
-            ErrorHandler.CheckError(SDL.SDL_BlitSurface(glyph, IntPtr.Zero, session.Surface, ref des));
-            SDL.SDL_FreeSurface(glyph);
-        }
-
-        /// <summary>
-        /// Add a new line to the text rendering session.
-        /// </summary>
-        /// <param name="session">The text rendering session to add a new line to.</param>
-        public void TextSessionNewLine(TextDrawingSession session)
-        {
-            if (session == null || session.Finalized) throw new Exception("Cannot add a glyph to a non-existent or finalized state.");
-
-            session.XOffset = 0;
-            session.YOffset += SDLTtf.TTF_FontLineSkip(session.Font);
-        }
-
-        /// <summary>
-        /// End a text drawing session, and return the result as a texture. Any old results are automatically freed.
-        /// </summary>
-        /// <param name="session">The text drawing session to return the result of.</param>
-        /// <param name="finalize">
-        /// Whether to permanently end the text drawing session. If false then the session can be reused,
-        /// more glyphs can be added and a result can be received again.
-        /// </param>
-        /// <returns>A texture result of the text drawing session.</returns>
-        public SDLTexture TextSessionEnd(TextDrawingSession session, bool finalize)
-        {
-            if (session == null || session.Finalized) throw new Exception("Cannot add a glyph to a non-existent or finalized state.");
-
-            // Get the resulting texture from the session.
-            SDLTexture resultTexture = session.Cache;
-
-            // Check if an old texture is loaded into the session.
-            if (resultTexture.Pointer != IntPtr.Zero) resultTexture.Destroy();
-
-            // Set it up.
-            resultTexture.Pointer = ErrorHandler.CheckError(SDL.SDL_CreateTextureFromSurface(Pointer, session.Surface));
-
-            // Check if finalizing session.
-            if (finalize)
-            {
-                SDL.SDL_FreeSurface(session.Surface);
-                session.Cache = null;
-                session.Font = IntPtr.Zero;
-                session.Surface = IntPtr.Zero;
-                session.Finalized = true;
-            }
-
-            // Return it.
-            return resultTexture;
-        }
-
-        public void DrawText(Font font, string text, Color color, Vector2 location, int size, bool camera = true)
+        public override void DrawText(Font font, int size, string text, Color color, Vector2 location, bool camera = true)
         {
             // Convert color to platform color.
             SDL.SDL_Color platformColor = new SDL.SDL_Color
@@ -322,7 +248,7 @@ namespace Emotion.Platform.SDL2
             SDL.SDL_DestroyTexture(messageTexture);
         }
 
-        public void DrawText(Font font, string[] text, Color color, Vector2 location, int size, bool camera = true)
+        public override void DrawText(Font font, int size, string[] text, Color color, Vector2 location, bool camera = true)
         {
             int lineSpacing = font.LineSpacing(size);
 
@@ -331,7 +257,7 @@ namespace Emotion.Platform.SDL2
             {
                 location.Y += lineSpacing * i;
 
-                DrawText(font, text[i], color, location, size, camera);
+                DrawText(font, size, text[i], color, location, camera);
             }
         }
 
@@ -346,20 +272,6 @@ namespace Emotion.Platform.SDL2
         public void SetRenderTarget(RenderTarget target)
         {
             SDL.SDL_SetRenderTarget(Pointer, target?.Pointer ?? IntPtr.Zero);
-        }
-
-        #endregion
-
-        #region Camera
-
-        public void SetCamera(CameraBase camera)
-        {
-            Camera = camera;
-        }
-
-        public CameraBase GetCamera()
-        {
-            return Camera;
         }
 
         #endregion

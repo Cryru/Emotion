@@ -7,7 +7,7 @@
 using System;
 using Emotion.Primitives;
 
-namespace Emotion.Game.AStar
+namespace Emotion.Game.Objects.AStar
 {
     public class Node : IEquatable<Node>
     {

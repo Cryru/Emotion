@@ -8,6 +8,7 @@ using System.IO;
 using Emotion.Game.Components;
 using Emotion.Game.Pieces;
 using Emotion.Platform.Base;
+using Emotion.Platform.Base.Assets;
 using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 using TiledSharp;
@@ -27,8 +28,8 @@ namespace Emotion.Game.Objects
 
         #endregion
 
-        protected List<SDLTexture> Tilesets;
-        protected List<AnimatedTile> AnimatedTiles;
+        protected List<Texture> Tilesets = new List<Texture>();
+        protected List<AnimatedTile> AnimatedTiles = new List<AnimatedTile>();
 
         /// <summary>
         /// Create a new map object from a Tiled map.
@@ -44,23 +45,20 @@ namespace Emotion.Game.Objects
                 TiledMap = new TmxMap(mapFileStream);
             }
 
-            Tilesets = new List<SDLTexture>();
-
             // Load all map tilesets.
             foreach (TmxTileset tileset in TiledMap.Tilesets)
             {
                 string tilesetFile = tileset.Image.Source;
                 tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
 
-                SDLTexture temp = assetLoader.LoadTexture(tileSetFolder + '/' + tilesetFile);
+                Texture temp = assetLoader.Texture(tileSetFolder + '/' + tilesetFile);
                 Tilesets.Add(temp);
             }
 
             // Calculate size.
             Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
 
-            // Animated tile logic.
-            AnimatedTiles = new List<AnimatedTile>();
+            // Find animated tiles.
             CacheAnimatedTiles();
         }
 
@@ -69,7 +67,7 @@ namespace Emotion.Game.Objects
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
         /// <param name="frameTime">The time passed since the last frame.</param>
-        public void Draw(IRenderer renderer, float frameTime)
+        public void Draw(Renderer renderer, float frameTime)
         {
             // Update animated tiles.
             UpdateAnimatedTiles(frameTime);
@@ -147,8 +145,7 @@ namespace Emotion.Game.Objects
                     tRect.Y += Bounds.Y;
 
                     // Draw.
-                    Tilesets[tsId].SetAlpha((byte) (layer.Opacity * 255));
-                    renderer.DrawTexture(Tilesets[tsId], tRect, tiRect);
+                    renderer.DrawTexture(Tilesets[tsId], tRect, tiRect, (float) layer.Opacity);
                 }
             }
         }

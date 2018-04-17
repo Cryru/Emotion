@@ -11,7 +11,7 @@ namespace Emotion.Platform.Base.Assets
     /// <summary>
     /// An image loaded into memory which can be drawn to the screen. Managed by the platform's asset loader.
     /// </summary>
-    public abstract class Texture : IDestroyable
+    public abstract class Texture : Destroyable
     {
         #region Properties
 
@@ -26,7 +26,5 @@ namespace Emotion.Platform.Base.Assets
         public int Height { get; protected set; }
 
         #endregion
-
-        public abstract void Destroy();
     }
 }

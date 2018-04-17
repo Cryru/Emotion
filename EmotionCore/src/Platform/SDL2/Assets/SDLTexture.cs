@@ -70,6 +70,7 @@ namespace Emotion.Platform.SDL2.Assets
         public override void Destroy()
         {
             SDL.SDL_DestroyTexture(Pointer);
+            Destroyed = true;
         }
 
         #region Functions

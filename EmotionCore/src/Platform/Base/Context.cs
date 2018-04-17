@@ -63,12 +63,12 @@ namespace Emotion.Platform.Base
         /// <summary>
         /// Handles rendering.
         /// </summary>
-        public IRenderer Renderer { get; protected set; }
+        public Renderer Renderer { get; protected set; }
 
         /// <summary>
         /// Handles input from the mouse, keyboard, and other devices.
         /// </summary>
-        public IInput Input { get; protected set; }
+        public Input Input { get; protected set; }
 
         #endregion
 

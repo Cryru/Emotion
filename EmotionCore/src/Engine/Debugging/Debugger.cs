@@ -121,7 +121,7 @@ namespace Emotion.Engine.Debugging
             }
 
             // Check if there is an attached renderer with a camera.
-            if (_context.Renderer?.GetCamera() != null) CameraBoundDraw(_context.Renderer);
+            if (_context.Renderer?.Camera != null) CameraBoundDraw(_context.Renderer);
 
             // Draw the mouse cursor location.
             MouseBoundDraw(_context.Renderer, _context.Input);
@@ -129,9 +129,9 @@ namespace Emotion.Engine.Debugging
 
         #region Debug Drawing
 
-        private static void CameraBoundDraw(IRenderer renderer)
+        private static void CameraBoundDraw(Renderer renderer)
         {
-            CameraBase camera = renderer.GetCamera();
+            CameraBase camera = renderer.Camera;
 
             // Draw bounds.
             renderer.DrawRectangleOutline(camera.Bounds, Color.Yellow);
@@ -144,7 +144,7 @@ namespace Emotion.Engine.Debugging
             renderer.DrawRectangleOutline(centerDraw, Color.Yellow);
         }
 
-        private static void MouseBoundDraw(IRenderer renderer, IInput input)
+        private static void MouseBoundDraw(Renderer renderer, Input input)
         {
             Vector2 mouseLocation = input.GetMousePosition();
 

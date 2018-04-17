@@ -18,7 +18,7 @@ using SDL2;
 namespace Emotion.Platform.SDL2
 {
     /// <inheritdoc />
-    public sealed class SDLInput : IInput
+    public sealed class SDLInput : Input
     {
         #region State Trackers
 
@@ -71,14 +71,14 @@ namespace Emotion.Platform.SDL2
 
         #region Keyboard
 
-        public bool IsKeyHeld(string key)
+        public override bool IsKeyHeld(string key)
         {
             // Get the scan code of the key.
             int scanCode = (int) SDL.SDL_GetScancodeFromName(key);
             return _keyStateArray[scanCode] != 0;
         }
 
-        public bool IsKeyDown(string key)
+        public override bool IsKeyDown(string key)
         {
             // Get the scan code of the key.
             int scanCode = (int) SDL.SDL_GetScancodeFromName(key);
@@ -89,7 +89,7 @@ namespace Emotion.Platform.SDL2
 
         #region Mouse
 
-        public Vector2 GetMousePosition(CameraBase camera = null)
+        public override Vector2 GetMousePosition(CameraBase camera = null)
         {
             return camera == null ? MousePosition : new Vector2(MousePosition.X + camera.Bounds.X, MousePosition.Y + camera.Bounds.Y);
         }

@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SDL2;
+using Emotion.Platform.Base.Assets;
 
 #endregion
 
@@ -18,8 +18,8 @@ namespace Emotion.Platform.SDL2.Assets
         #region Declarations
 
         private SDLContext _context;
-        private Dictionary<string, SDLTexture> _loadedTextures;
-        private Dictionary<string, SDLFont> _loadedFonts;
+        private Dictionary<string, Texture> _loadedTextures;
+        private Dictionary<string, Font> _loadedFonts;
 
         /// <summary>
         /// The root directory in which assets are located.
@@ -31,46 +31,58 @@ namespace Emotion.Platform.SDL2.Assets
         public Loader(SDLContext context)
         {
             _context = context;
-            _loadedTextures = new Dictionary<string, SDLTexture>();
-            _loadedFonts = new Dictionary<string, SDLFont>();
+            _loadedTextures = new Dictionary<string, Texture>();
+            _loadedFonts = new Dictionary<string, Font>();
         }
 
         #region Texture
 
         /// <summary>
-        /// Loads a texture.
+        /// Loads a texture or returns a texture object if already loaded.
         /// </summary>
-        /// <param name="path">An engine path to the texture to load.</param>
-        public SDLTexture LoadTexture(string path)
+        /// <param name="path">
+        /// A path to the asset, considering the loader's root directory. Directory separators are converted to
+        /// cross-platform ones.
+        /// </param>
+        /// <returns>A texture object corresponding to the specified path.</returns>
+        public Texture Texture(string path)
         {
-            // Add it to the list of loaded textures.
-            _loadedTextures.Add(PathToEnginePath(path), new SDLTexture(_context.Renderer, ReadFile(path)));
-
-            // Return the just loaded texture.
-            return GetTexture(path);
-        }
-
-        /// <summary>
-        /// Unloads a loaded texture, freeing memory.
-        /// </summary>
-        /// <param name="path">An engine path to the texture to unload.</param>
-        public void UnloadTexture(string path)
-        {
+            // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
 
-            // Destroy the texture and remove it from the loaded list.
-            SDL.SDL_DestroyTexture(_loadedTextures[enginePath].Pointer);
-            _loadedTextures.Remove(enginePath);
+            // Check if the asset is already loaded, in which case return it.
+            if (_loadedTextures.ContainsKey(enginePath))
+                if (_loadedTextures[enginePath].Destroyed)
+                    _loadedTextures.Remove(enginePath);
+                // If alive, return it.
+                else
+                    return _loadedTextures[enginePath];
+
+            // Load it and add it to the list of loaded textures.
+            _loadedTextures.Add(enginePath, new SDLTexture(_context.Renderer, ReadFile(path)));
+
+            // Return the just loaded texture.
+            return _loadedTextures[enginePath];
         }
 
         /// <summary>
-        /// Returns a loaded texture.
+        /// Unloads and destroys a loaded texture safely, freeing memory. If the specified texture isn't loaded nothing happens.
         /// </summary>
-        /// <param name="path">The path of the loaded texture.</param>
-        /// <returns>A loaded texture.</returns>
-        public SDLTexture GetTexture(string path)
+        /// <param name="path">
+        /// A path to the asset, considering the loader's root directory. Directory separators are converted to
+        /// cross-platform ones.
+        /// </param>
+        public void UnloadTexture(string path)
         {
-            return _loadedTextures[PathToEnginePath(path)];
+            // Convert the path to an engine path.
+            string enginePath = PathToEnginePath(path);
+
+            // Check if not loaded, in which case there is nothing to unload.
+            if (!_loadedTextures.ContainsKey(enginePath)) return;
+
+            // Destroy the texture and remove it from the loaded list.
+            _loadedTextures[enginePath].Destroy();
+            _loadedTextures.Remove(enginePath);
         }
 
         #endregion
@@ -78,32 +90,51 @@ namespace Emotion.Platform.SDL2.Assets
         #region Font
 
         /// <summary>
-        /// Loads a font.
+        /// Loads a font or returns a font object if already loaded.
         /// </summary>
-        /// <param name="path">An engine path to the font to load.</param>
-        public SDLFont LoadFont(string path)
+        /// <param name="path">
+        /// A path to the asset, considering the loader's root directory. Directory separators are converted to
+        /// cross-platform ones.
+        /// </param>
+        /// <returns>A font object corresponding to the specified path.</returns>
+        public Font Font(string path)
         {
-            string parsedPath = PathToCrossPlatform(path);
+            // Convert the path to an engine path.
+            string enginePath = PathToEnginePath(path);
 
-            if (!File.Exists(parsedPath)) throw new Exception("The file " + parsedPath + " could not be found.");
+            // Check if the asset is already loaded, in which case return it.
+            if (_loadedFonts.ContainsKey(enginePath))
+                if (_loadedFonts[enginePath].Destroyed)
+                    _loadedFonts.Remove(enginePath);
+                // If alive, return it.
+                else
+                    return _loadedFonts[enginePath];
 
-            // Load the bytes of the file.
-            byte[] data = File.ReadAllBytes(parsedPath);
-            // Add it to the list of loaded fonts.
-            _loadedFonts.Add(PathToEnginePath(path), new SDLFont(data));
+            // Load it and add it to the list of loaded fonts.
+            _loadedFonts.Add(enginePath, new SDLFont(ReadFile(path)));
 
             // Return the just loaded font.
-            return GetFont(path);
+            return _loadedFonts[enginePath];
         }
 
         /// <summary>
-        /// Returns a loaded font.
+        /// Unloads and destroys a loaded font safely, freeing memory. If the specified font isn't loaded nothing happens.
         /// </summary>
-        /// <param name="path">The path of the loaded font.</param>
-        /// <returns>A loaded font.</returns>
-        public SDLFont GetFont(string path)
+        /// <param name="path">
+        /// A path to the asset, considering the loader's root directory. Directory separators are converted to
+        /// cross-platform ones.
+        /// </param>
+        public void UnloadFont(string path)
         {
-            return _loadedFonts[PathToEnginePath(path)];
+            // Convert the path to an engine path.
+            string enginePath = PathToEnginePath(path);
+
+            // Check if not loaded, in which case there is nothing to unload.
+            if (!_loadedFonts.ContainsKey(enginePath)) return;
+
+            // Destroy the font and remove it from the loaded list.
+            _loadedFonts[enginePath].Destroy();
+            _loadedFonts.Remove(enginePath);
         }
 
         #endregion

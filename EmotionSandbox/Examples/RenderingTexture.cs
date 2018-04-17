@@ -3,8 +3,8 @@
 #region Using
 
 using Emotion.Engine.Objects;
+using Emotion.Platform.Base.Assets;
 using Emotion.Platform.SDL2;
-using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 
 #endregion
@@ -14,7 +14,7 @@ namespace EmotionSandbox.Examples
     public class RenderingTexture : Layer
     {
         private static SDLContext _context;
-        private SDLTexture _texture;
+        private Texture _texture;
 
         public static void Main()
         {
@@ -26,7 +26,7 @@ namespace EmotionSandbox.Examples
 
         public override void Load()
         {
-            _texture = _context.AssetLoader.LoadTexture("test.png");
+            _texture = _context.AssetLoader.Texture("test.png");
         }
 
         public override void Draw()
@@ -36,12 +36,10 @@ namespace EmotionSandbox.Examples
 
         public override void Update()
         {
-            
         }
 
         public override void Unload()
         {
-            
         }
     }
 }

@@ -9,7 +9,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Game.AStar
+namespace Emotion.Game.Objects.AStar
 {
     public sealed class Path
     {

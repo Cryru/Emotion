@@ -35,7 +35,7 @@ namespace Emotion.Game.Objects.Camera
         {
         }
 
-        public void Update(IInput input)
+        public void Update(Input input)
         {
             // Check if no target.
             if (Target == null) return;

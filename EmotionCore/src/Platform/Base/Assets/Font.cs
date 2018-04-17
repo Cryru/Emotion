@@ -9,7 +9,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Platform.Base.Assets
 {
-    public abstract class Font : IDestroyable
+    public abstract class Font : Destroyable
     {
         /// <summary>
         /// Returns the size in pixels the string would use at the specified font size.
@@ -25,7 +25,5 @@ namespace Emotion.Platform.Base.Assets
         /// <param name="size">The font size to use to measure.</param>
         /// <returns>The distance between text lines.</returns>
         public abstract int LineSpacing(int size);
-
-        public abstract void Destroy();
     }
 }

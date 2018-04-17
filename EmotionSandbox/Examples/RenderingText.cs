@@ -3,9 +3,9 @@
 #region Using
 
 using Emotion.Engine.Objects;
+using Emotion.Platform.Base.Assets;
+using Emotion.Platform.Base.Objects;
 using Emotion.Platform.SDL2;
-using Emotion.Platform.SDL2.Assets;
-using Emotion.Platform.SDL2.Objects;
 using Emotion.Primitives;
 
 #endregion
@@ -15,8 +15,8 @@ namespace EmotionSandbox.Examples
     public class RenderingText : Layer
     {
         private static SDLContext _context;
-        private SDLFont _font;
-        private SDLTexture _cachedTextRender;
+        private Font _font;
+        private Texture _cachedTextRender;
 
         public static void Main()
         {
@@ -28,24 +28,26 @@ namespace EmotionSandbox.Examples
 
         public override void Load()
         {
-            _font = _context.AssetLoader.LoadFont("ElectricSleepFont.ttf");
+            _font = _context.AssetLoader.Font("ElectricSleepFont.ttf");
         }
 
         public override void Draw()
         {
             // Show direct SDL ttf rendering.
-            _context.Renderer.DrawText(_font, "Hello! I am text being rendered using SDL.TTF.".ToUpper(), Color.White, new Vector2(50, 50), 40);
+            _context.Renderer.DrawText(_font, 33, "Hello! I am text being rendered using SDL.TTF.".ToUpper(), Color.White, new Vector2(50, 50));
 
             // Check if need to render.
             if (_cachedTextRender == null)
             {
                 // Render.
-                TextDrawingSession session = _context.Renderer.TextSessionStart(_font, 40, 800, 300);
+                TextDrawingSession session = _context.Renderer.StartTextSession(_font, 33, 800, 300);
                 foreach (char c in "Hello! I am text being rendered using a text session!".ToUpper())
                 {
-                    _context.Renderer.TextSessionAddGlyph(session, c, Color.White);
+                    session.AddGlyph(c, Color.White);
                 }
-                _cachedTextRender = _context.Renderer.TextSessionEnd(session, true);
+
+                _cachedTextRender = session.GetTexture();
+                session.Destroy();
             }
 
             // Render cached.

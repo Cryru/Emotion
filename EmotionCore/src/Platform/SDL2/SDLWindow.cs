@@ -5,7 +5,6 @@
 #region Using
 
 using System;
-using Emotion.Engine.Enums;
 using Emotion.Platform.SDL2.Base;
 using Emotion.Primitives;
 using SDL2;
@@ -14,9 +13,11 @@ using SDL2;
 
 namespace Emotion.Platform.SDL2
 {
-    public sealed class SDLWindow : NativeObject
+    public sealed class SDLWindow : INativeObject
     {
         #region Properties
+
+        public IntPtr Pointer { get; set; }
 
         /// <summary>
         /// The window's title.

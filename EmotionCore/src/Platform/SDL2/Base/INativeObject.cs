@@ -9,12 +9,12 @@ namespace Emotion.Platform.SDL2.Base
     /// <summary>
     /// A native SDL2 object.
     /// </summary>
-    public abstract class NativeObject
+    public interface INativeObject
     {
         /// <summary>
         /// The pointer to the native SDL2 object.
         /// </summary>
-        internal IntPtr Pointer = IntPtr.Zero;
+        IntPtr Pointer { get; set; }
     }
 }
 
