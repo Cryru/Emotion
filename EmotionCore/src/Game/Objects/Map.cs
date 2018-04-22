@@ -30,17 +30,34 @@ namespace Emotion.Game.Objects
 
         protected List<Texture> Tilesets = new List<Texture>();
         protected List<AnimatedTile> AnimatedTiles = new List<AnimatedTile>();
+        private Loader _assetLoader;
 
         /// <summary>
         /// Create a new map object from a Tiled map.
         /// </summary>
+        /// <param name="mapBounds">The location and size to draw the map at.</param>
         /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(Loader assetLoader, string mapPath, string tileSetFolder) : base(new Rectangle(0, 0, 0, 0))
+        public Map(Rectangle mapBounds, Loader assetLoader, string mapPath, string tileSetFolder) : base(mapBounds)
         {
+            _assetLoader = assetLoader;
+
+            // Check if no map is provided.
+            if (mapPath == "") return;
+
+            // Reset with the constructor parameters.
+            Reset(mapPath, tileSetFolder);
+        }
+
+        public void Reset(string mapPath, string tileSetFolder)
+        {
+            // Reset holders.
+            Tilesets.Clear();
+            AnimatedTiles.Clear();
+
             // Load the map from the data as a stream.
-            using (MemoryStream mapFileStream = new MemoryStream(assetLoader.GetFile(mapPath)))
+            using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Other(mapPath)))
             {
                 TiledMap = new TmxMap(mapFileStream);
             }
@@ -49,28 +66,41 @@ namespace Emotion.Game.Objects
             foreach (TmxTileset tileset in TiledMap.Tilesets)
             {
                 string tilesetFile = tileset.Image.Source;
-                tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
+                // Cut out the last slash if any.
+                if(tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
 
-                Texture temp = assetLoader.Texture(tileSetFolder + '/' + tilesetFile);
+                Texture temp = _assetLoader.Texture(tileSetFolder + '/' + tilesetFile);
                 Tilesets.Add(temp);
             }
-
-            // Calculate size.
-            Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
-
+            
             // Find animated tiles.
             CacheAnimatedTiles();
+
+            // Set default size if none set.
+            if (Bounds.Width == 0 && Bounds.Height == 0)
+            {      
+                Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            }
+        }
+
+        /// <summary>
+        /// Update the map. Processes animated tiles.
+        /// </summary>
+        /// <param name="frameTime">The time passed since the last frame.</param>
+        public void Update(float frameTime)
+        {
+            // Update animated tiles.
+            UpdateAnimatedTiles(frameTime);
         }
 
         /// <summary>
         /// Draw the map using the specified renderer.
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
-        /// <param name="frameTime">The time passed since the last frame.</param>
-        public void Draw(Renderer renderer, float frameTime)
+        public void Draw(Renderer renderer)
         {
-            // Update animated tiles.
-            UpdateAnimatedTiles(frameTime);
+            // Check if anything is loaded.
+            if(TiledMap == null) return;
 
             // layer - The map layer currently drawing.
             // t - The tile currently drawing from [layer]. 
@@ -139,6 +169,14 @@ namespace Emotion.Game.Objects
 
                     // Get the location of the tile.
                     Rectangle tRect = new Rectangle(tX, tY, ts.TileWidth, ts.TileHeight);
+                    
+                    // Modify for map size.
+                    float ratioDifferenceX = Bounds.Width /  (TiledMap.TileWidth * TiledMap.Width);
+                    float ratioDifferenceY = Bounds.Height / (TiledMap.TileHeight * TiledMap.Height);
+                    tRect.Width *= ratioDifferenceX;
+                    tRect.Height *= ratioDifferenceY;
+                    tRect.X *= ratioDifferenceX;
+                    tRect.Y *= ratioDifferenceY;
 
                     // Add map position.
                     tRect.X += Bounds.X;
@@ -184,7 +222,7 @@ namespace Emotion.Game.Objects
 
         #endregion
 
-        #region Functions
+        #region API
 
         /// <summary>
         /// Returns the layer id of the layer with the specified name, or -1 if invalid.

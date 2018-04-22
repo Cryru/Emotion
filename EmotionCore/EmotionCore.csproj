@@ -88,9 +88,12 @@
     <Compile Include="Libraries\SDL2-CS\SDLImage.cs" />
     <Compile Include="Libraries\SDL2-CS\SDLMixer.cs" />
     <Compile Include="Libraries\SDL2-CS\SDLTTF.cs" />
+    <Compile Include="src\Game\Objects\AdvancedText.cs" />
     <Compile Include="src\Game\Objects\AStar\Path.cs" />
     <Compile Include="src\Game\Objects\AStar\Grid.cs" />
     <Compile Include="src\Game\Objects\AStar\Node.cs" />
+    <Compile Include="src\Game\Pieces\TextEffect.cs" />
+    <Compile Include="src\Helpers.cs" />
     <Compile Include="src\Platform\Base\Assets\Font.cs" />
     <Compile Include="src\Platform\Base\Assets\Texture.cs" />
     <Compile Include="src\Platform\Base\Objects\TextDrawingSession.cs" />

@@ -47,6 +47,9 @@ namespace Emotion.Platform.SDL2
             ErrorHandler.CheckError(SDL.SDL_RenderSetLogicalSize(Pointer, context.Settings.RenderWidth, context.Settings.RenderHeight));
 
             RenderSize = new Vector2(context.Settings.RenderWidth, context.Settings.RenderHeight);
+
+            // Set certain SDL properties.
+            ErrorHandler.CheckError(SDL.SDL_SetRenderDrawBlendMode(Pointer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND));
         }
 
         internal void Destroy()

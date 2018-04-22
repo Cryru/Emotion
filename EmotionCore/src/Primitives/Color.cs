@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Text;
 
 #endregion
 
@@ -1134,36 +1133,13 @@ namespace Emotion.Primitives
         /// </summary>
         public uint PackedValue { get; set; }
 
-
-        internal string DebugDisplayString
-        {
-            get => string.Concat(
-                R.ToString(), "  ",
-                G.ToString(), "  ",
-                B.ToString(), "  ",
-                A.ToString()
-            );
-        }
-
-
         /// <summary>
-        /// Returns a <see cref="String" /> representation of this <see cref="Color" /> in the format:
-        /// {R:[red] G:[green] B:[blue] A:[alpha]}
+        /// Formats the color as a string. The format is R-G-B-A
         /// </summary>
         /// <returns><see cref="String" /> representation of this <see cref="Color" />.</returns>
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder(25);
-            sb.Append("{R:");
-            sb.Append(R);
-            sb.Append(" G:");
-            sb.Append(G);
-            sb.Append(" B:");
-            sb.Append(B);
-            sb.Append(" A:");
-            sb.Append(A);
-            sb.Append("}");
-            return sb.ToString();
+            return R + "-" + G + "-" + B + "-" + A;
         }
 
         /// <summary>

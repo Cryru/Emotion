@@ -59,7 +59,7 @@ namespace Emotion.Platform.SDL2.Assets
                     return _loadedTextures[enginePath];
 
             // Load it and add it to the list of loaded textures.
-            _loadedTextures.Add(enginePath, new SDLTexture(_context.Renderer, ReadFile(path)));
+            _loadedTextures.Add(enginePath, new SDLTexture(_context, ReadFile(path)));
 
             // Return the just loaded texture.
             return _loadedTextures[enginePath];
@@ -142,13 +142,34 @@ namespace Emotion.Platform.SDL2.Assets
         #region Other
 
         /// <summary>
-        /// Returns the contents of a custom file.
+        /// Returns the contents of a custom text file.
         /// </summary>
-        /// <param name="path">The path to the file to load.</param>
-        public byte[] GetFile(string path)
+        /// <param name="path">The path to the file.</param>
+        /// <returns>The contents of a custom text file.</returns>
+        public string[] TextFile(string path)
+        {
+            return File.ReadAllLines(PathToCrossPlatform(path));
+        }
+
+        /// <summary>
+        /// Returns the contents of a custom file as a byte array.
+        /// </summary>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>A byte array representing the contents of the specified file.</returns>
+        public byte[] Other(string path)
         {
             // Load the bytes of the file.
             return File.ReadAllBytes(PathToCrossPlatform(path));
+        }
+
+        /// <summary>
+        /// Returns whether the specified file exists.
+        /// </summary>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>True if it exists, false otherwise.</returns>
+        public bool Exists(string path)
+        {
+            return File.Exists(PathToCrossPlatform(path));
         }
 
         #endregion
