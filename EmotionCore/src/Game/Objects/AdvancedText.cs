@@ -100,14 +100,14 @@ namespace Emotion.Game.Objects
         /// </param>
         public void DisplayText(string text, bool fullReset = true)
         {
-            // Check if any text is set.
-            if (string.IsNullOrEmpty(text)) return;
-
             // Check whether to reset scroll state.
             if (fullReset) Reset();
 
             // Set text.
             _rawText = text;
+
+            // Check if any text is set.
+            if (string.IsNullOrEmpty(text)) return;
 
             // Find effects.
             ParseEffects();
@@ -430,6 +430,12 @@ namespace Emotion.Game.Objects
         /// </summary>
         protected void Reset()
         {
+            _textToDisplay = "";
+            _rawText = "";
+
+            _wrapCache.Clear();
+            _effectCache.Clear();
+
             _cachedTextRender?.Destroy();
             _cachedTextRender = null;
 

@@ -50,6 +50,11 @@ namespace Emotion.Engine.Debugging
         /// </summary>
         private Context _context;
 
+        /// <summary>
+        /// The thread on which console input is read.
+        /// </summary>
+        private Thread _consoleThread;
+
         #endregion
 
         /// <summary>
@@ -58,13 +63,6 @@ namespace Emotion.Engine.Debugging
         public Debugger(Context context)
         {
             _context = context;
-
-            // Start the console thread.
-            Thread consoleThread = new Thread(ConsoleThread);
-            consoleThread.Start();
-            while (!consoleThread.IsAlive)
-            {
-            }
         }
 
         /// <summary>
@@ -113,6 +111,17 @@ namespace Emotion.Engine.Debugging
         /// </summary>
         public void DebugLoop()
         {
+            // Start the debug thread if needed.
+            if (_consoleThread == null)
+            {
+                // Start the console thread.
+                _consoleThread = new Thread(ConsoleThread);
+                _consoleThread.Start();
+                while (!_consoleThread.IsAlive)
+                {
+                }
+            }
+
             // Check if there is a command to execute.
             if (_command != string.Empty)
             {

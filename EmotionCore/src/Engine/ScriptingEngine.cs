@@ -88,9 +88,9 @@ namespace Emotion.Engine
             catch (Exception e)
             {
                 // Check if timeout, and if not throw an exception.
-                if (e.Message != "The operation has timed out.") throw e;
+                if (e.Message != "The operation has timed out." && _context.Settings.StrictScripts) throw e;
 #if DEBUG
-                _context.Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "A script has timed out.");
+                _context.Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "Scripting error: " + e.Message);
                 _context.Debugger.Log(MessageType.Trace, MessageSource.ScriptingEngine, " " + script);
 #endif
                 return null;

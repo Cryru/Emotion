@@ -34,14 +34,14 @@ namespace EmotionSandbox.Examples
         public override void Draw()
         {
             // Show direct SDL ttf rendering.
-            _context.Renderer.DrawText(_font, 33, "Hello! I am text being rendered using SDL.TTF.".ToUpper(), Color.White, new Vector2(50, 50));
+            _context.Renderer.DrawText(_font, 33, "Hello! I am text being 'rendered' using SDL.TTF.".ToUpper(), Color.White, new Vector2(50, 50));
 
             // Check if need to render.
             if (_cachedTextRender == null)
             {
                 // Render.
                 TextDrawingSession session = _context.Renderer.StartTextSession(_font, 33, 800, 300);
-                foreach (char c in "Hello! I am text being rendered using a text session!".ToUpper())
+                foreach (char c in "Hello! I am text being 'rendered' using a text session!".ToUpper())
                 {
                     session.AddGlyph(c, Color.White);
                 }

@@ -5,6 +5,7 @@
 #region Using
 
 using System;
+using System.Threading;
 using Emotion.Platform.Base.Assets;
 using Emotion.Platform.Base.Objects;
 using Emotion.Platform.SDL2.Assets;
@@ -48,12 +49,25 @@ namespace Emotion.Platform.SDL2.Objects
                 b = color.B
             };
 
-            IntPtr glyph = ErrorHandler.CheckError(SDLTtf.TTF_RenderGlyph_Solid(Font, glyphChar, platformColor));
+            IntPtr glyph = SDLTtf.TTF_RenderGlyph_Solid(Font, glyphChar, platformColor);
 
+            // Check for SDL error. Randomly some characters will fail to render with an "Zero-width" error.
+            if (glyph == IntPtr.Zero)
+            {
+                Console.WriteLine("Encountered weird error - zero width when reading font glyph " + glyphChar + ", retrying...");
+                glyph = SDLTtf.TTF_RenderGlyph_Solid(Font, glyphChar, platformColor);
+                if (glyph == IntPtr.Zero)
+                {
+                    Console.WriteLine("Retry failed, replacing with space.");
+                    glyph = SDLTtf.TTF_RenderGlyph_Solid(Font, ' ', platformColor);
+                    glyphChar = ' ';
+                }
+            }
+            
             // Get glyph data.
             ErrorHandler.CheckError(SDLTtf.TTF_GlyphMetrics(Font, glyphChar, out int minX, out int _, out int _, out int _, out int advance));
-
-            SDL.SDL_Rect des = new SDL.SDL_Rect {x = xOffset + XOffset + minX, y = yOffset + YOffset, w = 0, h = 0};
+            XOffset += minX;
+            SDL.SDL_Rect des = new SDL.SDL_Rect {x = xOffset + XOffset, y = yOffset + YOffset, w = 0, h = 0};
             XOffset += advance;
             ErrorHandler.CheckError(SDL.SDL_BlitSurface(glyph, IntPtr.Zero, Surface, ref des));
             SDL.SDL_FreeSurface(glyph);

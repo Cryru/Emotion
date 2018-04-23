@@ -92,6 +92,7 @@
     <Compile Include="src\Game\Objects\AStar\Path.cs" />
     <Compile Include="src\Game\Objects\AStar\Grid.cs" />
     <Compile Include="src\Game\Objects\AStar\Node.cs" />
+    <Compile Include="src\Game\Objects\ScreenFader.cs" />
     <Compile Include="src\Game\Pieces\TextEffect.cs" />
     <Compile Include="src\Helpers.cs" />
     <Compile Include="src\Platform\Base\Assets\Font.cs" />
