@@ -19,7 +19,7 @@ namespace Emotion.Platform.GLES
 
         #endregion
 
-        #region Declarations
+        #region Objects
 
         /// <summary>
         /// The context this object belongs to.

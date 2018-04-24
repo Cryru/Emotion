@@ -45,11 +45,6 @@ namespace Emotion.Platform.SDL2
         /// </summary>
         public SDLWindow Window { get; private set; }
 
-        /// <summary>
-        /// Handles loading assets and storing assets.
-        /// </summary>
-        public Loader AssetLoader { get; private set; }
-
         #endregion
 
         #region Variables
@@ -116,7 +111,7 @@ namespace Emotion.Platform.SDL2
             base.Renderer = Renderer;
 
             // Load modules.
-            AssetLoader = new Loader(this);
+            AssetLoader = new SDLLoader(this);
             Input = new SDLInput(this);
             base.Input = Input;
             ScriptingEngine = new ScriptingEngine(this);
@@ -215,7 +210,7 @@ namespace Emotion.Platform.SDL2
             Renderer = null;
             Settings = null;
 
-            // Cleanup external.
+            // Platform cleanup.
             SDL.SDL_Quit();
 
             // Close application.

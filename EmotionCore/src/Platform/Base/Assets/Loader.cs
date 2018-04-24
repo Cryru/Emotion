@@ -1,25 +1,18 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-#if SDL2
-
 #region Using
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Platform.Base.Assets;
 
 #endregion
 
-namespace Emotion.Platform.SDL2.Assets
+namespace Emotion.Platform.Base.Assets
 {
-    public class Loader
+    public abstract class Loader
     {
-        #region Declarations
-
-        private SDLContext _context;
-        private Dictionary<string, Texture> _loadedTextures;
-        private Dictionary<string, Font> _loadedFonts;
+        #region Properties
 
         /// <summary>
         /// The root directory in which assets are located.
@@ -28,9 +21,21 @@ namespace Emotion.Platform.SDL2.Assets
 
         #endregion
 
-        public Loader(SDLContext context)
+        #region Objects
+
+        private Dictionary<string, Texture> _loadedTextures;
+        private Dictionary<string, Font> _loadedFonts;
+
+        /// <summary>
+        /// The context this object belongs to.
+        /// </summary>
+        internal Context EmotionContext;
+
+        #endregion
+
+        protected Loader(Context context)
         {
-            _context = context;
+            EmotionContext = context;
             _loadedTextures = new Dictionary<string, Texture>();
             _loadedFonts = new Dictionary<string, Font>();
         }
@@ -59,7 +64,7 @@ namespace Emotion.Platform.SDL2.Assets
                     return _loadedTextures[enginePath];
 
             // Load it and add it to the list of loaded textures.
-            _loadedTextures.Add(enginePath, new SDLTexture(_context, ReadFile(path)));
+            _loadedTextures.Add(enginePath, LoadTexture(ReadFile(path)));
 
             // Return the just loaded texture.
             return _loadedTextures[enginePath];
@@ -111,7 +116,7 @@ namespace Emotion.Platform.SDL2.Assets
                     return _loadedFonts[enginePath];
 
             // Load it and add it to the list of loaded fonts.
-            _loadedFonts.Add(enginePath, new SDLFont(ReadFile(path)));
+            _loadedFonts.Add(enginePath, LoadFont(ReadFile(path)));
 
             // Return the just loaded font.
             return _loadedFonts[enginePath];
@@ -212,7 +217,13 @@ namespace Emotion.Platform.SDL2.Assets
         }
 
         #endregion
+
+        #region Loaders
+
+        protected abstract Font LoadFont(byte[] data);
+
+        protected abstract Texture LoadTexture(byte[] data);
+
+        #endregion
     }
 }
-
-#endif

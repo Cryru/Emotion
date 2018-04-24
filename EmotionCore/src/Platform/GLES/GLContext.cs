@@ -147,6 +147,9 @@ namespace Emotion.Platform.GLES
             Window.Destroy();
             Renderer.Destroy();
 
+            // Platform cleanup.
+            Window.Dispose();
+
             // Dereference objects.
             Window = null;
             Renderer = null;

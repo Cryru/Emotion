@@ -4,6 +4,7 @@
 
 using Emotion.Engine;
 using Emotion.Engine.Objects;
+using Emotion.Platform.Base.Assets;
 #if DEBUG
 using Emotion.Engine.Debugging;
 
@@ -69,6 +70,11 @@ namespace Emotion.Platform.Base
         /// Handles input from the mouse, keyboard, and other devices.
         /// </summary>
         public Input Input { get; protected set; }
+
+        /// <summary>
+        /// Handles loading assets and storing assets.
+        /// </summary>
+        public Loader AssetLoader { get; protected set; }
 
         #endregion
 
