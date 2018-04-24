@@ -9,7 +9,6 @@ using Emotion.Game.Components;
 using Emotion.Game.Pieces;
 using Emotion.Platform.Base;
 using Emotion.Platform.Base.Assets;
-using Emotion.Platform.SDL2.Assets;
 using Emotion.Primitives;
 using TiledSharp;
 
@@ -30,7 +29,7 @@ namespace Emotion.Game.Objects
 
         protected List<Texture> Tilesets = new List<Texture>();
         protected List<AnimatedTile> AnimatedTiles = new List<AnimatedTile>();
-        private Loader _assetLoader;
+        private object _assetLoader;
 
         /// <summary>
         /// Create a new map object from a Tiled map.
@@ -39,7 +38,7 @@ namespace Emotion.Game.Objects
         /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(Rectangle mapBounds, Loader assetLoader, string mapPath, string tileSetFolder) : base(mapBounds)
+        public Map(Rectangle mapBounds, object assetLoader, string mapPath, string tileSetFolder) : base(mapBounds)
         {
             _assetLoader = assetLoader;
 
@@ -61,10 +60,10 @@ namespace Emotion.Game.Objects
             if (mapPath == "") return;
 
             // Load the map from the data as a stream.
-            using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Other(mapPath)))
-            {
-                TiledMap = new TmxMap(mapFileStream);
-            }
+            //using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Other(mapPath)))
+            //{
+            //    TiledMap = new TmxMap(mapFileStream);
+            //}
 
             // Load all map tilesets.
             foreach (TmxTileset tileset in TiledMap.Tilesets)
@@ -74,8 +73,8 @@ namespace Emotion.Game.Objects
                 if(tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
                 if(tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\'));
 
-                Texture temp = _assetLoader.Texture(tileSetFolder + '/' + tilesetFile);
-                Tilesets.Add(temp);
+                //Texture temp = _assetLoader.Texture(tileSetFolder + '/' + tilesetFile);
+                //Tilesets.Add(temp);
             }
             
             // Find animated tiles.

@@ -21,13 +21,13 @@ namespace Emotion.Platform.Base
         /// <summary>
         /// The resolution to render at.
         /// </summary>
-        public abstract Vector2 RenderSize { get; protected set; }
+        public Vector2 RenderSize { get; protected set; }
 
         /// <summary>
         /// The renderer's camera.
         /// </summary>
         public abstract CameraBase Camera { get; set; }
-
+        
         #endregion
 
         #region Primary Functions
@@ -41,6 +41,11 @@ namespace Emotion.Platform.Base
         /// Swaps window buffers, displaying everything rendered to the window.
         /// </summary>
         public abstract void Present();
+
+        /// <summary>
+        /// Clean up resources.
+        /// </summary>
+        internal abstract void Destroy();
 
         #endregion
 

@@ -24,19 +24,27 @@ namespace Emotion.Platform.SDL2
     {
         #region Properties
 
-        public override Vector2 RenderSize { get; protected set; }
-
         public override CameraBase Camera { get; set; }
 
         /// <inheritdoc />
         public IntPtr Pointer { get; set; }
 
+        /// <summary>
+        /// The OpenGL context created by SDL.
+        /// </summary>
         internal IntPtr GLContext;
+        
+        /// <summary>
+        /// The context this object belongs to.
+        /// </summary>
+        internal SDLContext EmotionContext;
 
         #endregion
 
         internal SDLRenderer(SDLContext context)
         {
+            EmotionContext = context;
+
             // Create a renderer.
             Pointer = ErrorHandler.CheckError(SDL.SDL_CreateRenderer(context.Window.Pointer, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED));
 
@@ -52,7 +60,7 @@ namespace Emotion.Platform.SDL2
             ErrorHandler.CheckError(SDL.SDL_SetRenderDrawBlendMode(Pointer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND));
         }
 
-        internal void Destroy()
+        internal override void Destroy()
         {
             SDL.SDL_DestroyRenderer(Pointer);
         }

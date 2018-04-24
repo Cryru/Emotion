@@ -9,7 +9,7 @@ namespace Emotion.Platform.SDL2.Base
     /// <summary>
     /// A native SDL2 object.
     /// </summary>
-    public interface INativeObject
+    internal interface INativeObject
     {
         /// <summary>
         /// The pointer to the native SDL2 object.

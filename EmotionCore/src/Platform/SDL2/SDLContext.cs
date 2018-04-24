@@ -92,7 +92,7 @@ namespace Emotion.Platform.SDL2
 #if DEBUG
             Debugger = new Debugger(this);
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
-            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "SDL Context created!");
+            Debugger.Log(MessageType.Info, MessageSource.PlatformCore, "Creating SDL2 context.");
 #endif
 
             // Apply settings.

@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Game.Objects;
-using Emotion.Platform.SDL2;
 using Emotion.Primitives;
 using TiledSharp;
 

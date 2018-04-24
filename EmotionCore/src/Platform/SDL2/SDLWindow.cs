@@ -17,8 +17,6 @@ namespace Emotion.Platform.SDL2
     {
         #region Properties
 
-        public IntPtr Pointer { get; set; }
-
         /// <summary>
         /// The window's title.
         /// </summary>
@@ -50,9 +48,20 @@ namespace Emotion.Platform.SDL2
 
         #endregion
 
-        #region Declarations
+        #region Objects
 
+        /// <summary>
+        /// The SDL surface which the window displays.
+        /// </summary>
         internal IntPtr Surface;
+
+        /// <inheritdoc />
+        public IntPtr Pointer { get; set; }
+
+        /// <summary>
+        /// The context this object belongs to.
+        /// </summary>
+        internal SDLContext EmotionContext;
 
         #endregion
 
@@ -62,7 +71,8 @@ namespace Emotion.Platform.SDL2
         /// <param name="context">The context which will spawn the window.</param>
         internal SDLWindow(SDLContext context)
         {
-            // Copy to properties.
+            // Apply settings to properties.
+            EmotionContext = context;
             _title = context.Settings.WindowTitle;
 
             // Create the window within SDL.
