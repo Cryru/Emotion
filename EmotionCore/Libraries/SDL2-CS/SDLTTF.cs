@@ -398,10 +398,10 @@ namespace SDL2
 
         /* font refers to a TTF_Font* */
         [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SDL_GetFontKerningSize(
+        public static extern int TTF_GetFontKerningSizeGlyphs(
             IntPtr font,
-            int prev_index,
-            int index
+            ushort prev_index,
+            ushort index
         );
 
         #endregion

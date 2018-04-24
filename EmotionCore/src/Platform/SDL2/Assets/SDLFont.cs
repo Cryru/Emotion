@@ -34,8 +34,17 @@ namespace Emotion.Platform.SDL2.Assets
             FontBytes = fontBytes;
         }
 
-        public IntPtr GetSize(int size)
+        public IntPtr GetSize(int size, bool forceReload = false)
         {
+            if (forceReload)
+            {
+                if (_sizePointers.ContainsKey(size))
+                {
+                    SDLTtf.TTF_CloseFont(_sizePointers[size]);
+                    _sizePointers.Remove(size);
+                }
+            }
+
             // Check if the requested size is already loaded.
             if (_sizePointers.ContainsKey(size)) return _sizePointers[size];
 
@@ -64,6 +73,8 @@ namespace Emotion.Platform.SDL2.Assets
 
         public override void Destroy()
         {
+            Destroyed = true;
+
             foreach (KeyValuePair<int, IntPtr> currentPointer in _sizePointers)
             {
                 SDLTtf.TTF_CloseFont(currentPointer.Value);

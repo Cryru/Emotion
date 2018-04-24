@@ -5,7 +5,6 @@
 #region Using
 
 using System;
-using System.Threading;
 using Emotion.Platform.Base.Assets;
 using Emotion.Platform.Base.Objects;
 using Emotion.Platform.SDL2.Assets;
@@ -24,10 +23,11 @@ namespace Emotion.Platform.SDL2.Objects
     {
         #region Properties
 
-        internal IntPtr Font;
+        internal SDLFont Font;
         internal SDLTexture Cache;
         internal SDLRenderer Renderer;
         internal int FontAscent;
+        internal int FontSize;
 
         #endregion
 
@@ -36,11 +36,14 @@ namespace Emotion.Platform.SDL2.Objects
         internal IntPtr Surface;
         internal int YOffset;
         internal int XOffset;
+        internal char PrevChar;
 
         #endregion
 
         public override void AddGlyph(char glyphChar, Color color, int xOffset = 0, int yOffset = 0)
         {
+            IntPtr fontPointer = Font.GetSize(FontSize);
+
             // Convert color to platform color.
             SDL.SDL_Color platformColor = new SDL.SDL_Color
             {
@@ -49,24 +52,34 @@ namespace Emotion.Platform.SDL2.Objects
                 b = color.B
             };
 
-            IntPtr glyph = SDLTtf.TTF_RenderGlyph_Solid(Font, glyphChar, platformColor);
+            IntPtr glyph = SDLTtf.TTF_RenderGlyph_Solid(fontPointer, glyphChar, platformColor);
 
             // Check for SDL error. Randomly some characters will fail to render with an "Zero-width" error.
             if (glyph == IntPtr.Zero)
             {
                 Console.WriteLine("Encountered weird error - zero width when reading font glyph " + glyphChar + ", retrying...");
-                glyph = SDLTtf.TTF_RenderGlyph_Solid(Font, glyphChar, platformColor);
+
+                // Try to refresh font.
+                fontPointer = Font.GetSize(FontSize, true);
+
+                // Render again.
+                glyph = SDLTtf.TTF_RenderGlyph_Solid(fontPointer, glyphChar, platformColor);
                 if (glyph == IntPtr.Zero)
                 {
                     Console.WriteLine("Retry failed, replacing with space.");
-                    glyph = SDLTtf.TTF_RenderGlyph_Solid(Font, ' ', platformColor);
+                    glyph = SDLTtf.TTF_RenderGlyph_Solid(fontPointer, ' ', platformColor);
+
                     glyphChar = ' ';
                 }
             }
-            
+
+            int kerning = 0;
+            if (PrevChar != default(char)) kerning = SDLTtf.TTF_GetFontKerningSizeGlyphs(fontPointer, PrevChar, glyphChar);
+            PrevChar = glyphChar;
+
             // Get glyph data.
-            ErrorHandler.CheckError(SDLTtf.TTF_GlyphMetrics(Font, glyphChar, out int minX, out int _, out int _, out int _, out int advance));
-            XOffset += minX;
+            ErrorHandler.CheckError(SDLTtf.TTF_GlyphMetrics(fontPointer, glyphChar, out int minX, out int _, out int _, out int _, out int advance));
+            XOffset += minX + kerning;
             SDL.SDL_Rect des = new SDL.SDL_Rect {x = xOffset + XOffset, y = yOffset + YOffset, w = 0, h = 0};
             XOffset += advance;
             ErrorHandler.CheckError(SDL.SDL_BlitSurface(glyph, IntPtr.Zero, Surface, ref des));
@@ -75,8 +88,10 @@ namespace Emotion.Platform.SDL2.Objects
 
         public override void NewLine()
         {
+            IntPtr fontPointer = Font.GetSize(FontSize);
+
             XOffset = 0;
-            YOffset += SDLTtf.TTF_FontLineSkip(Font);
+            YOffset += SDLTtf.TTF_FontLineSkip(fontPointer);
         }
 
         public override Texture GetTexture()
@@ -107,7 +122,6 @@ namespace Emotion.Platform.SDL2.Objects
             SDL.SDL_FreeSurface(Surface);
             Surface = IntPtr.Zero;
             Cache = null;
-            Font = IntPtr.Zero;
         }
     }
 }

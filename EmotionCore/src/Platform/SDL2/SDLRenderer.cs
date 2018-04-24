@@ -203,11 +203,12 @@ namespace Emotion.Platform.SDL2
             // Get a pointer to the font at the specified size.
             SDLTextDrawingSession session = new SDLTextDrawingSession
             {
-                Font = ((SDLFont) font).GetSize(fontSize),
+                Font = (SDLFont) font,
+                FontSize = fontSize,
                 Size = new Vector2(width, height),
                 Renderer = this
             };
-            session.FontAscent = SDLTtf.TTF_FontAscent(session.Font);
+            session.FontAscent = SDLTtf.TTF_FontAscent(session.Font.GetSize(fontSize));
             session.Reset();
 
             return session;
