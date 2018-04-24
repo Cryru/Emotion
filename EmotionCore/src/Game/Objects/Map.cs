@@ -55,6 +55,10 @@ namespace Emotion.Game.Objects
             // Reset holders.
             Tilesets.Clear();
             AnimatedTiles.Clear();
+            TiledMap = null;
+
+            // Check if no map is provided.
+            if (mapPath == "") return;
 
             // Load the map from the data as a stream.
             using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Other(mapPath)))
@@ -68,6 +72,7 @@ namespace Emotion.Game.Objects
                 string tilesetFile = tileset.Image.Source;
                 // Cut out the last slash if any.
                 if(tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
+                if(tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\'));
 
                 Texture temp = _assetLoader.Texture(tileSetFolder + '/' + tilesetFile);
                 Tilesets.Add(temp);
