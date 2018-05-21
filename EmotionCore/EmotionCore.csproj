@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\SharpFont.4.0.1\build\SharpFont.props" Condition="Exists('..\packages\SharpFont.4.0.1\build\SharpFont.props')" />
+  <Import Project="..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props" Condition="Exists('..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <ProjectGuid>{723C67BD-47EE-482D-BC0D-728211D7F5F1}</ProjectGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>Emotion</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-GLES|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug-GLES\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;GLES</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-GLES|AnyCPU' ">
+    <OutputPath>bin\Release-GLES\</OutputPath>
+    <DefineConstants>TRACE;GLES</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeImage-dotnet-core.4.3.6\lib\net45\FreeImage-dotnet-core.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Jint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Jint.2.11.58\lib\net45\Jint.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.2.0.0\lib\net20\OpenTK.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="SharpFont, Version=4.0.1.200, Culture=neutral, PublicKeyToken=48add4c483071cdf, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Soul.Logging">
+      <HintPath>Libraries\Soul\Soul.Logging.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Core">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Data">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System.Xml">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+  <Choose>
+    <When Condition="$(DefineConstants.Contains('GLES'))" />
+  </Choose>
+  <ItemGroup>
+    <Compile Include="Libraries\TiledSharp\ImageLayer.cs" />
+    <Compile Include="Libraries\TiledSharp\Layer.cs" />
+    <Compile Include="Libraries\TiledSharp\Map.cs" />
+    <Compile Include="Libraries\TiledSharp\ObjectGroup.cs" />
+    <Compile Include="Libraries\TiledSharp\TiledCore.cs" />
+    <Compile Include="Libraries\TiledSharp\Tileset.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\CRC32.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\Deflate.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\DeflateStream.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\GZipStream.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\Inflate.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\InfTree.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\ParallelDeflateOutputStream.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\Tree.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\Zlib.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\ZlibBaseStream.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\ZlibCodec.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\ZlibConstants.cs" />
+    <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\IO\Asset.cs" />
+    <Compile Include="src\GLES\Text\Glyph.cs" />
+    <Compile Include="src\IO\TextFile.cs" />
+    <Compile Include="src\IO\Other.cs" />
+    <Compile Include="src\GLES\Framebuffer.cs" />
+    <Compile Include="src\GLES\RenderTarget.cs" />
+    <Compile Include="src\GLES\GlProgram.cs" />
+    <Compile Include="src\GLES\Shader.cs" />
+    <Compile Include="src\GLES\VAO.cs" />
+    <Compile Include="src\GLES\VBO.cs" />
+    <Compile Include="src\Engine\ContextObject.cs" />
+    <Compile Include="src\GLES\ITexture.cs" />
+    <Compile Include="src\Debug\MessageSource.cs" />
+    <Compile Include="src\Debug\MessageType.cs" />
+    <Compile Include="src\GLES\WindowMode.cs" />
+    <Compile Include="src\Game\Layering\LayerManager.cs" />
+    <Compile Include="src\Game\Layering\Layer.cs" />
+    <Compile Include="src\Engine\ScriptingEngine.cs" />
+    <Compile Include="src\Game\Text\RichText.cs" />
+    <Compile Include="src\Game\AStar\Path.cs" />
+    <Compile Include="src\Game\AStar\Grid.cs" />
+    <Compile Include="src\Game\AStar\Node.cs" />
+    <Compile Include="src\Game\UI\ScreenFader.cs" />
+    <Compile Include="src\Game\UI\ScrollInputSelector.cs" />
+    <Compile Include="src\Game\UI\ScrollInput.cs" />
+    <Compile Include="src\Game\UI\Control.cs" />
+    <Compile Include="src\Game\UI\Controller.cs" />
+    <Compile Include="src\Game\UI\Panel.cs" />
+    <Compile Include="src\Game\Text\TextEffect.cs" />
+    <Compile Include="src\Utils\Helpers.cs" />
+    <Compile Include="src\IO\Font.cs" />
+    <Compile Include="src\IO\Texture.cs" />
+    <Compile Include="src\IO\AssetLoader.cs" />
+    <Compile Include="src\GLES\Text\TextDrawingSession.cs" />
+    <Compile Include="src\GLES\Window.cs" />
+    <Compile Include="src\Engine\Context.cs" />
+    <Compile Include="src\Input\MouseKeys.cs" />
+    <Compile Include="src\Input\Input.cs" />
+    <Compile Include="src\GLES\Renderer.cs" />
+    <Compile Include="Libraries\Windows.cs" />
+    <Compile Include="src\Utils\GameMath.cs" />
+    <Compile Include="src\Game\Camera\CameraBase.cs" />
+    <Compile Include="src\Primitives\Transform.cs" />
+    <Compile Include="src\Game\Camera\TargetCamera.cs" />
+    <Compile Include="src\Game\Camera\MouseCamera.cs" />
+    <Compile Include="src\Game\Tiled\Map.cs" />
+    <Compile Include="src\Engine\Settings.cs" />
+    <Compile Include="src\Game\Tiled\AnimatedTile.cs" />
+    <Compile Include="src\Primitives\Color.cs" />
+    <Compile Include="src\Primitives\Rectangle.cs" />
+    <Compile Include="src\Primitives\Vector2.cs" />
+    <Compile Include="src\Debug\Debugger.cs" />
+    <Compile Include="src\Meta.cs" />
+    <Compile Include="src\Starter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FreeImage-dotnet-core.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\x64\FreeImage.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\x64\FreeImage.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\x64\FreeImage.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\x64\freetype.so" />
+    <None Include="EmotionCore.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="OpenTK.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Embedded\Shaders\DefaultFrag.glsl" />
+    <EmbeddedResource Include="Embedded\Shaders\DefaultVertex.glsl" />
+    <None Include="SharpFont.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props'))" />
+    <Error Condition="!Exists('..\packages\SharpFont.4.0.1\build\SharpFont.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpFont.4.0.1\build\SharpFont.props'))" />
+  </Target>
+</Project>
