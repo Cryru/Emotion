@@ -9,6 +9,11 @@ Emotion is a cross-platform 2D game engine written in C#, with the intent of rem
 
 This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 
+## Platforms Tested On:
+
+- Windows x64
+- Ubuntu x64
+
 ## Features So Far
 
 - Window creation.
@@ -37,21 +42,15 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 2. Create a C# project, reference EmotionCore.dll, and setup the library files to copy on compilation. You will need them in the same folder as your executable.
 3. Write a game.
 
-For examples you can refer to the [EmotionSandbox](EmotionSandbox) project, or you can read the documentation within the source folder starting [here](/EmotionCore/src).
-
-## Notes
-
-- It is recommended when cloning Emotion to use ```git clone --depth=1 https://github.com/Cryru/Emotion.git``` because of the huge repository size.
+For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
 
 ## Projects Used
 
-SDL2 - The SDL platform is based entirely on it.
+OpenTK - OpenGL/OpenAL bindings and context creation.
 
-SDL_TTF - Text drawing on the SDL platform.
+FreeImage/FreeImage-DotNet-Core - Loading and converting images.
 
-FreeImage - Loading and converting images.
-
-FreeType - Loading fonts and glyphs.
+FreeType/SharpFont - Loading fonts and glyphs.
 
 TiledSharp [Modified] - Loading .tmx Tiled files.
 
