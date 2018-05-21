@@ -90,7 +90,7 @@ namespace Emotion.Engine
         static Context()
         {
             // Set the DLL path on Windows.
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT) Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\External\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT) Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
         }
 
         /// <summary>

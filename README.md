@@ -11,7 +11,7 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 
 ## Platforms Tested On:
 
-- Windows x64
+- Windows x64/x86
 - Ubuntu x64
 
 ## Features So Far
