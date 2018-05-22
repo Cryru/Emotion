@@ -51,6 +51,9 @@ namespace Emotion.Game.Layering
             {
                 _readyLayers.Remove(layer.Name);
                 _loadedLayers.Add(layer.Name, layer);
+
+                // Order by priority.
+                _loadedLayers = _loadedLayers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
             }
 
             // Update loaded layers.
@@ -91,11 +94,8 @@ namespace Emotion.Game.Layering
             layer.Name = name;
             layer.Context = Context;
 
-            LoadLayer(layer);
-
-            // todo: Async layer loading.
-            //Task loadLayer = new Task(() => LoadLayer(layer));
-            //loadLayer.Start();
+            Task loadLayer = new Task(() => LoadLayer(layer));
+            loadLayer.Start();
         }
 
         /// <summary>

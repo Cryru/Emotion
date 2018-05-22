@@ -15,7 +15,6 @@ namespace Emotion.IO
             Content = data;
 
             base.Process(data);
-            ProcessNative();
         }
     }
 }

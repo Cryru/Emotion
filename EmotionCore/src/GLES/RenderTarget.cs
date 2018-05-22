@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics.ES30;
@@ -33,64 +34,76 @@ namespace Emotion.GLES
 
         #endregion
 
-        private int _pointer { get; set; }
-        private Framebuffer _buffer;
+        private int _bufferPointer { get; set; }
+        private int _texturePointer { get; set; }
 
         public RenderTarget(int width, int height)
         {
             Width = width;
             Height = height;
 
-            // Create texture.
-            _pointer = GL.GenTexture();
-            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                // Create texture.
+                _texturePointer = GL.GenTexture();
+                TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
 
-            // Upload an empty texture.
-            Use();
+                // Upload an empty texture.
+                Use();
 
-            // Set scaling to pixel perfect.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+                // Set scaling to pixel perfect.
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
 
-            GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
-            Helpers.CheckError("creating render target texture");
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+                Helpers.CheckError("creating render target texture");
 
-            // Create framebuffer.
-            _buffer = new Framebuffer();
-            _buffer.Use();
+                // Create framebuffer.
+                _bufferPointer = GL.GenFramebuffer();
+                UseBuffer();
 
-            // Link the framebuffer and the texture.
-            GL.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, _pointer, 0);
-            Helpers.CheckError("linking framebuffer to texture");
+                // Link the framebuffer and the texture.
+                GL.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, _texturePointer, 0);
+                Helpers.CheckError("linking framebuffer to texture");
 
-            // Create and set dbe.
-            DrawBufferMode[] dbe = {DrawBufferMode.ColorAttachment0};
-            GL.DrawBuffers(1, dbe);
+                // Create and set dbe.
+                DrawBufferMode[] dbe = {DrawBufferMode.ColorAttachment0};
+                GL.DrawBuffers(1, dbe);
 
-            // Check the buffer.
-            if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
-                throw new Exception("Couldn't load framebuffer.");
-            Helpers.CheckError("creating render target");
+                // Check the buffer.
+                if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
+                    throw new Exception("Couldn't load framebuffer.");
+                Helpers.CheckError("creating render target");
 
-            _buffer.StopUsing();
+                StopUsingBuffer();
+            });
         }
+
+        #region Buffer API
 
         public void UseBuffer()
         {
-            _buffer.Use();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _bufferPointer);
         }
+
+        public void StopUsingBuffer()
+        {
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        }
+
+        #endregion
 
         #region Texture API
 
         public void Use()
         {
-            GL.BindTexture(TextureTarget.Texture2D, _pointer);
+            GL.BindTexture(TextureTarget.Texture2D, _texturePointer);
         }
 
         public void Cleanup()
         {
-            GL.DeleteTexture(_pointer);
-            _buffer.Destroy();
+            GL.DeleteTexture(_texturePointer);
+            GL.DeleteFramebuffer(_bufferPointer);
         }
 
         #endregion

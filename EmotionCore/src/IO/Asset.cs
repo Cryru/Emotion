@@ -16,25 +16,12 @@
 
         #endregion
 
-        protected object _processedData;
-
         internal virtual void Process(byte[] data)
         {
-            State = AssetState.Processing;
-        }
-
-        internal virtual void ProcessNative()
-        {
-            _processedData = null;
-            State = AssetState.Processed;
+            State = AssetState.Ready;
         }
 
         internal virtual void Destroy()
-        {
-            State = AssetState.Destroying;
-        }
-
-        internal virtual void DestroyNative()
         {
             State = AssetState.Destroyed;
         }
@@ -43,9 +30,7 @@
     public enum AssetState
     {
         Uninitialized,
-        Processing,
-        Processed,
-        Destroying,
+        Ready,
         Destroyed
     }
 }

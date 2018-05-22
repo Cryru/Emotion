@@ -20,6 +20,10 @@ namespace Emotion
         {
             // Apply settings.
             Settings initial = new Settings();
+
+            // Setup thread manager.
+            ThreadManager.BindThread();
+
             config?.Invoke(initial);
 
             return new Context(initial);

@@ -148,7 +148,7 @@ namespace Emotion.GLES.Text
         public void NewLine()
         {
             _locX = 0;
-            _locY += Font.LineSpacing(FontSize);
+            _locY += Font.GetLineSpacing(FontSize);
         }
 
         /// <summary>

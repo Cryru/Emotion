@@ -123,7 +123,6 @@ namespace Emotion.GLES
                 66, 77, 58, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0, 40, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 196, 14, 0, 0, 196, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255,
                 255, 255
             });
-            _blankTexture.ProcessNative();
             _blankTexture.Use();
 
             GL.Enable(EnableCap.Blend);

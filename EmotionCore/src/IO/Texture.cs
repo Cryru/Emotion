@@ -3,6 +3,7 @@
 #region Using
 
 using System.IO;
+using Emotion.Engine;
 using Emotion.GLES;
 using Emotion.Utils;
 using FreeImageAPI;
@@ -41,6 +42,8 @@ namespace Emotion.IO
 
         internal override void Process(byte[] data)
         {
+            FIBITMAP processedBytes;
+
             // Put the bytes into a stream.
             using (MemoryStream stream = new MemoryStream(data))
             {
@@ -51,45 +54,44 @@ namespace Emotion.IO
                 Width = (int) FreeImage.GetWidth(freeImageBitmap);
                 Height = (int) FreeImage.GetHeight(freeImageBitmap);
 
-                _processedData = freeImageBitmap;
+                processedBytes = freeImageBitmap;
             }
+
+            // Upload the texture on the GL thread.
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                _pointer = GL.GenTexture();
+                TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
+
+                // Bind the texture.
+                Use();
+
+                // Set scaling to pixel perfect.
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+
+                // Create a swizzle mask to convert RGBA to BGRA which for some reason is the format FreeImage spits out above.
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int) All.Blue);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int) All.Green);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int) All.Red);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Alpha);
+
+                // Upload the texture.
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(processedBytes));
+
+                Helpers.CheckError("uploading texture");
+
+                // Cleanup processed data.
+                processedBytes.SetNull();
+            });
 
             base.Process(data);
         }
 
-        internal override void ProcessNative()
-        {
-            _pointer = GL.GenTexture();
-            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
-
-            // Bind the texture.
-            Use();
-
-            // Set scaling to pixel perfect.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
-
-            // Create a swizzle mask to convert RGBA to BGRA which for some reason is the format FreeImage spits out above.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int) All.Blue);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int) All.Green);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int) All.Red);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Alpha);
-
-            // Upload the texture.
-            GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits((FIBITMAP) _processedData));
-
-            Helpers.CheckError("uploading texture");
-
-            // Cleanup processed data.
-            ((FIBITMAP) _processedData).SetNull();
-
-            base.ProcessNative();
-        }
-
-        internal override void DestroyNative()
+        internal override void Destroy()
         {
             Cleanup();
-            base.DestroyNative();
+            base.Destroy();
         }
 
         #endregion
@@ -103,7 +105,7 @@ namespace Emotion.IO
 
         public void Cleanup()
         {
-            GL.DeleteTexture(_pointer);
+            ThreadManager.ExecuteGLThread(() => { GL.DeleteTexture(_pointer); });
         }
 
         #endregion

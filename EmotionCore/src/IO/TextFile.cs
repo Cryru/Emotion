@@ -17,7 +17,6 @@ namespace Emotion.IO
             Content = Encoding.Default.GetString(data).Replace("\r", "").Split('\n');
 
             base.Process(data);
-            ProcessNative();
         }
     }
 }

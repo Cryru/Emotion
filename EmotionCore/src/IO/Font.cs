@@ -45,7 +45,6 @@ namespace Emotion.IO
             _face.SetPixelSizes(0, _characterSizeLast);
 
             base.Process(data);
-            ProcessNative();
         }
 
         /// <summary>
@@ -150,7 +149,7 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="size">The font size to use to measure.</param>
         /// <returns>The distance between text lines.</returns>
-        public int LineSpacing(uint size)
+        public int GetLineSpacing(uint size)
         {
             EnsureSize(size);
             return _face.Size.Metrics.Height.ToInt32();

@@ -208,13 +208,15 @@ namespace Emotion.Engine
         /// <param name="frameTime">The time between this tick and the last.</param>
         internal void LoopUpdate(float frameTime)
         {
+            // Update the thread manager.
+            ThreadManager.Run();
+
             FrameTime = frameTime;
 
             // Update debugger.
             Debugger.Update(ScriptingEngine);
 
             // Run modules.
-            AssetLoader.Update();
             LayerManager.Update();
             Input.Update();
 

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading;
 using Emotion.Debug;
 using Emotion.Engine;
 
@@ -32,23 +31,11 @@ namespace Emotion.IO
         /// </summary>
         private Dictionary<string, Asset> _loadedAssets;
 
-        /// <summary>
-        /// Assets loaded outside the GL thread. Awaiting upload.
-        /// </summary>
-        private List<Asset> _assetUploadQueue;
-
-        /// <summary>
-        /// Assets being unloaded outside the GL thread. Awaiting destruction.
-        /// </summary>
-        private List<Asset> _assetUnloadQueue;
-
         #endregion
 
         internal AssetLoader(Context context) : base(context)
         {
             _loadedAssets = new Dictionary<string, Asset>();
-            _assetUploadQueue = new List<Asset>();
-            _assetUnloadQueue = new List<Asset>();
         }
 
         /// <summary>
@@ -67,44 +54,8 @@ namespace Emotion.IO
             if (_loadedAssets.ContainsKey(enginePath))
             {
                 // Get the asset.
-                Asset asset = _loadedAssets[enginePath];
-
-                // Check state.
-                switch (_loadedAssets[enginePath].State)
-                {
-                    // Check if needs to be uploaded.
-                    case AssetState.Processing:
-                        // Check if on the GL thread and we can upload it.
-                        if (Thread.CurrentThread.ManagedThreadId == 1)
-                        {
-                            DebugMessageWrap("Uploading", enginePath, typeof(T));
-
-                            // Perform uploading.
-                            asset.ProcessNative();
-                            return (T) asset;
-                        }
-                        else
-                        {
-                            DebugMessageWrap("Returning non-uploaded", enginePath, typeof(T), true);
-
-                            // Add the asset to the upload queue.
-                            _assetUploadQueue.Add(asset);
-
-                            return (T) asset;
-                        }
-                    // Check if processed and uploaded and ready for usage.
-                    case AssetState.Processed:
-                        return (T) asset;
-                    // If it was destroyed, remove it and reload it.
-                    case AssetState.Destroyed:
-                        _loadedAssets.Remove(enginePath);
-                        return Get<T>(enginePath);
-                    default:
-                        return null;
-                }
+               return (T) _loadedAssets[enginePath];
             }
-
-            DebugMessageWrap("Processing", enginePath, typeof(T));
 
             // Check whether the file exists.
             if (!Exists(enginePath)) throw new Exception("Could not find asset " + enginePath);
@@ -118,15 +69,11 @@ namespace Emotion.IO
             _loadedAssets[enginePath] = temp;
 
             // Process.
+            DebugMessageWrap("Processing", enginePath, typeof(T));
             temp.Process(fileContents);
 
-            // Check if needs to be processed native.
-            if (temp.State == AssetState.Processing) return Get<T>(enginePath);
-
-            // Check if ready.
-            if (temp.State == AssetState.Processed) return temp;
-
-            return null;
+            // Return.
+            return temp;
         }
 
         /// <summary>
@@ -143,56 +90,8 @@ namespace Emotion.IO
 
             // Destroy it.
             _loadedAssets[enginePath].Destroy();
-            
-            // Check if fully destroyed.
-            if (_loadedAssets[enginePath].State == AssetState.Destroying)
-            {
-                // Check if on the GL thread.
-                if (Thread.CurrentThread.ManagedThreadId == 1)
-                {
-                    _loadedAssets[enginePath].DestroyNative();
-                }
-                else
-                {
-                    _assetUnloadQueue.Add(_loadedAssets[enginePath]);
-                }
-            }
 
             _loadedAssets.Remove(enginePath);
-        }
-
-        /// <summary>
-        /// Processes assets awaiting upload.
-        /// </summary>
-        internal void Update()
-        {
-            // Check for any assets left to upload.
-            for (int i = _assetUploadQueue.Count - 1; i >= 0; i--)
-            {
-                // Check if loaded.
-                if (_assetUploadQueue[i].State == AssetState.Processed) continue;
-
-                DebugMessageWrap("Uploading from queue", _assetUploadQueue[i].AssetName, _assetUploadQueue[i].GetType(), true);
-
-                // Upload the asset.
-                _assetUploadQueue[i].ProcessNative();
-                // Add it to the loaded assets.
-                _assetUploadQueue.RemoveAt(i);
-            }
-
-            // Check for any assets left to upload.
-            for (int i = _assetUnloadQueue.Count - 1; i >= 0; i--)
-            {
-                // Check if destroyed.
-                if (_assetUnloadQueue[i].State == AssetState.Destroyed) continue;
-
-                DebugMessageWrap("Destroying form queue", _assetUploadQueue[i].AssetName, _assetUploadQueue[i].GetType(), true);
-
-                // Upload the asset.
-                _assetUnloadQueue[i].DestroyNative();
-                // Add it to the loaded assets.
-                _assetUnloadQueue.RemoveAt(i);
-            }
         }
 
         #region Helpers
