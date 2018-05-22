@@ -72,35 +72,27 @@ namespace Emotion.GLES
 
         #endregion
 
+        #region Cache
+
+        private Shader _defaultFrag;
+        private Shader _defaultVert;
+        private GlProgram _defaultProgram;
+
+        #endregion
+
         internal Renderer(Context context) : base(context)
         {
             RenderSize = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
 
-            // Get the default shaders.
+            // Get the default shaders, and load them.
             string defaultVertex = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");
             string defaultFrag = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
-            Shader vert = new Shader(ShaderType.VertexShader, defaultVertex);
-            Shader frag = new Shader(ShaderType.FragmentShader, defaultFrag);
+            _defaultVert = new Shader(ShaderType.VertexShader, defaultVertex);
+            _defaultFrag = new Shader(ShaderType.FragmentShader, defaultFrag);
 
-            // Create a program and link the shaders to it.
-            _currentProgram = new GlProgram();
-            _currentProgram.AttachShader(vert);
-            _currentProgram.AttachShader(frag);
-            _currentProgram.Link();
-            _currentProgram.Use();
-
-            // Add default uniforms.
-            _currentProgram.AddUniformVariable("color");
-            _currentProgram.AddUniformVariable("projectionMatrix");
-            _currentProgram.AddUniformVariable("textureMatrix");
-
-            _currentProgram.SetUniformData("color", Color.White);
-            _currentProgram.SetUniformData("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, 0, 1));
-            _currentProgram.SetUniformData("textureMatrix", Matrix4.Identity);
-
-            // Cleanup shaders.
-            vert.Destroy();
-            frag.Destroy();
+            // Create a default program, and use it.
+            _defaultProgram = MakeShaderProgram();
+            UseShaderProgram();
 
             // Create an empty VAO. Newer OpenGL requires this.
             VAO mainVao = new VAO();
@@ -186,7 +178,7 @@ namespace Emotion.GLES
         internal void DrawVBO(VBO vertVBO, Color color, VBO textureVBO = null, PrimitiveType primitiveType = PrimitiveType.TriangleFan)
         {
             // Set the color.
-            _currentProgram.SetUniformData("color", color);
+            _currentProgram.SetUniformColor("color", color);
 
             // Bind the VBO.
             vertVBO.Use();
@@ -236,7 +228,7 @@ namespace Emotion.GLES
 
         #endregion
 
-        #region API
+        #region Target API
 
         /// <summary>
         /// Draw on the specified render target.
@@ -244,17 +236,20 @@ namespace Emotion.GLES
         /// <param name="target">The render target to draw on.</param>
         public void DrawOn(RenderTarget target)
         {
-            // Bind the framebuffer.
-            target.UseBuffer();
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                // Bind the framebuffer.
+                target.UseBuffer();
 
-            // Set the projection matrix to the buffer size.
-            _currentProgram.SetUniformData("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, target.Width, target.Height, 0, 0, 1));
+                // Set the projection matrix to the buffer size.
+                _currentProgram.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, target.Width, target.Height, 0, 0, 1));
 
-            // Modify the viewport.
-            GL.Viewport(0, 0, target.Width, target.Height);
+                // Modify the viewport.
+                GL.Viewport(0, 0, target.Width, target.Height);
 
-            // Change blend function.
-            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.DstAlpha);
+                // Change blend function.
+                GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.DstAlpha);
+            });
         }
 
         /// <summary>
@@ -262,17 +257,20 @@ namespace Emotion.GLES
         /// </summary>
         public void DrawOnScreen()
         {
-            // Unbind the frame buffer.
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                // Unbind the frame buffer.
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
-            // Restore projection matrix.
-            _currentProgram.SetUniformData("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, 0, 1));
+                // Restore projection matrix.
+                _currentProgram.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, 0, 1));
 
-            // Restore viewport.
-            SetViewport();
+                // Restore viewport.
+                SetViewport();
 
-            // Restore blend function.
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                // Restore blend function.
+                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            });
         }
 
         /// <summary>
@@ -280,7 +278,66 @@ namespace Emotion.GLES
         /// </summary>
         public void ClearTarget()
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            ThreadManager.ExecuteGLThread(() => { GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); });
+        }
+
+        #endregion
+
+        #region Shader API
+
+        public GlProgram MakeShaderProgram(string vertShader = "", string fragShader = "")
+        {
+            GlProgram temp = null;
+
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                // Check if vert provided.
+                Shader vert = string.IsNullOrEmpty(vertShader) ? _defaultVert : new Shader(ShaderType.VertexShader, vertShader);
+
+                // Check if frag provided.
+                Shader frag = string.IsNullOrEmpty(fragShader) ? _defaultFrag : new Shader(ShaderType.FragmentShader, fragShader);
+
+                Helpers.CheckError("making shaders");
+
+                // Create the program and attach shaders.
+                temp = new GlProgram();
+                temp.AttachShader(vert);
+                temp.AttachShader(frag);
+                temp.Link();
+                temp.Use();
+
+                Helpers.CheckError("making program");
+
+                // Set default uniforms.
+                temp.SetUniformColor("color", Color.White);
+                temp.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, 0, 1));
+                temp.SetUniformMatrix4("textureMatrix", Matrix4.Identity);
+                temp.SetUniformInt("drawTexture", 0);
+                temp.SetUniformInt("additionalTexture", 1);
+
+                Helpers.CheckError("setting program uniforms");
+
+                // Restore current.
+                _currentProgram?.Use();
+            });
+
+            return temp;
+        }
+
+        public void UseShaderProgram(GlProgram program = null)
+        {
+            // If null use default.
+            if (program == null) program = _defaultProgram;
+
+            _currentProgram = program;
+            _currentProgram.Use();
+        }
+
+        public void AddAdditionalTextureToShader(Texture texture)
+        {
+            GL.ActiveTexture(TextureUnit.Texture1);
+            texture.Use();
+            GL.ActiveTexture(TextureUnit.Texture0);
         }
 
         #endregion
@@ -298,7 +355,7 @@ namespace Emotion.GLES
         /// </param>
         public void DrawRectangleOutline(Rectangle rect, Color color, bool camera = true)
         {
-            _currentProgram.SetUniformData("color", color);
+            _currentProgram.SetUniformColor("color", color);
 
             if (camera && Camera != null)
             {
@@ -321,7 +378,7 @@ namespace Emotion.GLES
         /// </param>
         public void DrawRectangle(Rectangle rect, Color color, bool camera = true)
         {
-            _currentProgram.SetUniformData("color", color);
+            _currentProgram.SetUniformColor("color", color);
 
             if (camera && Camera != null)
             {
@@ -345,7 +402,7 @@ namespace Emotion.GLES
         /// </param>
         public void DrawLine(Vector2 start, Vector2 end, Color color, bool camera = true)
         {
-            _currentProgram.SetUniformData("color", color);
+            _currentProgram.SetUniformColor("color", color);
 
             if (camera && Camera != null)
             {
@@ -436,7 +493,7 @@ namespace Emotion.GLES
             _allTextureVBO.Upload(RectangleToVertices(source));
 
             // Set the texture matrix.
-            _currentProgram.SetUniformData("textureMatrix", texture.TextureMatrix);
+            _currentProgram.SetUniformMatrix4("textureMatrix", texture.TextureMatrix);
 
             if (camera && Camera != null)
             {

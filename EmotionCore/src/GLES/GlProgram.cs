@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Emotion.Engine;
 using Emotion.Primitives;
 using OpenTK;
 using OpenTK.Graphics.ES30;
@@ -50,7 +51,7 @@ namespace Emotion.GLES
 
         public void Use()
         {
-            GL.UseProgram(Pointer);
+            ThreadManager.ExecuteGLThread(() => { GL.UseProgram(Pointer); });
         }
 
         public void Destroy()
@@ -86,7 +87,7 @@ namespace Emotion.GLES
         /// Adds a uniform variable to be used in the shader code.
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
-        public void AddUniformVariable(string name)
+        private void AddUniformVariable(string name)
         {
             if (_uniformVariables.ContainsKey(name)) return;
 
@@ -98,17 +99,15 @@ namespace Emotion.GLES
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
         /// <param name="matrix4">The matrix value to set it to.</param>
-        public void SetUniformData(string name, Matrix4 matrix4)
+        public void SetUniformMatrix4(string name, Matrix4 matrix4)
         {
-            if (_uniformVariables.ContainsKey(name))
+            if (!_uniformVariables.ContainsKey(name))
             {
-                int id = _uniformVariables[name];
-                GL.UniformMatrix4(id, false, ref matrix4);
+                AddUniformVariable(name);
             }
-            else
-            {
-                throw new Exception("Uniform of name " + name + " is not added to program.");
-            }
+
+            int id = _uniformVariables[name];
+            GL.UniformMatrix4(id, false, ref matrix4);
         }
 
         /// <summary>
@@ -116,35 +115,48 @@ namespace Emotion.GLES
         /// </summary>
         /// <param name="name">The variable name of the uniform.</param>
         /// <param name="data">The data to add to the location.</param>
-        public void SetUniformData(string name, int data)
+        public void SetUniformInt(string name, int data)
         {
-            if (_uniformVariables.ContainsKey(name))
+            if (!_uniformVariables.ContainsKey(name))
             {
-                int id = _uniformVariables[name];
-                GL.Uniform1(id, data);
+                AddUniformVariable(name);
             }
-            else
-            {
-                throw new Exception("Uniform of name " + name + " is not added to program.");
-            }
+
+            int id = _uniformVariables[name];
+            GL.Uniform1(id, data);
         }
+
+        /// <summary>
+        /// Adds data to the uniform of the specified name.
+        /// </summary>
+        /// <param name="name">The variable name of the uniform.</param>
+        /// <param name="data">The data to add to the location.</param>
+        public void SetUniformFloat(string name, float data)
+        {
+            if (!_uniformVariables.ContainsKey(name))
+            {
+                AddUniformVariable(name);
+            }
+
+            int id = _uniformVariables[name];
+            GL.Uniform1(id, data);
+        }
+
 
         /// <summary>
         /// Add an Emotion color as a uniform.
         /// </summary>
         /// <param name="name">The variable name of the uniform.</param>
         /// <param name="data">The color to add.</param>
-        public void SetUniformData(string name, Color data)
+        public void SetUniformColor(string name, Color data)
         {
-            if (_uniformVariables.ContainsKey(name))
+            if (!_uniformVariables.ContainsKey(name))
             {
-                int id = _uniformVariables[name];
-                GL.Uniform4(id, new Vector4(data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f));
+                AddUniformVariable(name);
             }
-            else
-            {
-                throw new Exception("Uniform of name " + name + " is not added to program.");
-            }
+
+            int id = _uniformVariables[name];
+            GL.Uniform4(id, new Vector4(data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f));
         }
 
         #endregion

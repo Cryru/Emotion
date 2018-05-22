@@ -14,7 +14,7 @@ namespace Emotion.IO
 
         internal override void Process(byte[] data)
         {
-            Content = Encoding.Default.GetString(data).Replace("\r", "").Split('\n');
+            Content = Encoding.Default.GetString(data).Replace("\r", "").Replace("ï»¿", "").Split('\n');
 
             base.Process(data);
         }
