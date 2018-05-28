@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.RenderingText</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.SoundExample</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -52,6 +52,7 @@
     <Compile Include="Examples\LoadingScreen.cs" />
     <Compile Include="Examples\RenderingText.cs" />
     <Compile Include="Examples\Rendering.cs" />
+    <Compile Include="Examples\SoundExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,6 +68,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\ElectricSleepMainMenu.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\test.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -111,6 +111,7 @@
     <Compile Include="src\Engine\ThreadManager.cs" />
     <Compile Include="src\IO\Asset.cs" />
     <Compile Include="src\GLES\Text\Glyph.cs" />
+    <Compile Include="src\IO\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
     <Compile Include="src\IO\Other.cs" />
     <Compile Include="src\GLES\RenderTarget.cs" />
@@ -137,6 +138,11 @@
     <Compile Include="src\Game\UI\Controller.cs" />
     <Compile Include="src\Game\UI\Panel.cs" />
     <Compile Include="src\Game\Text\TextEffect.cs" />
+    <Compile Include="src\Sound\SoundFadeOut.cs" />
+    <Compile Include="src\Sound\SoundFadeIn.cs" />
+    <Compile Include="src\Sound\SoundEffect.cs" />
+    <Compile Include="src\Sound\SoundManager.cs" />
+    <Compile Include="src\Sound\Source.cs" />
     <Compile Include="src\Utils\Helpers.cs" />
     <Compile Include="src\IO\Font.cs" />
     <Compile Include="src\IO\Texture.cs" />
@@ -194,6 +200,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\x86\FreeImage.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\x64\openal32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\x86\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

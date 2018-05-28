@@ -59,7 +59,15 @@ namespace Emotion.Game.Layering
             // Update loaded layers.
             foreach (KeyValuePair<string, Layer> layer in _loadedLayers)
             {
-                layer.Value.Update(Context.FrameTime);
+                // If the window is not focused run the light update, otherwise run the full update.
+                if (!Context.Window.Focused)
+                {
+                    layer.Value.LightUpdate(Context.FrameTime);
+                }
+                else
+                {
+                    layer.Value.Update(Context.FrameTime);
+                }
             }
         }
 
@@ -142,7 +150,7 @@ namespace Emotion.Game.Layering
 
         private void UnloadLayer(Layer layer)
         {
-
+            layer.Unload();
 #if DEBUG
             Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Unloaded layer [" + layer.Name + "]");
 #endif

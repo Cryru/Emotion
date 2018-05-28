@@ -91,6 +91,7 @@ namespace Emotion.IO
             // Destroy it.
             _loadedAssets[enginePath].Destroy();
 
+            // Remove from the list.
             _loadedAssets.Remove(enginePath);
         }
 

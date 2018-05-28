@@ -24,18 +24,30 @@ namespace Emotion.Input
         internal bool[] MousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         private KeyboardState _keyboardLast;
         private KeyboardState _keyboard;
-        private bool _wasNotFocused = true;
+        private bool _noFocus;
         internal Vector2 MouseLocation;
 
         internal Input(Context context) : base(context)
         {
             Context.Window.MouseDown += WindowMouseDown;
+            Context.Window.MouseUp += WindowMouseUp;
+            // Moves an internal mouse position based on the window which is more accurate than directly polling the mouse.
             Context.Window.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
+            // Sets the unfocused tag.
+            Context.Window.FocusedChanged += (sender, e) =>
+            {
+                if (!Context.Window.Focused) _noFocus = true;
+            };
         }
 
+        /// <summary>
+        /// Handles the window mouse down event in order to determine a button has been pressed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void WindowMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (_wasNotFocused) return;
+            if (_noFocus) return;
             switch (e.Button)
             {
                 case MouseButton.Left:
@@ -50,45 +62,55 @@ namespace Emotion.Input
             }
         }
 
+        /// <summary>
+        /// Handles the window mouse down event in order to determine a button is no longer held.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WindowMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_noFocus) return;
+            switch (e.Button)
+            {
+                case MouseButton.Left:
+                    MouseHeld[0] = false;
+                    break;
+                case MouseButton.Right:
+                    MouseHeld[1] = false;
+                    break;
+                case MouseButton.Middle:
+                    MouseHeld[2] = false;
+                    break;
+            }
+        }
+
         internal void Update()
         {
             // Transfer current to last, and clear current.
             _keyboardLast = _keyboard;
 
-            // Reset mouse states.
-            for (int i = 0; i < MouseHeld.Length; i++)
-            {
-                MouseHeld[i] = false;
-            }
+            // Reset mouse states and transfer pressed to held.
             for (int i = 0; i < MousePressed.Length; i++)
             {
+                if (MousePressed[i]) MouseHeld[i] = MousePressed[i];
                 MousePressed[i] = false;
             }
 
-            // Get current mouse states.
-            MouseState state = Mouse.GetState();
-            MouseHeld[0] = state.IsButtonDown(MouseButton.Left);
-            MouseHeld[1] = state.IsButtonDown(MouseButton.Right);
-            MouseHeld[2] = state.IsButtonDown(MouseButton.Middle);
+            // Check if focus has returned and skip input loop if no focus.
+            if (Context.Window.Focused && _noFocus) _noFocus = false;
+            if (_noFocus)
+            {
+                for (int i = 0; i < MousePressed.Length; i++)
+                {
+                    MousePressed[i] = false;
+                    MouseHeld[i] = false;
+                }
+
+                return;
+            }
 
             // Get current keyboard state.
             _keyboard = Keyboard.GetState();
-
-            // Reset mouse states if the window is not focused.
-            if (!Context.Window.Focused)
-            {
-                MouseHeld[0] = false;
-                MouseHeld[1] = false;
-                MouseHeld[2] = false;
-                MousePressed[0] = false;
-                MousePressed[1] = false;
-                MousePressed[2] = false;
-                _wasNotFocused = true;
-            }
-            else
-            {
-                _wasNotFocused = false;
-            }
 
             // Check for fullscreen toggling key combo.
             if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))

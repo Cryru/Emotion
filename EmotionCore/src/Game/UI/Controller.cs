@@ -93,7 +93,7 @@ namespace Emotion.Game.UI
                     if (held && c.MouseInside)
                     {
                         // If the button wasn't held, but now is.
-                        if (c.Held[i]) continue;
+                        if (c.Held[i] || HeldSomewhere(i)) continue;
                         c.Held[i] = true;
                         c.MouseDown(currentKey);
                     }
@@ -146,6 +146,22 @@ namespace Emotion.Game.UI
             }
 
             return insideC;
+        }
+
+        /// <summary>
+        /// Check if the mouse is held on another control. This is to prevent a click event when a control is held and the mouse moves on top of another.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <returns>True if the key is held on another control, false otherwise.</returns>
+        private bool HeldSomewhere(int key)
+        {
+            // Loop through all controls.
+            foreach (Control oc in _controls)
+            {
+                if(oc.Held[key]) return true;
+            }
+
+            return false;
         }
 
         #endregion

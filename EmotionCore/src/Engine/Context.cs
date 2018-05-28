@@ -3,11 +3,13 @@
 #region Using
 
 using System;
+using System.Threading;
 using Emotion.Debug;
 using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.GLES;
 using Emotion.IO;
+using Emotion.Sound;
 using Emotion.Utils;
 using OpenTK;
 
@@ -71,6 +73,11 @@ namespace Emotion.Engine
         /// </summary>
         public LayerManager LayerManager { get; protected set; }
 
+        /// <summary>
+        /// Manages sound.
+        /// </summary>
+        public SoundManager SoundManager { get; protected set; }
+
         #endregion
 
         #region Objects
@@ -109,6 +116,9 @@ namespace Emotion.Engine
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
             Renderer = new Renderer(this);
+
+            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating sound manager...");
+            SoundManager = new SoundManager(this);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
             AssetLoader = new AssetLoader(this);
@@ -208,20 +218,25 @@ namespace Emotion.Engine
         /// <param name="frameTime">The time between this tick and the last.</param>
         internal void LoopUpdate(float frameTime)
         {
+            FrameTime = frameTime;
+
             // Update the thread manager.
             ThreadManager.Run();
-
-            FrameTime = frameTime;
 
             // Update debugger.
             Debugger.Update(ScriptingEngine);
 
             // Run modules.
-            LayerManager.Update();
             Input.Update();
+            SoundManager.Update();
+
+            // Run user layers.
+            LayerManager.Update();
 
             // Check for errors.
             Helpers.CheckError("update");
+
+            Thread.Sleep(1);
         }
 
         /// <summary>
@@ -229,6 +244,13 @@ namespace Emotion.Engine
         /// </summary>
         internal void LoopDraw()
         {
+            // If not focused, don't draw.
+            if (!Window.Focused)
+            {
+                Thread.Sleep(1);
+                return;
+            }
+
             // Clear the screen.
             Renderer.Clear();
 
