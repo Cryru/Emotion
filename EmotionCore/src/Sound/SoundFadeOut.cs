@@ -4,7 +4,6 @@
 
 using System;
 using Emotion.Debug;
-using OpenTK.Audio.OpenAL;
 
 #endregion
 
@@ -47,7 +46,8 @@ namespace Emotion.Sound
 
         private void FadeFurther()
         {
-            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Fade out effect of source " + RelatedSource.Pointer + " is at volume: " + (_personalVolumeStart - _volumeIncrement * _iteration));
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager,
+                "Fade out effect of source " + RelatedSource.Pointer + " is at volume: " + (_personalVolumeStart - _volumeIncrement * _iteration));
             RelatedSource.PersonalVolume = (float) (_personalVolumeStart - _volumeIncrement * _iteration);
         }
     }

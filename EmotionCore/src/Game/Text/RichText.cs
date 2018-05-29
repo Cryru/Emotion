@@ -106,7 +106,7 @@ namespace Emotion.Game.Text
             Text = text;
         }
 
-        #region API
+        #region Public API
 
         /// <summary>
         /// Set a string to be displayed.
@@ -175,17 +175,26 @@ namespace Emotion.Game.Text
 
         #endregion
 
-        #region Drawing and Updating
+        #region Loops
 
-        public void Update(float frameTime)
+        /// <summary>
+        /// Updates the text's scrolling effect, if any is set.
+        /// </summary>
+        /// <param name="frameTime">Time passed since last update.</param>
+        /// <returns>True if an update happened, false otherwise.</returns>
+        public bool Update(float frameTime)
         {
             // Check if any text is set.
-            if (string.IsNullOrEmpty(_textToDisplay)) return;
+            if (string.IsNullOrEmpty(_textToDisplay)) return false;
 
             // Scroll.
-            UpdateScrolling(frameTime);
+            return UpdateScrolling(frameTime);
         }
 
+        /// <summary>
+        /// Draw the rich text's cache.
+        /// </summary>
+        /// <param name="renderer">The renderer to use.</param>
         public void Draw(Renderer renderer)
         {
             // Draw to the text rendering cache.
@@ -195,14 +204,18 @@ namespace Emotion.Game.Text
             renderer.DrawTexture(_drawingSession.GetTexture(), Bounds);
         }
 
-        protected void UpdateScrolling(float frameTime)
+        #endregion
+
+        #region Drawing and Updating
+
+        protected bool UpdateScrolling(float frameTime)
         {
             // Check if scrolling.
-            if (DoneScrolling) return;
+            if (DoneScrolling) return false;
             if (ScrollDuration <= 0)
             {
                 EndScroll();
-                return;
+                return true;
             }
 
             // Check for an overflow. This can be caused when setting text to a shorter string without resetting scrolling.
@@ -215,10 +228,12 @@ namespace Emotion.Game.Text
             float durationPerCharacter = ScrollDuration / _textToDisplay.Length;
 
             // Check if enough time has passed.
-            if (!(_scrollTimer > durationPerCharacter)) return;
+            if (!(_scrollTimer > durationPerCharacter)) return false;
 
             _scrollTimer -= durationPerCharacter;
             _scrollPosition++;
+
+            return true;
         }
 
         protected void CacheDraw(Renderer renderer)

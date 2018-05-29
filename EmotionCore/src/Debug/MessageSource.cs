@@ -18,6 +18,7 @@ namespace Emotion.Debug
         SoundManager,
 
         // User
-        Game
+        Game,
+        UIController
     }
 }

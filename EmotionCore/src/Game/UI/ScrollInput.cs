@@ -58,10 +58,10 @@ namespace Emotion.Game.UI
             Selector.Bounds = selectorBounds;
         }
 
-        public override void Remove()
+        public override void Destroy()
         {
-            Selector.Remove();
-            base.Remove();
+            Selector.Destroy();
+            base.Destroy();
         }
     }
 }

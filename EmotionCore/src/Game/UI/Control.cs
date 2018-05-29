@@ -59,7 +59,7 @@ namespace Emotion.Game.UI
             _controller.Add(this);
         }
 
-        public virtual void Remove()
+        public virtual void Destroy()
         {
             Destroyed = true;
         }

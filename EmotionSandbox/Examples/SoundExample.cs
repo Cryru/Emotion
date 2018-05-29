@@ -31,7 +31,8 @@ namespace EmotionSandbox.Examples
         public override void Load()
         {
             _song = Context.AssetLoader.Get<SoundFile>("ElectricSleepMainMenu.wav");
-            Source source = Context.SoundManager.PlaySoundLayer("example", _song, false, true);
+            Source source = Context.SoundManager.PlaySoundLayer("example", _song, false);
+            source.Looping = true;
             source.OnFinished += (e, a) => { Debugger.Log(MessageType.Info, MessageSource.Game, "Sound is over."); };
 
             SoundFadeIn effectTest = new SoundFadeIn(5000, source);
@@ -43,7 +44,7 @@ namespace EmotionSandbox.Examples
         public override void Update(float frameTime)
         {
             if (Context.Input.IsKeyDown("A"))
-                if (Context.SoundManager.GetSoundLayer("example").isPlaying)
+                if (Context.SoundManager.GetSoundLayer("example").Playing)
                     Context.SoundManager.PauseSoundLayer("example");
                 else
                     Context.SoundManager.ResumeSoundLayer("example");

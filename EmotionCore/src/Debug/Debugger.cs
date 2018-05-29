@@ -3,9 +3,11 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Emotion.Engine;
 using Emotion.Game.Camera;
+using Emotion.Game.UI;
 using Emotion.GLES;
 using Emotion.Primitives;
 using Soul.Logging;
@@ -16,9 +18,23 @@ namespace Emotion.Debug
 {
     public static class Debugger
     {
+        #region Properties
+
+        /// <summary>
+        /// Sources which to log.
+        /// </summary>
+        public static List<MessageSource> SourceFilter = new List<MessageSource>();
+
+        /// <summary>
+        /// Types to log.
+        /// </summary>
+        public static List<MessageType> TypeFilter = new List<MessageType>();
+
+        #endregion
+
         #region Declarations
 
-        #if DEBUG
+#if DEBUG
 
         /// <summary>
         /// A Soul.Logging service which logs all debug messages to a file.
@@ -45,9 +61,29 @@ namespace Emotion.Debug
         /// </summary>
         private static Thread _consoleThread;
 
-        #endif
+#endif
 
         #endregion
+
+        static Debugger()
+        {
+#if DEBUG
+            MessageSource[] allSources = (MessageSource[]) Enum.GetValues(typeof(MessageSource));
+            foreach (MessageSource source in allSources)
+            {
+                SourceFilter.Add(source);
+            }
+
+            MessageType[] allTypes = (MessageType[]) Enum.GetValues(typeof(MessageType));
+            foreach (MessageType type in allTypes)
+            {
+                TypeFilter.Add(type);
+            }
+
+            // Remove spam.
+            TypeFilter.Remove(MessageType.Trace);
+#endif
+        }
 
         /// <summary>
         /// Setup the debugger.
@@ -68,6 +104,9 @@ namespace Emotion.Debug
             while (!_consoleThread.IsAlive)
             {
             }
+
+            // Expose scripting API.
+            context.ScriptingEngine.Expose("dumpUI", (Func<Controller, string>) UIControllerDump);
 #endif
         }
 
@@ -80,6 +119,9 @@ namespace Emotion.Debug
         public static void Log(MessageType type, MessageSource source, string message)
         {
 #if DEBUG
+            // Check against filters.
+            if (TypeFilter.IndexOf(type) == -1 || SourceFilter.IndexOf(source) == -1) return;
+
             // Prevent logging from multiple threads messing up coloring and logging.
             lock (_mutexLock)
             {
@@ -137,6 +179,9 @@ namespace Emotion.Debug
 
             // Draw the mouse cursor location.
             MouseBoundDraw(renderer, context.Input);
+
+            // Draw UI controllers.
+            DrawUIControllers(renderer);
 #endif
         }
 
@@ -172,6 +217,20 @@ namespace Emotion.Debug
             renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
         }
 
+        private static void DrawUIControllers(Renderer renderer)
+        {
+            foreach (Controller controller in Controller.Controllers)
+            {
+                if (controller.Controls == null) continue;
+                // ForEach loop causes problems as the collection can be modified on another thread.
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (int i = 0; i < controller.Controls.Count; i++)
+                {
+                    renderer.DrawRectangleOutline(controller.Controls[i].Bounds, controller.Controls[i].Active ? Color.Green : Color.Red, false);
+                }
+            }
+        }
+
         #endregion
 
         #region Scripting
@@ -186,6 +245,22 @@ namespace Emotion.Debug
                 string readLine = Console.ReadLine();
                 if (readLine != null) _command = readLine.Trim(' ');
             }
+        }
+
+        /// <summary>
+        /// Dumps the status of a ui controller.
+        /// </summary>
+        /// <param name="uiController"></param>
+        private static string UIControllerDump(Controller uiController)
+        {
+            string result = "UI Controller " + uiController.Id + "\n";
+
+            foreach (Control control in uiController.Controls)
+            {
+                result += control.Priority + " [" + control + "]\n";
+            }
+
+            return result;
         }
 
         #endregion

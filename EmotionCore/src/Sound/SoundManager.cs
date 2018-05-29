@@ -39,28 +39,26 @@ namespace Emotion.Sound
         /// <param name="layerName">The name of the layer. If reused the previous sound will be stopped.</param>
         /// <param name="file">The file to play.</param>
         /// <param name="startNow">Whether to start immediately.</param>
-        /// <param name="loop">Whether to loop the sound.</param>
+        /// <param name="volume">What volume to play the source at.</param>
         /// <returns>A sound source running on the layer to be further configured by the user.</returns>
-        public Source PlaySoundLayer(string layerName, SoundFile file, bool startNow = true, bool loop = false)
+        public Source PlaySoundLayer(string layerName, SoundFile file, bool startNow = true, float volume = 1f)
         {
             lock (_layers)
             {
                 // Check if the layer exists.
                 if (_layers.ContainsKey(layerName))
                 {
-                    // Stop the source.
-                    _layers[layerName].Stop();
-                    // Destroy it.
-                    _layers[layerName].Destroy();
+                    // Check if already destroyed.
+                    if(_layers[layerName] != null && !_layers[layerName].Destroyed) DestroySoundLayer(layerName);
                 }
                 else
                 {
                     _layers.Add(layerName, null);
                 }
 
-                Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Playing track [" + file.AssetName + "]");
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing track [" + file.AssetName + "] on sound layer [" + layerName + "]");
 
-                Source newSource = new Source(file) {Looping = loop};
+                Source newSource = new Source(file, volume);
                 _layers[layerName] = newSource;
                 if (startNow) newSource.Play();
 
@@ -96,10 +94,31 @@ namespace Emotion.Sound
             _layers[layerName].Resume();
         }
 
+        /// <summary>
+        /// Destroy a sound layer, stopping playback and destroying the source.
+        /// </summary>
+        /// <param name="layerName">The name of the layer to destroy.</param>
+        public void DestroySoundLayer(string layerName)
+        {
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound layer [" + layerName + "] with source " +  _layers[layerName].Pointer + " playing [" + _layers[layerName].FileName + "]");
+
+            // Stop the source.
+            _layers[layerName].Stop();
+            // Destroy it.
+            _layers[layerName].Destroy();
+            _layers[layerName] = null;
+        }
+
         #region Effects
 
+        /// <summary>
+        /// Add a sound effect to manage.
+        /// </summary>
+        /// <param name="soundEffect">An instance of a sound effect. Is updated every tick safely.</param>
         public void AddEffect(SoundEffect soundEffect)
         {
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Applying sound effect [" + soundEffect + "] to source " + soundEffect.RelatedSource.Pointer + " playing [" + soundEffect.RelatedSource.FileName + "]");
+
             _soundEffects.Add(soundEffect);
         }
 
@@ -117,13 +136,13 @@ namespace Emotion.Sound
                     KeyValuePair<string, Source> soundLayer = _layers.ElementAt(i);
 
                     // Check if destroyed.
-                    if (soundLayer.Value.isDestroyed) continue;
+                    if (soundLayer.Value == null || soundLayer.Value.Destroyed) continue;
 
                     // Check if window focus is gone.
                     if (!Context.Window.Focused)
                     {
                         soundLayer.Value.FocusLossPause();
-                        return;
+                        continue;
                     }
 
                     if (soundLayer.Value.FocusLossPaused) soundLayer.Value.Resume();
@@ -136,14 +155,14 @@ namespace Emotion.Sound
             for (int i = _soundEffects.Count - 1; i >= 0; i--)
             {
                 // Check if the related source has been destroyed, or the effect has finished.
-                if (_soundEffects[i].RelatedSource.isDestroyed || _soundEffects[i].Finished)
+                if (_soundEffects[i].RelatedSource.Destroyed || _soundEffects[i].Finished)
                 {
                     _soundEffects.Remove(_soundEffects[i]);
                     continue;
                 }
 
                 // Check if not playing.
-                if (!_soundEffects[i].RelatedSource.isPlaying) continue;
+                if (!_soundEffects[i].RelatedSource.Playing) continue;
 
                 // Update the effect.
                 _soundEffects[i].Update(Context.FrameTime);

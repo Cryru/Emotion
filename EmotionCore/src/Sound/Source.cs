@@ -11,14 +11,19 @@ using OpenTK.Audio.OpenAL;
 
 namespace Emotion.Sound
 {
-    public class Source
+    public sealed class Source
     {
         #region Properties
 
         /// <summary>
+        /// The name of the file playing through this source.
+        /// </summary>
+        public string FileName { get; private set; }
+
+        /// <summary>
         /// Whether the source is currently playing.
         /// </summary>
-        public bool isPlaying
+        public bool Playing
         {
             get => AL.GetSourceState(Pointer) == ALSourceState.Playing;
         }
@@ -26,7 +31,7 @@ namespace Emotion.Sound
         /// <summary>
         /// Whether the source has finished playing.
         /// </summary>
-        public bool isOver
+        public bool Finished
         {
             get => AL.GetSourceState(Pointer) == ALSourceState.Stopped;
         }
@@ -34,7 +39,7 @@ namespace Emotion.Sound
         /// <summary>
         /// Whether the source has been destroyed;
         /// </summary>
-        public bool isDestroyed
+        public bool Destroyed
         {
             get => Pointer == -1;
         }
@@ -81,6 +86,7 @@ namespace Emotion.Sound
             Pointer = AL.GenSource();
             AL.Source(Pointer, ALSourcei.Buffer, file.Pointer);
             PersonalVolume = volume;
+            FileName = file.AssetName;
         }
 
         #region Public API
@@ -96,7 +102,7 @@ namespace Emotion.Sound
         public void Resume()
         {
             // Check if was stopped.
-            if (isOver) AL.SourceRewind(Pointer);
+            if (Finished) AL.SourceRewind(Pointer);
 
             AL.Source(Pointer, ALSourcef.Gain, PersonalVolume);
             AL.SourcePlay(Pointer);
@@ -148,7 +154,7 @@ namespace Emotion.Sound
             }
 
             // Check if over or event was triggered.
-            if (!isOver || _eventTracker) return;
+            if (!Finished || _eventTracker) return;
 
             // Invoke finish event.
             _eventTracker = true;

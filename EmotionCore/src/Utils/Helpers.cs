@@ -79,5 +79,22 @@ namespace Emotion.Utils
             while (temp < num) temp <<= 1;
             return temp;
         }
+
+        /// <summary>
+        /// The global generator used for generating numbers.
+        /// </summary>
+        private static Random _generator = new Random();
+
+        /// <summary>
+        /// Returns a randomly generated number from a global seed.
+        /// </summary>
+        /// <param name="min">The lowest number that can be generated included.</param>
+        /// <param name="max">The highest number that can be generated included.</param>
+        /// <returns></returns>
+        public static int GetRandom(int min = 0, int max = 100)
+        {
+            // Add one because by Random.Next does not include max.
+            return _generator.Next(min, max + 1);
+        }
     }
 }

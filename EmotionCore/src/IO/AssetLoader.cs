@@ -151,7 +151,7 @@ namespace Emotion.IO
         /// <param name="warning">Whether the message is a warning.</param>
         private void DebugMessageWrap(string operation, string path, Type type, bool warning = false)
         {
-            Debugger.Log(warning ? MessageType.Warning : MessageType.Trace, MessageSource.AssetLoader, operation + " asset [" + path + "] of type " + type);
+            Debugger.Log(warning ? MessageType.Warning : MessageType.Info, MessageSource.AssetLoader, operation + " asset [" + path + "] of type " + type);
         }
 
         #endregion
