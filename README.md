@@ -18,26 +18,29 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 
 - Window creation.
 - Mouse and keyboard input.
+  - Focus captured.
 - Asset loading and management.
   - Textures: All FreeImage supported formats. ex. BMP/PNG/JPEG/GIF
   - Fonts: All FreeType supported formats. ex. TTF
   - Sounds: RIFF WAV
 - Camera system.
-  - Default cameras include one which follows the mouse and one which follows a target object.
+  - Default cameras include one which follows the mouse and one which follows a target transform.
 - Rendering
   - Primitives like lines and rectangles.
   - Square textures.
   - Text.
     - Includes advanced font drawing with control over each individual glyph.
     - Richtext featuring auto wrapping, alignment, markup, and more.
-- Sound engine with fading effects.
+- Sound engine with effects.
 - UI system.
+  - Customize base controls through inheritance or use them straight away.
+  - Inter
 - Tiled integration and rendering.
   - Includes layer opacity, multiple tilesets, animated tiles, and more.
 - An implementation of A*.
   - With the ability to add a custom heuristics function, and perform other customizations.
 - A Javascript scripting engine.
-- Logging and a debug module.
+- Logging and additional debugging.
 
 ## How to use it?
 
@@ -49,15 +52,15 @@ For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
 
 ## Projects Used
 
-OpenTK - OpenGL/OpenAL bindings and context creation.
+OpenTK [OpenGL/OpenAL] - Rendering and audio.
 
-FreeImage/FreeImage-DotNet-Core - Loading and converting images.
+FreeImage-DotNet-Core [FreeImage] - Loading and converting images.
 
-FreeType/SharpFont - Loading fonts and glyphs.
+SharpFont [FreeType] - Loading fonts and glyphs, and rendering them.
 
 TiledSharp [Modified] - Loading .tmx Tiled files.
 
-Jint - Javascript execution.
+Jint - Javascript script engine.
 
 Soul - Logging.
 
