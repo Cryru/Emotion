@@ -145,9 +145,6 @@ namespace Emotion.Engine
             // Set running to true.
             Running = true;
 
-            // Setup the debugger if not already setup.
-            Debugger.Setup(this);
-
             // Start running the loops. Blocking.
             Window.Run(0, 0);
 
@@ -258,7 +255,7 @@ namespace Emotion.Engine
             LayerManager.Draw();
 
             // Draw debug.
-            Debugger.Draw(Renderer, this);
+            Debugger.DebugDraw(this);
 
             // Swap buffers.
             Renderer.Present();

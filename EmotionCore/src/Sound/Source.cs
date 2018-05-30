@@ -160,5 +160,16 @@ namespace Emotion.Sound
             _eventTracker = true;
             OnFinished?.Invoke(this, EventArgs.Empty);
         }
+
+        #region Debugging
+
+        public override string ToString()
+        {
+            string result = "[Source " + Pointer + "]";
+            result += $"(file: {FileName}, loop: {Looping}, personalVolume: {PersonalVolume})";
+            return result;
+        }
+
+        #endregion
     }
 }

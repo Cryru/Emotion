@@ -49,18 +49,18 @@ namespace Emotion.Sound
                 if (_layers.ContainsKey(layerName))
                 {
                     // Check if already destroyed.
-                    if(_layers[layerName] != null && !_layers[layerName].Destroyed) DestroySoundLayer(layerName);
+                    if (_layers[layerName] != null && !_layers[layerName].Destroyed) DestroySoundLayer(layerName);
                 }
                 else
                 {
                     _layers.Add(layerName, null);
                 }
 
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing track [" + file.AssetName + "] on sound layer [" + layerName + "]");
-
                 Source newSource = new Source(file, volume);
                 _layers[layerName] = newSource;
                 if (startNow) newSource.Play();
+
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, (startNow ? "Playing" : "Preparing") + " sound layer [" + layerName + "] with " + newSource);
 
                 return newSource;
             }
@@ -100,7 +100,7 @@ namespace Emotion.Sound
         /// <param name="layerName">The name of the layer to destroy.</param>
         public void DestroySoundLayer(string layerName)
         {
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound layer [" + layerName + "] with source " +  _layers[layerName].Pointer + " playing [" + _layers[layerName].FileName + "]");
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound layer [" + layerName + "] playing " + _layers[layerName]);
 
             // Stop the source.
             _layers[layerName].Stop();
@@ -117,7 +117,7 @@ namespace Emotion.Sound
         /// <param name="soundEffect">An instance of a sound effect. Is updated every tick safely.</param>
         public void AddEffect(SoundEffect soundEffect)
         {
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Applying sound effect [" + soundEffect + "] to source " + soundEffect.RelatedSource.Pointer + " playing [" + soundEffect.RelatedSource.FileName + "]");
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Applying sound effect " + soundEffect);
 
             _soundEffects.Add(soundEffect);
         }

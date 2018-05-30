@@ -30,5 +30,16 @@ namespace Emotion.Sound
         protected float _iteration;
 
         internal abstract void Update(float frameTime);
+
+        #region Debugging
+
+        public override string ToString()
+        {
+            string result = "[" + base.ToString() + "]";
+            result += $"(source: {RelatedSource})";
+            return result;
+        }
+
+        #endregion
     }
 }

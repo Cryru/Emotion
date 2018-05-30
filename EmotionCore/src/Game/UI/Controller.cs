@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Emotion.Debug;
 using Emotion.GLES;
 using Emotion.Input;
 using Emotion.Primitives;
+using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -17,22 +19,11 @@ namespace Emotion.Game.UI
     public sealed class Controller
     {
         private static int _nextControllerId;
-#if DEBUG
-
-        internal static List<Controller> Controllers = new List<Controller>();
-
-#endif
 
         public Controller()
         {
             Id = _nextControllerId;
             _nextControllerId++;
-
-#if DEBUG
-
-            Controllers.Add(this);
-
-#endif
         }
 
         internal int Id;
@@ -45,13 +36,15 @@ namespace Emotion.Game.UI
         /// <param name="control">The control to add.</param>
         internal void Add(Control control)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, "Adding ui control to controller " + Id + " of type [" + control + "] of priority " + control.Priority);
+            Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] adding control " + control);
 
             lock (Controls)
             {
                 Controls.Add(control);
                 Controls.OrderBy(x => x.Priority);
             }
+
+            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + control);
         }
 
         /// <summary>
@@ -60,7 +53,7 @@ namespace Emotion.Game.UI
         /// <param name="control">A reference to the control to remove.</param>
         internal void Remove(Control control)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, "Removing ui control to controller " + Id + " of type [" + control + "] of priority " + control.Priority);
+            Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] removing control " + control);
 
             lock (Controls)
             {
@@ -69,6 +62,8 @@ namespace Emotion.Game.UI
 
                 Controls.Remove(control);
             }
+
+            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] removed control " + control);
         }
 
         /// <summary>
@@ -83,6 +78,7 @@ namespace Emotion.Game.UI
 
                 // Draw.
                 c.Draw(renderer);
+                DebugDraw(renderer);
             }
         }
 
@@ -107,7 +103,7 @@ namespace Emotion.Game.UI
                 {
                     // Check if the mouse was already triggered as being inside.
                     if (c.MouseInside) continue;
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "Mouse inside control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Priority);
+                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse entered control with id " + Controls.IndexOf(c) + " - " + c);
                     c.MouseInside = true;
                     c.MouseEnter(mousePosition);
                 }
@@ -115,7 +111,7 @@ namespace Emotion.Game.UI
                 {
                     // Check if the mouse was inside before.
                     if (!c.MouseInside) continue;
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "Mouse left control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Priority);
+                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse left control with id " + Controls.IndexOf(c) + " - " + c);
                     c.MouseInside = false;
                     c.MouseLeave(mousePosition);
                 }
@@ -139,8 +135,7 @@ namespace Emotion.Game.UI
                     {
                         // If the button wasn't held, but now is.
                         if (c.Held[i] || HeldSomewhere(i)) continue;
-                        Debugger.Log(MessageType.Trace, MessageSource.UIController,
-                            "Mouse clicked down with key [" + currentKey + "] on control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Priority);
+                        Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse clicked using [" + currentKey + "] control with id " + Controls.IndexOf(c) + " - " + c);
                         c.Held[i] = true;
                         c.MouseDown(currentKey);
                     }
@@ -163,7 +158,8 @@ namespace Emotion.Game.UI
             for (int i = Controls.Count - 1; i >= 0; i--)
             {
                 if (!Controls[i].Destroyed) continue;
-                Debugger.Log(MessageType.Warning, MessageSource.UIController, "[DEPRECATED] User has destroyed a UI control, which the controller had to clean up. Don't do this, it won't work in the future.\nControl id " + i + " of type " + Controls[i]);
+                Debugger.Log(MessageType.Warning, MessageSource.UIController,
+                    "[DEPRECATED] User has destroyed a UI control, which the controller had to clean up. Don't do this, it won't work in the future.\nControl id " + i + " of type " + Controls[i]);
                 Remove(Controls[i]);
             }
         }
@@ -218,12 +214,37 @@ namespace Emotion.Game.UI
 
         #endregion
 
+        #region Debugging
+
+        [Conditional("DEBUG")]
+        private void DebugDraw(Renderer renderer)
+        {
+            foreach (Control control in Controls)
+            {
+                renderer.DrawRectangleOutline(control.Bounds, control.Active ? Color.Green : Color.Red, false);
+            }
+        }
+
+        public override string ToString()
+        {
+            string result = "[UI Controller " + Id + "]\n";
+
+            foreach (Control control in Controls)
+            {
+                result += " |- " + control + "]\n";
+            }
+
+            return result;
+        }
+
+        #endregion
+
         /// <summary>
         /// Cleanup resources used by the controller and run remove on all children.
         /// </summary>
         public void Dispose()
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, "Destroying ui controller " + Id);
+            Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] destroyed.");
 
             lock (Controls)
             {
@@ -235,12 +256,6 @@ namespace Emotion.Game.UI
                 Controls.Clear();
                 Controls = null;
             }
-
-#if DEBUG
-
-            Controllers.Remove(this);
-
-#endif
         }
     }
 }

@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Emotion.Engine;
 using Emotion.Game.Camera;
-using Emotion.Game.UI;
 using Emotion.GLES;
 using Emotion.Primitives;
 using Soul.Logging;
@@ -23,51 +23,50 @@ namespace Emotion.Debug
         /// <summary>
         /// Sources which to log.
         /// </summary>
-        public static List<MessageSource> SourceFilter = new List<MessageSource>();
+        public static List<MessageSource> SourceFilter;
 
         /// <summary>
         /// Types to log.
         /// </summary>
-        public static List<MessageType> TypeFilter = new List<MessageType>();
+        public static List<MessageType> TypeFilter;
 
         #endregion
 
         #region Declarations
 
-#if DEBUG
-
         /// <summary>
         /// A Soul.Logging service which logs all debug messages to a file.
         /// </summary>
-        private static ImmediateLoggingService _logger = new ImmediateLoggingService
-        {
-            LogLimit = 10,
-            Limit = 2000,
-            Stamp = "Emotion Engine Log"
-        };
+        private static ImmediateLoggingService _logger;
 
         /// <summary>
         /// An empty object used as a mutex when writing log messages.
         /// </summary>
-        private static object _mutexLock = new object();
+        private static object _mutexLock;
 
         /// <summary>
         /// The next debug command to process.
         /// </summary>
-        private static string _command = "";
-
-        /// <summary>
-        /// The thread on which console input is read.
-        /// </summary>
-        private static Thread _consoleThread;
-
-#endif
+        private static string _command;
 
         #endregion
 
         static Debugger()
         {
 #if DEBUG
+            // Init.
+            SourceFilter = new List<MessageSource>();
+            TypeFilter = new List<MessageType>();
+            _logger = new ImmediateLoggingService
+            {
+                LogLimit = 10,
+                Limit = 2000,
+                Stamp = "Emotion Engine Log"
+            };
+            _mutexLock = new object();
+            _command = "";
+
+            // Populate filters.
             MessageSource[] allSources = (MessageSource[]) Enum.GetValues(typeof(MessageSource));
             foreach (MessageSource source in allSources)
             {
@@ -82,31 +81,14 @@ namespace Emotion.Debug
 
             // Remove spam.
             TypeFilter.Remove(MessageType.Trace);
-#endif
-        }
 
-        /// <summary>
-        /// Setup the debugger.
-        /// </summary>
-        /// <param name="context">
-        /// The context which will host the debugger. Other contexts can use it, but only the provided one
-        /// will run.
-        /// </param>
-        internal static void Setup(Context context)
-        {
-#if DEBUG
-            // Check if already setup.
-            if (_consoleThread != null) return;
 
             // Start the console thread.
-            _consoleThread = new Thread(() => ConsoleThread(context));
-            _consoleThread.Start();
-            while (!_consoleThread.IsAlive)
+            Thread consoleThread = new Thread(() => ConsoleThread());
+            consoleThread.Start();
+            while (!consoleThread.IsAlive)
             {
             }
-
-            // Expose scripting API.
-            context.ScriptingEngine.Expose("dumpUI", (Func<Controller, string>) UIControllerDump);
 #endif
         }
 
@@ -116,9 +98,9 @@ namespace Emotion.Debug
         /// <param name="type">The type of message to log.</param>
         /// <param name="source">The source of the message.</param>
         /// <param name="message">The message itself.</param>
+        [Conditional("DEBUG")]
         public static void Log(MessageType type, MessageSource source, string message)
         {
-#if DEBUG
             // Check against filters.
             if (TypeFilter.IndexOf(type) == -1 || SourceFilter.IndexOf(source) == -1) return;
 
@@ -153,7 +135,6 @@ namespace Emotion.Debug
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.BackgroundColor = ConsoleColor.Black;
             }
-#endif
         }
 
         #region Loops
@@ -161,36 +142,43 @@ namespace Emotion.Debug
         /// <summary>
         /// Is run every tick by the platform context.
         /// </summary>
+        [Conditional("DEBUG")]
         internal static void Update(ScriptingEngine scripting)
         {
-#if DEBUG
             // Check if there is a command to execute.
             if (_command == string.Empty) return;
             scripting.RunScript(_command);
             _command = "";
-#endif
         }
 
-        internal static void Draw(Renderer renderer, Context context)
+        [Conditional("DEBUG")]
+        internal static void DebugDraw(Context context)
         {
-#if DEBUG
             // Check if there is an attached renderer with a camera.
-            if (renderer?.Camera != null) CameraBoundDraw(renderer);
+            if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
 
             // Draw the mouse cursor location.
-            MouseBoundDraw(renderer, context.Input);
+            MouseBoundDraw(context.Renderer, context.Input);
+        }
 
-            // Draw UI controllers.
-            DrawUIControllers(renderer);
-#endif
+        /// <summary>
+        /// Processes console input without blocking the engine.
+        /// </summary>
+        [Conditional("DEBUG")]
+        private static void ConsoleThread()
+        {
+            while (!Environment.HasShutdownStarted)
+            {
+                string readLine = Console.ReadLine();
+                if (readLine != null) _command = readLine.Trim(' ');
+            }
         }
 
         #endregion
 
-#if DEBUG
-
         #region Debug Drawing
 
+        [Conditional("DEBUG")]
         private static void CameraBoundDraw(Renderer renderer)
         {
             CameraBase camera = renderer.Camera;
@@ -206,6 +194,7 @@ namespace Emotion.Debug
             renderer.DrawRectangleOutline(centerDraw, Color.Yellow);
         }
 
+        [Conditional("DEBUG")]
         private static void MouseBoundDraw(Renderer renderer, Input.Input input)
         {
             Vector2 mouseLocation = input.GetMousePosition();
@@ -217,54 +206,6 @@ namespace Emotion.Debug
             renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
         }
 
-        private static void DrawUIControllers(Renderer renderer)
-        {
-            foreach (Controller controller in Controller.Controllers)
-            {
-                if (controller.Controls == null) continue;
-                // ForEach loop causes problems as the collection can be modified on another thread.
-                // ReSharper disable once ForCanBeConvertedToForeach
-                for (int i = 0; i < controller.Controls.Count; i++)
-                {
-                    renderer.DrawRectangleOutline(controller.Controls[i].Bounds, controller.Controls[i].Active ? Color.Green : Color.Red, false);
-                }
-            }
-        }
-
         #endregion
-
-        #region Scripting
-
-        /// <summary>
-        /// Processes console input without blocking the engine.
-        /// </summary>
-        private static void ConsoleThread(Context context)
-        {
-            while (context.Running)
-            {
-                string readLine = Console.ReadLine();
-                if (readLine != null) _command = readLine.Trim(' ');
-            }
-        }
-
-        /// <summary>
-        /// Dumps the status of a ui controller.
-        /// </summary>
-        /// <param name="uiController"></param>
-        private static string UIControllerDump(Controller uiController)
-        {
-            string result = "UI Controller " + uiController.Id + "\n";
-
-            foreach (Control control in uiController.Controls)
-            {
-                result += control.Priority + " [" + control + "]\n";
-            }
-
-            return result;
-        }
-
-        #endregion
-
-#endif
     }
 }

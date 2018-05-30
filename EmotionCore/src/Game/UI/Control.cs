@@ -90,5 +90,17 @@ namespace Emotion.Game.UI
         }
 
         #endregion
+
+        
+        #region Debugging
+
+        public override string ToString()
+        {
+            string result = "[" + base.ToString() + "]";
+            result += $"(priority: {Priority}, active: {Active})";
+            return result;
+        }
+
+        #endregion
     }
 }

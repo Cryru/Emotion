@@ -142,6 +142,8 @@ namespace Emotion.Game.Layering
 
         private void LoadLayer(Layer layer)
         {
+            Debugger.Log(MessageType.Trace, MessageSource.LayerManager, "Loading layer [" + layer.Name + "]");
+
             layer.Load();
             _readyLayers.Add(layer.Name, layer);
 
@@ -150,10 +152,11 @@ namespace Emotion.Game.Layering
 
         private void UnloadLayer(Layer layer)
         {
+            Debugger.Log(MessageType.Trace, MessageSource.LayerManager, "Unloading layer [" + layer.Name + "]");
+
             layer.Unload();
-#if DEBUG
+
             Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Unloaded layer [" + layer.Name + "]");
-#endif
         }
 
         #endregion

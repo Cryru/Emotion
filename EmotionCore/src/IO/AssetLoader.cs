@@ -51,11 +51,7 @@ namespace Emotion.IO
             string enginePath = PathToEnginePath(path);
 
             // Check if the asset is already loaded, in which case return it.
-            if (_loadedAssets.ContainsKey(enginePath))
-            {
-                // Get the asset.
-               return (T) _loadedAssets[enginePath];
-            }
+            if (_loadedAssets.ContainsKey(enginePath)) return (T) _loadedAssets[enginePath];
 
             // Check whether the file exists.
             if (!Exists(enginePath)) throw new Exception("Could not find asset " + enginePath);
@@ -69,8 +65,9 @@ namespace Emotion.IO
             _loadedAssets[enginePath] = temp;
 
             // Process.
-            DebugMessageWrap("Processing", enginePath, typeof(T));
+            DebugMessageWrap("Processing", enginePath, typeof(T), MessageType.Info);
             temp.Process(fileContents);
+            DebugMessageWrap("Processed", enginePath, typeof(T), MessageType.Trace);
 
             // Return.
             return temp;
@@ -88,11 +85,15 @@ namespace Emotion.IO
             // Check if loaded.
             if (!_loadedAssets.ContainsKey(enginePath)) return;
 
+            DebugMessageWrap("Freeing", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
+
             // Destroy it.
             _loadedAssets[enginePath].Destroy();
 
             // Remove from the list.
             _loadedAssets.Remove(enginePath);
+
+            DebugMessageWrap("Freed", enginePath, null, MessageType.Trace);
         }
 
         #region Helpers
@@ -142,16 +143,20 @@ namespace Emotion.IO
             return RootDirectory + Path.DirectorySeparatorChar + path.Replace('/', '$').Replace('\\', '$').Replace('$', Path.DirectorySeparatorChar);
         }
 
+        #endregion
+
+        #region Debugging
+
         /// <summary>
         /// Post a formatted asset loader debug message.
         /// </summary>
         /// <param name="operation">The operation being performed.</param>
         /// <param name="path">An engine path to the file.</param>
         /// <param name="type">The type of asset.</param>
-        /// <param name="warning">Whether the message is a warning.</param>
-        private void DebugMessageWrap(string operation, string path, Type type, bool warning = false)
+        /// <param name="messageType">The type of message to log.</param>
+        private void DebugMessageWrap(string operation, string path, Type type, MessageType messageType)
         {
-            Debugger.Log(warning ? MessageType.Warning : MessageType.Info, MessageSource.AssetLoader, operation + " asset [" + path + "] of type " + type);
+            Debugger.Log(messageType, MessageSource.AssetLoader, operation + " asset [" + path + "]" + (type != null ? " of type " + type : ""));
         }
 
         #endregion
