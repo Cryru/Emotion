@@ -12,7 +12,11 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 ## Platforms Tested On:
 
 - Windows x64/x86
-- Ubuntu x64 (!) Latest version not tested.
+- Ubuntu x64
+- Mac x64 (Some libraries are missing - in development)
+- Android (Planned)
+
+For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
 
 ## Features So Far
 
