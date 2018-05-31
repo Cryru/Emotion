@@ -15,12 +15,12 @@ namespace Emotion.Sound
 
         private double _volumeIncrement;
 
-        public SoundFadeIn(float totalTime, Source source)
+        public SoundFadeIn(float totalTime, SoundLayer source)
         {
             _time = totalTime / 10;
-            RelatedSource = source;
-            _volumeIncrement = RelatedSource.PersonalVolume / 10;
-            RelatedSource.PersonalVolume = 0f;
+            RelatedLayer = source;
+            _volumeIncrement = RelatedLayer.Volume / 10;
+            RelatedLayer.Volume = 0f;
         }
 
         internal override void Update(float frameTime)
@@ -45,8 +45,10 @@ namespace Emotion.Sound
 
         private void FadeCloser()
         {
-            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Fade in effect of source " + RelatedSource.Pointer + " is at volume: " + _volumeIncrement * _iteration);
-            RelatedSource.PersonalVolume = (float) (_volumeIncrement * _iteration);
+            if (RelatedLayer.SourceDestroyed) Finished = true;
+
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Fade in effect of layer " + RelatedLayer + " is at volume: " + _volumeIncrement * _iteration);
+            RelatedLayer.Volume = (float) (_volumeIncrement * _iteration);
         }
     }
 }

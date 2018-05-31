@@ -17,155 +17,92 @@ namespace Emotion.Sound
     public class SoundManager : ContextObject
     {
         private AudioContext _audioContext;
-        private Dictionary<string, Source> _layers;
-        private List<SoundEffect> _soundEffects;
+        private Dictionary<string, SoundLayer> _layers;
 
         public SoundManager(Context context) : base(context)
         {
-            _layers = new Dictionary<string, Source>();
+            _layers = new Dictionary<string, SoundLayer>();
             _audioContext = new AudioContext();
-            _soundEffects = new List<SoundEffect>();
 
             // Setup listener.
             AL.Listener(ALListener3f.Position, 0, 0, 0);
             AL.Listener(ALListener3f.Velocity, 0, 0, 0);
         }
 
-        #region Public API
+        #region Layer
 
         /// <summary>
-        /// Play the sound file on the sound layer.
+        /// Create a sound layer. If already exists returns the already existing layer.
         /// </summary>
-        /// <param name="layerName">The name of the layer. If reused the previous sound will be stopped.</param>
-        /// <param name="file">The file to play.</param>
-        /// <param name="startNow">Whether to start immediately.</param>
-        /// <param name="volume">What volume to play the source at.</param>
-        /// <returns>A sound source running on the layer to be further configured by the user.</returns>
-        public Source PlaySoundLayer(string layerName, SoundFile file, bool startNow = true, float volume = 1f)
+        /// <param name="layerName">The name of the layer.</param>
+        /// <param name="startNow">Whether the layer should should out paused.</param>
+        /// <param name="volume">What volume to play the layer at. Can be changed later.</param>
+        /// <returns>The created sound layer which the manager will manage.</returns>
+        public SoundLayer CreateLayer(string layerName, bool startNow = true, float volume = 1f)
         {
-            lock (_layers)
+            if (_layers.ContainsKey(layerName)) return GetLayer(layerName);
+
+            _layers.Add(layerName, new SoundLayer
             {
-                // Check if the layer exists.
-                if (_layers.ContainsKey(layerName))
-                {
-                    // Check if already destroyed.
-                    if (_layers[layerName] != null && !_layers[layerName].Destroyed) DestroySoundLayer(layerName);
-                }
-                else
-                {
-                    _layers.Add(layerName, null);
-                }
+                Volume = volume,
+                Paused = !startNow,
+                Name = layerName
+            });
 
-                Source newSource = new Source(file, volume);
-                _layers[layerName] = newSource;
-                if (startNow) newSource.Play();
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Created layer [" + layerName + "]");
 
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, (startNow ? "Playing" : "Preparing") + " sound layer [" + layerName + "] with " + newSource);
-
-                return newSource;
-            }
+            return GetLayer(layerName);
         }
 
         /// <summary>
-        /// Pause the specified layer.
+        /// Returns the specified layer. If the layer doesn't exist, returns null.
         /// </summary>
-        /// <param name="layerName">The layer to pause.</param>
-        public void PauseSoundLayer(string layerName)
+        /// <param name="layerName">The name of the layer to return.</param>
+        /// <returns>The specified layer.</returns>
+        public SoundLayer GetLayer(string layerName)
         {
-            _layers[layerName].Pause();
-        }
-
-        /// <summary>
-        /// Returns the source running on the specified layer.
-        /// </summary>
-        /// <param name="layerName">The layer to return the sound source of.</param>
-        /// <returns></returns>
-        public Source GetSoundLayer(string layerName)
-        {
-            return _layers[layerName];
-        }
-
-        /// <summary>
-        /// Resumes a sound layer if paused.
-        /// </summary>
-        /// <param name="layerName">The layer to resume.</param>
-        public void ResumeSoundLayer(string layerName)
-        {
-            _layers[layerName].Resume();
-        }
-
-        /// <summary>
-        /// Destroy a sound layer, stopping playback and destroying the source.
-        /// </summary>
-        /// <param name="layerName">The name of the layer to destroy.</param>
-        public void DestroySoundLayer(string layerName)
-        {
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound layer [" + layerName + "] playing " + _layers[layerName]);
-
-            // Stop the source.
-            _layers[layerName].Stop();
-            // Destroy it.
-            _layers[layerName].Destroy();
-            _layers[layerName] = null;
-        }
-
-        #region Effects
-
-        /// <summary>
-        /// Add a sound effect to manage.
-        /// </summary>
-        /// <param name="soundEffect">An instance of a sound effect. Is updated every tick safely.</param>
-        public void AddEffect(SoundEffect soundEffect)
-        {
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Applying sound effect " + soundEffect);
-
-            _soundEffects.Add(soundEffect);
+            return !_layers.ContainsKey(layerName) ? null : _layers[layerName];
         }
 
         #endregion
+
+        #region Source
+
+        /// <summary>
+        /// Play a sound file on a specified layer.
+        /// </summary>
+        /// <param name="layerName">The name of the layer.</param>
+        /// <param name="file">The file to play.</param>
+        /// <returns>A sound source representing the file on the layer.</returns>
+        public Source PlayOnLayer(string layerName, SoundFile file)
+        {
+            Source newSource = new Source(file);
+            _layers[layerName].Source = newSource;
+
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing [" + file.AssetName + "] on [" + _layers[layerName] + "]");
+
+            return newSource;
+        }
+
+        /// <summary>
+        /// Returns the source running on the specified layer. If the layer has no source, or the layer doesn't exist, returns
+        /// null.
+        /// </summary>
+        /// <param name="layerName">The name of the layer whose source to return.</param>
+        /// <returns>The source running on the specified layer.</returns>
+        public Source GetLayerSource(string layerName)
+        {
+            SoundLayer layer = GetLayer(layerName);
+            return layer?.Source;
+        }
 
         #endregion
 
         internal void Update()
         {
-            lock (_layers)
+            foreach (KeyValuePair<string, SoundLayer> layer in _layers)
             {
-                // Go through all layers and update them.
-                for (int i = 0; i < _layers.Count; i++)
-                {
-                    KeyValuePair<string, Source> soundLayer = _layers.ElementAt(i);
-
-                    // Check if destroyed.
-                    if (soundLayer.Value == null || soundLayer.Value.Destroyed) continue;
-
-                    // Check if window focus is gone.
-                    if (!Context.Window.Focused)
-                    {
-                        soundLayer.Value.FocusLossPause();
-                        continue;
-                    }
-
-                    if (soundLayer.Value.FocusLossPaused) soundLayer.Value.Resume();
-
-                    soundLayer.Value.Update(Context.Settings);
-                }
-            }
-
-            // Update sound effects in reverse so removing is supported.
-            for (int i = _soundEffects.Count - 1; i >= 0; i--)
-            {
-                // Check if the related source has been destroyed, or the effect has finished.
-                if (_soundEffects[i].RelatedSource.Destroyed || _soundEffects[i].Finished)
-                {
-                    _soundEffects.Remove(_soundEffects[i]);
-                    continue;
-                }
-
-                // Check if not playing.
-                if (!_soundEffects[i].RelatedSource.Playing) continue;
-
-                // Update the effect.
-                _soundEffects[i].Update(Context.FrameTime);
+                layer.Value.Update(Context.FrameTime, Context.Window.Focused, Context.Settings);
             }
         }
     }

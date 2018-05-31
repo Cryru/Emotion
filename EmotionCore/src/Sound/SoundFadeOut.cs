@@ -16,11 +16,11 @@ namespace Emotion.Sound
         private double _personalVolumeStart;
         private double _volumeIncrement;
 
-        public SoundFadeOut(float totalTime, Source source)
+        public SoundFadeOut(float totalTime, SoundLayer source)
         {
             _time = totalTime / 10;
-            RelatedSource = source;
-            _personalVolumeStart = RelatedSource.PersonalVolume;
+            RelatedLayer = source;
+            _personalVolumeStart = RelatedLayer.Volume;
             _volumeIncrement = _personalVolumeStart / 10;
         }
 
@@ -46,9 +46,11 @@ namespace Emotion.Sound
 
         private void FadeFurther()
         {
+            if (RelatedLayer.SourceDestroyed) Finished = true;
+
             Debugger.Log(MessageType.Trace, MessageSource.SoundManager,
-                "Fade out effect of source " + RelatedSource.Pointer + " is at volume: " + (_personalVolumeStart - _volumeIncrement * _iteration));
-            RelatedSource.PersonalVolume = (float) (_personalVolumeStart - _volumeIncrement * _iteration);
+                "Fade out effect of layer " + RelatedLayer + " is at volume: " + (_personalVolumeStart - _volumeIncrement * _iteration));
+            RelatedLayer.Volume = (float) (_personalVolumeStart - _volumeIncrement * _iteration);
         }
     }
 }

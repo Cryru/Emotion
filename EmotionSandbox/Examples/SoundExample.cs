@@ -20,6 +20,8 @@ namespace EmotionSandbox.Examples
 
         public static void Main()
         {
+            Debugger.TypeFilter.Add(MessageType.Trace);
+
             Context context = Starter.GetEmotionContext();
 
             context.LayerManager.Add(new LoadingScreen(), "loading", -1);
@@ -31,23 +33,18 @@ namespace EmotionSandbox.Examples
         public override void Load()
         {
             _song = Context.AssetLoader.Get<SoundFile>("ElectricSleepMainMenu.wav");
-            Source source = Context.SoundManager.PlaySoundLayer("example", _song, false);
+            SoundLayer layer = Context.SoundManager.CreateLayer("example");
+            Source source = Context.SoundManager.PlayOnLayer("example", _song);
             source.Looping = true;
             source.OnFinished += (e, a) => { Debugger.Log(MessageType.Info, MessageSource.Game, "Sound is over."); };
 
-            SoundFadeIn effectTest = new SoundFadeIn(5000, source);
-            Context.SoundManager.AddEffect(effectTest);
-
-            source.Play();
+            SoundFadeIn effectTest = new SoundFadeIn(5000, Context.SoundManager.GetLayer("example"));
+            layer.ApplySoundEffect(effectTest);
         }
 
         public override void Update(float frameTime)
         {
-            if (Context.Input.IsKeyDown("A"))
-                if (Context.SoundManager.GetSoundLayer("example").Playing)
-                    Context.SoundManager.PauseSoundLayer("example");
-                else
-                    Context.SoundManager.ResumeSoundLayer("example");
+            if (Context.Input.IsKeyDown("A")) Context.SoundManager.GetLayer("example").Paused = !Context.SoundManager.GetLayer("example").Paused;
 
             if (Context.Input.IsKeyDown("W"))
             {

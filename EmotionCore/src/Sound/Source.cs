@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.IO;
 using OpenTK.Audio.OpenAL;
@@ -26,6 +27,14 @@ namespace Emotion.Sound
         public bool Playing
         {
             get => AL.GetSourceState(Pointer) == ALSourceState.Playing;
+        }
+
+        /// <summary>
+        /// Whether the source is paused.
+        /// </summary>
+        public bool Paused
+        {
+            get => AL.GetSourceState(Pointer) == ALSourceState.Paused;
         }
 
         /// <summary>
@@ -57,10 +66,6 @@ namespace Emotion.Sound
             set => AL.Source(Pointer, ALSourceb.Looping, value);
         }
 
-        /// <summary>
-        /// Whether the source was paused by a focus loss.
-        /// </summary>
-        internal bool FocusLossPaused { get; private set; }
 
         /// <summary>
         /// Will be called when the source has finished playing. If the source is looping it will never be called.
@@ -81,11 +86,10 @@ namespace Emotion.Sound
 
         internal int Pointer;
 
-        internal Source(SoundFile file, float volume = 1f)
+        internal Source(SoundFile file)
         {
             Pointer = AL.GenSource();
             AL.Source(Pointer, ALSourcei.Buffer, file.Pointer);
-            PersonalVolume = volume;
             FileName = file.AssetName;
         }
 
@@ -101,13 +105,9 @@ namespace Emotion.Sound
 
         public void Resume()
         {
-            // Check if was stopped.
-            if (Finished) AL.SourceRewind(Pointer);
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Resumed " + this);
 
-            AL.Source(Pointer, ALSourcef.Gain, PersonalVolume);
             AL.SourcePlay(Pointer);
-
-            FocusLossPaused = false;
         }
 
         /// <summary>
@@ -115,7 +115,19 @@ namespace Emotion.Sound
         /// </summary>
         public void Pause()
         {
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Paused " + this);
+
             AL.SourcePause(Pointer);
+        }
+
+        /// <summary>
+        /// Restart the source, starting from the beginning.
+        /// </summary>
+        public void Reset()
+        {
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Reset " + this);
+
+            AL.SourceRewind(Pointer);
         }
 
         /// <summary>
@@ -123,30 +135,44 @@ namespace Emotion.Sound
         /// </summary>
         public void Stop()
         {
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Stopped " + this);
+
             AL.SourceStop(Pointer);
         }
 
-        #endregion
-
-        internal void FocusLossPause()
+        /// <summary>
+        /// Forcefully stop the source without running its OnFinished event.
+        /// </summary>
+        public void ForceStop()
         {
-            FocusLossPaused = true;
-            Pause();
+            _eventTracker = true;
+            Stop();
         }
+
+
+        #endregion
 
         internal void Destroy()
         {
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Destroyed " + this);
+
             AL.DeleteSource(Pointer);
             Pointer = -1;
         }
 
+        /// <summary>
+        /// Update the source to comply with the max volume in the settings.
+        /// </summary>
+        /// <param name="settings"></param>
         internal void Update(Settings settings)
         {
             // Check if the sound levels have changed.
-            if (settings.Sound)
+            if (settings.Sound || settings.Volume == 0)
             {
-                AL.Source(Pointer, ALSourcef.Gain, PersonalVolume);
-                AL.Source(Pointer, ALSourcef.MaxGain, settings.Volume / 100f);
+                float scaled = PersonalVolume * (settings.Volume / 100f);
+
+                AL.Source(Pointer, ALSourcef.Gain, scaled);
+                AL.Source(Pointer, ALSourcef.MaxGain, 1f);
             }
             else
             {

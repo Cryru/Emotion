@@ -23,7 +23,7 @@ namespace Emotion.Sound
         /// <summary>
         /// The source the effect is pertaining to.
         /// </summary>
-        public Source RelatedSource { get; protected set; }
+        public SoundLayer RelatedLayer { get; protected set; }
 
         protected float _time;
         protected float _timeElapsed;
@@ -36,7 +36,7 @@ namespace Emotion.Sound
         public override string ToString()
         {
             string result = "[" + base.ToString() + "]";
-            result += $"(source: {RelatedSource})";
+            result += $"(source: {RelatedLayer.Source})";
             return result;
         }
 

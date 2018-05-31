@@ -109,6 +109,8 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Engine\ThreadManager.cs" />
+    <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
+    <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
     <Compile Include="src\IO\Asset.cs" />
     <Compile Include="src\GLES\Text\Glyph.cs" />
     <Compile Include="src\IO\SoundFile.cs" />
@@ -141,6 +143,7 @@
     <Compile Include="src\Sound\SoundFadeOut.cs" />
     <Compile Include="src\Sound\SoundFadeIn.cs" />
     <Compile Include="src\Sound\SoundEffect.cs" />
+    <Compile Include="src\Sound\SoundLayer.cs" />
     <Compile Include="src\Sound\SoundManager.cs" />
     <Compile Include="src\Sound\Source.cs" />
     <Compile Include="src\Utils\Helpers.cs" />
@@ -185,9 +188,7 @@
     <None Include="Libraries\x64\freetype.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="EmotionCore.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Libraries\x64\openal32.so" />
     <None Include="OpenTK.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

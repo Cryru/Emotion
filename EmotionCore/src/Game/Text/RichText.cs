@@ -656,7 +656,8 @@ namespace Emotion.Game.Text
         /// <returns>A list of all active effects at the specified index.</returns>
         protected IEnumerable<TextEffect> GetEffectsAt(int index)
         {
-            return _effectCache.Where(t => index >= t.Start && index < t.End);
+            // todo: Check if index < t.End or index <= t.End
+            return _effectCache.Where(t => index >= t.Start && (index < t.End || (index == t.End && index == t.Start)));
         }
 
         /// <summary>
