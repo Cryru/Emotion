@@ -3,7 +3,6 @@
 #region Using
 
 using System.Collections.Generic;
-using System.Linq;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.IO;
