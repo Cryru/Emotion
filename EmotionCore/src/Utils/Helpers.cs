@@ -96,5 +96,15 @@ namespace Emotion.Utils
             // Add one because by Random.Next does not include max.
             return _generator.Next(min, max + 1);
         }
+
+        /// <summary>
+        /// Converts a path to the platform equivalent on the currently running platform.
+        /// </summary>
+        /// <param name="path">The path to convert.</param>
+        /// <returns>A cross platform path.</returns>
+        public static string CrossPlatformPath(string path)
+        {
+            return path.Replace('/', '$').Replace('\\', '$').Replace('$', Path.DirectorySeparatorChar);
+        }
     }
 }

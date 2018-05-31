@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.IO;
 using System.Threading;
 using Emotion.Debug;
 using Emotion.External;
@@ -109,6 +110,12 @@ namespace Emotion.Engine
             Settings = settings;
 
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "Executed at: " + Environment.CurrentDirectory);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "64Bit: " + Environment.Is64BitProcess);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "OS: " + Environment.OSVersion);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "CPU: " + Environment.ProcessorCount);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
 
             // Start loading modules.
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating window...");

@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Utils;
 
 #endregion
 
@@ -105,7 +106,7 @@ namespace Emotion.IO
         /// <returns>True if it exists, false otherwise.</returns>
         public bool Exists(string path)
         {
-            return File.Exists(PathToCrossPlatform(path));
+            return File.Exists(AssetPathToAssetCrossPlatform(path));
         }
 
         /// <summary>
@@ -115,7 +116,7 @@ namespace Emotion.IO
         /// <returns>The contents of the file as a byte array.</returns>
         private byte[] ReadFile(string path)
         {
-            string parsedPath = PathToCrossPlatform(path);
+            string parsedPath = AssetPathToAssetCrossPlatform(path);
 
             if (!File.Exists(parsedPath)) throw new Exception("The file " + parsedPath + " could not be found.");
 
@@ -138,9 +139,9 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="path">The path to convert.</param>
         /// <returns>The converted path.</returns>
-        private string PathToCrossPlatform(string path)
+        private string AssetPathToAssetCrossPlatform(string path)
         {
-            return RootDirectory + Path.DirectorySeparatorChar + path.Replace('/', '$').Replace('\\', '$').Replace('$', Path.DirectorySeparatorChar);
+            return RootDirectory + Path.DirectorySeparatorChar + Helpers.CrossPlatformPath(path);
         }
 
         #endregion
