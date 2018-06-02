@@ -167,10 +167,17 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         private static void ConsoleThread()
         {
-            while (!Environment.HasShutdownStarted)
+            try
             {
-                string readLine = Console.ReadLine();
-                if (readLine != null) _command = readLine.Trim(' ');
+                while (!Environment.HasShutdownStarted)
+                {
+                    string readLine = Console.ReadLine();
+                    if (readLine != null) _command = readLine.Trim(' ');
+                }
+            }
+            catch (Exception)
+            {
+                Log(MessageType.Error, MessageSource.Debugger, "Debugger console thread has crashed.");
             }
         }
 

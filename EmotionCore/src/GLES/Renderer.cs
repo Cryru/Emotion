@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.GLES.Text;
@@ -83,6 +84,9 @@ namespace Emotion.GLES
         internal Renderer(Context context) : base(context)
         {
             RenderSize = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
+
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " +  GL.GetString(StringName.Version));
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
             // Get the default shaders, and load them.
             string defaultVertex = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");

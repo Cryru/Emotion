@@ -4,6 +4,7 @@
 
 using System;
 using Emotion.Engine;
+using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -13,6 +14,26 @@ namespace Emotion.GLES
 {
     public sealed class Window : GameWindow
     {
+        private static int _targetGLMajor = 3;
+        private static int _targetGLMinor;
+        private static GraphicsContextFlags _contextFlag;
+
+        static Window()
+        {
+            _contextFlag = GraphicsContextFlags.Default;
+
+#if DEBUG
+
+            _contextFlag = GraphicsContextFlags.Debug;
+
+#endif
+
+            if (CurrentPlatform.OS != PlatformID.MacOSX) return;
+            _targetGLMajor = 3;
+            _targetGLMinor = 3;
+            _contextFlag = GraphicsContextFlags.ForwardCompatible;
+        }
+
         /// <summary>
         /// The context this window belongs to.
         /// </summary>
@@ -22,12 +43,7 @@ namespace Emotion.GLES
         /// Create a new window.
         /// </summary>
         /// <param name="context">The Emotion context window belongs to.</param>
-        internal Window(Context context) : base(960, 540, GraphicsMode.Default, "", GameWindowFlags.FixedWindow, DisplayDevice.Default, 3, 0,
-#if DEBUG
-            GraphicsContextFlags.Debug)
-#else
-            GraphicsContextFlags.ForwardCompatible)
-#endif
+        internal Window(Context context) : base(960, 540, GraphicsMode.Default, "", GameWindowFlags.FixedWindow, DisplayDevice.Default, _targetGLMajor, _targetGLMinor, _contextFlag)
         {
             EmotionContext = context;
 

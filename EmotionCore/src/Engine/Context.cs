@@ -10,6 +10,7 @@ using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.GLES;
 using Emotion.IO;
+using Emotion.Libraries;
 using Emotion.Sound;
 using Emotion.Utils;
 using OpenTK;
@@ -44,6 +45,11 @@ namespace Emotion.Engine
         /// The context's initial settings.
         /// </summary>
         public Settings Settings;
+        
+        /// <summary>
+        /// The window the game is opened in.
+        /// </summary>
+        public Window Window { get; protected set; }
 
         #endregion
 
@@ -81,15 +87,6 @@ namespace Emotion.Engine
 
         #endregion
 
-        #region Objects
-
-        /// <summary>
-        /// The window the game is opened in.
-        /// </summary>
-        public Window Window { get; protected set; }
-
-        #endregion
-
         #region Initialization
 
         /// <summary>
@@ -97,8 +94,15 @@ namespace Emotion.Engine
         /// </summary>
         static Context()
         {
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "Executed at: " + Environment.CurrentDirectory);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "64Bit: " + Environment.Is64BitProcess);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "OS: " + CurrentPlatform.OS);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "CPU: " + Environment.ProcessorCount);
+            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
+
             // Set the DLL path on Windows.
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT) Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
+            if (CurrentPlatform.OS == PlatformID.Win32NT) Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
         }
 
         /// <summary>
@@ -110,12 +114,6 @@ namespace Emotion.Engine
             Settings = settings;
 
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "Executed at: " + Environment.CurrentDirectory);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "64Bit: " + Environment.Is64BitProcess);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "OS: " + Environment.OSVersion);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "CPU: " + Environment.ProcessorCount);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
 
             // Start loading modules.
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating window...");
