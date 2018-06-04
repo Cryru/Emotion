@@ -9,6 +9,7 @@ using System.Threading;
 using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.GLES;
+using Emotion.Libraries;
 using Emotion.Primitives;
 using Soul.Logging;
 
@@ -107,33 +108,41 @@ namespace Emotion.Debug
             // Prevent logging from multiple threads messing up coloring and logging.
             lock (_mutexLock)
             {
-                // Change the color of the log depending on the type.
-                switch (type)
+                try
                 {
-                    case MessageType.Error:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        break;
-                    case MessageType.Info:
-                        Console.ForegroundColor = ConsoleColor.Cyan;
-                        break;
-                    case MessageType.Trace:
-                        Console.ForegroundColor = ConsoleColor.White;
-                        break;
-                    case MessageType.Warning:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        break;
-                    default:
-                        Console.ForegroundColor = ConsoleColor.Gray;
-                        break;
+                    // Change the color of the log depending on the type.
+                    switch (type)
+                    {
+                        case MessageType.Error:
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            break;
+                        case MessageType.Info:
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            break;
+                        case MessageType.Trace:
+                            Console.ForegroundColor = ConsoleColor.White;
+                            break;
+                        case MessageType.Warning:
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            break;
+                        default:
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                            break;
+                    }
+
+                    // Log and display the message.
+                    _logger.Log("[" + type + "-" + source + "] " + message);
+                    Console.WriteLine("[" + source + "] " + message);
+
+                    // Restore the normal color.
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Console.BackgroundColor = ConsoleColor.Black;
                 }
-
-                // Log and display the message.
-                _logger.Log("[" + type + "-" + source + "] " + message);
-                Console.WriteLine("[" + source + "] " + message);
-
-                // Restore the normal color.
-                Console.ForegroundColor = ConsoleColor.Gray;
-                Console.BackgroundColor = ConsoleColor.Black;
+                catch (Exception)
+                {
+                    Log(MessageType.Error, MessageSource.Debugger, "Debugger logger has crashed.");
+                    _logger.Log("[" + type + "-" + source + "] " + message);
+                }
             }
         }
 
@@ -167,6 +176,12 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         private static void ConsoleThread()
         {
+            // Delay console thread on other OS
+            if (CurrentPlatform.OS != PlatformID.Win32NT)
+            {
+                Thread.Sleep(2000);
+            }
+
             try
             {
                 while (!Environment.HasShutdownStarted)
