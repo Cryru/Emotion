@@ -131,7 +131,7 @@ namespace Emotion.Debug
                     }
 
                     // Log and display the message.
-                    _logger.Log("[" + type + "-" + source + "] " + message);
+                    _logger.Log("[" + DateTime.Now.Second + "s/" + DateTime.Now.Millisecond + "ms]" + " [" + type + "-" + source + "] " + message);
                     Console.WriteLine("[" + source + "] " + message);
 
                     // Restore the normal color.

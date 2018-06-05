@@ -71,6 +71,11 @@ namespace Emotion.GLES
         /// </summary>
         private Texture _blankTexture;
 
+        /// <summary>
+        /// The time passed total.
+        /// </summary>
+        private float _timeUniform;
+
         #endregion
 
         #region Cache
@@ -151,6 +156,11 @@ namespace Emotion.GLES
         /// </summary>
         internal void Clear()
         {
+            // Add to time uniform.
+            _timeUniform += Context.FrameTime;
+            // Update the current program.
+            _currentProgram.SetUniformFloat("time", _timeUniform);
+
             ClearTarget();
             DrawVBO(_drawArea, Context.Settings.ClearColor);
         }
@@ -318,6 +328,7 @@ namespace Emotion.GLES
                 temp.SetUniformMatrix4("textureMatrix", Matrix4.Identity);
                 temp.SetUniformInt("drawTexture", 0);
                 temp.SetUniformInt("additionalTexture", 1);
+                temp.SetUniformFloat("time", 0);
 
                 Helpers.CheckError("setting program uniforms");
 
@@ -335,6 +346,9 @@ namespace Emotion.GLES
 
             _currentProgram = program;
             _currentProgram.Use();
+
+            // Sync time.
+            _currentProgram.SetUniformFloat("time", _timeUniform);
         }
 
         public void AddAdditionalTextureToShader(Texture texture)

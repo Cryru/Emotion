@@ -101,13 +101,16 @@ namespace Emotion.GLES
         /// <param name="matrix4">The matrix value to set it to.</param>
         public void SetUniformMatrix4(string name, Matrix4 matrix4)
         {
-            if (!_uniformVariables.ContainsKey(name))
+            ThreadManager.ExecuteGLThread(() =>
             {
-                AddUniformVariable(name);
-            }
+                if (!_uniformVariables.ContainsKey(name))
+                {
+                    AddUniformVariable(name);
+                }
 
-            int id = _uniformVariables[name];
-            GL.UniformMatrix4(id, false, ref matrix4);
+                int id = _uniformVariables[name];
+                GL.UniformMatrix4(id, false, ref matrix4);
+            });
         }
 
         /// <summary>
@@ -117,13 +120,16 @@ namespace Emotion.GLES
         /// <param name="data">The data to add to the location.</param>
         public void SetUniformInt(string name, int data)
         {
-            if (!_uniformVariables.ContainsKey(name))
+            ThreadManager.ExecuteGLThread(() =>
             {
-                AddUniformVariable(name);
-            }
+                if (!_uniformVariables.ContainsKey(name))
+                {
+                    AddUniformVariable(name);
+                }
 
-            int id = _uniformVariables[name];
-            GL.Uniform1(id, data);
+                int id = _uniformVariables[name];
+                GL.Uniform1(id, data);
+            });
         }
 
         /// <summary>
@@ -133,13 +139,16 @@ namespace Emotion.GLES
         /// <param name="data">The data to add to the location.</param>
         public void SetUniformFloat(string name, float data)
         {
-            if (!_uniformVariables.ContainsKey(name))
+            ThreadManager.ExecuteGLThread(() =>
             {
-                AddUniformVariable(name);
-            }
+                if (!_uniformVariables.ContainsKey(name))
+                {
+                    AddUniformVariable(name);
+                }
 
-            int id = _uniformVariables[name];
-            GL.Uniform1(id, data);
+                int id = _uniformVariables[name];
+                GL.Uniform1(id, data);
+            });
         }
 
 
@@ -150,13 +159,16 @@ namespace Emotion.GLES
         /// <param name="data">The color to add.</param>
         public void SetUniformColor(string name, Color data)
         {
-            if (!_uniformVariables.ContainsKey(name))
+            ThreadManager.ExecuteGLThread(() =>
             {
-                AddUniformVariable(name);
-            }
+                if (!_uniformVariables.ContainsKey(name))
+                {
+                    AddUniformVariable(name);
+                }
 
-            int id = _uniformVariables[name];
-            GL.Uniform4(id, new Vector4(data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f));
+                int id = _uniformVariables[name];
+                GL.Uniform4(id, new Vector4(data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f));
+            });
         }
 
         #endregion
