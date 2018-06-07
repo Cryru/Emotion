@@ -4,7 +4,7 @@
 
 using System;
 using Emotion.Engine;
-using Emotion.Libraries;
+using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics;
 

@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.IO;
 using System.Threading;
 using Emotion.Debug;
 using Emotion.External;
@@ -45,7 +44,7 @@ namespace Emotion.Engine
         /// The context's initial settings.
         /// </summary>
         public Settings Settings;
-        
+
         /// <summary>
         /// The window the game is opened in.
         /// </summary>
@@ -88,22 +87,6 @@ namespace Emotion.Engine
         #endregion
 
         #region Initialization
-
-        /// <summary>
-        /// Initiates external libraries and pre-initialization. Is run once for all instances.
-        /// </summary>
-        static Context()
-        {
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "Executed at: " + Environment.CurrentDirectory);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "64Bit: " + Environment.Is64BitProcess);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "OS: " + CurrentPlatform.OS);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "CPU: " + Environment.ProcessorCount);
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-
-            // Set the DLL path on Windows.
-            if (CurrentPlatform.OS == PlatformID.Win32NT) Windows.SetDllDirectory(Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86"));
-        }
 
         /// <summary>
         /// Create a new Emotion context.

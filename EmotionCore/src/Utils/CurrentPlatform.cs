@@ -4,17 +4,15 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Emotion.Libraries;
 
 #endregion
 
-namespace Emotion.Libraries
+namespace Emotion.Utils
 {
     public static class CurrentPlatform
     {
         public static PlatformID OS { get; private set; }
-
-        [DllImport("libc")]
-        private static extern int uname(IntPtr buf);
 
         static CurrentPlatform()
         {
@@ -39,7 +37,7 @@ namespace Emotion.Libraries
                     {
                         buf = Marshal.AllocHGlobal(8192);
 
-                        if (uname(buf) == 0)
+                        if (Unix.uname(buf) == 0)
                         {
                             string sos = Marshal.PtrToStringAnsi(buf);
                             if (sos == "Darwin")

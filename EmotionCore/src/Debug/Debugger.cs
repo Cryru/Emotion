@@ -9,8 +9,8 @@ using System.Threading;
 using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.GLES;
-using Emotion.Libraries;
 using Emotion.Primitives;
+using Emotion.Utils;
 using Soul.Logging;
 
 #endregion
@@ -177,10 +177,7 @@ namespace Emotion.Debug
         private static void ConsoleThread()
         {
             // Delay console thread on other OS
-            if (CurrentPlatform.OS != PlatformID.Win32NT)
-            {
-                Thread.Sleep(2000);
-            }
+            if (CurrentPlatform.OS != PlatformID.Win32NT) Thread.Sleep(2000);
 
             try
             {

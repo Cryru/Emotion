@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Emotion.Libraries;
+using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -31,10 +31,7 @@ namespace Emotion.GLES
         {
             Type = type;
 
-            if (CurrentPlatform.OS == PlatformID.MacOSX)
-            {
-                source = source.Replace("#version 300 es", "#version 330");
-            }
+            if (CurrentPlatform.OS == PlatformID.MacOSX) source = source.Replace("#version 300 es", "#version 330");
 
             // Create and compile the shader.
             Pointer = GL.CreateShader(type);
