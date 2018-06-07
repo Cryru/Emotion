@@ -186,8 +186,7 @@ namespace Emotion.Engine
                     Window.Height = Settings.WindowHeight;
                     Window.X = DisplayDevice.Default.Width / 2 - Settings.WindowWidth / 2;
                     Window.Y = DisplayDevice.Default.Height / 2 - Settings.WindowHeight / 2;
-                    // Should by WindowBorder.Fixed always but an OpenTK anomaly causes Resizable to be Fixed.
-                    Window.WindowBorder = Window.WindowBorder == WindowBorder.Hidden ? WindowBorder.Resizable : WindowBorder.Fixed;
+                    Window.WindowBorder = WindowBorder.Fixed;
                     Window.WindowState = WindowState.Normal;
                     break;
             }

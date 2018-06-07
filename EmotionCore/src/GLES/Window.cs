@@ -15,23 +15,16 @@ namespace Emotion.GLES
     public sealed class Window : GameWindow
     {
         private static int _targetGLMajor = 3;
-        private static int _targetGLMinor;
-        private static GraphicsContextFlags _contextFlag;
+        private static int _targetGLMinor = 3;
+        private static GraphicsContextFlags _contextFlag = GraphicsContextFlags.ForwardCompatible;
 
         static Window()
         {
-            _contextFlag = GraphicsContextFlags.Default;
-
 #if DEBUG
-
+            // Debug context breaks on Macs.
+            if(CurrentPlatform.OS == PlatformID.MacOSX) return;
             _contextFlag = GraphicsContextFlags.Debug;
-
 #endif
-
-            if (CurrentPlatform.OS != PlatformID.MacOSX) return;
-            _targetGLMajor = 3;
-            _targetGLMinor = 3;
-            _contextFlag = GraphicsContextFlags.ForwardCompatible;
         }
 
         /// <summary>
