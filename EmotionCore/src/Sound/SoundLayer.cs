@@ -45,10 +45,15 @@ namespace Emotion.Sound
             get => _source;
             set
             {
-                if (!SourceDestroyed) DestroySource();
+                Source oldSource = null;
+                if (!SourceDestroyed) oldSource = _source;
 
                 _source = value;
                 _newSource = true;
+                StateApplication();
+
+                if(oldSource != null) DestroySource(oldSource);
+
             }
         }
 
@@ -160,16 +165,18 @@ namespace Emotion.Sound
         /// <summary>
         /// Destroys the source.
         /// </summary>
-        public void DestroySource()
+        public void DestroySource(Source source = null)
         {
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound source of layer [" + Name + "] " + _source);
+            if (source == null) source = _source;
+            if (source == null) return;
+
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound source of layer [" + Name + "] " + source);
 
             // End the source.
-            _source.Stop();
+            source.Stop();
 
             // Destroy it.
-            _source.Destroy();
-            _source = null;
+            source.Destroy();
         }
 
         #endregion

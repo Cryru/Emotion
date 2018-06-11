@@ -183,6 +183,7 @@ namespace Emotion.Sound
             if (!Finished || _eventTracker) return;
 
             // Invoke finish event.
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Finished playing source: " + this);
             _eventTracker = true;
             OnFinished?.Invoke(this, EventArgs.Empty);
         }
