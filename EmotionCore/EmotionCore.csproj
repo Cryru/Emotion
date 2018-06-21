@@ -59,14 +59,16 @@
       <HintPath>..\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Soul.Core">
+    <Reference Include="Soul.Core, Version=9.9.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>Libraries\Soul\Soul.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Soul.Logging">
+    <Reference Include="Soul.Logging, Version=9.9.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>Libraries\Soul\Soul.Logging.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Soul.Utilities">
+    <Reference Include="Soul.Utilities, Version=9.9.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>Libraries\Soul\Soul.Utilities.dll</HintPath>
     </Reference>
     <Reference Include="System">
