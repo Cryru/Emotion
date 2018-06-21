@@ -12,31 +12,54 @@ using OpenTK.Audio.OpenAL;
 namespace Emotion.Sound
 {
     /// <inheritdoc />
-    public sealed class Source : SourceBase
+    public sealed class StreamingSource : SourceBase
     {
         #region Properties
 
-        public override bool Looping
+        /// <summary>
+        /// Whether to loop the last file.
+        /// </summary>
+        public override bool Looping { get; set; }
+
+        /// <summary>
+        /// The id of the current file playing.
+        /// </summary>
+        public int FileId { get; private set; }
+
+        /// <summary>
+        /// The total number of files queued.
+        /// </summary>
+        public int FilesQueued
         {
             get
             {
-                AL.GetSource(Pointer, ALSourceb.Looping, out bool value);
-                return value;
+                AL.GetSource(Pointer, ALGetSourcei.BuffersQueued, out int files);
+                return files;
             }
-            set => AL.Source(Pointer, ALSourceb.Looping, value);
         }
 
         #endregion
 
-        public Source(SoundFile file)
+        private SoundFile[] _files;
+
+        public StreamingSource(SoundFile[] files)
         {
             Pointer = AL.GenSource();
-            AL.Source(Pointer, ALSourcei.Buffer, file.Pointer);
-            FileName = file.AssetName;
-            Duration = file.Duration;
+
+            FileName = files[0].AssetName;
+            Duration = files[0].Duration;
+            FileId = 0;
+
+            _files = files;
+
+            // Queue all files.
+            foreach (SoundFile file in files)
+            {
+                AL.SourceQueueBuffer(Pointer, file.Pointer);
+            }
         }
 
-        #region Public API
+        #region API
 
         public override void Play()
         {
@@ -80,6 +103,7 @@ namespace Emotion.Sound
 
             AL.DeleteSource(Pointer);
             Pointer = -1;
+            _files = null;
         }
 
         internal override void Update(Settings settings)
@@ -97,6 +121,26 @@ namespace Emotion.Sound
                 AL.Source(Pointer, ALSourcef.MaxGain, 0);
             }
 
+            // Check which file is playing.
+            AL.GetSource(Pointer, ALGetSourcei.BuffersProcessed, out int curFile);
+            if (curFile > 0)
+                if (curFile != _files.Length)
+                {
+                    Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Streaming source " + this + " finished id " + FileId);
+
+                    FileId = FileId + curFile;
+                    Duration = _files[FileId].Duration;
+                    FileName = _files[FileId].AssetName;
+
+                    // Remove buffer.
+                    AL.SourceUnqueueBuffers(Pointer, 1);
+
+                    Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Streaming source " + this + " starting id " + FileId);
+                }
+
+            // Check if last.
+            if (curFile == _files.Length - 1) AL.Source(Pointer, ALSourceb.Looping, Looping);
+
             // Check if over or event was triggered.
             if (!Finished || _eventTracker) return;
 
@@ -104,5 +148,13 @@ namespace Emotion.Sound
             Debugger.Log(MessageType.Trace, MessageSource.SoundManager, "Finished playing source: " + this);
             CallFinishedEvent();
         }
+
+        #region Helpers
+
+        private void GetCurrentFile()
+        {
+        }
+
+        #endregion
     }
 }

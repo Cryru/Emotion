@@ -40,20 +40,19 @@ namespace Emotion.Sound
         /// <summary>
         /// The source currently playing on the layer.
         /// </summary>
-        public Source Source
+        public SourceBase Source
         {
             get => _source;
             set
             {
-                Source oldSource = null;
+                SourceBase oldSource = null;
                 if (!SourceDestroyed) oldSource = _source;
 
                 _source = value;
                 _newSource = true;
                 StateApplication();
 
-                if(oldSource != null) DestroySource(oldSource);
-
+                if (oldSource != null) DestroySource(oldSource);
             }
         }
 
@@ -64,7 +63,7 @@ namespace Emotion.Sound
         /// </summary>
         internal bool FocusLossPaused { get; private set; }
 
-        private Source _source;
+        private SourceBase _source;
         private List<SoundEffect> _soundEffects = new List<SoundEffect>();
         private bool _newSource;
 
@@ -114,13 +113,12 @@ namespace Emotion.Sound
             if ((Paused || FocusLossPaused) && _source.Playing) _source.Pause();
 
             // Apply resume state.
-            if (!Paused && _source.Paused && !FocusLossPaused) _source.Resume();
+            if (!Paused && _source.Paused && !FocusLossPaused) _source.Play();
 
-            if (_newSource && !Paused && !FocusLossPaused)
-            {
-                _source.Play();
-                _newSource = false;
-            }
+            // Check if first play.
+            if (!_newSource || Paused || FocusLossPaused) return;
+            _source.Play();
+            _newSource = false;
         }
 
         /// <summary>
@@ -165,7 +163,7 @@ namespace Emotion.Sound
         /// <summary>
         /// Destroys the source.
         /// </summary>
-        public void DestroySource(Source source = null)
+        public void DestroySource(SourceBase source = null)
         {
             if (source == null) source = _source;
             if (source == null) return;

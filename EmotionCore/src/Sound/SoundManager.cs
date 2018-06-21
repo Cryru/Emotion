@@ -84,12 +84,34 @@ namespace Emotion.Sound
         }
 
         /// <summary>
+        /// Play a list of sound files on a specified layer.
+        /// </summary>
+        /// <param name="layerName">The name of the layer.</param>
+        /// <param name="files">The files to play.</param>
+        /// <returns>A streaming sound source representing the file on the layer.</returns>
+        public StreamingSource StreamOnLayer(string layerName, SoundFile[] files)
+        {
+            StreamingSource newSource = new StreamingSource(files);
+            _layers[layerName].Source = newSource;
+
+#if DEBUG
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing " + files.Length + " files on [" + _layers[layerName] + "]");
+            foreach (SoundFile file in files)
+            {
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, " |- " + file.AssetName);
+            }
+#endif
+
+            return newSource;
+        }
+
+        /// <summary>
         /// Returns the source running on the specified layer. If the layer has no source, or the layer doesn't exist, returns
         /// null.
         /// </summary>
         /// <param name="layerName">The name of the layer whose source to return.</param>
         /// <returns>The source running on the specified layer.</returns>
-        public Source GetLayerSource(string layerName)
+        public SourceBase GetLayerSource(string layerName)
         {
             SoundLayer layer = GetLayer(layerName);
             return layer?.Source;

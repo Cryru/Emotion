@@ -42,7 +42,7 @@ namespace Emotion.Game.UI
             Selector.Active = Active;
 
             // Clamp value.
-            Value = (int) GameMath.Clamp(Value, 0, 100);
+            Value = (int) Soul.MathHelper.Clamp(Value, 0, 100);
 
             // Draw bar.
             renderer.DrawRectangle(Bounds, BarColor, false);

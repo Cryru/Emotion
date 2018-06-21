@@ -47,8 +47,8 @@ namespace Emotion.Game.Camera
             Vector2 mouseLocation = input.GetMousePosition(this);
 
             // Smooth between the mouse location and the target.
-            float lx = GameMath.Lerp(Target.Bounds.Center.X, mouseLocation.X, CameraMaxDistance);
-            float ly = GameMath.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, CameraMaxDistance);
+            float lx = Soul.MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X, CameraMaxDistance);
+            float ly = Soul.MathHelper.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, CameraMaxDistance);
 
             Bounds.Center = new Vector2(lx, ly);
 

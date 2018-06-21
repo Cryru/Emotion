@@ -94,8 +94,8 @@ namespace Emotion.GLES
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
             // Get the default shaders, and load them.
-            string defaultVertex = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");
-            string defaultFrag = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
+            string defaultVertex = Soul.Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");
+            string defaultFrag = Soul.Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
             _defaultVert = new Shader(ShaderType.VertexShader, defaultVertex);
             _defaultFrag = new Shader(ShaderType.FragmentShader, defaultFrag);
 

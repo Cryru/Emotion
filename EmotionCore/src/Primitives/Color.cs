@@ -125,12 +125,12 @@ namespace Emotion.Primitives
         /// <returns>Interpolated <see cref="Color" />.</returns>
         public static Color Lerp(Color value1, Color value2, float amount)
         {
-            amount = GameMath.Clamp(amount, 0, 1);
+            amount = Soul.MathHelper.Clamp(amount, 0, 1);
             return new Color(
-                (byte)GameMath.Lerp(value1.R, value2.R, amount),
-                (byte)GameMath.Lerp(value1.G, value2.G, amount),
-                (byte)GameMath.Lerp(value1.B, value2.B, amount),
-                (byte)GameMath.Lerp(value1.A, value2.A, amount));
+                (byte)Soul.MathHelper.Lerp(value1.R, value2.R, amount),
+                (byte)Soul.MathHelper.Lerp(value1.G, value2.G, amount),
+                (byte)Soul.MathHelper.Lerp(value1.B, value2.B, amount),
+                (byte)Soul.MathHelper.Lerp(value1.A, value2.A, amount));
         }
 
         /// <summary>

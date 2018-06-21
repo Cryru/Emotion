@@ -311,7 +311,7 @@ namespace Emotion.Game.Text
             foreach (TextEffect e in effects)
             {
                 if (e.Name == "color" && e.Attributes?.Length >= 3)
-                    textColor = new Color(Helpers.SafeIntParse(e.Attributes[0]), Helpers.SafeIntParse(e.Attributes[1]), Helpers.SafeIntParse(e.Attributes[2]));
+                    textColor = new Color(Soul.Convert.StringToInt(e.Attributes[0]), Soul.Convert.StringToInt(e.Attributes[1]), Soul.Convert.StringToInt(e.Attributes[2]));
             }
 
             // Render the glyph.

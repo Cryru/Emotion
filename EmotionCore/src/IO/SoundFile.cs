@@ -13,6 +13,7 @@ namespace Emotion.IO
     public class SoundFile : Asset
     {
         internal int Pointer;
+        public int Duration { get; protected set; }
 
         internal override void Process(byte[] data)
         {
@@ -46,6 +47,7 @@ namespace Emotion.IO
                     // Audio format.
                     reader.ReadInt16();
                     int channels = reader.ReadInt16();
+                    // Frequency.
                     int sampleRate = reader.ReadInt32();
                     // Byte rate.
                     reader.ReadInt32();
@@ -55,7 +57,7 @@ namespace Emotion.IO
 
                     // Finish the rest of the chunk.
                     reader.ReadBytes(chunkSize - 16);
-                    
+
                     // Read the signature.
                     formatSignature = new string(reader.ReadChars(4));
 
@@ -66,15 +68,18 @@ namespace Emotion.IO
                         reader.ReadBytes(junkSize);
                         formatSignature = new string(reader.ReadChars(4));
                     }
+
                     // Read the data chunk length.
                     int dataLength = reader.ReadInt32();
 
                     // Read the data.
-                    byte[] soundData = reader.ReadBytes((int) dataLength);
+                    byte[] soundData = reader.ReadBytes(dataLength);
 
                     // Create a sound buffer and load it.
                     Pointer = AL.GenBuffer();
                     AL.BufferData(Pointer, GetSoundFormat(channels, bitsPerSample), soundData, soundData.Length, sampleRate);
+
+                    Duration = soundData.Length / (sampleRate * channels * bitsPerSample / 8);
                 }
             }
 

@@ -29,8 +29,8 @@ namespace Emotion.Game.Camera
             if (Target == null) return;
 
             // Smooth.
-            float lx = GameMath.Lerp(Bounds.Center.X, Target.Bounds.X, GameMath.Clamp(Speed * frameTime, 0, 1));
-            float ly = GameMath.Lerp(Bounds.Center.Y, Target.Bounds.Y, GameMath.Clamp(Speed * frameTime, 0, 1));
+            float lx = Soul.MathHelper.Lerp(Bounds.Center.X, Target.Bounds.X, Soul.MathHelper.Clamp(Speed * frameTime, 0, 1));
+            float ly = Soul.MathHelper.Lerp(Bounds.Center.Y, Target.Bounds.Y, Soul.MathHelper.Clamp(Speed * frameTime, 0, 1));
 
             Bounds.Center = new Vector2(lx, ly);
         }

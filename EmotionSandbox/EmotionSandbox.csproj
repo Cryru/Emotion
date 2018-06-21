@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.SoundExample</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.StreamingSound</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -52,11 +52,18 @@
     <Compile Include="Examples\LoadingScreen.cs" />
     <Compile Include="Examples\RenderingText.cs" />
     <Compile Include="Examples\Rendering.cs" />
+    <Compile Include="Examples\StreamingSound.cs" />
     <Compile Include="Examples\SoundExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Content Include="Assets\1.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\2.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\ElectricSleepFont.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

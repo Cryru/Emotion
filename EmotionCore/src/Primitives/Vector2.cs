@@ -4,7 +4,7 @@
 
 using System;
 using System.Globalization;
-using Emotion.Utils;
+using Soul;
 
 #endregion
 
@@ -92,43 +92,43 @@ namespace Emotion.Primitives
         public static Vector2 Barycentric(Vector2 value1, Vector2 value2, Vector2 value3, float amount1, float amount2)
         {
             return new Vector2(
-                GameMath.Barycentric(value1.X, value2.X, value3.X, amount1, amount2),
-                GameMath.Barycentric(value1.Y, value2.Y, value3.Y, amount1, amount2));
+                MathHelper.Barycentric(value1.X, value2.X, value3.X, amount1, amount2),
+                MathHelper.Barycentric(value1.Y, value2.Y, value3.Y, amount1, amount2));
         }
 
         public static void Barycentric(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, float amount1, float amount2, out Vector2 result)
         {
             result = new Vector2(
-                GameMath.Barycentric(value1.X, value2.X, value3.X, amount1, amount2),
-                GameMath.Barycentric(value1.Y, value2.Y, value3.Y, amount1, amount2));
+                MathHelper.Barycentric(value1.X, value2.X, value3.X, amount1, amount2),
+                MathHelper.Barycentric(value1.Y, value2.Y, value3.Y, amount1, amount2));
         }
 
         public static Vector2 CatmullRom(Vector2 value1, Vector2 value2, Vector2 value3, Vector2 value4, float amount)
         {
             return new Vector2(
-                GameMath.CatmullRom(value1.X, value2.X, value3.X, value4.X, amount),
-                GameMath.CatmullRom(value1.Y, value2.Y, value3.Y, value4.Y, amount));
+                MathHelper.CatmullRom(value1.X, value2.X, value3.X, value4.X, amount),
+                MathHelper.CatmullRom(value1.Y, value2.Y, value3.Y, value4.Y, amount));
         }
 
         public static void CatmullRom(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, ref Vector2 value4, float amount, out Vector2 result)
         {
             result = new Vector2(
-                GameMath.CatmullRom(value1.X, value2.X, value3.X, value4.X, amount),
-                GameMath.CatmullRom(value1.Y, value2.Y, value3.Y, value4.Y, amount));
+                MathHelper.CatmullRom(value1.X, value2.X, value3.X, value4.X, amount),
+                MathHelper.CatmullRom(value1.Y, value2.Y, value3.Y, value4.Y, amount));
         }
 
         public static Vector2 Clamp(Vector2 value1, Vector2 min, Vector2 max)
         {
             return new Vector2(
-                GameMath.Clamp(value1.X, min.X, max.X),
-                GameMath.Clamp(value1.Y, min.Y, max.Y));
+                MathHelper.Clamp(value1.X, min.X, max.X),
+                MathHelper.Clamp(value1.Y, min.Y, max.Y));
         }
 
         public static void Clamp(ref Vector2 value1, ref Vector2 min, ref Vector2 max, out Vector2 result)
         {
             result = new Vector2(
-                GameMath.Clamp(value1.X, min.X, max.X),
-                GameMath.Clamp(value1.Y, min.Y, max.Y));
+                MathHelper.Clamp(value1.X, min.X, max.X),
+                MathHelper.Clamp(value1.Y, min.Y, max.Y));
         }
 
         public static float Distance(Vector2 value1, Vector2 value2)
@@ -243,8 +243,8 @@ namespace Emotion.Primitives
         {
             result = new Vector2
             {
-                X = GameMath.Hermite(value1.X, tangent1.X, value2.X, tangent2.X, amount),
-                Y = GameMath.Hermite(value1.Y, tangent1.Y, value2.Y, tangent2.Y, amount)
+                X = MathHelper.Hermite(value1.X, tangent1.X, value2.X, tangent2.X, amount),
+                Y = MathHelper.Hermite(value1.Y, tangent1.Y, value2.Y, tangent2.Y, amount)
             };
         }
 
@@ -261,15 +261,15 @@ namespace Emotion.Primitives
         public static Vector2 Lerp(Vector2 value1, Vector2 value2, float amount)
         {
             return new Vector2(
-                GameMath.Lerp(value1.X, value2.X, amount),
-                GameMath.Lerp(value1.Y, value2.Y, amount));
+                MathHelper.Lerp(value1.X, value2.X, amount),
+                MathHelper.Lerp(value1.Y, value2.Y, amount));
         }
 
         public static void Lerp(ref Vector2 value1, ref Vector2 value2, float amount, out Vector2 result)
         {
             result = new Vector2(
-                GameMath.Lerp(value1.X, value2.X, amount),
-                GameMath.Lerp(value1.Y, value2.Y, amount));
+                MathHelper.Lerp(value1.X, value2.X, amount),
+                MathHelper.Lerp(value1.Y, value2.Y, amount));
         }
 
         public static Vector2 Max(Vector2 value1, Vector2 value2)
@@ -353,7 +353,7 @@ namespace Emotion.Primitives
         public void Normalize()
         {
             // Prevents NaN:NaN
-            if(X == 0 && Y == 0) return;
+            if (X == 0 && Y == 0) return;
 
             float val = 1.0f / (float) Math.Sqrt(X * X + Y * Y);
             X *= val;
@@ -381,15 +381,15 @@ namespace Emotion.Primitives
         public static Vector2 SmoothStep(Vector2 value1, Vector2 value2, float amount)
         {
             return new Vector2(
-                GameMath.SmoothStep(value1.X, value2.X, amount),
-                GameMath.SmoothStep(value1.Y, value2.Y, amount));
+                MathHelper.SmoothStep(value1.X, value2.X, amount),
+                MathHelper.SmoothStep(value1.Y, value2.Y, amount));
         }
 
         public static void SmoothStep(ref Vector2 value1, ref Vector2 value2, float amount, out Vector2 result)
         {
             result = new Vector2(
-                GameMath.SmoothStep(value1.X, value2.X, amount),
-                GameMath.SmoothStep(value1.Y, value2.Y, amount));
+                MathHelper.SmoothStep(value1.X, value2.X, amount),
+                MathHelper.SmoothStep(value1.Y, value2.Y, amount));
         }
 
         public static Vector2 Subtract(Vector2 value1, Vector2 value2)
