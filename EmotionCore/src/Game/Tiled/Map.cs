@@ -23,6 +23,11 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public TmxMap TiledMap { get; protected set; }
 
+        /// <summary>
+        /// The rectangle to render from the whole map. If empty the whole map is rendered.
+        /// </summary>
+        public Rectangle VisibleRectangle { get; set; }
+
         #endregion
 
         protected List<Texture> _tilesets = new List<Texture>();
@@ -153,12 +158,12 @@ namespace Emotion.Game.Tiled
 
                     // Get tile image properties.
                     int tiColumn = tsOffset % (ts.Columns ?? 0);
-                    int tiRow = (int)(tsOffset / (double)(ts.Columns ?? 0));
+                    int tiRow = (int) (tsOffset / (double) (ts.Columns ?? 0));
                     Rectangle tiRect = new Rectangle(ts.TileWidth * tiColumn, ts.TileHeight * tiRow, ts.TileWidth, ts.TileHeight);
 
                     // Get tile properties.
                     int tX = t % TiledMap.Width * TiledMap.TileWidth;
-                    int tY = (int)((float)Math.Floor(t / (double)TiledMap.Width) * TiledMap.TileHeight);
+                    int tY = (int) ((float) Math.Floor(t / (double) TiledMap.Width) * TiledMap.TileHeight);
 
                     // Add margins and spacing.
                     tiRect.X += ts.Margin;
@@ -180,9 +185,10 @@ namespace Emotion.Game.Tiled
                     // Add map position.
                     tRect.X += Bounds.X;
                     tRect.Y += Bounds.Y;
-                    
-                    // Draw.
-                    renderer.DrawTexture(_tilesets[tsId], tRect, tiRect, new Color(255, 255, 255, (int)(layer.Opacity * 255)));
+
+                    // Check if visible rectangle exists.
+                    if (VisibleRectangle == Rectangle.Empty || VisibleRectangle.Intersects(tRect))
+                        renderer.DrawTexture(_tilesets[tsId], tRect, tiRect, new Color(255, 255, 255, (int) (layer.Opacity * 255)));
                 }
             }
         }
@@ -291,8 +297,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
         public int GetTileIdFromBounds(Vector2 location)
         {
-            int left = (int)Math.Max(0, location.X / 32);
-            int top = (int)Math.Max(0, location.Y / 32);
+            int left = (int) Math.Max(0, location.X / 32);
+            int top = (int) Math.Max(0, location.Y / 32);
 
             return left + top * TiledMap.Width;
         }

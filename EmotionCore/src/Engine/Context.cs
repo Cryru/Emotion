@@ -5,11 +5,9 @@
 using System;
 using System.Threading;
 using Emotion.Debug;
-using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.GLES;
 using Emotion.IO;
-using Emotion.Libraries;
 using Emotion.Sound;
 using Emotion.Utils;
 using OpenTK;
@@ -211,11 +209,13 @@ namespace Emotion.Engine
             Debugger.Update(ScriptingEngine);
 
             // Run modules.
-            Input.Update();
             SoundManager.Update();
 
             // Run user layers.
             LayerManager.Update();
+
+            // Run input.
+            Input.Update();
 
             // Check for errors.
             Helpers.CheckError("update");

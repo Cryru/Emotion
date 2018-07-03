@@ -4,6 +4,7 @@
 
 using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Soul;
 
 #endregion
@@ -36,12 +37,14 @@ SOFTWARE.
 namespace Emotion.Primitives
 {
     /// <summary>
-    /// Vector2 class from MonoGame. Modified.
+    /// A structure representing a two dimensional vector.
     /// </summary>
     public struct Vector2 : IEquatable<Vector2>
     {
         public float X;
         public float Y;
+
+        public static readonly int SizeInBytes = Marshal.SizeOf(new Vector2());
 
         #region Templates
 

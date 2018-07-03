@@ -11,6 +11,7 @@ using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics.ES30;
+using Soul;
 using Vector2 = Emotion.Primitives.Vector2;
 
 #endregion
@@ -90,12 +91,12 @@ namespace Emotion.GLES
         {
             RenderSize = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
 
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " +  GL.GetString(StringName.Version));
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
             // Get the default shaders, and load them.
-            string defaultVertex = Soul.Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");
-            string defaultFrag = Soul.Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
+            string defaultVertex = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");
+            string defaultFrag = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
             _defaultVert = new Shader(ShaderType.VertexShader, defaultVertex);
             _defaultFrag = new Shader(ShaderType.FragmentShader, defaultFrag);
 
@@ -136,14 +137,19 @@ namespace Emotion.GLES
 
         #region Helpers
 
-        private OpenTK.Vector2[] RectangleToVertices(Rectangle rect)
+        /// <summary>
+        /// Converts an rectangle structure to an array of vectors.
+        /// </summary>
+        /// <param name="rect">The rectangle to convert.</param>
+        /// <returns>An array of vectors.</returns>
+        public static Vector2[] RectangleToVertices(Rectangle rect)
         {
             return new[]
             {
-                new OpenTK.Vector2(rect.X, rect.Y),
-                new OpenTK.Vector2(rect.X + rect.Width, rect.Y),
-                new OpenTK.Vector2(rect.X + rect.Width, rect.Y + rect.Height),
-                new OpenTK.Vector2(rect.X, rect.Y + rect.Height)
+                new Vector2(rect.X, rect.Y),
+                new Vector2(rect.X + rect.Width, rect.Y),
+                new Vector2(rect.X + rect.Width, rect.Y + rect.Height),
+                new Vector2(rect.X, rect.Y + rect.Height)
             };
         }
 
@@ -198,7 +204,7 @@ namespace Emotion.GLES
             vertVBO.Use();
 
             // Setup vertex as an attribute.
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, OpenTK.Vector2.SizeInBytes, 0);
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Vector2.SizeInBytes, 0);
             GL.EnableVertexAttribArray(0);
 
             if (textureVBO != null)
@@ -206,7 +212,7 @@ namespace Emotion.GLES
                 textureVBO.Use();
 
                 // Setup UV as an attribute.
-                GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, OpenTK.Vector2.SizeInBytes, 0);
+                GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, Vector2.SizeInBytes, 0);
                 GL.EnableVertexAttribArray(1);
             }
 
@@ -430,10 +436,10 @@ namespace Emotion.GLES
                 end.Y -= Camera.Bounds.Y;
             }
 
-            OpenTK.Vector2[] vertices =
+            Vector2[] vertices =
             {
-                new OpenTK.Vector2(start.X, start.Y),
-                new OpenTK.Vector2(end.X, end.Y)
+                new Vector2(start.X, start.Y),
+                new Vector2(end.X, end.Y)
             };
 
             _allVBO.Upload(vertices);
