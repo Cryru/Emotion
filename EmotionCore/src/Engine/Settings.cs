@@ -85,7 +85,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Whether to play sound.
         /// </summary>
-        public bool Sound = true;
+        public bool Sound { get; set; } = true;
 
         /// <summary>
         /// The volume to play sound at. From 0 to 100.

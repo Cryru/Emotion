@@ -173,7 +173,7 @@ namespace Emotion.Input
         #region Keyboard
 
         /// <summary>
-        /// Returns whether the key is being held down.
+        /// Returns whether the key is being held down, using its name.
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns>Whether the key is being held down.</returns>
@@ -187,9 +187,9 @@ namespace Emotion.Input
         }
 
         /// <summary>
-        /// Returns whether the key was pressed down.
+        /// Returns whether the key was pressed down, using its name.
         /// </summary>
-        /// <param name="key">The key ot check.</param>
+        /// <param name="key">The key to check.</param>
         /// <returns>Whether the key was pressed down.</returns>
         public bool IsKeyDown(string key)
         {
@@ -198,6 +198,60 @@ namespace Emotion.Input
             Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
 #endif
             return false;
+        }
+
+        /// <summary>
+        /// Returns whether the key was let go, using its name.
+        /// </summary>
+        /// <param name="key">The key code to check.</param>
+        /// <returns>Whether the key was let go.</returns>
+        public bool IsKeyUp(string key)
+        {
+            if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyUp(otKey) && !_keyboardLast.IsKeyUp(otKey);
+#if DEBUG
+            Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
+#endif
+            return false;
+        }
+
+        /// <summary>
+        /// Returns whether the key is being held down, using its key code.
+        /// </summary>
+        /// <param name="key">The key code to check.</param>
+        /// <returns>Whether the key is being held down.</returns>
+        public bool IsKeyHeld(short key)
+        {
+            return _keyboard.IsKeyDown(key) && _keyboardLast.IsKeyDown(key);
+        }
+
+        /// <summary>
+        /// Returns whether the key was pressed down, using its key code.
+        /// </summary>
+        /// <param name="key">The key code to check.</param>
+        /// <returns>Whether the key was pressed down.</returns>
+        public bool IsKeyDown(short key)
+        {
+            return _keyboard.IsKeyDown(key) && !_keyboardLast.IsKeyDown(key);
+        }
+
+        /// <summary>
+        /// Returns whether the key was let go, using its key code.
+        /// </summary>
+        /// <param name="key">The key code to check.</param>
+        /// <returns>Whether the key was let go.</returns>
+        public bool IsKeyUp(short key)
+        {
+            return _keyboard.IsKeyUp(key) && !_keyboardLast.IsKeyUp(key);
+        }
+
+        /// <summary>
+        /// Returns the name of a key from its key code.
+        /// </summary>
+        /// <param name="key">The key code whose name to return.</param>
+        /// <returns>The name of the key under the provided key code.</returns>
+        public string GetKeyNameFromCode(short key)
+        {
+            return Enum.GetName(typeof(Key), key);
         }
 
         #endregion

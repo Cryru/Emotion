@@ -84,7 +84,7 @@ namespace Emotion.GLES.Text
             }
 
             // Add advance.
-            _locX += glyph.Advance;// - glyph.MinX;
+            _locX += glyph.Advance - glyph.MinX;
 
             _locX -= (int) MasterOffset.X;
             _locY -= (int) MasterOffset.Y;

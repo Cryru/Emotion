@@ -108,40 +108,55 @@ namespace Emotion.IO
         /// <returns>The size in pixels the string would use at the specified font size.</returns>
         public Vector2 MeasureString(string text, uint size)
         {
-            float minX = 0;
-            float maxX = 0;
-            float minY = 0;
-            float maxY = 0;
-            float x = 0;
-            Vector2 calc = new Vector2();
+            // Split text into lines.
+            string[] lines = text.Split('\n');
+            Vector2 totalCalc = new Vector2(1, 1);
 
-            EnsureSize(size);
-            foreach (char c in text)
+            // Calculate each line.
+            foreach (string line in lines)
             {
-                Glyph glyph = GetGlyph(c, size);
+                float minX = 0;
+                float maxX = 0;
+                float minY = 0;
+                float maxY = 0;
+                float x = 0;
+                Vector2 lineCalc = new Vector2();
 
-                float z = x + glyph.MinX;
-                if (minX > z) minX = z;
-                if (glyph.Advance > glyph.MaxX)
-                    z = x + glyph.Advance;
+                EnsureSize(size);
+                foreach (char c in line)
+                {
+                    Glyph glyph = GetGlyph(c, size);
+
+                    float z = x + glyph.MinX;
+                    if (minX > z) minX = z;
+                    if (glyph.Advance > glyph.MaxX)
+                        z = x + glyph.Advance;
+                    else
+                        z = x + glyph.MaxX;
+                    if (maxX < z) maxX = z;
+                    x += glyph.Advance;
+
+                    if (glyph.MinY < minY) minY = glyph.MinY;
+
+                    if (glyph.MaxY > maxY) maxY = glyph.MaxY;
+
+                    lineCalc.X += glyph.MinX + glyph.Advance;
+                }
+
+                lineCalc.X = maxX - minX;
+                lineCalc.Y = (float) _face.Size.Metrics.Ascender.ToDouble() - minY;
+
+                // Determine whether to override total calc.
+                if (lineCalc.X > totalCalc.X) 
+                    totalCalc.X = lineCalc.X;
+
+                // Determine whether this is the first line, and if not add line spacing.
+                if (totalCalc.Y == 1) totalCalc.Y = lineCalc.Y;
                 else
-                    z = x + glyph.MaxX;
-                if (maxX < z) maxX = z;
-                x += glyph.Advance;
-
-                if (glyph.MinY < minY) minY = glyph.MinY;
-
-                if (glyph.MaxY > maxY) maxY = glyph.MaxY;
-
-
-                calc.X += glyph.MinX + glyph.Advance;
+                    totalCalc.Y += GetLineSpacing(size) + lineCalc.Y;
             }
 
-            calc.X = maxX - minX;
-            calc.Y = (float) _face.Size.Metrics.Ascender.ToDouble() - minY;
-            if (calc.Y < _face.Size.Metrics.Height.ToDouble()) calc.Y = (float) _face.Size.Metrics.Height.ToDouble();
-
-            return calc;
+            return totalCalc;
         }
 
         /// <summary>
@@ -158,6 +173,17 @@ namespace Emotion.IO
         #endregion
 
         #region Helpers
+
+        /// <summary>
+        /// Load all glyphs for a certain size. Experimental. May cause screen flickering if on the wrong thread.
+        /// </summary>
+        public void Preload(uint size)
+        {
+            for (short i = 0; i < 32767; i++)
+            {
+                GetGlyph((char) i, size);
+            }
+        }
 
         /// <summary>
         /// Load a glyph from the font.
@@ -182,10 +208,10 @@ namespace Emotion.IO
             {
                 MinX = (float) glyphMetrics.HorizontalBearingX.ToDouble(),
                 MaxX = (float) (glyphMetrics.HorizontalBearingX.ToDouble() + glyphMetrics.Width.ToDouble()),
-                MinY = (float) (glyphMetrics.HorizontalBearingY.ToDouble() - Math.Ceiling(glyphMetrics.Height.ToDouble())),
                 MaxY = (float) glyphMetrics.HorizontalBearingY.ToDouble(),
-                Advance = (float) glyphMetrics.HorizontalAdvance.ToDouble(),
-                TopOffset = (float) (_face.Size.Metrics.Ascender.ToDouble() - glyphMetrics.HorizontalBearingY.ToDouble())
+                MinY = (float) (glyphMetrics.HorizontalBearingY.ToDouble() - Math.Ceiling(glyphMetrics.Height.ToDouble())),
+                TopOffset = (float) (_face.Size.Metrics.Ascender.ToDouble() - glyphMetrics.HorizontalBearingY.ToDouble()),
+                Advance = (float) glyphMetrics.HorizontalAdvance.ToDouble()
             };
 
             // Convert the rendered data to a bitmap.

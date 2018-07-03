@@ -45,14 +45,11 @@ namespace Emotion.Sound
             get => _source;
             set
             {
-                SourceBase oldSource = null;
-                if (!SourceDestroyed) oldSource = _source;
+                DestroySource(_source);
 
                 _source = value;
                 _newSource = true;
                 StateApplication();
-
-                if (oldSource != null) DestroySource(oldSource);
             }
         }
 

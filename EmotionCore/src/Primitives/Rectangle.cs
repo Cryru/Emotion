@@ -105,6 +105,14 @@ namespace Emotion.Primitives
 
         #region Constructors
 
+        public Rectangle(Vector2 location, Vector2 size)
+        {
+            X = location.X;
+            Y = location.Y;
+            Width = size.X;
+            Height = size.Y;
+        }
+
         public Rectangle(float x, float y, float width, float height)
         {
             X = x;

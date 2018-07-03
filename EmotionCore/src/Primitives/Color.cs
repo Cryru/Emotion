@@ -79,7 +79,6 @@ namespace Emotion.Primitives
         /// </summary>
         public byte R;
 
-        
         /// <summary>
         /// Gets or sets the green component.
         /// </summary>
@@ -209,6 +208,12 @@ namespace Emotion.Primitives
                 (byte)(c1.G * c2.G / 255),
                 (byte)(c1.B * c2.B / 255),
                 (byte)(c1.A * c2.A / 255));
+        }
+
+        public static Color operator *(Color c1, float f1)
+        {
+            c1.A = (byte) (c1.A * f1);
+            return c1;
         }
 
         #endregion

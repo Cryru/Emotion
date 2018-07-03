@@ -9,7 +9,7 @@ using Emotion.GLES;
 using Emotion.GLES.Text;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utils;
+using Convert = Soul.Convert;
 
 #endregion
 
@@ -117,10 +117,13 @@ namespace Emotion.Game.Text
         /// </param>
         public void DisplayText(string text, bool fullReset = true)
         {
+            // Check if not setting to same text.
+            if(text == _rawText) return;
+
             // Set size if set to auto.
             if (SizeToFit)
             {
-                Vector2 textSize = _font.MeasureString(text + " ", TextSize);
+                Vector2 textSize = _font.MeasureString(text, TextSize);
                 Bounds = new Rectangle(Bounds.X, Bounds.Y, textSize.X, textSize.Y);
             }
 
@@ -311,7 +314,7 @@ namespace Emotion.Game.Text
             foreach (TextEffect e in effects)
             {
                 if (e.Name == "color" && e.Attributes?.Length >= 3)
-                    textColor = new Color(Soul.Convert.StringToInt(e.Attributes[0]), Soul.Convert.StringToInt(e.Attributes[1]), Soul.Convert.StringToInt(e.Attributes[2]));
+                    textColor = new Color(Convert.StringToInt(e.Attributes[0]), Convert.StringToInt(e.Attributes[1]), Convert.StringToInt(e.Attributes[2]));
             }
 
             // Render the glyph.
@@ -657,7 +660,7 @@ namespace Emotion.Game.Text
         protected IEnumerable<TextEffect> GetEffectsAt(int index)
         {
             // todo: Check if index < t.End or index <= t.End
-            return _effectCache.Where(t => index >= t.Start && (index < t.End || (index == t.End && index == t.Start)));
+            return _effectCache.Where(t => index >= t.Start && (index < t.End || index == t.End && index == t.Start));
         }
 
         /// <summary>
