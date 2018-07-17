@@ -38,6 +38,9 @@ TestResults
 # Nuget
 packages/*
 
+# Soul
+Logs
+
 # Emotion Games
 HealerGame
 ElectricSleep
