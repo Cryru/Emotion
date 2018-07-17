@@ -159,37 +159,6 @@ namespace Emotion.Engine
             Window.Exit();
         }
 
-        /// <summary>
-        /// Applies any changes made to the settings object.
-        /// </summary>
-        public void ApplySettings()
-        {
-            // Apply window mode.
-            switch (Settings.WindowMode)
-            {
-                case WindowMode.Borderless:
-                    Window.WindowBorder = WindowBorder.Hidden;
-                    Window.WindowState = WindowState.Normal;
-                    Window.Width = DisplayDevice.Default.Width;
-                    Window.Height = DisplayDevice.Default.Height;
-                    Window.X = 0;
-                    Window.Y = 0;
-                    break;
-                case WindowMode.Fullscreen:
-                    Window.WindowBorder = WindowBorder.Fixed;
-                    Window.WindowState = WindowState.Fullscreen;
-                    break;
-                default:
-                    Window.Width = Settings.WindowWidth;
-                    Window.Height = Settings.WindowHeight;
-                    Window.X = DisplayDevice.Default.Width / 2 - Settings.WindowWidth / 2;
-                    Window.Y = DisplayDevice.Default.Height / 2 - Settings.WindowHeight / 2;
-                    Window.WindowBorder = WindowBorder.Fixed;
-                    Window.WindowState = WindowState.Normal;
-                    break;
-            }
-        }
-
         #endregion
 
         #region Loop

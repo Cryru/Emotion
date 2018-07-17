@@ -116,7 +116,7 @@ namespace Emotion.Input
             if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
             {
                 Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
-                Context.ApplySettings();
+                //todo Context.ApplySettings();
             }
 
             // Check for closing combo.

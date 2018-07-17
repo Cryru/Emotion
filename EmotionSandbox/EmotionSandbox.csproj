@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.Input</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.NewRenderer</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="Examples\Input.cs" />
     <Compile Include="Examples\LoadingScreen.cs" />
+    <Compile Include="Examples\NewRenderer.cs" />
     <Compile Include="Examples\RenderingText.cs" />
     <Compile Include="Examples\Rendering.cs" />
     <Compile Include="Examples\StreamingSound.cs" />

@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using Emotion.Engine;
 using Emotion.Primitives;
-using OpenTK;
 using OpenTK.Graphics.ES30;
+using Matrix4 = OpenTK.Matrix4;
+using Vector4 = OpenTK.Vector4;
 
 #endregion
 
@@ -103,10 +104,7 @@ namespace Emotion.GLES
         {
             ThreadManager.ExecuteGLThread(() =>
             {
-                if (!_uniformVariables.ContainsKey(name))
-                {
-                    AddUniformVariable(name);
-                }
+                if (!_uniformVariables.ContainsKey(name)) AddUniformVariable(name);
 
                 int id = _uniformVariables[name];
                 GL.UniformMatrix4(id, false, ref matrix4);
@@ -122,10 +120,7 @@ namespace Emotion.GLES
         {
             ThreadManager.ExecuteGLThread(() =>
             {
-                if (!_uniformVariables.ContainsKey(name))
-                {
-                    AddUniformVariable(name);
-                }
+                if (!_uniformVariables.ContainsKey(name)) AddUniformVariable(name);
 
                 int id = _uniformVariables[name];
                 GL.Uniform1(id, data);
@@ -141,10 +136,7 @@ namespace Emotion.GLES
         {
             ThreadManager.ExecuteGLThread(() =>
             {
-                if (!_uniformVariables.ContainsKey(name))
-                {
-                    AddUniformVariable(name);
-                }
+                if (!_uniformVariables.ContainsKey(name)) AddUniformVariable(name);
 
                 int id = _uniformVariables[name];
                 GL.Uniform1(id, data);
@@ -161,10 +153,7 @@ namespace Emotion.GLES
         {
             ThreadManager.ExecuteGLThread(() =>
             {
-                if (!_uniformVariables.ContainsKey(name))
-                {
-                    AddUniformVariable(name);
-                }
+                if (!_uniformVariables.ContainsKey(name)) AddUniformVariable(name);
 
                 int id = _uniformVariables[name];
                 GL.Uniform4(id, new Vector4(data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f));

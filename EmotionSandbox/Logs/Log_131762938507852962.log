@@ -1,0 +1,4 @@
+Emotion Engine Log
+[12:37:30/792] [Info-Renderer] Loading Emotion OpenTK-GLES Renderer...
+[12:37:30/794] [Info-Renderer] GL: 3.3.0 NVIDIA 388.57 on GeForce 940MX/PCIe/SSE2
+[12:37:30/794] [Info-Renderer] GLSL: 3.30 NVIDIA via Cg compiler

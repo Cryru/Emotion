@@ -13,7 +13,8 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>Emotion</RootNamespace>
@@ -115,6 +116,19 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Libraries\Unix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Graphics\GLES\IGLObject.cs" />
+    <Compile Include="src\Graphics\GLES\IndexBuffer.cs" />
+    <Compile Include="src\Graphics\GLES\Shader.cs" />
+    <Compile Include="src\Graphics\GLES\ShaderProgram.cs" />
+    <Compile Include="src\Graphics\GLES\Buffer.cs" />
+    <Compile Include="src\Graphics\GLES\VertexArray.cs" />
+    <Compile Include="src\Graphics\Renderable2D.cs" />
+    <Compile Include="src\Graphics\Renderer.cs" />
+    <Compile Include="src\Graphics\Host\IHost.cs" />
+    <Compile Include="src\Graphics\Host\Window.cs" />
+    <Compile Include="src\Graphics\VertexData.cs" />
+    <Compile Include="src\Primitives\Matrix4.cs" />
+    <Compile Include="src\Primitives\Vector3.cs" />
     <Compile Include="src\Sound\SourceBase.cs" />
     <Compile Include="src\Sound\StreamingSource.cs" />
     <Compile Include="src\Utils\CurrentPlatform.cs" />
@@ -216,6 +230,8 @@
     <None Include="SharpFont.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Include="src\Graphics\Helpers.cs" />
+    <Compile Include="src\TestMain.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\x86\FreeImage.dll">
@@ -230,6 +246,10 @@
     <Content Include="Libraries\x86\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="src\Primitives\Vector4.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\Graphics\System\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
