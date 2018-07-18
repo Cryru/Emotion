@@ -10,6 +10,7 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Host;
+using Emotion.Graphics.Rendering;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
@@ -114,27 +115,7 @@ namespace Emotion.Graphics
             DefaultShaderProgram = new ShaderProgram(null, null);
             DefaultShaderProgram.Use();
 
-            _vao = new VertexArray();
-            _vbo = new Buffer(MaxBufferSize, 3, BufferUsageHint.DynamicDraw);
-            _vao.AttachBuffer(_vbo, VertexLocation, VertexData.SizeInBytes,  (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"), 3);
-            _vao.AttachBuffer(_vbo, ColorLocation, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"), 4);
-            Helpers.CheckError("loading vbo into vao");
-
-            ushort[] indices = new ushort[MaxIndicesSize];
-            ushort offset = 0;
-            for (int i = 0; i < MaxIndicesSize; i += 6)
-            {
-                indices[i] = (ushort) (offset + 0);
-                indices[i + 1] = (ushort) (offset + 1);
-                indices[i + 2] = (ushort) (offset + 2);
-                indices[i + 3] = (ushort) (offset + 2);
-                indices[i + 4] = (ushort) (offset + 3);
-                indices[i + 5] = (ushort) (offset + 0);
-
-                offset += 4;
-            }
-
-            _ibo = new IndexBuffer(indices);
+            _mapBuffer = new MapBuffer(MaxBufferSize);
 
             // Check if the setup encountered any errors.
             Helpers.CheckError("renderer setup");
@@ -147,15 +128,17 @@ namespace Emotion.Graphics
 
         internal void Destroy()
         {
-            _vbo?.Destroy();
-            _ibo?.Destroy();
-            _vao?.Destroy();
+            _mapBuffer.Destroy();
         }
 
         #endregion
 
+        private MapBuffer _mapBuffer;
+        private VertexData* _dataPointer;
+        private int _indicesCount;
+
         #region Management API - Called by Engine.
-        
+
         public Action<float> update;
         public Action<float> draw;
 
@@ -187,9 +170,8 @@ namespace Emotion.Graphics
             // Clear.
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            _vbo.Bind();
-            _dataPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
-            Helpers.CheckError("start");
+            // Start mapping the buffer.
+            _dataPointer = _mapBuffer.Start();
         }
 
         internal void End()
@@ -200,12 +182,6 @@ namespace Emotion.Graphics
         }
 
         #endregion
-
-        private int _indicesCount;
-        private Buffer _vbo;
-        private IndexBuffer _ibo;
-        private VertexArray _vao;
-        private VertexData* _dataPointer;
 
         /// <summary>
         /// Sets the current shader program to the one provided, or default if none provided.
@@ -224,23 +200,22 @@ namespace Emotion.Graphics
 
         public void Render(Renderable2D renderable)
         {
-            Vector4 color = new Vector4(renderable.Color.R / 255f, renderable.Color.G / 255f, renderable.Color.B / 255f, renderable.Color.A / 255f);
-            //uint c = (uint)color.W << 24 | (uint) renderable.Color.B << 16 | (uint)  renderable.Color.G << 8 | (uint) renderable.Color.R;
+            uint c = ((uint) renderable.Color.A << 24) | ((uint) renderable.Color.B << 16) | ((uint) renderable.Color.G << 8) | renderable.Color.R;
 
             _dataPointer->Vertex = renderable.Position;
-            _dataPointer->Color = color;
+            _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = new Vector3(renderable.Position.X + renderable.Size.X, renderable.Position.Y, renderable.Position.Z);
-            _dataPointer->Color = color;
+            _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = new Vector3(renderable.Position.X + renderable.Size.X, renderable.Position.Y + renderable.Size.Y, renderable.Position.Z);
-            _dataPointer->Color = color;
+            _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = new Vector3(renderable.Position.X, renderable.Position.Y + renderable.Size.Y, renderable.Position.Z);
-            _dataPointer->Color = color;
+            _dataPointer->Color = c;
             _dataPointer++;
 
             _indicesCount += 6;
@@ -250,20 +225,7 @@ namespace Emotion.Graphics
 
         public void Flush()
         {
-            GL.UnmapBuffer(BufferTarget.ArrayBuffer);
-            _vbo.Unbind();
-
-            _vao.Bind();
-            _ibo.Bind();
-
-            GL.DrawElements(PrimitiveType.Triangles, _indicesCount, DrawElementsType.UnsignedShort, IntPtr.Zero);
-            Helpers.CheckError("draw");
-
-            _ibo.Unbind();
-            _vao.Unbind();
-            _indicesCount = 0;
-
-            Helpers.CheckError("flush");
+            _mapBuffer.Draw(_indicesCount);
         }
     }
 }

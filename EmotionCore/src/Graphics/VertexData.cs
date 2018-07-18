@@ -10,7 +10,7 @@ using Emotion.Primitives;
 namespace Emotion.Graphics
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct VertexData
+    public struct VertexData
     {
         public static readonly int SizeInBytes = Marshal.SizeOf(new VertexData());
 
@@ -18,6 +18,6 @@ namespace Emotion.Graphics
         public Vector3 Vertex;
 
         // Location 1
-        public Vector4 Color;
+        public uint Color;
     }
 }

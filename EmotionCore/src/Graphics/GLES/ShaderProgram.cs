@@ -17,10 +17,24 @@ namespace Emotion.Graphics.GLES
     /// </summary>
     public class ShaderProgram
     {
+        #region Global
+
         /// <summary>
         /// The current shader program.
         /// </summary>
         public static ShaderProgram Current;
+
+        /// <summary>
+        /// The location of vertices within the shader.
+        /// </summary>
+        public static readonly int VertexLocation = 0;
+
+        /// <summary>
+        /// The location of the colors within the shader.
+        /// </summary>
+        public static readonly int ColorLocation = 1;
+
+        #endregion
 
         #region Properties
 
