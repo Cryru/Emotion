@@ -46,7 +46,7 @@ namespace Emotion.Sound
         {
             Pointer = AL.GenSource();
 
-            FileName = files[0].AssetName;
+            FileName = files[0].Name;
             Duration = files[0].Duration;
             FileId = 0;
 
@@ -133,7 +133,7 @@ namespace Emotion.Sound
 
                     FileId = FileId + curFile;
                     Duration = _files[FileId].Duration;
-                    FileName = _files[FileId].AssetName;
+                    FileName = _files[FileId].Name;
 
                     // Remove buffer.
                     AL.SourceUnqueueBuffers(Pointer, 1);

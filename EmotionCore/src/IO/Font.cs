@@ -12,7 +12,7 @@ using Glyph = Emotion.GLES.Text.Glyph;
 
 namespace Emotion.IO
 {
-    public class Font : Asset
+    public sealed class Font : Asset
     {
         /// <summary>
         /// An instance of the Freetype library.
@@ -34,7 +34,7 @@ namespace Emotion.IO
         /// </summary>
         private uint _characterSizeLast = 10;
 
-        internal override void Process(byte[] data)
+        internal override void Create(byte[] data)
         {
             _glyphMap = new Dictionary<uint, Dictionary<uint, Glyph>>();
 
@@ -43,8 +43,6 @@ namespace Emotion.IO
 
             // Set default size.
             _face.SetPixelSizes(0, _characterSizeLast);
-
-            base.Process(data);
         }
 
         /// <summary>
@@ -240,7 +238,6 @@ namespace Emotion.IO
         internal override void Destroy()
         {
             _face.Dispose();
-            base.Destroy();
         }
     }
 }

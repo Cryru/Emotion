@@ -8,15 +8,18 @@ using System.Text;
 
 namespace Emotion.IO
 {
-    public class TextFile : Asset
+    public sealed class TextFile : Asset
     {
-        public string[] Content;
+        public string[] Content { get; private set; }
 
-        internal override void Process(byte[] data)
+        internal override void Create(byte[] data)
         {
             Content = Encoding.Default.GetString(data).Replace("\r", "").Replace("ï»¿", "").Split('\n');
+        }
 
-            base.Process(data);
+        internal override void Destroy()
+        {
+            Content = null;
         }
     }
 }

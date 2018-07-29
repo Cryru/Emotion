@@ -119,7 +119,7 @@ namespace Emotion.GLES
             _allTextureVBO = new VBO();
 
             _blankTexture = new Texture();
-            _blankTexture.Process(new byte[]
+            _blankTexture.Create(new byte[]
             {
                 66, 77, 58, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0, 40, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 196, 14, 0, 0, 196, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255,
                 255, 255

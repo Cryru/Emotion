@@ -34,7 +34,7 @@ namespace Emotion.IO
 
         #endregion
 
-        internal AssetLoader(Context context) : base(context)
+        public AssetLoader(Context context) : base(context)
         {
             _loadedAssets = new Dictionary<string, Asset>();
         }
@@ -60,25 +60,23 @@ namespace Emotion.IO
             // Read the file.
             byte[] fileContents = ReadFile(enginePath);
 
-            // Create an instance of the asset.
+            // Create an instance of the asset and add it.
+            DebugMessageWrap("Creating", enginePath, typeof(T), MessageType.Info);
             T temp = (T) Activator.CreateInstance(typeof(T));
-            temp.AssetName = enginePath;
-            _loadedAssets[enginePath] = temp;
-
-            // Process.
-            DebugMessageWrap("Processing", enginePath, typeof(T), MessageType.Info);
-            temp.Process(fileContents);
-            DebugMessageWrap("Processed", enginePath, typeof(T), MessageType.Trace);
+            temp.Name = enginePath;
+            temp.Create(fileContents);
+            _loadedAssets.Add(enginePath, temp);
+            DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Trace);
 
             // Return.
             return temp;
         }
 
         /// <summary>
-        /// Free an asset unloading and destroying it.
+        /// Destroy an asset, freeing memory.
         /// </summary>
         /// <param name="path">A path to the asset. Will be converted to an engine path.</param>
-        public void Free(string path)
+        public void Destroy(string path)
         {
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
@@ -86,11 +84,9 @@ namespace Emotion.IO
             // Check if loaded.
             if (!_loadedAssets.ContainsKey(enginePath)) return;
 
-            DebugMessageWrap("Freeing", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
-
-            // Destroy it.
+            // Call the IAsset destroy function.
+            DebugMessageWrap("Destroying", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
             _loadedAssets[enginePath].Destroy();
-
             // Remove from the list.
             _loadedAssets.Remove(enginePath);
 

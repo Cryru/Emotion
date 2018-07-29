@@ -18,6 +18,12 @@ namespace Emotion.Graphics
         public Vector3 Vertex;
 
         // Location 1
+        public Vector2 UV;
+
+        // Location 2
+        public int tid;
+
+        // Location 3
         public uint Color;
     }
 }

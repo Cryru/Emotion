@@ -37,75 +37,46 @@ namespace Emotion.Game.UI
             if (PanelTexture == null) return;
 
             // Draw fill.
-            if (Fill != Rectangle.Empty) renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height), Fill, false);
+            if (Fill != Rectangle.Empty) renderer.DrawTexture(PanelTexture, new Rectangle(X, Y, Width, Height), Fill, false);
 
             // Draw lines.
             if (Top != Rectangle.Empty)
-                for (float x = 0; x <= Bounds.Width - Top.Width * Scale; x += Top.Width * Scale)
+                for (float x = 0; x <= Width - Top.Width * Scale; x += Top.Width * Scale)
                 {
-                    renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X + x, Bounds.Y, Top.Width * Scale, Top.Height * Scale), Top, false);
+                    renderer.DrawTexture(PanelTexture, new Rectangle(X + x, Y, Top.Width * Scale, Top.Height * Scale), Top, false);
                 }
 
             if (Left != Rectangle.Empty)
-                for (float y = 0; y <= Bounds.Height - Left.Height * Scale; y += Left.Height * Scale)
+                for (float y = 0; y <= Height - Left.Height * Scale; y += Left.Height * Scale)
                 {
-                    renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X, Bounds.Y + y, Left.Width * Scale, Left.Height * Scale), Left, false);
+                    renderer.DrawTexture(PanelTexture, new Rectangle(X, Y + y, Left.Width * Scale, Left.Height * Scale), Left, false);
                 }
 
             if (Right != Rectangle.Empty)
-                for (float y = 0; y <= Bounds.Height - Right.Height * Scale; y += Right.Height * Scale)
+                for (float y = 0; y <= Height - Right.Height * Scale; y += Right.Height * Scale)
                 {
-                    renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X + Bounds.Width - Right.Width * Scale, Bounds.Y + y, Right.Width * Scale, Right.Height * Scale), Right, false);
+                    renderer.DrawTexture(PanelTexture, new Rectangle(X + Width - Right.Width * Scale, Y + y, Right.Width * Scale, Right.Height * Scale), Right, false);
                 }
 
             if (Bottom != Rectangle.Empty)
-                for (float x = 0; x <= Bounds.Width - Bottom.Width * Scale; x += Bottom.Width * Scale)
+                for (float x = 0; x <= Width - Bottom.Width * Scale; x += Bottom.Width * Scale)
                 {
-                    renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X + x, Bounds.Y + Bounds.Height - Bottom.Height * Scale, Bottom.Width * Scale, Bottom.Height * Scale), Bottom, false);
+                    renderer.DrawTexture(PanelTexture, new Rectangle(X + x, Y + Height - Bottom.Height * Scale, Bottom.Width * Scale, Bottom.Height * Scale), Bottom, false);
                 }
 
             // Draw corners.
             if (TopLeftCorner != Rectangle.Empty)
-                renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X, Bounds.Y, TopLeftCorner.Width * Scale, TopLeftCorner.Height * Scale), TopLeftCorner, false);
+                renderer.DrawTexture(PanelTexture, new Rectangle(X, Y, TopLeftCorner.Width * Scale, TopLeftCorner.Height * Scale), TopLeftCorner, false);
             if (TopRightCorner != Rectangle.Empty)
-                renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X + Bounds.Width - TopRightCorner.Width * Scale, Bounds.Y, TopRightCorner.Width * Scale, TopRightCorner.Height * Scale),
+                renderer.DrawTexture(PanelTexture, new Rectangle(X + Width - TopRightCorner.Width * Scale, Y, TopRightCorner.Width * Scale, TopRightCorner.Height * Scale),
                     TopRightCorner, false);
             if (BottomRightCorner != Rectangle.Empty)
                 renderer.DrawTexture(PanelTexture,
-                    new Rectangle(Bounds.X + Bounds.Width - BottomRightCorner.Width * Scale, Bounds.Y + Bounds.Height - BottomRightCorner.Height * Scale, BottomRightCorner.Width * Scale,
+                    new Rectangle(X + Width - BottomRightCorner.Width * Scale, Y + Height - BottomRightCorner.Height * Scale, BottomRightCorner.Width * Scale,
                         BottomRightCorner.Height * Scale), BottomRightCorner, false);
             if (BottomLeftCorner != Rectangle.Empty)
-                renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X, Bounds.Y + Bounds.Height - BottomLeftCorner.Height * Scale, BottomLeftCorner.Width * Scale, BottomLeftCorner.Height * Scale),
+                renderer.DrawTexture(PanelTexture, new Rectangle(X, Y + Height - BottomLeftCorner.Height * Scale, BottomLeftCorner.Width * Scale, BottomLeftCorner.Height * Scale),
                     BottomLeftCorner, false);
         }
-
-        #region Events (Ignored As Aesthetic Object)
-
-        public override void MouseEnter(Vector2 mousePosition)
-        {
-
-        }
-
-        public override void MouseLeave(Vector2 mousePosition)
-        {
-
-        }
-
-        public override void MouseDown(MouseKeys key)
-        {
-
-        }
-
-        public override void MouseUp(MouseKeys key)
-        {
-
-        }
-
-        public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
-        {
-
-        }
-
-        #endregion
     }
 }

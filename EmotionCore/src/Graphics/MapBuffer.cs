@@ -43,6 +43,12 @@ namespace Emotion.Graphics
             GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
             GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
+            GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
+            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+
+            //GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
+            //GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+
             GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
             GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 

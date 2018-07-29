@@ -85,7 +85,7 @@ namespace Emotion.Game.Tiled
             CacheAnimatedTiles();
 
             // Set default size if none set.
-            if (Bounds.Width == 0 && Bounds.Height == 0) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            if (Width == 0 && Height == 0) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
         }
 
         /// <summary>
@@ -176,16 +176,16 @@ namespace Emotion.Game.Tiled
                     Rectangle tRect = new Rectangle(tX, tY, ts.TileWidth, ts.TileHeight);
 
                     // Modify for map size.
-                    float ratioDifferenceX = Bounds.Width / (TiledMap.TileWidth * TiledMap.Width);
-                    float ratioDifferenceY = Bounds.Height / (TiledMap.TileHeight * TiledMap.Height);
+                    float ratioDifferenceX = Width / (TiledMap.TileWidth * TiledMap.Width);
+                    float ratioDifferenceY = Height / (TiledMap.TileHeight * TiledMap.Height);
                     tRect.Width *= ratioDifferenceX;
                     tRect.Height *= ratioDifferenceY;
                     tRect.X *= ratioDifferenceX;
                     tRect.Y *= ratioDifferenceY;
 
                     // Add map position.
-                    tRect.X += Bounds.X;
-                    tRect.Y += Bounds.Y;
+                    tRect.X += X;
+                    tRect.Y += Y;
 
                     // Check if visible rectangle exists.
                     if (VisibleRectangle == Rectangle.Empty || VisibleRectangle.Intersects(tRect))
@@ -284,8 +284,8 @@ namespace Emotion.Game.Tiled
         {
             // Check if out of range, and if not return the tile location from the id.
             return new Rectangle(
-                Bounds.X + TiledMap.Layers[layer].Tiles[coordinate].X * TiledMap.TileWidth,
-                Bounds.Y + TiledMap.Layers[layer].Tiles[coordinate].Y * TiledMap.TileHeight,
+                X + TiledMap.Layers[layer].Tiles[coordinate].X * TiledMap.TileWidth,
+                Y + TiledMap.Layers[layer].Tiles[coordinate].Y * TiledMap.TileHeight,
                 TiledMap.TileWidth,
                 TiledMap.TileHeight
             );

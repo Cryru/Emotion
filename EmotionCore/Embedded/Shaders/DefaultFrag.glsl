@@ -5,7 +5,6 @@ precision highp float;
 #endif
 
 uniform vec4 color;
-uniform mat4 textureMatrix;
 uniform sampler2D drawTexture;
 
 in vec4 vertColor;
@@ -18,5 +17,5 @@ void main() {
     //vec4 uvTransformed = textureMatrix * vec4(UV, 0, 1);
 
     // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
-    fragColor = vertColor;//texture(drawTexture, uvTransformed.xy) * color;
+    fragColor = texture(drawTexture, UV) * color;
 }

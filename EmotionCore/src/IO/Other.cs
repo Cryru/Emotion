@@ -6,15 +6,18 @@
 
 namespace Emotion.IO
 {
-    public class Other : Asset
+    public sealed class Other : Asset
     {
-        public byte[] Content;
+        public byte[] Content { get; private set; }
 
-        internal override void Process(byte[] data)
+        internal override void Create(byte[] data)
         {
             Content = data;
+        }
 
-            base.Process(data);
+        internal override void Destroy()
+        {
+            Content = null;
         }
     }
 }

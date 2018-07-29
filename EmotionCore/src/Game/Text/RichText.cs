@@ -124,8 +124,7 @@ namespace Emotion.Game.Text
             // Set size if set to auto.
             if (SizeToFit)
             {
-                Vector2 textSize = _font.MeasureString(text, TextSize);
-                Bounds = new Rectangle(Bounds.X, Bounds.Y, textSize.X, textSize.Y);
+                Size = _font.MeasureString(text, TextSize);
             }
 
             // Check whether to reset scroll state.
@@ -163,7 +162,7 @@ namespace Emotion.Game.Text
         public void ForceRender()
         {
             // Check if size changed.
-            if (_drawingSession?.Size != Bounds.Size)
+            if (_drawingSession?.Size != Size)
             {
                 _drawingSession?.Destroy(true);
                 _drawingSession = null;
@@ -243,7 +242,7 @@ namespace Emotion.Game.Text
         protected void CacheDraw(Renderer renderer)
         {
             // Check if a session hasn't been created.
-            if (_drawingSession == null) _drawingSession = renderer.StartTextSession(_font, TextSize, (int) Bounds.Width, (int) Bounds.Height);
+            if (_drawingSession == null) _drawingSession = renderer.StartTextSession(_font, TextSize, (int) Width, (int) Height);
 
             // Check for a scroll overflow. This can happen when scrolling isn't reset but the text is.
             if (_scrollRenderedTo > _scrollPosition)
@@ -449,7 +448,7 @@ namespace Emotion.Game.Text
                 // This is a rare case, but when it happens characters must be printed without performing break checks as they will either cause
                 // each character to go on a separate line or cause a line break in the text as soon as it can fit on the line.
                 // To do this we switch to a break skipping mode which ensures this other method of printing until the whole text is printed.
-                if (overflowCheck.X > Bounds.Width || breakSkipMode)
+                if (overflowCheck.X > Width || breakSkipMode)
                 {
                     textSize = _font.MeasureString(currentLine + _textToDisplay[i], TextSize);
                     breakSkipMode = true;
@@ -457,7 +456,7 @@ namespace Emotion.Game.Text
                 }
 
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
-                if (textSize.X > Bounds.Width || _textToDisplay[i] == '\n')
+                if (textSize.X > Width || _textToDisplay[i] == '\n')
                 {
                     // Push new line.
                     _wrapCache.Add(currentLine);
@@ -521,7 +520,7 @@ namespace Emotion.Game.Text
             while (true)
             {
                 // Get the space left on the line by subtracting the total width from the line's width plus character spacing, minus one because of the last character.
-                float characterSpace = Bounds.Width - (lineSize + charSpacing * spaces);
+                float characterSpace = Width - (lineSize + charSpacing * spaces);
 
                 // If there is space, increase char spacing.
                 if (characterSpace >= 0)
@@ -542,7 +541,7 @@ namespace Emotion.Game.Text
 
         private void AlignCenter(int i)
         {
-            float spaceLeft = Bounds.Width - _font.MeasureString(_wrapCache[i], TextSize).X;
+            float spaceLeft = Width - _font.MeasureString(_wrapCache[i], TextSize).X;
 
             // Get justification character spacing. if any.
             if (i < _spaceSize.Count) spaceLeft -= _spaceSize[i] * CountSpaces(_wrapCache[i]);
@@ -564,7 +563,7 @@ namespace Emotion.Game.Text
 
         private void AlignRight(int i)
         {
-            float spaceLeft = Bounds.Width - _font.MeasureString(_wrapCache[i], TextSize).X;
+            float spaceLeft = Width - _font.MeasureString(_wrapCache[i], TextSize).X;
 
             // To align right set the free space before the line.
             _initialLineIndent.Add((int) spaceLeft);

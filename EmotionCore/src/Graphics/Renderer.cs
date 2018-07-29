@@ -107,6 +107,8 @@ namespace Emotion.Graphics
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
         }
 
         /// <summary>
@@ -134,6 +136,7 @@ namespace Emotion.Graphics
         private VertexData* _dataPointer;
         private int _indicesCount;
 
+        // todo: Move to context
         #region Management API - Called by Engine.
 
         public Action<float> update;
@@ -196,26 +199,32 @@ namespace Emotion.Graphics
 
         public void Render(Renderable2D renderable)
         {
+            Helpers.CheckError("before render");
+
             // Convert the color to an int.
-            uint c = ((uint) renderable.Color.A << 24) | ((uint) renderable.Color.B << 16) | ((uint) renderable.Color.G << 8) | renderable.Color.R;
+            uint c = ((uint)renderable.Color.A << 24) | ((uint)renderable.Color.B << 16) | ((uint)renderable.Color.G << 8) | renderable.Color.R;
 
             // Add the model matrix to the stack.
             TransformationStack.Push(renderable.ModelMatrix);
 
             // Set four vertices.
             _dataPointer->Vertex = Vector3.TransformPosition(Vector3.Zero, TransformationStack.CurrentMatrix);
+            _dataPointer->UV = new Vector2(renderable.TextureArea.X, renderable.TextureArea.Y + renderable.TextureArea.Height);
             _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(renderable.Size.X, 0, 0), TransformationStack.CurrentMatrix);
+            _dataPointer->UV = new Vector2(renderable.TextureArea.X + renderable.TextureArea.Width, renderable.TextureArea.Y + renderable.TextureArea.Height);
             _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(renderable.Size.X, renderable.Size.Y, 0), TransformationStack.CurrentMatrix);
+            _dataPointer->UV = new Vector2(renderable.TextureArea.X + renderable.TextureArea.Width, renderable.TextureArea.Y);
             _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(0, renderable.Size.Y, 0), TransformationStack.CurrentMatrix);
+            _dataPointer->UV = renderable.TextureArea.Location;
             _dataPointer->Color = c;
             _dataPointer++;
 

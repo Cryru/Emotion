@@ -10,25 +10,82 @@ namespace Emotion.Graphics
 {
     public class Renderable2D
     {
-        #region Main Properties
+        #region Base Properties
+
+        public float X
+        {
+            get => _x;
+            set
+            {
+                _x = value;
+                _updateMatrix = true;
+            }
+        }
+
+        public float Y
+        {
+            get => _y;
+            set
+            {
+                _y = value;
+                _updateMatrix = true;
+            }
+        }
+
+        public float Z
+        {
+            get => _z;
+            set
+            {
+               _z = value;
+                _updateMatrix = true;
+            }
+        }
+
+        public float Width 
+        {
+            get => _width;
+            set
+            {
+                _width = value;
+                _updateMatrix = true;
+            }
+        }
+        
+        public float Height 
+        {
+            get => _height;
+            set
+            {
+                _height = value;
+                _updateMatrix = true;
+            }
+        }
+
+        public Rectangle TextureArea = new Rectangle();
+
+        #endregion
+
+        #region Higher Properties
 
         public Vector3 Position
         {
-            get => _position;
+            get => new Vector3(X, Y, Z);
             set
             {
-                _position = value;
-                _updateMatrix = true;
+                X = value.X;
+                Y = value.Y;
+                Z = value.Z;
             }
         }
 
         public Vector2 Size
         {
-            get => _size;
+            get => new Vector2(Width, Height);
             set
             {
-                _size = value;
-                _updateMatrix = true;
+                Width = value.X;
+                Height = value.Y;
             }
         }
 
@@ -39,6 +96,40 @@ namespace Emotion.Graphics
             {
                 _rotation = value;
                 _updateMatrix = true;
+            }
+        }
+
+        public float RightSide
+        {
+            get => X + Width;
+            set => X = value - Width;
+        }
+
+        public float BottomSide
+        {
+            get => Y + Height;
+            set => Y = value - Height;
+        }
+
+        public Rectangle Bounds
+        {
+            get => new Rectangle(X, Y, Width, Height);
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+                Width = value.Width;
+                Height = value.Height;
+            }
+        }
+
+        public Vector2 Center
+        {
+            get => new Vector2(X + Width / 2, Y + Height / 2);
+            set
+            {
+                X = value.X - Width / 2;
+                Y = value.Y - Height / 2;
             }
         }
 
@@ -56,114 +147,15 @@ namespace Emotion.Graphics
 
         #endregion
 
-        #region Higher Properties
-
-        public Rectangle Bounds
-        {
-            get => new Rectangle(Position.Xy, Size);
-            set
-            {
-                Position = new Vector3(value.X, value.Y, Position.Z);
-                Size = value.Size;
-            }
-        }
-
-        public Vector2 Center
-        {
-            get => new Vector2(_position.X + _size.X / 2, _position.Y + _size.Y / 2);
-            set
-            {
-                _position.X = value.X - _size.X / 2;
-                _position.Y = value.Y - _size.Y / 2;
-                _updateMatrix = true;
-            }
-        }
-
-        #endregion
-
-        #region Simplified Properties
-
-        public float X
-        {
-            get => _position.X;
-            set
-            {
-                _position.X = value;
-                _updateMatrix = true;
-            }
-        }
-
-        public float Y
-        {
-            get => _position.Y;
-            set
-            {
-                _position.Y = value;
-                _updateMatrix = true;
-            }
-        }
-
-        public float Z
-        {
-            get => _position.Z;
-            set
-            {
-                _position.Z = value;
-                _updateMatrix = true;
-            }
-        }
-
-        public float Width 
-        {
-            get => _size.X;
-            set
-            {
-                _size.X = value;
-                _updateMatrix = true;
-            }
-        }
-        
-        public float Height 
-        {
-            get => _size.Y;
-            set
-            {
-                _size.Y = value;
-                _updateMatrix = true;
-            }
-        }
-
-        public float Left
-        {
-            get => X;
-            set => X = value;
-        }
-
-        public float Right
-        {
-            get => X + Width;
-            set => X = value - Width;
-        }
-
-        public float Top
-        {
-            get => Y;
-            set => Y = value;
-        }
-
-        public float Bottom
-        {
-            get => Y + Height;
-            set => Y = value - Height;
-        }
-
-        #endregion
-
         #region Privates
 
+        private float _x;
+        private float _y;
+        private float _z;
+        private float _width;
+        private float _height;
+
         private Renderable2D _parent;
-        private Vector3 _position;
-        private Vector2 _size;
         private float _rotation;
 
         #endregion
@@ -182,14 +174,14 @@ namespace Emotion.Graphics
                 // If the renderable has a parent, add its matrix first.
                 if (_parent != null) matrix *= _parent.ModelMatrix;
 
-                float xCenter = _size.X / 2;
-                float yCenter = _size.Y / 2;
+                float xCenter = Width / 2;
+                float yCenter = Height / 2;
 
                 // Add rotation.
                 matrix *= Matrix4.CreateTranslation(xCenter, yCenter, 1).Inverted() * Matrix4.CreateRotationZ(Rotation) * Matrix4.CreateTranslation(xCenter, yCenter, 1);
 
                 // Add position.
-                matrix *= Matrix4.CreateTranslation(_position);
+                matrix *= Matrix4.CreateTranslation(X, Y, Z);
 
                 _modelMatrix = matrix;
                 _updateMatrix = false;
@@ -203,6 +195,43 @@ namespace Emotion.Graphics
 
         #endregion
 
+        #region Vector3 Constructors
+
+        public Renderable2D(Vector3 position, Vector2 size, Color color, float rotation = 0f, Renderable2D parent = null)
+            : this(position.X, position.Y, position.Z, size.X, size.Y, color, rotation, parent)
+        {
+
+        }
+
+        public Renderable2D(Vector3 position, Vector2 size) : this(position, size, Color.White)
+        {
+
+        }
+
+        #endregion
+
+        #region Vector2 Constructors
+
+        public Renderable2D(Vector2 position, Vector2 size, Color color, float rotation = 0f, Renderable2D parent = null)
+            : this(position.X, position.Y, 0, size.X, size.Y, color, rotation, parent)
+        {
+
+        }
+
+        public Renderable2D(Vector2 position, Vector2 size) : this(position, size, Color.White)
+        {
+
+        }
+
+        #endregion
+
+        #region Raw Constructors
+
+        public Renderable2D() : this(0, 0, 0, 0, 0, Color.White)
+        {
+
+        }
+
         public Renderable2D(Rectangle bounds)
         {
             Bounds = bounds;
@@ -211,13 +240,23 @@ namespace Emotion.Graphics
             Parent = null;
         }
 
-        public Renderable2D(Vector3 position, Vector2 size, Color color, float rotation = 0f, Renderable2D parent = null)
+        public Renderable2D(float x, float y, float z, float width, float height) : this(x, y, z, width, height, Color.White)
         {
-            Position = position;
-            Size = size;
+
+        }
+
+        public Renderable2D(float x, float y, float z, float width, float height, Color color, float rotation = 0f, Renderable2D parent = null)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+            Width = width;
+            Height = height;
             Color = color;
             Rotation = rotation;
             Parent = parent;
         }
+
+        #endregion
     }
 }

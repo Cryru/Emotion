@@ -46,33 +46,9 @@ namespace Emotion.Game.UI
             if (!Held[0]) return;
 
             // Calculate the new value form the new mouse position.
-            float posWithinParent = newPosition.X - _parent.Bounds.X;
-            float increment = _parent.Bounds.Width / 100;
+            float posWithinParent = newPosition.X - _parent.X;
+            float increment = _parent.Width / 100;
             _parent.Value = (int) (posWithinParent / increment);
         }
-
-        #region Events (Ignored As Handled By Master)
-
-        public override void MouseEnter(Vector2 mousePosition)
-        {
-            
-        }
-
-        public override void MouseLeave(Vector2 mousePosition)
-        {
-            
-        }
-
-        public override void MouseDown(MouseKeys key)
-        {
-            
-        }
-
-        public override void MouseUp(MouseKeys key)
-        {
-            
-        }
-
-        #endregion
     }
 }

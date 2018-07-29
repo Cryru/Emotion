@@ -30,9 +30,19 @@ namespace Emotion.Graphics.GLES
         public static readonly int VertexLocation = 0;
 
         /// <summary>
+        /// The location of the texture UV within the shader.
+        /// </summary>
+        public static readonly int UvLocation = 1;
+
+        /// <summary>
+        /// The location of the texture id within the shader.
+        /// </summary>
+        public static readonly int Tid = 2;
+
+        /// <summary>
         /// The location of the colors within the shader.
         /// </summary>
-        public static readonly int ColorLocation = 1;
+        public static readonly int ColorLocation = 3;
 
         #endregion
 
@@ -77,8 +87,6 @@ namespace Emotion.Graphics.GLES
                 SetUniformColor("color", Color.White);
 
                 SetUniformMatrix4("projectionMatrix",Matrix4.CreateOrthographicOffCenter(0, 960, 540, 0, -1, 1));
-                SetUniformMatrix4("viewMatrix", Matrix4.Identity);
-                SetUniformMatrix4("modelMatrix", Matrix4.Identity);
                 SetUniformMatrix4("textureMatrix", Matrix4.Identity);
 
                 SetUniformInt("drawTexture", 0);

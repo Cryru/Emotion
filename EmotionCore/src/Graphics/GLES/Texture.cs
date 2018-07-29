@@ -4,42 +4,55 @@
 
 using System.IO;
 using Emotion.Engine;
-using Emotion.GLES;
+using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utils;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
 using Matrix4 = OpenTK.Matrix4;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.Graphics.GLES
 {
-    /// <summary>
-    /// An image loaded into memory which can be drawn to the screen.
-    /// </summary>
-    /// <inheritdoc cref="ITexture" />
-    public sealed class Texture : Asset, ITexture
+    public sealed class Texture : Asset, IGLObject
     {
-        #region Properties
+        public Vector2 Size { get; private set; }
+        public Matrix4 TextureMatrix { get; private set; }
 
-        public Vector2 Size
+        private int _pointer;
+
+        public Texture()
         {
-            get => new Vector2(Width, Height);
+            _pointer = GL.GenTexture();
+            Size = new Vector2();
         }
 
-        public int Width { get; private set; }
+        #region IGLObject API
 
-        public int Height { get; private set; }
+        /// <summary>
+        /// Use this texture for any following operations.
+        /// </summary>
+        public void Bind()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, _pointer);
+        }
 
-        public Matrix4 TextureMatrix { get; private set; }
+        /// <summary>
+        /// Stop using any texture.
+        /// </summary>
+        public void Unbind()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+        }
 
         #endregion
 
-        private int _pointer { get; set; }
-
         #region Asset API
 
+        /// <summary>
+        /// Uploads an array of bytes as a texture.
+        /// </summary>
+        /// <param name="data">The bytes to upload.</param>
         internal override void Create(byte[] data)
         {
             FIBITMAP freeImageBitmap;
@@ -56,18 +69,17 @@ namespace Emotion.IO
                 bbp = FreeImage.GetBPP(freeImageBitmap);
 
                 // Assign size.
-                Width = (int) FreeImage.GetWidth(freeImageBitmap);
-                Height = (int) FreeImage.GetHeight(freeImageBitmap);
+                Size = new Vector2(FreeImage.GetWidth(freeImageBitmap), FreeImage.GetHeight(freeImageBitmap));
             }
 
             // Upload the texture on the GL thread.
             ThreadManager.ExecuteGLThread(() =>
             {
                 _pointer = GL.GenTexture();
-                TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
+                TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
 
                 // Bind the texture.
-                Use();
+                Bind();
 
                 // Set scaling to pixel perfect.
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
@@ -80,32 +92,22 @@ namespace Emotion.IO
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Alpha);
 
                 // Upload the texture.
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(freeImageBitmap));
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(freeImageBitmap));
 
-                Helpers.CheckError("uploading texture");
+                Utils.Helpers.CheckError("uploading texture");
 
-                // Cleanup processed data.
-                freeImageBitmap.SetNull();
+                // Cleanup FreeImage object.
+                FreeImage.Unload(freeImageBitmap);
             });
         }
 
+        /// <summary>
+        /// Destroy the texture, freeing memory.
+        /// </summary>
         internal override void Destroy()
         {
-            Cleanup();
-        }
-
-        #endregion
-
-        #region Texture API
-
-        public void Use()
-        {
-            GL.BindTexture(TextureTarget.Texture2D, _pointer);
-        }
-
-        public void Cleanup()
-        {
-            ThreadManager.ExecuteGLThread(() => { GL.DeleteTexture(_pointer); });
+            GL.DeleteTexture(_pointer);
+            _pointer = -1;
         }
 
         #endregion

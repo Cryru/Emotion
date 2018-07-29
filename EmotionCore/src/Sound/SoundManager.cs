@@ -78,7 +78,7 @@ namespace Emotion.Sound
             Source newSource = new Source(file);
             _layers[layerName].Source = newSource;
 
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing [" + file.AssetName + "] on [" + _layers[layerName] + "]");
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing [" + file.Name + "] on [" + _layers[layerName] + "]");
 
             return newSource;
         }
@@ -98,7 +98,7 @@ namespace Emotion.Sound
             Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing " + files.Length + " files on [" + _layers[layerName] + "]");
             foreach (SoundFile file in files)
             {
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, " |- " + file.AssetName);
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, " |- " + file.Name);
             }
 #endif
 

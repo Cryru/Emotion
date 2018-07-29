@@ -46,17 +46,14 @@ namespace Emotion.Game.UI
             Value = (int) MathHelper.Clamp(Value, 0, 100);
 
             // Draw bar.
-            renderer.DrawRectangle(Bounds, BarColor, false);
+            // todo
+            //renderer.DrawRectangle(Bounds, BarColor, false);
 
-            // Calculate selector.
-            Rectangle selectorBounds = new Rectangle
-            {
-                Width = Bounds.Width / 100 * 6,
-                Height = (int) (Bounds.Height + Bounds.Height * 0.1 * 2),
-                Center = Bounds.Center
-            };
-            selectorBounds.X = Bounds.X + Bounds.Width / 100 * Value - selectorBounds.Width / 2;
-            Selector.Bounds = selectorBounds;
+            // Calculate selector position.
+            Selector.Width = Width / 100 * 6;
+            Selector.Height = (int) (Height + Height * 0.1 * 2);
+            Selector.Center = Center;
+            Selector.X = X + Width / 100 * Value - Selector.Width / 2;;
         }
 
         public override void Destroy()

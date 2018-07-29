@@ -44,7 +44,7 @@ namespace EmotionSandbox.Examples
 
         public override void Unload()
         {
-            Context.AssetLoader.Free("test.png");
+            Context.AssetLoader.Destroy("test.png");
         }
     }
 }
