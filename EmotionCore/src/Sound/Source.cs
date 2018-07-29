@@ -85,7 +85,7 @@ namespace Emotion.Sound
         internal override void Update(Settings settings)
         {
             // Check if destroyed.
-            if(Pointer == -1) return;
+            if (Pointer == -1) return;
 
             // Check if the sound levels have changed.
             if (settings.Sound || settings.Volume == 0)

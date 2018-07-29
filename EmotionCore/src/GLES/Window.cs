@@ -22,7 +22,7 @@ namespace Emotion.GLES
         {
 #if DEBUG
             // Debug context breaks on Macs.
-            if(CurrentPlatform.OS == PlatformID.MacOSX) return;
+            if (CurrentPlatform.OS == PlatformID.MacOSX) return;
             _contextFlag = GraphicsContextFlags.Debug;
 #endif
         }

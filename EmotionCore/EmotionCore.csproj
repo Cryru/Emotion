@@ -127,6 +127,7 @@
     <Compile Include="src\Graphics\Host\IHost.cs" />
     <Compile Include="src\Graphics\Host\Window.cs" />
     <Compile Include="src\Graphics\Rendering\MapBuffer.cs" />
+    <Compile Include="src\Graphics\TransformationStack.cs" />
     <Compile Include="src\Graphics\VertexData.cs" />
     <Compile Include="src\Primitives\Matrix4.cs" />
     <Compile Include="src\Primitives\Vector3.cs" />

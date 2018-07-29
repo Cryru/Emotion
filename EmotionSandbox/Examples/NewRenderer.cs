@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
@@ -23,15 +24,20 @@ namespace EmotionSandbox.Examples
                 update = Update,
                 draw = Draw
             };
-            _ren = new Renderable2D(new Vector3(0, 0, 0), new Vector2(100, 100), Color.Blue, _renderer.DefaultShaderProgram);
+            _ren = new Renderable2D(new Vector3(0, 0, 0), new Vector2(100, 100), Color.Blue, Soul.Convert.DegreesToRadians(0));
             _renderer.Run();
         }
 
+        private static float deg = 0;
+
         public static void Draw(float fr)
         {
+            _ren.Rotation = Soul.Convert.DegreesToRadians((int) deg);
+            deg += 1;
+            _renderer.Render(new Renderable2D(new Vector3(0, 0, 0), new Vector2(960, 540), Color.Red));
             _renderer.Render(_ren);
-            //_renderer.Render(new Renderable2D(new Vector3(100, 100, 0), new Vector2(100, 100), Color.Blue, _renderer.DefaultShaderProgram));
             _renderer.Flush();
+            Console.WriteLine(1000 / fr);
         }
 
         public static void Update(float fr)

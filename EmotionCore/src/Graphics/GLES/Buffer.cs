@@ -41,7 +41,7 @@ namespace Emotion.Graphics.GLES
             _pointer = GL.GenBuffer();
             Upload(data, componentCount, usageHint);
         }
-        
+
         /// <summary>
         /// Create a new buffer, and allocate empty space for it.
         /// </summary>
@@ -73,7 +73,7 @@ namespace Emotion.Graphics.GLES
         }
 
         /// <summary>
-        /// Uploads an empty size buffer. 
+        /// Uploads an empty size buffer.
         /// </summary>
         /// <param name="size">The size to allocate.</param>
         /// <param name="componentCount">The number of components contained within the data.</param>

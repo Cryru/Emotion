@@ -8,6 +8,7 @@ using Emotion.GLES;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
 using Vector2 = Emotion.Primitives.Vector2;
 
 #endregion
@@ -45,7 +46,7 @@ namespace Emotion.Graphics.Host
         {
 #if DEBUG
             // Debug context breaks on Macs.
-            if(CurrentPlatform.OS == PlatformID.MacOSX) return;
+            if (CurrentPlatform.OS == PlatformID.MacOSX) return;
             _contextMode = GraphicsContextFlags.Debug;
 #endif
         }
@@ -53,6 +54,7 @@ namespace Emotion.Graphics.Host
         internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode)
         {
             ApplySettings(settings);
+            OnResize(null);
         }
 
         #region Host API
@@ -83,12 +85,12 @@ namespace Emotion.Graphics.Host
                     WindowState = WindowState.Fullscreen;
                     break;
                 default:
+                    WindowBorder = WindowBorder.Fixed;
+                    WindowState = WindowState.Normal;
                     Width = settings.WindowWidth;
                     Height = settings.WindowHeight;
                     X = DisplayDevice.Default.Width / 2 - settings.WindowWidth / 2;
                     Y = DisplayDevice.Default.Height / 2 - settings.WindowHeight / 2;
-                    WindowBorder = WindowBorder.Fixed;
-                    WindowState = WindowState.Normal;
                     break;
             }
         }
@@ -110,5 +112,30 @@ namespace Emotion.Graphics.Host
         }
 
         #endregion
+
+        protected override void OnResize(EventArgs e)
+        {
+            // todo: rendersize
+
+            // Calculate borderbox / pillarbox.
+            float targetAspectRatio = 960f / 540f;
+
+            float width = ClientSize.Width;
+            float height = (int)(width / targetAspectRatio + 0.5f);
+
+            // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
+            if (height > ClientSize.Height)
+            {
+                height = ClientSize.Height;
+                width = (int)(height * targetAspectRatio + 0.5f);
+            }
+
+            int vpX = (int)(ClientSize.Width / 2 - width / 2);
+            int vpY = (int)(ClientSize.Height / 2 - height / 2);
+
+            // Set viewport.
+            GL.Viewport(vpX, vpY, (int)width, (int)height);
+            GL.Scissor(vpX, vpY, (int)width, (int)height);
+        }
     }
 }

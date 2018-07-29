@@ -2,8 +2,10 @@
 
 #region Using
 
-using OpenTK;
+using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
+using Vector3 = OpenTK.Vector3;
+using Vector4 = OpenTK.Vector4;
 
 #endregion
 
@@ -56,7 +58,7 @@ namespace Emotion.GLES
         /// Uploads the provided vertex data to the GPU.
         /// </summary>
         /// <param name="vertices">The vertex data for this VBO.</param>
-        public void Upload(Primitives.Vector2[] vertices)
+        public void Upload(Vector2[] vertices)
         {
             Use();
 
@@ -64,7 +66,7 @@ namespace Emotion.GLES
             UploadedLength = vertices.Length;
 
             // Load the data into the buffer.
-            GL.BufferData(BufferTarget.ArrayBuffer, Primitives.Vector2.SizeInBytes * vertices.Length, vertices, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, Vector2.SizeInBytes * vertices.Length, vertices, BufferUsageHint.DynamicDraw);
         }
 
         /// <summary>

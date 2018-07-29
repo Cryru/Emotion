@@ -113,11 +113,7 @@ namespace Emotion.Input
             _keyboard = Keyboard.GetState();
 
             // Check for fullscreen toggling key combo.
-            if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
-            {
-                Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
-                //todo Context.ApplySettings();
-            }
+            if (IsKeyHeld("LAlt") && IsKeyDown("Enter")) Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
 
             // Check for closing combo.
             if (IsKeyDown("Escape")) Context.Quit();

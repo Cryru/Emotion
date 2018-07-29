@@ -5,11 +5,11 @@
 using System.IO;
 using Emotion.Engine;
 using Emotion.GLES;
+using Emotion.Primitives;
 using Emotion.Utils;
 using FreeImageAPI;
-using OpenTK;
 using OpenTK.Graphics.ES30;
-using Vector2 = Emotion.Primitives.Vector2;
+using Matrix4 = OpenTK.Matrix4;
 
 #endregion
 

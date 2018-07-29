@@ -3,8 +3,6 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Debug;
 using Emotion.Engine;
@@ -14,7 +12,6 @@ using Emotion.Graphics.Rendering;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
-using Buffer = Emotion.Graphics.GLES.Buffer;
 
 #endregion
 
@@ -39,11 +36,11 @@ namespace Emotion.Graphics
         /// </summary>
         public float Time { get; private set; }
 
+        public TransformationStack TransformationStack { get; private set; }
+
         #endregion
 
         #region Render State
-
-        private Queue<Renderable2D> _renderQueue = new Queue<Renderable2D>();
 
         #endregion
 
@@ -91,8 +88,30 @@ namespace Emotion.Graphics
             SetupRenderer();
         }
 
+        internal void SetupRenderer()
+        {
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
+
+            TransformationStack = new TransformationStack();
+
+            // Create a default program, and use it.
+            DefaultShaderProgram = new ShaderProgram(null, null);
+            DefaultShaderProgram.Use();
+
+            _mapBuffer = new MapBuffer(MaxBufferSize);
+            _dataPointer = _mapBuffer.Start();
+
+            // Check if the setup encountered any errors.
+            Helpers.CheckError("renderer setup");
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+        }
+
         /// <summary>
-        /// Run the renderer and its host.
+        /// Run the host // todo: move to context
         /// </summary>
         public void Run()
         {
@@ -103,27 +122,6 @@ namespace Emotion.Graphics
             _host.Run();
 
             Running = false;
-        }
-
-        internal void SetupRenderer()
-        {
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
-
-            // Create a default program, and use it.
-            DefaultShaderProgram = new ShaderProgram(null, null);
-            DefaultShaderProgram.Use();
-
-            _mapBuffer = new MapBuffer(MaxBufferSize);
-
-            // Check if the setup encountered any errors.
-            Helpers.CheckError("renderer setup");
-
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-            //GL.ClearColor(1f, 0, 0, 1f);
         }
 
         internal void Destroy()
@@ -162,6 +160,8 @@ namespace Emotion.Graphics
 
             // Flush to host.
             End();
+
+            Helpers.CheckError("renderer draw loop end");
             Thread.Sleep(1);
         }
 
@@ -169,9 +169,6 @@ namespace Emotion.Graphics
         {
             // Clear.
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            // Start mapping the buffer.
-            _dataPointer = _mapBuffer.Start();
         }
 
         internal void End()
@@ -200,24 +197,31 @@ namespace Emotion.Graphics
 
         public void Render(Renderable2D renderable)
         {
-            uint c = ((uint) renderable.Color.A << 24) | ((uint) renderable.Color.B << 16) | ((uint) renderable.Color.G << 8) | renderable.Color.R;
+            // Convert the color to an int.
+            uint c = ((uint)renderable.Color.A << 24) | ((uint)renderable.Color.B << 16) | ((uint)renderable.Color.G << 8) | renderable.Color.R;
 
-            _dataPointer->Vertex = renderable.Position;
+            TransformationStack.Push(renderable.ModelMatrix);
+
+            // Set four vertices.
+            _dataPointer->Vertex = Vector3.TransformPosition(Vector3.Zero, TransformationStack.CurrentMatrix);
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = new Vector3(renderable.Position.X + renderable.Size.X, renderable.Position.Y, renderable.Position.Z);
+            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(renderable.Size.X, 0, 0), TransformationStack.CurrentMatrix);
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = new Vector3(renderable.Position.X + renderable.Size.X, renderable.Position.Y + renderable.Size.Y, renderable.Position.Z);
+            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(renderable.Size.X, renderable.Size.Y, 0), TransformationStack.CurrentMatrix);
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = new Vector3(renderable.Position.X, renderable.Position.Y + renderable.Size.Y, renderable.Position.Z);
+            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(0, renderable.Size.Y, 0), TransformationStack.CurrentMatrix);
             _dataPointer->Color = c;
             _dataPointer++;
 
+            TransformationStack.Pop();
+
+            // Increment indices count.
             _indicesCount += 6;
 
             Helpers.CheckError("render");
@@ -225,7 +229,14 @@ namespace Emotion.Graphics
 
         public void Flush()
         {
+            // Draw indices.
             _mapBuffer.Draw(_indicesCount);
+
+            // Reset count.
+            _indicesCount = 0;
+
+            // Start mapping the buffer.
+            _dataPointer = _mapBuffer.Start();
         }
     }
 }

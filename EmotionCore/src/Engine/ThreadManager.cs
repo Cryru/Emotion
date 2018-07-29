@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Emotion.Engine
 {
-    internal class ThreadManager
+    public sealed class ThreadManager
     {
         private static int _glThreadId;
 
@@ -24,11 +24,29 @@ namespace Emotion.Engine
             _glThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
+        internal static void Run()
+        {
+            // Check if on GL thread.
+            if (!IsGLThread()) throw new Exception("The GL thread has changed.");
+
+            lock (_queue)
+            {
+                foreach (Action action in _queue)
+                {
+                    action();
+                }
+
+                _queue.Clear();
+            }
+        }
+
+        #region API
+
         /// <summary>
         /// Returns whether the executing thread is the GL thread.
         /// </summary>
         /// <returns>True if the thread on which this is called is the GL thread, false otherwise.</returns>
-        internal static bool IsGLThread()
+        public static bool IsGLThread()
         {
             return Thread.CurrentThread.ManagedThreadId == _glThreadId;
         }
@@ -37,7 +55,7 @@ namespace Emotion.Engine
         /// Execute the action on the GL thread. Will block the current thread until ready.
         /// </summary>
         /// <param name="action">The action to execute.</param>
-        internal static void ExecuteGLThread(Action action)
+        public static void ExecuteGLThread(Action action)
         {
             // Check if on the GL thread.
             if (IsGLThread())
@@ -61,20 +79,14 @@ namespace Emotion.Engine
             while (!done) Thread.Sleep(1);
         }
 
-        internal static void Run()
+        /// <summary>
+        /// Check whether the executing thread is the GL thread. If it's not an exception is thrown.
+        /// </summary>
+        public static void CheckGLThread()
         {
-            // Check if on GL thread.
-            if (!IsGLThread()) throw new Exception("The GL thread has changed.");
-
-            lock (_queue)
-            {
-                foreach (Action action in _queue)
-                {
-                    action();
-                }
-
-                _queue.Clear();
-            }
+            if (!IsGLThread()) throw new Exception("Not currently executing on the GL thread.");
         }
+
+        #endregion
     }
 }

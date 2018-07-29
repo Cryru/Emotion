@@ -10,7 +10,6 @@ using Emotion.GLES;
 using Emotion.IO;
 using Emotion.Sound;
 using Emotion.Utils;
-using OpenTK;
 
 #if DEBUG
 

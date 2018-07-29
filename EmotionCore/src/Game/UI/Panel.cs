@@ -44,16 +44,19 @@ namespace Emotion.Game.UI
                 {
                     renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X + x, Bounds.Y, Top.Width * Scale, Top.Height * Scale), Top, false);
                 }
+
             if (Left != Rectangle.Empty)
                 for (float y = 0; y <= Bounds.Height - Left.Height * Scale; y += Left.Height * Scale)
                 {
                     renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X, Bounds.Y + y, Left.Width * Scale, Left.Height * Scale), Left, false);
                 }
+
             if (Right != Rectangle.Empty)
                 for (float y = 0; y <= Bounds.Height - Right.Height * Scale; y += Right.Height * Scale)
                 {
                     renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X + Bounds.Width - Right.Width * Scale, Bounds.Y + y, Right.Width * Scale, Right.Height * Scale), Right, false);
                 }
+
             if (Bottom != Rectangle.Empty)
                 for (float x = 0; x <= Bounds.Width - Bottom.Width * Scale; x += Bottom.Width * Scale)
                 {

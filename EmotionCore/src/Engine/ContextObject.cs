@@ -15,7 +15,6 @@ namespace Emotion.Engine
 
         protected ContextObject()
         {
-
         }
 
         protected ContextObject(Context context)

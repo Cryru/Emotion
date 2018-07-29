@@ -1,4 +1,6 @@
-﻿namespace Emotion.IO
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+namespace Emotion.IO
 {
     public abstract class Asset
     {

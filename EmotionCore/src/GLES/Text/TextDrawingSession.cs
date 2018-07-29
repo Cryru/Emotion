@@ -61,10 +61,7 @@ namespace Emotion.GLES.Text
         public void AddGlyph(char glyphChar, Color color, int xOffset = 0, int yOffset = 0)
         {
             // Switch to drawing to the cache.
-            if (UseCache)
-            {
-                Renderer.DrawOn(_renderCache);
-            }
+            if (UseCache) Renderer.DrawOn(_renderCache);
 
             // Get the glyph requested under the specified size.
             Glyph glyph = Font.GetGlyph(glyphChar, FontSize);
@@ -127,7 +124,7 @@ namespace Emotion.GLES.Text
 
             // Set size.
             glyphBounds.Size = Font.MeasureString(glyphChar.ToString(), FontSize);
-            
+
             return glyphBounds;
         }
 

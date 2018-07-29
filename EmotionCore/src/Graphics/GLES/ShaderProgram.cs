@@ -76,7 +76,7 @@ namespace Emotion.Graphics.GLES
                 // Set default uniforms.
                 SetUniformColor("color", Color.White);
 
-                SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, 960, 0, 540, -1, 1)); //todo
+                SetUniformMatrix4("projectionMatrix",Matrix4.CreateOrthographicOffCenter(0, 960, 540, 0, -1, 1));
                 SetUniformMatrix4("viewMatrix", Matrix4.Identity);
                 SetUniformMatrix4("modelMatrix", Matrix4.Identity);
                 SetUniformMatrix4("textureMatrix", Matrix4.Identity);

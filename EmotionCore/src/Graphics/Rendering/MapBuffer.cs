@@ -1,10 +1,14 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#region Using
+
 using System;
 using System.Runtime.InteropServices;
 using Emotion.Graphics.GLES;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;
+
+#endregion
 
 namespace Emotion.Graphics.Rendering
 {
@@ -21,7 +25,6 @@ namespace Emotion.Graphics.Rendering
         #region Draw State
 
         private VertexData* _dataPointer;
-        private int _indicesCount;
 
         #endregion
 
@@ -37,10 +40,10 @@ namespace Emotion.Graphics.Rendering
             VAO.Bind();
             VBO.Bind();
 
-            GL.EnableVertexAttribArray( ShaderProgram.VertexLocation);
-            GL.VertexAttribPointer( ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+            GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
+            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
-            GL.EnableVertexAttribArray( ShaderProgram.ColorLocation);
+            GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
             GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 
             VBO.Unbind();
