@@ -5,16 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 using TiledSharp;
+using Renderer = Emotion.GLES.Renderer;
 
 #endregion
 
 namespace Emotion.Game.Tiled
 {
-    public class Map : Transform
+    public class Map : Renderable2D
     {
         #region Properties
 
@@ -84,7 +85,7 @@ namespace Emotion.Game.Tiled
             CacheAnimatedTiles();
 
             // Set default size if none set.
-            if (Bounds.Width == 0 && Bounds.Height == 0) Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            if (Bounds.Width == 0 && Bounds.Height == 0) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
         }
 
         /// <summary>

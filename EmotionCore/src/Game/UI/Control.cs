@@ -3,15 +3,16 @@
 #region Using
 
 using System;
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
+using Renderer = Emotion.GLES.Renderer;
 
 #endregion
 
 namespace Emotion.Game.UI
 {
-    public abstract class Control : Transform
+    public abstract class Control : Renderable2D
     {
         #region Properties
 

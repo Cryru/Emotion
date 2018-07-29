@@ -2,20 +2,21 @@
 
 #region Using
 
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
 
 namespace Emotion.Game.Camera
 {
-    public class CameraBase : Transform
+    public class CameraBase : Renderable2D
     {
         #region Properties
 
         /// <summary>
         /// The transform the camera should follow.
         /// </summary>
-        public Transform Target { get; set; }
+        public Renderable2D Target { get; set; }
 
         #endregion
 
@@ -25,7 +26,7 @@ namespace Emotion.Game.Camera
 
         public void SnapToTarget()
         {
-            Bounds.Center = Target.Bounds.Center;
+            Center = Target.Bounds.Center;
         }
     }
 }

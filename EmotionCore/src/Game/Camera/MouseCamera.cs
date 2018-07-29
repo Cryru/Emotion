@@ -50,7 +50,7 @@ namespace Emotion.Game.Camera
             float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X, CameraMaxDistance);
             float ly = MathHelper.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, CameraMaxDistance);
 
-            Bounds.Center = new Vector2(lx, ly);
+            Center = new Vector2(lx, ly);
 
             // Record position.
             _targetLastPosition = Target.Bounds.Center;

@@ -8,7 +8,6 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Host;
-using Emotion.Graphics.Rendering;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
@@ -200,6 +199,7 @@ namespace Emotion.Graphics
             // Convert the color to an int.
             uint c = ((uint)renderable.Color.A << 24) | ((uint)renderable.Color.B << 16) | ((uint)renderable.Color.G << 8) | renderable.Color.R;
 
+            // Add the model matrix to the stack.
             TransformationStack.Push(renderable.ModelMatrix);
 
             // Set four vertices.
@@ -219,6 +219,7 @@ namespace Emotion.Graphics
             _dataPointer->Color = c;
             _dataPointer++;
 
+            // Remove the model matrix from the stack.
             TransformationStack.Pop();
 
             // Increment indices count.

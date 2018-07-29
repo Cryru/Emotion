@@ -5,18 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Emotion.GLES;
 using Emotion.GLES.Text;
+using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 using Convert = Soul.Convert;
+using Renderer = Emotion.GLES.Renderer;
 
 #endregion
 
 namespace Emotion.Game.Text
 {
     /// <inheritdoc />
-    public class RichText : Transform
+    public class RichText : Renderable2D
     {
         #region Properties
 

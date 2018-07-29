@@ -29,11 +29,16 @@ namespace EmotionSandbox.Examples
         }
 
         private static float deg = 0;
+        private static float x = 0;
 
         public static void Draw(float fr)
         {
             _ren.Rotation = Soul.Convert.DegreesToRadians((int) deg);
+            _ren.X = x;
             deg += 1;
+            x += 1;
+            if (x > 960) x = 0;
+
             _renderer.Render(new Renderable2D(new Vector3(0, 0, 0), new Vector2(960, 540), Color.Red));
             _renderer.Render(_ren);
             _renderer.Flush();

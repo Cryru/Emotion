@@ -10,7 +10,7 @@ using Buffer = Emotion.Graphics.GLES.Buffer;
 
 #endregion
 
-namespace Emotion.Graphics.Rendering
+namespace Emotion.Graphics
 {
     public sealed unsafe class MapBuffer
     {
@@ -86,7 +86,8 @@ namespace Emotion.Graphics.Rendering
         /// Finish mapping the buffer and draw.
         /// </summary>
         /// <param name="mappedIndices">The number of indices mapped.</param>
-        public void Draw(int mappedIndices)
+        /// <param name="primitiveType">The type of primitive to draw as.</param>
+        public void Draw(int mappedIndices, PrimitiveType primitiveType = PrimitiveType.Triangles)
         {
             GL.UnmapBuffer(BufferTarget.ArrayBuffer);
             VBO.Unbind();
@@ -94,7 +95,7 @@ namespace Emotion.Graphics.Rendering
             VAO.Bind();
             Ibo.Bind();
 
-            GL.DrawElements(PrimitiveType.Triangles, mappedIndices, DrawElementsType.UnsignedShort, IntPtr.Zero);
+            GL.DrawElements(primitiveType, mappedIndices, DrawElementsType.UnsignedShort, IntPtr.Zero);
             Helpers.CheckError("map buffer - draw");
 
             Ibo.Unbind();

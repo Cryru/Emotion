@@ -184,7 +184,6 @@
     <Compile Include="src\GLES\Renderer.cs" />
     <Compile Include="Libraries\Windows.cs" />
     <Compile Include="src\Game\Camera\CameraBase.cs" />
-    <Compile Include="src\Primitives\Transform.cs" />
     <Compile Include="src\Game\Camera\TargetCamera.cs" />
     <Compile Include="src\Game\Camera\MouseCamera.cs" />
     <Compile Include="src\Game\Tiled\Map.cs" />

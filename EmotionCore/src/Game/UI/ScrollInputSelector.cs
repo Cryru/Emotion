@@ -15,11 +15,6 @@ namespace Emotion.Game.UI
         #region Properties
 
         /// <summary>
-        /// The color of the selector.
-        /// </summary>
-        public Color Color { get; set; } = Color.White;
-
-        /// <summary>
         /// The color of the selector when held.
         /// </summary>
         public Color HeldColor { get; set; } = Color.Red;

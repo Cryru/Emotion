@@ -32,7 +32,7 @@ namespace Emotion.Game.Camera
             float lx = MathHelper.Lerp(Bounds.Center.X, Target.Bounds.X, MathHelper.Clamp(Speed * frameTime, 0, 1));
             float ly = MathHelper.Lerp(Bounds.Center.Y, Target.Bounds.Y, MathHelper.Clamp(Speed * frameTime, 0, 1));
 
-            Bounds.Center = new Vector2(lx, ly);
+            Center = new Vector2(lx, ly);
         }
     }
 }
