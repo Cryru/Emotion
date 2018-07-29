@@ -197,7 +197,7 @@ namespace Emotion.Graphics
         public void Render(Renderable2D renderable)
         {
             // Convert the color to an int.
-            uint c = ((uint)renderable.Color.A << 24) | ((uint)renderable.Color.B << 16) | ((uint)renderable.Color.G << 8) | renderable.Color.R;
+            uint c = ((uint) renderable.Color.A << 24) | ((uint) renderable.Color.B << 16) | ((uint) renderable.Color.G << 8) | renderable.Color.R;
 
             // Add the model matrix to the stack.
             TransformationStack.Push(renderable.ModelMatrix);
@@ -226,6 +226,12 @@ namespace Emotion.Graphics
             _indicesCount += 6;
 
             Helpers.CheckError("render");
+
+            // Check if render limit reached.
+            if (_indicesCount != MaxIndicesSize) return;
+
+            Flush();
+            Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Render limit reached.");
         }
 
         public void Flush()
@@ -238,6 +244,8 @@ namespace Emotion.Graphics
 
             // Start mapping the buffer.
             _dataPointer = _mapBuffer.Start();
+
+            Helpers.CheckError("flush");
         }
     }
 }
