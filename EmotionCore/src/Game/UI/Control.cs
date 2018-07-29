@@ -40,7 +40,7 @@ namespace Emotion.Game.UI
         #region State
 
         /// <summary>
-        /// Whether the mouse is inside the control.
+        /// Whether the mouse is inside the control. Can be interpreted as being focused.
         /// </summary>
         public bool MouseInside { get; internal set; }
 
@@ -89,8 +89,7 @@ namespace Emotion.Game.UI
         }
 
         #endregion
-
-
+        
         #region Debugging
 
         public override string ToString()

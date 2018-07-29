@@ -8,7 +8,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Engine.Objects
+namespace Emotion.Game.UI
 {
     public sealed class ScreenFader
     {
@@ -49,25 +49,24 @@ namespace Emotion.Engine.Objects
             _fadeTimer += renderTime;
 
             // Check if enough time has passed.
-            if (_fadeTimer > _fadeDuration)
-            {
-                // Subtract from the timer.
-                _fadeTimer -= _fadeDuration;
+            if (!(_fadeTimer > _fadeDuration)) return;
 
-                // Move opacity based on direction.
-                switch (_direction)
-                {
-                    case FadeDirection.In:
-                        _opacity += 1;
-                        if (_opacity == 255) Done = true;
-                        break;
-                    case FadeDirection.Out:
-                        _opacity -= 1;
-                        if (_opacity == 0) Done = true;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+            // Subtract from the timer.
+            _fadeTimer -= _fadeDuration;
+
+            // Move opacity based on direction.
+            switch (_direction)
+            {
+                case FadeDirection.In:
+                    _opacity += 1;
+                    if (_opacity == 255) Done = true;
+                    break;
+                case FadeDirection.Out:
+                    _opacity -= 1;
+                    if (_opacity == 0) Done = true;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 

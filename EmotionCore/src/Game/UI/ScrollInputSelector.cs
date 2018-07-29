@@ -3,13 +3,14 @@
 #region Using
 
 using Emotion.GLES;
+using Emotion.Input;
 using Emotion.Primitives;
 
 #endregion
 
 namespace Emotion.Game.UI
 {
-    public class ScrollInputSelector : Control
+    public sealed class ScrollInputSelector : Control
     {
         #region Properties
 
@@ -54,5 +55,29 @@ namespace Emotion.Game.UI
             float increment = _parent.Bounds.Width / 100;
             _parent.Value = (int) (posWithinParent / increment);
         }
+
+        #region Events (Ignored As Handled By Master)
+
+        public override void MouseEnter(Vector2 mousePosition)
+        {
+            
+        }
+
+        public override void MouseLeave(Vector2 mousePosition)
+        {
+            
+        }
+
+        public override void MouseDown(MouseKeys key)
+        {
+            
+        }
+
+        public override void MouseUp(MouseKeys key)
+        {
+            
+        }
+
+        #endregion
     }
 }

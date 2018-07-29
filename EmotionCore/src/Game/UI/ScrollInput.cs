@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.GLES;
+using Emotion.Input;
 using Emotion.Primitives;
 using Soul;
 
@@ -10,7 +11,7 @@ using Soul;
 
 namespace Emotion.Game.UI
 {
-    public class ScrollInput : Control
+    public sealed class ScrollInput : Control
     {
         #region Properties
 
@@ -22,7 +23,7 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The scroll input's selector.
         /// </summary>
-        public ScrollInputSelector Selector;
+        public ScrollInputSelector Selector { get; private set; }
 
         /// <summary>
         /// The current value of the input.

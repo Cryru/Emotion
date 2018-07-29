@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.GLES;
+using Emotion.Input;
 using Emotion.IO;
 using Emotion.Primitives;
 
@@ -77,5 +78,34 @@ namespace Emotion.Game.UI
                 renderer.DrawTexture(PanelTexture, new Rectangle(Bounds.X, Bounds.Y + Bounds.Height - BottomLeftCorner.Height * Scale, BottomLeftCorner.Width * Scale, BottomLeftCorner.Height * Scale),
                     BottomLeftCorner, false);
         }
+
+        #region Events (Ignored As Aesthetic Object)
+
+        public override void MouseEnter(Vector2 mousePosition)
+        {
+
+        }
+
+        public override void MouseLeave(Vector2 mousePosition)
+        {
+
+        }
+
+        public override void MouseDown(MouseKeys key)
+        {
+
+        }
+
+        public override void MouseUp(MouseKeys key)
+        {
+
+        }
+
+        public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
+        {
+
+        }
+
+        #endregion
     }
 }
