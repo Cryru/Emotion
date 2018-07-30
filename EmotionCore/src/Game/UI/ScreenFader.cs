@@ -8,7 +8,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Engine.Objects
+namespace Emotion.Game.UI
 {
     public sealed class ScreenFader
     {

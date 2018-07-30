@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.GLES;
 using Emotion.Input;
 using Emotion.Primitives;
@@ -16,11 +17,11 @@ using Debugger = Emotion.Debug.Debugger;
 
 namespace Emotion.Game.UI
 {
-    public sealed class Controller
+    public sealed class Controller : ContextObject
     {
         private static int _nextControllerId;
 
-        public Controller()
+        public Controller(Context context) : base(context)
         {
             Id = _nextControllerId;
             _nextControllerId++;
