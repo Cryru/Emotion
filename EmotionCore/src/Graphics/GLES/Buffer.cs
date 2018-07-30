@@ -113,9 +113,9 @@ namespace Emotion.Graphics.GLES
         }
 
         /// <summary>
-        /// Destroy the buffer and its data, freeing memory.
+        /// Delete the buffer and its data, freeing memory.
         /// </summary>
-        public void Destroy()
+        public void Delete()
         {
             GL.DeleteBuffer(_pointer);
             _pointer = -1;

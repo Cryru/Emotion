@@ -3,258 +3,275 @@
 #region Using
 
 using System;
-using System.Threading;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics.GLES;
-using Emotion.Graphics.Host;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
 namespace Emotion.Graphics
 {
-    public sealed unsafe class Renderer
+    public sealed unsafe class Renderer : ContextObject
     {
-        #region Properties
-
-        /// <summary>
-        /// Whether the renderer is running.
-        /// </summary>
-        public bool Running { get; private set; }
-
-        /// <summary>
-        /// The default shader program. Is linked by default at start.
-        /// </summary>
-        public ShaderProgram DefaultShaderProgram { get; private set; }
-
-        /// <summary>
-        /// The time which has passed since start. Used for tracking time in shaders and such.
-        /// </summary>
-        public float Time { get; private set; }
+        #region Render State
 
         public TransformationStack TransformationStack { get; private set; }
 
-        #endregion
-
-        #region Render State
+        private MapBuffer _mainBuffer;
+        private MapBuffer _outlineBuffer;
 
         #endregion
 
         #region Limits
 
-        public static readonly int MaxRenderable = 6000;
-        public static readonly int MaxRenderableSize = VertexData.SizeInBytes * 4;
-        public static readonly int MaxBufferSize = MaxRenderable * MaxRenderableSize;
-        public static readonly int MaxIndicesSize = MaxRenderable * 6;
-
-        #endregion
-
-        #region Attribute Locations
-
-        public static readonly int VertexLocation = 0;
-        public static readonly int ColorLocation = 1;
-
-        #endregion
-
-        #region Other
-
-        /// <summary>
-        /// The host of this renderer. This could be a window or an app, or anything which creates a GLES context.
-        /// </summary>
-        private IHost _host;
+        public static readonly int MaxRenderable = 10922;
 
         #endregion
 
         #region Initialization
 
-        public Renderer(Settings settings)
-        {
-            // todo: remove
-            ThreadManager.BindThread();
-
-            // Create host.
-            if (CurrentPlatform.OS == PlatformID.Win32NT || CurrentPlatform.OS == PlatformID.Unix || CurrentPlatform.OS == PlatformID.MacOSX)
-                _host = new Window(settings);
-            else
-                throw new Exception("Unsupported platform.");
-
-            // todo: move to context
-            _host.SetHooks(Update, Draw);
-
-            SetupRenderer();
-        }
-
-        internal void SetupRenderer()
+        internal Renderer(Context context) : base(context)
         {
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
+            // Setup render state.
             TransformationStack = new TransformationStack();
 
             // Create a default program, and use it.
-            DefaultShaderProgram = new ShaderProgram(null, null);
-            DefaultShaderProgram.Use();
+            ShaderProgram defaultProgram = new ShaderProgram(null, null);
+            defaultProgram.Bind();
 
-            _mapBuffer = new MapBuffer(MaxBufferSize);
-            _dataPointer = _mapBuffer.Start();
+            // Setup main map buffer.
+            _mainBuffer = new MapBuffer(MaxRenderable, this);
+            _outlineBuffer = new MapBuffer(MaxRenderable, this);
+            _mainBuffer.Start();
+            _outlineBuffer.Start();
 
             // Check if the setup encountered any errors.
             Helpers.CheckError("renderer setup");
 
+            // Setup additional GL arguments.
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-            GL.ActiveTexture(TextureUnit.Texture0);
-        }
-
-        /// <summary>
-        /// Run the host // todo: move to context
-        /// </summary>
-        public void Run()
-        {
-            if (Running) throw new Exception("Renderer is already running.");
-            Running = true;
-
-            // Start the host. Should be blocking.
-            _host.Run();
-
-            Running = false;
         }
 
         internal void Destroy()
         {
-            _mapBuffer.Destroy();
+            _mainBuffer.Delete();
+            _outlineBuffer.Delete();
         }
 
         #endregion
 
-        private MapBuffer _mapBuffer;
-        private VertexData* _dataPointer;
-        private int _indicesCount;
-
-        // todo: Move to context
-        #region Management API - Called by Engine.
-
-        public Action<float> update;
-        public Action<float> draw;
-
-        internal void Update(float deltaTime)
-        {
-            update?.Invoke(deltaTime);
-        }
-
-        internal void Draw(float frameTime)
-        {
-            float frmTime = frameTime;
-
-            // Add to time.
-            Time += frmTime;
-
-            // Start drawing, clear the screen.
-            Start();
-
-            // Execute context draw.
-            draw?.Invoke(frmTime);
-
-            // Flush to host.
-            End();
-
-            Helpers.CheckError("renderer draw loop end");
-            Thread.Sleep(1);
-        }
-
-        internal void Start()
-        {
-            // Clear.
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        }
-
-        internal void End()
-        {
-            _host.SwapBuffers();
-
-            Helpers.CheckError("end");
-        }
-
-        #endregion
+        #region System API
 
         /// <summary>
-        /// Sets the current shader program to the one provided, or default if none provided.
+        /// Clear the screen.
         /// </summary>
-        /// <param name="program">The shader program to set to, or the default one if null.</param>
-        public void UseShaderProgram(ShaderProgram program = null)
+        public void Clear()
         {
-            if (program == null)
-                DefaultShaderProgram.Use();
-            else
-                program.Use();
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            Helpers.CheckError("clear");
+        }
 
-            // Sync time.
-            ShaderProgram.Current.SetUniformFloat("time", Time);
+        /// <summary>
+        /// Flush the system buffers and restart their mapping.
+        /// </summary>
+        public void End()
+        {
+            if (_mainBuffer.Mapping && _mainBuffer.AnythingMapped) RenderFlush();
+
+            if (_outlineBuffer.Mapping && _outlineBuffer.AnythingMapped) RenderOutlineFlush();
+        }
+
+        #endregion
+
+        #region New Drawing API
+
+        public void RenderFlush()
+        {
+            _mainBuffer.Draw();
+            _mainBuffer.Start();
+        }
+
+        public void RenderOutlineFlush()
+        {
+            _outlineBuffer.Draw(PrimitiveType.LineLoop);
+            _outlineBuffer.Start();
         }
 
         public void Render(Renderable2D renderable)
         {
-            Helpers.CheckError("before render");
-
-            // Convert the color to an int.
-            uint c = ((uint)renderable.Color.A << 24) | ((uint)renderable.Color.B << 16) | ((uint)renderable.Color.G << 8) | renderable.Color.R;
-
             // Add the model matrix to the stack.
             TransformationStack.Push(renderable.ModelMatrix);
 
-            // Set four vertices.
-            _dataPointer->Vertex = Vector3.TransformPosition(Vector3.Zero, TransformationStack.CurrentMatrix);
-            _dataPointer->UV = new Vector2(renderable.TextureArea.X, renderable.TextureArea.Y + renderable.TextureArea.Height);
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(renderable.Size.X, 0, 0), TransformationStack.CurrentMatrix);
-            _dataPointer->UV = new Vector2(renderable.TextureArea.X + renderable.TextureArea.Width, renderable.TextureArea.Y + renderable.TextureArea.Height);
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(renderable.Size.X, renderable.Size.Y, 0), TransformationStack.CurrentMatrix);
-            _dataPointer->UV = new Vector2(renderable.TextureArea.X + renderable.TextureArea.Width, renderable.TextureArea.Y);
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(0, renderable.Size.Y, 0), TransformationStack.CurrentMatrix);
-            _dataPointer->UV = renderable.TextureArea.Location;
-            _dataPointer->Color = c;
-            _dataPointer++;
+            // Pass the renderable.
+            _mainBuffer.Add(Vector3.Zero, renderable.Size, renderable.Color, renderable.Texture, renderable.TextureArea, TransformationStack.CurrentMatrix);
 
             // Remove the model matrix from the stack.
             TransformationStack.Pop();
-
-            // Increment indices count.
-            _indicesCount += 6;
-
-            Helpers.CheckError("render");
-
-            // Check if render limit reached.
-            if (_indicesCount != MaxIndicesSize) return;
-
-            Flush();
-            Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Render limit reached.");
         }
 
-        public void Flush()
+        public void Render(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
         {
-            // Draw indices.
-            _mapBuffer.Draw(_indicesCount);
-
-            // Reset count.
-            _indicesCount = 0;
-
-            // Start mapping the buffer.
-            _dataPointer = _mapBuffer.Start();
-
-            Helpers.CheckError("flush");
+            _mainBuffer.Add(location, size, color, texture, textureArea, vertMatrix);
         }
+
+        public void RenderOutline(Renderable2D renderable)
+        {
+            // Add the model matrix to the stack.
+            TransformationStack.Push(renderable.ModelMatrix);
+
+            // Pass the renderable.
+            _outlineBuffer.Add(Vector3.Zero, renderable.Size, renderable.Color, renderable.Texture, renderable.TextureArea, TransformationStack.CurrentMatrix);
+
+            // Remove the model matrix from the stack.
+            TransformationStack.Pop();
+        }
+
+        public void RenderOutline(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
+        {
+            _outlineBuffer.Add(location, size, color, texture, textureArea, vertMatrix);
+        }
+
+        #endregion
+
+        #region Old Drawing APIs
+
+        #region Primitive Drawing
+
+        /// <summary>
+        /// Draws a rectangle outline on the current render target, which by default is the window.
+        /// </summary>
+        /// <param name="rect">The rectangle to outline.</param>
+        /// <param name="color">The color of the outline.</param>
+        /// <param name="camera">
+        /// Whether the rectangle location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Use RenderOuline.")]
+        public void DrawRectangleOutline(Rectangle rect, Color color, bool camera = true)
+        {
+            if (!camera) TransformationStack.Push(Matrix4.Identity);
+            _outlineBuffer.Add(new Vector3(rect.X, rect.Y, 0), rect.Size, color);
+            if (!camera) TransformationStack.Pop();
+        }
+
+        /// <summary>
+        /// Draws a filled rectangle on the screen.
+        /// </summary>
+        /// <param name="rect">The rectangle to draw.</param>
+        /// <param name="color">The color of the rectangle.</param>
+        /// <param name="camera">
+        /// Whether the rectangle location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Use Render.")]
+        public void DrawRectangle(Rectangle rect, Color color, bool camera = true)
+        {
+            if (!camera) TransformationStack.Push(Matrix4.Identity);
+            _mainBuffer.Add(new Vector3(rect.X, rect.Y, 0), rect.Size, color);
+            if (!camera) TransformationStack.Pop();
+        }
+
+        /// <summary>
+        /// Draws a line on the current render target, which by default is the window.
+        /// </summary>
+        /// <param name="start">The line's starting point.</param>
+        /// <param name="end">The line's ending point.</param>
+        /// <param name="color">The line's color.</param>
+        /// <param name="camera">
+        /// Whether the line's location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Create a map buffer of the line type and use that to render lines.")]
+        public void DrawLine(Vector2 start, Vector2 end, Color color, bool camera = true)
+        {
+            Debugger.Log(MessageType.Error, MessageSource.Renderer, "[DEPRECATED] Renderer.DrawLine was called.");
+        }
+
+        #endregion
+
+        #region Texture Drawing
+
+        /// <summary>
+        /// Draw a texture on the current render target, which by default is the window.
+        /// </summary>
+        /// <param name="texture">The texture to draw.</param>
+        /// <param name="location">Where to draw the texture.</param>
+        /// <param name="camera">
+        /// Whether the texture's location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Use Render.")]
+        public void DrawTexture(Texture texture, Rectangle location, bool camera = true)
+        {
+            if (!camera) TransformationStack.Push(Matrix4.Identity);
+            _mainBuffer.Add(new Vector3(location.X, location.Y, 0), location.Size, Color.White, texture);
+            if (!camera) TransformationStack.Pop();
+        }
+
+        /// <summary>
+        /// Draw a texture on the current render target, which by default is the window.
+        /// </summary>
+        /// <param name="texture">The texture to draw.</param>
+        /// <param name="location">Where to draw the texture.</param>
+        /// <param name="source">Which part of the texture to draw.</param>
+        /// <param name="camera">
+        /// Whether the texture's location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Use Render.")]
+        public void DrawTexture(Texture texture, Rectangle location, Rectangle source, bool camera = true)
+        {
+            if (!camera) TransformationStack.Push(Matrix4.Identity);
+            _mainBuffer.Add(new Vector3(location.X, location.Y, 0), location.Size, Color.White, texture, source);
+            if (!camera) TransformationStack.Pop();
+        }
+
+        /// <summary>
+        /// Draw a texture on the current render target, which by default is the window.
+        /// </summary>
+        /// <param name="texture">The texture to draw.</param>
+        /// <param name="location">Where to draw the texture.</param>
+        /// <param name="color">Tints the texture in the provided color. Opacity can be controlled through the color alpha.</param>
+        /// <param name="camera">
+        /// Whether the texture's location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Use Render.")]
+        public void DrawTexture(Texture texture, Rectangle location, Color color, bool camera = true)
+        {
+            if (!camera) TransformationStack.Push(Matrix4.Identity);
+            _mainBuffer.Add(new Vector3(location.X, location.Y, 0), location.Size, color, texture);
+            if (!camera) TransformationStack.Pop();
+        }
+
+        /// <summary>
+        /// Draw a texture on the current render target, which by default is the window.
+        /// </summary>
+        /// <param name="texture">The texture to draw.</param>
+        /// <param name="location">Where to draw the texture.</param>
+        /// <param name="source">Which part of the texture to draw.</param>
+        /// <param name="color">Tints the texture in the provided color. Opacity can be controlled through the color alpha.</param>
+        /// <param name="camera">
+        /// Whether the texture's location should be in world coordinates (camera), or pixel coordinates
+        /// (screen).
+        /// </param>
+        [Obsolete("v0 function, deprecated. Use Render.")]
+        public void DrawTexture(Texture texture, Rectangle location, Rectangle source, Color color, bool camera = true)
+        {
+            if (!camera) TransformationStack.Push(Matrix4.Identity);
+            _mainBuffer.Add(new Vector3(location.X, location.Y, 0), location.Size, color, texture, source);
+            if (!camera) TransformationStack.Pop();
+        }
+
+        #endregion
+
+        #endregion
     }
 }

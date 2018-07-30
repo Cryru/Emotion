@@ -4,18 +4,26 @@
 precision highp float;
 #endif
 
-uniform vec4 color;
-uniform sampler2D drawTexture;
-
-in vec4 vertColor;
-out vec4 fragColor;
+uniform sampler2D textures[32];
 
 // Comes in from the vertex shader.
 in vec2 UV;
+in vec4 vertColor;
+in float Tid;
+
+out vec4 fragColor;
 
 void main() {
     //vec4 uvTransformed = textureMatrix * vec4(UV, 0, 1);
 
-    // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
-    fragColor = texture(drawTexture, UV) * color;
+    // Check if a texture is in use.
+    if (Tid >= 0.0)
+    {
+        int tid = int(Tid - 0.5);
+        // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
+        fragColor = texture(textures[tid], UV) * vertColor;
+    } else {
+        // If no texture then just use the color.
+        fragColor = vertColor;
+    }
 }

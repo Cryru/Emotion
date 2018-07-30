@@ -4,6 +4,7 @@
 
 using Emotion.Game.Layering;
 using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
@@ -21,17 +22,18 @@ namespace EmotionSandbox.Examples
 
         public override void Draw(Renderer renderer)
         {
-            renderer.DrawRectangle(new Rectangle(_x, _y, 10, 10), Color.Red, false);
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue, null, Rectangle.Empty);
+            renderer.Render(new Vector3(_x, _y, 0), new Vector2(10, 10), Color.Red, null, Rectangle.Empty);
 
             _x += 10;
 
-            if (_x >= renderer.RenderSize.X)
+            if (_x >= Context.Host.RenderSize.X)
             {
                 _x = 0;
                 _y += 10;
             }
 
-            if (_y >= renderer.RenderSize.Y)
+            if (_y >= Context.Host.RenderSize.Y)
             {
                 _x = 0;
                 _y = 0;

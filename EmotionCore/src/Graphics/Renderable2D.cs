@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Graphics.GLES;
 using Emotion.Primitives;
 
 #endregion
@@ -62,7 +63,9 @@ namespace Emotion.Graphics
             }
         }
 
-        public Rectangle TextureArea = new Rectangle();
+        public Texture Texture;
+
+        public Rectangle TextureArea = new Rectangle(0, 0, 1, 1);
 
         #endregion
 

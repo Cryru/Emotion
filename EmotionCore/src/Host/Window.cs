@@ -4,7 +4,6 @@
 
 using System;
 using Emotion.Engine;
-using Emotion.GLES;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics;
@@ -13,7 +12,7 @@ using Vector2 = Emotion.Primitives.Vector2;
 
 #endregion
 
-namespace Emotion.Graphics.Host
+namespace Emotion.Host
 {
     internal sealed class Window : GameWindow, IHost
     {
@@ -31,6 +30,11 @@ namespace Emotion.Graphics.Host
                 Height = (int) value.Y;
             }
         }
+
+        /// <summary>
+        /// The size of the projection matrix.
+        /// </summary>
+        public Vector2 RenderSize { get; private set; }
 
         /// <summary>
         /// The context's mode.
@@ -68,6 +72,7 @@ namespace Emotion.Graphics.Host
         public void ApplySettings(Settings settings)
         {
             Title = settings.WindowTitle;
+            RenderSize = new Vector2(settings.RenderWidth, settings.RenderHeight);
 
             // Apply window mode.
             switch (settings.WindowMode)
@@ -115,27 +120,25 @@ namespace Emotion.Graphics.Host
 
         protected override void OnResize(EventArgs e)
         {
-            // todo: rendersize
-
             // Calculate borderbox / pillarbox.
-            float targetAspectRatio = 960f / 540f;
+            float targetAspectRatio = RenderSize.X / RenderSize.Y;
 
             float width = ClientSize.Width;
-            float height = (int)(width / targetAspectRatio + 0.5f);
+            float height = (int) (width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > ClientSize.Height)
             {
                 height = ClientSize.Height;
-                width = (int)(height * targetAspectRatio + 0.5f);
+                width = (int) (height * targetAspectRatio + 0.5f);
             }
 
-            int vpX = (int)(ClientSize.Width / 2 - width / 2);
-            int vpY = (int)(ClientSize.Height / 2 - height / 2);
+            int vpX = (int) (ClientSize.Width / 2 - width / 2);
+            int vpY = (int) (ClientSize.Height / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int)width, (int)height);
-            GL.Scissor(vpX, vpY, (int)width, (int)height);
+            GL.Viewport(vpX, vpY, (int) width, (int) height);
+            GL.Scissor(vpX, vpY, (int) width, (int) height);
         }
     }
 }

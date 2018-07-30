@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Emotion.Graphics;
+using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using TiledSharp;
-using Renderer = Emotion.GLES.Renderer;
 
 #endregion
 

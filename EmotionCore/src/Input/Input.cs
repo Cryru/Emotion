@@ -3,11 +3,10 @@
 #region Using
 
 using System;
-using System.Drawing;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Camera;
-using Emotion.GLES;
+using Emotion.Host;
 using Emotion.Primitives;
 using OpenTK.Input;
 
@@ -29,14 +28,14 @@ namespace Emotion.Input
 
         internal Input(Context context) : base(context)
         {
-            Context.Window.MouseDown += WindowMouseDown;
-            Context.Window.MouseUp += WindowMouseUp;
+            Context.Host.MouseDown += WindowMouseDown;
+            Context.Host.MouseUp += WindowMouseUp;
             // Moves an internal mouse position based on the window which is more accurate than directly polling the mouse.
-            Context.Window.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
+            Context.Host.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
             // Sets the unfocused tag.
-            Context.Window.FocusedChanged += (sender, e) =>
+            Context.Host.FocusedChanged += (sender, e) =>
             {
-                if (!Context.Window.Focused) _noFocus = true;
+                if (!Context.Host.Focused) _noFocus = true;
             };
         }
 
@@ -97,7 +96,7 @@ namespace Emotion.Input
             }
 
             // Check if focus has returned and skip input loop if no focus.
-            if (Context.Window.Focused && _noFocus) _noFocus = false;
+            if (Context.Host.Focused && _noFocus) _noFocus = false;
             if (_noFocus)
             {
                 for (int i = 0; i < MousePressed.Length; i++)
@@ -113,7 +112,11 @@ namespace Emotion.Input
             _keyboard = Keyboard.GetState();
 
             // Check for fullscreen toggling key combo.
-            if (IsKeyHeld("LAlt") && IsKeyDown("Enter")) Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
+            if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
+            {
+                Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
+                Context.Host.ApplySettings(Context.Settings);
+            }
 
             // Check for closing combo.
             if (IsKeyDown("Escape")) Context.Quit();
@@ -128,11 +131,11 @@ namespace Emotion.Input
         /// <returns>The position of the mouse cursor within the window.</returns>
         public Vector2 GetMousePosition(CameraBase camera = null)
         {
-            Size windowSize = Context.Window.ClientSize;
+            Vector2 windowSize = Context.Host.Size;
             Vector2 mouseLocation = new Vector2(MouseLocation.X, MouseLocation.Y);
 
             int smallerValueRender = Math.Min(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
-            int smallerValueWindow = Math.Min(windowSize.Width, windowSize.Height);
+            int smallerValueWindow = (int) Math.Min(windowSize.X, windowSize.Y);
 
             mouseLocation = mouseLocation * smallerValueRender / smallerValueWindow;
 

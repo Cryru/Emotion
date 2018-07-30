@@ -4,28 +4,51 @@
 
 using System.IO;
 using Emotion.Engine;
+using Emotion.Graphics.Legacy;
 using Emotion.IO;
 using Emotion.Primitives;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
-using Matrix4 = OpenTK.Matrix4;
 
 #endregion
 
 namespace Emotion.Graphics.GLES
 {
-    public sealed class Texture : Asset, IGLObject
+    public class Texture : Asset, IGLObject, ITexture
     {
-        public Vector2 Size { get; private set; }
-        public Matrix4 TextureMatrix { get; private set; }
+        #region Properties
 
-        private int _pointer;
+        /// <summary>
+        /// The size of the texture.
+        /// </summary>
+        public Vector2 Size { get; protected set; }
+
+        /// <summary>
+        /// The texture matrix used to convert UVs.
+        /// </summary>
+        public Matrix4 TextureMatrix { get; protected set; }
+
+        /// <summary>
+        /// The OpenGL pointer of this texture.
+        /// </summary>
+        public int Pointer { get; protected set; }
+
+        #endregion
+
+        #region Initialization
 
         public Texture()
         {
-            _pointer = GL.GenTexture();
+            Pointer = GL.GenTexture();
             Size = new Vector2();
         }
+
+        public Texture(byte[] data) : base()
+        {
+            Create(data);
+        }
+
+        #endregion
 
         #region IGLObject API
 
@@ -34,7 +57,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
-            GL.BindTexture(TextureTarget.Texture2D, _pointer);
+            GL.BindTexture(TextureTarget.Texture2D, Pointer);
         }
 
         /// <summary>
@@ -43,6 +66,15 @@ namespace Emotion.Graphics.GLES
         public void Unbind()
         {
             GL.BindTexture(TextureTarget.Texture2D, 0);
+        }
+
+        /// <summary>
+        /// Delete the texture freeing memory.
+        /// </summary>
+        public virtual void Delete()
+        {
+            GL.DeleteTexture(Pointer);
+            Pointer = -1;
         }
 
         #endregion
@@ -56,7 +88,6 @@ namespace Emotion.Graphics.GLES
         internal override void Create(byte[] data)
         {
             FIBITMAP freeImageBitmap;
-            uint bbp;
 
             // Put the bytes into a stream.
             using (MemoryStream stream = new MemoryStream(data))
@@ -65,9 +96,6 @@ namespace Emotion.Graphics.GLES
                 FREE_IMAGE_FORMAT fileType = FreeImage.GetFileTypeFromStream(stream);
                 freeImageBitmap = FreeImage.LoadFromStream(stream, ref fileType);
 
-                // Get the bits per pixel.
-                bbp = FreeImage.GetBPP(freeImageBitmap);
-
                 // Assign size.
                 Size = new Vector2(FreeImage.GetWidth(freeImageBitmap), FreeImage.GetHeight(freeImageBitmap));
             }
@@ -75,7 +103,7 @@ namespace Emotion.Graphics.GLES
             // Upload the texture on the GL thread.
             ThreadManager.ExecuteGLThread(() =>
             {
-                _pointer = GL.GenTexture();
+                Pointer = GL.GenTexture();
                 TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
 
                 // Bind the texture.
@@ -106,8 +134,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         internal override void Destroy()
         {
-            GL.DeleteTexture(_pointer);
-            _pointer = -1;
+            Delete();
         }
 
         #endregion

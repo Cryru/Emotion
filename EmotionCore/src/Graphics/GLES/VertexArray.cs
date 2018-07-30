@@ -74,16 +74,16 @@ namespace Emotion.Graphics.GLES
         }
 
         /// <summary>
-        /// Destroy the array, freeing memory. Destroys attached buffers.
+        /// Delete the array, freeing memory. Deletes attached buffers.
         /// </summary>
-        public void Destroy()
+        public void Delete()
         {
             GL.DeleteVertexArray(_pointer);
             _pointer = -1;
 
             foreach (Buffer b in _buffers)
             {
-                b.Destroy();
+                b.Delete();
             }
 
             _buffers.Clear();

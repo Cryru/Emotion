@@ -2,12 +2,11 @@
 
 #region Using
 
-using OpenTK;
-using Vector2 = Emotion.Primitives.Vector2;
+using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.GLES
+namespace Emotion.Graphics.Legacy
 {
     public interface ITexture
     {
@@ -22,23 +21,13 @@ namespace Emotion.GLES
         Vector2 Size { get; }
 
         /// <summary>
-        /// The width of the texture in pixels.
-        /// </summary>
-        int Width { get; }
-
-        /// <summary>
-        /// The height of the texture in pixels.
-        /// </summary>
-        int Height { get; }
-
-        /// <summary>
         /// Bind the texture to be used for the next GL calls.
         /// </summary>
-        void Use();
+        void Bind();
 
         /// <summary>
         /// Cleanup resources used by the texture.
         /// </summary>
-        void Cleanup();
+        void Delete();
     }
 }

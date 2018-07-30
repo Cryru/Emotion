@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Linq;
 using Emotion.Engine;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
@@ -15,7 +16,7 @@ namespace Emotion.Graphics.GLES
     /// A Program Object represents fully processed executable code, in the OpenGL Shading Language, for one or more Shader
     /// stages.
     /// </summary>
-    public class ShaderProgram
+    public class ShaderProgram : IGLObject
     {
         #region Global
 
@@ -23,6 +24,11 @@ namespace Emotion.Graphics.GLES
         /// The current shader program.
         /// </summary>
         public static ShaderProgram Current;
+
+        /// <summary>
+        /// The default shader program.
+        /// </summary>
+        public static ShaderProgram Default;
 
         /// <summary>
         /// The location of vertices within the shader.
@@ -37,7 +43,7 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The location of the texture id within the shader.
         /// </summary>
-        public static readonly int Tid = 2;
+        public static readonly int TidLocation = 2;
 
         /// <summary>
         /// The location of the colors within the shader.
@@ -46,14 +52,10 @@ namespace Emotion.Graphics.GLES
 
         #endregion
 
-        #region Properties
-
         /// <summary>
         /// The program's unique id.
         /// </summary>
-        public int Pointer { get; private set; }
-
-        #endregion
+        private int _pointer;
 
         /// <summary>
         /// Create a shader program.
@@ -64,6 +66,9 @@ namespace Emotion.Graphics.GLES
         {
             ThreadManager.ExecuteGLThread(() =>
             {
+                // Set the first ever as default.
+                if (Default == null) Default = this;
+
                 // Save current.
                 ShaderProgram current = Current;
 
@@ -72,32 +77,25 @@ namespace Emotion.Graphics.GLES
                 Shader frag = fragmentShader ?? Shader.DefaultFragment;
 
                 // Create the program and attach shaders.
-                Pointer = GL.CreateProgram();
-                GL.AttachShader(Pointer, vert.Pointer);
-                GL.AttachShader(Pointer, frag.Pointer);
+                _pointer = GL.CreateProgram();
+                GL.AttachShader(_pointer, vert.Pointer);
+                GL.AttachShader(_pointer, frag.Pointer);
                 Link();
-                Use();
-                GL.DetachShader(Pointer, vert.Pointer);
-                GL.DetachShader(Pointer, frag.Pointer);
-                GL.ValidateProgram(Pointer);
+                Bind();
+                GL.DetachShader(_pointer, vert.Pointer);
+                GL.DetachShader(_pointer, frag.Pointer);
+                GL.ValidateProgram(_pointer);
 
                 Helpers.CheckError("making program");
 
                 // Set default uniforms.
-                SetUniformColor("color", Color.White);
-
-                SetUniformMatrix4("projectionMatrix",Matrix4.CreateOrthographicOffCenter(0, 960, 540, 0, -1, 1));
-                SetUniformMatrix4("textureMatrix", Matrix4.Identity);
-
-                SetUniformInt("drawTexture", 0);
-                SetUniformInt("additionalTexture", 1);
+                SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, 960, 540, 0, -1, 1));
+                SetUniformIntArray("textures", Enumerable.Range(0, 31).ToArray() );
 
                 SetUniformFloat("time", 0);
 
-                Helpers.CheckError("setting program uniforms");
-
                 // Restore current.
-                current?.Use();
+                current?.Bind();
             });
         }
 
@@ -106,28 +104,36 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         private void Link()
         {
-            GL.LinkProgram(Pointer);
+            GL.LinkProgram(_pointer);
 
             // Check link status.
-            string programStatus = GL.GetProgramInfoLog(Pointer);
-            if (programStatus != "") throw new Exception("Failed to link program " + Pointer + " : " + programStatus);
+            string programStatus = GL.GetProgramInfoLog(_pointer);
+            if (programStatus != "") throw new Exception("Failed to link program " + _pointer + " : " + programStatus);
         }
 
         /// <summary>
         /// Set this program as the current program.
         /// </summary>
-        internal void Use()
+        public void Bind()
         {
-            GL.UseProgram(Pointer);
+            GL.UseProgram(_pointer);
             Current = this;
         }
 
         /// <summary>
-        /// Destroy this program.
+        /// Stop using this shader program, and use the default.
         /// </summary>
-        public void Destroy()
+        public void Unbind()
         {
-            GL.DeleteProgram(Pointer);
+            Default.Bind();
+        }
+
+        /// <summary>
+        /// Delete this program freeing memory.
+        /// </summary>
+        public void Delete()
+        {
+            GL.DeleteProgram(_pointer);
         }
 
         /// <summary>
@@ -137,7 +143,7 @@ namespace Emotion.Graphics.GLES
         /// <returns>The id of the uniform the name belongs to.</returns>
         public int GetUniformLocation(string name)
         {
-            return GL.GetUniformLocation(Pointer, name);
+            return GL.GetUniformLocation(_pointer, name);
         }
 
         #region Uniform Upload
@@ -150,6 +156,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformMatrix4(string name, Matrix4 matrix4)
         {
             SetUniformMatrix4(GetUniformLocation(name), matrix4);
+            Helpers.CheckError("setting mat4 uniform");
         }
 
         /// <summary>
@@ -160,6 +167,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformInt(string name, int data)
         {
             SetUniformInt(GetUniformLocation(name), data);
+            Helpers.CheckError("setting int uniform");
         }
 
         /// <summary>
@@ -170,6 +178,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformFloat(string name, float data)
         {
             SetUniformFloat(GetUniformLocation(name), data);
+            Helpers.CheckError("setting float uniform");
         }
 
         /// <summary>
@@ -180,6 +189,18 @@ namespace Emotion.Graphics.GLES
         public void SetUniformColor(string name, Color data)
         {
             SetUniformColor(GetUniformLocation(name), data);
+            Helpers.CheckError("setting color uniform");
+        }
+
+        /// <summary>
+        /// Sets the uniform of the specified name to the provided value.
+        /// </summary>
+        /// <param name="name">The name of the uniform to upload to.</param>
+        /// <param name="data">The int array value to set it to.</param>
+        public void SetUniformIntArray(string name, int[] data)
+        {
+            SetUniformIntArray(GetUniformLocation(name), data);
+            Helpers.CheckError("setting int array uniform");
         }
 
         #endregion
@@ -228,6 +249,16 @@ namespace Emotion.Graphics.GLES
         public static void SetUniformColor(int id, Color data)
         {
             ThreadManager.ExecuteGLThread(() => { GL.Uniform4(id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f); });
+        }
+
+        /// <summary>
+        /// Sets the uniform of the specified id to the provided value.
+        /// </summary>
+        /// <param name="id">The id of the uniform to upload to.</param>
+        /// <param name="data">The int array value to set it to.</param>
+        public static void SetUniformIntArray(int id, int[] data)
+        {
+            ThreadManager.ExecuteGLThread(() => { GL.Uniform1(id, data.Length, data); });
         }
 
         #endregion

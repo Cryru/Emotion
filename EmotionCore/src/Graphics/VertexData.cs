@@ -21,7 +21,7 @@ namespace Emotion.Graphics
         public Vector2 UV;
 
         // Location 2
-        public int tid;
+        public float Tid;
 
         // Location 3
         public uint Color;

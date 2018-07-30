@@ -7,6 +7,7 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Sound;
 

@@ -34,7 +34,7 @@ namespace Emotion.IO
 
         #endregion
 
-        public AssetLoader(Context context) : base(context)
+        internal AssetLoader(Context context) : base(context)
         {
             _loadedAssets = new Dictionary<string, Asset>();
         }

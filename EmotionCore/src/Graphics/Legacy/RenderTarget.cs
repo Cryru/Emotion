@@ -5,13 +5,11 @@
 using System;
 using Emotion.Engine;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
-using Matrix4 = OpenTK.Matrix4;
 
 #endregion
 
-namespace Emotion.GLES
+namespace Emotion.Graphics.Legacy
 {
     /// <summary>
     /// A texture you cna draw on.
@@ -49,7 +47,7 @@ namespace Emotion.GLES
                 TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
 
                 // Upload an empty texture.
-                Use();
+                Bind();
 
                 // Set scaling to pixel perfect.
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
@@ -95,12 +93,12 @@ namespace Emotion.GLES
 
         #region Texture API
 
-        public void Use()
+        public void Bind()
         {
             GL.BindTexture(TextureTarget.Texture2D, _texturePointer);
         }
 
-        public void Cleanup()
+        public void Delete()
         {
             GL.DeleteTexture(_texturePointer);
             GL.DeleteFramebuffer(_bufferPointer);

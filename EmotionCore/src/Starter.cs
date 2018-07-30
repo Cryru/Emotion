@@ -43,7 +43,7 @@ namespace Emotion
             return new Context(initial);
         }
 
-        public static void WindowsSetup()
+        private static void WindowsSetup()
         {
             // Set the DLL path on Windows.
             string libraryDirectory = Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86");

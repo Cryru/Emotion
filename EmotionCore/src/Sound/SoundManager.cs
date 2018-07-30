@@ -123,7 +123,7 @@ namespace Emotion.Sound
         {
             foreach (KeyValuePair<string, SoundLayer> layer in _layers)
             {
-                layer.Value.Update(Context.FrameTime, Context.Window.Focused, Context.Settings);
+                layer.Value.Update(Context.FrameTime, Context.Host.Focused, Context.Settings);
             }
         }
     }

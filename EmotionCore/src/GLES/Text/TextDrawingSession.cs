@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 

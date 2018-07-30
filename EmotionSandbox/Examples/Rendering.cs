@@ -7,6 +7,8 @@ using Emotion;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.GLES;
+using Emotion.Graphics;
+using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 
@@ -37,16 +39,17 @@ namespace EmotionSandbox.Examples
 
         public override void Draw(Renderer renderer)
         {
-            renderer.DrawRectangle(new Rectangle(0, 0, renderer.RenderSize.X, renderer.RenderSize.Y), Color.CornflowerBlue, false);
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue, null, Rectangle.Empty);
 
             int columnLoc = 10;
-            renderer.DrawRectangle(new Rectangle(10, columnLoc, 110, 110), Color.Red, false);
+            renderer.Render(new Vector3(10, columnLoc, 0), new Vector2(110, 110), Color.Red, null, Rectangle.Empty);
             columnLoc += 120;
-            renderer.DrawRectangleOutline(new Rectangle(10, columnLoc, 110, 110), Color.Blue, false);
+            renderer.Render(new Vector3(10, columnLoc, 0), new Vector2(110, 110), Color.Blue, null, Rectangle.Empty);
             columnLoc += 120;
-            renderer.DrawTexture(_texture, new Rectangle(10, columnLoc, _texture.Width / 2, _texture.Height / 2));
-            renderer.DrawTexture(_texture, new Rectangle(20 + _texture.Width / 2, columnLoc, _texture.Width / 2, _texture.Height / 2),
-                new Rectangle(_texture.Width / 2, 0, _texture.Width / 2, _texture.Height / 2));
+            renderer.Render(new Vector3(10, columnLoc, 0), new Vector2(_texture.Size.X / 2, _texture.Size.Y / 2), Color.CornflowerBlue, _texture, new Rectangle(_texture.Size.X / 2, 0, _texture.Size.X / 2, _texture.Size.Y / 2));
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue, null, Rectangle.Empty);
+
+            renderer.Flush();
         }
 
         public override void Update(float frameTime)

@@ -6,10 +6,12 @@ using System;
 using System.Threading;
 using Emotion.Debug;
 using Emotion.Game.Layering;
-using Emotion.GLES;
+using Emotion.Graphics;
+using Emotion.Host;
 using Emotion.IO;
 using Emotion.Sound;
 using Emotion.Utils;
+using Helpers = Emotion.Utils.Helpers;
 
 #if DEBUG
 
@@ -33,19 +35,15 @@ namespace Emotion.Engine
         /// </summary>
         public float FrameTime { get; protected set; }
 
-        #endregion
-
-        #region Objects
+        /// <summary>
+        /// The time which has passed since start. Used for tracking time in shaders and such.
+        /// </summary>
+        public float Time { get; protected set; }
 
         /// <summary>
-        /// The context's initial settings.
+        /// The settings the context's settings.
         /// </summary>
-        public Settings Settings;
-
-        /// <summary>
-        /// The window the game is opened in.
-        /// </summary>
-        public Window Window { get; protected set; }
+        public Settings Settings { get; set; }
 
         #endregion
 
@@ -81,6 +79,11 @@ namespace Emotion.Engine
         /// </summary>
         public SoundManager SoundManager { get; protected set; }
 
+        /// <summary>
+        /// The context's host. This can be the window, the activity or whatever.
+        /// </summary>
+        public IHost Host { get; protected set; }
+
         #endregion
 
         #region Initialization
@@ -96,8 +99,18 @@ namespace Emotion.Engine
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
 
             // Start loading modules.
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating window...");
-            Window = new Window(this);
+            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
+            if (CurrentPlatform.OS == PlatformID.Win32NT || CurrentPlatform.OS == PlatformID.Unix || CurrentPlatform.OS == PlatformID.MacOSX)
+            {
+                Host = new Window(settings);
+                Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
+            }
+            else
+            {
+                throw new Exception("Unsupported platform.");
+            }
+
+            Host.SetHooks(LoopUpdate, LoopDraw);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
             Renderer = new Renderer(this);
@@ -131,19 +144,20 @@ namespace Emotion.Engine
             Running = true;
 
             // Start running the loops. Blocking.
-            Window.Run(0, 0);
+            Host.Run();
 
             // Context has stopped running - cleanup.
-            Window.Destroy();
+            Host.Close();
             Renderer.Destroy();
 
             // Platform cleanup.
-            Window.Dispose();
+            Host.Dispose();
 
             // Dereference objects.
-            Window = null;
+            Host = null;
             Renderer = null;
             Settings = null;
+            Running = false;
 
             // Close application.
             Environment.Exit(0);
@@ -155,21 +169,19 @@ namespace Emotion.Engine
         public void Quit()
         {
             // Stops the window unblocking the Start function.
-            Window.Exit();
+            Host.Close();
         }
 
         #endregion
 
-        #region Loop
+        #region Loops
 
         /// <summary>
-        /// Is run every tick by the OpenTK context.
+        /// Is run every tick by the host.
         /// </summary>
         /// <param name="frameTime">The time between this tick and the last.</param>
-        internal void LoopUpdate(float frameTime)
+        protected void LoopUpdate(float frameTime)
         {
-            FrameTime = frameTime;
-
             // Update the thread manager.
             ThreadManager.Run();
 
@@ -192,28 +204,36 @@ namespace Emotion.Engine
         }
 
         /// <summary>
-        /// Is run every frame by the OpenTK context.
+        /// Is run every frame by the host.
         /// </summary>
-        internal void LoopDraw()
+        protected void LoopDraw(float frameTime)
         {
             // If not focused, don't draw.
-            if (!Window.Focused)
+            if (!Host.Focused)
             {
                 Thread.Sleep(1);
                 return;
             }
 
+            FrameTime = frameTime;
+
+            // Add to time.
+            Time += frameTime;
+
             // Clear the screen.
             Renderer.Clear();
 
-            // First draw the layers.
+            // Draw the layers.
             LayerManager.Draw();
 
             // Draw debug.
             Debugger.DebugDraw(this);
 
+            // Finish rendering.
+            Renderer.End();
+
             // Swap buffers.
-            Renderer.Present();
+            Host.SwapBuffers();
         }
 
         #endregion

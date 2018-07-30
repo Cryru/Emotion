@@ -9,6 +9,7 @@ using System.Threading;
 using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Utils;
 using Soul.Logging;
@@ -163,11 +164,11 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         internal static void DebugDraw(Context context)
         {
-            // Check if there is an attached renderer with a camera.
-            if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
+            //// Check if there is an attached renderer with a camera.
+            //if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
 
-            // Draw the mouse cursor location.
-            MouseBoundDraw(context.Renderer, context.Input);
+            //// Draw the mouse cursor location.
+            //MouseBoundDraw(context.Renderer, context.Input);
         }
 
         /// <summary>
@@ -200,29 +201,29 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         private static void CameraBoundDraw(Renderer renderer)
         {
-            CameraBase camera = renderer.Camera;
+            //CameraBase camera = renderer.Camera;
 
-            // Draw bounds.
-            renderer.DrawRectangleOutline(camera.Bounds, Color.Yellow);
+            //// Draw bounds.
+            //renderer.DrawRectangleOutline(camera.Bounds, Color.Yellow);
 
-            // Draw center.
-            Rectangle centerDraw = new Rectangle(0, 0, 10, 10);
-            centerDraw.X = (int) camera.Bounds.Center.X - centerDraw.Width / 2;
-            centerDraw.Y = (int) camera.Bounds.Center.Y - centerDraw.Height / 2;
+            //// Draw center.
+            //Rectangle centerDraw = new Rectangle(0, 0, 10, 10);
+            //centerDraw.X = (int) camera.Bounds.Center.X - centerDraw.Width / 2;
+            //centerDraw.Y = (int) camera.Bounds.Center.Y - centerDraw.Height / 2;
 
-            renderer.DrawRectangleOutline(centerDraw, Color.Yellow);
+            //renderer.DrawRectangleOutline(centerDraw, Color.Yellow);
         }
 
         [Conditional("DEBUG")]
         private static void MouseBoundDraw(Renderer renderer, Input.Input input)
         {
-            Vector2 mouseLocation = input.GetMousePosition();
+            //Vector2 mouseLocation = input.GetMousePosition();
 
-            Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
-            mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
-            mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
+            //Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
+            //mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
+            //mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
 
-            renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
+            //renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
         }
 
         #endregion

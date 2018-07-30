@@ -6,5 +6,6 @@ namespace Emotion.Graphics.GLES
     {
         void Bind();
         void Unbind();
+        void Delete();
     }
 }

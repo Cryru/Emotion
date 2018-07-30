@@ -3,11 +3,12 @@
 #region Using
 
 using Emotion.Engine;
+using Emotion.Graphics.Legacy;
 using Emotion.Utils;
-using OpenTK;
+
 using OpenTK.Graphics.ES30;
 using SharpFont;
-using Vector2 = Emotion.Primitives.Vector2;
+using Emotion.Primitives;
 
 #endregion
 
@@ -66,7 +67,7 @@ namespace Emotion.GLES.Text
                 TextureMatrix = Matrix4.CreateScale(1, -1, 1) * Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
 
                 // Bind the texture.
-                Use();
+                Bind();
 
                 // Create a swizzle mask to convert R to AAAA.
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int) All.One);
@@ -85,12 +86,12 @@ namespace Emotion.GLES.Text
             });
         }
 
-        public void Use()
+        public void Bind()
         {
             GL.BindTexture(TextureTarget.Texture2D, _pointer);
         }
 
-        public void Cleanup()
+        public void Delete()
         {
             GL.DeleteTexture(_pointer);
         }

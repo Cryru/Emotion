@@ -52,17 +52,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Examples\Input.cs" />
+    <None Include="Examples\Input.cs" />
     <Compile Include="Examples\LoadingScreen.cs" />
     <Compile Include="Examples\NewRenderer.cs" />
-    <Compile Include="Examples\RenderingText.cs" />
-    <Compile Include="Examples\Rendering.cs" />
-    <Compile Include="Examples\StreamingSound.cs" />
-    <Compile Include="Examples\SoundExample.cs" />
+    <None Include="Examples\RenderingText.cs" />
+    <None Include="Examples\Rendering.cs" />
+    <None Include="Examples\StreamingSound.cs" />
+    <None Include="Examples\SoundExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Content Include="Assets\1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\ElectricSleepFont.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

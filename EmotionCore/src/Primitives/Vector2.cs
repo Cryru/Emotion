@@ -638,6 +638,33 @@ namespace Emotion.Primitives
             Add(ref result, ref temp, out result);
         }
 
+        /// <summary>Transform a Position by the given Matrix</summary>
+        /// <param name="pos">The position to transform</param>
+        /// <param name="mat">The desired transformation</param>
+        /// <returns>The transformed position</returns>
+        public static Vector2 TransformPosition(Vector2 pos, Matrix4 mat)
+        {
+            TransformPosition(ref pos, ref mat, out Vector2 result);
+            return result;
+        }
+
+        /// <summary>Transform a Position by the given Matrix</summary>
+        /// <param name="pos">The position to transform</param>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="result">The transformed position</param>
+        public static void TransformPosition(ref Vector2 pos, ref Matrix4 mat, out Vector2 result)
+        {
+            result.X = pos.X * mat.Row0.X +
+                       pos.Y * mat.Row1.X +
+                       mat.Row2.X +
+                       mat.Row3.X;
+
+            result.Y = pos.X * mat.Row0.Y +
+                       pos.Y * mat.Row1.Y +
+                       mat.Row2.Y +
+                       mat.Row3.Y;
+        }
+
         /// <summary>
         /// Gets or sets an OpenTK.Vector2 with the Y and X components of this instance.
         /// </summary>
