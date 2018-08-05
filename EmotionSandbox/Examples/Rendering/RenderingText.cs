@@ -30,7 +30,7 @@ namespace EmotionSandbox.Examples.Rendering
 
         public override void Load()
         {
-            Font a = Context.AssetLoader.Get<Font>("ElectricSleepFont.ttf");
+            Font a = Context.AssetLoader.Get<Font>("ExampleFont.ttf");
         }
 
         public override void Update(float fr)
@@ -39,7 +39,9 @@ namespace EmotionSandbox.Examples.Rendering
 
         public override void Draw(Renderer renderer)
         {
-            renderer.RenderString("hello", new Vector3(0, 0, 0), Color.White, Context.AssetLoader.Get<Font>("ElectricSleepFont.ttf"));
+            // Render a cornflower background to hide the loading screen beneath this layer.
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+            renderer.RenderString("Hello", new Vector3(0, 0, 0), Color.White, Context.AssetLoader.Get<Font>("ExampleFont.ttf"));
         }
 
         public override void Unload()

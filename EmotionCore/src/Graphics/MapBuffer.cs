@@ -219,7 +219,7 @@ namespace Emotion.Graphics
                 if (textureArea == null)
                 {
                     uvRect = new Rectangle(0, 0, 1, 1);
-                    textureMatrix = Matrix4.Identity;
+                    textureMatrix = Matrix4.CreateScale(1, -1, 1);
                 }
                 else
                 {

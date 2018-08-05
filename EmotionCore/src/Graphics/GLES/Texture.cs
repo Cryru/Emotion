@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.IO;
 using Emotion.Engine;
 using Emotion.Graphics.Legacy;
@@ -43,9 +44,15 @@ namespace Emotion.Graphics.GLES
             Size = new Vector2();
         }
 
-        public Texture(byte[] data) : base()
+        public Texture(byte[] data)
         {
             Create(data);
+        }
+
+        public Texture(byte[] data, int width, int height, TextureComponentCount componentCount, PixelFormat format)
+        {
+            Size = new Vector2(width, height);
+            CreateFromBytes(data, componentCount, format);
         }
 
         #endregion
@@ -135,6 +142,34 @@ namespace Emotion.Graphics.GLES
         internal override void Destroy()
         {
             Delete();
+        }
+
+        #endregion
+
+        #region Other
+
+        /// <summary>
+        /// Create a texture from bytes.
+        /// </summary>
+        /// <param name="data">The texture data.</param>
+        /// <param name="componentCount">The component count.</param>
+        /// <param name="format">The texture format.</param>
+        private void CreateFromBytes(byte[] data, TextureComponentCount componentCount, PixelFormat format)
+        {
+            Pointer = GL.GenTexture();
+            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
+
+            // Bind the texture.
+            Bind();
+
+            // Set scaling to pixel perfect.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+
+            // Upload the texture.
+            GL.TexImage2D(TextureTarget2d.Texture2D, 0, componentCount, (int) Size.X, (int) Size.Y, 0, format, PixelType.UnsignedByte, data);
+
+            Utils.Helpers.CheckError("uploading texture");
         }
 
         #endregion

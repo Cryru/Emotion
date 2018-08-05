@@ -95,10 +95,6 @@
     <When Condition="$(DefineConstants.Contains('GLES'))" />
   </Choose>
   <ItemGroup>
-    <Compile Include="Libraries\FreeType-GL\Constants.cs" />
-    <Compile Include="Libraries\FreeType-GL\FreetypeGL.cs" />
-    <Compile Include="Libraries\FreeType-GL\texture-atlas.cs" />
-    <Compile Include="Libraries\FreeType-GL\texture-font.h.cs" />
     <Compile Include="Libraries\TiledSharp\ImageLayer.cs" />
     <Compile Include="Libraries\TiledSharp\Layer.cs" />
     <Compile Include="Libraries\TiledSharp\Map.cs" />
@@ -130,7 +126,9 @@
     <Compile Include="src\Graphics\Label.cs" />
     <Compile Include="src\Graphics\Renderable2D.cs" />
     <Compile Include="src\Graphics\Renderer.cs" />
+    <Compile Include="src\Graphics\Text\Atlas.cs" />
     <Compile Include="src\Graphics\Text\Font.cs" />
+    <Compile Include="src\Graphics\Text\Glyph.cs" />
     <Compile Include="src\Host\IHost.cs" />
     <Compile Include="src\Host\Window.cs" />
     <Compile Include="src\Graphics\MapBuffer.cs" />

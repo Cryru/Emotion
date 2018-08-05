@@ -8,7 +8,6 @@ using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Utils;
-using ftgl;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -130,9 +129,6 @@ namespace Emotion.Graphics
             TransformationStack.Pop();
         }
 
-        private texture_atlas_t atlas;
-        private texture_font_t font;
-
         public void Render(Label renderable)
         {
             RenderString(renderable.Text, Vector3.Zero, renderable.Color, renderable.Font);
@@ -140,7 +136,7 @@ namespace Emotion.Graphics
 
         public void RenderString(string text, Vector3 position, Color color, Font font)
         {
-            int textureId = font.FtglAtlas.id;
+            Render(position, font.Atlas.Texture.Size, color, font.Atlas.Texture);
         }
 
         public void Render(Rectangle bounds, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
