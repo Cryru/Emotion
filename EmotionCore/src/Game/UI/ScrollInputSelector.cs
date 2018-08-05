@@ -32,12 +32,9 @@ namespace Emotion.Game.UI
         /// </summary>
         private ScrollInput _parent;
 
-        private SoundFile _scrollSound;
-
         public ScrollInputSelector(ScrollInput parent, Controller controller, Rectangle bounds, int priority) : base(controller, bounds, priority)
         {
             _parent = parent;
-            _scrollSound = _controller.Context.AssetLoader.Get<SoundFile>("Music/UI/slider_short.wav");
         }
 
         public override void Draw(Renderer renderer)
@@ -58,22 +55,6 @@ namespace Emotion.Game.UI
             float posWithinParent = newPosition.X - _parent.Bounds.X;
             float increment = _parent.Bounds.Width / 100;
             _parent.Value = (int) (posWithinParent / increment);
-
-            if (_controller.Context.SoundManager.GetLayer("UI").Source.Paused)
-            {
-                _controller.Context.SoundManager.GetLayer("UI").Source.Play();
-            }
-        }
-
-        public override void MouseDown(MouseKeys key)
-        {
-            _controller.Context.SoundManager.PlayOnLayer("UI", _scrollSound);
-            _controller.Context.SoundManager.GetLayer("UI").Source.Looping = true;
-        }
-
-        public override void MouseUp(MouseKeys key)
-        {
-            _controller.Context.SoundManager.GetLayer("UI").Source.Destroy();
         }
     }
 }
