@@ -94,7 +94,7 @@ namespace Emotion.Graphics.GLES
             {
                 // Get the image format and load the image as a FreeImageBitmap.
                 FREE_IMAGE_FORMAT fileType = FreeImage.GetFileTypeFromStream(stream);
-                freeImageBitmap = FreeImage.LoadFromStream(stream, ref fileType);
+                freeImageBitmap = FreeImage.ConvertTo32Bits(FreeImage.LoadFromStream(stream, ref fileType));
 
                 // Assign size.
                 Size = new Vector2(FreeImage.GetWidth(freeImageBitmap), FreeImage.GetHeight(freeImageBitmap));

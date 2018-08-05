@@ -5,6 +5,7 @@
 using System;
 using Emotion.Engine;
 using Emotion.Primitives;
+using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion

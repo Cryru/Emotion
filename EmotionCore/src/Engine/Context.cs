@@ -199,8 +199,6 @@ namespace Emotion.Engine
 
             // Check for errors.
             Helpers.CheckError("update");
-
-            Thread.Sleep(1);
         }
 
         /// <summary>
@@ -222,15 +220,19 @@ namespace Emotion.Engine
 
             // Clear the screen.
             Renderer.Clear();
+            Helpers.CheckError("renderer clear");
 
             // Draw the layers.
             LayerManager.Draw();
+            Helpers.CheckError("layer draw");
 
             // Draw debug.
             Debugger.DebugDraw(this);
+            Helpers.CheckError("debugger draw");
 
             // Finish rendering.
             Renderer.End();
+            Helpers.CheckError("renderer end");
 
             // Swap buffers.
             Host.SwapBuffers();

@@ -84,7 +84,6 @@ namespace Emotion.Debug
             // Remove spam.
             TypeFilter.Remove(MessageType.Trace);
 
-
             // Start the console thread.
             Thread consoleThread = new Thread(() => ConsoleThread());
             consoleThread.Start();
@@ -167,8 +166,8 @@ namespace Emotion.Debug
             //// Check if there is an attached renderer with a camera.
             //if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
 
-            //// Draw the mouse cursor location.
-            //MouseBoundDraw(context.Renderer, context.Input);
+            // Draw the mouse cursor location.
+            MouseBoundDraw(context.Renderer, context.Input);
         }
 
         /// <summary>
@@ -217,13 +216,13 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         private static void MouseBoundDraw(Renderer renderer, Input.Input input)
         {
-            //Vector2 mouseLocation = input.GetMousePosition();
+            Vector2 mouseLocation = input.GetMousePosition();
 
-            //Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
-            //mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
-            //mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
+            Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
+            mouseBounds.X = (int)mouseLocation.X - mouseBounds.Width / 2;
+            mouseBounds.Y = (int)mouseLocation.Y - mouseBounds.Height / 2;
 
-            //renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
+            renderer.RenderOutline(mouseBounds, Color.Pink);
         }
 
         #endregion

@@ -1,6 +1,7 @@
 ﻿#version 300 es
 
 uniform mat4 projectionMatrix;
+uniform mat4 bufferMatrix;
 
 layout (location = 0) in vec3 vertPos;
 layout (location = 1) in vec2 uv;
@@ -19,5 +20,5 @@ void main() {
     Tid = tid;
 
     // Multiply by projection.
-    gl_Position = projectionMatrix * vec4(vertPos, 1);
+    gl_Position = projectionMatrix * bufferMatrix * vec4(vertPos, 1);
 }

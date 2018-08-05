@@ -14,7 +14,7 @@ namespace Emotion.Engine
     {
         private static int _glThreadId;
 
-        private static List<Action> _queue = new List<Action>();
+        private static Queue<Action> _queue = new Queue<Action>();
 
         /// <summary>
         /// Binds the current thread as the GL thread.
@@ -31,12 +31,10 @@ namespace Emotion.Engine
 
             lock (_queue)
             {
-                foreach (Action action in _queue)
+                while (_queue.Count > 0)
                 {
-                    action();
+                    _queue.Dequeue()();
                 }
-
-                _queue.Clear();
             }
         }
 
@@ -68,7 +66,7 @@ namespace Emotion.Engine
             bool done = false;
             lock (_queue)
             {
-                _queue.Add(() =>
+                _queue.Enqueue(() =>
                 {
                     action();
                     done = true;
@@ -82,7 +80,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Check whether the executing thread is the GL thread. If it's not an exception is thrown.
         /// </summary>
-        public static void CheckGLThread()
+        public static void ForceGLThread()
         {
             if (!IsGLThread()) throw new Exception("Not currently executing on the GL thread.");
         }

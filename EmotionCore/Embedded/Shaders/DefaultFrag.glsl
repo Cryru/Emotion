@@ -19,9 +19,8 @@ void main() {
     // Check if a texture is in use.
     if (Tid >= 0.0)
     {
-        int tid = int(Tid - 0.5);
         // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
-        fragColor = texture(textures[tid], UV) * vertColor;
+        fragColor = texture(textures[int(Tid)], UV) * vertColor;
     } else {
         // If no texture then just use the color.
         fragColor = vertColor;

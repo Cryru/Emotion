@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Emotion.Engine;
 using Emotion.Primitives;
+using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -89,8 +90,8 @@ namespace Emotion.Graphics.GLES
                 Helpers.CheckError("making program");
 
                 // Set default uniforms.
-                SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, 960, 540, 0, -1, 1));
-                SetUniformIntArray("textures", Enumerable.Range(0, 31).ToArray() );
+                SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, 960, 540, 0, -100, 100));
+                SetUniformIntArray("textures", Enumerable.Range(0, 31).ToArray());
 
                 SetUniformFloat("time", 0);
 

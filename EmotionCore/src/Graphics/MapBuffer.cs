@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
+using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;
 
@@ -27,7 +29,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The IBO holding the buffer indices.
         /// </summary>
-        public IndexBuffer IBO { get; private set; }
+        public static IndexBuffer IBO { get; private set; }
 
         /// <summary>
         /// The VAO holding the buffer vertex attribute bindings.
@@ -60,7 +62,7 @@ namespace Emotion.Graphics
         #region Draw State
 
         private VertexData* _dataPointer;
-        private ushort _indicesCount;
+        private int _indicesCount;
         private List<Texture> _textureList;
 
         #endregion
@@ -71,46 +73,16 @@ namespace Emotion.Graphics
 
         #endregion
 
+        #region Initialization and Deletion
+
         /// <summary>
-        /// Create a new map buffer of the specified size.
+        /// Generate the IBO used by all MapBuffers.
         /// </summary>
-        /// <param name="size">The size of the map buffer in vertices.</param>
-        /// <param name="renderer">The renderer hosting this map buffer.</param>
-        public MapBuffer(int size, Renderer renderer)
+        static MapBuffer()
         {
-            Size = size;
-            _renderer = renderer;
-            _textureList = new List<Texture>();
-
-            // Calculate the size of the buffer.
-            int quadSize = VertexData.SizeInBytes * 4;
-            int bufferSize = size * quadSize;
-
-            VBO = new Buffer(bufferSize, 3, BufferUsageHint.DynamicDraw);
-            VAO = new VertexArray();
-
-            VAO.Bind();
-            VBO.Bind();
-
-            GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
-            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Vertex"));
-
-            GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
-            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "UV"));
-
-            GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
-            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Tid"));
-
-            GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
-            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Color"));
-
-            VBO.Unbind();
-            VAO.Unbind();
-
-            Helpers.CheckError("map buffer - loading vbo into vao");
-
-            ushort[] indices = new ushort[bufferSize * 6];
-            ushort offset = 0;
+            // Generate indices.
+            ushort[] indices = new ushort[Renderer.MaxRenderable * 6];
+            uint offset = 0;
             for (int i = 0; i < indices.Length; i += 6)
             {
                 indices[i] = (ushort)(offset + 0);
@@ -129,15 +101,93 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Create a new map buffer of the specified size.
+        /// </summary>
+        /// <param name="size">The size of the map buffer in vertices.</param>
+        /// <param name="renderer">The renderer hosting this map buffer.</param>
+        public MapBuffer(int size, Renderer renderer)
+        {
+            Size = size;
+            _renderer = renderer;
+            _textureList = new List<Texture>();
+
+            // Calculate the size of the buffer.
+            int quadSize = VertexData.SizeInBytes * 4;
+            int bufferSize = size * quadSize;
+
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                VBO = new Buffer(bufferSize, 3, BufferUsageHint.DynamicDraw);
+                VAO = new VertexArray();
+
+                VAO.Bind();
+                VBO.Bind();
+
+                GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
+                GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+
+                GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
+                GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "UV"));
+
+                GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
+                GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Tid"));
+
+                GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
+                GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Color"));
+
+                VBO.Unbind();
+                VAO.Unbind();
+
+                Helpers.CheckError("map buffer - loading vbo into vao");
+            });
+        }
+
+        /// <summary>
+        /// Destroy the map buffer freeing resources.
+        /// </summary>
+        public void Delete()
+        {
+            ThreadManager.ForceGLThread();
+            VBO?.Delete();
+            VAO?.Delete();
+        }
+
+        #endregion
+
+        #region Mapping
+
+        /// <summary>
         /// Start mapping the buffer.
         /// </summary>
-        public VertexData* Start()
+        /// <param name="resetLoadedTextures">Whether to reset the list of loaded textures.</param>
+        public void Start(bool resetLoadedTextures = false)
         {
+            ThreadManager.ForceGLThread();
+
+            _indicesCount = 0;
+
+            // Reset loaded textures if needed.
+            if (resetLoadedTextures) _textureList.Clear();
+
+            Helpers.CheckError("map buffer - before start");
             VBO.Bind();
             _dataPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
             Helpers.CheckError("map buffer - start");
+        }
 
-            return _dataPointer;
+        /// <summary>
+        /// Finish mapping the buffer.
+        /// </summary>
+        public void FinishMapping()
+        {
+            ThreadManager.ForceGLThread();
+
+            _dataPointer = null;
+
+            Helpers.CheckError("map buffer - before unmapping");
+            VBO.Bind();
+            GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+            Helpers.CheckError("map buffer - unmapping");
         }
 
         /// <summary>
@@ -151,8 +201,6 @@ namespace Emotion.Graphics
         /// <param name="vertMatrix">The matrix to multiply the vertices by.</param>
         public void Add(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
         {
-            Helpers.CheckError("before add");
-
             // Convert the color to an int.
             uint c = ((uint)color.A << 24) | ((uint)color.B << 16) | ((uint)color.G << 8) | color.R;
 
@@ -191,16 +239,7 @@ namespace Emotion.Graphics
                     // Check if reached texture limit, in which case the draw calls must be split.
                     if (_textureList.Count >= 32)
                     {
-                        Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Texture limit reached.");
-
-                        // Restart the mapping.
-                        Draw();
-                        Start();
-
-                        // Clear the texture list.
-                        _textureList.Clear();
-                        _textureList.Add(texture);
-                        tid = 0;
+                        throw new Exception("Texture limit of 32 reached.");
                     }
                     else
                     {
@@ -213,13 +252,9 @@ namespace Emotion.Graphics
             Matrix4 vertexMatrix = vertMatrix ?? Matrix4.Identity;
 
             // Check if render limit reached.
-            if (_indicesCount >= Size * 6)
+            if (_indicesCount / 6 >= Size)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Render limit reached.");
-
-                // Restart the mapping.
-                Draw();
-                Start();
+                throw new Exception("Render limit of " + Size + " reached.");
             }
 
             // Set four vertices.
@@ -241,7 +276,7 @@ namespace Emotion.Graphics
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X, location.Y + size.Y, location.Z),vertexMatrix);
+            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X, location.Y + size.Y, location.Z), vertexMatrix);
             _dataPointer->UV = texture == null ? Vector2.Zero : Vector2.TransformPosition(uvRect.Location, textureMatrix);
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
@@ -249,23 +284,33 @@ namespace Emotion.Graphics
 
             // Increment indices count.
             _indicesCount += 6;
-
-            Helpers.CheckError("after add");
         }
 
+        #endregion
+
         /// <summary>
-        /// Finish mapping the buffer, and draw it.
+        /// Draw the buffer.
         /// </summary>
-        /// <param name="primitiveType">The primitive type to draw the buffer in.</param>
+        /// <param name="primitiveType">The primitive type to draw the buffer with.</param>
         /// <param name="bufferMatrix">The matrix4 to upload as an uniform for "bufferMatrix". If null nothing will be uploaded.</param>
         /// <param name="shader">The shader to use. If null the current one will be used.</param>
-        public void Draw(PrimitiveType primitiveType = PrimitiveType.Triangles, Matrix4? bufferMatrix = null, ShaderProgram shader = null)
+        public void Draw(int primitiveType = 4, Matrix4? bufferMatrix = null, ShaderProgram shader = null)
         {
-            Helpers.CheckError("before flush");
+            ThreadManager.ForceGLThread();
+
+            Helpers.CheckError("map buffer - before draw");
 
             // Sync shader.
             shader?.Bind();
-            if (bufferMatrix != null) ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4)bufferMatrix);
+            if (bufferMatrix != null)
+            {
+                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4)bufferMatrix);
+            }
+            else
+            {
+                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", Matrix4.Identity);
+            }
+
             ShaderProgram.Current.SetUniformFloat("time", _renderer.Context.Time);
             Helpers.CheckError("map buffer - shader preparation");
 
@@ -275,39 +320,40 @@ namespace Emotion.Graphics
                 GL.ActiveTexture(TextureUnit.Texture0 + i);
                 _textureList[i].Bind();
             }
-            Helpers.CheckError("map buffer - texture binding");
 
-            // Draw indices.
-            VBO.Bind();
-            GL.UnmapBuffer(BufferTarget.ArrayBuffer);
-            Helpers.CheckError("map buffer - map end");
+            Helpers.CheckError("map buffer - texture binding");
 
             VAO.Bind();
             IBO.Bind();
             Helpers.CheckError("map buffer - bind");
 
-            GL.DrawElements(primitiveType, _indicesCount, DrawElementsType.UnsignedShort, IntPtr.Zero);
+            GL.DrawElements((PrimitiveType)primitiveType, _indicesCount, DrawElementsType.UnsignedShort, IntPtr.Zero);
             Helpers.CheckError("map buffer - draw");
 
             IBO.Unbind();
             VAO.Unbind();
             Helpers.CheckError("map buffer - unbind");
-
-            // Reset count.
-            _indicesCount = 0;
-            _dataPointer = null;
-
-            Helpers.CheckError("flush");
         }
+
+        #region Higher Level API
 
         /// <summary>
-        /// Destroy the map buffer freeing resources.
+        /// Calls FinishMapping() and then Draw().
         /// </summary>
-        public void Delete()
+        /// <param name="primitiveType">The primitive type to draw the buffer in.</param>
+        /// <param name="bufferMatrix">The matrix4 to upload as an uniform for "bufferMatrix". If null nothing will be uploaded.</param>
+        /// <param name="shader">The shader to use. If null the current one will be used.</param>
+        public void Flush(int primitiveType = 4, Matrix4? bufferMatrix = null, ShaderProgram shader = null)
         {
-            VBO?.Delete();
-            IBO?.Delete();
-            VAO?.Delete();
+            ThreadManager.ForceGLThread();
+
+            // Finish mapping.
+            FinishMapping();
+
+            // Draw.
+            Draw(primitiveType, bufferMatrix, shader);
         }
+
+        #endregion
     }
 }

@@ -1,2 +1,7 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">Emotion - https://github.com/Cryru/Emotion</s:String></wpf:ResourceDictionary>
+	<s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">Emotion - https://github.com/Cryru/Emotion</s:String>
+	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
+  &lt;Assembly Path="C:\Users\Vlad\Desktop\Emotion\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll" /&gt;&#xD;
+&lt;/AssemblyExplorer&gt;</s:String>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4e9c0095_002De1c7_002D429e_002Da70f_002D701f78972e2d_0023ElectricSleep/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=555f39cf_002D5dce_002D4cb8_002D8a83_002D37549768ab92_0023HealerGame/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -21,6 +21,7 @@ namespace Emotion.Input
     {
         internal bool[] MouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         internal bool[] MousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+        internal bool[] MouseUp = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         private KeyboardState _keyboardLast;
         private KeyboardState _keyboard;
         private bool _noFocus;
@@ -73,12 +74,15 @@ namespace Emotion.Input
             {
                 case MouseButton.Left:
                     MouseHeld[0] = false;
+                    MouseUp[0] = true;
                     break;
                 case MouseButton.Right:
                     MouseHeld[1] = false;
+                    MouseUp[1] = true;
                     break;
                 case MouseButton.Middle:
                     MouseHeld[2] = false;
+                    MouseUp[1] = true;
                     break;
             }
         }
@@ -93,6 +97,7 @@ namespace Emotion.Input
             {
                 if (MousePressed[i]) MouseHeld[i] = MousePressed[i];
                 MousePressed[i] = false;
+                MouseUp[i] = false;
             }
 
             // Check if focus has returned and skip input loop if no focus.
@@ -155,6 +160,16 @@ namespace Emotion.Input
         public bool IsMouseKeyDown(MouseKeys key)
         {
             return MousePressed[(int) key];
+        }
+
+        /// <summary>
+        /// Returns whether the mouse key was let go.
+        /// </summary>
+        /// <param name="key">The mouse key to check.</param>
+        /// <returns>Whether the mouse key was let go.</returns>
+        public bool IsMouseKeyUp(MouseKeys key)
+        {
+            return MouseUp[(int) key];
         }
 
         /// <summary>

@@ -16,6 +16,7 @@ namespace Emotion.Debug
         Input,
         Renderer,
         SoundManager,
+        GL,
 
         // User
         Game,

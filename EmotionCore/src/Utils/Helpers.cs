@@ -33,8 +33,7 @@ namespace Emotion.Utils
             return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
                 (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
         }
-        
-        // todo: Remove
+
         /// <summary>
         /// Check for an OpenGL error.
         /// </summary>
