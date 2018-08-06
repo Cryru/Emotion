@@ -218,8 +218,8 @@ namespace Emotion.Graphics
                 // Get the UV rectangle. If none specified then the whole texture area is chosen.
                 if (textureArea == null)
                 {
-                    uvRect = new Rectangle(0, 0, 1, 1);
-                    textureMatrix = Matrix4.CreateScale(1, -1, 1);
+                    uvRect = new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
+                    textureMatrix = Matrix4.CreateOrthographicOffCenter(0, texture.Size.X * 2, texture.Size.Y * 2, 0, 0, 1);
                 }
                 else
                 {
@@ -257,27 +257,32 @@ namespace Emotion.Graphics
                 throw new Exception("Render limit of " + Size + " reached.");
             }
 
+            Vector2 nn =  texture == null ? Vector2.Zero : Vector2.TransformPosition(uvRect.Location, textureMatrix);
+            Vector2 pn = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), textureMatrix);
+            Vector2 np = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X, uvRect.Y + uvRect.Height), textureMatrix);
+            Vector2 pp =  texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), textureMatrix);
+
             // Set four vertices.
             _dataPointer->Vertex = Vector3.TransformPosition(location, vertexMatrix);
-            _dataPointer->UV = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X, uvRect.Y + uvRect.Height), textureMatrix);
+            _dataPointer->UV = nn;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X + size.X, location.Y, location.Z), vertexMatrix);
-            _dataPointer->UV = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), textureMatrix);
+            _dataPointer->UV = pn;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X + size.X, location.Y + size.Y, location.Z), vertexMatrix);
-            _dataPointer->UV = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), textureMatrix);
+            _dataPointer->UV = pp;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X, location.Y + size.Y, location.Z), vertexMatrix);
-            _dataPointer->UV = texture == null ? Vector2.Zero : Vector2.TransformPosition(uvRect.Location, textureMatrix);
+            _dataPointer->UV = np;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;

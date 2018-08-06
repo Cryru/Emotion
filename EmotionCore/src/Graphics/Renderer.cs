@@ -136,7 +136,7 @@ namespace Emotion.Graphics
 
         public void RenderString(string text, Vector3 position, Color color, Font font)
         {
-            Render(position, font.Atlas.Texture.Size, color, font.Atlas.Texture);
+            
         }
 
         public void Render(Rectangle bounds, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)

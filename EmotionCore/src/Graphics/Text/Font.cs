@@ -2,7 +2,7 @@
 
 #region Using
 
-using System;
+using System.Collections.Generic;
 using Emotion.IO;
 
 #endregion
@@ -11,17 +11,39 @@ namespace Emotion.Graphics.Text
 {
     public sealed class Font : Asset
     {
-        public Atlas Atlas { get; private set; }
+        private byte[] _fontBytes;
+        private Dictionary<int, Atlas> _atlasCache;
+
+        #region Asset API
 
         internal override void Create(byte[] data)
         {
-            Atlas = new Atlas(data, 12);
-
+            _fontBytes = data;
+            _atlasCache = new Dictionary<int, Atlas>();
         }
 
         internal override void Destroy()
         {
-            Atlas.Texture.Destroy();
+            foreach (KeyValuePair<int, Atlas> atlas in _atlasCache)
+            {
+                atlas.Value.Texture.Destroy();
+            }
+
+            _atlasCache.Clear();
         }
+
+        #endregion
+
+        #region Font API
+
+        public Atlas GetFontAtlas(int fontSize, int glyphs = 128)
+        {
+            // Cache the atlas if it isn't cached.
+            if (!_atlasCache.ContainsKey(fontSize)) _atlasCache[fontSize] = new Atlas(_fontBytes, fontSize, glyphs);
+
+            return _atlasCache[fontSize];
+        }
+
+        #endregion
     }
 }
