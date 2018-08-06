@@ -5,7 +5,7 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Emotion.Utils;
+using Soul;
 
 #endregion
 
@@ -124,12 +124,12 @@ namespace Emotion.Primitives
         /// <returns>Interpolated <see cref="Color" />.</returns>
         public static Color Lerp(Color value1, Color value2, float amount)
         {
-            amount = Soul.MathHelper.Clamp(amount, 0, 1);
+            amount = MathHelper.Clamp(amount, 0, 1);
             return new Color(
-                (byte)Soul.MathHelper.Lerp(value1.R, value2.R, amount),
-                (byte)Soul.MathHelper.Lerp(value1.G, value2.G, amount),
-                (byte)Soul.MathHelper.Lerp(value1.B, value2.B, amount),
-                (byte)Soul.MathHelper.Lerp(value1.A, value2.A, amount));
+                (byte) MathHelper.Lerp(value1.R, value2.R, amount),
+                (byte) MathHelper.Lerp(value1.G, value2.G, amount),
+                (byte) MathHelper.Lerp(value1.B, value2.B, amount),
+                (byte) MathHelper.Lerp(value1.A, value2.A, amount));
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Emotion.Primitives
         /// <returns>Multiplication result.</returns>
         public static Color Multiply(Color value, float scale)
         {
-            return new Color((byte)(value.R * scale), (byte)(value.G * scale), (byte)(value.B * scale), (byte)(value.A * scale));
+            return new Color((byte) (value.R * scale), (byte) (value.G * scale), (byte) (value.B * scale), (byte) (value.A * scale));
         }
 
 
@@ -154,7 +154,7 @@ namespace Emotion.Primitives
         /// <returns>A <see cref="Color" /> which contains premultiplied alpha data.</returns>
         public static Color FromNonPremultiplied(int r, int g, int b, int a)
         {
-            return new Color((byte)(r * a / 255), (byte)(g * a / 255), (byte)(b * a / 255), (byte)a);
+            return new Color((byte) (r * a / 255), (byte) (g * a / 255), (byte) (b * a / 255), (byte) a);
         }
 
         #endregion
@@ -188,26 +188,26 @@ namespace Emotion.Primitives
 
         public static Color operator +(Color c1, Color c2)
         {
-            return new Color((byte)Math.Min(c1.R + c2.R, 255),
-                (byte)Math.Min(c1.G + c2.G, 255),
-                (byte)Math.Min(c1.B + c2.B, 255),
-                (byte)Math.Min(c1.A + c2.A, 255));
+            return new Color((byte) Math.Min(c1.R + c2.R, 255),
+                (byte) Math.Min(c1.G + c2.G, 255),
+                (byte) Math.Min(c1.B + c2.B, 255),
+                (byte) Math.Min(c1.A + c2.A, 255));
         }
 
         public static Color operator -(Color c1, Color c2)
         {
-            return new Color((byte)Math.Max(c1.R - c2.R, 0),
-                (byte)Math.Max(c1.G - c2.G, 0),
-                (byte)Math.Max(c1.B - c2.B, 0),
-                (byte)Math.Max(c1.A - c2.A, 0));
+            return new Color((byte) Math.Max(c1.R - c2.R, 0),
+                (byte) Math.Max(c1.G - c2.G, 0),
+                (byte) Math.Max(c1.B - c2.B, 0),
+                (byte) Math.Max(c1.A - c2.A, 0));
         }
 
         public static Color operator *(Color c1, Color c2)
         {
-            return new Color((byte)(c1.R * c2.R / 255),
-                (byte)(c1.G * c2.G / 255),
-                (byte)(c1.B * c2.B / 255),
-                (byte)(c1.A * c2.A / 255));
+            return new Color((byte) (c1.R * c2.R / 255),
+                (byte) (c1.G * c2.G / 255),
+                (byte) (c1.B * c2.B / 255),
+                (byte) (c1.A * c2.A / 255));
         }
 
         public static Color operator *(Color c1, float f1)

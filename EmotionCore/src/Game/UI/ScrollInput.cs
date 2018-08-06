@@ -4,7 +4,7 @@
 
 using Emotion.GLES;
 using Emotion.Primitives;
-using Emotion.Utils;
+using Soul;
 
 #endregion
 
@@ -27,7 +27,7 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The current value of the input.
         /// </summary>
-        public int Value { get; set; } = 0;
+        public int Value { get; set; }
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace Emotion.Game.UI
             Selector.Active = Active;
 
             // Clamp value.
-            Value = (int) Soul.MathHelper.Clamp(Value, 0, 100);
+            Value = (int) MathHelper.Clamp(Value, 0, 100);
 
             // Draw bar.
             renderer.DrawRectangle(Bounds, BarColor, false);

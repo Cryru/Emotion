@@ -86,12 +86,11 @@ namespace Emotion.Game.UI
 
         public virtual void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
         {
-
         }
 
         #endregion
 
-        
+
         #region Debugging
 
         public override string ToString()

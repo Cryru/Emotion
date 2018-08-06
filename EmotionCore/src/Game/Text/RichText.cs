@@ -118,7 +118,7 @@ namespace Emotion.Game.Text
         public void DisplayText(string text, bool fullReset = true)
         {
             // Check if not setting to same text.
-            if(text == _rawText) return;
+            if (text == _rawText) return;
 
             // Set size if set to auto.
             if (SizeToFit)

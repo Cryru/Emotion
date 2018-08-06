@@ -16,6 +16,7 @@ namespace Emotion.Game.UI
         /// Whether the fade effect is complete.
         /// </summary>
         public bool Done { get; private set; } = true;
+
         /// <summary>
         /// The color of the fader.
         /// </summary>

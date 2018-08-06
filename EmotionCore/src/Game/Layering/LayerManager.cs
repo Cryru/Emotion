@@ -61,13 +61,9 @@ namespace Emotion.Game.Layering
             {
                 // If the window is not focused run the light update, otherwise run the full update.
                 if (!Context.Window.Focused)
-                {
                     layer.Value.LightUpdate(Context.FrameTime);
-                }
                 else
-                {
                     layer.Value.Update(Context.FrameTime);
-                }
             }
         }
 

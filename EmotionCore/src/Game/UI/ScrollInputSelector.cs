@@ -3,8 +3,6 @@
 #region Using
 
 using Emotion.GLES;
-using Emotion.Input;
-using Emotion.IO;
 using Emotion.Primitives;
 
 #endregion

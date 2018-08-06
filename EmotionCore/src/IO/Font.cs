@@ -147,7 +147,7 @@ namespace Emotion.IO
                 lineCalc.Y = (float) _face.Size.Metrics.Ascender.ToDouble() - minY;
 
                 // Determine whether to override total calc.
-                if (lineCalc.X > totalCalc.X) 
+                if (lineCalc.X > totalCalc.X)
                     totalCalc.X = lineCalc.X;
 
                 // Determine whether this is the first line, and if not add line spacing.
