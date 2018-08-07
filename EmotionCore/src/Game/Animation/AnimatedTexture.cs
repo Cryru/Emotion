@@ -11,7 +11,7 @@ using Emotion.Utils;
 
 namespace Emotion.Game.Animation
 {
-    public class AnimatedTexture
+    public sealed class AnimatedTexture
     {
         #region Properties
 

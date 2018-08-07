@@ -39,18 +39,21 @@ namespace Emotion.Sound
         /// <returns>The created sound layer which the manager will manage.</returns>
         public SoundLayer CreateLayer(string layerName, bool startNow = true, float volume = 1f)
         {
-            if (_layers.ContainsKey(layerName)) return GetLayer(layerName);
-
-            _layers.Add(layerName, new SoundLayer
+            lock (_layers)
             {
-                Volume = volume,
-                Paused = !startNow,
-                Name = layerName
-            });
+                if (_layers.ContainsKey(layerName)) return GetLayer(layerName);
 
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Created layer [" + layerName + "]");
+                _layers.Add(layerName, new SoundLayer
+                {
+                    Volume = volume,
+                    Paused = !startNow,
+                    Name = layerName
+                });
 
-            return GetLayer(layerName);
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Created layer [" + layerName + "]");
+
+                return GetLayer(layerName);
+            }
         }
 
         /// <summary>
@@ -60,7 +63,10 @@ namespace Emotion.Sound
         /// <returns>The specified layer.</returns>
         public SoundLayer GetLayer(string layerName)
         {
-            return !_layers.ContainsKey(layerName) ? null : _layers[layerName];
+            lock (_layers)
+            {
+                return !_layers.ContainsKey(layerName) ? null : _layers[layerName];
+            }
         }
 
         #endregion
@@ -75,12 +81,15 @@ namespace Emotion.Sound
         /// <returns>A sound source representing the file on the layer.</returns>
         public Source PlayOnLayer(string layerName, SoundFile file)
         {
-            Source newSource = new Source(file);
-            _layers[layerName].Source = newSource;
+            lock (_layers)
+            {
+                Source newSource = new Source(file);
+                _layers[layerName].Source = newSource;
 
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing [" + file.AssetName + "] on [" + _layers[layerName] + "]");
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing [" + file.AssetName + "] on [" + _layers[layerName] + "]");
 
-            return newSource;
+                return newSource;
+            }
         }
 
         /// <summary>
@@ -91,18 +100,21 @@ namespace Emotion.Sound
         /// <returns>A streaming sound source representing the file on the layer.</returns>
         public StreamingSource StreamOnLayer(string layerName, SoundFile[] files)
         {
-            StreamingSource newSource = new StreamingSource(files);
-            _layers[layerName].Source = newSource;
+            lock (_layers)
+            {
+                StreamingSource newSource = new StreamingSource(files);
+                _layers[layerName].Source = newSource;
 
 #if DEBUG
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing " + files.Length + " files on [" + _layers[layerName] + "]");
-            foreach (SoundFile file in files)
-            {
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, " |- " + file.AssetName);
-            }
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing " + files.Length + " files on [" + _layers[layerName] + "]");
+                foreach (SoundFile file in files)
+                {
+                    Debugger.Log(MessageType.Info, MessageSource.SoundManager, " |- " + file.AssetName);
+                }
 #endif
 
-            return newSource;
+                return newSource;
+            }
         }
 
         /// <summary>
@@ -113,17 +125,23 @@ namespace Emotion.Sound
         /// <returns>The source running on the specified layer.</returns>
         public SourceBase GetLayerSource(string layerName)
         {
-            SoundLayer layer = GetLayer(layerName);
-            return layer?.Source;
+            lock (_layers)
+            {
+                SoundLayer layer = GetLayer(layerName);
+                return layer?.Source;
+            }
         }
 
         #endregion
 
         internal void Update()
         {
-            foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+            lock (_layers)
             {
-                layer.Value.Update(Context.FrameTime, Context.Window.Focused, Context.Settings);
+                foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+                {
+                    layer.Value.Update(Context.FrameTime, Context.Window.Focused, Context.Settings);
+                }
             }
         }
     }

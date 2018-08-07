@@ -94,7 +94,27 @@ namespace Emotion.Game.UI
             foreach (Control c in Controls)
             {
                 // Check if active.
-                if (!c.Active) continue;
+                if (!c.Active)
+                {
+                    // Check if it was previously, which means it was deactivated.
+                    if (c.WasActive)
+                    {
+                        Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was deactivated - " + c);
+                        c.WasActive = false;
+                        c.OnDeactivate();
+                    }
+
+                    // Don't update.
+                    continue;
+                }
+
+                // Check if it was previously inactive, which means it was activated.
+                if (!c.WasActive)
+                {
+                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was activated - " + c);
+                    c.WasActive = true;
+                    c.OnActivate();
+                }
 
                 // Check if the mouse position has changed.
                 if (_lastMousePosition != Vector2.Zero && _lastMousePosition != mousePosition) c.MouseMoved(_lastMousePosition, mousePosition);

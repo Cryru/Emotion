@@ -49,6 +49,11 @@ namespace Emotion.Game.UI
         /// </summary>
         public bool[] Held { get; internal set; } = new bool[Enum.GetNames(typeof(MouseKeys)).Length];
 
+        /// <summary>
+        /// Whether the control was active. Used for active and deactivate events.
+        /// </summary>
+        internal bool WasActive = true;
+
         #endregion
 
         protected Control(Controller controller, Rectangle bounds, int priority) : base(bounds)
@@ -88,8 +93,17 @@ namespace Emotion.Game.UI
         {
         }
 
-        #endregion
+        public virtual void OnActivate()
+        {
 
+        }
+
+        public virtual void OnDeactivate()
+        {
+
+        }
+
+        #endregion
 
         #region Debugging
 
