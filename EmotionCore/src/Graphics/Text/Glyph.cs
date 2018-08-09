@@ -21,8 +21,10 @@ namespace Emotion.Graphics.Text
         /// Offsets for renderings.
         /// </summary>
 
-        public int XOffset;
-        public int YOffset;
-        public int Advance;
+        public float XOffset;
+        public float YOffset;
+        public float Advance;
+        public float YBearing;
+        public float MinX;
     }
 }

@@ -2,6 +2,7 @@
 
 #region Using
 
+using System.Threading;
 using Emotion;
 using Emotion.Engine;
 using Emotion.Game.Layering;
@@ -30,7 +31,7 @@ namespace EmotionSandbox.Examples.Rendering
 
         public override void Load()
         {
-            Font a = Context.AssetLoader.Get<Font>("ExampleFont.ttf");
+            Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20);
         }
 
         public override void Update(float fr)
@@ -41,7 +42,7 @@ namespace EmotionSandbox.Examples.Rendering
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
-            renderer.RenderString("Hello", new Vector3(0, 0, 0), Color.White, Context.AssetLoader.Get<Font>("ExampleFont.ttf"));
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 10, 0), Color.White);
         }
 
         public override void Unload()

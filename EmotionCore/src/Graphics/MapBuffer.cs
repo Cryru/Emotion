@@ -219,7 +219,6 @@ namespace Emotion.Graphics
                 if (textureArea == null)
                 {
                     uvRect = new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
-                    textureMatrix = Matrix4.CreateOrthographicOffCenter(0, texture.Size.X * 2, texture.Size.Y * 2, 0, 0, 1);
                 }
                 else
                 {

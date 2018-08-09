@@ -2,12 +2,11 @@
 
 #region Using
 
-using System;
 using System.IO;
 using Emotion.Engine;
-using Emotion.Graphics.Legacy;
 using Emotion.IO;
 using Emotion.Primitives;
+using Emotion.Utils;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
 
@@ -15,7 +14,7 @@ using OpenTK.Graphics.ES30;
 
 namespace Emotion.Graphics.GLES
 {
-    public class Texture : Asset, IGLObject, ITexture
+    public class Texture : Asset, IGLObject
     {
         #region Properties
 
@@ -38,21 +37,56 @@ namespace Emotion.Graphics.GLES
 
         #region Initialization
 
+        /// <summary>
+        /// Creates an empty texture.
+        /// </summary>
         public Texture()
         {
             Pointer = GL.GenTexture();
             Size = new Vector2();
         }
 
+        /// <summary>
+        /// Creates a texture from an image read as bytes using FreeImage.
+        /// </summary>
+        /// <param name="data">The image read as bytes.</param>
         public Texture(byte[] data)
         {
             Create(data);
         }
 
-        public Texture(byte[] data, int width, int height, TextureComponentCount componentCount, PixelFormat format)
+        /// <summary>
+        /// Creates a custom texture from bytes and other data.
+        /// </summary>
+        /// <param name="data">The bytes to upload to OpenGL.</param>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="componentCount">The texture's component count.</param>
+        /// <param name="format">The format of the bytes.</param>
+        /// <param name="textureMatrix">An additional matrix to multiply the texture matrix by.</param>
+        public Texture(byte[] data, int width, int height, TextureComponentCount componentCount, PixelFormat format, Matrix4? textureMatrix = null)
         {
+            Name = "Custom Texture";
             Size = new Vector2(width, height);
+            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
+            if (textureMatrix != null) TextureMatrix *= (Matrix4) textureMatrix;
             CreateFromBytes(data, componentCount, format);
+        }
+
+        /// <summary>
+        /// Create a texture for an Atlas object. Uploads everything to the red channel and shifts it to the alpha channel. The
+        /// texture matrix also has a reverse Y coordinate.
+        /// </summary>
+        /// <param name="data">The atlas bytes.</param>
+        /// <param name="width">The width of the atlas.</param>
+        /// <param name="height">The height of the atlas.</param>
+        /// <param name="isAtlas">Placeholder to differentiate this constructor.</param>
+        public Texture(byte[] data, int width, int height, bool isAtlas)
+        {
+            Name = "Unmanaged Atlas Texture";
+            Size = new Vector2(width, height);
+            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4.CreateScale(1, -1, 1);
+            CreateForGlyph(data);
         }
 
         #endregion
@@ -129,7 +163,7 @@ namespace Emotion.Graphics.GLES
                 // Upload the texture.
                 GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(freeImageBitmap));
 
-                Utils.Helpers.CheckError("uploading texture");
+                Helpers.CheckError("uploading texture");
 
                 // Cleanup FreeImage object.
                 FreeImage.Unload(freeImageBitmap);
@@ -157,7 +191,6 @@ namespace Emotion.Graphics.GLES
         private void CreateFromBytes(byte[] data, TextureComponentCount componentCount, PixelFormat format)
         {
             Pointer = GL.GenTexture();
-            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
 
             // Bind the texture.
             Bind();
@@ -169,7 +202,34 @@ namespace Emotion.Graphics.GLES
             // Upload the texture.
             GL.TexImage2D(TextureTarget2d.Texture2D, 0, componentCount, (int) Size.X, (int) Size.Y, 0, format, PixelType.UnsignedByte, data);
 
-            Utils.Helpers.CheckError("uploading texture");
+            Helpers.CheckError("uploading texture");
+        }
+
+        /// <summary>
+        /// Creates a texture for a glyph.
+        /// </summary>
+        /// <param name="data"></param>
+        private void CreateForGlyph(byte[] data)
+        {
+            Pointer = GL.GenTexture();
+
+            // Bind the texture.
+            Bind();
+
+            // Set scaling to pixel perfect.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+
+            // Set the red channel to the alpha channel and set all others to 1.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int) All.One);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int) All.One);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int) All.One);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Red);
+
+            // Upload the texture.
+            GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
+
+            Helpers.CheckError("uploading texture");
         }
 
         #endregion

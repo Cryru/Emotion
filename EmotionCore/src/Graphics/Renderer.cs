@@ -9,12 +9,14 @@ using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
+using SharpFont;
+using Glyph = Emotion.Graphics.Text.Glyph;
 
 #endregion
 
 namespace Emotion.Graphics
 {
-    public sealed unsafe class Renderer : ContextObject
+    public sealed class Renderer : ContextObject
     {
         #region Render State
 
@@ -34,7 +36,8 @@ namespace Emotion.Graphics
         private MapBuffer _outlineBuffer;
 
         /// <summary>
-        /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being ushort.
+        /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being
+        /// ushort.
         /// </summary>
         public static readonly int MaxRenderable = ushort.MaxValue;
 
@@ -113,7 +116,7 @@ namespace Emotion.Graphics
         public void RenderOutlineFlush()
         {
             if (!_outlineBuffer.Mapping || !_outlineBuffer.AnythingMapped) return;
-            _outlineBuffer.Flush((int)PrimitiveType.LineLoop);
+            _outlineBuffer.Flush((int) PrimitiveType.LineLoop);
             _outlineBuffer.Start();
         }
 
@@ -131,12 +134,29 @@ namespace Emotion.Graphics
 
         public void Render(Label renderable)
         {
-            RenderString(renderable.Text, Vector3.Zero, renderable.Color, renderable.Font);
+            RenderString(renderable.Font, renderable.TextSize, renderable.Text, Vector3.Zero, renderable.Color);
         }
 
-        public void RenderString(string text, Vector3 position, Color color, Font font)
+        public void RenderString(Font font, int textSize, string text, Vector3 position, Color color)
         {
-            
+            Rectangle[] uvs = new Rectangle[text.Length];
+            Atlas atlas = font.GetFontAtlas(textSize);
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (i > 0)
+                {
+                    FTVector26Dot6 kerning = atlas.Face.GetKerning(text[i - 1], text[i], KerningMode.Unfitted);
+                    position.X += (float) kerning.X.ToDouble();
+                }
+
+                Glyph g = atlas.Glyphs[text[i]];
+
+                Vector3 renderPos = new Vector3(position.X + g.MinX, position.Y + g.YBearing, 0);
+                uvs[i] = new Rectangle(g.X, g.Y, g.Width, g.Height);
+                Render(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
+                position.X += g.Advance;
+            }
         }
 
         public void Render(Rectangle bounds, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)

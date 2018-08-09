@@ -3,9 +3,10 @@
 #region Using
 
 using System;
+using System.Threading;
 using Emotion.Engine;
 using Emotion.Graphics.GLES;
-using OpenTK.Graphics.ES30;
+using Emotion.Primitives;
 using SharpFont;
 
 #endregion
@@ -16,6 +17,7 @@ namespace Emotion.Graphics.Text
     {
         public Glyph[] Glyphs { get; private set; }
         public Texture Texture { get; private set; }
+        public Face Face { get; private set; }
 
         /// <summary>
         /// Create a new font atlas.
@@ -68,11 +70,14 @@ namespace Emotion.Graphics.Text
                 {
                     X = penX,
                     Y = penY,
-                    Width = penX + bitmap.Width,
-                    Height = penY + bitmap.Rows,
+                    Width = bitmap.Width,
+                    Height = bitmap.Rows,
+
                     XOffset = face.Glyph.BitmapLeft,
                     YOffset = face.Glyph.BitmapTop,
-                    Advance = face.Glyph.Advance.X.ToInt32()
+                    MinX = (float) face.Glyph.Metrics.HorizontalBearingX.ToDouble(),
+                    Advance = (float) face.Glyph.Metrics.HorizontalAdvance.ToDouble(),
+                    YBearing = (float) (face.Size.Metrics.Ascender.ToDouble() - face.Glyph.Metrics.HorizontalBearingY.ToDouble())
                 };
 
                 // Increment pen. Leave one pixel space.
@@ -80,12 +85,25 @@ namespace Emotion.Graphics.Text
                 bitmap.Dispose();
             }
 
-            // Cleanup.
-            library.Dispose();
-            face.Dispose();
+            // Assign the face.
+            Face = face;
 
             // Create texture.
-            ThreadManager.ExecuteGLThread(() => { Texture = new Texture(pixels, texWidth, texWidth, TextureComponentCount.R8, PixelFormat.Red); });
+            ThreadManager.ExecuteGLThread(() => { Texture = new Texture(pixels, texWidth, texWidth, true); });
         }
+
+        #region Text API
+
+        public Vector2 MeasureString(string input)
+        {
+            return Vector2.Zero;
+        }
+
+        public float GetNewLineSpacing()
+        {
+            return 0f;
+        }
+
+        #endregion
     }
 }
