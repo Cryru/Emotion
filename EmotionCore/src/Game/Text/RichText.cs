@@ -280,7 +280,7 @@ namespace Emotion.Game.Text
                     if (CharactersToNotRender.Contains(_wrapCache[line][c]))
                         _drawingSession.Push(glyphXOffset);
                     else
-                        AddGlyph(line, c, glyphXOffset);
+                        AddGlyph(line, c, glyphXOffset, characterCounter);
 
                     // Move the rendered threshold.
                     _scrollRenderedTo++;
@@ -302,7 +302,8 @@ namespace Emotion.Game.Text
         /// <param name="line">The line in the wrapped text which the glyph is on.</param>
         /// <param name="c">The id of the character within the specified line.</param>
         /// <param name="glyphXOffset">The X offset of the glyph.</param>
-        protected virtual void AddGlyph(int line, int c, int glyphXOffset)
+        /// <param name="index">The id of the character within the total text.</param>
+        protected virtual void AddGlyph(int line, int c, int glyphXOffset, int index)
         {
             // Get all active effects for the current index.
             IEnumerable<TextEffect> effects = GetEffectsAt(_scrollRenderedTo);

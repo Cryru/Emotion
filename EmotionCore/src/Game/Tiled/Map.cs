@@ -134,42 +134,12 @@ namespace Emotion.Game.Tiled
                     if (tId == 0) continue;
 
                     // Find which tileset the tId belongs in.
-                    int tsId = 0;
-                    int tsOffset = tId;
-                    for (int i = 0; i < TiledMap.Tilesets.Count; i++)
-                    {
-                        // Check if the id we need is beyond the current tileset.
-                        if (tId < TiledMap.Tilesets[i].FirstGid) break;
-
-                        tsId = i;
-                    }
-
-                    if (tsId > 0) tsOffset -= TiledMap.Tilesets[tsId].FirstGid - 1;
-                    tsOffset -= 1;
+                    Rectangle tiRect = GetUvFromTileImageId(tId, out int tsId);
                     TmxTileset ts = TiledMap.Tilesets[tsId];
-
-                    // Check if the current tileset has animated tiles.
-                    if (ts.Tiles.Count > 0)
-                        foreach (AnimatedTile cachedTile in _animatedTiles)
-                        {
-                            // In that case set the tsOffset to the current frame.
-                            if (cachedTile.Id == tsOffset) tsOffset = cachedTile.FrameId;
-                        }
-
-                    // Get tile image properties.
-                    int tiColumn = tsOffset % (ts.Columns ?? 0);
-                    int tiRow = (int) (tsOffset / (double) (ts.Columns ?? 0));
-                    Rectangle tiRect = new Rectangle(ts.TileWidth * tiColumn, ts.TileHeight * tiRow, ts.TileWidth, ts.TileHeight);
 
                     // Get tile properties.
                     int tX = t % TiledMap.Width * TiledMap.TileWidth;
-                    int tY = (int) ((float) Math.Floor(t / (double) TiledMap.Width) * TiledMap.TileHeight);
-
-                    // Add margins and spacing.
-                    tiRect.X += ts.Margin;
-                    tiRect.Y += ts.Margin;
-                    tiRect.X += ts.Spacing * tiColumn;
-                    tiRect.Y += ts.Spacing * tiRow;
+                    int tY = (int)((float)Math.Floor(t / (double)TiledMap.Width) * TiledMap.TileHeight);
 
                     // Get the location of the tile.
                     Rectangle tRect = new Rectangle(tX, tY, ts.TileWidth, ts.TileHeight);
@@ -188,7 +158,7 @@ namespace Emotion.Game.Tiled
 
                     // Check if visible rectangle exists.
                     if (VisibleRectangle == Rectangle.Empty || VisibleRectangle.Intersects(tRect))
-                        renderer.DrawTexture(_tilesets[tsId], tRect, tiRect, new Color(255, 255, 255, (int) (layer.Opacity * 255)));
+                        renderer.DrawTexture(_tilesets[tsId], tRect, tiRect, new Color(255, 255, 255, (int)(layer.Opacity * 255)));
                 }
             }
         }
@@ -269,6 +239,45 @@ namespace Emotion.Game.Tiled
             return tsOffset;
         }
 
+        public Rectangle GetUvFromTileImageId(int tId, out int tsId)
+        {
+            // Find which tileset the tId belongs in.
+            tsId = 0;
+            int tsOffset = tId;
+            for (int i = 0; i < TiledMap.Tilesets.Count; i++)
+            {
+                // Check if the id we need is beyond the current tileset.
+                if (tId < TiledMap.Tilesets[i].FirstGid) break;
+
+                tsId = i;
+            }
+
+            if (tsId > 0) tsOffset -= TiledMap.Tilesets[tsId].FirstGid - 1;
+            tsOffset -= 1;
+            TmxTileset ts = TiledMap.Tilesets[tsId];
+
+            // Check if the current tileset has animated tiles.
+            if (ts.Tiles.Count > 0)
+                foreach (AnimatedTile cachedTile in _animatedTiles)
+                {
+                    // In that case set the tsOffset to the current frame.
+                    if (cachedTile.Id == tsOffset) tsOffset = cachedTile.FrameId;
+                }
+
+            // Get tile image properties.
+            int tiColumn = tsOffset % (ts.Columns ?? 0);
+            int tiRow = (int)(tsOffset / (double)(ts.Columns ?? 0));
+            Rectangle tiRect = new Rectangle(ts.TileWidth * tiColumn, ts.TileHeight * tiRow, ts.TileWidth, ts.TileHeight);
+
+            // Add margins and spacing.
+            tiRect.X += ts.Margin;
+            tiRect.Y += ts.Margin;
+            tiRect.X += ts.Spacing * tiColumn;
+            tiRect.Y += ts.Spacing * tiRow;
+
+            return tiRect;
+        }
+
         #endregion
 
         #region Bounds Functions
@@ -281,12 +290,14 @@ namespace Emotion.Game.Tiled
         /// <returns>The pixel bounds within the map rendering of the tile..</returns>
         public Rectangle GetTileBoundsFromId(int coordinate, int layer = 0)
         {
+            Vector2 scale = new Vector2(Bounds.Width / (TiledMap.TileWidth * TiledMap.Width), Bounds.Height / (TiledMap.TileHeight * TiledMap.Height));
+
             // Check if out of range, and if not return the tile location from the id.
             return new Rectangle(
-                Bounds.X + TiledMap.Layers[layer].Tiles[coordinate].X * TiledMap.TileWidth,
-                Bounds.Y + TiledMap.Layers[layer].Tiles[coordinate].Y * TiledMap.TileHeight,
-                TiledMap.TileWidth,
-                TiledMap.TileHeight
+                Bounds.X + TiledMap.Layers[layer].Tiles[coordinate].X * (TiledMap.TileWidth * scale.X),
+                Bounds.Y + TiledMap.Layers[layer].Tiles[coordinate].Y * (TiledMap.TileHeight * scale.Y),
+                TiledMap.TileWidth * scale.X,
+                TiledMap.TileHeight * scale.Y
             );
         }
 
@@ -297,8 +308,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
         public int GetTileIdFromBounds(Vector2 location)
         {
-            int left = (int) Math.Max(0, location.X / 32);
-            int top = (int) Math.Max(0, location.Y / 32);
+            int left = (int)Math.Max(0, location.X / 32);
+            int top = (int)Math.Max(0, location.Y / 32);
 
             return left + top * TiledMap.Width;
         }
