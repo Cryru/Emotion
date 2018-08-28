@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Emotion.IO;
-using Emotion.Primitives;
 
 #endregion
 

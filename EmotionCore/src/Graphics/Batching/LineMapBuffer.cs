@@ -31,14 +31,14 @@ namespace Emotion.Graphics.Batching
             uint offset = 0;
             for (int i = 0; i < indices.Length; i += 8)
             {
-                indices[i] = (ushort)(offset + 0);
-                indices[i + 1] = (ushort)(offset + 1);
-                indices[i + 2] = (ushort)(offset + 1);
-                indices[i + 3] = (ushort)(offset + 2);
-                indices[i + 4] = (ushort)(offset + 2);
-                indices[i + 5] = (ushort)(offset + 3);
-                indices[i + 6] = (ushort)(offset + 3);
-                indices[i + 7] = (ushort)(offset + 0);
+                indices[i] = (ushort) (offset + 0);
+                indices[i + 1] = (ushort) (offset + 1);
+                indices[i + 2] = (ushort) (offset + 1);
+                indices[i + 3] = (ushort) (offset + 2);
+                indices[i + 4] = (ushort) (offset + 2);
+                indices[i + 5] = (ushort) (offset + 3);
+                indices[i + 6] = (ushort) (offset + 3);
+                indices[i + 7] = (ushort) (offset + 0);
 
                 offset += 4;
             }
@@ -50,7 +50,6 @@ namespace Emotion.Graphics.Batching
 
         public LineMapBuffer(int size) : base(size)
         {
-
         }
 
         /// <summary>
@@ -92,7 +91,7 @@ namespace Emotion.Graphics.Batching
 
             _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X, location.Y + size.Y, location.Z), vertexMatrix);
             _dataPointer->Color = c;
-                        _dataPointer->Tid = -1;
+            _dataPointer->Tid = -1;
             _dataPointer->UV = new Vector2(0, 0);
             _dataPointer++;
 
@@ -116,7 +115,7 @@ namespace Emotion.Graphics.Batching
             // Sync shader.
             shader?.Bind();
             if (bufferMatrix != null)
-                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4)bufferMatrix);
+                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4) bufferMatrix);
             else
                 ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", Matrix4.Identity);
             Helpers.CheckError("map buffer - shader preparation");

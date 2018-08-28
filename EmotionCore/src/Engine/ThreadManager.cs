@@ -31,10 +31,7 @@ namespace Emotion.Engine
 
             lock (_queue)
             {
-                while (_queue.Count > 0)
-                {
-                    _queue.Dequeue()();
-                }
+                while (_queue.Count > 0) _queue.Dequeue()();
             }
         }
 

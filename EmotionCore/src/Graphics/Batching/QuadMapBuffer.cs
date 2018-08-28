@@ -41,12 +41,12 @@ namespace Emotion.Graphics.Batching
             uint offset = 0;
             for (int i = 0; i < indices.Length; i += 6)
             {
-                indices[i] = (ushort)(offset + 0);
-                indices[i + 1] = (ushort)(offset + 1);
-                indices[i + 2] = (ushort)(offset + 2);
-                indices[i + 3] = (ushort)(offset + 2);
-                indices[i + 4] = (ushort)(offset + 3);
-                indices[i + 5] = (ushort)(offset + 0);
+                indices[i] = (ushort) (offset + 0);
+                indices[i + 1] = (ushort) (offset + 1);
+                indices[i + 2] = (ushort) (offset + 2);
+                indices[i + 3] = (ushort) (offset + 2);
+                indices[i + 4] = (ushort) (offset + 3);
+                indices[i + 5] = (ushort) (offset + 0);
 
                 offset += 4;
             }
@@ -76,7 +76,7 @@ namespace Emotion.Graphics.Batching
             Start();
         }
 
-                /// <summary>
+        /// <summary>
         /// Map a part of the buffer as a quad.
         /// </summary>
         /// <param name="location">The location of the vertices.</param>
@@ -87,8 +87,8 @@ namespace Emotion.Graphics.Batching
         /// <param name="vertMatrix">The matrix to multiply the vertices by.</param>
         public void Add(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
         {
-           // Convert the color to an int.
-            uint c = ((uint)color.A << 24) | ((uint)color.B << 16) | ((uint)color.G << 8) | color.R;
+            // Convert the color to an int.
+            uint c = ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
 
             // Map texture to texture list.
             int tid = -1;
@@ -105,7 +105,7 @@ namespace Emotion.Graphics.Batching
                 if (textureArea == null)
                     uvRect = new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
                 else
-                    uvRect = (Rectangle)textureArea;
+                    uvRect = (Rectangle) textureArea;
 
                 // Check if the texture of the renderable is loaded into the list of this buffer.
                 for (int i = 0; i < _textureList.Count; i++)
@@ -187,7 +187,7 @@ namespace Emotion.Graphics.Batching
             // Sync shader.
             shader?.Bind();
             if (bufferMatrix != null)
-                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4)bufferMatrix);
+                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4) bufferMatrix);
             else
                 ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", Matrix4.Identity);
             Helpers.CheckError("map buffer - shader preparation");

@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Emotion.Engine;
-using Emotion.Game.Camera;
-using Emotion.GLES;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Utils;
@@ -219,8 +217,8 @@ namespace Emotion.Debug
             Vector2 mouseLocation = input.GetMousePosition();
 
             Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
-            mouseBounds.X = (int)mouseLocation.X - mouseBounds.Width / 2;
-            mouseBounds.Y = (int)mouseLocation.Y - mouseBounds.Height / 2;
+            mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
+            mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
 
             renderer.RenderOutline(mouseBounds, Color.Pink);
         }

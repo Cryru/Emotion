@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion.Engine;
-using Emotion.GLES;
 using Emotion.Graphics;
 
 #endregion

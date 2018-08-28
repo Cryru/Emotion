@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine;
@@ -92,16 +91,16 @@ namespace Emotion.Graphics.Batching
 
                 // todo: Move VAO creation to inheritors of the MapBuffer.
                 GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
-                GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+                GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
                 GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
-                GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "UV"));
+                GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
 
                 GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
-                GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Tid"));
+                GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
 
                 GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
-                GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Color"));
+                GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 
                 _vbo.Unbind();
                 _vao.Unbind();
@@ -132,7 +131,7 @@ namespace Emotion.Graphics.Batching
 
             Helpers.CheckError("map buffer - before start");
             _vbo.Bind();
-            _dataPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
+            _dataPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
             Helpers.CheckError("map buffer - start");
         }
 

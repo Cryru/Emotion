@@ -4,11 +4,10 @@
 
 using Emotion.Engine;
 using Emotion.Graphics.Legacy;
+using Emotion.Primitives;
 using Emotion.Utils;
-
 using OpenTK.Graphics.ES30;
 using SharpFont;
-using Emotion.Primitives;
 
 #endregion
 

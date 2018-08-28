@@ -114,6 +114,7 @@ namespace Emotion.Graphics
             {
                 r.Draw(this);
             }
+
             _renderableQueue.Clear();
         }
 

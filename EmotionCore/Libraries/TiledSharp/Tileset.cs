@@ -1,10 +1,12 @@
-/* Distributed as part of TiledSharp, Copyright 2012 Marshall Ward
- * Licensed under the Apache License, Version 2.0
- * http://www.apache.org/licenses/LICENSE-2.0 */
-using System;
+// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Xml.Linq;
+
+#endregion
 
 namespace TiledSharp
 {
@@ -13,24 +15,26 @@ namespace TiledSharp
 
     public class TmxTileset : TmxDocument, ITmxElement
     {
-        public int FirstGid {get; private set;}
-        public string Name {get; private set;}
-        public int TileWidth {get; private set;}
-        public int TileHeight {get; private set;}
-        public int Spacing {get; private set;}
-        public int Margin {get; private set;}
-        public int? Columns {get; private set;}
-        public int? TileCount {get; private set;}
+        public int FirstGid { get; private set; }
+        public string Name { get; private set; }
+        public int TileWidth { get; private set; }
+        public int TileHeight { get; private set; }
+        public int Spacing { get; private set; }
+        public int Margin { get; private set; }
+        public int? Columns { get; private set; }
+        public int? TileCount { get; private set; }
 
-        public Collection<TmxTilesetTile> Tiles {get; private set;}
-        public TmxTileOffset TileOffset {get; private set;}
-        public PropertyDict Properties {get; private set;}
-        public TmxImage Image {get; private set;}
-        public TmxList<TmxTerrain> Terrains {get; private set;}
+        public Collection<TmxTilesetTile> Tiles { get; private set; }
+        public TmxTileOffset TileOffset { get; private set; }
+        public PropertyDict Properties { get; private set; }
+        public TmxImage Image { get; private set; }
+        public TmxList<TmxTerrain> Terrains { get; private set; }
 
         // TSX file constructor
         public TmxTileset(XContainer xDoc, string tmxDir) :
-            this(xDoc.Element("tileset"), tmxDir) { }
+            this(xDoc.Element("tileset"), tmxDir)
+        {
+        }
 
         // TMX tileset element constructor
         public TmxTileset(XElement xTileset, string tmxDir = "")
@@ -80,13 +84,15 @@ namespace TiledSharp
 
                 Terrains = new TmxList<TmxTerrain>();
                 var xTerrainType = xTileset.Element("terraintypes");
-                if (xTerrainType != null) {
+                if (xTerrainType != null)
                     foreach (var e in xTerrainType.Elements("terrain"))
+                    {
                         Terrains.Add(new TmxTerrain(e));
-                }
+                    }
 
                 Tiles = new Collection<TmxTilesetTile>();
-                foreach (var xTile in xTileset.Elements("tile")) {
+                foreach (var xTile in xTileset.Elements("tile"))
+                {
                     var tile = new TmxTilesetTile(xTile, Terrains, tmxDir);
                     Tiles.Add(tile);
                 }
@@ -98,75 +104,84 @@ namespace TiledSharp
 
     public class TmxTileOffset
     {
-        public int X {get; private set;}
-        public int Y {get; private set;}
+        public int X { get; private set; }
+        public int Y { get; private set; }
 
         public TmxTileOffset(XElement xTileOffset)
         {
-            if (xTileOffset == null) {
+            if (xTileOffset == null)
+            {
                 X = 0;
                 Y = 0;
-            } else {
-                X = (int)xTileOffset.Attribute("x");
-                Y = (int)xTileOffset.Attribute("y");
+            }
+            else
+            {
+                X = (int) xTileOffset.Attribute("x");
+                Y = (int) xTileOffset.Attribute("y");
             }
         }
     }
 
     public class TmxTerrain : ITmxElement
     {
-        public string Name {get; private set;}
-        public int Tile {get; private set;}
+        public string Name { get; private set; }
+        public int Tile { get; private set; }
 
-        public PropertyDict Properties {get; private set;}
+        public PropertyDict Properties { get; private set; }
 
         public TmxTerrain(XElement xTerrain)
         {
-            Name = (string)xTerrain.Attribute("name");
-            Tile = (int)xTerrain.Attribute("tile");
+            Name = (string) xTerrain.Attribute("name");
+            Tile = (int) xTerrain.Attribute("tile");
             Properties = new PropertyDict(xTerrain.Element("properties"));
         }
     }
 
     public class TmxTilesetTile
     {
-        public int Id {get; private set;}
-        public Collection<TmxTerrain> TerrainEdges {get; private set;}
-        public double Probability {get; private set;}
+        public int Id { get; private set; }
+        public Collection<TmxTerrain> TerrainEdges { get; private set; }
+        public double Probability { get; private set; }
 
-        public PropertyDict Properties {get; private set;}
-        public TmxImage Image {get; private set;}
-        public TmxList<TmxObjectGroup> ObjectGroups {get; private set;}
-        public Collection<TmxAnimationFrame> AnimationFrames {get; private set;}
+        public PropertyDict Properties { get; private set; }
+        public TmxImage Image { get; private set; }
+        public TmxList<TmxObjectGroup> ObjectGroups { get; private set; }
+        public Collection<TmxAnimationFrame> AnimationFrames { get; private set; }
 
         // Human-readable aliases to the Terrain markers
-        public TmxTerrain TopLeft {
-            get { return TerrainEdges[0]; }
+        public TmxTerrain TopLeft
+        {
+            get => TerrainEdges[0];
         }
 
-        public TmxTerrain TopRight {
-            get { return TerrainEdges[1]; }
+        public TmxTerrain TopRight
+        {
+            get => TerrainEdges[1];
         }
 
-        public TmxTerrain BottomLeft {
-            get { return TerrainEdges[2]; }
+        public TmxTerrain BottomLeft
+        {
+            get => TerrainEdges[2];
         }
-        public TmxTerrain BottomRight {
-            get { return TerrainEdges[3]; }
+
+        public TmxTerrain BottomRight
+        {
+            get => TerrainEdges[3];
         }
 
         public TmxTilesetTile(XElement xTile, TmxList<TmxTerrain> Terrains,
-                       string tmxDir = "")
+            string tmxDir = "")
         {
-            Id = (int)xTile.Attribute("id");
+            Id = (int) xTile.Attribute("id");
 
             TerrainEdges = new Collection<TmxTerrain>();
 
             int result;
             TmxTerrain edge;
 
-            var strTerrain = (string)xTile.Attribute("terrain") ?? ",,,";
-            foreach (var v in strTerrain.Split(',')) {
+            var strTerrain = (string) xTile.Attribute("terrain") ?? ",,,";
+            foreach (var v in strTerrain.Split(','))
+            {
                 var success = int.TryParse(v, out result);
                 if (success)
                     edge = Terrains[result];
@@ -177,18 +192,21 @@ namespace TiledSharp
                 // TODO: Assert that TerrainEdges length is 4
             }
 
-            Probability = (double?)xTile.Attribute("probability") ?? 1.0;
+            Probability = (double?) xTile.Attribute("probability") ?? 1.0;
             Image = new TmxImage(xTile.Element("image"), tmxDir);
 
             ObjectGroups = new TmxList<TmxObjectGroup>();
             foreach (var e in xTile.Elements("objectgroup"))
+            {
                 ObjectGroups.Add(new TmxObjectGroup(e));
+            }
 
             AnimationFrames = new Collection<TmxAnimationFrame>();
-            if (xTile.Element("animation") != null) {
+            if (xTile.Element("animation") != null)
                 foreach (var e in xTile.Element("animation").Elements("frame"))
+                {
                     AnimationFrames.Add(new TmxAnimationFrame(e));
-            }
+                }
 
             Properties = new PropertyDict(xTile.Element("properties"));
         }
@@ -196,13 +214,13 @@ namespace TiledSharp
 
     public class TmxAnimationFrame
     {
-        public int Id {get; private set;}
-        public int Duration {get; private set;}
+        public int Id { get; private set; }
+        public int Duration { get; private set; }
 
         public TmxAnimationFrame(XElement xFrame)
         {
-            Id = (int)xFrame.Attribute("tileid");
-            Duration = (int)xFrame.Attribute("duration");
+            Id = (int) xFrame.Attribute("tileid");
+            Duration = (int) xFrame.Attribute("duration");
         }
     }
 }

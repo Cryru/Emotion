@@ -68,7 +68,10 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         /// <param name="fragmentShader">The program's fragment shader.</param>
         /// <param name="vertexShader">The program's vertex shader.</param>
-        /// <param name="context">The Emotion context which created this shader. Optional, will be used to update some shader uniforms.</param>
+        /// <param name="context">
+        /// The Emotion context which created this shader. Optional, will be used to update some shader
+        /// uniforms.
+        /// </param>
         public ShaderProgram(Shader vertexShader, Shader fragmentShader, Context context = null)
         {
             _context = context;
@@ -128,7 +131,7 @@ namespace Emotion.Graphics.GLES
             GL.UseProgram(_pointer);
 
             // Update uniforms.
-            if(_context != null) SetUniformFloat("time", _context.Time);
+            if (_context != null) SetUniformFloat("time", _context.Time);
             Current = this;
         }
 

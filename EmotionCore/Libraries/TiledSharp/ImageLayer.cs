@@ -1,27 +1,29 @@
-// Distributed as part of TiledSharp, Copyright 2012 Marshall Ward
-// Licensed under the Apache License, Version 2.0
-// http://www.apache.org/licenses/LICENSE-2.0
-using System;
+// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
 using System.Xml.Linq;
+
+#endregion
 
 namespace TiledSharp
 {
     public class TmxImageLayer : ITmxElement
     {
-        public string Name {get; private set;}
+        public string Name { get; private set; }
 
         // TODO: Legacy (Tiled Java) attributes (x, y, width, height)
-        public int? Width {get; private set;}
-        public int? Height {get; private set;}
+        public int? Width { get; private set; }
+        public int? Height { get; private set; }
 
-        public bool Visible {get; private set;}
-        public double Opacity {get; private set;}
-        public double OffsetX {get; private set;}
-        public double OffsetY {get; private set;}
+        public bool Visible { get; private set; }
+        public double Opacity { get; private set; }
+        public double OffsetX { get; private set; }
+        public double OffsetY { get; private set; }
 
-        public TmxImage Image {get; private set;}
+        public TmxImage Image { get; private set; }
 
-        public PropertyDict Properties {get; private set;}
+        public PropertyDict Properties { get; private set; }
 
         public TmxImageLayer(XElement xImageLayer, string tmxDir = "")
         {

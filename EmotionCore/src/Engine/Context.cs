@@ -11,7 +11,6 @@ using Emotion.Host;
 using Emotion.IO;
 using Emotion.Sound;
 using Emotion.Utils;
-using Helpers = Emotion.Utils.Helpers;
 
 #if DEBUG
 
