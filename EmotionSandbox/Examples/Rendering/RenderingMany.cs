@@ -7,6 +7,7 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
+using Emotion.Graphics.Batching;
 using Emotion.Primitives;
 using EmotionSandbox.Examples.Generic;
 using Soul;
@@ -27,12 +28,12 @@ namespace EmotionSandbox.Examples.Rendering
             context.Start();
         }
 
-        private MapBuffer _buffer;
+        private QuadMapBuffer _buffer;
 
         public override void Load()
         {
             // Create a new map buffer.
-            _buffer = new MapBuffer(Renderer.MaxRenderable, Context.Renderer);
+            _buffer = new QuadMapBuffer(Renderer.MaxRenderable);
 
             // These operations need to be performed on the GL thread.
             // This can be further optimized by creating the objects on another thread and then just passing them.
@@ -77,7 +78,7 @@ namespace EmotionSandbox.Examples.Rendering
             _buffer.Draw();
 
             // You can also pass a shader or a matrix to modify the buffer, applying the change to all vertices mapped into it at once.
-            _buffer.Draw(4, Matrix4.CreateScale(0.25f, 0.25f, 1) * Matrix4.CreateTranslation(400, 400, 0));
+            _buffer.Draw(Matrix4.CreateScale(0.25f, 0.25f, 1) * Matrix4.CreateTranslation(400, 400, 0));
         }
 
         public override void Unload()

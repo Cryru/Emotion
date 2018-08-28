@@ -9,14 +9,14 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.Camera
 {
-    public class CameraBase : Renderable2D
+    public class CameraBase : Transform
     {
         #region Properties
 
         /// <summary>
         /// The transform the camera should follow.
         /// </summary>
-        public Renderable2D Target { get; set; }
+        public Transform Target { get; set; }
 
         #endregion
 

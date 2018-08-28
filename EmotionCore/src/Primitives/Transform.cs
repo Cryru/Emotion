@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Emotion - https://github.com/Cryru/Emotion
 
 namespace Emotion.Primitives
 {
-    public class Transform
+    public abstract class Transform
     {
         #region Properties
 
@@ -16,7 +12,7 @@ namespace Emotion.Primitives
             set
             {
                 _x = value;
-                _updated = true;
+                _transformUpdated = true;
             }
         }
 
@@ -26,7 +22,7 @@ namespace Emotion.Primitives
             set
             {
                 _y = value;
-                _updated = true;
+                _transformUpdated = true;
             }
         }
 
@@ -36,27 +32,27 @@ namespace Emotion.Primitives
             set
             {
                 _z = value;
-                _updated = true;
+                _transformUpdated = true;
             }
         }
 
-        public float Width 
+        public float Width
         {
             get => _width;
             set
             {
                 _width = value;
-                _updated = true;
+                _transformUpdated = true;
             }
         }
-        
-        public float Height 
+
+        public float Height
         {
             get => _height;
             set
             {
                 _height = value;
-                _updated = true;
+                _transformUpdated = true;
             }
         }
 
@@ -66,7 +62,7 @@ namespace Emotion.Primitives
             set
             {
                 _rotation = value;
-                _updated = true;
+                _transformUpdated = true;
             }
         }
 
@@ -140,7 +136,7 @@ namespace Emotion.Primitives
         private float _height;
         private float _rotation;
 
-        protected bool _updated { get; set; }
+        protected bool _transformUpdated { get; set; } = true;
 
         #endregion
 
@@ -148,17 +144,14 @@ namespace Emotion.Primitives
 
         public Transform(Rectangle bounds, float rotation = 0f) : this(bounds.Location, bounds.Size, rotation)
         {
-
         }
 
         public Transform(Vector3 position, Vector2 size, float rotation = 0f) : this(position.X, position.Y, position.Z, size.X, size.Y, rotation)
         {
-
         }
 
         public Transform(Vector2 position, Vector2 size, float rotation = 0f) : this(position.X, position.Y, 0, size.X, size.Y, rotation)
         {
-
         }
 
         public Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f, float rotation = 0f)

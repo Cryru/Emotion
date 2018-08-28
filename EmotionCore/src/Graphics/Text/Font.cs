@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Emotion.IO;
+using Emotion.Primitives;
 
 #endregion
 
@@ -12,21 +13,22 @@ namespace Emotion.Graphics.Text
     public sealed class Font : Asset
     {
         private byte[] _fontBytes;
-        private Dictionary<int, Atlas> _atlasCache;
+        private Dictionary<uint, Atlas> _atlasCache;
 
         #region Asset API
 
         internal override void Create(byte[] data)
         {
             _fontBytes = data;
-            _atlasCache = new Dictionary<int, Atlas>();
+            _atlasCache = new Dictionary<uint, Atlas>();
         }
 
         internal override void Destroy()
         {
-            foreach (KeyValuePair<int, Atlas> atlas in _atlasCache)
+            // Destroy loaded atlases.
+            foreach (KeyValuePair<uint, Atlas> atlas in _atlasCache)
             {
-                atlas.Value.Texture.Destroy();
+                atlas.Value.Destroy();
             }
 
             _atlasCache.Clear();
@@ -36,7 +38,13 @@ namespace Emotion.Graphics.Text
 
         #region Font API
 
-        public Atlas GetFontAtlas(int fontSize, int glyphs = 128)
+        /// <summary>
+        /// Returns a font atlas of the specified size and which the specified glyphs loaded. Loaded atlases won't be reloaded.
+        /// </summary>
+        /// <param name="fontSize">The font size of the atlas to return.</param>
+        /// <param name="glyphs">The number of glyphs to load. By default loads letters and grammar - the first 128.</param>
+        /// <returns>A font atlas.</returns>
+        public Atlas GetFontAtlas(uint fontSize, int glyphs = 128)
         {
             // Cache the atlas if it isn't cached.
             if (!_atlasCache.ContainsKey(fontSize)) _atlasCache[fontSize] = new Atlas(_fontBytes, fontSize, glyphs);

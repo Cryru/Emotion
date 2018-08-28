@@ -17,6 +17,9 @@ namespace EmotionSandbox.Examples.Rendering
 {
     public class RenderingTextures : Layer
     {
+        private int _random = 1;
+        private float _randomTimer = 0;
+
         public static void Main()
         {
             // Get the context and load the loading screen plus this scene in.
@@ -37,6 +40,13 @@ namespace EmotionSandbox.Examples.Rendering
 
         public override void Update(float fr)
         {
+            // Change the random number for the third texture every second.
+            _randomTimer += fr;
+            if (_randomTimer >= 1000)
+            {
+                _randomTimer -= 1000;
+                _random = Utilities.GenerateRandomNumber(1, 3);
+            }
         }
 
         public override void Draw(Renderer renderer)
@@ -52,8 +62,7 @@ namespace EmotionSandbox.Examples.Rendering
             renderer.Render(new Vector3(10, 115, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("2.png"), new Rectangle(0, 0, 90, 90));
 
             // Draw a random one of the three textures, and make it transparent red.
-            int random = Utilities.GenerateRandomNumber(1, 3);
-            renderer.Render(new Vector3(10, 220, 0), new Vector2(100, 100), new Color(255, 0, 0, 125), Context.AssetLoader.Get<Texture>(random + ".png"));
+            renderer.Render(new Vector3(10, 220, 0), new Vector2(100, 100), new Color(255, 0, 0, 125), Context.AssetLoader.Get<Texture>(_random + ".png"));
         }
 
         public override void Unload()

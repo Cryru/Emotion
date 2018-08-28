@@ -19,6 +19,8 @@ namespace EmotionSandbox.Examples.Rendering
 {
     public class RenderingText : Layer
     {
+        private RichText _richText;
+
         public static void Main()
         {
             // Get the context and load the loading screen plus this scene in.
@@ -32,6 +34,9 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Load()
         {
             Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20);
+            _richText = new RichText(new Rectangle(10, 50, 100, 100), Context.AssetLoader.Get<Font>("ExampleFont.ttf"));
+            _richText.SetText("Hello, I am rich text.", 20);
+            _richText.Z = 1;
         }
 
         public override void Update(float fr)
@@ -42,7 +47,12 @@ namespace EmotionSandbox.Examples.Rendering
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
-            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 10, 0), Color.White);
+
+            // Render the text.
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 10, 1), Color.White);
+
+            renderer.Render(_richText);
+            renderer.RenderOutline(_richText.Bounds, Color.Red);
         }
 
         public override void Unload()

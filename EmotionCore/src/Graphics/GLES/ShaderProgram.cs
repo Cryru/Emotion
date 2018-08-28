@@ -59,12 +59,20 @@ namespace Emotion.Graphics.GLES
         private int _pointer;
 
         /// <summary>
+        /// The Emotion context which created this shader.
+        /// </summary>
+        private Context _context;
+
+        /// <summary>
         /// Create a shader program.
         /// </summary>
         /// <param name="fragmentShader">The program's fragment shader.</param>
         /// <param name="vertexShader">The program's vertex shader.</param>
-        public ShaderProgram(Shader vertexShader, Shader fragmentShader)
+        /// <param name="context">The Emotion context which created this shader. Optional, will be used to update some shader uniforms.</param>
+        public ShaderProgram(Shader vertexShader, Shader fragmentShader, Context context = null)
         {
+            _context = context;
+
             ThreadManager.ExecuteGLThread(() =>
             {
                 // Set the first ever as default.
@@ -118,6 +126,9 @@ namespace Emotion.Graphics.GLES
         public void Bind()
         {
             GL.UseProgram(_pointer);
+
+            // Update uniforms.
+            if(_context != null) SetUniformFloat("time", _context.Time);
             Current = this;
         }
 

@@ -26,5 +26,14 @@ namespace Emotion.Graphics.Text
         public float Advance;
         public float YBearing;
         public float MinX;
+
+        /// <summary>
+        /// Used by string measuring
+        /// </summary>
+
+        public float MaxX;
+        public float MinY;
+        public float MaxY;
+        public float Ascender;
     }
 }

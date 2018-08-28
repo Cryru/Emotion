@@ -2,15 +2,16 @@
 
 #region Using
 
+using System.Collections.Generic;
+using System.Linq;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
-using SharpFont;
-using Glyph = Emotion.Graphics.Text.Glyph;
 
 #endregion
 
@@ -18,6 +19,12 @@ namespace Emotion.Graphics
 {
     public sealed class Renderer : ContextObject
     {
+        /// <summary>
+        /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being
+        /// ushort.
+        /// </summary>
+        public static readonly int MaxRenderable = ushort.MaxValue;
+
         #region Render State
 
         /// <summary>
@@ -28,18 +35,17 @@ namespace Emotion.Graphics
         /// <summary>
         /// The buffer used for drawing objects.
         /// </summary>
-        private MapBuffer _mainBuffer;
+        private QuadMapBuffer _mainBuffer;
 
         /// <summary>
         /// The buffer used for drawing outlines of objects.
         /// </summary>
-        private MapBuffer _outlineBuffer;
+        private LineMapBuffer _outlineBuffer;
 
         /// <summary>
-        /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being
-        /// ushort.
+        /// A list of objects to be rendered at the end of the current frame.
         /// </summary>
-        public static readonly int MaxRenderable = ushort.MaxValue;
+        private List<Renderable> _renderableQueue = new List<Renderable>();
 
         #endregion
 
@@ -55,12 +61,12 @@ namespace Emotion.Graphics
             TransformationStack = new TransformationStack();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram(null, null);
+            ShaderProgram defaultProgram = new ShaderProgram(null, null, Context);
             defaultProgram.Bind();
 
             // Setup main map buffer.
-            _mainBuffer = new MapBuffer(MaxRenderable, this);
-            _outlineBuffer = new MapBuffer(MaxRenderable / 2, this);
+            _mainBuffer = new QuadMapBuffer(MaxRenderable);
+            _outlineBuffer = new LineMapBuffer(MaxRenderable / 2);
             _mainBuffer.Start();
             _outlineBuffer.Start();
 
@@ -100,64 +106,20 @@ namespace Emotion.Graphics
         {
             RenderFlush();
             RenderOutlineFlush();
+
+            // Check if any renderables to render.
+            if (_renderableQueue.Count <= 0) return;
+            IOrderedEnumerable<Renderable> ordered = _renderableQueue.OrderBy(x => x.Z);
+            foreach (Renderable r in ordered)
+            {
+                r.Draw(this);
+            }
+            _renderableQueue.Clear();
         }
 
         #endregion
 
         #region Drawing API
-
-        public void RenderFlush()
-        {
-            if (!_mainBuffer.Mapping || !_mainBuffer.AnythingMapped) return;
-            _mainBuffer.Flush();
-            _mainBuffer.Start();
-        }
-
-        public void RenderOutlineFlush()
-        {
-            if (!_outlineBuffer.Mapping || !_outlineBuffer.AnythingMapped) return;
-            _outlineBuffer.Flush((int) PrimitiveType.LineLoop);
-            _outlineBuffer.Start();
-        }
-
-        public void Render(Renderable2D renderable)
-        {
-            // Add the model matrix to the stack.
-            TransformationStack.Push(renderable.ModelMatrix);
-
-            // Pass the renderable.
-            _mainBuffer.Add(Vector3.Zero, renderable.Size, renderable.Color, renderable.Texture, renderable.TextureArea, TransformationStack.CurrentMatrix);
-
-            // Remove the model matrix from the stack.
-            TransformationStack.Pop();
-        }
-
-        public void Render(Label renderable)
-        {
-            RenderString(renderable.Font, renderable.TextSize, renderable.Text, Vector3.Zero, renderable.Color);
-        }
-
-        public void RenderString(Font font, int textSize, string text, Vector3 position, Color color)
-        {
-            Rectangle[] uvs = new Rectangle[text.Length];
-            Atlas atlas = font.GetFontAtlas(textSize);
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (i > 0)
-                {
-                    FTVector26Dot6 kerning = atlas.Face.GetKerning(text[i - 1], text[i], KerningMode.Unfitted);
-                    position.X += (float) kerning.X.ToDouble();
-                }
-
-                Glyph g = atlas.Glyphs[text[i]];
-
-                Vector3 renderPos = new Vector3(position.X + g.MinX, position.Y + g.YBearing, 0);
-                uvs[i] = new Rectangle(g.X, g.Y, g.Width, g.Height);
-                Render(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
-                position.X += g.Advance;
-            }
-        }
 
         public void Render(Rectangle bounds, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
         {
@@ -169,26 +131,71 @@ namespace Emotion.Graphics
             _mainBuffer.Add(location, size, color, texture, textureArea, vertMatrix * TransformationStack.CurrentMatrix);
         }
 
-        public void RenderOutline(Renderable2D renderable)
+        public void RenderOutline(Rectangle bounds, Color color, Matrix4? vertMatrix = null)
         {
-            // Add the model matrix to the stack.
-            TransformationStack.Push(renderable.ModelMatrix);
-
-            // Pass the renderable.
-            _outlineBuffer.Add(Vector3.Zero, renderable.Size, renderable.Color, renderable.Texture, renderable.TextureArea, TransformationStack.CurrentMatrix);
-
-            // Remove the model matrix from the stack.
-            TransformationStack.Pop();
+            _outlineBuffer.Add(new Vector3(bounds.X, bounds.Y, 0), bounds.Size, color, vertMatrix * TransformationStack.CurrentMatrix);
         }
 
-        public void RenderOutline(Rectangle bounds, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
+        public void RenderOutline(Vector3 location, Vector2 size, Color color, Matrix4? vertMatrix = null)
         {
-            _outlineBuffer.Add(new Vector3(bounds.X, bounds.Y, 0), bounds.Size, color, texture, textureArea, vertMatrix * TransformationStack.CurrentMatrix);
+            _outlineBuffer.Add(location, size, color, vertMatrix * TransformationStack.CurrentMatrix);
         }
 
-        public void RenderOutline(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
+        /// <summary>
+        /// Flushes the main rendering buffer.
+        /// </summary>
+        public void RenderFlush()
         {
-            _outlineBuffer.Add(location, size, color, texture, textureArea, vertMatrix * TransformationStack.CurrentMatrix);
+            if (!_mainBuffer.Mapping || !_mainBuffer.AnythingMapped) return;
+            if (_mainBuffer.Mapping) _mainBuffer.FinishMapping();
+            _mainBuffer.Draw();
+            _mainBuffer.Start();
+        }
+
+        /// <summary>
+        /// Flushes the outline rendering buffer.
+        /// </summary>
+        public void RenderOutlineFlush()
+        {
+            if (!_outlineBuffer.Mapping || !_outlineBuffer.AnythingMapped) return;
+            if (_mainBuffer.Mapping) _outlineBuffer.FinishMapping();
+            _outlineBuffer.Draw();
+            _outlineBuffer.Start();
+        }
+
+        /// <summary>
+        /// Queue a renderable to be rendered at the end of the frame.
+        /// </summary>
+        /// <param name="renderable">The renderable to render.</param>
+        public void Render(Renderable renderable)
+        {
+            _renderableQueue.Add(renderable);
+        }
+
+        /// <summary>
+        /// Renders a string to the screen.
+        /// </summary>
+        /// <param name="font">The font to render using.</param>
+        /// <param name="textSize">The size to render in.</param>
+        /// <param name="text">The text to render.</param>
+        /// <param name="position">The position to render to.</param>
+        /// <param name="color">The color to render in.</param>
+        public void RenderString(Font font, uint textSize, string text, Vector3 position, Color color)
+        {
+            Rectangle[] uvs = new Rectangle[text.Length];
+            Atlas atlas = font.GetFontAtlas(textSize);
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (i > 0) position.X += atlas.GetKerning(text[i - 1], text[i]);
+
+                Glyph g = atlas.Glyphs[text[i]];
+
+                Vector3 renderPos = new Vector3(position.X + g.MinX, position.Y + g.YBearing, 0);
+                uvs[i] = new Rectangle(g.X, g.Y, g.Width, g.Height);
+                Render(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
+                position.X += g.Advance;
+            }
         }
 
         #endregion
