@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion;
-using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
@@ -53,7 +52,7 @@ namespace EmotionSandbox.Examples.Rendering
                     _buffer.Add(new Vector3(x * size, y * size, 1), new Vector2(size, size), randomColor);
 
                     x++;
-                    if (x * size < 960) 
+                    if (x * size < 960)
                         continue;
                     x = 0;
                     y++;
@@ -66,7 +65,6 @@ namespace EmotionSandbox.Examples.Rendering
 
         public override void Update(float fr)
         {
-
         }
 
         public override void Draw(Renderer renderer)

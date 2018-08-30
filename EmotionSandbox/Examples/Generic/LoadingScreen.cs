@@ -3,10 +3,10 @@
 #region Using
 
 using Emotion.Game.Layering;
-using Emotion.GLES;
 using Emotion.Graphics;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
+using Soul;
 
 #endregion
 
@@ -31,10 +31,11 @@ namespace EmotionSandbox.Examples.Generic
             float logoCenterY = Context.Host.RenderSize.Y / 2 - size / 4;
 
             Matrix4 rotationMatrix =
-                Matrix4.CreateTranslation(size / 2 , size / 2, 0).Inverted() *
-                Matrix4.CreateRotationZ(Soul.Convert.DegreesToRadians((int) _deg)) *
-                Matrix4.CreateTranslation(size / 2 , size / 2, 0) *
-                Matrix4.CreateTranslation(centerX ,centerY, 0);;
+                Matrix4.CreateTranslation(size / 2, size / 2, 0).Inverted() *
+                Matrix4.CreateRotationZ(Convert.DegreesToRadians((int) _deg)) *
+                Matrix4.CreateTranslation(size / 2, size / 2, 0) *
+                Matrix4.CreateTranslation(centerX, centerY, 0);
+            ;
 
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), new Color("#35383d"), null, Rectangle.Empty);
             renderer.Render(Vector3.Zero, new Vector2(size, size), Color.White, Context.AssetLoader.Get<Texture>("LoadingCircleHalf.png"), null, rotationMatrix);

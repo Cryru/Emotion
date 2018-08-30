@@ -58,8 +58,6 @@
     <Compile Include="Examples\Rendering\RenderingText.cs" />
     <Compile Include="Examples\Rendering\RenderingTextures.cs" />
     <Compile Include="Examples\Rendering\RenderingRectangles.cs" />
-    <None Include="Examples\RenderingText.cs" />
-    <None Include="Examples\Rendering.cs" />
     <None Include="Examples\StreamingSound.cs" />
     <None Include="Examples\SoundExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

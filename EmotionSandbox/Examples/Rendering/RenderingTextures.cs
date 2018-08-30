@@ -18,7 +18,7 @@ namespace EmotionSandbox.Examples.Rendering
     public class RenderingTextures : Layer
     {
         private int _random = 1;
-        private float _randomTimer = 0;
+        private float _randomTimer;
 
         public static void Main()
         {

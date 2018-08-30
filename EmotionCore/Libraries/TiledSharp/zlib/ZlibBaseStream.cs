@@ -320,10 +320,7 @@ namespace Ionic.Zlib
             {
                 // workitem 7740
                 int n = _stream.Read(_buf1, 0, 1);
-                if (n != 1)
-                {
-                    throw new ZlibException("Unexpected EOF reading GZIP header.");
-                }
+                if (n != 1) throw new ZlibException("Unexpected EOF reading GZIP header.");
 
                 if (_buf1[0] == 0)
                     done = true;

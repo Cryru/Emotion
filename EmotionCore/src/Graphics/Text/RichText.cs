@@ -23,7 +23,17 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The way to align text.
         /// </summary>
-        public TextAlignment Alignment { get; set; } = TextAlignment.Left;
+        public TextAlignment Alignment
+        {
+            get => _alignment;
+            set
+            {
+                _alignment = value;
+                SetText(Text);
+            }
+        }
+
+        private TextAlignment _alignment = TextAlignment.Left;
 
         /// <summary>
         /// The text to render.
@@ -31,9 +41,19 @@ namespace Emotion.Graphics.Text
         public string Text { get; private set; } = "";
 
         /// <summary>
-        /// The size of the text to render.
+        /// The font atlas to use when rendering.
         /// </summary>
-        public uint TextSize { get; private set; } = 10;
+        public Atlas FontAtlas
+        {
+            get => _fontAtlas;
+            set
+            {
+                _fontAtlas = value;
+                _updateRenderCache = true;
+            }
+        }
+
+        private Atlas _fontAtlas;
 
         #endregion
 
@@ -46,25 +66,50 @@ namespace Emotion.Graphics.Text
 
         #region State
 
-        // Model Matrix.
-        protected Matrix4 _modelMatrix;
+        #region Objects
 
-        // Objects
-        protected Font _font { get; set; }
+        protected Matrix4 _modelMatrix { get; set; }
         protected QuadMapBuffer _renderCache { get; set; }
         protected bool _updateRenderCache { get; set; }
 
-        // Text parsing.
-        protected string _textToDisplay { get; set; }
+        #endregion
+
+        #region Text Parsing
+
+        /// <summary>
+        /// Parsed effects.
+        /// </summary>
         protected List<TextEffect> _effectCache { get; set; } = new List<TextEffect>();
+
+        /// <summary>
+        /// The text stripped of effect tags.
+        /// </summary>
+        protected string _textStripped { get; set; }
+
+        /// <summary>
+        /// The lines of the text after wrap processing.
+        /// </summary>
         protected List<string> _wrapCache { get; set; } = new List<string>();
-        protected List<int> _spaceSize { get; set; } = new List<int>();
+
+        /// <summary>
+        /// Used by justification alignment to make spaces larger.
+        /// </summary>
+        protected List<int> _spaceWeight { get; set; } = new List<int>();
+
+        /// <summary>
+        /// // Used by alignments to push the line.
+        /// </summary>
         protected List<int> _initialLineIndent { get; set; } = new List<int>();
 
-        // Mapping
+        #endregion
+
+        #region Mapping
+
         private float _penX;
         private float _penY;
         private char _prevChar;
+
+        #endregion
 
         #endregion
 
@@ -72,47 +117,33 @@ namespace Emotion.Graphics.Text
         /// Create a new RichText object.
         /// </summary>
         /// <param name="bounds">The bounds of the RichText.</param>
-        /// <param name="font">The font to use.</param>
-        public RichText(Rectangle bounds, Font font)
+        /// <param name="fontAtlas">The font atlas to use.</param>
+        public RichText(Rectangle bounds, Atlas fontAtlas)
         {
             Bounds = bounds;
-            _font = font;
+            FontAtlas = fontAtlas;
             _renderCache = new QuadMapBuffer(Renderer.MaxRenderable);
         }
 
         #region Public API
 
         /// <summary>
-        /// Sets the RichText's text and size.
-        /// </summary>
-        /// <param name="text">The text to display.</param>
-        /// <param name="size">The text size.</param>
-        public void SetText(string text, uint size)
-        {
-            Text = text;
-            TextSize = size;
-            _updateRenderCache = true;
-
-            // Start processing.
-            _textToDisplay = "";
-
-            // Find effects.
-            ParseEffects();
-
-            // Apply wrapping.
-            Wrap();
-
-            // Apply text alignment.
-            ProcessAlignment();
-        }
-
-        /// <summary>
-        /// Sets the RichText's text and size.
+        /// Sets the RichText's text.
         /// </summary>
         /// <param name="text">The text to display.</param>
         public void SetText(string text)
         {
-            SetText(text, TextSize);
+            Text = text;
+            _updateRenderCache = true;
+
+            // Find effects.
+            _textStripped = ParseEffects(Text, _effectCache);
+
+            // Apply wrapping.
+            Wrap(FontAtlas, _textStripped, Bounds, _wrapCache);
+
+            // Apply text alignment.
+            ProcessAlignment();
         }
 
         #endregion
@@ -120,23 +151,21 @@ namespace Emotion.Graphics.Text
         #region Text Processing
 
         /// <summary>
-        /// Parse the raw string for tag effects, removes the tag string from the text and populates the effects cache.
-        /// Uses:
-        /// Text
-        /// Populates:
-        /// _textToDisplay - The text striped of tags.
-        /// _effectsCache - A list of effects captured and the indices at which they begin and end within the _textToDisplay
-        /// variable, regarded as "real" indices.
+        /// Parse the provided string for tags and effects. Returns the string stripped of them, and populates a list with them.
         /// </summary>
-        private void ParseEffects()
+        /// <param name="text">The text to parse.</param>
+        /// <param name="parsedEffects">The list to populate with the parsing results.</param>
+        /// <returns>The string without any tags in it.</returns>
+        protected virtual string ParseEffects(string text, List<TextEffect> parsedEffects)
         {
-            _effectCache.Clear();
+            parsedEffects.Clear();
 
             bool tagOpened = false;
             string currentTag = "";
+            string strippedText = "";
 
             // Iterate characters, and extract tags.
-            foreach (char c in Text)
+            foreach (char c in text)
             {
                 switch (c)
                 {
@@ -148,7 +177,7 @@ namespace Emotion.Graphics.Text
                     // Check if the character is a closing tag, and a tag is opened.
                     case '>' when tagOpened:
                         // Process the tag.
-                        ProcessTag(currentTag, _textToDisplay.Length);
+                        ProcessTag(currentTag, strippedText.Length, parsedEffects);
                         tagOpened = false;
                         currentTag = "";
                         break;
@@ -159,10 +188,12 @@ namespace Emotion.Graphics.Text
                             currentTag += c;
                         // If not, add the character to the text to display.
                         else
-                            _textToDisplay += c;
+                            strippedText += c;
                         break;
                 }
             }
+
+            return strippedText;
         }
 
         /// <summary>
@@ -170,21 +201,22 @@ namespace Emotion.Graphics.Text
         /// </summary>
         /// <param name="tag">The tag data captured.</param>
         /// <param name="position">The position of the tag within the text to display.</param>
-        protected virtual void ProcessTag(string tag, int position)
+        /// <param name="parsedEffects">Effects parsed thus far.</param>
+        protected virtual void ProcessTag(string tag, int position, List<TextEffect> parsedEffects)
         {
             // Check if closing tag.
             if (tag == "/")
             {
                 // Close the last opened tag.
-                TextEffect toClose = _effectCache.Last(t => t.End == -1);
-                if (toClose != null) toClose.End = position;
+                TextEffect toClose = parsedEffects.Last(t => t.End == -1);
+                if (toClose != null) toClose.End = position - 1;
             }
             else
             {
                 string[] tagDataSplit = tag.Split('=');
                 string[] attributes = tagDataSplit.Length > 1 ? tagDataSplit[1].Split(TagAttributeSeparator) : null;
 
-                _effectCache.Add(new TextEffect
+                parsedEffects.Add(new TextEffect
                 {
                     Start = position,
                     Name = tagDataSplit[0].ToLower(),
@@ -194,35 +226,38 @@ namespace Emotion.Graphics.Text
         }
 
         /// <summary>
-        /// Wrap the text to fit the bounds of the RichText object.
-        /// Uses:
-        /// _textToDisplay - The text to wrap.
-        /// Bounds - the RichText's bounds.
-        /// Populates:
-        /// _wrapCache - The text to display as a list of lines wrapped to fit within the object bounds.
+        /// Wraps the text to fit the provided bounds, making sure it doesn't exceed them.
         /// </summary>
-        private void Wrap()
+        /// <param name="fontAtlas">The font atlas to use to measure the text.</param>
+        /// <param name="text">The text to wrap.</param>
+        /// <param name="wrapBounds">The bounds to wrap it in.</param>
+        /// <param name="wrapResult">The list to populate with the wrapping result. Each line is a new entry.</param>
+        /// <param name="performHeightWrapping">
+        /// Whether to wrap vertically as well. True by default, if set to false text will
+        /// overflow.
+        /// </param>
+        protected virtual void Wrap(Atlas fontAtlas, string text, Rectangle wrapBounds, List<string> wrapResult, bool performHeightWrapping = true)
         {
-            _wrapCache.Clear();
+            wrapResult.Clear();
 
+            float currentHeight = 0;
             string currentLine = "";
             bool breakSkipMode = false;
             int breakSkipModeLimit = -1;
-            Atlas atlas = _font.GetFontAtlas(TextSize);
 
             // Loop through the text.
-            for (int i = 0; i < _textToDisplay.Length; i++)
+            for (int i = 0; i < text.Length; i++)
             {
                 // Check if exiting break skip mode.
                 if (breakSkipModeLimit == i) breakSkipMode = false;
 
                 // Find the location of the next space or new line character.
-                int nextSpaceLocation = _textToDisplay.IndexOf(' ', i);
-                int nextNewLineLocation = _textToDisplay.IndexOf('\n', i);
+                int nextSpaceLocation = text.IndexOf(' ', i);
+                int nextNewLineLocation = text.IndexOf('\n', i);
                 int nextBreakLocation;
 
                 if (nextNewLineLocation == -1 && nextSpaceLocation == -1)
-                    nextBreakLocation = _textToDisplay.Length;
+                    nextBreakLocation = text.Length;
                 else if (nextSpaceLocation == -1)
                     nextBreakLocation = nextNewLineLocation;
                 else if (nextNewLineLocation == -1)
@@ -231,46 +266,54 @@ namespace Emotion.Graphics.Text
                     nextBreakLocation = Math.Min(nextNewLineLocation, nextSpaceLocation);
 
                 // Get the text to the next break.
-                string textToBreak = _textToDisplay.Substring(i, nextBreakLocation - i);
+                string textToBreak = text.Substring(i, nextBreakLocation - i);
 
                 // Measure the current line with the new characters.
-                Vector2 textSize = atlas.MeasureString(currentLine + textToBreak);
+                Vector2 textSize = fontAtlas.MeasureString(currentLine + textToBreak);
 
                 // Check if the textToBreak is too big to fit on one line.
-                Vector2 overflowCheck = atlas.MeasureString(textToBreak);
+                Vector2 overflowCheck = fontAtlas.MeasureString(textToBreak);
 
                 // Check if the whole textToBreak cannot fit on a single line.
                 // This is a rare case, but when it happens characters must be printed without performing break checks as they will either cause
                 // each character to go on a separate line or cause a line break in the text as soon as it can fit on the line.
                 // To do this we switch to a break skipping mode which ensures this other method of printing until the whole text is printed.
-                if (overflowCheck.X > Bounds.Width || breakSkipMode)
+                if (overflowCheck.X > wrapBounds.Width || breakSkipMode)
                 {
-                    textSize = atlas.MeasureString(currentLine + _textToDisplay[i]);
+                    textSize = fontAtlas.MeasureString(currentLine + text[i]);
                     breakSkipMode = true;
                     breakSkipModeLimit = i + textToBreak.Length;
                 }
 
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
-                if (textSize.X > Bounds.Width || _textToDisplay[i] == '\n')
+                if (textSize.X > wrapBounds.Width || text[i] == '\n')
                 {
+                    if (performHeightWrapping)
+                    {
+                        // Check if a new line can be pushed without exceeding the height.
+                        if (currentHeight + textSize.Y + fontAtlas.LineSpacing > wrapBounds.Height) return;
+                        currentHeight += textSize.Y + fontAtlas.LineSpacing;
+                    }
+
                     // Push new line.
-                    _wrapCache.Add(currentLine);
+                    wrapResult.Add(currentLine);
                     currentLine = "";
 
                     // If the current character is a new line break retroactively push it on the last line, and continue without adding it to the current line.
-                    if (_textToDisplay[i] == '\n')
+                    if (text[i] == '\n')
                     {
-                        _wrapCache[_wrapCache.Count - 1] += '\n';
+                        wrapResult[wrapResult.Count - 1] += '\n';
                         continue;
                     }
                 }
 
                 // Add the current character to the current line string.
-                currentLine += _textToDisplay[i].ToString();
+                currentLine += text[i].ToString();
             }
 
             // If there is text left push in on a new line.
-            if (!string.IsNullOrEmpty(currentLine)) _wrapCache.Add(currentLine);
+            if (!string.IsNullOrEmpty(currentLine))
+                wrapResult.Add(currentLine);
         }
 
         /// <summary>
@@ -278,7 +321,7 @@ namespace Emotion.Graphics.Text
         /// </summary>
         private void ProcessAlignment()
         {
-            _spaceSize.Clear();
+            _spaceWeight.Clear();
             _initialLineIndent.Clear();
 
             // Go through all lines.
@@ -305,10 +348,9 @@ namespace Emotion.Graphics.Text
         private void AlignJustify(int i)
         {
             int charSpacing = 0;
-            Atlas atlas = _font.GetFontAtlas(TextSize);
 
             // Calculate and check.
-            float lineSize = atlas.MeasureString(_wrapCache[i]).X;
+            float lineSize = FontAtlas.MeasureString(_wrapCache[i]).X;
             int spaces = CountSpaces(_wrapCache[i]);
             bool lastLine = i == _wrapCache.Count - 1;
             bool manualNewline = !lastLine && _wrapCache[i][_wrapCache[i].Length - 1] == '\n';
@@ -321,7 +363,7 @@ namespace Emotion.Graphics.Text
             // - Is a manual break.
             if (lineSize == 0 || _wrapCache[i].Length <= 1 || spaces == 0 || lastLine || manualNewline)
             {
-                _spaceSize.Add(0);
+                _spaceWeight.Add(0);
                 return;
             }
 
@@ -338,16 +380,15 @@ namespace Emotion.Graphics.Text
             // Decrease by one.
             if (charSpacing > 0) charSpacing--;
 
-            _spaceSize.Add(charSpacing);
+            _spaceWeight.Add(charSpacing);
         }
 
         private void AlignCenter(int i)
         {
-            Atlas atlas = _font.GetFontAtlas(TextSize);
-            float spaceLeft = Bounds.Width - atlas.MeasureString(_wrapCache[i]).X;
+            float spaceLeft = Bounds.Width - FontAtlas.MeasureString(_wrapCache[i]).X;
 
             // Get justification character spacing. if any.
-            if (i < _spaceSize.Count) spaceLeft -= _spaceSize[i] * CountSpaces(_wrapCache[i]);
+            if (i < _spaceWeight.Count) spaceLeft -= _spaceWeight[i] * CountSpaces(_wrapCache[i]);
 
             // Check if justifying by center, and not on the first line.
             if (Alignment == TextAlignment.JustifiedCenter && i != 0 && spaceLeft / 2 >= _initialLineIndent[0])
@@ -366,8 +407,7 @@ namespace Emotion.Graphics.Text
 
         private void AlignRight(int i)
         {
-            Atlas atlas = _font.GetFontAtlas(TextSize);
-            float spaceLeft = Bounds.Width - atlas.MeasureString(_wrapCache[i]).X;
+            float spaceLeft = Bounds.Width - FontAtlas.MeasureString(_wrapCache[i]).X;
 
             // To align right set the free space before the line.
             _initialLineIndent.Add((int) spaceLeft);
@@ -430,7 +470,7 @@ namespace Emotion.Graphics.Text
 
         #endregion
 
-        #region Mapping Helpers
+        #region Buffer Mapping Helpers
 
         private void MapBuffer()
         {
@@ -445,13 +485,10 @@ namespace Emotion.Graphics.Text
                 // Iterate virtual characters.
                 for (int c = 0; c < _wrapCache[line].Length; c++)
                 {
-                    // Increment character counter.
-                    characterCounter++;
-
                     int glyphXOffset = 0;
 
                     // Apply space size multiplication if the current character is a space.
-                    if (line < _spaceSize.Count && _wrapCache[line][c] == ' ') glyphXOffset += _spaceSize[line];
+                    if (line < _spaceWeight.Count && _wrapCache[line][c] == ' ') glyphXOffset += _spaceWeight[line];
 
                     // Check if applying initial indent.
                     if (line < _initialLineIndent.Count && c == 0) glyphXOffset += _initialLineIndent[line];
@@ -461,6 +498,9 @@ namespace Emotion.Graphics.Text
                         Push(glyphXOffset);
                     else
                         ProcessGlyph(line, c, characterCounter, glyphXOffset);
+
+                    // Increment character counter.
+                    characterCounter++;
                 }
 
                 // Check if reached past the scroll line rendered threshold, and this isn't the last line.
@@ -489,7 +529,7 @@ namespace Emotion.Graphics.Text
         private void NewLine()
         {
             _penX = 0;
-            _penY += _font.GetFontAtlas(TextSize).LineSpacing;
+            _penY += FontAtlas.LineSpacing;
         }
 
         /// <summary>
@@ -501,9 +541,8 @@ namespace Emotion.Graphics.Text
         private void AddGlyph(char c, Color color, float xOffset)
         {
             // Get atlas, glyph, and kerning.
-            Atlas atlas = _font.GetFontAtlas(TextSize);
-            Glyph glyph = atlas.Glyphs[c];
-            float kerning = atlas.GetKerning(_prevChar, c);
+            Glyph glyph = FontAtlas.Glyphs[c];
+            float kerning = FontAtlas.GetKerning(_prevChar, c);
             _prevChar = c;
 
             // Add kerning and offset.
@@ -514,14 +553,14 @@ namespace Emotion.Graphics.Text
             Vector3 renderPos = new Vector3(_penX + glyph.MinX, _penY + glyph.YBearing, 0);
             Rectangle uv = new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height);
 
-            _renderCache.Add(renderPos, uv.Size, color, atlas.Texture, uv);
+            _renderCache.Add(renderPos, uv.Size, color, FontAtlas.Texture, uv);
 
             _penX += glyph.Advance;
         }
 
         #endregion
 
-        #region Helpers
+        #region Position Translation API
 
         /// <summary>
         /// Returns the virtual lines which the real line corresponds to.
@@ -531,7 +570,7 @@ namespace Emotion.Graphics.Text
         protected List<int> GetVirtualLinesIndexesFromReal(int realLineIndex)
         {
             // Get the number of real lines.
-            int realLines = _textToDisplay.Split('\n').Length;
+            int realLines = _textStripped.Split('\n').Length;
 
             // Find the index of all newlines.
             int currentLineEndIndex = 0;
@@ -539,8 +578,8 @@ namespace Emotion.Graphics.Text
             for (int i = 0; i < realLines; i++)
             {
                 int currentLineStartIndex = currentLineEndIndex;
-                currentLineEndIndex = _textToDisplay.IndexOf('\n', currentLineEndIndex + 1);
-                if (currentLineEndIndex == -1) currentLineEndIndex = _textToDisplay.Length;
+                currentLineEndIndex = _textStripped.IndexOf('\n', currentLineEndIndex + 1);
+                if (currentLineEndIndex == -1) currentLineEndIndex = _textStripped.Length;
 
                 // Check if the current real line is the one we are processing.
                 if (i != realLineIndex) continue;
@@ -591,8 +630,7 @@ namespace Emotion.Graphics.Text
         /// <returns>A list of all active effects at the specified index.</returns>
         protected IEnumerable<TextEffect> GetEffectsAt(int index)
         {
-            // todo: Check if index < t.End or index <= t.End
-            return _effectCache.Where(t => index >= t.Start && (index < t.End || index == t.End && index == t.Start));
+            return _effectCache.Where(t => index >= t.Start && (index <= t.End || index == t.End && index == t.Start));
         }
 
         /// <summary>

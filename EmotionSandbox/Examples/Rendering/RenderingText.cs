@@ -2,16 +2,13 @@
 
 #region Using
 
-using System.Threading;
 using Emotion;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
-using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using EmotionSandbox.Examples.Generic;
-using Soul;
 
 #endregion
 
@@ -34,8 +31,8 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Load()
         {
             Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20);
-            _richText = new RichText(new Rectangle(10, 50, 100, 100), Context.AssetLoader.Get<Font>("ExampleFont.ttf"));
-            _richText.SetText("Hello, I am rich text.", 20);
+            _richText = new RichText(new Rectangle(10, 200, 300, 100), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
+            _richText.SetText("Hello, I am rich text. I can do things like <color=255-0-0>t</><color=0-255-0>hi</><color=0-0-255>s</>!");
             _richText.Z = 1;
         }
 
@@ -50,14 +47,18 @@ namespace EmotionSandbox.Examples.Rendering
 
             // Render the text.
             renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 10, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 25, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 35, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 30, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 70, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 35, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 110, 1), Color.White);
 
+            // Render the RichText object.
             renderer.Render(_richText);
+            // Render an outline around it so it's clear that wrapping occurs.
             renderer.RenderOutline(_richText.Bounds, Color.Red);
         }
 
         public override void Unload()
         {
-
         }
     }
 }

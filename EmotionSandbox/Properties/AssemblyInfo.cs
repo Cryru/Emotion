@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Emotion;
 
 #endregion
 
@@ -37,5 +38,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion(Emotion.Meta.Version)]
-[assembly: AssemblyFileVersion(Emotion.Meta.Version)]
+[assembly: AssemblyVersion(Meta.Version)]
+[assembly: AssemblyFileVersion(Meta.Version)]

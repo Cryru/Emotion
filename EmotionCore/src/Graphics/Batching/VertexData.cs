@@ -7,7 +7,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Graphics
+namespace Emotion.Graphics.Batching
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct VertexData
