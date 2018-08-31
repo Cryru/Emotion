@@ -116,6 +116,7 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Libraries\Unix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Graphics\Text\TypewriterRichText.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
     <Compile Include="src\Graphics\GLES\Texture.cs" />
     <Compile Include="src\Graphics\GLES\IGLObject.cs" />
@@ -148,7 +149,6 @@
     <Compile Include="src\Engine\ThreadManager.cs" />
     <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
-    <Compile Include="src\GLES\Text\Glyph.cs" />
     <Compile Include="src\IO\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
     <Compile Include="src\IO\Other.cs" />
@@ -161,7 +161,6 @@
     <Compile Include="src\Game\Layering\LayerManager.cs" />
     <Compile Include="src\Game\Layering\Layer.cs" />
     <Compile Include="src\Engine\ScriptingEngine.cs" />
-    <None Include="src\Game\Text\RichText.cs" />
     <None Include="src\Game\AStar\Path.cs" />
     <None Include="src\Game\AStar\Grid.cs" />
     <None Include="src\Game\AStar\Node.cs" />
@@ -171,7 +170,6 @@
     <None Include="src\Game\UI\Control.cs" />
     <None Include="src\Game\UI\Controller.cs" />
     <None Include="src\Game\UI\Panel.cs" />
-    <Compile Include="src\Game\Text\TextEffect.cs" />
     <Compile Include="src\Sound\SoundFadeOut.cs" />
     <Compile Include="src\Sound\SoundFadeIn.cs" />
     <Compile Include="src\Sound\SoundEffect.cs" />
@@ -181,7 +179,6 @@
     <Compile Include="src\Utils\Helpers.cs" />
     <None Include="src\IO\Font.cs" />
     <Compile Include="src\IO\AssetLoader.cs" />
-    <None Include="src\GLES\Text\TextDrawingSession.cs" />
     <Compile Include="src\Engine\Context.cs" />
     <Compile Include="src\Input\MouseKeys.cs" />
     <Compile Include="src\Input\Input.cs" />

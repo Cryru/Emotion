@@ -31,14 +31,14 @@ namespace Emotion.Graphics.Batching
             uint offset = 0;
             for (int i = 0; i < indices.Length; i += 8)
             {
-                indices[i] = (ushort) (offset + 0);
-                indices[i + 1] = (ushort) (offset + 1);
-                indices[i + 2] = (ushort) (offset + 1);
-                indices[i + 3] = (ushort) (offset + 2);
-                indices[i + 4] = (ushort) (offset + 2);
-                indices[i + 5] = (ushort) (offset + 3);
-                indices[i + 6] = (ushort) (offset + 3);
-                indices[i + 7] = (ushort) (offset + 0);
+                indices[i] = (ushort)(offset + 0);
+                indices[i + 1] = (ushort)(offset + 1);
+                indices[i + 2] = (ushort)(offset + 1);
+                indices[i + 3] = (ushort)(offset + 2);
+                indices[i + 4] = (ushort)(offset + 2);
+                indices[i + 5] = (ushort)(offset + 3);
+                indices[i + 6] = (ushort)(offset + 3);
+                indices[i + 7] = (ushort)(offset + 0);
 
                 offset += 4;
             }
@@ -48,9 +48,12 @@ namespace Emotion.Graphics.Batching
             Helpers.CheckError("map buffer - creating ibo");
         }
 
+        /// <inheritdoc />
         public LineMapBuffer(int size) : base(size)
         {
         }
+
+        #region Mapping
 
         /// <summary>
         /// Map a part of the buffer as an outlined quad.
@@ -62,7 +65,7 @@ namespace Emotion.Graphics.Batching
         public void Add(Vector3 location, Vector2 size, Color color, Matrix4? vertMatrix = null)
         {
             // Convert the color to an int.
-            uint c = ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
+            uint c = ((uint)color.A << 24) | ((uint)color.B << 16) | ((uint)color.G << 8) | color.R;
 
             // Determine the vertex matrix.
             Matrix4 vertexMatrix = vertMatrix ?? Matrix4.Identity;
@@ -100,6 +103,16 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <inheritdoc />
+        public override void FastForward(int count)
+        {
+            base.FastForward(count);
+            _dataPointer += 4 * count;
+            _indicesCount += 8 * count;
+        }
+
+        #endregion
+
+        /// <inheritdoc />
         public override void Draw(Matrix4? bufferMatrix = null, ShaderProgram shader = null)
         {
             if (!AnythingMapped)
@@ -115,7 +128,7 @@ namespace Emotion.Graphics.Batching
             // Sync shader.
             shader?.Bind();
             if (bufferMatrix != null)
-                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4) bufferMatrix);
+                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4)bufferMatrix);
             else
                 ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", Matrix4.Identity);
             Helpers.CheckError("map buffer - shader preparation");

@@ -107,7 +107,7 @@ namespace Emotion.Graphics
             RenderFlush();
             RenderOutlineFlush();
 
-            // Check if any renderables to render.
+            // Check if any renderables are queued to be rendered.
             if (_renderableQueue.Count <= 0) return;
             IOrderedEnumerable<Renderable> ordered = _renderableQueue.OrderBy(x => x.Z);
             foreach (Renderable r in ordered)

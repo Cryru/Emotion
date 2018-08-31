@@ -105,9 +105,9 @@ namespace Emotion.Graphics.Text
 
         #region Mapping
 
-        private float _penX;
-        private float _penY;
-        private char _prevChar;
+        protected float _penX;
+        protected float _penY;
+        protected char _prevChar;
 
         #endregion
 
@@ -125,15 +125,15 @@ namespace Emotion.Graphics.Text
             _renderCache = new QuadMapBuffer(Renderer.MaxRenderable);
         }
 
-        #region Public API
-
         /// <summary>
         /// Sets the RichText's text.
         /// </summary>
         /// <param name="text">The text to display.</param>
-        public void SetText(string text)
+        public virtual void SetText(string text)
         {
             Text = text;
+            _penX = 0;
+            _penY = 0;
             _updateRenderCache = true;
 
             // Find effects.
@@ -145,8 +145,6 @@ namespace Emotion.Graphics.Text
             // Apply text alignment.
             ProcessAlignment();
         }
-
-        #endregion
 
         #region Text Processing
 
@@ -472,7 +470,7 @@ namespace Emotion.Graphics.Text
 
         #region Buffer Mapping Helpers
 
-        private void MapBuffer()
+        protected virtual void MapBuffer()
         {
             // Start mapping.
             _renderCache.Start();
@@ -493,7 +491,7 @@ namespace Emotion.Graphics.Text
                     // Check if applying initial indent.
                     if (line < _initialLineIndent.Count && c == 0) glyphXOffset += _initialLineIndent[line];
 
-                    // Check if rendering a character we don't want visible, in which case we just increment the space.
+                    // Check if rendering a character we don't want visible, in which case we just increment the pen.
                     if (CharactersToNotRender.Contains(_wrapCache[line][c]))
                         Push(glyphXOffset);
                     else
@@ -502,9 +500,6 @@ namespace Emotion.Graphics.Text
                     // Increment character counter.
                     characterCounter++;
                 }
-
-                // Check if reached past the scroll line rendered threshold, and this isn't the last line.
-                if (line == _wrapCache.Count - 1) continue;
                 NewLine();
             }
 
@@ -517,7 +512,7 @@ namespace Emotion.Graphics.Text
         /// </summary>
         /// <param name="offsetX">The horizontal pen position.</param>
         /// <param name="offsetY">The vertical pen position.</param>
-        private void Push(float offsetX = 0, float offsetY = 0)
+        protected void Push(float offsetX = 0, float offsetY = 0)
         {
             _penX += offsetX;
             _penY += offsetY;
@@ -526,7 +521,7 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// Move the pen to a new line. Resets the X pen.
         /// </summary>
-        private void NewLine()
+        protected void NewLine()
         {
             _penX = 0;
             _penY += FontAtlas.LineSpacing;
@@ -538,7 +533,7 @@ namespace Emotion.Graphics.Text
         /// <param name="c">The character to add.</param>
         /// <param name="color">The color of the character.</param>
         /// <param name="xOffset">The x offset.</param>
-        private void AddGlyph(char c, Color color, float xOffset)
+        protected void AddGlyph(char c, Color color, float xOffset)
         {
             // Get atlas, glyph, and kerning.
             Glyph glyph = FontAtlas.Glyphs[c];
@@ -546,8 +541,7 @@ namespace Emotion.Graphics.Text
             _prevChar = c;
 
             // Add kerning and offset.
-            _penX += kerning;
-            _penX += xOffset;
+            _penX += kerning + xOffset;
 
             // Calculate properties.
             Vector3 renderPos = new Vector3(_penX + glyph.MinX, _penY + glyph.YBearing, 0);
@@ -556,6 +550,26 @@ namespace Emotion.Graphics.Text
             _renderCache.Add(renderPos, uv.Size, color, FontAtlas.Texture, uv);
 
             _penX += glyph.Advance;
+        }
+
+        /// <summary>
+        /// Returns the render bounds of the next glyph without moving the pen.
+        /// </summary>
+        /// <param name="c">The character to be defined as the next glyph.</param>
+        /// <param name="xOffset">X offset for rendering.</param>
+        /// <returns>The render bounds of the next glyph if it was the provided character.</returns>
+        protected Rectangle GetNextGlyphRenderPosition(char c, float xOffset)
+        {
+            // Get atlas, glyph, and kerning.
+            Glyph glyph = FontAtlas.Glyphs[c];
+            float kerning = FontAtlas.GetKerning(_prevChar, c);
+            _prevChar = c;
+
+            // Add kerning and offset.
+            float penXCopy = _penX;
+            penXCopy += kerning + xOffset;
+
+            return new Rectangle(Bounds.X + penXCopy + glyph.MinX, Bounds.Y + _penY + glyph.YBearing, glyph.Width, glyph.Height);
         }
 
         #endregion
@@ -615,6 +629,28 @@ namespace Emotion.Graphics.Text
                 for (int c = 0; c < _wrapCache[line].Length; c++)
                 {
                     if (characterCounter == realCharIndex) return line;
+
+                    characterCounter++;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Returns the index of the virtual character on its virtual line corresponding to the real character index.
+        /// </summary>
+        /// <param name="realCharIndex">The real character index to find.</param>
+        /// <returns>The index of the virtual character on its virtual line corresponding to the real character index.</returns>
+        protected int GetVirtualCharacterIndexFromRealCharIndex(int realCharIndex)
+        {
+            int characterCounter = 0;
+
+            foreach (string line in _wrapCache)
+            {
+                for (int c = 0; c < line.Length; c++)
+                {
+                    if (characterCounter == realCharIndex) return c;
 
                     characterCounter++;
                 }

@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion;
+using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
@@ -17,6 +18,7 @@ namespace EmotionSandbox.Examples.Rendering
     public class RenderingText : Layer
     {
         private RichText _richText;
+        private TypewriterRichText _twRichText;
 
         public static void Main()
         {
@@ -31,13 +33,24 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Load()
         {
             Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20);
+
             _richText = new RichText(new Rectangle(10, 200, 300, 100), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
             _richText.SetText("Hello, I am rich text. I can do things like <color=255-0-0>t</><color=0-255-0>hi</><color=0-0-255>s</>!");
             _richText.Z = 1;
+
+            _twRichText = new TypewriterRichText(new Rectangle(10, 300, 300, 500), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
+            _twRichText.SetText("Hello, I am a rich text extension which performs a <color=255-0-0>typewriter</> effect except on <instant>parts</> in an 'instant' tag!");
+            _twRichText.SetTypewriterEffect(1000);
+            _twRichText.Z = 1;
         }
 
         public override void Update(float fr)
         {
+            _twRichText.Update(fr);
+            if (_twRichText.EffectFinished)
+            {
+                _twRichText.SetText(_twRichText.Text);
+            }
         }
 
         public override void Draw(Renderer renderer)
@@ -55,6 +68,9 @@ namespace EmotionSandbox.Examples.Rendering
             renderer.Render(_richText);
             // Render an outline around it so it's clear that wrapping occurs.
             renderer.RenderOutline(_richText.Bounds, Color.Red);
+
+            // Render the typewriter object.
+            renderer.Render(_twRichText);
         }
 
         public override void Unload()

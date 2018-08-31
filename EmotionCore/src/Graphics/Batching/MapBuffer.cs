@@ -123,8 +123,17 @@ namespace Emotion.Graphics.Batching
 
         #region Mapping
 
+        /// <summary>
+        /// Start mapping the buffer. The buffer cannot be rendered until FinishMapping is called.
+        /// </summary>
         public virtual void Start()
         {
+            if (Mapping)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to start mapping a buffer which is already mapping.");
+                return;
+            }
+
             ThreadManager.ForceGLThread();
 
             _indicesCount = 0;
@@ -133,6 +142,18 @@ namespace Emotion.Graphics.Batching
             _vbo.Bind();
             _dataPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
             Helpers.CheckError("map buffer - start");
+        }
+
+        /// <summary>
+        /// Fast-forward mapping the buffer a certain amount of spaces.
+        /// </summary>
+        /// <param name="count">The spaces to fast forward.</param>
+        public virtual void FastForward(int count)
+        {
+            if (!Mapping)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to fast forward a buffer which never started mapping.");
+            }
         }
 
         /// <summary>

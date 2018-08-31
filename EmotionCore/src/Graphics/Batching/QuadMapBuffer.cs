@@ -56,6 +56,7 @@ namespace Emotion.Graphics.Batching
             Helpers.CheckError("map buffer - creating ibo");
         }
 
+        /// <inheritdoc />
         public QuadMapBuffer(int size) : base(size)
         {
             _textureList = new List<Texture>();
@@ -167,6 +168,14 @@ namespace Emotion.Graphics.Batching
 
             // Increment indices count.
             _indicesCount += 6;
+        }
+
+        /// <inheritdoc />
+        public override void FastForward(int count)
+        {
+            base.FastForward(count);
+            _dataPointer += 4 * count;
+            _indicesCount += 6 * count;
         }
 
         #endregion
