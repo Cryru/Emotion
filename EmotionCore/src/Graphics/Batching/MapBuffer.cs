@@ -150,10 +150,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="count">The spaces to fast forward.</param>
         public virtual void FastForward(int count)
         {
-            if (!Mapping)
-            {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to fast forward a buffer which never started mapping.");
-            }
+            if (!Mapping) Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to fast forward a buffer which never started mapping.");
         }
 
         /// <summary>

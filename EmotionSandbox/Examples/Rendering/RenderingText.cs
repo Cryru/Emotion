@@ -6,6 +6,7 @@ using Emotion;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Layering;
+using Emotion.Game.Text;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;

@@ -5,13 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Emotion.Graphics;
 using Emotion.Graphics.Batching;
+using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Convert = Soul.Convert;
 
 #endregion
 
-namespace Emotion.Graphics.Text
+namespace Emotion.Game.Text
 {
     /// <summary>
     /// A RichText object which manages text wrapping, styles, tagging, and more.
@@ -500,6 +502,7 @@ namespace Emotion.Graphics.Text
                     // Increment character counter.
                     characterCounter++;
                 }
+
                 NewLine();
             }
 

@@ -2,14 +2,14 @@
 
 #region Using
 
+using System.Linq;
+using Emotion.Graphics;
+using Emotion.Graphics.Text;
+using Emotion.Primitives;
+
 #endregion
 
-using System;
-using Emotion.Primitives;
-using System.Linq;
-using Emotion.Debug;
-
-namespace Emotion.Graphics.Text
+namespace Emotion.Game.Text
 {
     /// <inheritdoc />
     public sealed class TypewriterRichText : RichText
@@ -31,7 +31,6 @@ namespace Emotion.Graphics.Text
 
         public TypewriterRichText(Rectangle bounds, Atlas atlas) : base(bounds, atlas)
         {
-
         }
 
         #region API
@@ -62,7 +61,7 @@ namespace Emotion.Graphics.Text
         {
             base.SetText(text);
 
-            if(_totalDuration != 0) _durationPerCharacter = _totalDuration / _textStripped.Length;
+            if (_totalDuration != 0) _durationPerCharacter = _totalDuration / _textStripped.Length;
         }
 
         /// <summary>
@@ -152,10 +151,7 @@ namespace Emotion.Graphics.Text
             }
 
             // Check if any new characters to map.
-            if (_characterMapNext <= _effectCharacterLimit)
-            {
-                MapBuffer();
-            }
+            if (_characterMapNext <= _effectCharacterLimit) MapBuffer();
 
             // Check if anything is mapped in the cache buffer.
             if (!_renderCache.AnythingMapped) return;
