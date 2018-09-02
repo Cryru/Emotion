@@ -61,8 +61,9 @@ namespace Emotion.Graphics
             TransformationStack = new TransformationStack();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram(null, null, Context);
+            ShaderProgram defaultProgram = new ShaderProgram(null, null);
             defaultProgram.Bind();
+            SyncShader(defaultProgram);
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
@@ -93,7 +94,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Clear the screen.
         /// </summary>
-        public void Clear()
+        internal void Clear()
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Helpers.CheckError("clear");
@@ -102,7 +103,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Flush the system buffers and restart their mapping.
         /// </summary>
-        public void End()
+        internal void End()
         {
             RenderFlush();
             RenderOutlineFlush();
@@ -116,6 +117,12 @@ namespace Emotion.Graphics
             }
 
             _renderableQueue.Clear();
+        }
+
+        public void SyncShader(ShaderProgram shader)
+        {
+            shader.SetUniformFloat("time", Context.Time);
+            shader.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
         }
 
         #endregion

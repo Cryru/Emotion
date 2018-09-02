@@ -152,9 +152,7 @@
     <Compile Include="src\IO\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
     <Compile Include="src\IO\Other.cs" />
-    <Compile Include="src\Graphics\Legacy\RenderTarget.cs" />
     <Compile Include="src\Engine\ContextObject.cs" />
-    <Compile Include="src\Graphics\Legacy\ITexture.cs" />
     <Compile Include="src\Debug\MessageSource.cs" />
     <Compile Include="src\Debug\MessageType.cs" />
     <Compile Include="src\Host\WindowMode.cs" />
