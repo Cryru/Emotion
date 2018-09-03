@@ -126,6 +126,7 @@
     <Compile Include="src\Graphics\GLES\Buffer.cs" />
     <Compile Include="src\Graphics\GLES\VertexArray.cs" />
     <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
+    <Compile Include="src\Graphics\TransformRenderable.cs" />
     <Compile Include="src\Graphics\Renderable.cs" />
     <Compile Include="src\Graphics\Renderer.cs" />
     <Compile Include="src\Graphics\Text\Atlas.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="src\Graphics\Batching\VertexData.cs" />
     <Compile Include="src\IO\Asset.cs" />
     <Compile Include="src\Primitives\Matrix4.cs" />
+    <Compile Include="src\Primitives\Point.cs" />
     <Compile Include="src\Primitives\Transform.cs" />
     <Compile Include="src\Primitives\Vector3.cs" />
     <Compile Include="src\Sound\SourceBase.cs" />

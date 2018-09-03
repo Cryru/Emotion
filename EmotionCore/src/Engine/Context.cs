@@ -111,6 +111,9 @@ namespace Emotion.Engine
 
             Host.SetHooks(LoopUpdate, LoopDraw);
 
+            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
+            ScriptingEngine = new ScriptingEngine(this);
+
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
             Renderer = new Renderer(this);
 
@@ -119,9 +122,6 @@ namespace Emotion.Engine
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
             AssetLoader = new AssetLoader(this);
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
-            ScriptingEngine = new ScriptingEngine(this);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating layer manager...");
             LayerManager = new LayerManager(this);
@@ -181,11 +181,18 @@ namespace Emotion.Engine
         /// <param name="frameTime">The time between this tick and the last.</param>
         protected void LoopUpdate(float frameTime)
         {
+            // Update debugger.
+            Debugger.Update(this);
+
+            // If not focused, don't update.
+            if (!Host.Focused)
+            {
+                Thread.Sleep(1);
+                return;
+            }
+
             // Update the thread manager.
             ThreadManager.Run();
-
-            // Update debugger.
-            Debugger.Update(ScriptingEngine);
 
             // Update the renderer.
             Renderer.Update(frameTime);

@@ -85,8 +85,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="color">The color of the vertices.</param>
         /// <param name="texture">The texture of the vertices.</param>
         /// <param name="textureArea">The texture area (UV) of the vertices.</param>
-        /// <param name="vertMatrix">The matrix to multiply the vertices by.</param>
-        public void Add(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
+        public void Add(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             // Convert the color to an int.
             uint c = ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
@@ -130,9 +129,6 @@ namespace Emotion.Graphics.Batching
                     }
             }
 
-            // Determine the vertex matrix.
-            Matrix4 vertexMatrix = vertMatrix ?? Matrix4.Identity;
-
             // Check if render limit reached.
             if (_indicesCount / 6 >= Size) throw new Exception("Render limit of " + Size + " reached.");
 
@@ -142,25 +138,25 @@ namespace Emotion.Graphics.Batching
             Vector2 pp = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), textureMatrix);
 
             // Set four vertices.
-            _dataPointer->Vertex = Vector3.TransformPosition(location, vertexMatrix);
+            _dataPointer->Vertex = location;
             _dataPointer->UV = nn;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X + size.X, location.Y, location.Z), vertexMatrix);
+            _dataPointer->Vertex = new Vector3(location.X + size.X, location.Y, location.Z);
             _dataPointer->UV = pn;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X + size.X, location.Y + size.Y, location.Z), vertexMatrix);
+            _dataPointer->Vertex = new Vector3(location.X + size.X, location.Y + size.Y, location.Z);
             _dataPointer->UV = pp;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
             _dataPointer++;
 
-            _dataPointer->Vertex = Vector3.TransformPosition(new Vector3(location.X, location.Y + size.Y, location.Z), vertexMatrix);
+            _dataPointer->Vertex = new Vector3(location.X, location.Y + size.Y, location.Z);
             _dataPointer->UV = np;
             _dataPointer->Tid = tid;
             _dataPointer->Color = c;
@@ -181,7 +177,7 @@ namespace Emotion.Graphics.Batching
         #endregion
 
         /// <inheritdoc />
-        public override void Draw(Matrix4? modelMatrix = null, ShaderProgram shader = null)
+        internal override void Render(Renderer _)
         {
             if (!AnythingMapped)
             {
@@ -192,14 +188,6 @@ namespace Emotion.Graphics.Batching
             ThreadManager.ForceGLThread();
 
             Helpers.CheckError("map buffer - before draw");
-
-            // Sync shader.
-            shader?.Bind();
-            if (modelMatrix != null)
-                ShaderProgram.Current.SetUniformMatrix4("modelMatrix", (Matrix4) modelMatrix);
-            else
-                ShaderProgram.Current.SetUniformMatrix4("modelMatrix", Matrix4.Identity);
-            Helpers.CheckError("map buffer - shader preparation");
 
             // Bind textures.
             for (int i = 0; i < _textureList.Count; i++)

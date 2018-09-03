@@ -14,8 +14,6 @@ in float Tid;
 out vec4 fragColor;
 
 void main() {
-    //vec4 uvTransformed = textureMatrix * vec4(UV, 0, 1);
-
     // Check if a texture is in use.
     if (Tid >= 0.0)
     {

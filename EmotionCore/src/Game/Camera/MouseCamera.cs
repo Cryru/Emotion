@@ -48,7 +48,7 @@ namespace Emotion.Game.Camera
             Vector2 mouseLocation = context.Input.GetMousePosition(this);
 
             // Smooth between the mouse location and the target.
-            float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X,  MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
+            float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
             float ly = MathHelper.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
 
             Center = new Vector2(lx, ly);
@@ -56,9 +56,7 @@ namespace Emotion.Game.Camera
             // Record position.
             _targetLastPosition = Target.Bounds.Center;
 
-            if (!_transformUpdated) return;
-            ViewMatrix = Matrix4.CreateTranslation(X, Y, Z);
-            _transformUpdated = false;
+            UpdateMatrix();
         }
     }
 }

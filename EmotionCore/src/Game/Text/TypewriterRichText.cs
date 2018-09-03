@@ -142,7 +142,7 @@ namespace Emotion.Game.Text
             _renderCache.FinishMapping();
         }
 
-        public override void Draw(Renderer _)
+        internal override void Render(Renderer renderer)
         {
             if (_updateRenderCache)
             {
@@ -159,12 +159,12 @@ namespace Emotion.Game.Text
             // Check if the model matrix needs to be calculated.
             if (_transformUpdated)
             {
-                _modelMatrix = Matrix4.CreateTranslation(Bounds.X, Bounds.Y, Z);
+                ModelMatrix = Matrix4.CreateTranslation(Bounds.X, Bounds.Y, Z);
                 _transformUpdated = false;
             }
 
-            // Draw the buffer. The model matrix is set here so we don't have to remap the buffer when the position is changed.
-            _renderCache.Draw(_modelMatrix);
+            // Draw the buffer.
+            renderer.Render(_renderCache, true);
         }
 
         #endregion

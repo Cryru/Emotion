@@ -5,6 +5,7 @@
 using System;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -30,18 +31,6 @@ namespace Emotion.Graphics.GLES
         /// The pointer of the buffer within OpenGL.
         /// </summary>
         private int _pointer;
-
-        /// <summary>
-        /// Create a new buffer.
-        /// </summary>
-        /// <param name="data">The vertex data for this VBO.</param>
-        /// <param name="componentCount">The number of components contained within the data.</param>
-        /// <param name="usageHint">What the buffer will be used for.</param>
-        public Buffer(float[] data, uint componentCount, BufferUsageHint usageHint = BufferUsageHint.StaticDraw)
-        {
-            _pointer = GL.GenBuffer();
-            Upload(data, componentCount, usageHint);
-        }
 
         /// <summary>
         /// Create a new buffer, and allocate empty space for it.
@@ -110,6 +99,61 @@ namespace Emotion.Graphics.GLES
             {
                 Bind();
                 GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usageHint);
+            });
+        }
+
+        /// <summary>
+        /// Uploads the provided vertex data to the GPU.
+        /// </summary>
+        /// <param name="data">The vertex data for this VBO.</param>
+        /// <param name="componentCount">The number of components contained within the data.</param>
+        /// <param name="usageHint">What the buffer will be used for.</param>
+        public void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
+        {
+            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+
+            ComponentCount = componentCount;
+
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                Bind();
+                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(uint), data, usageHint);
+            });
+        }
+
+        /// <summary>
+        /// Uploads the provided vertex data to the GPU.
+        /// </summary>
+        /// <param name="data">The vertex data for this VBO.</param>
+        /// <param name="usageHint">What the buffer will be used for.</param>
+        public void Upload(Vector3[] data, BufferUsageHint usageHint)
+        {
+            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+
+            ComponentCount = 3;
+
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                Bind();
+                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector3.SizeInBytes, data, usageHint);
+            });
+        }
+
+        /// <summary>
+        /// Uploads the provided vertex data to the GPU.
+        /// </summary>
+        /// <param name="data">The vertex data for this VBO.</param>
+        /// <param name="usageHint">What the buffer will be used for.</param>
+        public void Upload(Vector2[] data, BufferUsageHint usageHint)
+        {
+            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+
+            ComponentCount = 2;
+
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                Bind();
+                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector2.SizeInBytes, data, usageHint);
             });
         }
 

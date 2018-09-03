@@ -40,9 +40,7 @@ namespace Emotion.Game.Camera
 
             Center = new Vector2(lx, ly);
 
-            if (!_transformUpdated) return;
-            ViewMatrix = Matrix4.CreateTranslation(X, Y, Z);
-            _transformUpdated = false;
+            UpdateMatrix();
         }
     }
 }

@@ -18,17 +18,38 @@ namespace Emotion.Game.Camera
         /// </summary>
         public Matrix4 ViewMatrix { get; protected set; }
 
+        /// <summary>
+        /// How zoomed the camera is.
+        /// </summary>
+        public float Zoom
+        {
+            get => _zoom;
+            set
+            {
+                _zoom = value;
+                _transformUpdated = true;
+            }
+        }
+
+        private float _zoom = 1f;
+
         #endregion
 
         public CameraBase(Rectangle bounds) : base(bounds)
         {
-            ViewMatrix = Matrix4.Identity;
+            UpdateMatrix();
         }
 
         public virtual void Update(Context _)
         {
+            UpdateMatrix();
+        }
+
+        protected virtual void UpdateMatrix()
+        {
             if (!_transformUpdated) return;
-            ViewMatrix = Matrix4.CreateTranslation(X, Y, Z);
+            ViewMatrix = Matrix4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4.CreateScale(Zoom) * Matrix4.CreateTranslation(Width / 2, Height / 2, Z) *
+                         Matrix4.CreateTranslation(X, Y, Z);
             _transformUpdated = false;
         }
     }

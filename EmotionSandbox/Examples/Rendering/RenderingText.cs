@@ -56,15 +56,15 @@ namespace EmotionSandbox.Examples.Rendering
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
 
             // Render the text.
-            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 10, 1), Color.White);
-            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 25, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 35, 1), Color.White);
-            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 30, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 70, 1), Color.White);
-            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 35, "Hello, I am simple text rendered by the renderer.", new Vector3(10, 110, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(0, 0, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 25, "Hello, I am simple text rendered by the renderer.", new Vector3(0, 25, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 30, "Hello, I am simple text rendered by the renderer.", new Vector3(0, 60, 1), Color.White);
+            renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 35, "Hello, I am simple text rendered by the renderer.", new Vector3(0, 100, 1), Color.White);
 
             // Render the RichText object.
             renderer.Render(_richText);
             // Render an outline around it so it's clear that wrapping occurs.
-            renderer.RenderOutline(_richText.Bounds, Color.Red);
+            renderer.RenderOutline(_richText.Position, _richText.Size, Color.Red);
 
             // Render the typewriter object.
             renderer.Render(_twRichText);

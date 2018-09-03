@@ -48,7 +48,14 @@ namespace EmotionSandbox.Examples.Generic
                 Matrix4.CreateTranslation(centerX, centerY, 0);
 
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), new Color("#35383d"));
-            if(_circleLoaded) renderer.Render(Vector3.Zero, new Vector2(size, size), Color.White, Context.AssetLoader.Get<Texture>("LoadingCircleHalf.png"), null, rotationMatrix);
+
+            if (_circleLoaded)
+            {
+                renderer.MatrixStack.Push(rotationMatrix);
+                renderer.Render(Vector3.Zero, new Vector2(size, size), Color.White, Context.AssetLoader.Get<Texture>("LoadingCircleHalf.png"));
+                renderer.MatrixStack.Pop();
+            }
+
             if(_logoLoaded) renderer.Render(new Vector3(logoCenterX, logoCenterY, 0), new Vector2(size / 2, size / 2), Color.White, Context.AssetLoader.Get<Texture>("EmotionLogo.png"));
         }
 

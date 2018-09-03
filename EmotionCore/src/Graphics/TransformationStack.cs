@@ -48,7 +48,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void Pop()
         {
-            if (_stack.Count <= 1) throw new Exception("Tried to push the first identity matrix out of the stack.");
+            if (_stack.Count <= 1) throw new Exception("Tried to pop the first identity matrix out of the stack.");
 
             _stack.Pop();
         }

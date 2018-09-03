@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics.GLES;
-using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;
@@ -16,7 +15,7 @@ using Buffer = Emotion.Graphics.GLES.Buffer;
 
 namespace Emotion.Graphics.Batching
 {
-    public abstract unsafe class MapBuffer
+    public abstract unsafe class MapBuffer : Renderable
     {
         #region Properties
 
@@ -175,12 +174,5 @@ namespace Emotion.Graphics.Batching
         }
 
         #endregion
-
-        /// <summary>
-        /// Draw the buffer.
-        /// </summary>
-        /// <param name="modelMatrix">The matrix4 to upload as an uniform for "modelMatrix". If null nothing will be uploaded.</param>
-        /// <param name="shader">The shader to use. If null the current one will be used.</param>
-        public abstract void Draw(Matrix4? modelMatrix = null, ShaderProgram shader = null);
     }
 }
