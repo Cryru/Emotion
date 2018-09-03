@@ -26,6 +26,7 @@ namespace Emotion.Input
         private KeyboardState _keyboard;
         private bool _noFocus;
         internal Vector2 MouseLocation;
+        private float _mouseWheelScroll;
 
         internal Input(Context context) : base(context)
         {
@@ -129,26 +130,30 @@ namespace Emotion.Input
 
         #region Mouse
 
+        public float GetMouseScroll()
+        {
+            _mouseWheelScroll = Mouse.GetState().WheelPrecise;
+            return _mouseWheelScroll;
+        }
+
+        public float GetMouseScrollRelative()
+        {
+            float position = Mouse.GetState().WheelPrecise;
+            float relativePos = _mouseWheelScroll - position;
+            _mouseWheelScroll = position;
+            return relativePos;
+        }
+
         /// <summary>
         /// Returns the position of the mouse cursor within the window.
         /// </summary>
-        /// <param name="camera">The camera to convert to world units through, or null to return window units.</param>
         /// <returns>The position of the mouse cursor within the window.</returns>
-        public Vector2 GetMousePosition(CameraBase camera = null)
+        public Vector2 GetMousePosition()
         {
-            Vector2 windowSize = Context.Host.Size;
-            Vector2 mouseLocation = new Vector2(MouseLocation.X, MouseLocation.Y);
+            float scaleX = Context.Settings.RenderWidth / Context.Host.Size.X;
+            float scaleY = Context.Settings.RenderHeight / Context.Host.Size.Y;
 
-            int smallerValueRender = Math.Min(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
-            int smallerValueWindow = (int) Math.Min(windowSize.X, windowSize.Y);
-
-            mouseLocation = mouseLocation * smallerValueRender / smallerValueWindow;
-
-            if (camera == null) return mouseLocation;
-
-            mouseLocation.X += camera.Bounds.X;
-            mouseLocation.Y += camera.Bounds.Y;
-
+            Vector2 mouseLocation = new Vector2(MouseLocation.X * scaleX, MouseLocation.Y * scaleY);
             return mouseLocation;
         }
 

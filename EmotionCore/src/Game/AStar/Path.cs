@@ -134,6 +134,7 @@ namespace Emotion.Game.AStar
                 return path.ToArray();
             }
 
+            Finished = true;
             return null;
         }
 

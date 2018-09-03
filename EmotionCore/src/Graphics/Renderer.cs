@@ -63,7 +63,6 @@ namespace Emotion.Graphics
             // Create a default program, and use it.
             ShaderProgram defaultProgram = new ShaderProgram(null, null);
             defaultProgram.Bind();
-            SyncShader(defaultProgram);
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
@@ -106,7 +105,7 @@ namespace Emotion.Graphics
                 (Func<string>) (() =>
                 {
                     _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Rectangle(Camera.X, Camera.Y, Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
+                        ? new CameraBase(new Rectangle(Camera.Center.X, Camera.Center.Y, Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
                         : null;
 
                     return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
@@ -120,10 +119,14 @@ namespace Emotion.Graphics
             // Update debugging camera.
             if (_debugCamera != null)
             {
-                if (Context.Input.IsKeyHeld("W")) _debugCamera.Y += 10 + 0.1f * Context.FrameTime;
-                if (Context.Input.IsKeyHeld("A")) _debugCamera.X += 10 + 0.1f * Context.FrameTime;
-                if (Context.Input.IsKeyHeld("S")) _debugCamera.Y -= 10 + 0.1f * Context.FrameTime;
-                if (Context.Input.IsKeyHeld("D")) _debugCamera.X -= 10 + 0.1f * Context.FrameTime;
+                if (Context.Input.IsKeyHeld("Down")) _debugCamera.Y += 10 + 0.1f * Context.FrameTime;
+                if (Context.Input.IsKeyHeld("Right")) _debugCamera.X += 10 + 0.1f * Context.FrameTime;
+                if (Context.Input.IsKeyHeld("Up")) _debugCamera.Y -= 10 + 0.1f * Context.FrameTime;
+                if (Context.Input.IsKeyHeld("Left")) _debugCamera.X -= 10 + 0.1f * Context.FrameTime;
+
+                float scrollPos = Context.Input.GetMouseScrollRelative();
+                if (scrollPos < 0) _debugCamera.Zoom += 0.005f * Context.FrameTime;
+                if (scrollPos > 0) _debugCamera.Zoom -= 0.005f * Context.FrameTime;
 
                 _debugCamera.Update(null);
             }
@@ -135,10 +138,18 @@ namespace Emotion.Graphics
             if (_debugCamera != null)
             {
                 // Draw bounds.
-                RenderOutline(new Vector3(Camera.X * -1, Camera.Y * -1, Camera.Z), Camera.Size, Color.Yellow);
+                RenderOutline(new Vector3(Camera.X, Camera.Y, Camera.Z), Camera.Size, Color.Yellow);
 
                 // Draw center.
-                RenderOutline(new Vector3((Camera.X - Camera.Width / 2 - 5f) * -1, (Camera.Y - Camera.Height / 2 - 5f) * -1, Camera.Z), new Vector2(10, 10), Color.Yellow);
+                RenderOutline(new Vector3((Camera.X + Camera.Width / 2 - 5f), (Camera.Y + Camera.Height / 2 - 5f), Camera.Z), new Vector2(10, 10), Color.Yellow);
+
+                DisableViewMatrix();
+                Render(new Vector3(0, Context.Settings.RenderHeight - 50, 0), new Vector2(420, 60), new Color(0, 0, 0, 125));
+                RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, 
+                    $"Debug Zoom: {_debugCamera.Zoom}\n" +
+                    $"Debug Location: {_debugCamera.Bounds}\n" +
+                    $"Camera Location: {Camera.Bounds}\n", new Vector3(0, Context.Settings.RenderHeight - 50, 0), Color.Yellow);
+                EnableViewMatrix();
             }
         }
 
@@ -155,7 +166,7 @@ namespace Emotion.Graphics
             Helpers.CheckError("clear");
 
             // Sync the current shader.
-            SyncShader(ShaderProgram.Current);
+            SyncShader();
         }
 
         /// <summary>
@@ -201,7 +212,18 @@ namespace Emotion.Graphics
         {
             shader.SetUniformFloat("time", Context.Time);
             if (full) shader.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
-            shader.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+            EnableViewMatrix();
+        }
+
+        /// <summary>
+        /// Synchronize the current shader's properties with the actual ones. This doesn't set the model matrix.
+        /// </summary>
+        /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
+        public void SyncShader(bool full = true)
+        {
+            ShaderProgram.Current.SetUniformFloat("time", Context.Time);
+            if (full) ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
+            EnableViewMatrix();
         }
 
         /// <summary>
@@ -212,12 +234,33 @@ namespace Emotion.Graphics
             ShaderProgram.Current.SetUniformMatrix4("modelMatrix", MatrixStack.CurrentMatrix);
         }
 
+        public Vector2 ScreenToWorld(Vector2 position)
+        {
+            return Vector2.TransformPosition(position, (_debugCamera ?? Camera).ViewMatrix.Inverted());
+        }
+
         /// <summary>
-        /// Disables the view matrix until the shader is resynchronized.
+        /// Disables the view matrix until the shader is resynchronized or it is re-enabled.
         /// </summary>
         public void DisableViewMatrix()
         {
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", Matrix4.Identity);
+        }
+
+        /// <summary>
+        /// Enables the view matrix.
+        /// </summary>
+        public void EnableViewMatrix()
+        {
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+        }
+
+        /// <summary>
+        /// Enables the view matrix for the specified shader.
+        /// </summary>
+        public void EnableViewMatrix(ShaderProgram shader)
+        {
+            shader.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
         }
 
         #endregion
@@ -294,6 +337,18 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Instantly render a line.
+        /// </summary>
+        /// <param name="pointOne">The first point.</param>
+        /// <param name="pointTwo">The second point.</param>
+        /// <param name="color">The color of the line.</param>
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color)
+        {
+            _mainLineBuffer.Add(pointOne, pointTwo, color);
+            RenderOutlineFlush();
+        }
+
+        /// <summary>
         /// Renders a string to the screen.
         /// </summary>
         /// <param name="font">The font to render using.</param>
@@ -314,14 +369,22 @@ namespace Emotion.Graphics
             Atlas atlas = font.GetFontAtlas(textSize);
 
             float penX = 0;
+            float penY = 0;
 
             for (int i = 0; i < text.Length; i++)
             {
+                if (text[i] == '\n')
+                {
+                    penX = 0;
+                    penY += atlas.LineSpacing;
+                    continue;
+                }
+
                 if (i > 0) penX += atlas.GetKerning(text[i - 1], text[i]);
 
                 Glyph g = atlas.Glyphs[text[i]];
 
-                Vector3 renderPos = new Vector3(g.MinX + penX, g.YBearing, 0);
+                Vector3 renderPos = new Vector3(g.MinX + penX, penY + g.YBearing, 0);
                 uvs[i] = new Rectangle(g.X, g.Y, g.Width, g.Height);
                 RenderQueue(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
                 penX += g.Advance;

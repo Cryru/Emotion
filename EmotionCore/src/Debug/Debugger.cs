@@ -166,7 +166,7 @@ namespace Emotion.Debug
 
             renderer.DisableViewMatrix();
             renderer.RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
-            renderer.SyncShader(ShaderProgram.Current);
+            renderer.EnableViewMatrix();
         }
 
         #endregion

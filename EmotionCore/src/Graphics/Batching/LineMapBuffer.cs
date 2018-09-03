@@ -98,6 +98,37 @@ namespace Emotion.Graphics.Batching
             _indicesCount += 8;
         }
 
+        /// <summary>
+        /// Map a part of the buffer as a line.
+        /// </summary>
+        /// <param name="pointOne">The location of the first point.</param>
+        /// <param name="pointTwo">The size of the second point.</param>
+        /// <param name="color">The color of the vertices.</param>
+        public void Add(Vector3 pointOne, Vector3 pointTwo, Color color)
+        {
+            // Convert the color to an int.
+            uint c = ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
+
+            // Check if render limit reached.
+            if (_indicesCount / 8 >= Size) throw new Exception("Render limit of " + Size + " reached.");
+
+            // Set four vertices.
+            _dataPointer->Vertex = pointOne;
+            _dataPointer->Color = c;
+            _dataPointer->Tid = -1;
+            _dataPointer->UV = new Vector2(0, 0);
+            _dataPointer++;
+
+            _dataPointer->Vertex = pointTwo;
+            _dataPointer->Color = c;
+            _dataPointer->Tid = -1;
+            _dataPointer->UV = new Vector2(0, 0);
+            _dataPointer++;
+
+            // Increment indices count.
+            _indicesCount += 2;
+        }
+
         /// <inheritdoc />
         public override void FastForward(int count)
         {

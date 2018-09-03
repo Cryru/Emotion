@@ -48,7 +48,7 @@ namespace Emotion.Engine
 #endif
             });
 
-            Expose("help", (Func<string>) (() => "\n---Exposed Functions---" + string.Join("\n", _exposedProperties)), "Prints all exposed properties and their descriptions.");
+            Expose("help", (Func<string>) (() => "\n---Exposed Functions---\n" + string.Join("\n", _exposedProperties)), "Prints all exposed properties and their descriptions.");
         }
 
         #region Functions

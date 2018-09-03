@@ -45,7 +45,7 @@ namespace Emotion.Game.Camera
             if (_targetLastPosition == Vector2.Zero) _targetLastPosition = Target.Bounds.Center;
 
             // Get mouse location.
-            Vector2 mouseLocation = context.Input.GetMousePosition(this);
+            Vector2 mouseLocation = context.Renderer.ScreenToWorld(context.Input.GetMousePosition());
 
             // Smooth between the mouse location and the target.
             float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));

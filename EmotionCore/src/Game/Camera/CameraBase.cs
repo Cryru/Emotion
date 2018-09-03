@@ -49,7 +49,7 @@ namespace Emotion.Game.Camera
         {
             if (!_transformUpdated) return;
             ViewMatrix = Matrix4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4.CreateScale(Zoom) * Matrix4.CreateTranslation(Width / 2, Height / 2, Z) *
-                         Matrix4.CreateTranslation(X, Y, Z);
+                         Matrix4.CreateTranslation(-((int) X), -((int) Y), Z);
             _transformUpdated = false;
         }
     }

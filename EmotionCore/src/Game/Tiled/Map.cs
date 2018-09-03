@@ -15,7 +15,7 @@ using TiledSharp;
 
 namespace Emotion.Game.Tiled
 {
-    public class Map : Renderable2D
+    public class Map : TransformRenderable
     {
         #region Properties
 
@@ -23,11 +23,6 @@ namespace Emotion.Game.Tiled
         /// The TiledSharp object the map is using.
         /// </summary>
         public TmxMap TiledMap { get; protected set; }
-
-        /// <summary>
-        /// The rectangle to render from the whole map. If empty the whole map is rendered.
-        /// </summary>
-        public Rectangle VisibleRectangle { get; set; }
 
         #endregion
 
@@ -42,8 +37,9 @@ namespace Emotion.Game.Tiled
         /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(Rectangle mapBounds, AssetLoader assetLoader, string mapPath, string tileSetFolder) : base(mapBounds)
+        public Map(Rectangle mapBounds, AssetLoader assetLoader, string mapPath, string tileSetFolder)
         {
+            Bounds = mapBounds;
             _assetLoader = assetLoader;
 
             // Check if no map is provided.
@@ -102,10 +98,18 @@ namespace Emotion.Game.Tiled
         /// Draw the map using the specified renderer.
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
-        public void Draw(Renderer renderer)
+        internal override void Render(Renderer renderer)
         {
+            // Flush the buffer.
+            renderer.RenderFlush();
+
             // Check if anything is loaded.
             if (TiledMap == null) return;
+
+            if (_transformUpdated)
+            {
+                ModelMatrix = Matrix4.CreateTranslation(X, Y, Z);
+            }
 
             // layer - The map layer currently drawing.
             // t - The tile currently drawing from [layer]. 
@@ -183,15 +187,13 @@ namespace Emotion.Game.Tiled
                     tRect.X *= ratioDifferenceX;
                     tRect.Y *= ratioDifferenceY;
 
-                    // Add map position.
-                    tRect.X += X;
-                    tRect.Y += Y;
-
                     // Check if visible rectangle exists.
-                    if (VisibleRectangle == Rectangle.Empty || VisibleRectangle.Intersects(tRect))
-                        renderer.DrawTexture(_tilesets[tsId], tRect, tiRect, new Color(255, 255, 255, (int) (layer.Opacity * 255)));
+                    renderer.RenderQueue(tRect.LocationZ, tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), _tilesets[tsId], tiRect);
                 }
             }
+
+            // Flush the rendered tiles.
+            renderer.RenderFlush();
         }
 
         #region Animated Tiles
