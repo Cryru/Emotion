@@ -39,7 +39,7 @@ namespace EmotionSandbox.Examples.Rendering
             _richText.Z = 1;
 
             _twRichText = new TypewriterRichText(new Rectangle(10, 300, 300, 500), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
-            _twRichText.SetText("Hello, I am a rich text extension which performs a <color=255-0-0>typewriter</> effect except on <instant>parts</> in an 'instant' tag!");
+            _twRichText.SetText("Hello, I am a rich text extension which performs a <color=255-0-0>typewriter</> effect!");
             _twRichText.SetTypewriterEffect(1000);
             _twRichText.Z = 1;
         }
