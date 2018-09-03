@@ -179,8 +179,8 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Draw the buffer.
         /// </summary>
-        /// <param name="bufferMatrix">The matrix4 to upload as an uniform for "bufferMatrix". If null nothing will be uploaded.</param>
+        /// <param name="modelMatrix">The matrix4 to upload as an uniform for "modelMatrix". If null nothing will be uploaded.</param>
         /// <param name="shader">The shader to use. If null the current one will be used.</param>
-        public abstract void Draw(Matrix4? bufferMatrix = null, ShaderProgram shader = null);
+        public abstract void Draw(Matrix4? modelMatrix = null, ShaderProgram shader = null);
     }
 }

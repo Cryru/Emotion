@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Primitives;
 using Soul;
 
@@ -12,7 +13,7 @@ namespace Emotion.Game.Camera
     /// <summary>
     /// A camera which centers on the target but uses input from the mouse to determine location.
     /// </summary>
-    public sealed class MouseCamera : CameraBase
+    public sealed class MouseCamera : TargetCamera
     {
         #region Properties
 
@@ -35,7 +36,7 @@ namespace Emotion.Game.Camera
         {
         }
 
-        public void Update(Input.Input input)
+        public override void Update(Context context)
         {
             // Check if no target.
             if (Target == null) return;
@@ -44,16 +45,20 @@ namespace Emotion.Game.Camera
             if (_targetLastPosition == Vector2.Zero) _targetLastPosition = Target.Bounds.Center;
 
             // Get mouse location.
-            Vector2 mouseLocation = input.GetMousePosition(this);
+            Vector2 mouseLocation = context.Input.GetMousePosition(this);
 
             // Smooth between the mouse location and the target.
-            float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X, CameraMaxDistance);
-            float ly = MathHelper.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, CameraMaxDistance);
+            float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X,  MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
+            float ly = MathHelper.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
 
             Center = new Vector2(lx, ly);
 
             // Record position.
             _targetLastPosition = Target.Bounds.Center;
+
+            if (!_transformUpdated) return;
+            ViewMatrix = Matrix4.CreateTranslation(X, Y, Z);
+            _transformUpdated = false;
         }
     }
 }

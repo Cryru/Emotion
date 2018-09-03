@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Primitives;
 
 #endregion
@@ -13,19 +14,22 @@ namespace Emotion.Game.Camera
         #region Properties
 
         /// <summary>
-        /// The transform the camera should follow.
+        /// The camera's matrix.
         /// </summary>
-        public Transform Target { get; set; }
+        public Matrix4 ViewMatrix { get; protected set; }
 
         #endregion
 
         public CameraBase(Rectangle bounds) : base(bounds)
         {
+            ViewMatrix = Matrix4.Identity;
         }
 
-        public void SnapToTarget()
+        public virtual void Update(Context _)
         {
-            Center = Target.Bounds.Center;
+            if (!_transformUpdated) return;
+            ViewMatrix = Matrix4.CreateTranslation(X, Y, Z);
+            _transformUpdated = false;
         }
     }
 }

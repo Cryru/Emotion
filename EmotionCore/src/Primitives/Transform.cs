@@ -2,7 +2,7 @@
 
 namespace Emotion.Primitives
 {
-    public abstract class Transform
+    public class Transform
     {
         #region Properties
 

@@ -1,7 +1,9 @@
 ﻿#version 300 es
 
 uniform mat4 projectionMatrix;
-uniform mat4 bufferMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+uniform float time;
 
 layout (location = 0) in vec3 vertPos;
 layout (location = 1) in vec2 uv;
@@ -20,5 +22,5 @@ void main() {
     Tid = tid;
 
     // Multiply by projection.
-    gl_Position = projectionMatrix * bufferMatrix * vec4(vertPos, 1);
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertPos, 1);
 }

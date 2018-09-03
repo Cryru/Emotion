@@ -181,7 +181,7 @@ namespace Emotion.Graphics.Batching
         #endregion
 
         /// <inheritdoc />
-        public override void Draw(Matrix4? bufferMatrix = null, ShaderProgram shader = null)
+        public override void Draw(Matrix4? modelMatrix = null, ShaderProgram shader = null)
         {
             if (!AnythingMapped)
             {
@@ -195,10 +195,10 @@ namespace Emotion.Graphics.Batching
 
             // Sync shader.
             shader?.Bind();
-            if (bufferMatrix != null)
-                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", (Matrix4) bufferMatrix);
+            if (modelMatrix != null)
+                ShaderProgram.Current.SetUniformMatrix4("modelMatrix", (Matrix4) modelMatrix);
             else
-                ShaderProgram.Current.SetUniformMatrix4("bufferMatrix", Matrix4.Identity);
+                ShaderProgram.Current.SetUniformMatrix4("modelMatrix", Matrix4.Identity);
             Helpers.CheckError("map buffer - shader preparation");
 
             // Bind textures.

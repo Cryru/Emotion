@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion;
-using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Game.Text;
@@ -48,10 +47,7 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Update(float fr)
         {
             _twRichText.Update(fr);
-            if (_twRichText.EffectFinished)
-            {
-                _twRichText.SetText(_twRichText.Text);
-            }
+            if (_twRichText.EffectFinished) _twRichText.SetText(_twRichText.Text);
         }
 
         public override void Draw(Renderer renderer)

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Game.Camera;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
@@ -25,12 +26,12 @@ namespace Emotion.Graphics
         /// </summary>
         public static readonly int MaxRenderable = ushort.MaxValue;
 
-        #region Render State
-
         /// <summary>
-        /// The transformation matrix stack. Everything to be rendered is multiplied by this.
+        /// The renderer's camera.
         /// </summary>
-        public TransformationStack TransformationStack { get; private set; }
+        public CameraBase Camera;
+
+        #region Render State
 
         /// <summary>
         /// The buffer used for drawing objects.
@@ -57,15 +58,15 @@ namespace Emotion.Graphics
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
-            // Setup render state.
-            TransformationStack = new TransformationStack();
+            // Create objects.
+            Camera = new CameraBase(new Rectangle(0, 0, Context.Settings.RenderWidth, Context.Settings.RenderHeight));
 
             // Create a default program, and use it.
             ShaderProgram defaultProgram = new ShaderProgram(null, null);
             defaultProgram.Bind();
             SyncShader(defaultProgram);
 
-            // Setup main map buffer.
+            // Setup main map buffers.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
             _outlineBuffer = new LineMapBuffer(MaxRenderable / 2);
             _mainBuffer.Start();
@@ -98,6 +99,8 @@ namespace Emotion.Graphics
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Helpers.CheckError("clear");
+
+            SyncShader(ShaderProgram.Current);
         }
 
         /// <summary>
@@ -119,10 +122,20 @@ namespace Emotion.Graphics
             _renderableQueue.Clear();
         }
 
+        internal void Update(float _)
+        {
+            Camera.Update(Context);
+        }
+
+        #endregion
+
+        #region Other API
+
         public void SyncShader(ShaderProgram shader)
         {
             shader.SetUniformFloat("time", Context.Time);
             shader.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
+            shader.SetUniformMatrix4("viewMatrix", Camera.ViewMatrix);
         }
 
         #endregion
@@ -131,22 +144,22 @@ namespace Emotion.Graphics
 
         public void Render(Rectangle bounds, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
         {
-            _mainBuffer.Add(new Vector3(bounds.X, bounds.Y, 0), bounds.Size, color, texture, textureArea, vertMatrix * TransformationStack.CurrentMatrix);
+            _mainBuffer.Add(new Vector3(bounds.X, bounds.Y, 0), bounds.Size, color, texture, textureArea, vertMatrix);
         }
 
         public void Render(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, Matrix4? vertMatrix = null)
         {
-            _mainBuffer.Add(location, size, color, texture, textureArea, vertMatrix * TransformationStack.CurrentMatrix);
+            _mainBuffer.Add(location, size, color, texture, textureArea, vertMatrix);
         }
 
         public void RenderOutline(Rectangle bounds, Color color, Matrix4? vertMatrix = null)
         {
-            _outlineBuffer.Add(new Vector3(bounds.X, bounds.Y, 0), bounds.Size, color, vertMatrix * TransformationStack.CurrentMatrix);
+            _outlineBuffer.Add(new Vector3(bounds.X, bounds.Y, 0), bounds.Size, color, vertMatrix);
         }
 
         public void RenderOutline(Vector3 location, Vector2 size, Color color, Matrix4? vertMatrix = null)
         {
-            _outlineBuffer.Add(location, size, color, vertMatrix * TransformationStack.CurrentMatrix);
+            _outlineBuffer.Add(location, size, color, vertMatrix);
         }
 
         /// <summary>

@@ -187,6 +187,9 @@ namespace Emotion.Engine
             // Update debugger.
             Debugger.Update(ScriptingEngine);
 
+            // Update the renderer.
+            Renderer.Update(frameTime);
+
             // Run modules.
             SoundManager.Update();
 
