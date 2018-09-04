@@ -167,12 +167,12 @@
     <None Include="Assets\debugFont.otf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="src\Game\UI\ScreenFader.cs" />
-    <None Include="src\Game\UI\ScrollInputSelector.cs" />
-    <None Include="src\Game\UI\ScrollInput.cs" />
-    <None Include="src\Game\UI\Control.cs" />
-    <None Include="src\Game\UI\Controller.cs" />
-    <None Include="src\Game\UI\Panel.cs" />
+    <Compile Include="src\Game\UI\ScreenFader.cs" />
+    <Compile Include="src\Game\UI\ScrollInputSelector.cs" />
+    <Compile Include="src\Game\UI\ScrollInput.cs" />
+    <Compile Include="src\Game\UI\Control.cs" />
+    <Compile Include="src\Game\UI\Controller.cs" />
+    <Compile Include="src\Game\UI\Panel.cs" />
     <Compile Include="src\Sound\SoundFadeOut.cs" />
     <Compile Include="src\Sound\SoundFadeIn.cs" />
     <Compile Include="src\Sound\SoundEffect.cs" />

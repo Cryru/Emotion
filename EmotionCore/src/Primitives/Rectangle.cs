@@ -81,16 +81,6 @@ namespace Emotion.Primitives
             }
         }
 
-        public Vector3 LocationZ
-        {
-            get => new Vector3(X, Y, 0);
-            set
-            {
-                X = value.X;
-                Y = value.Y;
-            }
-        }
-
         public Vector2 Size
         {
             get => new Vector2(Width, Height);
@@ -134,6 +124,11 @@ namespace Emotion.Primitives
         #endregion Constructors
 
         #region Public Methods
+
+        public Vector3 LocationZ(float z)
+        {
+            return new Vector3(X, Y, z);
+        }
 
         public static bool operator ==(Rectangle a, Rectangle b)
         {
@@ -197,7 +192,7 @@ namespace Emotion.Primitives
 
         public override string ToString()
         {
-            return $"{{X:{X} Y:{Y} Width:{Width} Height:{Height}}}";
+            return $"[X:{X} Y:{Y} Width:{Width} Height:{Height}]";
         }
 
         public override int GetHashCode()

@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
@@ -79,7 +79,9 @@ namespace Emotion.Game.UI
             Color addOpacity = Color;
             addOpacity.A = (byte) _opacity;
 
-            renderer.DrawRectangle(new Rectangle(0, 0, renderer.RenderSize.X, renderer.RenderSize.Y), addOpacity, false);
+            renderer.DisableViewMatrix();
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(renderer.Context.Settings.RenderWidth, renderer.Context.Settings.RenderHeight), addOpacity);
+            renderer.EnableViewMatrix();
         }
 
         /// <summary>

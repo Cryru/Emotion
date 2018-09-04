@@ -6,20 +6,14 @@ using System;
 using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
-using Renderer = Emotion.GLES.Renderer;
 
 #endregion
 
 namespace Emotion.Game.UI
 {
-    public abstract class Control : Renderable2D
+    public abstract class Control : Transform
     {
         #region Properties
-
-        /// <summary>
-        /// The object's priority. The higher the number is the higher the object will be.
-        /// </summary>
-        public int Priority { get; protected set; }
 
         /// <summary>
         /// Whether the control is visible and responsive.
@@ -29,7 +23,7 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The controller which owns this control.
         /// </summary>
-        protected Controller _controller;
+        public Controller Controller;
 
         /// <summary>
         /// Whether the control is destroyed.
@@ -50,17 +44,22 @@ namespace Emotion.Game.UI
         /// </summary>
         public bool[] Held { get; internal set; } = new bool[Enum.GetNames(typeof(MouseKeys)).Length];
 
+        /// <summary>
+        /// Whether the control was active. Used for active and deactivate events.
+        /// </summary>
+        public bool WasActive { get; internal set; } = true;
+
         #endregion
 
         protected Control(Controller controller, Rectangle bounds, int priority) : base(bounds)
         {
-            Priority = priority;
-            _controller = controller;
+            Z = priority;
+            Controller = controller;
 
-            _controller.Add(this);
+            Controller.Add(this);
         }
 
-        public virtual void Destroy()
+        internal virtual void Destroy()
         {
             Destroyed = true;
         }
@@ -89,14 +88,22 @@ namespace Emotion.Game.UI
         {
         }
 
+        public virtual void OnActivate()
+        {
+        }
+
+        public virtual void OnDeactivate()
+        {
+        }
+
         #endregion
-        
+
         #region Debugging
 
         public override string ToString()
         {
             string result = "[" + base.ToString() + "]";
-            result += $"(priority: {Priority}, active: {Active})";
+            result += $"[Active: {Active} MouseInside: {MouseInside} Destroyed: {Destroyed}]";
             return result;
         }
 

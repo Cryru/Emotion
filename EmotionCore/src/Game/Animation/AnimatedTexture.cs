@@ -11,11 +11,11 @@ using Emotion.Utils;
 
 namespace Emotion.Game.Animation
 {
-    public class AnimatedTexture
+    public sealed class AnimatedTexture
     {
         #region Properties
 
-        public Texture Target { get; private set; }
+        public Texture Texture { get; private set; }
 
         public int LoopCount { get; private set; }
         public AnimationLoopType LoopType { get; set; }
@@ -39,14 +39,14 @@ namespace Emotion.Game.Animation
         private float _timePassed;
         private bool _inReverse;
 
-        public AnimatedTexture(Texture target, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame) : this(target, frameSize, loopType,
+        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame) : this(texture, frameSize, loopType,
             startingFrame, timeBetweenFrames, endingFrame, Vector2.Zero)
         {
         }
 
-        public AnimatedTexture(Texture target, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame, Vector2 spacing)
+        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame, Vector2 spacing)
         {
-            Target = target;
+            Texture = texture;
             _frameSize = frameSize;
             _spacing = spacing;
 
@@ -73,7 +73,7 @@ namespace Emotion.Game.Animation
 
         public Rectangle GetCurrentFrame()
         {
-            return Helpers.GetFrameBounds(Target.Size, _frameSize, _spacing, CurrentFrame);
+            return Helpers.GetFrameBounds(Texture.Size, _frameSize, _spacing, CurrentFrame);
         }
 
         public void Reset()

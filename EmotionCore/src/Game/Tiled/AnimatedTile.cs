@@ -46,19 +46,26 @@ namespace Emotion.Game.Tiled
         /// Progress time for the animated tile.
         /// </summary>
         /// <param name="time">The amount of time passed since the last update.</param>
-        public void Update(float time)
+        /// <returns>Whether an update was triggered.</returns>
+        public bool Update(float time)
         {
             _timePassed += time;
+            bool wasUpdate = false;
 
             // Check if pass the duration of the current frame.
-            if (!(_frames[_currentFrame].Duration <= _timePassed)) return;
+            while (_timePassed >= _frames[_currentFrame].Duration)
+            {
+                wasUpdate = true;
 
-            // Subtract time and increment frame.
-            _timePassed -= _frames[_currentFrame].Duration;
-            _currentFrame++;
+                // Subtract time and increment frame.
+                _timePassed -= _frames[_currentFrame].Duration;
+                _currentFrame++;
 
-            // Check if overflowing.
-            if (_currentFrame >= _frames.Count) _currentFrame = 0;
+                // Check if overflowing.
+                if (_currentFrame >= _frames.Count) _currentFrame = 0;
+            }
+
+            return wasUpdate;
         }
     }
 }

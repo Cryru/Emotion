@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Emotion.Debug;
-using Emotion.GLES;
+using Emotion.Engine;
+using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
 using Debugger = Emotion.Debug.Debugger;
@@ -16,11 +17,11 @@ using Debugger = Emotion.Debug.Debugger;
 
 namespace Emotion.Game.UI
 {
-    public sealed class Controller
+    public sealed class Controller : ContextObject
     {
         private static int _nextControllerId;
 
-        public Controller()
+        public Controller(Context context) : base(context)
         {
             Id = _nextControllerId;
             _nextControllerId++;
@@ -41,7 +42,7 @@ namespace Emotion.Game.UI
             lock (Controls)
             {
                 Controls.Add(control);
-                Controls.OrderBy(x => x.Priority);
+                Controls.OrderBy(x => x.Z);
             }
 
             Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + control);
@@ -71,6 +72,8 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Draw(Renderer renderer)
         {
+            renderer.DisableViewMatrix();
+
             foreach (Control c in Controls)
             {
                 // Check if active.
@@ -80,6 +83,8 @@ namespace Emotion.Game.UI
                 c.Draw(renderer);
                 DebugDraw(renderer);
             }
+
+            renderer.EnableViewMatrix();
         }
 
         /// <summary>
@@ -93,7 +98,25 @@ namespace Emotion.Game.UI
             foreach (Control c in Controls)
             {
                 // Check if active.
-                if (!c.Active) continue;
+                if (!c.Active) continue; if (!c.Active)
+                {
+                    // Check if it was previously, which means it was deactivated.
+                    if (c.WasActive)
+                    {
+                        Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was deactivated - " + c);
+                        c.WasActive = false;
+                        c.OnDeactivate();
+                    }
+                    // Don't update.
+                    continue;
+                }
+                // Check if it was previously inactive, which means it was activated.
+                if (!c.WasActive)
+                {
+                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was activated - " + c);
+                    c.WasActive = true;
+                    c.OnActivate();
+                }
 
                 // Check if the mouse position has changed.
                 if (_lastMousePosition != Vector2.Zero && _lastMousePosition != mousePosition) c.MouseMoved(_lastMousePosition, mousePosition);
@@ -127,7 +150,7 @@ namespace Emotion.Game.UI
                 string[] mouseButtons = Enum.GetNames(typeof(MouseKeys));
                 for (int i = 0; i < mouseButtons.Length; i++)
                 {
-                    MouseKeys currentKey = (MouseKeys) Enum.Parse(typeof(MouseKeys), mouseButtons[i]);
+                    MouseKeys currentKey = (MouseKeys)Enum.Parse(typeof(MouseKeys), mouseButtons[i]);
                     bool held = input.IsMouseKeyHeld(currentKey);
 
                     // Check if the mouse is held.
@@ -145,7 +168,7 @@ namespace Emotion.Game.UI
                     // If the button was held, but now isn't.
                     if (!c.Held[i]) continue;
                     Debugger.Log(MessageType.Trace, MessageSource.UIController,
-                        "Mouse let go of key [" + currentKey + "] on control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Priority);
+                        "Mouse let go of key [" + currentKey + "] on control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Z);
                     c.Held[i] = false;
                     c.MouseUp(currentKey);
                 }
@@ -153,15 +176,6 @@ namespace Emotion.Game.UI
 
             // Record the position.
             _lastMousePosition = mousePosition;
-
-            // Clear destroyed.
-            for (int i = Controls.Count - 1; i >= 0; i--)
-            {
-                if (!Controls[i].Destroyed) continue;
-                Debugger.Log(MessageType.Warning, MessageSource.UIController,
-                    "[DEPRECATED] User has destroyed a UI control, which the controller had to clean up. Don't do this, it won't work in the future.\nControl id " + i + " of type " + Controls[i]);
-                Remove(Controls[i]);
-            }
         }
 
         #region Helpers
@@ -187,7 +201,7 @@ namespace Emotion.Game.UI
                 // Check if the mouse is inside the oc.
                 if (!oc.Bounds.Contains(position.X, position.Y)) continue;
                 // Check if the priority is higher than c.
-                if (oc.Priority <= c.Priority) continue;
+                if (oc.Z <= c.Z) continue;
                 insideC = false;
                 break;
             }
@@ -221,7 +235,7 @@ namespace Emotion.Game.UI
         {
             foreach (Control control in Controls)
             {
-                renderer.DrawRectangleOutline(control.Bounds, control.Active ? Color.Green : Color.Red, false);
+                renderer.RenderOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
             }
         }
 
@@ -231,7 +245,7 @@ namespace Emotion.Game.UI
 
             foreach (Control control in Controls)
             {
-                result += " |- " + control + "]\n";
+                result += " |- " + control + "\n";
             }
 
             return result;

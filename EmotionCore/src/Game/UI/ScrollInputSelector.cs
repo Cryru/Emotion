@@ -2,17 +2,21 @@
 
 #region Using
 
-using Emotion.GLES;
-using Emotion.Input;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
 
 namespace Emotion.Game.UI
 {
-    public sealed class ScrollInputSelector : Control
+    public class ScrollInputSelector : Control
     {
         #region Properties
+
+        /// <summary>
+        /// The color of the selector.
+        /// </summary>
+        public Color Color { get; set; } = Color.White;
 
         /// <summary>
         /// The color of the selector when held.
@@ -37,7 +41,7 @@ namespace Emotion.Game.UI
             Active = _parent.Active;
 
             // Render the selector according to whether it is held or not.
-            renderer.DrawRectangle(Bounds, Held[0] ? HeldColor : Color, false);
+            renderer.Render(Position, Size, Held[0] ? HeldColor : Color);
         }
 
         public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
@@ -46,8 +50,8 @@ namespace Emotion.Game.UI
             if (!Held[0]) return;
 
             // Calculate the new value form the new mouse position.
-            float posWithinParent = newPosition.X - _parent.X;
-            float increment = _parent.Width / 100;
+            float posWithinParent = newPosition.X - _parent.Bounds.X;
+            float increment = _parent.Bounds.Width / 100;
             _parent.Value = (int) (posWithinParent / increment);
         }
     }

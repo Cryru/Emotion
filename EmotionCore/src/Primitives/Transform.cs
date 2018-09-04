@@ -56,16 +56,6 @@ namespace Emotion.Primitives
             }
         }
 
-        public float Rotation
-        {
-            get => _rotation;
-            set
-            {
-                _rotation = value;
-                _transformUpdated = true;
-            }
-        }
-
         #endregion
 
         #region Higher Properties
@@ -142,26 +132,30 @@ namespace Emotion.Primitives
 
         #region Constructors
 
-        public Transform(Rectangle bounds, float rotation = 0f) : this(bounds.Location, bounds.Size, rotation)
+        public Transform(Rectangle bounds) : this(bounds.Location, bounds.Size)
         {
         }
 
-        public Transform(Vector3 position, Vector2 size, float rotation = 0f) : this(position.X, position.Y, position.Z, size.X, size.Y, rotation)
+        public Transform(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
         {
         }
 
-        public Transform(Vector2 position, Vector2 size, float rotation = 0f) : this(position.X, position.Y, 0, size.X, size.Y, rotation)
+        public Transform(Vector2 position, Vector2 size) : this(position.X, position.Y, 0, size.X, size.Y)
         {
         }
 
-        public Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f, float rotation = 0f)
+        public Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
         {
             X = x;
             Y = y;
             Z = z;
             Width = width;
             Height = height;
-            Rotation = rotation;
+        }
+
+        public override string ToString()
+        {
+            return $"[X: {X} Y: {Y} Z: {Z} Width: {Width} Height: {Height}]";
         }
 
         #endregion
