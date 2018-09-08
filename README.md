@@ -71,24 +71,24 @@ For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
 
 ## Projects Used
 
-OpenTK [OpenGL/OpenAL] - Rendering and audio.
-	- OpenAL32.dll included.
-	- openal.so included.
+OpenTK [OpenGL/OpenAL] : Rendering and audio.
+- OpenAL32.dll included.
+- openal.so included.
 
-FreeImage-DotNet-Core [FreeImage] - Loading and converting images.
-	- FreeImage.dll included.
-	- FreeImage.so included.
-	- FreeImage.dylib included.
+FreeImage-DotNet-Core [FreeImage] : Loading and converting images.
+- FreeImage.dll included.
+- FreeImage.so included.
+- FreeImage.dylib included.
 
-SharpFont [FreeType] - Loading fonts and glyphs, and rendering them.
-	- freetype6.dll included.
-	- freetype.so included.
+SharpFont [FreeType] : Loading fonts and glyphs, and rendering them.
+- freetype6.dll included.
+- freetype.so included.
 
-TiledSharp [Modified] - Loading .tmx Tiled files.
+TiledSharp [Modified] : Loading .tmx Tiled files.
 
-Jint - Javascript script engine.
+Jint : Javascript script engine.
 
-Soul - Logging.
+Soul : Logging.
 
 ## Inspired By
 
