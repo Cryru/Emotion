@@ -12,7 +12,7 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 ## Platforms Tested On:
 
 - Windows 10 x64/x86
-- Ubuntu Xenial-Xerus x64
+- Ubuntu Xenial-Xerus x64 (Latest version not tested)
 - MacOS High-Sierra x64
 
 ## Supported Platforms:
