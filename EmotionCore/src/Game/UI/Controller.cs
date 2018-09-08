@@ -30,7 +30,7 @@ namespace Emotion.Game.UI
         private List<Control> _controlsToBeAdded = new List<Control>();
 
         #endregion
-        
+
         public Controller(Context context) : base(context)
         {
             SetupDebug();
@@ -105,7 +105,7 @@ namespace Emotion.Game.UI
         }
 
         #region Update Parts
-        
+
         /// <summary>
         /// Clears controls queued for removal.
         /// </summary>
@@ -198,7 +198,7 @@ namespace Emotion.Game.UI
                 }
             }
         }
-        
+
         /// <summary>
         /// Processes mouse button press events.
         /// </summary>
@@ -214,7 +214,7 @@ namespace Emotion.Game.UI
                 string[] mouseButtons = Enum.GetNames(typeof(MouseKeys));
                 for (int i = 0; i < mouseButtons.Length; i++)
                 {
-                    MouseKeys currentKey = (MouseKeys)Enum.Parse(typeof(MouseKeys), mouseButtons[i]);
+                    MouseKeys currentKey = (MouseKeys) Enum.Parse(typeof(MouseKeys), mouseButtons[i]);
                     bool held = input.IsMouseKeyHeld(currentKey);
 
                     // Check if the mouse is held.
@@ -303,12 +303,12 @@ namespace Emotion.Game.UI
             _debugSetup = true;
 
             Context.ScriptingEngine.Expose("debugUI",
-                (Func<string>)(() =>
-               {
-                   _debugDraw = !_debugDraw;
+                (Func<string>) (() =>
+                {
+                    _debugDraw = !_debugDraw;
 
-                   return "UI debugging " + (_debugDraw ? "enabled." : "disabled.");
-               }),
+                    return "UI debugging " + (_debugDraw ? "enabled." : "disabled.");
+                }),
                 "Enables the UI debugging. Showing the bounds of all UI controls.");
         }
 

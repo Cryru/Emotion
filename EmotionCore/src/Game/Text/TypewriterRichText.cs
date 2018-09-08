@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Linq;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
@@ -122,7 +121,7 @@ namespace Emotion.Game.Text
             }
 
             // Don't draw anything if the effect is before the first.
-            if(_characterEffectIndex == 0) return;
+            if (_characterEffectIndex == 0) return;
 
             // Draw the buffer.
             if (_characterEffectIndex != -1) _renderCache.SetMappedIndices(_characterEffectIndex * 6);
