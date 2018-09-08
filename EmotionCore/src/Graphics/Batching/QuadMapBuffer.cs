@@ -118,9 +118,9 @@ namespace Emotion.Graphics.Batching
                 // If it wasn't found, add it.
                 if (tid == -1)
                     // Check if reached texture limit, in which case the draw calls must be split.
-                    if (_textureList.Count >= 32)
+                    if (_textureList.Count >= 16)
                     {
-                        throw new Exception("Texture limit of 32 reached.");
+                        throw new Exception("Texture limit of 16 (32 usually but MacGL implementation is lower) reached.");
                     }
                     else
                     {

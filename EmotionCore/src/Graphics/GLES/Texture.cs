@@ -114,7 +114,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public virtual void Delete()
         {
-            GL.DeleteTexture(Pointer);
+            ThreadManager.ExecuteGLThread(() => { GL.DeleteTexture(Pointer); });
             Pointer = -1;
         }
 

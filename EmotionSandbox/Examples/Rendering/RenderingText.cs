@@ -47,7 +47,11 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Update(float fr)
         {
             _twRichText.Update(fr);
-            if (_twRichText.EffectFinished) _twRichText.SetText(_twRichText.Text);
+            if (_twRichText.EffectFinished)
+            {
+                _twRichText.SetText(_twRichText.Text);
+                _twRichText.SetTypewriterEffect(1000);
+            }
         }
 
         public override void Draw(Renderer renderer)

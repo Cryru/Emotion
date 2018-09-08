@@ -114,7 +114,7 @@ namespace Emotion.Graphics.GLES
             Helpers.CheckError("making program");
 
             // Set default uniforms.
-            SetUniformIntArray("textures", Enumerable.Range(0, 31).ToArray());
+            SetUniformIntArray("textures", Enumerable.Range(0, 15).ToArray());
 
             // Restore current.
             current?.Bind();

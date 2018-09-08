@@ -4,7 +4,7 @@
 precision highp float;
 #endif
 
-uniform sampler2D textures[32];
+uniform sampler2D textures[16];
 
 // Comes in from the vertex shader.
 in vec2 UV;

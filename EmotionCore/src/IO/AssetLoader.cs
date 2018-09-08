@@ -125,7 +125,7 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="path">The path to convert.</param>
         /// <returns>The converted path.</returns>
-        private static string PathToEnginePath(string path)
+        public static string PathToEnginePath(string path)
         {
             return path.Replace('/', '$').Replace('\\', '$').Replace('$', '/');
         }

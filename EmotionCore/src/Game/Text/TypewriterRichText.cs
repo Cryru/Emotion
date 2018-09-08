@@ -34,6 +34,10 @@ namespace Emotion.Game.Text
         protected float _totalDuration;
         protected float _durationPerCharacter;
         protected float _timer;
+
+        /// <summary>
+        /// How far the effect is. -1 when no effect was triggered, and _textStripped.Length when the effect is finished or was not reset.
+        /// </summary>
         protected int _characterEffectIndex = -1;
 
         #endregion
@@ -51,7 +55,7 @@ namespace Emotion.Game.Text
         public void Update(float dt)
         {
             // Check if scrolling is complete.
-            if (_characterEffectIndex == -1) return;
+            if (EffectFinished) return;
 
             // Update the timer.
             _timer += dt;
@@ -62,8 +66,8 @@ namespace Emotion.Game.Text
                 _timer -= _durationPerCharacter;
                 _characterEffectIndex++;
 
-                if (_characterEffectIndex < _textStripped.Length) continue;
-                _characterEffectIndex = -1;
+                if (!EffectFinished) continue;
+                _characterEffectIndex = _textStripped.Length;
                 return;
             }
         }
@@ -77,17 +81,27 @@ namespace Emotion.Game.Text
         }
 
         /// <summary>
+        /// Set text without resetting the typewriter effect's progress.
+        /// </summary>
+        /// <param name="text">The text to append.</param>
+        public void AppendText(string text)
+        {
+            base.SetText(text);
+
+            if (_totalDuration != 0) _durationPerCharacter = _totalDuration / _textStripped.Length;
+            if (_characterEffectIndex > _textStripped.Length) _characterEffectIndex = _textStripped.Length;
+        }
+
+        /// <summary>
         /// Set the typewriter effect.
         /// </summary>
-        /// <param name="duration"></param>
+        /// <param name="duration">The duration of the total effect.</param>
         public void SetTypewriterEffect(float duration)
         {
-            ResetEffect();
-            ResetMapping();
-
+            _timer = 0;
+            _characterEffectIndex = 0;
             _totalDuration = duration;
             _durationPerCharacter = _totalDuration / _textStripped.Length;
-            _characterEffectIndex = 0;
         }
 
         /// <summary>
@@ -95,7 +109,7 @@ namespace Emotion.Game.Text
         /// </summary>
         public void EndTypewriterEffect()
         {
-            _characterEffectIndex = -1;
+            _characterEffectIndex = _textStripped.Length;
         }
 
         #endregion
@@ -124,34 +138,10 @@ namespace Emotion.Game.Text
             if (_characterEffectIndex == 0) return;
 
             // Draw the buffer.
-            if (_characterEffectIndex != -1) _renderCache.SetMappedIndices(_characterEffectIndex * 6);
+            if (!EffectFinished) _renderCache.SetMappedIndices(_characterEffectIndex * 6);
             else _renderCache.SetMappedIndices(_textStripped.Length * 6);
 
             renderer.Render(_renderCache, true);
-        }
-
-        #endregion
-
-        #region Helpers
-
-        /// <summary>
-        /// Resets and stops the Typewriter effect.
-        /// </summary>
-        protected void ResetEffect()
-        {
-            _timer = 0;
-            _characterEffectIndex = 0;
-        }
-
-        /// <summary>
-        /// Resets the character mapping.
-        /// </summary>
-        protected void ResetMapping()
-        {
-            // If any effect was already done, reset it.
-            if (_characterEffectIndex != -1) ResetEffect();
-            _penX = 0;
-            _penY = 0;
         }
 
         #endregion
