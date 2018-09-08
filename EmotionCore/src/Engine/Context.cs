@@ -6,11 +6,11 @@ using System;
 using System.Threading;
 using Emotion.Debug;
 using Emotion.Game.Layering;
-using Emotion.GLES;
+using Emotion.Graphics;
+using Emotion.Host;
 using Emotion.IO;
 using Emotion.Sound;
 using Emotion.Utils;
-using OpenTK;
 
 #if DEBUG
 
@@ -34,19 +34,15 @@ namespace Emotion.Engine
         /// </summary>
         public float FrameTime { get; protected set; }
 
-        #endregion
-
-        #region Objects
+        /// <summary>
+        /// The time which has passed since start. Used for tracking time in shaders and such.
+        /// </summary>
+        public float Time { get; protected set; }
 
         /// <summary>
-        /// The context's initial settings.
+        /// The settings the context's settings.
         /// </summary>
-        public Settings Settings;
-
-        /// <summary>
-        /// The window the game is opened in.
-        /// </summary>
-        public Window Window { get; protected set; }
+        public Settings Settings { get; set; }
 
         #endregion
 
@@ -82,6 +78,11 @@ namespace Emotion.Engine
         /// </summary>
         public SoundManager SoundManager { get; protected set; }
 
+        /// <summary>
+        /// The context's host. This can be the window, the activity or whatever.
+        /// </summary>
+        public IHost Host { get; protected set; }
+
         #endregion
 
         #region Initialization
@@ -97,8 +98,21 @@ namespace Emotion.Engine
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
 
             // Start loading modules.
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating window...");
-            Window = new Window(this);
+            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
+            if (CurrentPlatform.OS == PlatformID.Win32NT || CurrentPlatform.OS == PlatformID.Unix || CurrentPlatform.OS == PlatformID.MacOSX)
+            {
+                Host = new Window(settings);
+                Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
+            }
+            else
+            {
+                throw new Exception("Unsupported platform.");
+            }
+
+            Host.SetHooks(LoopUpdate, LoopDraw);
+
+            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
+            ScriptingEngine = new ScriptingEngine(this);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
             Renderer = new Renderer(this);
@@ -108,9 +122,6 @@ namespace Emotion.Engine
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
             AssetLoader = new AssetLoader(this);
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
-            ScriptingEngine = new ScriptingEngine(this);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating layer manager...");
             LayerManager = new LayerManager(this);
@@ -132,19 +143,20 @@ namespace Emotion.Engine
             Running = true;
 
             // Start running the loops. Blocking.
-            Window.Run(0, 0);
+            Host.Run();
 
             // Context has stopped running - cleanup.
-            Window.Destroy();
+            Host.Close();
             Renderer.Destroy();
 
             // Platform cleanup.
-            Window.Dispose();
+            Host.Dispose();
 
             // Dereference objects.
-            Window = null;
+            Host = null;
             Renderer = null;
             Settings = null;
+            Running = false;
 
             // Close application.
             Environment.Exit(0);
@@ -156,96 +168,76 @@ namespace Emotion.Engine
         public void Quit()
         {
             // Stops the window unblocking the Start function.
-            Window.Exit();
-        }
-
-        /// <summary>
-        /// Applies any changes made to the settings object.
-        /// </summary>
-        public void ApplySettings()
-        {
-            // Apply window mode.
-            switch (Settings.WindowMode)
-            {
-                case WindowMode.Borderless:
-                    Window.WindowBorder = WindowBorder.Hidden;
-                    Window.WindowState = WindowState.Normal;
-                    Window.Width = DisplayDevice.Default.Width;
-                    Window.Height = DisplayDevice.Default.Height;
-                    Window.X = 0;
-                    Window.Y = 0;
-                    break;
-                case WindowMode.Fullscreen:
-                    Window.WindowBorder = WindowBorder.Fixed;
-                    Window.WindowState = WindowState.Fullscreen;
-                    break;
-                default:
-                    Window.Width = Settings.WindowWidth;
-                    Window.Height = Settings.WindowHeight;
-                    Window.X = DisplayDevice.Default.Width / 2 - Settings.WindowWidth / 2;
-                    Window.Y = DisplayDevice.Default.Height / 2 - Settings.WindowHeight / 2;
-                    Window.WindowBorder = WindowBorder.Fixed;
-                    Window.WindowState = WindowState.Normal;
-                    break;
-            }
+            Host.Close();
         }
 
         #endregion
 
-        #region Loop
+        #region Loops
 
         /// <summary>
-        /// Is run every tick by the OpenTK context.
+        /// Is run every tick by the host.
         /// </summary>
         /// <param name="frameTime">The time between this tick and the last.</param>
-        internal void LoopUpdate(float frameTime)
+        protected void LoopUpdate(float frameTime)
         {
-            FrameTime = frameTime;
+            // Update debugger.
+            Debugger.Update(this);
 
             // Update the thread manager.
             ThreadManager.Run();
 
-            // Update debugger.
-            Debugger.Update(ScriptingEngine);
+            // Update the renderer.
+            Renderer.Update(frameTime);
 
             // Run modules.
             SoundManager.Update();
 
-            // Run user layers.
-            LayerManager.Update();
+            // If not focused, don't update.
+            if (Host.Focused) LayerManager.Update();
 
             // Run input.
             Input.Update();
 
             // Check for errors.
             Helpers.CheckError("update");
-
-            Thread.Sleep(1);
         }
 
         /// <summary>
-        /// Is run every frame by the OpenTK context.
+        /// Is run every frame by the host.
         /// </summary>
-        internal void LoopDraw()
+        protected void LoopDraw(float frameTime)
         {
             // If not focused, don't draw.
-            if (!Window.Focused)
+            if (!Host.Focused)
             {
                 Thread.Sleep(1);
                 return;
             }
 
+            FrameTime = frameTime;
+
+            // Add to time.
+            Time += frameTime;
+
             // Clear the screen.
             Renderer.Clear();
+            Helpers.CheckError("renderer clear");
 
-            // First draw the layers.
+            // Draw the layers.
             LayerManager.Draw();
+            Helpers.CheckError("layer draw");
 
             // Draw debug.
             Debugger.DebugDraw(this);
+            Helpers.CheckError("debugger draw");
+
+            // Finish rendering.
+            Renderer.End();
+            Helpers.CheckError("renderer end");
 
             // Swap buffers.
-            Renderer.Present();
+            Host.SwapBuffers();
         }
 
         #endregion

@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using Emotion.Debug;
 
 #if DEBUG
@@ -21,6 +22,11 @@ namespace Emotion.Engine
         /// An instance of a JS interpreter.
         /// </summary>
         private Jint.Engine _interpreter;
+
+        /// <summary>
+        /// Exposed properties.
+        /// </summary>
+        private List<string> _exposedProperties = new List<string>();
 
         #endregion
 
@@ -41,6 +47,8 @@ namespace Emotion.Engine
                 opts.AllowDebuggerStatement();
 #endif
             });
+
+            Expose("help", (Func<string>) (() => "\n---Exposed Functions---\n" + string.Join("\n", _exposedProperties)), "Prints all exposed properties and their descriptions.");
         }
 
         #region Functions
@@ -50,9 +58,11 @@ namespace Emotion.Engine
         /// </summary>
         /// <param name="name">The name of the variable.</param>
         /// <param name="exposedData">The data to expose.</param>
-        public void Expose(string name, object exposedData)
+        /// <param name="description">Optional description of what you are exposing.</param>
+        public void Expose(string name, object exposedData, string description = "")
         {
             _interpreter.SetValue(name, exposedData);
+            _exposedProperties.Add(name + " - " + description);
         }
 
         /// <summary>
@@ -63,7 +73,7 @@ namespace Emotion.Engine
         /// <returns></returns>
         public object RunScript(string script, bool safe = true)
         {
-            if (safe) script = "(function () {" + script + "})()";
+            if (safe) script = "(function () { return " + script + "; })()";
 
             try
             {
@@ -72,7 +82,7 @@ namespace Emotion.Engine
 
                 // If it isn't empty log it.
                 if (scriptResponse != null)
-                    Debugger.Log(MessageType.Trace, MessageSource.ScriptingEngine, "Script executed, result: " + scriptResponse);
+                    Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, "Script executed, result: " + scriptResponse);
 
                 // Return the response.
                 return scriptResponse;

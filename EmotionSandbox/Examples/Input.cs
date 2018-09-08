@@ -85,7 +85,7 @@ namespace EmotionSandbox.Examples
 
         public override void Unload()
         {
-            Context.AssetLoader.Free("ExampleFont.ttf");
+            Context.AssetLoader.Destroy("ExampleFont.ttf");
         }
 
         #region Helpers

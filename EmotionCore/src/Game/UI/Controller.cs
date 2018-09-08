@@ -6,9 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
 using Debugger = Emotion.Debug.Debugger;
@@ -20,51 +21,43 @@ namespace Emotion.Game.UI
     public sealed class Controller : ContextObject
     {
         private static int _nextControllerId;
+        internal int Id;
+
+        #region State
+
+        internal List<Control> Controls = new List<Control>();
+        private Vector2 _lastMousePosition;
+        private List<Control> _controlsToBeRemoved = new List<Control>();
+        private List<Control> _controlsToBeAdded = new List<Control>();
+
+        #endregion
 
         public Controller(Context context) : base(context)
         {
+            SetupDebug();
+
             Id = _nextControllerId;
             _nextControllerId++;
         }
 
-        internal int Id;
-        internal List<Control> Controls = new List<Control>();
-        private Vector2 _lastMousePosition;
-
         /// <summary>
-        /// Add a control to the controller. Called by the control when created.
+        /// Add a control to the controller on the next update tick.
         /// </summary>
-        /// <param name="control">The control to add.</param>
-        internal void Add(Control control)
+        /// <param name="control">A reference to the control to add.</param>
+        public void Add(Control control)
         {
             Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] adding control " + control);
-
-            lock (Controls)
-            {
-                Controls.Add(control);
-                Controls.OrderBy(x => x.Priority);
-            }
-
-            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + control);
+            _controlsToBeAdded.Add(control);
         }
 
         /// <summary>
-        /// Remove and dispose of a control from the controller.
+        /// Remove and dispose of a control from the controller on the next update tick.
         /// </summary>
         /// <param name="control">A reference to the control to remove.</param>
-        internal void Remove(Control control)
+        public void Remove(Control control)
         {
             Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] removing control " + control);
-
-            lock (Controls)
-            {
-                // Check if destroyed.
-                if (!control.Destroyed) control.Destroy();
-
-                Controls.Remove(control);
-            }
-
-            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] removed control " + control);
+            _controlsToBeRemoved.Add(control);
         }
 
         /// <summary>
@@ -72,6 +65,8 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Draw(Renderer renderer)
         {
+            renderer.DisableViewMatrix();
+
             foreach (Control c in Controls)
             {
                 // Check if active.
@@ -79,8 +74,10 @@ namespace Emotion.Game.UI
 
                 // Draw.
                 c.Draw(renderer);
-                DebugDraw(renderer);
+                DrawDebug(renderer);
             }
+
+            renderer.EnableViewMatrix();
         }
 
         /// <summary>
@@ -88,24 +85,87 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Update(Input.Input input)
         {
-            Vector2 mousePosition = input.GetMousePosition();
+            lock (Controls)
+            {
+                // Remove queued controls.
+                RemoveQueued();
 
-            // Check mouse inside and out.
-            foreach (Control c in Controls)
+                // Add queued.
+                AddQueued();
+
+                // Process mouse events.
+                Vector2 mousePosition = input.GetMousePosition();
+                MouseEvents(mousePosition);
+
+                // Check for button presses.
+                ButtonPresses(input);
+
+                // Record the position.
+                _lastMousePosition = mousePosition;
+            }
+        }
+
+        #region Update Parts
+
+        /// <summary>
+        /// Clears controls queued for removal.
+        /// </summary>
+        private void RemoveQueued()
+        {
+            // This is a for and not a foreach because further removing can be triggered by the destroy function.
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < _controlsToBeRemoved.Count; i++)
+            {
+                Control c = _controlsToBeRemoved[i];
+                c.Destroy();
+                Controls.Remove(c);
+                Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] removed control " + c);
+            }
+
+            _controlsToBeRemoved.Clear();
+        }
+
+        /// <summary>
+        /// Adds controls queued for initialization.
+        /// </summary>
+        private void AddQueued()
+        {
+            // This is a for and not a foreach because further adding can be triggered by the init function.
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < _controlsToBeAdded.Count; i++)
+            {
+                Control c = _controlsToBeAdded[i];
+                c.Controller = this;
+                c.Init();
+                Controls.Add(c);
+                Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + c);
+            }
+
+            _controlsToBeAdded.Clear();
+            Controls = Controls.OrderBy(x => x.Z).ToList();
+        }
+
+        /// <summary>
+        /// Processes mouse events.
+        /// </summary>
+        /// <param name="mousePosition">The position of the mouse for this tick.</param>
+        private void MouseEvents(Vector2 mousePosition)
+        {
+            Control topControl = GetTop(mousePosition);
+
+            Parallel.ForEach(Controls, c =>
             {
                 // Check if active.
                 if (!c.Active)
                 {
                     // Check if it was previously, which means it was deactivated.
-                    if (c.WasActive)
-                    {
-                        Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was deactivated - " + c);
-                        c.WasActive = false;
-                        c.OnDeactivate();
-                    }
+                    if (!c.WasActive) return;
+                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was deactivated - " + c);
+                    c.WasActive = false;
+                    c.OnDeactivate();
 
                     // Don't update.
-                    continue;
+                    return;
                 }
 
                 // Check if it was previously inactive, which means it was activated.
@@ -120,10 +180,10 @@ namespace Emotion.Game.UI
                 if (_lastMousePosition != Vector2.Zero && _lastMousePosition != mousePosition) c.MouseMoved(_lastMousePosition, mousePosition);
 
                 // Check if the mouse is inside this control.
-                if (CheckTop(mousePosition, c))
+                if (topControl == c)
                 {
                     // Check if the mouse was already triggered as being inside.
-                    if (c.MouseInside) continue;
+                    if (c.MouseInside) return;
                     Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse entered control with id " + Controls.IndexOf(c) + " - " + c);
                     c.MouseInside = true;
                     c.MouseEnter(mousePosition);
@@ -131,18 +191,24 @@ namespace Emotion.Game.UI
                 else
                 {
                     // Check if the mouse was inside before.
-                    if (!c.MouseInside) continue;
+                    if (!c.MouseInside) return;
                     Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse left control with id " + Controls.IndexOf(c) + " - " + c);
                     c.MouseInside = false;
                     c.MouseLeave(mousePosition);
                 }
-            }
+            });
+        }
 
-            // Check for button presses.
-            foreach (Control c in Controls)
+        /// <summary>
+        /// Processes mouse button press events.
+        /// </summary>
+        /// <param name="input">The input module.</param>
+        private void ButtonPresses(Input.Input input)
+        {
+            Parallel.ForEach(Controls, c =>
             {
                 // Check if active or the mouse isn't inside.
-                if (!c.Active) continue;
+                if (!c.Active) return;
 
                 // Loop through all buttons.
                 string[] mouseButtons = Enum.GetNames(typeof(MouseKeys));
@@ -166,24 +232,14 @@ namespace Emotion.Game.UI
                     // If the button was held, but now isn't.
                     if (!c.Held[i]) continue;
                     Debugger.Log(MessageType.Trace, MessageSource.UIController,
-                        "Mouse let go of key [" + currentKey + "] on control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Priority);
+                        "Mouse let go of key [" + currentKey + "] on control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Z);
                     c.Held[i] = false;
                     c.MouseUp(currentKey);
                 }
-            }
-
-            // Record the position.
-            _lastMousePosition = mousePosition;
-
-            // Clear destroyed.
-            for (int i = Controls.Count - 1; i >= 0; i--)
-            {
-                if (!Controls[i].Destroyed) continue;
-                Debugger.Log(MessageType.Warning, MessageSource.UIController,
-                    "[DEPRECATED] User has destroyed a UI control, which the controller had to clean up. Don't do this, it won't work in the future.\nControl id " + i + " of type " + Controls[i]);
-                Remove(Controls[i]);
-            }
+            });
         }
+
+        #endregion
 
         #region Helpers
 
@@ -193,27 +249,48 @@ namespace Emotion.Game.UI
         /// <param name="position">The mouse position.</param>
         /// <param name="c">The control to check whether is on top.</param>
         /// <returns>Whether the control is on top.</returns>
-        private bool CheckTop(Vector2 position, Control c)
+        public bool IsTop(Vector2 position, Transform c)
         {
             bool insideC = c.Bounds.Contains(position.X, position.Y);
 
             if (!insideC) return false;
 
-            // Loop through all controls.
-            foreach (Control oc in Controls)
+            Parallel.ForEach(Controls, oc =>
             {
                 // Check if oc is c, or if the oc is inactive.
-                if (oc == c || !oc.Active) continue;
+                if (oc == c || !oc.Active) return;
 
                 // Check if the mouse is inside the oc.
-                if (!oc.Bounds.Contains(position.X, position.Y)) continue;
+                if (!oc.Bounds.Contains(position.X, position.Y)) return;
                 // Check if the priority is higher than c.
-                if (oc.Priority <= c.Priority) continue;
+                if (oc.Z <= c.Z) return;
                 insideC = false;
-                break;
-            }
+            });
 
             return insideC;
+        }
+
+        /// <summary>
+        /// Returns the control on top.
+        /// </summary>
+        /// <param name="position">The mouse position.</param>
+        /// <returns>Whichever control is on top.</returns>
+        private Control GetTop(Vector2 position)
+        {
+            Control top = null;
+
+            foreach (Control c in Controls)
+            {
+                // Check if active.
+                if (!c.Active) continue;
+
+                if (c.Bounds.Contains(position))
+                {
+                    top = c;
+                }
+            }
+
+            return top;
         }
 
         /// <summary>
@@ -224,26 +301,49 @@ namespace Emotion.Game.UI
         /// <returns>True if the key is held on another control, false otherwise.</returns>
         private bool HeldSomewhere(int key)
         {
-            // Loop through all controls.
-            foreach (Control oc in Controls)
-            {
-                if (oc.Held[key]) return true;
-            }
+            bool held = false;
 
-            return false;
+            Parallel.ForEach(Controls, oc =>
+            {
+                if (oc.Held[key]) held = true;
+            });
+
+            return held;
         }
 
         #endregion
 
-        #region Debugging
+        #region Debugging API
+
+        private bool _debugSetup;
+        private bool _debugDraw;
 
         [Conditional("DEBUG")]
-        private void DebugDraw(Renderer renderer)
+        private void SetupDebug()
         {
+            if (_debugSetup) return;
+            _debugSetup = true;
+
+            Context.ScriptingEngine.Expose("debugUI",
+                (Func<string>) (() =>
+                {
+                    _debugDraw = !_debugDraw;
+
+                    return "UI debugging " + (_debugDraw ? "enabled." : "disabled.");
+                }),
+                "Enables the UI debugging. Showing the bounds of all UI controls.");
+        }
+
+        [Conditional("DEBUG")]
+        private void DrawDebug(Renderer renderer)
+        {
+            if (!_debugDraw) return;
             foreach (Control control in Controls)
             {
-                renderer.DrawRectangleOutline(control.Bounds, control.Active ? Color.Green : Color.Red, false);
+                renderer.RenderQueueOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
             }
+
+            renderer.RenderOutlineFlush();
         }
 
         public override string ToString()
@@ -252,7 +352,7 @@ namespace Emotion.Game.UI
 
             foreach (Control control in Controls)
             {
-                result += " |- " + control + "]\n";
+                result += " |- " + control + "\n";
             }
 
             return result;

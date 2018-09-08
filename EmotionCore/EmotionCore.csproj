@@ -13,7 +13,8 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>Emotion</RootNamespace>
@@ -115,41 +116,63 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Libraries\Unix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Game\Text\TypewriterRichText.cs" />
+    <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
+    <Compile Include="src\Graphics\GLES\Texture.cs" />
+    <Compile Include="src\Graphics\GLES\IGLObject.cs" />
+    <Compile Include="src\Graphics\GLES\IndexBuffer.cs" />
+    <Compile Include="src\Graphics\GLES\Shader.cs" />
+    <Compile Include="src\Graphics\GLES\ShaderProgram.cs" />
+    <Compile Include="src\Graphics\GLES\Buffer.cs" />
+    <Compile Include="src\Graphics\GLES\VertexArray.cs" />
+    <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
+    <Compile Include="src\Graphics\TransformRenderable.cs" />
+    <Compile Include="src\Graphics\Renderable.cs" />
+    <Compile Include="src\Graphics\Renderer.cs" />
+    <Compile Include="src\Graphics\Text\Atlas.cs" />
+    <Compile Include="src\Graphics\Text\Font.cs" />
+    <Compile Include="src\Graphics\Text\Glyph.cs" />
+    <Compile Include="src\Game\Text\RichText.cs" />
+    <Compile Include="src\Graphics\Text\TextAlignment.cs" />
+    <Compile Include="src\Graphics\Text\TextEffect.cs" />
+    <Compile Include="src\Host\IHost.cs" />
+    <Compile Include="src\Host\Window.cs" />
+    <Compile Include="src\Graphics\Batching\MapBuffer.cs" />
+    <Compile Include="src\Graphics\TransformationStack.cs" />
+    <Compile Include="src\Graphics\Batching\VertexData.cs" />
+    <Compile Include="src\IO\Asset.cs" />
+    <Compile Include="src\Primitives\Matrix4.cs" />
+    <Compile Include="src\Primitives\Point.cs" />
+    <Compile Include="src\Primitives\Transform.cs" />
+    <Compile Include="src\Primitives\Vector3.cs" />
     <Compile Include="src\Sound\SourceBase.cs" />
     <Compile Include="src\Sound\StreamingSource.cs" />
     <Compile Include="src\Utils\CurrentPlatform.cs" />
     <Compile Include="src\Engine\ThreadManager.cs" />
     <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
-    <Compile Include="src\IO\Asset.cs" />
-    <Compile Include="src\GLES\Text\Glyph.cs" />
     <Compile Include="src\IO\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
     <Compile Include="src\IO\Other.cs" />
-    <Compile Include="src\GLES\RenderTarget.cs" />
-    <Compile Include="src\GLES\GlProgram.cs" />
-    <Compile Include="src\GLES\Shader.cs" />
-    <Compile Include="src\GLES\VAO.cs" />
-    <Compile Include="src\GLES\VBO.cs" />
     <Compile Include="src\Engine\ContextObject.cs" />
-    <Compile Include="src\GLES\ITexture.cs" />
     <Compile Include="src\Debug\MessageSource.cs" />
     <Compile Include="src\Debug\MessageType.cs" />
-    <Compile Include="src\GLES\WindowMode.cs" />
+    <Compile Include="src\Host\WindowMode.cs" />
     <Compile Include="src\Game\Layering\LayerManager.cs" />
     <Compile Include="src\Game\Layering\Layer.cs" />
     <Compile Include="src\Engine\ScriptingEngine.cs" />
-    <Compile Include="src\Game\Text\RichText.cs" />
     <Compile Include="src\Game\AStar\Path.cs" />
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />
+    <None Include="Assets\debugFont.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="src\Game\UI\ScreenFader.cs" />
     <Compile Include="src\Game\UI\ScrollInputSelector.cs" />
     <Compile Include="src\Game\UI\ScrollInput.cs" />
     <Compile Include="src\Game\UI\Control.cs" />
     <Compile Include="src\Game\UI\Controller.cs" />
     <Compile Include="src\Game\UI\Panel.cs" />
-    <Compile Include="src\Game\Text\TextEffect.cs" />
     <Compile Include="src\Sound\SoundFadeOut.cs" />
     <Compile Include="src\Sound\SoundFadeIn.cs" />
     <Compile Include="src\Sound\SoundEffect.cs" />
@@ -157,18 +180,12 @@
     <Compile Include="src\Sound\SoundManager.cs" />
     <Compile Include="src\Sound\Source.cs" />
     <Compile Include="src\Utils\Helpers.cs" />
-    <Compile Include="src\IO\Font.cs" />
-    <Compile Include="src\IO\Texture.cs" />
     <Compile Include="src\IO\AssetLoader.cs" />
-    <Compile Include="src\GLES\Text\TextDrawingSession.cs" />
-    <Compile Include="src\GLES\Window.cs" />
     <Compile Include="src\Engine\Context.cs" />
     <Compile Include="src\Input\MouseKeys.cs" />
     <Compile Include="src\Input\Input.cs" />
-    <Compile Include="src\GLES\Renderer.cs" />
     <Compile Include="Libraries\Windows.cs" />
     <Compile Include="src\Game\Camera\CameraBase.cs" />
-    <Compile Include="src\Primitives\Transform.cs" />
     <Compile Include="src\Game\Camera\TargetCamera.cs" />
     <Compile Include="src\Game\Camera\MouseCamera.cs" />
     <Compile Include="src\Game\Tiled\Map.cs" />
@@ -230,7 +247,9 @@
     <Content Include="Libraries\x86\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="src\Primitives\Vector4.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

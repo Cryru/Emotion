@@ -125,6 +125,11 @@ namespace Emotion.Primitives
 
         #region Public Methods
 
+        public Vector3 LocationZ(float z)
+        {
+            return new Vector3(X, Y, z);
+        }
+
         public static bool operator ==(Rectangle a, Rectangle b)
         {
             return a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
@@ -187,7 +192,7 @@ namespace Emotion.Primitives
 
         public override string ToString()
         {
-            return $"{{X:{X} Y:{Y} Width:{Width} Height:{Height}}}";
+            return $"[X:{X} Y:{Y} Width:{Width} Height:{Height}]";
         }
 
         public override int GetHashCode()

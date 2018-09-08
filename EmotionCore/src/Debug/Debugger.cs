@@ -3,12 +3,10 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Emotion.Engine;
-using Emotion.Game.Camera;
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Utils;
 using Soul.Logging;
@@ -19,20 +17,6 @@ namespace Emotion.Debug
 {
     public static class Debugger
     {
-        #region Properties
-
-        /// <summary>
-        /// Sources which to log.
-        /// </summary>
-        public static List<MessageSource> SourceFilter;
-
-        /// <summary>
-        /// Types to log.
-        /// </summary>
-        public static List<MessageType> TypeFilter;
-
-        #endregion
-
         #region Declarations
 
         /// <summary>
@@ -56,8 +40,6 @@ namespace Emotion.Debug
         {
 #if DEBUG
             // Init.
-            SourceFilter = new List<MessageSource>();
-            TypeFilter = new List<MessageType>();
             _logger = new ImmediateLoggingService
             {
                 LogLimit = 10,
@@ -66,23 +48,6 @@ namespace Emotion.Debug
             };
             _mutexLock = new object();
             _command = "";
-
-            // Populate filters.
-            MessageSource[] allSources = (MessageSource[]) Enum.GetValues(typeof(MessageSource));
-            foreach (MessageSource source in allSources)
-            {
-                SourceFilter.Add(source);
-            }
-
-            MessageType[] allTypes = (MessageType[]) Enum.GetValues(typeof(MessageType));
-            foreach (MessageType type in allTypes)
-            {
-                TypeFilter.Add(type);
-            }
-
-            // Remove spam.
-            TypeFilter.Remove(MessageType.Trace);
-
 
             // Start the console thread.
             Thread consoleThread = new Thread(() => ConsoleThread());
@@ -102,9 +67,6 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         public static void Log(MessageType type, MessageSource source, string message)
         {
-            // Check against filters.
-            if (TypeFilter.IndexOf(type) == -1 || SourceFilter.IndexOf(source) == -1) return;
-
             // Prevent logging from multiple threads messing up coloring and logging.
             lock (_mutexLock)
             {
@@ -132,7 +94,7 @@ namespace Emotion.Debug
 
                     // Log and display the message.
                     _logger.Log("[" + type + "-" + source + "] " + message);
-                    Console.WriteLine("[" + source + "] " + message);
+                    if (type != MessageType.Trace) Console.WriteLine("[" + source + "] " + message);
 
                     // Restore the normal color.
                     Console.ForegroundColor = ConsoleColor.Gray;
@@ -152,20 +114,17 @@ namespace Emotion.Debug
         /// Is run every tick by the platform context.
         /// </summary>
         [Conditional("DEBUG")]
-        internal static void Update(ScriptingEngine scripting)
+        internal static void Update(Context context)
         {
             // Check if there is a command to execute.
             if (_command == string.Empty) return;
-            scripting.RunScript(_command);
+            context.ScriptingEngine.RunScript(_command);
             _command = "";
         }
 
         [Conditional("DEBUG")]
         internal static void DebugDraw(Context context)
         {
-            // Check if there is an attached renderer with a camera.
-            if (context.Renderer?.Camera != null) CameraBoundDraw(context.Renderer);
-
             // Draw the mouse cursor location.
             MouseBoundDraw(context.Renderer, context.Input);
         }
@@ -198,31 +157,15 @@ namespace Emotion.Debug
         #region Debug Drawing
 
         [Conditional("DEBUG")]
-        private static void CameraBoundDraw(Renderer renderer)
-        {
-            CameraBase camera = renderer.Camera;
-
-            // Draw bounds.
-            renderer.DrawRectangleOutline(camera.Bounds, Color.Yellow);
-
-            // Draw center.
-            Rectangle centerDraw = new Rectangle(0, 0, 10, 10);
-            centerDraw.X = (int) camera.Bounds.Center.X - centerDraw.Width / 2;
-            centerDraw.Y = (int) camera.Bounds.Center.Y - centerDraw.Height / 2;
-
-            renderer.DrawRectangleOutline(centerDraw, Color.Yellow);
-        }
-
-        [Conditional("DEBUG")]
         private static void MouseBoundDraw(Renderer renderer, Input.Input input)
         {
             Vector2 mouseLocation = input.GetMousePosition();
+            mouseLocation.X -= 5;
+            mouseLocation.Y -= 5;
 
-            Rectangle mouseBounds = new Rectangle(0, 0, 10, 10);
-            mouseBounds.X = (int) mouseLocation.X - mouseBounds.Width / 2;
-            mouseBounds.Y = (int) mouseLocation.Y - mouseBounds.Height / 2;
-
-            renderer.DrawRectangleOutline(mouseBounds, Color.Pink, false);
+            renderer.DisableViewMatrix();
+            renderer.RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
+            renderer.EnableViewMatrix();
         }
 
         #endregion

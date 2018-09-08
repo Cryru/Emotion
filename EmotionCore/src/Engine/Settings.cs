@@ -4,7 +4,7 @@
 
 using System;
 using System.Drawing;
-using Emotion.GLES;
+using Emotion.Host;
 using Color = Emotion.Primitives.Color;
 
 #endregion

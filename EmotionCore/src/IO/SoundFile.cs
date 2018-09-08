@@ -10,12 +10,12 @@ using OpenTK.Audio.OpenAL;
 
 namespace Emotion.IO
 {
-    public class SoundFile : Asset
+    public sealed class SoundFile : Asset
     {
         internal int Pointer;
-        public int Duration { get; protected set; }
+        public int Duration { get; private set; }
 
-        internal override void Process(byte[] data)
+        internal override void Create(byte[] data)
         {
             using (MemoryStream stream = new MemoryStream(data))
             {
@@ -82,15 +82,11 @@ namespace Emotion.IO
                     Duration = soundData.Length / (sampleRate * channels * bitsPerSample / 8);
                 }
             }
-
-
-            base.Process(data);
         }
 
         internal override void Destroy()
         {
             AL.DeleteBuffer(Pointer);
-            base.Destroy();
         }
 
         #region Helpers

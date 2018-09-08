@@ -1,6 +1,6 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-namespace Emotion.Game.Text
+namespace Emotion.Graphics.Text
 {
     public class TextEffect
     {

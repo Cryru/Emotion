@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Primitives;
+using Emotion.Utils;
 
 #endregion
 
@@ -46,21 +48,24 @@ namespace Emotion.Game.Layering
                 unloadLayer.Start();
             }
 
-            // Process layers to add.
-            foreach (Layer layer in _readyLayers.Values.ToList())
+            lock (_readyLayers)
             {
-                _readyLayers.Remove(layer.Name);
-                _loadedLayers.Add(layer.Name, layer);
+                // Process layers to add.
+                foreach (Layer layer in _readyLayers.Values.ToList())
+                {
+                    _readyLayers.Remove(layer.Name);
+                    _loadedLayers.Add(layer.Name, layer);
 
-                // Order by priority.
-                _loadedLayers = _loadedLayers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
+                    // Order by priority.
+                    _loadedLayers = _loadedLayers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
+                }
             }
 
             // Update loaded layers.
             foreach (KeyValuePair<string, Layer> layer in _loadedLayers)
             {
                 // If the window is not focused run the light update, otherwise run the full update.
-                if (!Context.Window.Focused)
+                if (!Context.Host.Focused)
                     layer.Value.LightUpdate(Context.FrameTime);
                 else
                     layer.Value.Update(Context.FrameTime);
@@ -74,7 +79,10 @@ namespace Emotion.Game.Layering
         {
             foreach (KeyValuePair<string, Layer> layer in _loadedLayers)
             {
+                Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, layer.Value.Priority));
                 layer.Value.Draw(Context.Renderer);
+                Context.Renderer.MatrixStack.Pop();
+                Helpers.CheckError("layer draw");
             }
         }
 
@@ -141,7 +149,11 @@ namespace Emotion.Game.Layering
             Debugger.Log(MessageType.Trace, MessageSource.LayerManager, "Loading layer [" + layer.Name + "]");
 
             layer.Load();
-            _readyLayers.Add(layer.Name, layer);
+
+            lock (_readyLayers)
+            {
+                _readyLayers.Add(layer.Name, layer);
+            }
 
             Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Loaded layer [" + layer.Name + "]");
         }

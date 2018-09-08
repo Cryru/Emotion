@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Primitives;
 using Soul;
 
@@ -12,8 +13,13 @@ namespace Emotion.Game.Camera
     /// <summary>
     /// A camera which follows the target closely.
     /// </summary>
-    public sealed class TargetCamera : CameraBase
+    public class TargetCamera : CameraBase
     {
+        /// <summary>
+        /// The object to follow.
+        /// </summary>
+        public Transform Target { get; set; }
+
         /// <summary>
         /// The speed at which the camera should move. From 0 to 1, 0 being an immovable camera, and 1 being always at the target.
         /// </summary>
@@ -23,16 +29,18 @@ namespace Emotion.Game.Camera
         {
         }
 
-        public void Update(float frameTime)
+        public override void Update(Context context)
         {
             // Check if no target.
             if (Target == null) return;
 
             // Smooth.
-            float lx = MathHelper.Lerp(Bounds.Center.X, Target.Bounds.X, MathHelper.Clamp(Speed * frameTime, 0, 1));
-            float ly = MathHelper.Lerp(Bounds.Center.Y, Target.Bounds.Y, MathHelper.Clamp(Speed * frameTime, 0, 1));
+            float lx = MathHelper.Lerp(Bounds.Center.X, Target.Bounds.X, MathHelper.Clamp(Speed * context.FrameTime, 0, 1));
+            float ly = MathHelper.Lerp(Bounds.Center.Y, Target.Bounds.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, 1));
 
-            Bounds.Center = new Vector2(lx, ly);
+            Center = new Vector2(lx, ly);
+
+            UpdateMatrix();
         }
     }
 }

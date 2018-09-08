@@ -32,7 +32,7 @@ namespace Emotion.Sound
         {
             Pointer = AL.GenSource();
             AL.Source(Pointer, ALSourcei.Buffer, file.Pointer);
-            FileName = file.AssetName;
+            FileName = file.Name;
             Duration = file.Duration;
         }
 

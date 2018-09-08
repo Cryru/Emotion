@@ -8,7 +8,7 @@ Buried within the stripped of binaries (hopefully) git history of this repo.
 
 ### What happened?
 
-After developing SoulEngine for 3 years parallel to some game development I realized that I wasn't living the dream. I wasn't making games, I was overengineering engines. I like to think I've learned something over this period time and that it wasn't all for nothing, but I'm still not entirely sure. This year (2018) I tried to embrace OpenGL and move away from already existing frameworks, but I ended up digging even deeper into things I only saw as obstacles to making it all come true.
+After developing SoulEngine for 3 years parallel to some game development I realized that I wasn't living the dream. I wasn't making games, I was overengineering engines. I like to think I've learned something over this period time and that it wasn't all for nothing, but I'm still not entirely sure. This year (2018) was kind of breaking in that I tried to embrace OpenGL and move away from already existing frameworks, but I ended up digging even deeper into things I only saw as obstacles to making it all come true.
 
 ### So?
 
@@ -16,7 +16,7 @@ I've restarted the project under the name "Emotion" and with different goals in 
 
 <img src=http://i.imgur.com/XxvfIR7.png /> 
 
-is absolutely insane and unproductive.
+is absolute insane and unproductive.
 
 Maybe I'll get it right this time? Probably not.
 

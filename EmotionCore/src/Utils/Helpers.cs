@@ -43,5 +43,10 @@ namespace Emotion.Utils
             ErrorCode errorCheck = GL.GetError();
             if (errorCheck != ErrorCode.NoError) throw new Exception("OpenGL error at " + location + ":\n" + errorCheck);
         }
+
+        public static float PixelFontSizeToCharSize(uint pixelSize)
+        {
+            return (float) Math.Pow(96 / 72 / pixelSize, -1);
+        }
     }
 }

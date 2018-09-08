@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
@@ -30,7 +30,7 @@ namespace Emotion.Game.UI
         /// </summary>
         private ScrollInput _parent;
 
-        public ScrollInputSelector(ScrollInput parent, Controller controller, Rectangle bounds, int priority) : base(controller, bounds, priority)
+        public ScrollInputSelector(ScrollInput parent, Rectangle bounds, float priority) : base(bounds, priority)
         {
             _parent = parent;
         }
@@ -41,7 +41,7 @@ namespace Emotion.Game.UI
             Active = _parent.Active;
 
             // Render the selector according to whether it is held or not.
-            renderer.DrawRectangle(Bounds, Held[0] ? HeldColor : Color, false);
+            renderer.Render(Position, Size, Held[0] ? HeldColor : Color);
         }
 
         public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)

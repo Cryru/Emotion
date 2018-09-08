@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Primitives;
 using Soul;
 
@@ -31,9 +31,14 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        public ScrollInput(Controller controller, Rectangle bounds, int priority) : base(controller, bounds, priority)
+        public ScrollInput(Rectangle bounds, float priority) : base(bounds, priority)
         {
-            Selector = new ScrollInputSelector(this, controller, new Rectangle(), priority + 1);
+            Selector = new ScrollInputSelector(this, new Rectangle(), Z + 1);
+        }
+
+        public override void Init()
+        {
+            Controller.Add(Selector);
         }
 
         public override void Draw(Renderer renderer)
@@ -45,7 +50,7 @@ namespace Emotion.Game.UI
             Value = (int) MathHelper.Clamp(Value, 0, 100);
 
             // Draw bar.
-            renderer.DrawRectangle(Bounds, BarColor, false);
+            renderer.Render(Position, new Vector2(Width, Height), BarColor);
 
             // Calculate selector.
             Rectangle selectorBounds = new Rectangle
@@ -60,7 +65,7 @@ namespace Emotion.Game.UI
 
         public override void Destroy()
         {
-            Selector.Destroy();
+            Controller.Remove(Selector);
             base.Destroy();
         }
     }

@@ -1,6 +1,6 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-namespace Emotion.GLES
+namespace Emotion.Host
 {
     public enum WindowMode
     {

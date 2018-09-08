@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Emotion.GLES;
+using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
 
@@ -16,11 +16,6 @@ namespace Emotion.Game.UI
         #region Properties
 
         /// <summary>
-        /// The object's priority. The higher the number is the higher the object will be.
-        /// </summary>
-        public int Priority { get; protected set; }
-
-        /// <summary>
         /// Whether the control is visible and responsive.
         /// </summary>
         public bool Active { get; set; } = true;
@@ -28,7 +23,18 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The controller which owns this control.
         /// </summary>
-        protected Controller _controller;
+        public Controller Controller
+        {
+            get
+            {
+                if (_controller == null) throw new Exception("A UI control cannot use the UIController before the Init function is called.");
+
+                return _controller;
+            }
+            internal set => _controller = value;
+        }
+
+        private Controller _controller;
 
         /// <summary>
         /// Whether the control is destroyed.
@@ -40,7 +46,7 @@ namespace Emotion.Game.UI
         #region State
 
         /// <summary>
-        /// Whether the mouse is inside the control.
+        /// Whether the mouse is inside the control. Can be interpreted as being focused.
         /// </summary>
         public bool MouseInside { get; internal set; }
 
@@ -52,18 +58,26 @@ namespace Emotion.Game.UI
         /// <summary>
         /// Whether the control was active. Used for active and deactivate events.
         /// </summary>
-        internal bool WasActive = true;
+        public bool WasActive { get; internal set; } = true;
 
         #endregion
 
-        protected Control(Controller controller, Rectangle bounds, int priority) : base(bounds)
+        protected Control(Rectangle bounds, float priority) : base(bounds)
         {
-            Priority = priority;
-            _controller = controller;
-
-            _controller.Add(this);
+            Z = priority;
         }
 
+        /// <summary>
+        /// Is called by the UI controller when initializing the control. Perform initialization connected with the controller
+        /// here.
+        /// </summary>
+        public virtual void Init()
+        {
+        }
+
+        /// <summary>
+        /// Is called by the UI controller when destroying the control. Perform cleanup here.
+        /// </summary>
         public virtual void Destroy()
         {
             Destroyed = true;
@@ -95,12 +109,10 @@ namespace Emotion.Game.UI
 
         public virtual void OnActivate()
         {
-
         }
 
         public virtual void OnDeactivate()
         {
-
         }
 
         #endregion
@@ -109,9 +121,7 @@ namespace Emotion.Game.UI
 
         public override string ToString()
         {
-            string result = "[" + base.ToString() + "]";
-            result += $"(priority: {Priority}, active: {Active})";
-            return result;
+            return $"[Transform:{base.ToString()} Active:{Active} MouseInside:{MouseInside} Destroyed:{Destroyed}]";
         }
 
         #endregion

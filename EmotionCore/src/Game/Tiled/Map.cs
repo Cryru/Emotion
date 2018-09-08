@@ -5,7 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Emotion.GLES;
+using Emotion.Graphics;
+using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using TiledSharp;
@@ -14,7 +15,7 @@ using TiledSharp;
 
 namespace Emotion.Game.Tiled
 {
-    public class Map : Transform
+    public class Map : TransformRenderable
     {
         #region Properties
 
@@ -23,14 +24,9 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public TmxMap TiledMap { get; protected set; }
 
-        /// <summary>
-        /// The rectangle to render from the whole map. If empty the whole map is rendered.
-        /// </summary>
-        public Rectangle VisibleRectangle { get; set; }
-
         #endregion
 
-        protected List<Texture> _tilesets = new List<Texture>();
+        public List<Texture> Tilesets { get; private set; } = new List<Texture>();
         protected List<AnimatedTile> _animatedTiles = new List<AnimatedTile>();
         private AssetLoader _assetLoader;
 
@@ -41,8 +37,9 @@ namespace Emotion.Game.Tiled
         /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(Rectangle mapBounds, AssetLoader assetLoader, string mapPath, string tileSetFolder) : base(mapBounds)
+        public Map(Rectangle mapBounds, AssetLoader assetLoader, string mapPath, string tileSetFolder)
         {
+            Bounds = mapBounds;
             _assetLoader = assetLoader;
 
             // Check if no map is provided.
@@ -55,7 +52,7 @@ namespace Emotion.Game.Tiled
         public void Reset(string mapPath, string tileSetFolder)
         {
             // Reset holders.
-            _tilesets.Clear();
+            Tilesets.Clear();
             _animatedTiles.Clear();
             TiledMap = null;
 
@@ -77,14 +74,14 @@ namespace Emotion.Game.Tiled
                 if (tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\'));
 
                 Texture temp = _assetLoader.Get<Texture>(tileSetFolder + '/' + tilesetFile);
-                _tilesets.Add(temp);
+                Tilesets.Add(temp);
             }
 
             // Find animated tiles.
             CacheAnimatedTiles();
 
             // Set default size if none set.
-            if (Bounds.Width == 0 && Bounds.Height == 0) Bounds.Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            if (Width == 0 && Height == 0) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
         }
 
         /// <summary>
@@ -101,8 +98,11 @@ namespace Emotion.Game.Tiled
         /// Draw the map using the specified renderer.
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
-        public void Draw(Renderer renderer)
+        internal override void Render(Renderer renderer)
         {
+            // Flush the buffer.
+            renderer.RenderFlush();
+
             // Check if anything is loaded.
             if (TiledMap == null) return;
 
@@ -114,9 +114,7 @@ namespace Emotion.Game.Tiled
             //      tsId - The id of [ts] within the collection.
             //      tsOffset - The [tId] within the scope of the current tileset. An id and image within the map containing the ti.
             // ti - The tile image, within the [ts] which represents the image of [tsOffset].
-            //      tiColumn - The Y coordinate of the [ti] within the [ts].
-            //      tiRow - The X coordinate of the [ti] within the [ts].
-            //      tiRect - The rectangle where the [ti] is located within the [ts] texture.
+            //      tiUv - The rectangle where the [ti] is located within the [ts] texture.
 
             // Go through all map layers.
             foreach (TmxLayer layer in TiledMap.Layers)
@@ -134,33 +132,31 @@ namespace Emotion.Game.Tiled
                     if (tId == 0) continue;
 
                     // Find which tileset the tId belongs in.
-                    Rectangle tiRect = GetUvFromTileImageId(tId, out int tsId);
+                    Rectangle tiUv = GetUvFromTileImageId(tId, out int tsId);
                     TmxTileset ts = TiledMap.Tilesets[tsId];
 
                     // Get tile properties.
                     int tX = t % TiledMap.Width * TiledMap.TileWidth;
-                    int tY = (int)((float)Math.Floor(t / (double)TiledMap.Width) * TiledMap.TileHeight);
+                    int tY = (int) ((float) Math.Floor(t / (double) TiledMap.Width) * TiledMap.TileHeight);
 
                     // Get the location of the tile.
                     Rectangle tRect = new Rectangle(tX, tY, ts.TileWidth, ts.TileHeight);
 
                     // Modify for map size.
-                    float ratioDifferenceX = Bounds.Width / (TiledMap.TileWidth * TiledMap.Width);
-                    float ratioDifferenceY = Bounds.Height / (TiledMap.TileHeight * TiledMap.Height);
+                    float ratioDifferenceX = Width / (TiledMap.TileWidth * TiledMap.Width);
+                    float ratioDifferenceY = Height / (TiledMap.TileHeight * TiledMap.Height);
                     tRect.Width *= ratioDifferenceX;
                     tRect.Height *= ratioDifferenceY;
                     tRect.X *= ratioDifferenceX;
                     tRect.Y *= ratioDifferenceY;
 
-                    // Add map position.
-                    tRect.X += Bounds.X;
-                    tRect.Y += Bounds.Y;
-
                     // Check if visible rectangle exists.
-                    if (VisibleRectangle == Rectangle.Empty || VisibleRectangle.Intersects(tRect))
-                        renderer.DrawTexture(_tilesets[tsId], tRect, tiRect, new Color(255, 255, 255, (int)(layer.Opacity * 255)));
+                    renderer.RenderQueue(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
                 }
             }
+
+            // Flush the rendered tiles.
+            renderer.RenderFlush();
         }
 
         #region Animated Tiles
@@ -239,6 +235,59 @@ namespace Emotion.Game.Tiled
             return tsOffset;
         }
 
+        #endregion
+
+        #region Bounds Functions
+
+        /// <summary>
+        /// Returns the pixel bounds of the tile from its id.
+        /// </summary>
+        /// <param name="coordinate">The tile coordinate.</param>
+        /// <param name="layer">The layer the tile is on.</param>
+        /// <returns>The pixel bounds within the map rendering of the tile..</returns>
+        public Rectangle GetTileBoundsFromId(int coordinate, int layer = 0)
+        {
+            Vector2 scale = new Vector2(Width / (TiledMap.TileWidth * TiledMap.Width), Height / (TiledMap.TileHeight * TiledMap.Height));
+
+            // Check if out of range, and if not return the tile location from the id.
+            return new Rectangle(
+                X + TiledMap.Layers[layer].Tiles[coordinate].X * (TiledMap.TileWidth * scale.X),
+                Y + TiledMap.Layers[layer].Tiles[coordinate].Y * (TiledMap.TileHeight * scale.Y),
+                TiledMap.TileWidth * scale.X,
+                TiledMap.TileHeight * scale.Y
+            );
+        }
+
+        /// <summary>
+        /// Returns the one dimensional coordinate of the tile at the specified coordinates.
+        /// </summary>
+        /// <param name="location">The coordinates in world space you want to sample.</param>
+        /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
+        public int GetTile1DFromBounds(Vector2 location)
+        {
+            int left = (int) Math.Max(0, location.X / TiledMap.TileWidth);
+            int top = (int) Math.Max(0, location.Y / TiledMap.TileHeight);
+
+            return left + top * TiledMap.Width;
+        }
+
+        /// <summary>
+        /// Returns a two dimensional coordinate representing the provided tile one dimensional coordinate.
+        /// </summary>
+        /// <param name="coordinate">The one dimensional tile coordinate.</param>
+        /// <param name="layer">The layer the tile is on.</param>
+        /// <returns>The two dimensional coordinate equivalent of the one dimensional coordinate provided.</returns>
+        public Vector2 GetTile2DFromTile1D(int coordinate, int layer = 0)
+        {
+            return new Vector2(TiledMap.Layers[layer].Tiles[coordinate].X, TiledMap.Layers[layer].Tiles[coordinate].Y);
+        }
+
+        /// <summary>
+        /// Returns the UV and tileset id of the specified tid.
+        /// </summary>
+        /// <param name="tId">The texture id to parse.</param>
+        /// <param name="tsId">The tileset id containing the texture id.</param>
+        /// <returns>The UV of the tid within the tsId.</returns>
         public Rectangle GetUvFromTileImageId(int tId, out int tsId)
         {
             // Find which tileset the tId belongs in.
@@ -248,7 +297,6 @@ namespace Emotion.Game.Tiled
             {
                 // Check if the id we need is beyond the current tileset.
                 if (tId < TiledMap.Tilesets[i].FirstGid) break;
-
                 tsId = i;
             }
 
@@ -266,7 +314,7 @@ namespace Emotion.Game.Tiled
 
             // Get tile image properties.
             int tiColumn = tsOffset % (ts.Columns ?? 0);
-            int tiRow = (int)(tsOffset / (double)(ts.Columns ?? 0));
+            int tiRow = (int) (tsOffset / (double) (ts.Columns ?? 0));
             Rectangle tiRect = new Rectangle(ts.TileWidth * tiColumn, ts.TileHeight * tiRow, ts.TileWidth, ts.TileHeight);
 
             // Add margins and spacing.
@@ -274,55 +322,7 @@ namespace Emotion.Game.Tiled
             tiRect.Y += ts.Margin;
             tiRect.X += ts.Spacing * tiColumn;
             tiRect.Y += ts.Spacing * tiRow;
-
             return tiRect;
-        }
-
-        #endregion
-
-        #region Bounds Functions
-
-        /// <summary>
-        /// Returns the pixel bounds of the tile from its id.
-        /// </summary>
-        /// <param name="coordinate">The tile coordinate.</param>
-        /// <param name="layer">The layer the tile is on.</param>
-        /// <returns>The pixel bounds within the map rendering of the tile..</returns>
-        public Rectangle GetTileBoundsFromId(int coordinate, int layer = 0)
-        {
-            Vector2 scale = new Vector2(Bounds.Width / (TiledMap.TileWidth * TiledMap.Width), Bounds.Height / (TiledMap.TileHeight * TiledMap.Height));
-
-            // Check if out of range, and if not return the tile location from the id.
-            return new Rectangle(
-                Bounds.X + TiledMap.Layers[layer].Tiles[coordinate].X * (TiledMap.TileWidth * scale.X),
-                Bounds.Y + TiledMap.Layers[layer].Tiles[coordinate].Y * (TiledMap.TileHeight * scale.Y),
-                TiledMap.TileWidth * scale.X,
-                TiledMap.TileHeight * scale.Y
-            );
-        }
-
-        /// <summary>
-        /// Returns the id of the tile at the specified coordinates.
-        /// </summary>
-        /// <param name="location">The coordinates in world space you want to sample.</param>
-        /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
-        public int GetTileIdFromBounds(Vector2 location)
-        {
-            int left = (int)Math.Max(0, location.X / 32);
-            int top = (int)Math.Max(0, location.Y / 32);
-
-            return left + top * TiledMap.Width;
-        }
-
-        /// <summary>
-        /// Returns a two dimensional coordinate representing the provided tile coordinate.
-        /// </summary>
-        /// <param name="coordinate">The tile coordinate.</param>
-        /// <param name="layer">The layer the tile is on.</param>
-        /// <returns>The two dimensional coordinate equivalent of the one dimensional coordinate provided.</returns>
-        public Vector2 GetTile2DFromId(int coordinate, int layer = 0)
-        {
-            return new Vector2(TiledMap.Layers[layer].Tiles[coordinate].X, TiledMap.Layers[layer].Tiles[coordinate].Y);
         }
 
         #endregion

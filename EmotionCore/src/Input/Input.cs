@@ -3,11 +3,9 @@
 #region Using
 
 using System;
-using System.Drawing;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Game.Camera;
-using Emotion.GLES;
+using Emotion.Host;
 using Emotion.Primitives;
 using OpenTK.Input;
 
@@ -22,21 +20,23 @@ namespace Emotion.Input
     {
         internal bool[] MouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         internal bool[] MousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+        internal bool[] MouseUp = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         private KeyboardState _keyboardLast;
         private KeyboardState _keyboard;
         private bool _noFocus;
         internal Vector2 MouseLocation;
+        private float _mouseWheelScroll;
 
         internal Input(Context context) : base(context)
         {
-            Context.Window.MouseDown += WindowMouseDown;
-            Context.Window.MouseUp += WindowMouseUp;
+            Context.Host.MouseDown += WindowMouseDown;
+            Context.Host.MouseUp += WindowMouseUp;
             // Moves an internal mouse position based on the window which is more accurate than directly polling the mouse.
-            Context.Window.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
+            Context.Host.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
             // Sets the unfocused tag.
-            Context.Window.FocusedChanged += (sender, e) =>
+            Context.Host.FocusedChanged += (sender, e) =>
             {
-                if (!Context.Window.Focused) _noFocus = true;
+                if (!Context.Host.Focused) _noFocus = true;
             };
         }
 
@@ -74,12 +74,15 @@ namespace Emotion.Input
             {
                 case MouseButton.Left:
                     MouseHeld[0] = false;
+                    MouseUp[0] = true;
                     break;
                 case MouseButton.Right:
                     MouseHeld[1] = false;
+                    MouseUp[1] = true;
                     break;
                 case MouseButton.Middle:
                     MouseHeld[2] = false;
+                    MouseUp[1] = true;
                     break;
             }
         }
@@ -94,10 +97,11 @@ namespace Emotion.Input
             {
                 if (MousePressed[i]) MouseHeld[i] = MousePressed[i];
                 MousePressed[i] = false;
+                MouseUp[i] = false;
             }
 
             // Check if focus has returned and skip input loop if no focus.
-            if (Context.Window.Focused && _noFocus) _noFocus = false;
+            if (Context.Host.Focused && _noFocus) _noFocus = false;
             if (_noFocus)
             {
                 for (int i = 0; i < MousePressed.Length; i++)
@@ -116,7 +120,7 @@ namespace Emotion.Input
             if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
             {
                 Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
-                Context.ApplySettings();
+                Context.Host.ApplySettings(Context.Settings);
             }
 
             // Check for closing combo.
@@ -125,26 +129,30 @@ namespace Emotion.Input
 
         #region Mouse
 
+        public float GetMouseScroll()
+        {
+            _mouseWheelScroll = Mouse.GetState().WheelPrecise;
+            return _mouseWheelScroll;
+        }
+
+        public float GetMouseScrollRelative()
+        {
+            float position = Mouse.GetState().WheelPrecise;
+            float relativePos = _mouseWheelScroll - position;
+            _mouseWheelScroll = position;
+            return relativePos;
+        }
+
         /// <summary>
         /// Returns the position of the mouse cursor within the window.
         /// </summary>
-        /// <param name="camera">The camera to convert to world units through, or null to return window units.</param>
         /// <returns>The position of the mouse cursor within the window.</returns>
-        public Vector2 GetMousePosition(CameraBase camera = null)
+        public Vector2 GetMousePosition()
         {
-            Size windowSize = Context.Window.ClientSize;
-            Vector2 mouseLocation = new Vector2(MouseLocation.X, MouseLocation.Y);
+            float scaleX = Context.Settings.RenderWidth / Context.Host.Size.X;
+            float scaleY = Context.Settings.RenderHeight / Context.Host.Size.Y;
 
-            int smallerValueRender = Math.Min(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
-            int smallerValueWindow = Math.Min(windowSize.Width, windowSize.Height);
-
-            mouseLocation = mouseLocation * smallerValueRender / smallerValueWindow;
-
-            if (camera == null) return mouseLocation;
-
-            mouseLocation.X += camera.Bounds.X;
-            mouseLocation.Y += camera.Bounds.Y;
-
+            Vector2 mouseLocation = new Vector2(MouseLocation.X * scaleX, MouseLocation.Y * scaleY);
             return mouseLocation;
         }
 
@@ -156,6 +164,16 @@ namespace Emotion.Input
         public bool IsMouseKeyDown(MouseKeys key)
         {
             return MousePressed[(int) key];
+        }
+
+        /// <summary>
+        /// Returns whether the mouse key was let go.
+        /// </summary>
+        /// <param name="key">The mouse key to check.</param>
+        /// <returns>Whether the mouse key was let go.</returns>
+        public bool IsMouseKeyUp(MouseKeys key)
+        {
+            return MouseUp[(int) key];
         }
 
         /// <summary>
