@@ -16,7 +16,7 @@ I've restarted the project under the name "Emotion" and with different goals in 
 
 <img src=http://i.imgur.com/XxvfIR7.png /> 
 
-is absolute insane and unproductive.
+is absolutely insane and unproductive.
 
 Maybe I'll get it right this time? Probably not.
 
