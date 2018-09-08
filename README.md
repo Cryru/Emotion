@@ -45,6 +45,7 @@ Most installations should include the proper libraries to run the engine, but so
   - Default cameras include one which follows the mouse and one which follows a target transform.
 - Rendering
   - Primitives like lines and rectangles.
+  - Batching and buffer mapping.
   - Square textures.
   - Text.
     - Includes advanced font drawing with control over each individual glyph.
