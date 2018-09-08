@@ -153,6 +153,17 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <summary>
+        /// Overrides the number of mapped indices. Experimental.
+        /// </summary>
+        /// <param name="count">The number of indices to set as mapped.</param>
+        public virtual void SetMappedIndices(int count)
+        {
+            if (Mapping) Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to set the number of mapped indices while mapping.");
+
+            _indicesCount = count;
+        }
+
+        /// <summary>
         /// Finish mapping the buffer.
         /// </summary>
         public virtual void FinishMapping()

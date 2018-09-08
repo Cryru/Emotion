@@ -61,7 +61,7 @@ namespace Emotion.Graphics
             MatrixStack = new TransformationStack();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram(null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
 
             // Setup main map buffer.
@@ -110,7 +110,7 @@ namespace Emotion.Graphics
 
                     return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
                 }),
-                "Enabled the debug camera. Move it with WASD. Invoke again to cancel.");
+                "Enables the debug camera. Move it with WASD. Invoke again to cancel.");
         }
 
         [Conditional("DEBUG")]
@@ -141,11 +141,11 @@ namespace Emotion.Graphics
                 RenderOutline(new Vector3(Camera.X, Camera.Y, Camera.Z), Camera.Size, Color.Yellow);
 
                 // Draw center.
-                RenderOutline(new Vector3((Camera.X + Camera.Width / 2 - 5f), (Camera.Y + Camera.Height / 2 - 5f), Camera.Z), new Vector2(10, 10), Color.Yellow);
+                RenderOutline(new Vector3(Camera.X + Camera.Width / 2 - 5f, Camera.Y + Camera.Height / 2 - 5f, Camera.Z), new Vector2(10, 10), Color.Yellow);
 
                 DisableViewMatrix();
                 Render(new Vector3(0, Context.Settings.RenderHeight - 50, 0), new Vector2(420, 60), new Color(0, 0, 0, 125));
-                RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, 
+                RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10,
                     $"Debug Zoom: {_debugCamera.Zoom}\n" +
                     $"Debug Location: {_debugCamera.Bounds}\n" +
                     $"Camera Location: {Camera.Bounds}\n", new Vector3(0, Context.Settings.RenderHeight - 50, 0), Color.Yellow);
@@ -281,6 +281,17 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Queue a render of a rectangle outline.
+        /// </summary>
+        /// <param name="location">The location of the rectangle.</param>
+        /// <param name="size">The size of the rectangle.</param>
+        /// <param name="color">The color of the lines.</param>
+        public void RenderQueueOutline(Vector3 location, Vector2 size, Color color)
+        {
+            _mainLineBuffer.Add(location, size, color);
+        }
+
+        /// <summary>
         /// Flushes the main map buffer, and restarts its mapping.
         /// </summary>
         public void RenderFlush()
@@ -290,7 +301,7 @@ namespace Emotion.Graphics
             // If still mapping, finish.
             if (_mainBuffer.Mapping) _mainBuffer.FinishMapping();
             Render(_mainBuffer);
-            _mainBuffer.Start();
+            _mainBuffer.Start(true);
         }
 
         /// <summary>
@@ -362,7 +373,7 @@ namespace Emotion.Graphics
             RenderFlush();
 
             // Add the string's model matrix.
-            MatrixStack.Push(Matrix4.CreateTranslation(position.X, position.Y, position.Z));
+            MatrixStack.Push(Matrix4.CreateTranslation(position));
 
             // Queue letters.
             Rectangle[] uvs = new Rectangle[text.Length];
@@ -384,7 +395,7 @@ namespace Emotion.Graphics
 
                 Glyph g = atlas.Glyphs[text[i]];
 
-                Vector3 renderPos = new Vector3(g.MinX + penX, penY + g.YBearing, 0);
+                Vector3 renderPos = new Vector3(g.MinX + penX, penY + g.YBearing, position.Z);
                 uvs[i] = new Rectangle(g.X, g.Y, g.Width, g.Height);
                 RenderQueue(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
                 penX += g.Advance;

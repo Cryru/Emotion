@@ -12,20 +12,30 @@ using Emotion.Primitives;
 namespace Emotion.Game.Text
 {
     /// <inheritdoc />
-    public sealed class TypewriterRichText : RichText
+    public class TypewriterRichText : RichText
     {
         #region Properties
 
+        /// <summary>
+        /// Whether the effect has finished.
+        /// </summary>
         public bool EffectFinished
         {
-            get => _effectCharacterLimit == -1 || _characterMapNext == _textStripped.Length;
+            get => _characterEffectIndex == -1 || _characterEffectIndex >= _textStripped.Length;
         }
 
-        private float _totalDuration;
-        private float _durationPerCharacter;
-        private float _timer;
-        private int _effectCharacterLimit = -1;
-        private int _characterMapNext = -1;
+        /// <summary>
+        /// How far the effect has reached.
+        /// </summary>
+        public int EffectTo
+        {
+            get => _characterEffectIndex;
+        }
+
+        protected float _totalDuration;
+        protected float _durationPerCharacter;
+        protected float _timer;
+        protected int _characterEffectIndex = -1;
 
         #endregion
 
@@ -42,7 +52,7 @@ namespace Emotion.Game.Text
         public void Update(float dt)
         {
             // Check if scrolling is complete.
-            if (_effectCharacterLimit >= _textStripped.Length) return;
+            if (_characterEffectIndex == -1) return;
 
             // Update the timer.
             _timer += dt;
@@ -51,8 +61,11 @@ namespace Emotion.Game.Text
             while (_timer >= _durationPerCharacter)
             {
                 _timer -= _durationPerCharacter;
-                _effectCharacterLimit++;
-                if (_effectCharacterLimit >= _textStripped.Length) return;
+                _characterEffectIndex++;
+
+                if (_characterEffectIndex < _textStripped.Length) continue;
+                _characterEffectIndex = -1;
+                return;
             }
         }
 
@@ -75,7 +88,7 @@ namespace Emotion.Game.Text
 
             _totalDuration = duration;
             _durationPerCharacter = _totalDuration / _textStripped.Length;
-            _effectCharacterLimit = 0;
+            _characterEffectIndex = 0;
         }
 
         /// <summary>
@@ -83,75 +96,20 @@ namespace Emotion.Game.Text
         /// </summary>
         public void EndTypewriterEffect()
         {
-            _effectCharacterLimit = -1;
+            _characterEffectIndex = -1;
         }
 
         #endregion
 
         #region RichText API
 
-        protected override void MapBuffer()
-        {
-            // Get virtual positions for resume.
-            int virtualLine = GetVirtualLineIndexFromRealCharIndex(_characterMapNext);
-            int virtualChar = GetVirtualCharacterIndexFromRealCharIndex(_characterMapNext);
-
-            // Check if any invalid positions were returned.
-            if (virtualLine == -1 || virtualChar == -1) return;
-
-            // Start mapping.
-            _renderCache.Start(false);
-            _renderCache.FastForward(_characterMapNext);
-
-            // Iterate virtual lines.
-            for (int line = virtualLine; line < _wrapCache.Count; line++)
-            {
-                // Iterate virtual characters.
-                for (int c = virtualChar; c < _wrapCache[line].Length; c++)
-                {
-                    // Check if past typewriter effect threshold.
-                    if (_characterMapNext > _effectCharacterLimit)
-                    {
-                        _renderCache.FinishMapping();
-                        return;
-                    }
-
-                    int glyphXOffset = 0;
-
-                    // Apply space size multiplication if the current character is a space.
-                    if (line < _spaceWeight.Count && _wrapCache[line][c] == ' ') glyphXOffset += _spaceWeight[line];
-
-                    // Check if applying initial indent.
-                    if (line < _initialLineIndent.Count && c == 0) glyphXOffset += _initialLineIndent[line];
-
-                    // Check if rendering a character we don't want visible, in which case we just increment the pen.
-                    if (CharactersToNotRender.Contains(_wrapCache[line][c]))
-                        Push(glyphXOffset);
-                    else
-                        ProcessGlyph(line, c, _characterMapNext, glyphXOffset);
-
-                    // Increment character counter.
-                    _characterMapNext++;
-                }
-
-                virtualChar = 0;
-                NewLine();
-            }
-
-            // Finish mapping.
-            _renderCache.FinishMapping();
-        }
-
         internal override void Render(Renderer renderer)
         {
             if (_updateRenderCache)
             {
-                ResetMapping();
+                MapBuffer();
                 _updateRenderCache = false;
             }
-
-            // Check if any new characters to map.
-            if (_characterMapNext <= _effectCharacterLimit) MapBuffer();
 
             // Check if anything is mapped in the cache buffer.
             if (!_renderCache.AnythingMapped) return;
@@ -159,11 +117,17 @@ namespace Emotion.Game.Text
             // Check if the model matrix needs to be calculated.
             if (_transformUpdated)
             {
-                ModelMatrix = Matrix4.CreateTranslation(Bounds.X, Bounds.Y, Z);
+                ModelMatrix = Matrix4.CreateTranslation(Position);
                 _transformUpdated = false;
             }
 
+            // Don't draw anything if the effect is before the first.
+            if(_characterEffectIndex == 0) return;
+
             // Draw the buffer.
+            if (_characterEffectIndex != -1) _renderCache.SetMappedIndices(_characterEffectIndex * 6);
+            else _renderCache.SetMappedIndices(_textStripped.Length * 6);
+
             renderer.Render(_renderCache, true);
         }
 
@@ -174,20 +138,19 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Resets and stops the Typewriter effect.
         /// </summary>
-        private void ResetEffect()
+        protected void ResetEffect()
         {
             _timer = 0;
-            _effectCharacterLimit = 0;
+            _characterEffectIndex = 0;
         }
 
         /// <summary>
         /// Resets the character mapping.
         /// </summary>
-        private void ResetMapping()
+        protected void ResetMapping()
         {
             // If any effect was already done, reset it.
-            if (_effectCharacterLimit != -1) ResetEffect();
-            _characterMapNext = 0;
+            if (_characterEffectIndex != -1) ResetEffect();
             _penX = 0;
             _penY = 0;
         }

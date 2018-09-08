@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Threading;
 using Emotion.Engine;
 using Emotion.Graphics;
-using Emotion.Graphics.GLES;
 using Emotion.Primitives;
 using Emotion.Utils;
 using Soul.Logging;

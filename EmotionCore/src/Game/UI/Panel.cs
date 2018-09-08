@@ -26,7 +26,7 @@ namespace Emotion.Game.UI
 
         public float Scale { get; set; } = 1f;
 
-        public Panel(Controller controller, Rectangle bounds, int priority) : base(controller, bounds, priority)
+        public Panel(Rectangle bounds, float priority) : base(bounds, priority)
         {
         }
 

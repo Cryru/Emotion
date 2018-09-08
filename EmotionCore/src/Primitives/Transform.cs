@@ -124,7 +124,6 @@ namespace Emotion.Primitives
         private float _z;
         private float _width;
         private float _height;
-        private float _rotation;
 
         protected bool _transformUpdated { get; set; } = true;
 
@@ -155,7 +154,7 @@ namespace Emotion.Primitives
 
         public override string ToString()
         {
-            return $"[X: {X} Y: {Y} Z: {Z} Width: {Width} Height: {Height}]";
+            return $"[X:{X} Y:{Y} Z:{Z} Width:{Width} Height:{Height}]";
         }
 
         #endregion

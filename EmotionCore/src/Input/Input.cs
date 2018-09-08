@@ -5,7 +5,6 @@
 using System;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Game.Camera;
 using Emotion.Host;
 using Emotion.Primitives;
 using OpenTK.Input;

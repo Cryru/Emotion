@@ -30,7 +30,7 @@ namespace Emotion.Game.UI
         /// </summary>
         private ScrollInput _parent;
 
-        public ScrollInputSelector(ScrollInput parent, Controller controller, Rectangle bounds, int priority) : base(controller, bounds, priority)
+        public ScrollInputSelector(ScrollInput parent, Rectangle bounds, float priority) : base(bounds, priority)
         {
             _parent = parent;
         }

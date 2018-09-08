@@ -184,13 +184,6 @@ namespace Emotion.Engine
             // Update debugger.
             Debugger.Update(this);
 
-            // If not focused, don't update.
-            if (!Host.Focused)
-            {
-                Thread.Sleep(1);
-                return;
-            }
-
             // Update the thread manager.
             ThreadManager.Run();
 
@@ -200,8 +193,8 @@ namespace Emotion.Engine
             // Run modules.
             SoundManager.Update();
 
-            // Run user layers.
-            LayerManager.Update();
+            // If not focused, don't update.
+            if (Host.Focused) LayerManager.Update();
 
             // Run input.
             Input.Update();

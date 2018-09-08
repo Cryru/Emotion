@@ -23,7 +23,18 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The controller which owns this control.
         /// </summary>
-        public Controller Controller;
+        public Controller Controller
+        {
+            get
+            {
+                if (_controller == null) throw new Exception("A UI control cannot use the UIController before the Init function is called.");
+
+                return _controller;
+            }
+            internal set => _controller = value;
+        }
+
+        private Controller _controller;
 
         /// <summary>
         /// Whether the control is destroyed.
@@ -51,15 +62,23 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        protected Control(Controller controller, Rectangle bounds, int priority) : base(bounds)
+        protected Control(Rectangle bounds, float priority) : base(bounds)
         {
             Z = priority;
-            Controller = controller;
-
-            Controller.Add(this);
         }
 
-        internal virtual void Destroy()
+        /// <summary>
+        /// Is called by the UI controller when initializing the control. Perform initialization connected with the controller
+        /// here.
+        /// </summary>
+        public virtual void Init()
+        {
+        }
+
+        /// <summary>
+        /// Is called by the UI controller when destroying the control. Perform cleanup here.
+        /// </summary>
+        public virtual void Destroy()
         {
             Destroyed = true;
         }
@@ -102,9 +121,7 @@ namespace Emotion.Game.UI
 
         public override string ToString()
         {
-            string result = "[" + base.ToString() + "]";
-            result += $"[Active: {Active} MouseInside: {MouseInside} Destroyed: {Destroyed}]";
-            return result;
+            return $"[Transform:{base.ToString()} Active:{Active} MouseInside:{MouseInside} Destroyed:{Destroyed}]";
         }
 
         #endregion

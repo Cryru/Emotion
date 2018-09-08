@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Primitives;
 using Emotion.Utils;
 
 #endregion
@@ -78,7 +79,9 @@ namespace Emotion.Game.Layering
         {
             foreach (KeyValuePair<string, Layer> layer in _loadedLayers)
             {
+                Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, layer.Value.Priority));
                 layer.Value.Draw(Context.Renderer);
+                Context.Renderer.MatrixStack.Pop();
                 Helpers.CheckError("layer draw");
             }
         }

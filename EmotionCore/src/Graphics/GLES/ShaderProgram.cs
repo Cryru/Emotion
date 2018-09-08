@@ -58,6 +58,8 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         private int _pointer;
 
+        #region Initialization
+
         /// <summary>
         /// Create a shader program.
         /// </summary>
@@ -70,32 +72,55 @@ namespace Emotion.Graphics.GLES
                 // Set the first ever as default.
                 if (Default == null) Default = this;
 
-                // Save current.
-                ShaderProgram current = Current;
-
                 // Check if vert provided.
                 Shader vert = vertexShader ?? Shader.DefaultVertex;
                 Shader frag = fragmentShader ?? Shader.DefaultFragment;
 
-                // Create the program and attach shaders.
-                _pointer = GL.CreateProgram();
-                GL.AttachShader(_pointer, vert.Pointer);
-                GL.AttachShader(_pointer, frag.Pointer);
-                Link();
-                Bind();
-                GL.DetachShader(_pointer, vert.Pointer);
-                GL.DetachShader(_pointer, frag.Pointer);
-                GL.ValidateProgram(_pointer);
-
-                Helpers.CheckError("making program");
-
-                // Set default uniforms.
-                SetUniformIntArray("textures", Enumerable.Range(0, 31).ToArray());
-
-                // Restore current.
-                current?.Bind();
+                Init(vert, frag);
             });
         }
+
+        /// <summary>
+        /// Create a shader program from shader strings.
+        /// </summary>
+        /// <param name="fragmentShader">The program's fragment shader.</param>
+        /// <param name="vertexShader">The program's vertex shader.</param>
+        public ShaderProgram(string vertexShader, string fragmentShader)
+        {
+            ThreadManager.ExecuteGLThread(() =>
+            {
+                Shader vert = new Shader(ShaderType.VertexShader, vertexShader);
+                Shader frag = new Shader(ShaderType.FragmentShader, fragmentShader);
+
+                Init(vert, frag);
+            });
+        }
+
+        private void Init(Shader vert, Shader frag)
+        {
+            // Save current.
+            ShaderProgram current = Current;
+
+            // Create the program and attach shaders.
+            _pointer = GL.CreateProgram();
+            GL.AttachShader(_pointer, vert.Pointer);
+            GL.AttachShader(_pointer, frag.Pointer);
+            Link();
+            Bind();
+            GL.DetachShader(_pointer, vert.Pointer);
+            GL.DetachShader(_pointer, frag.Pointer);
+            GL.ValidateProgram(_pointer);
+
+            Helpers.CheckError("making program");
+
+            // Set default uniforms.
+            SetUniformIntArray("textures", Enumerable.Range(0, 31).ToArray());
+
+            // Restore current.
+            current?.Bind();
+        }
+
+        #endregion
 
         /// <summary>
         /// Links the program to the attached shaders.

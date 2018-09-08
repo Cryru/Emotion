@@ -20,51 +20,43 @@ namespace Emotion.Game.UI
     public sealed class Controller : ContextObject
     {
         private static int _nextControllerId;
+        internal int Id;
 
+        #region State
+
+        internal List<Control> Controls = new List<Control>();
+        private Vector2 _lastMousePosition;
+        private List<Control> _controlsToBeRemoved = new List<Control>();
+        private List<Control> _controlsToBeAdded = new List<Control>();
+
+        #endregion
+        
         public Controller(Context context) : base(context)
         {
+            SetupDebug();
+
             Id = _nextControllerId;
             _nextControllerId++;
         }
 
-        internal int Id;
-        internal List<Control> Controls = new List<Control>();
-        private Vector2 _lastMousePosition;
-
         /// <summary>
-        /// Add a control to the controller. Called by the control when created.
+        /// Add a control to the controller on the next update tick.
         /// </summary>
-        /// <param name="control">The control to add.</param>
-        internal void Add(Control control)
+        /// <param name="control">A reference to the control to add.</param>
+        public void Add(Control control)
         {
             Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] adding control " + control);
-
-            lock (Controls)
-            {
-                Controls.Add(control);
-                Controls.OrderBy(x => x.Z);
-            }
-
-            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + control);
+            _controlsToBeAdded.Add(control);
         }
 
         /// <summary>
-        /// Remove and dispose of a control from the controller.
+        /// Remove and dispose of a control from the controller on the next update tick.
         /// </summary>
         /// <param name="control">A reference to the control to remove.</param>
-        internal void Remove(Control control)
+        public void Remove(Control control)
         {
             Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] removing control " + control);
-
-            lock (Controls)
-            {
-                // Check if destroyed.
-                if (!control.Destroyed) control.Destroy();
-
-                Controls.Remove(control);
-            }
-
-            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] removed control " + control);
+            _controlsToBeRemoved.Add(control);
         }
 
         /// <summary>
@@ -81,7 +73,7 @@ namespace Emotion.Game.UI
 
                 // Draw.
                 c.Draw(renderer);
-                DebugDraw(renderer);
+                DrawDebug(renderer);
             }
 
             renderer.EnableViewMatrix();
@@ -92,13 +84,77 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Update(Input.Input input)
         {
-            Vector2 mousePosition = input.GetMousePosition();
+            lock (Controls)
+            {
+                // Remove queued controls.
+                RemoveQueued();
 
+                // Add queued.
+                AddQueued();
+
+                // Process mouse events.
+                Vector2 mousePosition = input.GetMousePosition();
+                MouseEvents(mousePosition);
+
+                // Check for button presses.
+                ButtonPresses(input);
+
+                // Record the position.
+                _lastMousePosition = mousePosition;
+            }
+        }
+
+        #region Update Parts
+        
+        /// <summary>
+        /// Clears controls queued for removal.
+        /// </summary>
+        private void RemoveQueued()
+        {
+            // This is a for and not a foreach because further removing can be triggered by the destroy function.
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < _controlsToBeRemoved.Count; i++)
+            {
+                Control c = _controlsToBeRemoved[i];
+                c.Destroy();
+                Controls.Remove(c);
+                Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] removed control " + c);
+            }
+
+            _controlsToBeRemoved.Clear();
+        }
+
+        /// <summary>
+        /// Adds controls queued for initialization.
+        /// </summary>
+        private void AddQueued()
+        {
+            // This is a for and not a foreach because further adding can be triggered by the init function.
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < _controlsToBeAdded.Count; i++)
+            {
+                Control c = _controlsToBeAdded[i];
+                c.Controller = this;
+                c.Init();
+                Controls.Add(c);
+                Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + c);
+            }
+
+            _controlsToBeAdded.Clear();
+            Controls.OrderBy(x => x.Z);
+        }
+
+        /// <summary>
+        /// Processes mouse events.
+        /// </summary>
+        /// <param name="mousePosition">The position of the mouse for this tick.</param>
+        private void MouseEvents(Vector2 mousePosition)
+        {
             // Check mouse inside and out.
             foreach (Control c in Controls)
             {
                 // Check if active.
-                if (!c.Active) continue; if (!c.Active)
+                if (!c.Active)
                 {
                     // Check if it was previously, which means it was deactivated.
                     if (c.WasActive)
@@ -107,9 +163,11 @@ namespace Emotion.Game.UI
                         c.WasActive = false;
                         c.OnDeactivate();
                     }
+
                     // Don't update.
                     continue;
                 }
+
                 // Check if it was previously inactive, which means it was activated.
                 if (!c.WasActive)
                 {
@@ -139,8 +197,14 @@ namespace Emotion.Game.UI
                     c.MouseLeave(mousePosition);
                 }
             }
-
-            // Check for button presses.
+        }
+        
+        /// <summary>
+        /// Processes mouse button press events.
+        /// </summary>
+        /// <param name="input">The input module.</param>
+        private void ButtonPresses(Input.Input input)
+        {
             foreach (Control c in Controls)
             {
                 // Check if active or the mouse isn't inside.
@@ -173,10 +237,9 @@ namespace Emotion.Game.UI
                     c.MouseUp(currentKey);
                 }
             }
-
-            // Record the position.
-            _lastMousePosition = mousePosition;
         }
+
+        #endregion
 
         #region Helpers
 
@@ -228,15 +291,37 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        #region Debugging
+        #region Debugging API
+
+        private bool _debugSetup;
+        private bool _debugDraw;
 
         [Conditional("DEBUG")]
-        private void DebugDraw(Renderer renderer)
+        private void SetupDebug()
         {
+            if (_debugSetup) return;
+            _debugSetup = true;
+
+            Context.ScriptingEngine.Expose("debugUI",
+                (Func<string>)(() =>
+               {
+                   _debugDraw = !_debugDraw;
+
+                   return "UI debugging " + (_debugDraw ? "enabled." : "disabled.");
+               }),
+                "Enables the UI debugging. Showing the bounds of all UI controls.");
+        }
+
+        [Conditional("DEBUG")]
+        private void DrawDebug(Renderer renderer)
+        {
+            if (!_debugDraw) return;
             foreach (Control control in Controls)
             {
-                renderer.RenderOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
+                renderer.RenderQueueOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
             }
+
+            renderer.RenderOutlineFlush();
         }
 
         public override string ToString()

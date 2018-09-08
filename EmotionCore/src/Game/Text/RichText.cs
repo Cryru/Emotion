@@ -430,15 +430,8 @@ namespace Emotion.Game.Text
             // Check if anything is mapped in the cache buffer.
             if (!_renderCache.AnythingMapped) return;
 
-            // Check if the model matrix needs to be calculated.
-            if (_transformUpdated)
-            {
-                ModelMatrix = Matrix4.CreateTranslation(Bounds.X, Bounds.Y, Z);
-                _transformUpdated = false;
-            }
-
             // Draw the buffer.
-            renderer.Render(_renderCache, true);
+            renderer.Render(_renderCache);
         }
 
         /// <summary>
@@ -535,7 +528,8 @@ namespace Emotion.Game.Text
         /// <param name="c">The character to add.</param>
         /// <param name="color">The color of the character.</param>
         /// <param name="xOffset">The x offset.</param>
-        protected void AddGlyph(char c, Color color, float xOffset)
+        /// <param name="yOffset">The y offset.</param>
+        protected void AddGlyph(char c, Color color, float xOffset, float yOffset = 0)
         {
             // Get atlas, glyph, and kerning.
             Glyph glyph = FontAtlas.Glyphs[c];
@@ -544,6 +538,7 @@ namespace Emotion.Game.Text
 
             // Add kerning and offset.
             _penX += kerning + xOffset;
+            _penY += yOffset;
 
             // Calculate properties.
             Vector3 renderPos = new Vector3(_penX + glyph.MinX, _penY + glyph.YBearing, 0);
@@ -552,26 +547,6 @@ namespace Emotion.Game.Text
             _renderCache.Add(renderPos, uv.Size, color, FontAtlas.Texture, uv);
 
             _penX += glyph.Advance;
-        }
-
-        /// <summary>
-        /// Returns the render bounds of the next glyph without moving the pen.
-        /// </summary>
-        /// <param name="c">The character to be defined as the next glyph.</param>
-        /// <param name="xOffset">X offset for rendering.</param>
-        /// <returns>The render bounds of the next glyph if it was the provided character.</returns>
-        protected Rectangle GetNextGlyphRenderPosition(char c, float xOffset)
-        {
-            // Get atlas, glyph, and kerning.
-            Glyph glyph = FontAtlas.Glyphs[c];
-            float kerning = FontAtlas.GetKerning(_prevChar, c);
-            _prevChar = c;
-
-            // Add kerning and offset.
-            float penXCopy = _penX;
-            penXCopy += kerning + xOffset;
-
-            return new Rectangle(Bounds.X + penXCopy + glyph.MinX, Bounds.Y + _penY + glyph.YBearing, glyph.Width, glyph.Height);
         }
 
         #endregion

@@ -106,8 +106,6 @@ namespace Emotion.Game.Tiled
             // Check if anything is loaded.
             if (TiledMap == null) return;
 
-            if (_transformUpdated) ModelMatrix = Matrix4.CreateTranslation(X, Y, Z);
-
             // layer - The map layer currently drawing.
             // t - The tile currently drawing from [layer]. 
             //      tId - The id of the tile within all tilesets combined.
@@ -153,7 +151,7 @@ namespace Emotion.Game.Tiled
                     tRect.Y *= ratioDifferenceY;
 
                     // Check if visible rectangle exists.
-                    renderer.RenderQueue(tRect.LocationZ(Z), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
+                    renderer.RenderQueue(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
                 }
             }
 
