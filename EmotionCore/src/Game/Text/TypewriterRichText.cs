@@ -36,7 +36,8 @@ namespace Emotion.Game.Text
         protected float _timer;
 
         /// <summary>
-        /// How far the effect is. -1 when no effect was triggered, and _textStripped.Length when the effect is finished or was not reset.
+        /// How far the effect is. -1 when no effect was triggered, and _textStripped.Length when the effect is finished or was not
+        /// reset.
         /// </summary>
         protected int _characterEffectIndex = -1;
 

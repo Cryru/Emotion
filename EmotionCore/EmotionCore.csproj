@@ -117,6 +117,12 @@
     <Compile Include="Libraries\Unix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Game\Text\TypewriterRichText.cs" />
+    <Compile Include="src\Game\UI\BasicTextBg.cs" />
+    <Compile Include="src\Game\UI\BasicText.cs" />
+    <Compile Include="src\Game\UI\Layout\CenterAnchor.cs" />
+    <Compile Include="src\Game\UI\Layout\LayoutControl.cs" />
+    <Compile Include="src\Game\UI\Layout\CornerAnchor.cs" />
+    <Compile Include="src\Game\UI\BasicButton.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
     <Compile Include="src\Graphics\GLES\Texture.cs" />
     <Compile Include="src\Graphics\GLES\IGLObject.cs" />

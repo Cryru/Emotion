@@ -39,7 +39,8 @@ namespace Emotion.Game.Animation
         private float _timePassed;
         private bool _inReverse;
 
-        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame) : this(texture, frameSize, Vector2.Zero, loopType, startingFrame, timeBetweenFrames, endingFrame)
+        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame) : this(texture, frameSize, Vector2.Zero,
+            loopType, startingFrame, timeBetweenFrames, endingFrame)
         {
         }
 

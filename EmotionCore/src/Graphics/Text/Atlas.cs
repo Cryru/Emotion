@@ -137,8 +137,12 @@ namespace Emotion.Graphics.Text
         /// <returns>The size of the string.</returns>
         public Vector2 MeasureString(string input)
         {
+            // Check for single lined text. #28
+            if (input.IndexOf('\n') == -1) input += "\n ";
+
             // Split text into lines.
             string[] lines = input.Split('\n');
+
             Vector2 totalCalc = new Vector2(1, 1);
 
             // Calculate each line.

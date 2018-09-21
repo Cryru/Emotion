@@ -57,7 +57,7 @@ namespace Emotion.Host
 
         internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode)
         {
-            ApplySettings(settings);
+            ApplySettings(settings, true);
             OnResize(null);
         }
 
@@ -71,6 +71,11 @@ namespace Emotion.Host
 
         public void ApplySettings(Settings settings)
         {
+            ApplySettings(settings, false);
+        }
+
+        public void ApplySettings(Settings settings, bool firstTime)
+        {
             Title = settings.WindowTitle;
             RenderSize = new Vector2(settings.RenderWidth, settings.RenderHeight);
 
@@ -82,8 +87,10 @@ namespace Emotion.Host
                     WindowState = WindowState.Normal;
                     Width = DisplayDevice.Default.Width;
                     Height = DisplayDevice.Default.Height;
+                    if (CurrentPlatform.OS == PlatformID.Unix && firstTime) return;
                     X = 0;
                     Y = 0;
+
                     break;
                 case WindowMode.Fullscreen:
                     WindowBorder = WindowBorder.Fixed;
@@ -94,8 +101,10 @@ namespace Emotion.Host
                     WindowState = WindowState.Normal;
                     Width = settings.WindowWidth;
                     Height = settings.WindowHeight;
+                    if (CurrentPlatform.OS == PlatformID.Unix && firstTime) return;
                     X = DisplayDevice.Default.Width / 2 - settings.WindowWidth / 2;
                     Y = DisplayDevice.Default.Height / 2 - settings.WindowHeight / 2;
+
                     break;
             }
         }

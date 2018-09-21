@@ -51,8 +51,11 @@ namespace Emotion.IO
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
 
-            // Check if the asset is already loaded, in which case return it.
-            if (_loadedAssets.ContainsKey(enginePath)) return (T) _loadedAssets[enginePath];
+            lock (_loadedAssets)
+            {
+                // Check if the asset is already loaded, in which case return it.
+                if (_loadedAssets.ContainsKey(enginePath)) return (T) _loadedAssets[enginePath];
+            }
 
             // Check whether the file exists.
             if (!Exists(enginePath)) throw new Exception("Could not find asset " + enginePath);
@@ -65,7 +68,11 @@ namespace Emotion.IO
             T temp = (T) Activator.CreateInstance(typeof(T));
             temp.Name = enginePath;
             temp.Create(fileContents);
-            _loadedAssets.Add(enginePath, temp);
+            lock (_loadedAssets)
+            {
+                _loadedAssets.Add(enginePath, temp);
+            }
+
             DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Trace);
 
             // Return.
@@ -80,16 +87,24 @@ namespace Emotion.IO
         {
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
+            Asset asset;
 
-            // Check if loaded.
-            if (!_loadedAssets.ContainsKey(enginePath)) return;
+            lock (_loadedAssets)
+            {
+                // Check if loaded.
+                if (!_loadedAssets.ContainsKey(enginePath)) return;
 
-            // Call the IAsset destroy function.
-            DebugMessageWrap("Destroying", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
-            _loadedAssets[enginePath].Destroy();
-            // Remove from the list.
-            _loadedAssets.Remove(enginePath);
+                // Call the IAsset destroy function.
+                DebugMessageWrap("Destroying", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
 
+                // Destroy the asset outside of the lock.
+                asset = _loadedAssets[enginePath];
+
+                // Remove from the list.
+                _loadedAssets.Remove(enginePath);
+            }
+
+            asset.Destroy();
             DebugMessageWrap("Freed", enginePath, null, MessageType.Trace);
         }
 

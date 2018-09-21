@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.Rendering.RenderingText</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.Systems.CenterAnchorExample</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -60,6 +60,8 @@
     <Compile Include="Examples\Rendering\RenderingRectangles.cs" />
     <None Include="Examples\StreamingSound.cs" />
     <None Include="Examples\SoundExample.cs" />
+    <Compile Include="Examples\Systems\CenterAnchorExample.cs" />
+    <Compile Include="Examples\Systems\CornerAnchorExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

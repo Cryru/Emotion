@@ -97,19 +97,30 @@ namespace Emotion.Engine
 
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Starting Emotion version " + Meta.Version);
 
-            // Start loading modules.
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
-            if (CurrentPlatform.OS == PlatformID.Win32NT || CurrentPlatform.OS == PlatformID.Unix || CurrentPlatform.OS == PlatformID.MacOSX)
+            try
             {
-                Host = new Window(settings);
-                Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
+                // Start loading modules.
+                Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
+                if (CurrentPlatform.OS == PlatformID.Win32NT || CurrentPlatform.OS == PlatformID.Unix || CurrentPlatform.OS == PlatformID.MacOSX)
+                {
+                    Host = new Window(settings);
+                    Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
+                }
+                else
+                {
+                    throw new Exception("Unsupported platform.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception("Unsupported platform.");
+                Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system capable of running the engine?");
+                throw ex;
             }
 
             Host.SetHooks(LoopUpdate, LoopDraw);
+
+            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
+            AssetLoader = new AssetLoader(this);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
             ScriptingEngine = new ScriptingEngine(this);
@@ -119,9 +130,6 @@ namespace Emotion.Engine
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating sound manager...");
             SoundManager = new SoundManager(this);
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
-            AssetLoader = new AssetLoader(this);
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating layer manager...");
             LayerManager = new LayerManager(this);
@@ -193,8 +201,8 @@ namespace Emotion.Engine
             // Run modules.
             SoundManager.Update();
 
-            // If not focused, don't update.
-            if (Host.Focused) LayerManager.Update();
+            // If not focused, or the renderer tells us not to render the frame - don't update.
+            if (Host.Focused && Renderer.RenderFrame()) LayerManager.Update();
 
             // Run input.
             Input.Update();
@@ -208,8 +216,8 @@ namespace Emotion.Engine
         /// </summary>
         protected void LoopDraw(float frameTime)
         {
-            // If not focused, don't draw.
-            if (!Host.Focused)
+            // If not focused, or the renderer tells us not to render the frame - don't draw.
+            if (!Host.Focused || !Renderer.RenderFrame())
             {
                 Thread.Sleep(1);
                 return;
@@ -227,10 +235,6 @@ namespace Emotion.Engine
             // Draw the layers.
             LayerManager.Draw();
             Helpers.CheckError("layer draw");
-
-            // Draw debug.
-            Debugger.DebugDraw(this);
-            Helpers.CheckError("debugger draw");
 
             // Finish rendering.
             Renderer.End();

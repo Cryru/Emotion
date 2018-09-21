@@ -12,7 +12,7 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 ## Platforms Tested On:
 
 - Windows 10 x64/x86
-- Ubuntu Xenial-Xerus x64 (Latest version is not tested)
+- Ubuntu Xenial-Xerus x64 (Latest version not tested.)
 - MacOS High-Sierra x64
 
 ## Supported Platforms:
@@ -23,6 +23,12 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 - Android 5.0+ (Planned)
 
 For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
+
+## Requirements:
+
+- OpenGL ES 3 or OpenGL 3.3 Core
+- GLSL "#300 es" or GLSL "#300" on MacOS
+  - Dynamically uniform expression needed.
 
 #### Linux
 

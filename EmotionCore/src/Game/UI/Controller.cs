@@ -46,8 +46,11 @@ namespace Emotion.Game.UI
         /// <param name="control">A reference to the control to add.</param>
         public void Add(Control control)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] adding control " + control);
-            _controlsToBeAdded.Add(control);
+            lock (_controlsToBeAdded)
+            {
+                Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] adding control " + control);
+                _controlsToBeAdded.Add(control);
+            }
         }
 
         /// <summary>
@@ -56,16 +59,19 @@ namespace Emotion.Game.UI
         /// <param name="control">A reference to the control to remove.</param>
         public void Remove(Control control)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] removing control " + control);
-            _controlsToBeRemoved.Add(control);
+            lock (_controlsToBeRemoved)
+            {
+                Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] removing control " + control);
+                _controlsToBeRemoved.Add(control);
+            }
         }
 
         /// <summary>
         /// Draw all controls in their priority order.
         /// </summary>
-        public void Draw(Renderer renderer)
+        public void Draw()
         {
-            renderer.DisableViewMatrix();
+            Context.Renderer.DisableViewMatrix();
 
             foreach (Control c in Controls)
             {
@@ -73,17 +79,17 @@ namespace Emotion.Game.UI
                 if (!c.Active) continue;
 
                 // Draw.
-                c.Draw(renderer);
-                DrawDebug(renderer);
+                c.Draw(Context.Renderer);
+                DrawDebug(Context.Renderer);
             }
 
-            renderer.EnableViewMatrix();
+            Context.Renderer.EnableViewMatrix();
         }
 
         /// <summary>
         /// Update the controller and its controls.
         /// </summary>
-        public void Update(Input.Input input)
+        public void Update()
         {
             lock (Controls)
             {
@@ -94,11 +100,11 @@ namespace Emotion.Game.UI
                 AddQueued();
 
                 // Process mouse events.
-                Vector2 mousePosition = input.GetMousePosition();
+                Vector2 mousePosition = Context.Input.GetMousePosition();
                 MouseEvents(mousePosition);
 
                 // Check for button presses.
-                ButtonPresses(input);
+                ButtonPresses(Context.Input);
 
                 // Record the position.
                 _lastMousePosition = mousePosition;
@@ -284,10 +290,7 @@ namespace Emotion.Game.UI
                 // Check if active.
                 if (!c.Active) continue;
 
-                if (c.Bounds.Contains(position))
-                {
-                    top = c;
-                }
+                if (c.Bounds.Contains(position)) top = c;
             }
 
             return top;
@@ -316,7 +319,7 @@ namespace Emotion.Game.UI
         #region Debugging API
 
         private bool _debugSetup;
-        private bool _debugDraw;
+        internal bool DebugDraw;
 
         [Conditional("DEBUG")]
         private void SetupDebug()
@@ -327,9 +330,9 @@ namespace Emotion.Game.UI
             Context.ScriptingEngine.Expose("debugUI",
                 (Func<string>) (() =>
                 {
-                    _debugDraw = !_debugDraw;
+                    DebugDraw = !DebugDraw;
 
-                    return "UI debugging " + (_debugDraw ? "enabled." : "disabled.");
+                    return "UI debugging " + (DebugDraw ? "enabled." : "disabled.");
                 }),
                 "Enables the UI debugging. Showing the bounds of all UI controls.");
         }
@@ -337,7 +340,7 @@ namespace Emotion.Game.UI
         [Conditional("DEBUG")]
         private void DrawDebug(Renderer renderer)
         {
-            if (!_debugDraw) return;
+            if (!DebugDraw) return;
             foreach (Control control in Controls)
             {
                 renderer.RenderQueueOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);

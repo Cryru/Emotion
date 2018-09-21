@@ -152,11 +152,11 @@ namespace Emotion.Primitives
             Height = height;
         }
 
+        #endregion
+
         public override string ToString()
         {
             return $"[X:{X} Y:{Y} Z:{Z} Width:{Width} Height:{Height}]";
         }
-
-        #endregion
     }
 }

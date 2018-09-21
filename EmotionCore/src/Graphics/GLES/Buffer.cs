@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
@@ -51,7 +50,6 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
-            Debugger.Log(MessageType.Trace, MessageSource.GL, "Bound VBO " + _pointer);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _pointer);
         }
 
@@ -60,7 +58,6 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Unbind()
         {
-            Debugger.Log(MessageType.Trace, MessageSource.GL, "Unbound VBO.");
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 

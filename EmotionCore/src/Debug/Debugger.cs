@@ -6,8 +6,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Emotion.Engine;
-using Emotion.Graphics;
-using Emotion.Primitives;
 using Emotion.Utils;
 using Soul.Logging;
 
@@ -122,13 +120,6 @@ namespace Emotion.Debug
             _command = "";
         }
 
-        [Conditional("DEBUG")]
-        internal static void DebugDraw(Context context)
-        {
-            // Draw the mouse cursor location.
-            MouseBoundDraw(context.Renderer, context.Input);
-        }
-
         /// <summary>
         /// Processes console input without blocking the engine.
         /// </summary>
@@ -150,22 +141,6 @@ namespace Emotion.Debug
             {
                 Log(MessageType.Error, MessageSource.Debugger, "Debugger console thread has crashed.");
             }
-        }
-
-        #endregion
-
-        #region Debug Drawing
-
-        [Conditional("DEBUG")]
-        private static void MouseBoundDraw(Renderer renderer, Input.Input input)
-        {
-            Vector2 mouseLocation = input.GetMousePosition();
-            mouseLocation.X -= 5;
-            mouseLocation.Y -= 5;
-
-            renderer.DisableViewMatrix();
-            renderer.RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
-            renderer.EnableViewMatrix();
         }
 
         #endregion

@@ -7,6 +7,8 @@ using System.Diagnostics;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Camera;
+using Emotion.Game.UI;
+using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
@@ -19,6 +21,11 @@ using Debugger = Emotion.Debug.Debugger;
 
 namespace Emotion.Graphics
 {
+    // todo: Think of a way to prevent having to think about the Z dimension too much. Especially with UI.
+    // - Maybe setup a different UIRender call.
+    // - Maybe render the UI to a different render target.
+    // - Maybe setup a UI buffer.
+    // - Maybe setup a separate UI renderer.
     public sealed class Renderer : ContextObject
     {
         /// <summary>
@@ -96,7 +103,16 @@ namespace Emotion.Graphics
 
         #region Debugging API
 
+        private Controller _debugUIController;
+        private BasicTextBg _debugCameraDataText;
+        private BasicTextBg _debugFpsCounterDataText;
+        private CornerAnchor _cornerAnchor;
+
         private CameraBase _debugCamera;
+        private bool _fpsCounter;
+        private bool _frameByFrame;
+        private bool _frameByFrameAdvance;
+        private bool _drawMouse;
 
         [Conditional("DEBUG")]
         private void SetupDebug()
@@ -107,15 +123,62 @@ namespace Emotion.Graphics
                     _debugCamera = _debugCamera == null
                         ? new CameraBase(new Rectangle(Camera.Center.X, Camera.Center.Y, Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
                         : null;
+                    _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
                     return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
                 }),
-                "Enables the debug camera. Move it with WASD. Invoke again to cancel.");
+                "Enables the debug camera. Move it with the arrow keys. Invoke again to cancel.");
+
+            Context.ScriptingEngine.Expose("fps",
+                (Func<string>) (() =>
+                {
+                    _fpsCounter = !_fpsCounter;
+                    _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
+
+                    return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
+                }),
+                "Enables the fps counter. Invoke again to cancel.");
+
+            Context.ScriptingEngine.Expose("fbf",
+                (Func<string>) (() =>
+                {
+                    _frameByFrame = !_frameByFrame;
+                    _frameByFrameAdvance = false;
+
+                    return "Frame by frame mode " + (_frameByFrame ? "enabled." : "disabled.");
+                }),
+                "Enables the frame by frame mode. Press F11 to advance or hold F12 to fast forward. Invoke again to cancel.");
+
+            Context.ScriptingEngine.Expose("debugMouse",
+                (Func<string>) (() =>
+                {
+                    _drawMouse = !_drawMouse;
+
+                    return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
+                }),
+                "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
+
+            // Define UI components for debugging.
+            _debugUIController = new Controller(Context);
+
+            Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector2(0, 0), 5) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector2(0, 0), 5) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+
+            _cornerAnchor = new CornerAnchor();
+            _cornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
+            _cornerAnchor.AddControl(_debugFpsCounterDataText, AnchorLocation.TopLeft);
+
+            _debugUIController.Add(_cornerAnchor);
+            _debugUIController.Add(_debugCameraDataText);
+            _debugUIController.Add(_debugFpsCounterDataText);
         }
 
         [Conditional("DEBUG")]
         private void UpdateDebug()
         {
+            _debugUIController.Update();
+
             // Update debugging camera.
             if (_debugCamera != null)
             {
@@ -130,11 +193,21 @@ namespace Emotion.Graphics
 
                 _debugCamera.Update(null);
             }
+
+            // Update frame by frame mode.
+            if (_frameByFrame)
+            {
+                _frameByFrameAdvance = false;
+                if (Context.Input.IsKeyDown("F11")) _frameByFrameAdvance = true;
+                if (Context.Input.IsKeyHeld("F12")) _frameByFrameAdvance = true;
+            }
         }
 
         [Conditional("DEBUG")]
         private void DrawDebug()
         {
+            _debugUIController.Draw();
+
             if (_debugCamera != null)
             {
                 // Draw bounds.
@@ -143,12 +216,26 @@ namespace Emotion.Graphics
                 // Draw center.
                 RenderOutline(new Vector3(Camera.X + Camera.Width / 2 - 5f, Camera.Y + Camera.Height / 2 - 5f, Camera.Z), new Vector2(10, 10), Color.Yellow);
 
+                _debugCameraDataText.Text = $"Debug Zoom: {_debugCamera.Zoom}\n" +
+                                            $"Debug Location: {_debugCamera.Bounds}\n" +
+                                            $"Camera Location: {Camera.Bounds}";
+                _cornerAnchor.Update();
+            }
+
+            if (_fpsCounter)
+            {
+                _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
+                _cornerAnchor.Update();
+            }
+
+            if (_drawMouse)
+            {
+                Vector2 mouseLocation = Context.Input.GetMousePosition();
+                mouseLocation.X -= 5;
+                mouseLocation.Y -= 5;
+
                 DisableViewMatrix();
-                Render(new Vector3(0, Context.Settings.RenderHeight - 50, 0), new Vector2(420, 60), new Color(0, 0, 0, 125));
-                RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10,
-                    $"Debug Zoom: {_debugCamera.Zoom}\n" +
-                    $"Debug Location: {_debugCamera.Bounds}\n" +
-                    $"Camera Location: {Camera.Bounds}\n", new Vector3(0, Context.Settings.RenderHeight - 50, 0), Color.Yellow);
+                RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
                 EnableViewMatrix();
             }
         }
@@ -156,6 +243,15 @@ namespace Emotion.Graphics
         #endregion
 
         #region System API
+
+        /// <summary>
+        /// Whether to render the next frame.
+        /// </summary>
+        /// <returns>Whether to render the next frame.</returns>
+        internal bool RenderFrame()
+        {
+            return !_frameByFrame || _frameByFrameAdvance;
+        }
 
         /// <summary>
         /// Clear the screen.
