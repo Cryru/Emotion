@@ -12,9 +12,9 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 ## Platforms Tested On:
 
 - Windows 10 x64/x86
- - Intel HD Graphics 620
- - Nvidia 940MX
- - AMD R9 200
+  - Intel HD Graphics 620
+  - Nvidia 940MX
+  - AMD R9 200
 - Ubuntu Xenial-Xerus x64 (Latest version not tested.)
 - MacOS High-Sierra x64
 
@@ -30,10 +30,9 @@ For information on how to build for other platforms check out: https://github.co
 ## Requirements:
 
 - OpenGL ES 3 or OpenGL 3.3 Core
-- GLSL 300 es support.
-- GL_ARB_gpu_shader5 support or GLSL 400 on Windows
-- GLSL 300 on MacOS
-- Dynamically uniform expression support needed.
+- GLSL 300 es support required on Windows and Linux, GLSL 300 on MacOS
+  - GL_ARB_gpu_shader5 support, if the extension is missing then GLSL 400 support is required on Windows
+  - Dynamically uniform expression support required.
 
 #### Linux
 
@@ -47,7 +46,7 @@ Most installations should include the proper libraries to run the engine, but so
 
 - Window creation.
 - Mouse and keyboard input.
-  - Focus captured.
+  - Captured only while the window has focus preventing rogue clicks.
 - Asset loading and management.
   - Textures: All FreeImage supported formats. ex. BMP/PNG/JPEG/GIF
   - Fonts: All FreeType supported formats. ex. TTF
@@ -56,21 +55,24 @@ Most installations should include the proper libraries to run the engine, but so
   - Default cameras include one which follows the mouse and one which follows a target transform.
 - Rendering
   - Primitives like lines and rectangles.
+  - Transformation matrix.
   - Batching and buffer mapping.
   - Square textures.
   - Text.
     - Includes advanced font drawing with control over each individual glyph.
     - Richtext featuring auto wrapping, alignment, markup, and more.
-- Sound engine with effects.
+- Sound engine with fading effects.
+  - Play on multiple layers.
 - UI system.
   - Customize base controls through inheritance or use them straight away.
-  - Inter
+  - Layouting and anchoring.
 - Tiled integration and rendering.
   - Includes layer opacity, multiple tilesets, animated tiles, and more.
 - An implementation of A*.
   - With the ability to add a custom heuristics function, and perform other customizations.
 - A Javascript scripting engine.
-- Logging and additional debugging.
+- Logging and graphical debugging.
+- Scenes in the form of layers. Have your UI, pause menu, levels, or anything on separate scenes.
 
 ## How to use it?
 
@@ -82,7 +84,7 @@ For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
 
 ## Projects Used
 
-OpenTK [OpenGL/OpenAL] : Rendering and audio.
+OpenTK [OpenGL/OpenAL] : Context and host creation, input capturing, GL API and AL api.
 - OpenAL32.dll included.
 - openal.so included.
 
