@@ -37,6 +37,12 @@ namespace Emotion.Graphics.GLES
 
         #endregion
 
+        #region Flags
+
+        public static bool Shader5ExtensionMissing = false;
+
+        #endregion
+
         /// <summary>
         /// Load defaults.
         /// </summary>
@@ -61,6 +67,9 @@ namespace Emotion.Graphics.GLES
 
             // Fix for MacOS.
             if (CurrentPlatform.OS == PlatformID.MacOSX) source = source.Replace("#version 300 es", "#version 330");
+
+            // Fix for missing GL_ARB_gpu_shader5.
+            if (CurrentPlatform.OS == PlatformID.Win32NT && !Shader5ExtensionMissing) source = source.Replace("#version 300 es", "#version 400");
 
             // Create and compile the shader.
             Pointer = GL.CreateShader(type);

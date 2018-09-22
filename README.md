@@ -12,6 +12,9 @@ This project is a successor to [SoulEngine](Documents/SoulEngine.md).
 ## Platforms Tested On:
 
 - Windows 10 x64/x86
+ - Intel HD Graphics 620
+ - Nvidia 940MX
+ - AMD R9 200
 - Ubuntu Xenial-Xerus x64 (Latest version not tested.)
 - MacOS High-Sierra x64
 
@@ -27,8 +30,10 @@ For information on how to build for other platforms check out: https://github.co
 ## Requirements:
 
 - OpenGL ES 3 or OpenGL 3.3 Core
-- GLSL "#300 es" or GLSL "#300" on MacOS
-  - Dynamically uniform expression needed.
+- GLSL 300 es support.
+- GL_ARB_gpu_shader5 support or GLSL 400 on Windows
+- GLSL 300 on MacOS
+- Dynamically uniform expression support needed.
 
 #### Linux
 

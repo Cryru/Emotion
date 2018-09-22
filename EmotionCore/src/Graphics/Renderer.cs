@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Emotion.Debug;
 using Emotion.Engine;
@@ -62,6 +63,23 @@ namespace Emotion.Graphics
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
+
+            // Check for required GL extensions.
+            int extCount = GL.GetInteger(GetPName.NumExtensions);
+            bool found = false;
+            for (int i = 0; i < extCount; i++)
+            {
+                string extension = GL.GetString(StringNameIndexed.Extensions, i);
+                if (extension != "GL_ARB_gpu_shader5") continue;
+                found = true;
+                break;
+            }
+
+            if (!found)
+            {
+                Debugger.Log(MessageType.Error, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found. Forcing shaders to use version 400.");
+                Shader.Shader5ExtensionMissing = true;
+            }
 
             // Create objects.
             Camera = new CameraBase(new Rectangle(0, 0, Context.Settings.RenderWidth, Context.Settings.RenderHeight));
