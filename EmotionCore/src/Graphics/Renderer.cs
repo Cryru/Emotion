@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Emotion.Debug;
 using Emotion.Engine;
@@ -82,7 +81,7 @@ namespace Emotion.Graphics
             }
 
             // Create objects.
-            Camera = new CameraBase(new Rectangle(0, 0, Context.Settings.RenderWidth, Context.Settings.RenderHeight));
+            Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight));
             MatrixStack = new TransformationStack();
 
             // Create a default program, and use it.
@@ -139,7 +138,7 @@ namespace Emotion.Graphics
                 (Func<string>) (() =>
                 {
                     _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Rectangle(Camera.Center.X, Camera.Center.Y, Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
+                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
                         : null;
                     _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
@@ -180,8 +179,8 @@ namespace Emotion.Graphics
             _debugUIController = new Controller(Context);
 
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
-            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector2(0, 0), 5) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
-            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector2(0, 0), 5) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
 
             _cornerAnchor = new CornerAnchor();
             _cornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
@@ -235,8 +234,8 @@ namespace Emotion.Graphics
                 RenderOutline(new Vector3(Camera.X + Camera.Width / 2 - 5f, Camera.Y + Camera.Height / 2 - 5f, Camera.Z), new Vector2(10, 10), Color.Yellow);
 
                 _debugCameraDataText.Text = $"Debug Zoom: {_debugCamera.Zoom}\n" +
-                                            $"Debug Location: {_debugCamera.Bounds}\n" +
-                                            $"Camera Location: {Camera.Bounds}";
+                                            $"Debug Location: {_debugCamera}\n" +
+                                            $"Camera Location: {Camera}";
                 _cornerAnchor.Update();
             }
 

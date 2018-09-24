@@ -62,9 +62,9 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        protected Control(Rectangle bounds, float priority) : base(bounds)
+        protected Control(Vector3 position, Vector2 size) : base(position, size)
         {
-            Z = priority;
+
         }
 
         /// <summary>

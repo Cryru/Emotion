@@ -93,18 +93,6 @@ namespace Emotion.Primitives
             set => Y = value - Height;
         }
 
-        public Rectangle Bounds
-        {
-            get => new Rectangle(X, Y, Width, Height);
-            set
-            {
-                X = value.X;
-                Y = value.Y;
-                Width = value.Width;
-                Height = value.Height;
-            }
-        }
-
         public Vector2 Center
         {
             get => new Vector2(X + Width / 2, Y + Height / 2);
@@ -131,19 +119,11 @@ namespace Emotion.Primitives
 
         #region Constructors
 
-        public Transform(Rectangle bounds) : this(bounds.Location, bounds.Size)
+        protected Transform(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
         {
         }
 
-        public Transform(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
-        {
-        }
-
-        public Transform(Vector2 position, Vector2 size) : this(position.X, position.Y, 0, size.X, size.Y)
-        {
-        }
-
-        public Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
+        protected Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
         {
             X = x;
             Y = y;
@@ -153,6 +133,19 @@ namespace Emotion.Primitives
         }
 
         #endregion
+
+        public void FromRectangle(Rectangle rectangle)
+        {
+            X = rectangle.X;
+            Y = rectangle.Y;
+            Width = rectangle.Width;
+            Height = rectangle.Height;
+        }
+
+        public Rectangle GetRectangle()
+        {
+            return new Rectangle(X, Y, Width, Height);
+        }
 
         public override string ToString()
         {

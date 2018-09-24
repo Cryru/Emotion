@@ -43,28 +43,28 @@ namespace EmotionSandbox.Examples.Systems
             Random randomizer = new Random();
             for (int i = 0; i < 10; i++)
             {
-                BasicButton test = new BasicButton(new Rectangle(10, 10, randomizer.Next(10, 101), randomizer.Next(10, 101)), 0);
+                BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
                 _uiController.Add(test);
                 _anchor.AddControl(test, AnchorLocation.TopLeft, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
 
             for (int i = 0; i < 10; i++)
             {
-                BasicButton test = new BasicButton(new Rectangle(10, 10, randomizer.Next(10, 101), randomizer.Next(10, 101)), 0);
+                BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
                 _uiController.Add(test);
                 _anchor.AddControl(test, AnchorLocation.BottomLeft, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
 
             for (int i = 0; i < 10; i++)
             {
-                BasicButton test = new BasicButton(new Rectangle(10, 10, randomizer.Next(10, 101), randomizer.Next(10, 101)), 0);
+                BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
                 _uiController.Add(test);
                 _anchor.AddControl(test, AnchorLocation.TopRight, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
 
             for (int i = 0; i < 10; i++)
             {
-                BasicButton test = new BasicButton(new Rectangle(10, 10, randomizer.Next(10, 101), randomizer.Next(10, 101)), 0);
+                BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
                 _uiController.Add(test);
                 _anchor.AddControl(test, AnchorLocation.BottomRight, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }

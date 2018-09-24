@@ -117,11 +117,11 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Create a new RichText object.
         /// </summary>
-        /// <param name="bounds">The bounds of the RichText.</param>
+        /// <param name="position">The position of the RichText.</param>
+        /// <param name="size">The size of the RichText.</param>
         /// <param name="fontAtlas">The font atlas to use.</param>
-        public RichText(Rectangle bounds, Atlas fontAtlas)
+        public RichText(Vector3 position, Vector2 size, Atlas fontAtlas) : base(position, size)
         {
-            Bounds = bounds;
             FontAtlas = fontAtlas;
             _renderCache = new QuadMapBuffer(Renderer.MaxRenderable);
         }
@@ -141,7 +141,7 @@ namespace Emotion.Game.Text
             _textStripped = ParseEffects(Text, _effectCache);
 
             // Apply wrapping.
-            Wrap(FontAtlas, _textStripped, Bounds, _wrapCache);
+            Wrap(FontAtlas, _textStripped, Size, _wrapCache);
 
             // Apply text alignment.
             ProcessAlignment();
@@ -235,7 +235,7 @@ namespace Emotion.Game.Text
         /// Whether to wrap vertically as well. True by default, if set to false text will
         /// overflow.
         /// </param>
-        protected virtual void Wrap(Atlas fontAtlas, string text, Rectangle wrapBounds, List<string> wrapResult, bool performHeightWrapping = true)
+        protected virtual void Wrap(Atlas fontAtlas, string text, Vector2 wrapBounds, List<string> wrapResult, bool performHeightWrapping = true)
         {
             wrapResult.Clear();
 
@@ -277,7 +277,7 @@ namespace Emotion.Game.Text
                 // This is a rare case, but when it happens characters must be printed without performing break checks as they will either cause
                 // each character to go on a separate line or cause a line break in the text as soon as it can fit on the line.
                 // To do this we switch to a break skipping mode which ensures this other method of printing until the whole text is printed.
-                if (overflowCheck.X > wrapBounds.Width || breakSkipMode)
+                if (overflowCheck.X > wrapBounds.X || breakSkipMode)
                 {
                     textSize = fontAtlas.MeasureString(currentLine + text[i]);
                     breakSkipMode = true;
@@ -285,12 +285,12 @@ namespace Emotion.Game.Text
                 }
 
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
-                if (textSize.X > wrapBounds.Width || text[i] == '\n')
+                if (textSize.X > wrapBounds.X || text[i] == '\n')
                 {
                     if (performHeightWrapping)
                     {
                         // Check if a new line can be pushed without exceeding the height.
-                        if (currentHeight + textSize.Y + fontAtlas.LineSpacing > wrapBounds.Height) return;
+                        if (currentHeight + textSize.Y + fontAtlas.LineSpacing > wrapBounds.Y) return;
                         currentHeight += textSize.Y + fontAtlas.LineSpacing;
                     }
 
@@ -370,7 +370,7 @@ namespace Emotion.Game.Text
             while (characterSpace >= 0)
             {
                 // Get the space left on the line by subtracting the total width from the line's width plus character spacing, minus one because of the last character.
-                characterSpace = Bounds.Width - (lineSize + charSpacing * spaces);
+                characterSpace = Width - (lineSize + charSpacing * spaces);
 
                 // If there is space, increase char spacing.
                 charSpacing++;
@@ -384,7 +384,7 @@ namespace Emotion.Game.Text
 
         private void AlignCenter(int i)
         {
-            float spaceLeft = Bounds.Width - FontAtlas.MeasureString(_wrapCache[i]).X;
+            float spaceLeft = Width - FontAtlas.MeasureString(_wrapCache[i]).X;
 
             // Get justification character spacing. if any.
             if (i < _spaceWeight.Count) spaceLeft -= _spaceWeight[i] * CountSpaces(_wrapCache[i]);
@@ -406,7 +406,7 @@ namespace Emotion.Game.Text
 
         private void AlignRight(int i)
         {
-            float spaceLeft = Bounds.Width - FontAtlas.MeasureString(_wrapCache[i]).X;
+            float spaceLeft = Width - FontAtlas.MeasureString(_wrapCache[i]).X;
 
             // To align right set the free space before the line.
             _initialLineIndent.Add((int) spaceLeft);
@@ -485,11 +485,8 @@ namespace Emotion.Game.Text
                     // Check if applying initial indent.
                     if (line < _initialLineIndent.Count && c == 0) glyphXOffset += _initialLineIndent[line];
 
-                    // Check if rendering a character we don't want visible, in which case we just increment the pen.
-                    if (CharactersToNotRender.Contains(_wrapCache[line][c]))
-                        Push(glyphXOffset);
-                    else
-                        ProcessGlyph(line, c, characterCounter, glyphXOffset);
+                    // Process the current glyph.
+                    ProcessGlyph(line, c, characterCounter, glyphXOffset);
 
                     // Increment character counter.
                     characterCounter++;
@@ -531,6 +528,12 @@ namespace Emotion.Game.Text
         /// <param name="yOffset">The y offset.</param>
         protected void AddGlyph(char c, Color color, float xOffset, float yOffset = 0)
         {
+            // Check if rendering a character we don't want visible, in which case we replace it with a space.
+            if (CharactersToNotRender.Contains(c))
+            {
+                c = ' ';
+            }
+
             // Get atlas, glyph, and kerning.
             Glyph glyph = FontAtlas.Glyphs[c];
             float kerning = FontAtlas.GetKerning(_prevChar, c);

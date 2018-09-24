@@ -26,12 +26,12 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        public BasicTextBg(Font font, uint textSize, string text, Color color, Vector2 location, float priority) : base(font, textSize, text, color, location, priority)
+        public BasicTextBg(Font font, uint textSize, string text, Color color, Vector3 position) : base(font, textSize, text, color, position)
         {
             BackgroundColor = Color.Black;
         }
 
-        public BasicTextBg(Font font, uint textSize, string text, Color color, Color backgroundColor, Vector2 location, float priority) : base(font, textSize, text, color, location, priority)
+        public BasicTextBg(Font font, uint textSize, string text, Color color, Color backgroundColor, Vector3 position) : base(font, textSize, text, color, position)
         {
             BackgroundColor = backgroundColor;
         }

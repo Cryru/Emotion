@@ -16,7 +16,7 @@ namespace Emotion.Game.UI.Layout
         private List<LayoutControl> _controls;
         private bool _logicApplied;
 
-        public CenterAnchor() : base(Rectangle.Empty, 0)
+        public CenterAnchor() : base(Vector3.Zero, Vector2.Zero)
         {
             _controls = new List<LayoutControl>();
         }

@@ -69,7 +69,7 @@ namespace Emotion.Game.UI
 
         protected bool _updateSize = true;
 
-        public BasicText(Font font, uint textSize, string text, Color color, Vector2 location, float priority) : base(new Rectangle(location.X, location.Y, 0, 0), priority)
+        public BasicText(Font font, uint textSize, string text, Color color, Vector3 position) : base(position, Vector2.Zero)
         {
             _font = font;
             _textSize = textSize;

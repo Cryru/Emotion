@@ -40,7 +40,7 @@ namespace EmotionSandbox.Examples.Systems
             _uiController = new Controller(Context);
 
             // Create a component to center.
-            BasicButton test = new BasicButton(new Rectangle(10, 10, 100, 100), 0);
+            BasicButton test = new BasicButton(new Vector3(10, 10, 0), new Vector2( 100, 100));
             _uiController.Add(test);
             _anchor.AddControl(test, new Rectangle(0, 100, 0, 0));
 

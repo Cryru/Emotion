@@ -32,7 +32,7 @@ namespace Emotion.Game.Camera
 
         private Vector2 _targetLastPosition;
 
-        public MouseCamera(Rectangle bounds) : base(bounds)
+        public MouseCamera(Vector3 position, Vector2 size) : base(position, size)
         {
         }
 
@@ -42,19 +42,19 @@ namespace Emotion.Game.Camera
             if (Target == null) return;
 
             // Check if target last position is set. It isn't on the first frame.
-            if (_targetLastPosition == Vector2.Zero) _targetLastPosition = Target.Bounds.Center;
+            if (_targetLastPosition == Vector2.Zero) _targetLastPosition = Target.Center;
 
             // Get mouse location.
             Vector2 mouseLocation = context.Renderer.ScreenToWorld(context.Input.GetMousePosition());
 
             // Smooth between the mouse location and the target.
-            float lx = MathHelper.Lerp(Target.Bounds.Center.X, mouseLocation.X, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
-            float ly = MathHelper.Lerp(Target.Bounds.Center.Y, mouseLocation.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
+            float lx = MathHelper.Lerp(Target.Center.X, mouseLocation.X, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
+            float ly = MathHelper.Lerp(Target.Center.Y, mouseLocation.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, CameraMaxDistance));
 
             Center = new Vector2(lx, ly);
 
             // Record position.
-            _targetLastPosition = Target.Bounds.Center;
+            _targetLastPosition = Target.Center;
 
             UpdateMatrix();
         }

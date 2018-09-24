@@ -30,7 +30,7 @@ namespace Emotion.Game.UI
         /// </summary>
         private ScrollInput _parent;
 
-        public ScrollInputSelector(ScrollInput parent, Rectangle bounds, float priority) : base(bounds, priority)
+        public ScrollInputSelector(ScrollInput parent, Vector3 position, Vector2 size) : base(position, size)
         {
             _parent = parent;
         }
@@ -50,8 +50,8 @@ namespace Emotion.Game.UI
             if (!Held[0]) return;
 
             // Calculate the new value form the new mouse position.
-            float posWithinParent = newPosition.X - _parent.Bounds.X;
-            float increment = _parent.Bounds.Width / 100;
+            float posWithinParent = newPosition.X - _parent.X;
+            float increment = _parent.Width / 100;
             _parent.Value = (int) (posWithinParent / increment);
         }
     }

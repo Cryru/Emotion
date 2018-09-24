@@ -33,13 +33,13 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// Create a new map object from a Tiled map.
         /// </summary>
-        /// <param name="mapBounds">The location and size to draw the map at.</param>
+        /// <param name="position">The position of the Map.</param>
+        /// <param name="size">The size of the map. Leave at 0,0 to scale automatically.</param>
         /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(Rectangle mapBounds, AssetLoader assetLoader, string mapPath, string tileSetFolder)
+        public Map(Vector3 position, Vector2 size, AssetLoader assetLoader, string mapPath, string tileSetFolder) : base(position, size)
         {
-            Bounds = mapBounds;
             _assetLoader = assetLoader;
 
             // Check if no map is provided.

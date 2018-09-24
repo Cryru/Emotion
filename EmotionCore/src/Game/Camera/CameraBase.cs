@@ -35,7 +35,7 @@ namespace Emotion.Game.Camera
 
         #endregion
 
-        public CameraBase(Rectangle bounds) : base(bounds)
+        public CameraBase(Vector3 position, Vector2 size) : base(position, size)
         {
             UpdateMatrix();
         }

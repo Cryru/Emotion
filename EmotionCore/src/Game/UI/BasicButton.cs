@@ -24,7 +24,7 @@ namespace Emotion.Game.UI
         /// </summary>
         public Action OnClick { get; set; }
 
-        public BasicButton(Rectangle bounds, float priority) : base(bounds, priority)
+        public BasicButton(Vector3 position, Vector2 size) : base(position, size)
         {
         }
 

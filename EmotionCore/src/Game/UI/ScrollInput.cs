@@ -31,9 +31,9 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        public ScrollInput(Rectangle bounds, float priority) : base(bounds, priority)
+        public ScrollInput(Vector3 position, Vector2 size) : base(position, size)
         {
-            Selector = new ScrollInputSelector(this, new Rectangle(), Z + 1);
+            Selector = new ScrollInputSelector(this, Vector3.Zero, Vector2.Zero);
         }
 
         public override void Init()
@@ -52,15 +52,17 @@ namespace Emotion.Game.UI
             // Draw bar.
             renderer.Render(Position, new Vector2(Width, Height), BarColor);
 
-            // Calculate selector.
-            Rectangle selectorBounds = new Rectangle
+            if (_transformUpdated)
             {
-                Width = Bounds.Width / 100 * 6,
-                Height = (int) (Bounds.Height + Bounds.Height * 0.1 * 2),
-                Center = Bounds.Center
-            };
-            selectorBounds.X = Bounds.X + Bounds.Width / 100 * Value - selectorBounds.Width / 2;
-            Selector.Bounds = selectorBounds;
+                Selector.Width = Width / 100 * 6;
+                Selector.Height = (float) (Height + Height * 0.1 * 2);
+                Selector.Center = Center;
+                Selector.Z = Z + 1;
+                _transformUpdated = false;
+            }
+
+            // Calculate selector location.
+            Selector.X = X + Width / 100 * Value - Selector.Width / 2;
         }
 
         public override void Destroy()

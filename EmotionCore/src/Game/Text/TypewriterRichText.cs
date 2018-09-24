@@ -43,7 +43,7 @@ namespace Emotion.Game.Text
 
         #endregion
 
-        public TypewriterRichText(Rectangle bounds, Atlas atlas) : base(bounds, atlas)
+        public TypewriterRichText(Vector3 position, Vector2 size, Atlas atlas) : base(position, size, atlas)
         {
         }
 

@@ -34,11 +34,11 @@ namespace EmotionSandbox.Examples.Rendering
         {
             Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20);
 
-            _richText = new RichText(new Rectangle(10, 200, 300, 100), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
+            _richText = new RichText(new Vector3(10, 200, 0), new Vector2(300, 100), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
             _richText.SetText("Hello, I am rich text. I can do things like <color=255-0-0>t</><color=0-255-0>hi</><color=0-0-255>s</>!");
             _richText.Z = 1;
 
-            _twRichText = new TypewriterRichText(new Rectangle(10, 300, 300, 500), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
+            _twRichText = new TypewriterRichText(new Vector3(10, 300, 0), new Vector2(300, 500),Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
             _twRichText.SetText("Hello, I am a rich text extension which performs a <color=255-0-0>typewriter</> effect!");
             _twRichText.SetTypewriterEffect(1000);
             _twRichText.Z = 1;

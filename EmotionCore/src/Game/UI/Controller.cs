@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
 using Emotion.Input;
 using Emotion.Primitives;
 using Debugger = Emotion.Debug.Debugger;
@@ -22,6 +23,11 @@ namespace Emotion.Game.UI
     {
         private static int _nextControllerId;
         internal int Id;
+
+        /// <summary>
+        /// The Z coordinate priority of all attached UI controls.
+        /// </summary>
+        public int UIPriority { get; set; } = 50;
 
         #region State
 
@@ -72,6 +78,7 @@ namespace Emotion.Game.UI
         public void Draw()
         {
             Context.Renderer.DisableViewMatrix();
+            Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, UIPriority));
 
             foreach (Control c in Controls)
             {
@@ -80,9 +87,10 @@ namespace Emotion.Game.UI
 
                 // Draw.
                 c.Draw(Context.Renderer);
-                DrawDebug(Context.Renderer);
             }
 
+            DrawDebug(Context.Renderer);
+            Context.Renderer.MatrixStack.Pop();
             Context.Renderer.EnableViewMatrix();
         }
 
@@ -250,14 +258,14 @@ namespace Emotion.Game.UI
         #region Helpers
 
         /// <summary>
-        /// Whether the control is on top.
+        /// Whether the control is on top. Unused.
         /// </summary>
         /// <param name="position">The mouse position.</param>
         /// <param name="c">The control to check whether is on top.</param>
         /// <returns>Whether the control is on top.</returns>
         public bool IsTop(Vector2 position, Transform c)
         {
-            bool insideC = c.Bounds.Contains(position.X, position.Y);
+            bool insideC = c.GetRectangle().Contains(position.X, position.Y);
 
             if (!insideC) return false;
 
@@ -267,7 +275,7 @@ namespace Emotion.Game.UI
                 if (oc == c || !oc.Active) return;
 
                 // Check if the mouse is inside the oc.
-                if (!oc.Bounds.Contains(position.X, position.Y)) return;
+                if (!oc.GetRectangle().Contains(position.X, position.Y)) return;
                 // Check if the priority is higher than c.
                 if (oc.Z <= c.Z) return;
                 insideC = false;
@@ -290,7 +298,7 @@ namespace Emotion.Game.UI
                 // Check if active.
                 if (!c.Active) continue;
 
-                if (c.Bounds.Contains(position)) top = c;
+                if (c.GetRectangle().Contains(position)) top = c;
             }
 
             return top;
@@ -341,9 +349,17 @@ namespace Emotion.Game.UI
         private void DrawDebug(Renderer renderer)
         {
             if (!DebugDraw) return;
+
+            Control top = GetTop(Context.Input.GetMousePosition());
+
             foreach (Control control in Controls)
             {
                 renderer.RenderQueueOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
+
+                if (control == top)
+                {
+                    renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.Position, Color.Yellow);
+                }
             }
 
             renderer.RenderOutlineFlush();

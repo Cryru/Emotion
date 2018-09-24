@@ -25,7 +25,7 @@ namespace Emotion.Game.Camera
         /// </summary>
         public float Speed = 0.1f;
 
-        public TargetCamera(Rectangle bounds) : base(bounds)
+        public TargetCamera(Vector3 position, Vector2 size) : base(position, size)
         {
         }
 
@@ -35,8 +35,8 @@ namespace Emotion.Game.Camera
             if (Target == null) return;
 
             // Smooth.
-            float lx = MathHelper.Lerp(Bounds.Center.X, Target.Bounds.X, MathHelper.Clamp(Speed * context.FrameTime, 0, 1));
-            float ly = MathHelper.Lerp(Bounds.Center.Y, Target.Bounds.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, 1));
+            float lx = MathHelper.Lerp(Center.X, Target.X, MathHelper.Clamp(Speed * context.FrameTime, 0, 1));
+            float ly = MathHelper.Lerp(Center.Y, Target.Y, MathHelper.Clamp(Speed * context.FrameTime, 0, 1));
 
             Center = new Vector2(lx, ly);
 
