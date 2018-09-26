@@ -529,10 +529,7 @@ namespace Emotion.Game.Text
         protected void AddGlyph(char c, Color color, float xOffset, float yOffset = 0)
         {
             // Check if rendering a character we don't want visible, in which case we replace it with a space.
-            if (CharactersToNotRender.Contains(c))
-            {
-                c = ' ';
-            }
+            if (CharactersToNotRender.Contains(c)) c = ' ';
 
             // Get atlas, glyph, and kerning.
             Glyph glyph = FontAtlas.Glyphs[c];

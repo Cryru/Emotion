@@ -90,7 +90,6 @@ namespace Emotion.Host
                     if (CurrentPlatform.OS == PlatformID.Unix && firstTime) return;
                     X = 0;
                     Y = 0;
-
                     break;
                 case WindowMode.Fullscreen:
                     WindowBorder = WindowBorder.Fixed;
@@ -104,7 +103,6 @@ namespace Emotion.Host
                     if (CurrentPlatform.OS == PlatformID.Unix && firstTime) return;
                     X = DisplayDevice.Default.Width / 2 - settings.WindowWidth / 2;
                     Y = DisplayDevice.Default.Height / 2 - settings.WindowHeight / 2;
-
                     break;
             }
         }

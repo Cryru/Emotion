@@ -33,12 +33,16 @@ namespace Emotion.Game.UI
 
         public ScrollInput(Vector3 position, Vector2 size) : base(position, size)
         {
-            Selector = new ScrollInputSelector(this, Vector3.Zero, Vector2.Zero);
         }
 
         public override void Init()
         {
+            Selector = new ScrollInputSelector(this, Vector3.Zero, Vector2.Zero);
             Controller.Add(Selector);
+
+            OnResize += (a, b) => SyncChildren();
+            OnMove += (a, b) => SyncChildren();
+            SyncChildren();
         }
 
         public override void Draw(Renderer renderer)
@@ -52,17 +56,16 @@ namespace Emotion.Game.UI
             // Draw bar.
             renderer.Render(Position, new Vector2(Width, Height), BarColor);
 
-            if (_transformUpdated)
-            {
-                Selector.Width = Width / 100 * 6;
-                Selector.Height = (float) (Height + Height * 0.1 * 2);
-                Selector.Center = Center;
-                Selector.Z = Z + 1;
-                _transformUpdated = false;
-            }
-
             // Calculate selector location.
             Selector.X = X + Width / 100 * Value - Selector.Width / 2;
+        }
+
+        private void SyncChildren()
+        {
+            Selector.Width = Width / 100 * 6;
+            Selector.Height = (float) (Height + Height * 0.1 * 2);
+            Selector.Center = Center;
+            Selector.Z = Z + 1;
         }
 
         public override void Destroy()

@@ -265,7 +265,7 @@ namespace Emotion.Game.UI
         /// <returns>Whether the control is on top.</returns>
         public bool IsTop(Vector2 position, Transform c)
         {
-            bool insideC = c.GetRectangle().Contains(position.X, position.Y);
+            bool insideC = c.ToRectangle().Contains(position.X, position.Y);
 
             if (!insideC) return false;
 
@@ -275,7 +275,7 @@ namespace Emotion.Game.UI
                 if (oc == c || !oc.Active) return;
 
                 // Check if the mouse is inside the oc.
-                if (!oc.GetRectangle().Contains(position.X, position.Y)) return;
+                if (!oc.ToRectangle().Contains(position.X, position.Y)) return;
                 // Check if the priority is higher than c.
                 if (oc.Z <= c.Z) return;
                 insideC = false;
@@ -298,7 +298,7 @@ namespace Emotion.Game.UI
                 // Check if active.
                 if (!c.Active) continue;
 
-                if (c.GetRectangle().Contains(position)) top = c;
+                if (c.ToRectangle().Contains(position)) top = c;
             }
 
             return top;
@@ -356,10 +356,7 @@ namespace Emotion.Game.UI
             {
                 renderer.RenderQueueOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
 
-                if (control == top)
-                {
-                    renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.Position, Color.Yellow);
-                }
+                if (control == top) renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.Position, Color.Yellow);
             }
 
             renderer.RenderOutlineFlush();

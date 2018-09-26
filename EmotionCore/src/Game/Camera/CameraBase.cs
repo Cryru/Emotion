@@ -27,17 +27,20 @@ namespace Emotion.Game.Camera
             set
             {
                 _zoom = value;
-                _transformUpdated = true;
+                _updateMatrix = true;
             }
         }
 
         private float _zoom = 1f;
+        private bool _updateMatrix = true;
 
         #endregion
 
         public CameraBase(Vector3 position, Vector2 size) : base(position, size)
         {
             UpdateMatrix();
+            OnMove += (a, b) => _updateMatrix = true;
+            OnResize += (a, b) => _updateMatrix = true;
         }
 
         public virtual void Update(Context _)
@@ -47,10 +50,10 @@ namespace Emotion.Game.Camera
 
         protected virtual void UpdateMatrix()
         {
-            if (!_transformUpdated) return;
+            if (!_updateMatrix) return;
             ViewMatrix = Matrix4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4.CreateScale(Zoom) * Matrix4.CreateTranslation(Width / 2, Height / 2, Z) *
                          Matrix4.CreateTranslation(-(int) X, -(int) Y, Z);
-            _transformUpdated = false;
+            _updateMatrix = false;
         }
     }
 }

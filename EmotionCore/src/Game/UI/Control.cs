@@ -64,7 +64,6 @@ namespace Emotion.Game.UI
 
         protected Control(Vector3 position, Vector2 size) : base(position, size)
         {
-
         }
 
         /// <summary>

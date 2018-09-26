@@ -69,7 +69,7 @@ namespace Emotion.Graphics.GLES
             if (CurrentPlatform.OS == PlatformID.MacOSX) source = source.Replace("#version 300 es", "#version 330");
 
             // Fix for missing GL_ARB_gpu_shader5.
-            if (CurrentPlatform.OS == PlatformID.Win32NT && !Shader5ExtensionMissing) source = source.Replace("#version 300 es", "#version 400");
+            if ((CurrentPlatform.OS == PlatformID.Win32NT || CurrentPlatform.OS == PlatformID.Unix) && !Shader5ExtensionMissing) source = source.Replace("#version 300 es", "#version 400");
 
             // Create and compile the shader.
             Pointer = GL.CreateShader(type);

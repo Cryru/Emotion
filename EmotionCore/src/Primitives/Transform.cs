@@ -1,5 +1,11 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#region Using
+
+using System;
+
+#endregion
+
 namespace Emotion.Primitives
 {
     public class Transform
@@ -11,8 +17,10 @@ namespace Emotion.Primitives
             get => _x;
             set
             {
+                if (_x == value) return;
+
                 _x = value;
-                _transformUpdated = true;
+                OnMove?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -21,8 +29,10 @@ namespace Emotion.Primitives
             get => _y;
             set
             {
+                if (_y == value) return;
+
                 _y = value;
-                _transformUpdated = true;
+                OnMove?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -31,8 +41,10 @@ namespace Emotion.Primitives
             get => _z;
             set
             {
+                if (_z == value) return;
+
                 _z = value;
-                _transformUpdated = true;
+                OnMove?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -41,8 +53,10 @@ namespace Emotion.Primitives
             get => _width;
             set
             {
+                if (_width == value) return;
+
                 _width = value;
-                _transformUpdated = true;
+                OnResize?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -51,8 +65,10 @@ namespace Emotion.Primitives
             get => _height;
             set
             {
+                if (_height == value) return;
+
                 _height = value;
-                _transformUpdated = true;
+                OnResize?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -105,6 +121,20 @@ namespace Emotion.Primitives
 
         #endregion
 
+        #region Events
+
+        /// <summary>
+        /// Is invoked when the transform's size is changed.
+        /// </summary>
+        public event EventHandler<EventArgs> OnResize;
+
+        /// <summary>
+        /// Is invoked when the transform's position is changed.
+        /// </summary>
+        public event EventHandler<EventArgs> OnMove;
+
+        #endregion
+
         #region Private Holders
 
         private float _x;
@@ -112,8 +142,6 @@ namespace Emotion.Primitives
         private float _z;
         private float _width;
         private float _height;
-
-        protected bool _transformUpdated { get; set; } = true;
 
         #endregion
 
@@ -134,6 +162,10 @@ namespace Emotion.Primitives
 
         #endregion
 
+        /// <summary>
+        /// Set the Transform's size and position from a rectangle.
+        /// </summary>
+        /// <param name="rectangle">The rectangle's properties to copy.</param>
         public void FromRectangle(Rectangle rectangle)
         {
             X = rectangle.X;
@@ -142,14 +174,18 @@ namespace Emotion.Primitives
             Height = rectangle.Height;
         }
 
-        public Rectangle GetRectangle()
+        /// <summary>
+        /// Convert the transform to a rectangle.
+        /// </summary>
+        /// <returns>A rectangle which represents the transform.</returns>
+        public Rectangle ToRectangle()
         {
             return new Rectangle(X, Y, Width, Height);
         }
 
         public override string ToString()
         {
-            return $"[X:{X} Y:{Y} Z:{Z} Width:{Width} Height:{Height}]";
+            return $"[X:{X} Y:{Y} Z:{Z} | Width:{Width} Height:{Height}]";
         }
     }
 }

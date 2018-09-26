@@ -128,13 +128,6 @@ namespace Emotion.Game.Text
             // Check if anything is mapped in the cache buffer.
             if (!_renderCache.AnythingMapped) return;
 
-            // Check if the model matrix needs to be calculated.
-            if (_transformUpdated)
-            {
-                ModelMatrix = Matrix4.CreateTranslation(Position);
-                _transformUpdated = false;
-            }
-
             // Don't draw anything if the effect is before the first.
             if (_characterEffectIndex == 0) return;
 

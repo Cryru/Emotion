@@ -31,7 +31,7 @@ For information on how to build for other platforms check out: https://github.co
 
 - OpenGL ES 3 or OpenGL 3.3 Core
 - GLSL 300 es support required on Windows and Linux, GLSL 300 on MacOS
-  - GL_ARB_gpu_shader5 support, if the extension is missing then GLSL 400 support is required on Windows
+  - GL_ARB_gpu_shader5 support, if the extension is missing then GLSL 400 support is required on Windows and Linux
   - Dynamically uniform expression support required.
 
 #### Linux
