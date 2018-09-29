@@ -119,6 +119,11 @@ namespace Emotion.Primitives
             }
         }
 
+        public Vector2 CenterRelative
+        {
+            get => new Vector2(Width / 2, Height / 2);
+        }
+
         #endregion
 
         #region Events

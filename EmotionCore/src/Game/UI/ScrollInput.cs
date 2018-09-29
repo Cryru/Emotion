@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Graphics;
+using Emotion.Input;
 using Emotion.Primitives;
 using Soul;
 
@@ -10,7 +11,7 @@ using Soul;
 
 namespace Emotion.Game.UI
 {
-    public class ScrollInput : Control
+    public class ScrollInput : ParentControl
     {
         #region Properties
 
@@ -33,45 +34,67 @@ namespace Emotion.Game.UI
 
         public ScrollInput(Vector3 position, Vector2 size) : base(position, size)
         {
+            Selector = new ScrollInputSelector(this, new Vector3(0, 0, 1), Vector2.Zero);
+            SyncChildren();
+            Selector.Center = CenterRelative;
         }
 
         public override void Init()
         {
-            Selector = new ScrollInputSelector(this, Vector3.Zero, Vector2.Zero);
-            Controller.Add(Selector);
-
+            AddChild(Selector);
             OnResize += (a, b) => SyncChildren();
-            OnMove += (a, b) => SyncChildren();
-            SyncChildren();
         }
 
-        public override void Draw(Renderer renderer)
+        public override void OnActivate()
         {
-            // Sync active states.
-            Selector.Active = Active;
+            Selector.Active = true;
+        }
 
+        public override void OnDeactivate()
+        {
+            Selector.Active = false;
+        }
+
+        public override void MouseDown(MouseKeys key)
+        {
+            ChangeValue(Controller.Context.Input.GetMousePosition());
+        }
+
+        public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
+        {
+            // Check if the bar or selector is held with the left click.
+            if (!Held[0] && !Selector.Held[0]) return;
+
+            ChangeValue(newPosition);
+        }
+
+        public override void Render(Renderer renderer)
+        {
             // Clamp value.
             Value = (int) MathHelper.Clamp(Value, 0, 100);
 
             // Draw bar.
-            renderer.Render(Position, new Vector2(Width, Height), BarColor);
+            renderer.Render(Vector3.Zero, Size, BarColor);
 
             // Calculate selector location.
-            Selector.X = X + Width / 100 * Value - Selector.Width / 2;
+            Selector.X = Width / 100 * Value - Selector.Width / 2;
+
+            // Render child.
+            base.Render(renderer);
         }
 
-        private void SyncChildren()
+        public virtual void ChangeValue(Vector2 clickPosition)
+        {
+            // Calculate the new value form the new mouse position.
+            float posWithinParent = clickPosition.X - GetTruePosition().X;
+            float increment = Width / 100;
+            Value = (int) (posWithinParent / increment);
+        }
+
+        protected virtual void SyncChildren()
         {
             Selector.Width = Width / 100 * 6;
             Selector.Height = (float) (Height + Height * 0.1 * 2);
-            Selector.Center = Center;
-            Selector.Z = Z + 1;
-        }
-
-        public override void Destroy()
-        {
-            Controller.Remove(Selector);
-            base.Destroy();
         }
     }
 }

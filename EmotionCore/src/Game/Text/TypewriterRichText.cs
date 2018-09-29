@@ -117,7 +117,7 @@ namespace Emotion.Game.Text
 
         #region RichText API
 
-        internal override void Render(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             if (_updateRenderCache)
             {

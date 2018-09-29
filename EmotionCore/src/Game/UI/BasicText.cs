@@ -77,7 +77,7 @@ namespace Emotion.Game.UI
             Color = color;
         }
 
-        public override void Draw(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             if (_updateSize)
             {
@@ -87,7 +87,7 @@ namespace Emotion.Game.UI
                 _updateSize = false;
             }
 
-            renderer.RenderString(_font, _textSize, _text, Position, Color);
+            renderer.RenderString(_font, _textSize, _text, Vector3.Zero, Color);
         }
     }
 }

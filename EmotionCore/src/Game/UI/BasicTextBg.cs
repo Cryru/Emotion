@@ -36,7 +36,7 @@ namespace Emotion.Game.UI
             BackgroundColor = backgroundColor;
         }
 
-        public override void Draw(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             if (_updateSize)
             {
@@ -48,8 +48,8 @@ namespace Emotion.Game.UI
                 _updateSize = false;
             }
 
-            renderer.Render(new Vector3(X, Y, Z), new Vector2(Width, Height), BackgroundColor);
-            renderer.RenderString(_font, _textSize, _text, new Vector3(X + Padding.X, Y + Padding.Y, Z), Color);
+            renderer.Render(Vector3.Zero, new Vector2(Width, Height), BackgroundColor);
+            renderer.RenderString(_font, _textSize, _text, new Vector3(Padding.X, Padding.Y, 0), Color);
         }
     }
 }

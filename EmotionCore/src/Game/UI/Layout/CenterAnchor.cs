@@ -11,7 +11,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.UI.Layout
 {
-    public class CenterAnchor : Control
+    public class CenterAnchor : ParentControl
     {
         private List<LayoutControl> _controls;
         private bool _logicApplied;
@@ -21,16 +21,29 @@ namespace Emotion.Game.UI.Layout
             _controls = new List<LayoutControl>();
         }
 
+        #region Parenting
+
         /// <summary>
         /// Add a control to the center anchor.
         /// </summary>
         /// <param name="control">The control to add.</param>
         /// <param name="margin">The margin of the control.</param>
-        public void AddControl(Transform control, Rectangle margin)
+        public void AddControl(Control control, Rectangle margin)
+        {
+            AddControl((Transform) control, margin);
+            AddChild(control);
+        }
+
+        /// <summary>
+        /// Add a transform to the center anchor.
+        /// </summary>
+        /// <param name="transform">The transform to add.</param>
+        /// <param name="margin">The margin of the control.</param>
+        public void AddControl(Transform transform, Rectangle margin)
         {
             LayoutControl anchorControl = new LayoutControl
             {
-                Control = control,
+                Control = transform,
                 Margin = margin
             };
 
@@ -43,29 +56,49 @@ namespace Emotion.Game.UI.Layout
         }
 
         /// <summary>
+        /// Remove a transform from the center anchor. If not found nothing will happen.
+        /// </summary>
+        /// <param name="transform">The control to remove.</param>
+        public void RemoveControl(Transform transform)
+        {
+            lock (_controls)
+            {
+                LayoutControl match = _controls.FirstOrDefault(x => x.Control == transform);
+                if (match != null) _controls.Remove(match);
+            }
+        }
+
+        /// <summary>
         /// Remove a control from the center anchor. If not found nothing will happen.
         /// </summary>
         /// <param name="control">The control to remove.</param>
-        public void RemoveControl(Transform control)
+        public void RemoveControl(Control control)
         {
             lock (_controls)
             {
                 LayoutControl match = _controls.FirstOrDefault(x => x.Control == control);
                 if (match != null) _controls.Remove(match);
             }
+
+            RemoveChild(control);
         }
+
+        #endregion
 
         /// <summary>
         /// Performs checks on whether the anchoring logic is applied.
         /// </summary>
         /// <param name="renderer">The renderer to use for debugging.</param>
-        public override void Draw(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             if (!_logicApplied)
             {
                 ApplyLogic();
                 _logicApplied = true;
             }
+
+            // Render children;
+            base.Render(renderer);
 
             // Check if performing debug drawing.
             if (!Controller.DebugDraw) return;

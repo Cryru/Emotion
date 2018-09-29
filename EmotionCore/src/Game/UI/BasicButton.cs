@@ -33,9 +33,9 @@ namespace Emotion.Game.UI
             OnClick?.Invoke();
         }
 
-        public override void Draw(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
-            renderer.Render(Position, Size, Color.White, Texture);
+            renderer.Render(Vector3.Zero, Size, Color.White, Texture);
         }
     }
 }

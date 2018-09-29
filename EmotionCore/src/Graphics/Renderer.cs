@@ -183,12 +183,10 @@ namespace Emotion.Graphics
             _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
 
             _cornerAnchor = new CornerAnchor();
+            _debugUIController.Add(_cornerAnchor);
+
             _cornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
             _cornerAnchor.AddControl(_debugFpsCounterDataText, AnchorLocation.TopLeft);
-
-            _debugUIController.Add(_cornerAnchor);
-            _debugUIController.Add(_debugCameraDataText);
-            _debugUIController.Add(_debugFpsCounterDataText);
         }
 
         [Conditional("DEBUG")]
@@ -241,7 +239,7 @@ namespace Emotion.Graphics
 
             if (_fpsCounter)
             {
-                _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
+                _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}\nhi\nlul";
                 _cornerAnchor.Update();
             }
 
@@ -521,12 +519,19 @@ namespace Emotion.Graphics
             MatrixStack.Pop();
         }
 
+        #endregion
+
+        #region Object Rendering
+
         /// <summary>
         /// Queue a renderable to be rendered at the end of the frame.
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>
-        /// <param name="skipModelMatrix">Whether to skip applying the model matrix. Off by default.</param>
-        public void Render(Renderable renderable, bool skipModelMatrix = false)
+        /// <param name="skipModelMatrix">
+        /// Whether to skip applying the transformation stack matrix as model matrix. You want to do
+        /// this when your renderable is rendering other renderables. Off by default.
+        /// </param>
+        public void Render(IRenderable renderable, bool skipModelMatrix = false)
         {
             if (!skipModelMatrix) SetModelMatrix();
             renderable.Render(this);
@@ -537,7 +542,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>
         /// <param name="modelMatrix">The renderable's model matrix.</param>
-        public void Render(Renderable renderable, Matrix4 modelMatrix)
+        public void Render(IRenderable renderable, Matrix4 modelMatrix)
         {
             MatrixStack.Push(modelMatrix);
             SetModelMatrix();

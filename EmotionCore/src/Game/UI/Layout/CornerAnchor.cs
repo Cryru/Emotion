@@ -11,7 +11,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.UI.Layout
 {
-    public class CornerAnchor : Control
+    public class CornerAnchor : ParentControl
     {
         public Rectangle Padding { get; set; }
         public float ColumnLimit = 50;
@@ -25,12 +25,38 @@ namespace Emotion.Game.UI.Layout
             Padding = Rectangle.Empty;
         }
 
+        #region Parenting
+
+        /// <summary>
+        /// Add a control to the anchor.
+        /// </summary>
+        /// <param name="control">The control to add.</param>
+        /// <param name="anchor">The corner of the screen to anchor the control to.</param>
+        public void AddControl(Control control, AnchorLocation anchor)
+        {
+            AddControl((Transform) control, anchor);
+            AddChild(control);
+        }
+
+        /// <summary>
+        /// Add a control to the anchor.
+        /// </summary>
+        /// <param name="control">The control to add.</param>
+        /// <param name="anchor">The corner of the screen to anchor the control to.</param>
+        /// <param name="margin">The margin of the control.</param>
+        public void AddControl(Control control, AnchorLocation anchor, Rectangle margin)
+        {
+            AddControl((Transform) control, anchor, margin);
+            AddChild(control);
+        }
+
+
         /// <summary>
         /// Add a control to the corner anchor.
         /// </summary>
         /// <param name="control">The control to add.</param>
         /// <param name="anchor">The corner of the screen to anchor the control to.</param>
-        public void AddControl(Control control, AnchorLocation anchor)
+        public void AddControl(Transform control, AnchorLocation anchor)
         {
             AddControl(control, anchor, Rectangle.Empty);
         }
@@ -58,6 +84,7 @@ namespace Emotion.Game.UI.Layout
             _logicApplied = false;
         }
 
+
         /// <summary>
         /// Remove a control from the corner anchor. If not found nothing will happen.
         /// </summary>
@@ -72,16 +99,35 @@ namespace Emotion.Game.UI.Layout
         }
 
         /// <summary>
+        /// Remove a control from the center anchor. If not found nothing will happen.
+        /// </summary>
+        /// <param name="control">The control to remove.</param>
+        public void RemoveControl(Control control)
+        {
+            lock (_controls)
+            {
+                AnchorLayoutControl match = _controls.FirstOrDefault(x => x.Control == control);
+                if (match != null) _controls.Remove(match);
+            }
+
+            RemoveChild(control);
+        }
+
+        #endregion
+
+        /// <summary>
         /// Performs checks on whether the anchoring logic is applied.
         /// </summary>
         /// <param name="renderer">The renderer to use for debugging.</param>
-        public override void Draw(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             if (!_logicApplied)
             {
                 ApplyLogic();
                 _logicApplied = true;
             }
+
+            base.Render(renderer);
 
             // Check if performing debug drawing.
             if (!Controller.DebugDraw) return;
@@ -190,6 +236,8 @@ namespace Emotion.Game.UI.Layout
             }
         }
 
+        #region Anchoring Logic
+
         private void TopLeftAnchor(AnchorPen pen, AnchorLayoutControl control)
         {
             // Check if reached limit.
@@ -295,6 +343,8 @@ namespace Emotion.Game.UI.Layout
             float neededPenTop = topPenCopy - control.Margin.Y;
             if (neededPenTop < pen.NeededTop) pen.NeededTop = neededPenTop;
         }
+
+        #endregion
     }
 
     public enum AnchorLocation

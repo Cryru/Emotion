@@ -8,11 +8,9 @@ using Emotion.Primitives;
 
 namespace Emotion.Graphics
 {
-    public abstract class TransformRenderable : Transform
+    public abstract class TransformRenderable : Transform, IRenderable
     {
         public virtual Matrix4 ModelMatrix { get; protected set; } = Matrix4.Identity;
-
-        internal abstract void Render(Renderer renderer);
 
         #region Constructors
 
@@ -41,11 +39,13 @@ namespace Emotion.Graphics
             SyncModelMatrix();
         }
 
+        #endregion
+
         private void SyncModelMatrix()
         {
             ModelMatrix = Matrix4.CreateTranslation(Position);
         }
-        
-        #endregion
+
+        public abstract void Render(Renderer renderer);
     }
 }

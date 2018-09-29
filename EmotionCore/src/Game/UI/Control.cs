@@ -11,7 +11,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.UI
 {
-    public abstract class Control : Transform
+    public abstract class Control : TransformRenderable
     {
         #region Properties
 
@@ -27,11 +27,11 @@ namespace Emotion.Game.UI
         {
             get
             {
-                if (_controller == null) throw new Exception("A UI control cannot use the UIController before the Init function is called.");
+                if (_controller == null) throw new Exception("A UI control cannot use the UIController property before it is added to one.");
 
                 return _controller;
             }
-            internal set => _controller = value;
+            protected set => _controller = value;
         }
 
         private Controller _controller;
@@ -40,6 +40,11 @@ namespace Emotion.Game.UI
         /// Whether the control is destroyed.
         /// </summary>
         public bool Destroyed { get; protected set; }
+
+        /// <summary>
+        /// The parent of this control, if any.
+        /// </summary>
+        public Control Parent { get; internal set; }
 
         #endregion
 
@@ -67,8 +72,7 @@ namespace Emotion.Game.UI
         }
 
         /// <summary>
-        /// Is called by the UI controller when initializing the control. Perform initialization connected with the controller
-        /// here.
+        /// Perform control initialization here.
         /// </summary>
         public virtual void Init()
         {
@@ -81,8 +85,6 @@ namespace Emotion.Game.UI
         {
             Destroyed = true;
         }
-
-        public abstract void Draw(Renderer renderer);
 
         #region UI Events
 
@@ -121,6 +123,39 @@ namespace Emotion.Game.UI
         public override string ToString()
         {
             return $"[Transform:{base.ToString()} Active:{Active} MouseInside:{MouseInside} Destroyed:{Destroyed}]";
+        }
+
+        #endregion
+
+        #region System
+
+        /// <summary>
+        /// Is called by the UI controller to attach itself. Calls the Init user code.
+        /// </summary>
+        internal void Build(Controller controller)
+        {
+            _controller = controller;
+            Init();
+        }
+
+        /// <summary>
+        /// Returns the true position of the control. This function is a temporary(tm) workaround.
+        /// </summary>
+        /// <returns></returns>
+        public Rectangle GetTruePosition()
+        {
+            // Calculate actual relative position.
+            // todo: This should be fixed through propagation, see #31
+            Rectangle controlBounds = ToRectangle();
+            Control parent = Parent;
+            while (parent != null)
+            {
+                controlBounds.X += parent.X;
+                controlBounds.Y += parent.Y;
+                parent = parent.Parent;
+            }
+
+            return controlBounds;
         }
 
         #endregion

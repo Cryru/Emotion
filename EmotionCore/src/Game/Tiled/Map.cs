@@ -98,7 +98,7 @@ namespace Emotion.Game.Tiled
         /// Draw the map using the specified renderer.
         /// </summary>
         /// <param name="renderer">The renderer to use to draw the map.</param>
-        internal override void Render(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             // Flush the buffer.
             renderer.RenderFlush();

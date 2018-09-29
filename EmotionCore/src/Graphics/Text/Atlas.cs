@@ -36,6 +36,11 @@ namespace Emotion.Graphics.Text
         /// </summary>
         public float LineSpacing;
 
+        /// <summary>
+        /// The highest a letter can be in this atlas.
+        /// </summary>
+        public float Ascent;
+
         #endregion
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace Emotion.Graphics.Text
 
             // Get line spacing.
             LineSpacing = (float) face.Size.Metrics.Height;
-
+            Ascent = (float) face.Size.Metrics.Ascender.ToDouble();
             // Get max size of the atlas texture.
             int maxDimension = (int) ((1 + face.Size.Metrics.Height) * Math.Ceiling(Math.Sqrt(glyphCount)));
             int texWidth = 1;
@@ -103,8 +108,7 @@ namespace Emotion.Graphics.Text
 
                     MaxX = (float) (face.Glyph.Metrics.HorizontalBearingX.ToDouble() + face.Glyph.Metrics.Width.ToDouble()),
                     MinY = (float) (face.Glyph.Metrics.HorizontalBearingY.ToDouble() - Math.Ceiling(face.Glyph.Metrics.Height.ToDouble())),
-                    MaxY = (float) face.Glyph.Metrics.HorizontalBearingY.ToDouble(),
-                    Ascender = (float) face.Size.Metrics.Ascender.ToDouble()
+                    MaxY = (float) face.Glyph.Metrics.HorizontalBearingY.ToDouble()
                 };
 
                 // Increment pen. Leave one pixel space.
@@ -137,9 +141,6 @@ namespace Emotion.Graphics.Text
         /// <returns>The size of the string.</returns>
         public Vector2 MeasureString(string input)
         {
-            // Check for single lined text. #28
-            if (input.IndexOf('\n') == -1) input += "\n ";
-
             // Split text into lines.
             string[] lines = input.Split('\n');
 
@@ -176,7 +177,7 @@ namespace Emotion.Graphics.Text
                 }
 
                 lineCalc.X = maxX - minX;
-                lineCalc.Y = -minY;
+                lineCalc.Y = Ascent - minY;
 
                 // Determine whether to override total calc.
                 if (lineCalc.X > totalCalc.X)
@@ -185,7 +186,7 @@ namespace Emotion.Graphics.Text
                 // Determine whether this is the first line, and if not add line spacing.
                 if (totalCalc.Y == 1) totalCalc.Y = lineCalc.Y;
                 else
-                    totalCalc.Y += LineSpacing + lineCalc.Y;
+                    totalCalc.Y += LineSpacing - maxY + lineCalc.Y; // Workaround for #28
             }
 
             return totalCalc;

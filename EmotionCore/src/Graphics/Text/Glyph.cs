@@ -30,6 +30,5 @@ namespace Emotion.Graphics.Text
 
         public float MinY;
         public float MaxY;
-        public float Ascender;
     }
 }

@@ -419,7 +419,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Draw the RichText object. Can be overloaded.
         /// </summary>
-        internal override void Render(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
             if (_updateRenderCache)
             {
@@ -431,7 +431,7 @@ namespace Emotion.Game.Text
             if (!_renderCache.AnythingMapped) return;
 
             // Draw the buffer.
-            renderer.Render(_renderCache);
+            renderer.Render(_renderCache, true);
         }
 
         /// <summary>

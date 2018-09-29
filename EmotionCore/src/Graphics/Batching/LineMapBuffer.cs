@@ -140,7 +140,7 @@ namespace Emotion.Graphics.Batching
         #endregion
 
         /// <inheritdoc />
-        internal override void Render(Renderer _)
+        public override void Render(Renderer _)
         {
             if (!AnythingMapped)
             {

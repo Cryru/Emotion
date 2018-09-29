@@ -15,7 +15,7 @@ using Buffer = Emotion.Graphics.GLES.Buffer;
 
 namespace Emotion.Graphics.Batching
 {
-    public abstract unsafe class MapBuffer : Renderable
+    public abstract unsafe class MapBuffer : IRenderable
     {
         #region Properties
 
@@ -185,5 +185,7 @@ namespace Emotion.Graphics.Batching
         }
 
         #endregion
+
+        public abstract void Render(Renderer renderer);
     }
 }

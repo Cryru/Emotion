@@ -28,31 +28,27 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The parent scroll input.
         /// </summary>
-        private ScrollInput _parent;
+        private ScrollInput _scrollBar;
 
         public ScrollInputSelector(ScrollInput parent, Vector3 position, Vector2 size) : base(position, size)
         {
-            _parent = parent;
+            _scrollBar = parent;
         }
 
-        public override void Draw(Renderer renderer)
+        public override void Render(Renderer renderer)
         {
-            // Sync active states.
-            Active = _parent.Active;
-
             // Render the selector according to whether it is held or not.
-            renderer.Render(Position, Size, Held[0] ? HeldColor : Color);
+            renderer.Render(Vector3.Zero, Size, Held[0] ? HeldColor : Color);
+        }
+
+        public override void MouseEnter(Vector2 mousePosition)
+        {
+            _scrollBar.MouseEnter(mousePosition);
         }
 
         public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
         {
-            // Check if held with the left click.
-            if (!Held[0]) return;
-
-            // Calculate the new value form the new mouse position.
-            float posWithinParent = newPosition.X - _parent.X;
-            float increment = _parent.Width / 100;
-            _parent.Value = (int) (posWithinParent / increment);
+            _scrollBar.MouseMoved(oldPosition, newPosition);
         }
     }
 }

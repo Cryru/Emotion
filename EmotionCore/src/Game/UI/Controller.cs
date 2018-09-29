@@ -54,8 +54,9 @@ namespace Emotion.Game.UI
         {
             lock (_controlsToBeAdded)
             {
-                Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] adding control " + control);
+                Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{Id}] adding control of type [{control.GetType()}] {control}");
                 _controlsToBeAdded.Add(control);
+                control.Build(this); // Maybe the init in the build should be on another thread?
             }
         }
 
@@ -67,7 +68,7 @@ namespace Emotion.Game.UI
         {
             lock (_controlsToBeRemoved)
             {
-                Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] removing control " + control);
+                Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{Id}] removing control of type [{control.GetType()}] {control}");
                 _controlsToBeRemoved.Add(control);
             }
         }
@@ -82,11 +83,11 @@ namespace Emotion.Game.UI
 
             foreach (Control c in Controls)
             {
-                // Check if active.
-                if (!c.Active) continue;
+                // Check if active or is a child. Children drawing is handled by the parent.
+                if (!c.Active || c.Parent != null) continue;
 
                 // Draw.
-                c.Draw(Context.Renderer);
+                Context.Renderer.Render(c);
             }
 
             DrawDebug(Context.Renderer);
@@ -149,8 +150,6 @@ namespace Emotion.Game.UI
             for (int i = 0; i < _controlsToBeAdded.Count; i++)
             {
                 Control c = _controlsToBeAdded[i];
-                c.Controller = this;
-                c.Init();
                 Controls.Add(c);
                 Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + c);
             }
@@ -263,9 +262,9 @@ namespace Emotion.Game.UI
         /// <param name="position">The mouse position.</param>
         /// <param name="c">The control to check whether is on top.</param>
         /// <returns>Whether the control is on top.</returns>
-        public bool IsTop(Vector2 position, Transform c)
+        public bool IsTop(Vector2 position, Control c)
         {
-            bool insideC = c.ToRectangle().Contains(position.X, position.Y);
+            bool insideC = c.GetTruePosition().Contains(position.X, position.Y);
 
             if (!insideC) return false;
 
@@ -275,7 +274,7 @@ namespace Emotion.Game.UI
                 if (oc == c || !oc.Active) return;
 
                 // Check if the mouse is inside the oc.
-                if (!oc.ToRectangle().Contains(position.X, position.Y)) return;
+                if (!oc.GetTruePosition().Contains(position.X, position.Y)) return;
                 // Check if the priority is higher than c.
                 if (oc.Z <= c.Z) return;
                 insideC = false;
@@ -298,7 +297,7 @@ namespace Emotion.Game.UI
                 // Check if active.
                 if (!c.Active) continue;
 
-                if (c.ToRectangle().Contains(position)) top = c;
+                if (c.GetTruePosition().Contains(position)) top = c;
             }
 
             return top;
@@ -354,9 +353,10 @@ namespace Emotion.Game.UI
 
             foreach (Control control in Controls)
             {
-                renderer.RenderQueueOutline(control.Position, control.Size, control.Active ? Color.Green : Color.Red);
+                renderer.RenderQueueOutline(control.GetTruePosition().LocationZ(control.Z + 1), control.Size, control.Active ? Color.Green : Color.Red);
 
-                if (control == top) renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.Position, Color.Yellow);
+                if (control == top)
+                    renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.GetTruePosition().LocationZ(control.Z + 2), Color.Yellow);
             }
 
             renderer.RenderOutlineFlush();

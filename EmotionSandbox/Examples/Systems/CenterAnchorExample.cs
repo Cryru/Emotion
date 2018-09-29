@@ -33,18 +33,16 @@ namespace EmotionSandbox.Examples.Systems
 
         public override void Load()
         {
-            // Create the corner anchor.
-            _anchor = new CenterAnchor();
-
             // Create the UI controller.
             _uiController = new Controller(Context);
 
+            // Create the corner anchor.
+            _anchor = new CenterAnchor();
+            _uiController.Add(_anchor);
+
             // Create a component to center.
             BasicButton test = new BasicButton(new Vector3(10, 10, 0), new Vector2( 100, 100));
-            _uiController.Add(test);
             _anchor.AddControl(test, new Rectangle(0, 100, 0, 0));
-
-            _uiController.Add(_anchor);
         }
 
         public override void Update(float frameTime)
