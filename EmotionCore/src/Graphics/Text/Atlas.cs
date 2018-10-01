@@ -144,17 +144,15 @@ namespace Emotion.Graphics.Text
             // Split text into lines.
             string[] lines = input.Split('\n');
 
-            Vector2 totalCalc = new Vector2(1, 1);
+            Vector2 totalCalc = new Vector2(0, 0);
 
             // Calculate each line.
             foreach (string line in lines)
             {
                 float minX = 0;
                 float maxX = 0;
-                float minY = 0;
-                float maxY = 0;
                 float x = 0;
-                Vector2 lineCalc = new Vector2();
+                float lineWidth = 0;
 
                 foreach (char c in line)
                 {
@@ -169,24 +167,17 @@ namespace Emotion.Graphics.Text
                     if (maxX < z) maxX = z;
                     x += glyph.Advance;
 
-                    if (glyph.MinY < minY) minY = glyph.MinY;
-
-                    if (glyph.MaxY > maxY) maxY = glyph.MaxY;
-
-                    lineCalc.X += glyph.MinX + glyph.Advance;
+                    lineWidth += glyph.MinX + glyph.Advance;
                 }
 
-                lineCalc.X = maxX - minX;
-                lineCalc.Y = Ascent - minY;
+                lineWidth = maxX - minX;
 
                 // Determine whether to override total calc.
-                if (lineCalc.X > totalCalc.X)
-                    totalCalc.X = lineCalc.X;
+                if (lineWidth > totalCalc.X)
+                    totalCalc.X = lineWidth;
 
-                // Determine whether this is the first line, and if not add line spacing.
-                if (totalCalc.Y == 1) totalCalc.Y = lineCalc.Y;
-                else
-                    totalCalc.Y += LineSpacing - maxY + lineCalc.Y; // Workaround for #28
+                // Add another line.
+                totalCalc.Y += LineSpacing;
             }
 
             return totalCalc;

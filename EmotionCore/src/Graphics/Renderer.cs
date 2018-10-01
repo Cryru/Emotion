@@ -239,7 +239,7 @@ namespace Emotion.Graphics
 
             if (_fpsCounter)
             {
-                _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}\nhi\nlul";
+                _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
                 _cornerAnchor.Update();
             }
 
