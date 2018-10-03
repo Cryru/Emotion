@@ -5,15 +5,22 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.System
 {
     public sealed class ThreadManager
     {
+        /// <summary>
+        /// The id of the GL thread.
+        /// </summary>
         private static int _glThreadId;
 
+        /// <summary>
+        /// The queue of actions to execute on the GL thread.
+        /// </summary>
         private static Queue<Action> _queue = new Queue<Action>();
 
         /// <summary>
@@ -22,8 +29,12 @@ namespace Emotion.Engine
         internal static void BindThread()
         {
             _glThreadId = Thread.CurrentThread.ManagedThreadId;
+            Thread.CurrentThread.Name = "GL Thread";
         }
 
+        /// <summary>
+        /// Performs queued tasks on the GL thread.
+        /// </summary>
         internal static void Run()
         {
             // Check if on GL thread.
@@ -70,8 +81,8 @@ namespace Emotion.Engine
                 });
             }
 
-            // Block until ready.
-            while (!done) Thread.Sleep(1);
+            // Block until the action is executed.
+            while (!done) Task.Delay(1).Wait();
         }
 
         /// <summary>

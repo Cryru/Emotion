@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Emotion.Debug;
-using Emotion.Engine;
 using Soul;
 
 #endregion
 
 namespace Emotion.IO
 {
-    public class AssetLoader : ContextObject
+    public class AssetLoader
     {
         #region Properties
 
@@ -34,7 +33,7 @@ namespace Emotion.IO
 
         #endregion
 
-        internal AssetLoader(Context context) : base(context)
+        internal AssetLoader()
         {
             _loadedAssets = new Dictionary<string, Asset>();
         }
@@ -94,10 +93,10 @@ namespace Emotion.IO
                 // Check if loaded.
                 if (!_loadedAssets.ContainsKey(enginePath)) return;
 
-                // Call the IAsset destroy function.
+                // Log that destruction will commence.
                 DebugMessageWrap("Destroying", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
 
-                // Destroy the asset outside of the lock.
+                // Assign to destroy the asset outside of the lock.
                 asset = _loadedAssets[enginePath];
 
                 // Remove from the list.
@@ -105,7 +104,7 @@ namespace Emotion.IO
             }
 
             asset.Destroy();
-            DebugMessageWrap("Freed", enginePath, null, MessageType.Trace);
+            DebugMessageWrap("Destroyed", enginePath, null, MessageType.Trace);
         }
 
         #region Helpers

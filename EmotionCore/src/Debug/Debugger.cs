@@ -3,9 +3,13 @@
 #region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
-using Emotion.Engine;
+using System.Threading.Tasks;
+using Emotion.Game.UI;
+using Emotion.Game.UI.Layout;
+using Emotion.System;
 using Emotion.Utils;
 using Soul.Logging;
 
@@ -15,6 +19,13 @@ namespace Emotion.Debug
 {
     public static class Debugger
     {
+        #region Debug Assist Objects
+
+        public static CornerAnchor CornerAnchor { get; private set; }
+        private static Controller _debugUIController;
+
+        #endregion
+
         #region Declarations
 
         /// <summary>
@@ -23,38 +34,67 @@ namespace Emotion.Debug
         private static ImmediateLoggingService _logger;
 
         /// <summary>
-        /// An empty object used as a mutex when writing log messages.
-        /// </summary>
-        private static object _mutexLock;
-
-        /// <summary>
         /// The next debug command to process.
         /// </summary>
         private static string _command;
 
+        /// <summary>
+        /// The number of messages queued to be logged.
+        /// </summary>
+        private static ConcurrentQueue<Tuple<MessageType, MessageSource, string>> _loggingQueue;
+
         #endregion
 
-        static Debugger()
+        #region Initialization
+
+        /// <summary>
+        /// Initialize the debugger and logging logic.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void Initialize()
         {
-#if DEBUG
-            // Init.
+            // Setup logging.
             _logger = new ImmediateLoggingService
             {
                 LogLimit = 10,
                 Limit = 2000,
                 Stamp = "Emotion Engine Log"
             };
-            _mutexLock = new object();
+
+            // Setup logging queue.
+            _loggingQueue = new ConcurrentQueue<Tuple<MessageType, MessageSource, string>>();
+
+            // Start the logging thread.
+            Thread loggingThread = new Thread(() => LoggingThread()) {Name = "Logging Thread"};
+            loggingThread.Start();
+            while (!loggingThread.IsAlive)
+            {
+            }
+
+            // Setup console command reading.
             _command = "";
 
             // Start the console thread.
-            Thread consoleThread = new Thread(() => ConsoleThread());
+            Thread consoleThread = new Thread(() => ConsoleThread()) {Name = "Console Thread"};
             consoleThread.Start();
             while (!consoleThread.IsAlive)
             {
             }
-#endif
         }
+
+        /// <summary>
+        /// Initializes the debugger as a module. This is done after the bootstrapping process is complete.
+        /// </summary>
+        internal static void InitializeModule()
+        {
+            _debugUIController = new Controller();
+            CornerAnchor = new CornerAnchor();
+            _debugUIController.Add(CornerAnchor);
+        }
+
+        #endregion
+
+        #region Logging
 
         /// <summary>
         /// Logs a message.
@@ -65,11 +105,30 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         public static void Log(MessageType type, MessageSource source, string message)
         {
-            // Prevent logging from multiple threads messing up coloring and logging.
-            lock (_mutexLock)
+            _loggingQueue.Enqueue(new Tuple<MessageType, MessageSource, string>(type, source, message));
+        }
+
+        /// <summary>
+        /// Processes console input without blocking the engine.
+        /// </summary>
+        [Conditional("DEBUG")]
+        private static void LoggingThread()
+        {
+            try
             {
-                try
+                while (!Environment.HasShutdownStarted)
                 {
+                    // Sleep.
+                    Task.Delay(1).Wait();
+
+                    // Read from the logging queue.
+                    bool readLine = _loggingQueue.TryDequeue(out Tuple<MessageType, MessageSource, string> nextLog);
+                    if (!readLine) continue;
+
+                    MessageType type = nextLog.Item1;
+                    MessageSource source = nextLog.Item2;
+                    string message = nextLog.Item3;
+
                     // Change the color of the log depending on the type.
                     switch (type)
                     {
@@ -98,27 +157,17 @@ namespace Emotion.Debug
                     Console.ForegroundColor = ConsoleColor.Gray;
                     Console.BackgroundColor = ConsoleColor.Black;
                 }
-                catch (Exception)
-                {
-                    Log(MessageType.Error, MessageSource.Debugger, "Debugger logger has crashed.");
-                    _logger.Log("[" + type + "-" + source + "] " + message);
-                }
+            }
+            catch (Exception)
+            {
+                // Where is this going to be logged lul.
+                Log(MessageType.Error, MessageSource.Debugger, "Logging thread has crashed.");
             }
         }
 
-        #region Loops
+        #endregion
 
-        /// <summary>
-        /// Is run every tick by the platform context.
-        /// </summary>
-        [Conditional("DEBUG")]
-        internal static void Update(Context context)
-        {
-            // Check if there is a command to execute.
-            if (_command == string.Empty) return;
-            context.ScriptingEngine.RunScript(_command);
-            _command = "";
-        }
+        #region Console
 
         /// <summary>
         /// Processes console input without blocking the engine.
@@ -126,8 +175,8 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         private static void ConsoleThread()
         {
-            // Delay console thread on other OS
-            if (CurrentPlatform.OS != PlatformID.Win32NT) Thread.Sleep(2000);
+            // Delay console thread on other OS as crashes happen.
+            if (CurrentPlatform.OS != PlatformName.Windows) Thread.Sleep(2000);
 
             try
             {
@@ -139,8 +188,36 @@ namespace Emotion.Debug
             }
             catch (Exception)
             {
-                Log(MessageType.Error, MessageSource.Debugger, "Debugger console thread has crashed.");
+                Log(MessageType.Error, MessageSource.Debugger, "Console thread has crashed.");
             }
+        }
+
+        #endregion
+
+        #region Loops
+
+        /// <summary>
+        /// Is run every tick by the platform context.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void Update()
+        {
+            // Check if there is a command to execute.
+            if (_command == string.Empty) return;
+            Context.ScriptingEngine.RunScript(_command);
+            _command = "";
+
+            // Update the debug UI controller.
+            _debugUIController.Update();
+        }
+
+        /// <summary>
+        /// Is run every tick by the platform context.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void Draw()
+        {
+            _debugUIController.Draw();
         }
 
         #endregion

@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Debug;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
@@ -119,10 +120,18 @@ namespace Emotion.Game.Text
 
         public override void Render(Renderer renderer)
         {
-            if (_updateRenderCache)
+            if (_updateRenderCache || !_renderCache.AnythingMapped)
             {
                 MapBuffer();
                 _updateRenderCache = false;
+            }
+
+            // todo: Weird issue, investigate.
+            if (!_updateRenderCache && !_renderCache.AnythingMapped)
+            {
+                MapBuffer();
+                _updateRenderCache = false;
+                Debugger.Log(MessageType.Warning, MessageSource.GL, "RichText buffer wasn't mapped, and it didn't intend to map it.");
             }
 
             // Check if anything is mapped in the cache buffer.

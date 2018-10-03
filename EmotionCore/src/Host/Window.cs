@@ -3,7 +3,8 @@
 #region Using
 
 using System;
-using Emotion.Engine;
+using System.Threading;
+using Emotion.System;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics;
@@ -50,15 +51,22 @@ namespace Emotion.Host
         {
 #if DEBUG
             // Debug context breaks on Macs.
-            if (CurrentPlatform.OS == PlatformID.MacOSX) return;
+            if (CurrentPlatform.OS == PlatformName.Mac) return;
             _contextMode = GraphicsContextFlags.Debug;
 #endif
         }
 
-        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode)
+        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode, null, false)
         {
             ApplySettings(settings, true);
             OnResize(null);
+
+            OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
+        }
+
+        public new void Run()
+        {
+            this.Run(Emotion.System.Context.Settings.CapFPS);
         }
 
         #region Host API
@@ -87,7 +95,7 @@ namespace Emotion.Host
                     WindowState = WindowState.Normal;
                     Width = DisplayDevice.Default.Width;
                     Height = DisplayDevice.Default.Height;
-                    if (CurrentPlatform.OS == PlatformID.Unix && firstTime) return;
+                    if (CurrentPlatform.OS == PlatformName.Linux && firstTime) return;
                     X = 0;
                     Y = 0;
                     break;
@@ -100,7 +108,7 @@ namespace Emotion.Host
                     WindowState = WindowState.Normal;
                     Width = settings.WindowWidth;
                     Height = settings.WindowHeight;
-                    if (CurrentPlatform.OS == PlatformID.Unix && firstTime) return;
+                    if (CurrentPlatform.OS == PlatformName.Linux && firstTime) return;
                     X = DisplayDevice.Default.Width / 2 - settings.WindowWidth / 2;
                     Y = DisplayDevice.Default.Height / 2 - settings.WindowHeight / 2;
                     break;

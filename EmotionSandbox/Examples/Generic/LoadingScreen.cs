@@ -7,6 +7,7 @@ using Emotion.Game.Layering;
 using Emotion.Graphics;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
+using Emotion.System;
 using Soul;
 
 #endregion
@@ -16,8 +17,8 @@ namespace EmotionSandbox.Examples.Generic
     public class LoadingScreen : Layer
     {
         private float _deg;
-        private bool _logoLoaded = false;
-        private bool _circleLoaded = false;
+        private bool _logoLoaded;
+        private bool _circleLoaded;
 
         public override void Load()
         {
@@ -56,7 +57,7 @@ namespace EmotionSandbox.Examples.Generic
                 renderer.MatrixStack.Pop();
             }
 
-            if(_logoLoaded) renderer.Render(new Vector3(logoCenterX, logoCenterY, 0), new Vector2(size / 2, size / 2), Color.White, Context.AssetLoader.Get<Texture>("EmotionLogo.png"));
+            if (_logoLoaded) renderer.Render(new Vector3(logoCenterX, logoCenterY, 0), new Vector2(size / 2, size / 2), Color.White, Context.AssetLoader.Get<Texture>("EmotionLogo.png"));
         }
 
         public override void Update(float frameTime)

@@ -4,8 +4,8 @@
 
 using System.Collections.Generic;
 using Emotion.Debug;
-using Emotion.Engine;
 using Emotion.IO;
+using Emotion.System;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 
@@ -13,12 +13,12 @@ using OpenTK.Audio.OpenAL;
 
 namespace Emotion.Sound
 {
-    public class SoundManager : ContextObject
+    public class SoundManager
     {
         private AudioContext _audioContext;
         private Dictionary<string, SoundLayer> _layers;
 
-        public SoundManager(Context context) : base(context)
+        public SoundManager()
         {
             _layers = new Dictionary<string, SoundLayer>();
             _audioContext = new AudioContext();

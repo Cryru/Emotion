@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Emotion.Debug;
+using Jint;
 
 #if DEBUG
 
@@ -12,16 +13,16 @@ using Emotion.Debug;
 
 #endregion
 
-namespace Emotion.Engine
+namespace Emotion.System
 {
-    public sealed class ScriptingEngine : ContextObject
+    public sealed class ScriptingEngine
     {
         #region Declarations
 
         /// <summary>
         /// An instance of a JS interpreter.
         /// </summary>
-        private Jint.Engine _interpreter;
+        private Engine _interpreter;
 
         /// <summary>
         /// Exposed properties.
@@ -31,13 +32,12 @@ namespace Emotion.Engine
         #endregion
 
         /// <summary>
-        /// Initializes the module.
+        /// Initializes the scripting engine, setting up Jint.
         /// </summary>
-        /// <param name="context">The context the scripting engine will run under.</param>
-        internal ScriptingEngine(Context context) : base(context)
+        internal ScriptingEngine()
         {
             // Define the Jint engine.
-            _interpreter = new Jint.Engine(opts =>
+            _interpreter = new Engine(opts =>
             {
                 // Set scripting timeout.
                 opts.TimeoutInterval(Context.Settings.ScriptTimeout);
@@ -87,12 +87,12 @@ namespace Emotion.Engine
                 // Return the response.
                 return scriptResponse;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 // Check if timeout, and if not throw an exception.
-                if (e.Message != "The operation has timed out." && Context.Settings.StrictScripts) throw e;
+                if (ex.Message != "The operation has timed out." && Context.Settings.StrictScripts) throw ex;
 
-                Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "Scripting error: " + e.Message);
+                Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "Scripting error: " + ex);
                 Debugger.Log(MessageType.Trace, MessageSource.ScriptingEngine, " " + script);
 
                 return null;

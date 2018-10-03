@@ -155,19 +155,18 @@
     <Compile Include="src\Sound\SourceBase.cs" />
     <Compile Include="src\Sound\StreamingSource.cs" />
     <Compile Include="src\Utils\CurrentPlatform.cs" />
-    <Compile Include="src\Engine\ThreadManager.cs" />
+    <Compile Include="src\System\ThreadManager.cs" />
     <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
     <Compile Include="src\IO\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
     <Compile Include="src\IO\Other.cs" />
-    <Compile Include="src\Engine\ContextObject.cs" />
     <Compile Include="src\Debug\MessageSource.cs" />
     <Compile Include="src\Debug\MessageType.cs" />
     <Compile Include="src\Host\WindowMode.cs" />
     <Compile Include="src\Game\Layering\LayerManager.cs" />
     <Compile Include="src\Game\Layering\Layer.cs" />
-    <Compile Include="src\Engine\ScriptingEngine.cs" />
+    <Compile Include="src\System\ScriptingEngine.cs" />
     <Compile Include="src\Game\AStar\Path.cs" />
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />
@@ -188,22 +187,21 @@
     <Compile Include="src\Sound\Source.cs" />
     <Compile Include="src\Utils\Helpers.cs" />
     <Compile Include="src\IO\AssetLoader.cs" />
-    <Compile Include="src\Engine\Context.cs" />
+    <Compile Include="src\System\Context.cs" />
     <Compile Include="src\Input\MouseKeys.cs" />
-    <Compile Include="src\Input\Input.cs" />
+    <Compile Include="src\Input\InputManager.cs" />
     <Compile Include="Libraries\Windows.cs" />
     <Compile Include="src\Game\Camera\CameraBase.cs" />
     <Compile Include="src\Game\Camera\TargetCamera.cs" />
     <Compile Include="src\Game\Camera\MouseCamera.cs" />
     <Compile Include="src\Game\Tiled\Map.cs" />
-    <Compile Include="src\Engine\Settings.cs" />
+    <Compile Include="src\System\Settings.cs" />
     <Compile Include="src\Game\Tiled\AnimatedTile.cs" />
     <Compile Include="src\Primitives\Color.cs" />
     <Compile Include="src\Primitives\Rectangle.cs" />
     <Compile Include="src\Primitives\Vector2.cs" />
     <Compile Include="src\Debug\Debugger.cs" />
     <Compile Include="src\Meta.cs" />
-    <Compile Include="src\Starter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FreeImage-dotnet-core.dll.config">

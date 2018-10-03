@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using Emotion.Debug;
-using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
@@ -13,6 +12,7 @@ using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
+using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
@@ -26,7 +26,7 @@ namespace Emotion.Graphics
     // - Maybe render the UI to a different render target.
     // - Maybe setup a UI buffer.
     // - Maybe setup a separate UI renderer.
-    public sealed class Renderer : ContextObject
+    public sealed class Renderer
     {
         /// <summary>
         /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being
@@ -57,8 +57,9 @@ namespace Emotion.Graphics
 
         #region Initialization
 
-        internal Renderer(Context context) : base(context)
+        internal Renderer()
         {
+            // Renderer bootstrap.
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
@@ -120,10 +121,8 @@ namespace Emotion.Graphics
 
         #region Debugging API
 
-        private Controller _debugUIController;
         private BasicTextBg _debugCameraDataText;
         private BasicTextBg _debugFpsCounterDataText;
-        private CornerAnchor _cornerAnchor;
 
         private CameraBase _debugCamera;
         private bool _fpsCounter;
@@ -175,54 +174,44 @@ namespace Emotion.Graphics
                 }),
                 "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
 
-            // Define UI components for debugging.
-            _debugUIController = new Controller(Context);
-
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
             _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
             _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
 
-            _cornerAnchor = new CornerAnchor();
-            _debugUIController.Add(_cornerAnchor);
-
-            _cornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
-            _cornerAnchor.AddControl(_debugFpsCounterDataText, AnchorLocation.TopLeft);
+            Debugger.CornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
+            Debugger.CornerAnchor.AddControl(_debugFpsCounterDataText, AnchorLocation.TopLeft);
         }
 
         [Conditional("DEBUG")]
         private void UpdateDebug()
         {
-            _debugUIController.Update();
-
             // Update debugging camera.
             if (_debugCamera != null)
             {
-                if (Context.Input.IsKeyHeld("Down")) _debugCamera.Y += 10 + 0.1f * Context.FrameTime;
-                if (Context.Input.IsKeyHeld("Right")) _debugCamera.X += 10 + 0.1f * Context.FrameTime;
-                if (Context.Input.IsKeyHeld("Up")) _debugCamera.Y -= 10 + 0.1f * Context.FrameTime;
-                if (Context.Input.IsKeyHeld("Left")) _debugCamera.X -= 10 + 0.1f * Context.FrameTime;
+                if (Context.InputManager.IsKeyHeld("Down")) _debugCamera.Y += 10 + 0.1f * Context.FrameTime;
+                if (Context.InputManager.IsKeyHeld("Right")) _debugCamera.X += 10 + 0.1f * Context.FrameTime;
+                if (Context.InputManager.IsKeyHeld("Up")) _debugCamera.Y -= 10 + 0.1f * Context.FrameTime;
+                if (Context.InputManager.IsKeyHeld("Left")) _debugCamera.X -= 10 + 0.1f * Context.FrameTime;
 
-                float scrollPos = Context.Input.GetMouseScrollRelative();
+                float scrollPos = Context.InputManager.GetMouseScrollRelative();
                 if (scrollPos < 0) _debugCamera.Zoom += 0.005f * Context.FrameTime;
                 if (scrollPos > 0) _debugCamera.Zoom -= 0.005f * Context.FrameTime;
 
-                _debugCamera.Update(null);
+                _debugCamera.Update();
             }
 
             // Update frame by frame mode.
             if (_frameByFrame)
             {
                 _frameByFrameAdvance = false;
-                if (Context.Input.IsKeyDown("F11")) _frameByFrameAdvance = true;
-                if (Context.Input.IsKeyHeld("F12")) _frameByFrameAdvance = true;
+                if (Context.InputManager.IsKeyDown("F11")) _frameByFrameAdvance = true;
+                if (Context.InputManager.IsKeyHeld("F12")) _frameByFrameAdvance = true;
             }
         }
 
         [Conditional("DEBUG")]
         private void DrawDebug()
         {
-            _debugUIController.Draw();
-
             if (_debugCamera != null)
             {
                 // Draw bounds.
@@ -234,18 +223,13 @@ namespace Emotion.Graphics
                 _debugCameraDataText.Text = $"Debug Zoom: {_debugCamera.Zoom}\n" +
                                             $"Debug Location: {_debugCamera}\n" +
                                             $"Camera Location: {Camera}";
-                _cornerAnchor.Update();
             }
 
-            if (_fpsCounter)
-            {
-                _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
-                _cornerAnchor.Update();
-            }
+            if (_fpsCounter) _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
 
             if (_drawMouse)
             {
-                Vector2 mouseLocation = Context.Input.GetMousePosition();
+                Vector2 mouseLocation = Context.InputManager.GetMousePosition();
                 mouseLocation.X -= 5;
                 mouseLocation.Y -= 5;
 
@@ -307,7 +291,7 @@ namespace Emotion.Graphics
             UpdateDebug();
 
             // Update the current camera.
-            Camera.Update(Context);
+            Camera.Update();
         }
 
         #endregion
@@ -321,7 +305,7 @@ namespace Emotion.Graphics
         /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
         public void SyncShader(ShaderProgram shader, bool full = true)
         {
-            shader.SetUniformFloat("time", Context.Time);
+            shader.SetUniformFloat("time", Context.TotalTime);
             if (full) shader.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             EnableViewMatrix();
         }
@@ -332,7 +316,7 @@ namespace Emotion.Graphics
         /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
         public void SyncShader(bool full = true)
         {
-            ShaderProgram.Current.SetUniformFloat("time", Context.Time);
+            ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
             if (full) ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             EnableViewMatrix();
         }

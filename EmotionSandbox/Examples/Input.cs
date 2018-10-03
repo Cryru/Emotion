@@ -32,7 +32,7 @@ namespace EmotionSandbox.Examples
         {
             Context context = Starter.GetEmotionContext(settings => { settings.ClearColor = _bgColor; });
             context.LayerManager.Add(new Input(), "Input Example", 0);
-            context.Start();
+            context.Run();
         }
 
         public override void Load()

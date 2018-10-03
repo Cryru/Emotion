@@ -21,12 +21,12 @@ namespace EmotionSandbox.Examples
         {
             Debugger.TypeFilter.Add(MessageType.Trace);
 
-            Context context = Starter.GetEmotionContext();
+Context.Setup();
 
             context.LayerManager.Add(new LoadingScreen(), "loading", -1);
             context.LayerManager.Add(new StreamingSound(), "Sound Stream Example", 0);
 
-            context.Start();
+            context.Run();
         }
 
         public override void Load()

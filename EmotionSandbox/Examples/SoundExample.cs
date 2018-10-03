@@ -22,7 +22,7 @@ namespace EmotionSandbox.Examples
         {
             Debugger.TypeFilter.Add(MessageType.Trace);
 
-            Context context = Starter.GetEmotionContext();
+Context.Setup();
 
             context.LayerManager.Add(new LoadingScreen(), "loading", -1);
             context.LayerManager.Add(new SoundExample(), "Sound Example", 0);

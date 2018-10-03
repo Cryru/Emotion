@@ -10,9 +10,12 @@ using Emotion.Libraries;
 
 namespace Emotion.Utils
 {
+    /// <summary>
+    /// Handles platform checking.
+    /// </summary>
     public static class CurrentPlatform
     {
-        public static PlatformID OS { get; private set; }
+        public static PlatformName OS { get; private set; }
 
         static CurrentPlatform()
         {
@@ -24,10 +27,10 @@ namespace Emotion.Utils
                 case PlatformID.Win32S:
                 case PlatformID.Win32Windows:
                 case PlatformID.WinCE:
-                    OS = PlatformID.Win32NT;
+                    OS = PlatformName.Windows;
                     break;
                 case PlatformID.MacOSX:
-                    OS = PlatformID.MacOSX;
+                    OS = PlatformName.Mac;
                     break;
                 case PlatformID.Unix:
 
@@ -42,7 +45,7 @@ namespace Emotion.Utils
                             string sos = Marshal.PtrToStringAnsi(buf);
                             if (sos == "Darwin")
                             {
-                                OS = PlatformID.MacOSX;
+                                OS = PlatformName.Mac;
                                 return;
                             }
                         }
@@ -57,12 +60,20 @@ namespace Emotion.Utils
                             Marshal.FreeHGlobal(buf);
                     }
 
-                    OS = PlatformID.Unix;
+                    OS = PlatformName.Other;
                     break;
                 default:
-                    OS = PlatformID.Xbox;
+                    OS = PlatformName.Other;
                     break;
             }
         }
+    }
+
+    public enum PlatformName
+    {
+        Windows,
+        Linux,
+        Mac,
+        Other
     }
 }

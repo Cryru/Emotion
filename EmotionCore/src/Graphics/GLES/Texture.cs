@@ -3,9 +3,9 @@
 #region Using
 
 using System.IO;
-using Emotion.Engine;
 using Emotion.IO;
 using Emotion.Primitives;
+using Emotion.System;
 using Emotion.Utils;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
@@ -42,7 +42,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public Texture()
         {
-            Pointer = GL.GenTexture();
+            ThreadManager.ExecuteGLThread(() => { Pointer = GL.GenTexture(); });
             Size = new Vector2();
         }
 

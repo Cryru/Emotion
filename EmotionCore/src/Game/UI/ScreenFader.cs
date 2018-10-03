@@ -5,6 +5,7 @@
 using System;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.System;
 
 #endregion
 
@@ -80,7 +81,7 @@ namespace Emotion.Game.UI
             addOpacity.A = (byte) _opacity;
 
             renderer.DisableViewMatrix();
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(renderer.Context.Settings.RenderWidth, renderer.Context.Settings.RenderHeight), addOpacity);
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight), addOpacity);
             renderer.EnableViewMatrix();
         }
 

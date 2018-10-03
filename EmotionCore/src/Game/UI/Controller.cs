@@ -8,18 +8,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Debug;
-using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Input;
 using Emotion.Primitives;
+using Emotion.System;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
 namespace Emotion.Game.UI
 {
-    public sealed class Controller : ContextObject
+    public sealed class Controller
     {
         private static int _nextControllerId;
         internal int Id;
@@ -38,7 +38,7 @@ namespace Emotion.Game.UI
 
         #endregion
 
-        public Controller(Context context) : base(context)
+        public Controller()
         {
             SetupDebug();
 
@@ -109,11 +109,11 @@ namespace Emotion.Game.UI
                 AddQueued();
 
                 // Process mouse events.
-                Vector2 mousePosition = Context.Input.GetMousePosition();
+                Vector2 mousePosition = Context.InputManager.GetMousePosition();
                 MouseEvents(mousePosition);
 
                 // Check for button presses.
-                ButtonPresses(Context.Input);
+                ButtonPresses(Context.InputManager);
 
                 // Record the position.
                 _lastMousePosition = mousePosition;
@@ -215,8 +215,8 @@ namespace Emotion.Game.UI
         /// <summary>
         /// Processes mouse button press events.
         /// </summary>
-        /// <param name="input">The input module.</param>
-        private void ButtonPresses(Input.Input input)
+        /// <param name="inputManager">The input module.</param>
+        private void ButtonPresses(InputManager inputManager)
         {
             Parallel.ForEach(Controls, c =>
             {
@@ -228,7 +228,7 @@ namespace Emotion.Game.UI
                 for (int i = 0; i < mouseButtons.Length; i++)
                 {
                     MouseKeys currentKey = (MouseKeys) Enum.Parse(typeof(MouseKeys), mouseButtons[i]);
-                    bool held = input.IsMouseKeyHeld(currentKey);
+                    bool held = inputManager.IsMouseKeyHeld(currentKey);
 
                     // Check if the mouse is held.
                     if (held && c.MouseInside)
@@ -349,7 +349,7 @@ namespace Emotion.Game.UI
         {
             if (!DebugDraw) return;
 
-            Control top = GetTop(Context.Input.GetMousePosition());
+            Control top = GetTop(Context.InputManager.GetMousePosition());
 
             foreach (Control control in Controls)
             {

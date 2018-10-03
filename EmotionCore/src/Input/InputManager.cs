@@ -4,9 +4,9 @@
 
 using System;
 using Emotion.Debug;
-using Emotion.Engine;
 using Emotion.Host;
 using Emotion.Primitives;
+using Emotion.System;
 using OpenTK.Input;
 
 #endregion
@@ -16,7 +16,7 @@ namespace Emotion.Input
     /// <summary>
     /// Handles input from the mouse, keyboard, and other devices.
     /// </summary>
-    public class Input : ContextObject
+    public class InputManager
     {
         internal bool[] MouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         internal bool[] MousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
@@ -27,7 +27,7 @@ namespace Emotion.Input
         internal Vector2 MouseLocation;
         private float _mouseWheelScroll;
 
-        internal Input(Context context) : base(context)
+        internal InputManager()
         {
             Context.Host.MouseDown += WindowMouseDown;
             Context.Host.MouseUp += WindowMouseUp;

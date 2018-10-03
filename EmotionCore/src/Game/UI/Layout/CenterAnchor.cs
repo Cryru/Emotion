@@ -2,10 +2,12 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.System;
 
 #endregion
 
@@ -14,11 +16,12 @@ namespace Emotion.Game.UI.Layout
     public class CenterAnchor : ParentControl
     {
         private List<LayoutControl> _controls;
-        private bool _logicApplied;
+        private EventHandler<EventArgs> _updateEvent;
 
         public CenterAnchor() : base(Vector3.Zero, Vector2.Zero)
         {
             _controls = new List<LayoutControl>();
+            _updateEvent = (a, b) => ApplyLogic();
         }
 
         #region Parenting
@@ -52,7 +55,10 @@ namespace Emotion.Game.UI.Layout
                 _controls.Add(anchorControl);
             }
 
-            _logicApplied = false;
+            // Hook up to event.
+            transform.OnResize += _updateEvent;
+
+            ApplyLogic();
         }
 
         /// <summary>
@@ -66,6 +72,11 @@ namespace Emotion.Game.UI.Layout
                 LayoutControl match = _controls.FirstOrDefault(x => x.Control == transform);
                 if (match != null) _controls.Remove(match);
             }
+
+            // Unhook from event.
+            transform.OnResize -= _updateEvent;
+
+            ApplyLogic();
         }
 
         /// <summary>
@@ -74,12 +85,7 @@ namespace Emotion.Game.UI.Layout
         /// <param name="control">The control to remove.</param>
         public void RemoveControl(Control control)
         {
-            lock (_controls)
-            {
-                LayoutControl match = _controls.FirstOrDefault(x => x.Control == control);
-                if (match != null) _controls.Remove(match);
-            }
-
+            RemoveControl((Transform) control);
             RemoveChild(control);
         }
 
@@ -91,12 +97,6 @@ namespace Emotion.Game.UI.Layout
         /// <param name="renderer">The renderer to use for debugging.</param>
         public override void Render(Renderer renderer)
         {
-            if (!_logicApplied)
-            {
-                ApplyLogic();
-                _logicApplied = true;
-            }
-
             // Render children;
             base.Render(renderer);
 
@@ -107,8 +107,8 @@ namespace Emotion.Game.UI.Layout
             renderer.RenderOutlineFlush();
             renderer.RenderFlush();
 
-            float screenWidth = Controller.Context.Settings.RenderWidth;
-            float screenHeight = Controller.Context.Settings.RenderHeight;
+            float screenWidth = Context.Settings.RenderWidth;
+            float screenHeight = Context.Settings.RenderHeight;
 
             renderer.RenderQueueOutline(new Vector3(screenWidth / 2, 0, 0), new Vector2(0, screenHeight), Color.Pink);
             renderer.RenderQueueOutline(new Vector3(0, screenHeight / 2, 0), new Vector2(screenWidth, 0), Color.Pink);
@@ -126,15 +126,10 @@ namespace Emotion.Game.UI.Layout
 #endif
         }
 
-        public void Update()
-        {
-            _logicApplied = false;
-        }
-
         private void ApplyLogic()
         {
-            float screenWidth = Controller.Context.Settings.RenderWidth;
-            float screenHeight = Controller.Context.Settings.RenderHeight;
+            float screenWidth = Context.Settings.RenderWidth;
+            float screenHeight = Context.Settings.RenderHeight;
 
             lock (_controls)
             {

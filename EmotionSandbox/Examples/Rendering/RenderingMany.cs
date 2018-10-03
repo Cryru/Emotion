@@ -2,12 +2,11 @@
 
 #region Using
 
-using Emotion;
-using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Primitives;
+using Emotion.System;
 using EmotionSandbox.Examples.Generic;
 using Soul;
 
@@ -19,12 +18,12 @@ namespace EmotionSandbox.Examples.Rendering
     {
         public static void Main()
         {
-            // Get the context and load the loading screen plus this scene in.
-            Context context = Starter.GetEmotionContext();
-            context.LayerManager.Add(new LoadingScreen(), "__loading__", 0); // The loading screen is below this layer so it is hidden when this layer is loaded.
-            context.LayerManager.Add(new RenderingMany(), "Emotion Rendering - Many", 1);
+            // Setup the context and load the loading screen plus this scene in.
+            Context.Setup();
+            Context.LayerManager.Add(new LoadingScreen(), "__loading__", 0); // The loading screen is below this layer so it is hidden when this layer is loaded.
+            Context.LayerManager.Add(new RenderingMany(), "Emotion Rendering - Many", 1);
             // Start the context.
-            context.Start();
+            Context.Run();
         }
 
         private QuadMapBuffer _buffer;

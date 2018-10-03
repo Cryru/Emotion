@@ -240,13 +240,16 @@ namespace Emotion.Game.Tiled
         #region Bounds Functions
 
         /// <summary>
-        /// Returns the pixel bounds of the tile from its id.
+        /// Returns the pixel bounds of the tile from its one dimensional coordinate.
         /// </summary>
-        /// <param name="coordinate">The tile coordinate.</param>
+        /// <param name="coordinate">The tile's one dimensional coordinate.</param>
         /// <param name="layer">The layer the tile is on.</param>
         /// <returns>The pixel bounds within the map rendering of the tile..</returns>
-        public Rectangle GetTileBoundsFromId(int coordinate, int layer = 0)
+        public Rectangle GetTileBoundsFrom1D(int coordinate, int layer = 0)
         {
+            // Check if out of range.
+            if (coordinate > TiledMap.Width * TiledMap.Height) return Rectangle.Empty;
+
             Vector2 scale = new Vector2(Width / (TiledMap.TileWidth * TiledMap.Width), Height / (TiledMap.TileHeight * TiledMap.Height));
 
             // Check if out of range, and if not return the tile location from the id.
@@ -265,10 +268,24 @@ namespace Emotion.Game.Tiled
         /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
         public int GetTile1DFromBounds(Vector2 location)
         {
-            int left = (int) Math.Max(0, location.X / TiledMap.TileWidth);
-            int top = (int) Math.Max(0, location.Y / TiledMap.TileHeight);
+            Vector2 scale = new Vector2(Width / (TiledMap.TileWidth * TiledMap.Width), Height / (TiledMap.TileHeight * TiledMap.Height));
+            int left = (int) Math.Max(0, (location.X - X) / (TiledMap.TileWidth * scale.X));
+            int top = (int) Math.Max(0, (location.Y - Y) / (TiledMap.TileHeight * scale.Y));
 
-            return left + top * TiledMap.Width;
+            return GetTile1DFromTile2D(new Vector2(left, top));
+        }
+
+        /// <summary>
+        /// Converts the two dimensional tile coordinate to a one dimensional one.
+        /// </summary>
+        /// <param name="coordinate">The coordinate to convert.</param>
+        /// <returns>A one dimensional tile coordinate.</returns>
+        public int GetTile1DFromTile2D(Vector2 coordinate)
+        {
+            int top = (int) coordinate.Y;
+            int left = (int) coordinate.X;
+
+            return left + TiledMap.Width * top;
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 
 #region Using
 
-using Emotion.Engine;
 using Emotion.Primitives;
 
 #endregion
@@ -43,7 +42,7 @@ namespace Emotion.Game.Camera
             OnResize += (a, b) => _updateMatrix = true;
         }
 
-        public virtual void Update(Context _)
+        public virtual void Update()
         {
             UpdateMatrix();
         }

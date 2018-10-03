@@ -2,14 +2,13 @@
 
 #region Using
 
-using Emotion.Engine;
 using Emotion.Graphics;
 
 #endregion
 
 namespace Emotion.Game.Layering
 {
-    public abstract class Layer : ContextObject
+    public abstract class Layer
     {
         #region Properties
 

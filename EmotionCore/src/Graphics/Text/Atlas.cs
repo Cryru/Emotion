@@ -3,9 +3,9 @@
 #region Using
 
 using System;
-using Emotion.Engine;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
+using Emotion.System;
 using SharpFont;
 
 #endregion

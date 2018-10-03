@@ -2,10 +2,12 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Graphics;
 using Emotion.Primitives;
+using Emotion.System;
 
 #endregion
 
@@ -13,16 +15,28 @@ namespace Emotion.Game.UI.Layout
 {
     public class CornerAnchor : ParentControl
     {
+        #region Properties
+
+        /// <summary>
+        /// The overall padding.
+        /// </summary>
         public Rectangle Padding { get; set; }
+
+        /// <summary>
+        /// What percent of the width can one column take. Take in mind that there are two columns.
+        /// </summary>
         public float ColumnLimit = 50;
 
+        #endregion
+
         private List<AnchorLayoutControl> _controls;
-        private bool _logicApplied;
+        private EventHandler<EventArgs> _updateEvent;
 
         public CornerAnchor() : base(Vector3.Zero, Vector2.Zero)
         {
             _controls = new List<AnchorLayoutControl>();
             Padding = Rectangle.Empty;
+            _updateEvent = (a, b) => ApplyLogic();
         }
 
         #region Parenting
@@ -64,14 +78,14 @@ namespace Emotion.Game.UI.Layout
         /// <summary>
         /// Add a control to the corner anchor.
         /// </summary>
-        /// <param name="control">The control to add.</param>
+        /// <param name="transform">The control to add.</param>
         /// <param name="anchor">The corner of the screen to anchor the control to.</param>
         /// <param name="margin">The margin of the control.</param>
-        public void AddControl(Transform control, AnchorLocation anchor, Rectangle margin)
+        public void AddControl(Transform transform, AnchorLocation anchor, Rectangle margin)
         {
             AnchorLayoutControl anchorControl = new AnchorLayoutControl
             {
-                Control = control,
+                Control = transform,
                 Anchor = anchor,
                 Margin = margin
             };
@@ -81,21 +95,29 @@ namespace Emotion.Game.UI.Layout
                 _controls.Add(anchorControl);
             }
 
-            _logicApplied = false;
+            // Hook up to event.
+            transform.OnResize += _updateEvent;
+
+            ApplyLogic();
         }
 
 
         /// <summary>
         /// Remove a control from the corner anchor. If not found nothing will happen.
         /// </summary>
-        /// <param name="control">The control to remove.</param>
-        public void RemoveControl(Transform control)
+        /// <param name="transform">The control to remove.</param>
+        public void RemoveControl(Transform transform)
         {
             lock (_controls)
             {
-                AnchorLayoutControl match = _controls.FirstOrDefault(x => x.Control == control);
+                AnchorLayoutControl match = _controls.FirstOrDefault(x => x.Control == transform);
                 if (match != null) _controls.Remove(match);
             }
+
+            // Unhook from event.
+            transform.OnResize -= _updateEvent;
+
+            ApplyLogic();
         }
 
         /// <summary>
@@ -104,12 +126,7 @@ namespace Emotion.Game.UI.Layout
         /// <param name="control">The control to remove.</param>
         public void RemoveControl(Control control)
         {
-            lock (_controls)
-            {
-                AnchorLayoutControl match = _controls.FirstOrDefault(x => x.Control == control);
-                if (match != null) _controls.Remove(match);
-            }
-
+            RemoveControl((Transform) control);
             RemoveChild(control);
         }
 
@@ -121,12 +138,6 @@ namespace Emotion.Game.UI.Layout
         /// <param name="renderer">The renderer to use for debugging.</param>
         public override void Render(Renderer renderer)
         {
-            if (!_logicApplied)
-            {
-                ApplyLogic();
-                _logicApplied = true;
-            }
-
             base.Render(renderer);
 
             // Check if performing debug drawing.
@@ -151,15 +162,10 @@ namespace Emotion.Game.UI.Layout
 #endif
         }
 
-        public void Update()
-        {
-            _logicApplied = false;
-        }
-
         private void DrawDebugBounds(Renderer renderer, Rectangle padding, Color color)
         {
-            float screenWidth = Controller.Context.Settings.RenderWidth;
-            float screenHeight = Controller.Context.Settings.RenderHeight;
+            float screenWidth = Context.Settings.RenderWidth;
+            float screenHeight = Context.Settings.RenderHeight;
 
             // Top
             renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(screenWidth, padding.Y), color);
@@ -176,8 +182,8 @@ namespace Emotion.Game.UI.Layout
 
         private void ApplyLogic()
         {
-            float screenWidth = Controller.Context.Settings.RenderWidth;
-            float screenHeight = Controller.Context.Settings.RenderHeight;
+            float screenWidth = Context.Settings.RenderWidth;
+            float screenHeight = Context.Settings.RenderHeight;
 
             float limitPercentage = ColumnLimit / 100;
             float screenWidthLimit = screenWidth * limitPercentage;
@@ -216,22 +222,25 @@ namespace Emotion.Game.UI.Layout
                 Holder = screenWidth - Padding.Width
             };
 
-            foreach (AnchorLayoutControl control in _controls)
+            lock (_controls)
             {
-                switch (control.Anchor)
+                foreach (AnchorLayoutControl control in _controls)
                 {
-                    case AnchorLocation.TopLeft:
-                        TopLeftAnchor(topLeftPen, control);
-                        break;
-                    case AnchorLocation.BottomLeft:
-                        BottomLeftAnchor(bottomLeftPen, control);
-                        break;
-                    case AnchorLocation.TopRight:
-                        TopRightAnchor(topRightPen, control);
-                        break;
-                    case AnchorLocation.BottomRight:
-                        BottomRightAnchor(bottomRightPen, control);
-                        break;
+                    switch (control.Anchor)
+                    {
+                        case AnchorLocation.TopLeft:
+                            TopLeftAnchor(topLeftPen, control);
+                            break;
+                        case AnchorLocation.BottomLeft:
+                            BottomLeftAnchor(bottomLeftPen, control);
+                            break;
+                        case AnchorLocation.TopRight:
+                            TopRightAnchor(topRightPen, control);
+                            break;
+                        case AnchorLocation.BottomRight:
+                            BottomRightAnchor(bottomRightPen, control);
+                            break;
+                    }
                 }
             }
         }

@@ -5,8 +5,8 @@
 using System;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
-using Emotion.Engine;
 using Emotion.Graphics.GLES;
+using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;

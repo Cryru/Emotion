@@ -2,13 +2,12 @@
 
 #region Using
 
-using Emotion;
-using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Game.Text;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
+using Emotion.System;
 using EmotionSandbox.Examples.Generic;
 
 #endregion
@@ -22,12 +21,12 @@ namespace EmotionSandbox.Examples.Rendering
 
         public static void Main()
         {
-            // Get the context and load the loading screen plus this scene in.
-            Context context = Starter.GetEmotionContext();
-            context.LayerManager.Add(new LoadingScreen(), "__loading__", 0); // The loading screen is below this layer so it is hidden when this layer is loaded.
-            context.LayerManager.Add(new RenderingText(), "Emotion Rendering - Text", 1);
+            // Setup the context and load the loading screen plus this scene in.
+            Context.Setup();
+            Context.LayerManager.Add(new LoadingScreen(), "__loading__", 0); // The loading screen is below this layer so it is hidden when this layer is loaded.
+            Context.LayerManager.Add(new RenderingText(), "Emotion Rendering - Text", 1);
             // Start the context.
-            context.Start();
+            Context.Run();
         }
 
         public override void Load()
@@ -38,7 +37,7 @@ namespace EmotionSandbox.Examples.Rendering
             _richText.SetText("Hello, I am rich text. I can do things like <color=255-0-0>t</><color=0-255-0>hi</><color=0-0-255>s</>!");
             _richText.Z = 1;
 
-            _twRichText = new TypewriterRichText(new Vector3(10, 300, 0), new Vector2(300, 500),Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
+            _twRichText = new TypewriterRichText(new Vector3(10, 300, 0), new Vector2(300, 500), Context.AssetLoader.Get<Font>("ExampleFont.ttf").GetFontAtlas(20));
             _twRichText.SetText("Hello, I am a rich text extension which performs a <color=255-0-0>typewriter</> effect!");
             _twRichText.SetTypewriterEffect(1000);
             _twRichText.Z = 1;

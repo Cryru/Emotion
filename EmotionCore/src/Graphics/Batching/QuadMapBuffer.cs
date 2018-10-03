@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Emotion.Debug;
-using Emotion.Engine;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
+using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 

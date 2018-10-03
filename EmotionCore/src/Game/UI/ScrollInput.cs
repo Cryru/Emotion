@@ -5,6 +5,7 @@
 using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
+using Emotion.System;
 using Soul;
 
 #endregion
@@ -57,7 +58,7 @@ namespace Emotion.Game.UI
 
         public override void MouseDown(MouseKeys key)
         {
-            ChangeValue(Controller.Context.Input.GetMousePosition());
+            ChangeValue(Context.InputManager.GetMousePosition());
         }
 
         public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
