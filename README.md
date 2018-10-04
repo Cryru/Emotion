@@ -5,9 +5,7 @@
 
 ## What is it?
 
-Emotion is a cross-platform 2D game engine written in C#, with the intent of removing fat and overhead without giving up too much control. The idea is to make game development about game development, and not about engine or low-level backend development. Written by a game developer for game developers.  
-
-This project is a successor to [SoulEngine](Documents/SoulEngine.md).
+Emotion is a cross-platform game engine written in C#, with the intent of removing overhead and providing abstraction without sacrificing control. The idea is, to make game development about game development and not about engine or low-level backend development, but allowing those who want to do that with the option to do so. The goal is to save time, and provide indie developers (and mostly myself) with a foundation.
 
 ## Platforms Tested On:
 
