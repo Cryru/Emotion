@@ -126,10 +126,10 @@ namespace Emotion.Game.Text
                 _updateRenderCache = false;
             }
 
-            // todo: Weird issue, investigate.
-            if (!_updateRenderCache && !_renderCache.AnythingMapped)
+            // todo: Weird issue, investigate. Maybe connected to multi-threading.
+            if (!_updateRenderCache && !_renderCache.AnythingMapped && _textStripped != "")
             {
-                MapBuffer();
+                 MapBuffer();
                 _updateRenderCache = false;
                 Debugger.Log(MessageType.Warning, MessageSource.GL, "RichText buffer wasn't mapped, and it didn't intend to map it.");
             }

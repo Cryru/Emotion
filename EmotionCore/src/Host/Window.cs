@@ -56,7 +56,7 @@ namespace Emotion.Host
 #endif
         }
 
-        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode, null, false)
+        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode, null, true)
         {
             ApplySettings(settings, true);
             OnResize(null);

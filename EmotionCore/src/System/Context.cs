@@ -241,8 +241,8 @@ namespace Emotion.System
         /// <param name="frameTime">The time between this tick and the last.</param>
         private static void LoopUpdate(float frameTime)
         {
-            // Throttle so the whole CPU isn't used up by update cycles.
-            Task.Delay(1).Wait();
+            // Throttle so the whole CPU isn't used up by update cycles. Useful only when the Update loop runs on a separate thread.
+            //Task.Delay(1).Wait();
 
             // Update debugger.
             Debugger.Update();

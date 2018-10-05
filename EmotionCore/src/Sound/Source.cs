@@ -88,7 +88,7 @@ namespace Emotion.Sound
             if (Pointer == -1) return;
 
             // Check if the sound levels have changed.
-            if (settings.Sound || settings.Volume == 0)
+            if (settings.Sound || settings.Volume != 0)
             {
                 float scaled = PersonalVolume * (settings.Volume / 100f);
 
@@ -97,6 +97,7 @@ namespace Emotion.Sound
             }
             else
             {
+                AL.Source(Pointer, ALSourcef.Gain, 0);
                 AL.Source(Pointer, ALSourcef.MaxGain, 0);
             }
 

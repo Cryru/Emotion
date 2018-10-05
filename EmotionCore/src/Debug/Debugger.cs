@@ -105,7 +105,7 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         public static void Log(MessageType type, MessageSource source, string message)
         {
-            _loggingQueue.Enqueue(new Tuple<MessageType, MessageSource, string>(type, source, message));
+            _loggingQueue.Enqueue(new Tuple<MessageType, MessageSource, string>(type, source, $"[{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}"));
         }
 
         /// <summary>

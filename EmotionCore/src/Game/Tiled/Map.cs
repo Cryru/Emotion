@@ -29,6 +29,7 @@ namespace Emotion.Game.Tiled
         public List<Texture> Tilesets { get; private set; } = new List<Texture>();
         protected List<AnimatedTile> _animatedTiles = new List<AnimatedTile>();
         private AssetLoader _assetLoader;
+        private bool _loaded = false;
 
         /// <summary>
         /// Create a new map object from a Tiled map.
@@ -51,6 +52,9 @@ namespace Emotion.Game.Tiled
 
         public void Reset(string mapPath, string tileSetFolder)
         {
+            // Reset loading flag.
+            _loaded = false;
+
             // Reset holders.
             Tilesets.Clear();
             _animatedTiles.Clear();
@@ -82,6 +86,9 @@ namespace Emotion.Game.Tiled
 
             // Set default size if none set.
             if (Width == 0 && Height == 0) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+
+            // Set loading flag.
+            _loaded = true;
         }
 
         /// <summary>
@@ -104,7 +111,7 @@ namespace Emotion.Game.Tiled
             renderer.RenderFlush();
 
             // Check if anything is loaded.
-            if (TiledMap == null) return;
+            if (TiledMap == null || !_loaded) return;
 
             // layer - The map layer currently drawing.
             // t - The tile currently drawing from [layer]. 
