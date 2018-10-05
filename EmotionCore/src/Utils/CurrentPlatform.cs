@@ -60,7 +60,7 @@ namespace Emotion.Utils
                             Marshal.FreeHGlobal(buf);
                     }
 
-                    OS = PlatformName.Other;
+                    OS = PlatformName.Linux;
                     break;
                 default:
                     OS = PlatformName.Other;

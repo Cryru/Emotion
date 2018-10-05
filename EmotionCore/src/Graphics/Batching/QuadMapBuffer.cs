@@ -202,7 +202,11 @@ namespace Emotion.Graphics.Batching
             _ibo.Bind();
             Helpers.CheckError("map buffer - bind");
 
-            GL.DrawElements(PrimitiveType.Triangles, _indicesCount, DrawElementsType.UnsignedShort, IntPtr.Zero);
+            int startIndex = 0 * 6;
+            IntPtr indexToPointer = (IntPtr) (startIndex * sizeof(ushort));
+            if(startIndex >= _indicesCount) return;
+
+            GL.DrawElements(PrimitiveType.Triangles, _indicesCount, DrawElementsType.UnsignedShort, indexToPointer);
             Helpers.CheckError("map buffer - draw");
 
             _ibo.Unbind();

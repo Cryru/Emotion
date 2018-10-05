@@ -13,7 +13,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
   - Intel HD Graphics 620
   - Nvidia 940MX
   - AMD R9 200
-- Ubuntu Xenial-Xerus x64 (Latest version not tested.)
+- Ubuntu Xenial-Xerus x64
 - MacOS High-Sierra x64
 
 ## Supported Platforms:
@@ -27,10 +27,16 @@ For information on how to build for other platforms check out: https://github.co
 
 ## Requirements:
 
-- OpenGL ES 3 or OpenGL 3.3 Core
-- GLSL 300 es support required on Windows and Linux, GLSL 300 on MacOS
-  - GL_ARB_gpu_shader5 support, if the extension is missing then GLSL 400 support is required on Windows and Linux
-  - Dynamically uniform expression support required.
+- OpenGL Support Options
+  - ES 3 on Anything
+  - 3.3 Core on MacOS
+  - 3.0 Core on Windows or Linux
+- GLSL Support Options
+  - 300 es support on Windows or Linux
+  - 300 support on MacOS
+- Dynamically Uniform Expression Support Options
+  - The "GL_ARB_gpu_shader5" extension
+  - GLSL 400 on Windows or Linux
 
 #### Linux
 

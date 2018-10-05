@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.External;
@@ -11,6 +12,7 @@ using Emotion.Graphics;
 using Emotion.Host;
 using Emotion.Input;
 using Emotion.IO;
+using Emotion.Libraries;
 using Emotion.Sound;
 using Emotion.Utils;
 
@@ -113,6 +115,7 @@ namespace Emotion.System
 
             // Run platform specific boot.
             if (CurrentPlatform.OS == PlatformName.Windows) WindowsSetup();
+            if (CurrentPlatform.OS == PlatformName.Linux) LinuxSetup();
 
             Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Bootstrap complete.");
@@ -185,6 +188,16 @@ namespace Emotion.System
             Environment.SetEnvironmentVariable("PATH", path + ";" + libraryDirectory, EnvironmentVariableTarget.Process);
 
             Debugger.Log(MessageType.Info, MessageSource.Engine, "Library Folder: " + libraryDirectory);
+        }
+
+        /// <summary>
+        /// Linux bootstrap.
+        /// </summary>
+        private static void LinuxSetup()
+        {
+            // Open libraries.
+            Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Linux Bootstrap | libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}");
+            Unix.dlopen("./Libraries/x64/libsndio.so.6.1", Unix.RTLD_NOW);
         }
 
         #endregion

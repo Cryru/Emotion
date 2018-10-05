@@ -42,6 +42,11 @@ namespace Emotion.Host
         /// </summary>
         private static GraphicsContextFlags _contextMode = GraphicsContextFlags.ForwardCompatible;
 
+        /// <summary>
+        /// The minor version of the OpenGL context.
+        /// </summary>
+        private static int _minorVersion = 0;
+
         private Action<float> _updateHook;
         private Action<float> _drawHook;
 
@@ -50,13 +55,17 @@ namespace Emotion.Host
         static Window()
         {
 #if DEBUG
-            // Debug context breaks on Macs.
-            if (CurrentPlatform.OS == PlatformName.Mac) return;
+            // Debug context breaks on Macs, also they prefer 3.3 contexts.
+            if (CurrentPlatform.OS == PlatformName.Mac)
+            {
+                _minorVersion = 3;
+                return;
+            }
             _contextMode = GraphicsContextFlags.Debug;
 #endif
         }
 
-        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, 3, _contextMode, null, true)
+        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, _minorVersion, _contextMode, null, true)
         {
             ApplySettings(settings, true);
             OnResize(null);
