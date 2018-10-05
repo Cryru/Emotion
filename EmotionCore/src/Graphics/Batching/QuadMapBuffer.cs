@@ -204,7 +204,7 @@ namespace Emotion.Graphics.Batching
 
             int startIndex = 0 * 6;
             IntPtr indexToPointer = (IntPtr) (startIndex * sizeof(ushort));
-            if(startIndex >= _indicesCount) return;
+            if (startIndex >= _indicesCount) return;
 
             GL.DrawElements(PrimitiveType.Triangles, _indicesCount, DrawElementsType.UnsignedShort, indexToPointer);
             Helpers.CheckError("map buffer - draw");

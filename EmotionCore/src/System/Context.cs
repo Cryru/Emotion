@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.External;
@@ -185,7 +184,7 @@ namespace Emotion.System
         private static void WindowsSetup()
         {
             // Set current directory.
-            
+
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
 
@@ -223,7 +222,7 @@ namespace Emotion.System
 
                 // Stop the debugger so that the new instance can attach itself to the console and perform logging in peace.
                 Debugger.Stop();
-                
+
                 // Restart the process.
                 Process.Start(executableName)?.WaitForExit();
                 Environment.Exit(0);

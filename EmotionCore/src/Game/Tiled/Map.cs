@@ -29,7 +29,7 @@ namespace Emotion.Game.Tiled
         public List<Texture> Tilesets { get; private set; } = new List<Texture>();
         protected List<AnimatedTile> _animatedTiles = new List<AnimatedTile>();
         private AssetLoader _assetLoader;
-        private bool _loaded = false;
+        private bool _loaded;
 
         /// <summary>
         /// Create a new map object from a Tiled map.

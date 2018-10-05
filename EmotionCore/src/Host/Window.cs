@@ -61,6 +61,7 @@ namespace Emotion.Host
                 _minorVersion = 3;
                 return;
             }
+
             _contextMode = GraphicsContextFlags.Debug;
 #endif
         }
@@ -75,7 +76,7 @@ namespace Emotion.Host
 
         public new void Run()
         {
-            this.Run(System.Context.Settings.CapFPS);
+            Run(System.Context.Settings.CapFPS);
         }
 
         #region Host API
