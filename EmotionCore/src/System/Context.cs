@@ -3,7 +3,9 @@
 #region Using
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.External;
@@ -15,6 +17,7 @@ using Emotion.IO;
 using Emotion.Libraries;
 using Emotion.Sound;
 using Emotion.Utils;
+using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -181,6 +184,11 @@ namespace Emotion.System
         /// </summary>
         private static void WindowsSetup()
         {
+            // Set current directory.
+            
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+            Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
+
             // Set the DLL path on Windows.
             string libraryDirectory = Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86");
             Windows.SetDllDirectory(libraryDirectory);
@@ -195,8 +203,34 @@ namespace Emotion.System
         /// </summary>
         private static void LinuxSetup()
         {
+            // Get the path of the process AKA where the engine was launched from.
+            string processPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            if (processPath == null) throw new Exception("Failed to get the process path.");
+
+            // Check if the process path is the current path.
+            if (processPath != Environment.CurrentDirectory)
+            {
+                // Set the current path to the process path.
+                Directory.SetCurrentDirectory(processPath);
+                Unix.chdir(processPath);
+
+                string processName = Process.GetCurrentProcess().ProcessName;
+                string executableName = processName.Replace(processPath + "/", "");
+
+                Debugger.Log(MessageType.Warning, MessageSource.Engine, "It seems the process directory is not the executable directory. Will restart from correct directory.");
+                Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Proper directory is: {processPath}");
+                Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Executable is: {executableName}");
+
+                // Stop the debugger so that the new instance can attach itself to the console and perform logging in peace.
+                Debugger.Stop();
+                
+                // Restart the process.
+                Process.Start(executableName)?.WaitForExit();
+                Environment.Exit(0);
+            }
+
             // Open libraries.
-            Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Linux Bootstrap | libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}");
+            Debugger.Log(MessageType.Warning, MessageSource.Engine, $"libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}");
             Unix.dlopen("./Libraries/x64/libsndio.so.6.1", Unix.RTLD_NOW);
         }
 

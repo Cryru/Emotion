@@ -25,6 +25,10 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 
 For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
 
+### Building Notes:
+
+- On Linux build without a machine config, and make sure the .exe **doesn't** carry a config specifying the runtime.
+
 ## Requirements:
 
 - OpenGL Support Options

@@ -45,7 +45,7 @@ namespace Emotion.Host
         /// <summary>
         /// The minor version of the OpenGL context.
         /// </summary>
-        private static int _minorVersion = 0;
+        private static int _minorVersion;
 
         private Action<float> _updateHook;
         private Action<float> _drawHook;
@@ -75,7 +75,7 @@ namespace Emotion.Host
 
         public new void Run()
         {
-            this.Run(Emotion.System.Context.Settings.CapFPS);
+            this.Run(System.Context.Settings.CapFPS);
         }
 
         #region Host API
