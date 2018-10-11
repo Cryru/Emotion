@@ -52,6 +52,7 @@ namespace Emotion.Graphics
 
         private QuadMapBuffer _mainBuffer;
         private LineMapBuffer _mainLineBuffer;
+        private bool _viewMatrixEnabled = true;
 
         #endregion
 
@@ -261,7 +262,7 @@ namespace Emotion.Graphics
             Helpers.CheckError("clear");
 
             // Sync the current shader.
-            SyncShader();
+            SyncCurrentShader();
         }
 
         /// <summary>
@@ -299,26 +300,14 @@ namespace Emotion.Graphics
         #region Other APIs
 
         /// <summary>
-        /// Synchronize the shader properties with the actual ones. This doesn't set the model matrix.
-        /// </summary>
-        /// <param name="shader">The shader to synchronize.</param>
-        /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
-        public void SyncShader(ShaderProgram shader, bool full = true)
-        {
-            shader.SetUniformFloat("time", Context.TotalTime);
-            if (full) shader.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
-            EnableViewMatrix();
-        }
-
-        /// <summary>
         /// Synchronize the current shader's properties with the actual ones. This doesn't set the model matrix.
         /// </summary>
         /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
-        public void SyncShader(bool full = true)
+        public void SyncCurrentShader(bool full = true)
         {
-            ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
             if (full) ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
-            EnableViewMatrix();
+            ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
         }
 
         /// <summary>
@@ -339,6 +328,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void DisableViewMatrix()
         {
+            _viewMatrixEnabled = false;
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", Matrix4.Identity);
         }
 
@@ -347,15 +337,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void EnableViewMatrix()
         {
+            _viewMatrixEnabled = true;
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
-        }
-
-        /// <summary>
-        /// Enables the view matrix for the specified shader.
-        /// </summary>
-        public void EnableViewMatrix(ShaderProgram shader)
-        {
-            shader.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
         }
 
         #endregion

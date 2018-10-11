@@ -120,7 +120,7 @@ namespace Emotion.Graphics.Text
             Face = face;
 
             // Create texture.
-            ThreadManager.ExecuteGLThread(() => { Texture = new Texture(pixels, texWidth, texWidth, true); });
+            ThreadManager.ExecuteGLThread(() => { Texture = new Texture(pixels, texWidth, texWidth, $"{face.FamilyName} {fontSize}"); });
         }
 
         /// <summary>

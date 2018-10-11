@@ -192,8 +192,7 @@ namespace Emotion.Graphics.Batching
             // Bind textures.
             for (int i = 0; i < _textureList.Count; i++)
             {
-                GL.ActiveTexture(TextureUnit.Texture0 + i);
-                _textureList[i].Bind();
+                _textureList[i].Bind(i);
             }
 
             Helpers.CheckError("map buffer - texture binding");

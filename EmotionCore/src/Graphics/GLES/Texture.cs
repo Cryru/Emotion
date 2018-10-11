@@ -80,10 +80,10 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The atlas bytes.</param>
         /// <param name="width">The width of the atlas.</param>
         /// <param name="height">The height of the atlas.</param>
-        /// <param name="isAtlas">Placeholder to differentiate this constructor.</param>
-        public Texture(byte[] data, int width, int height, bool isAtlas)
+        /// <param name="atlasTextureName">The name of the font atlas this texture belongs to.</param>
+        public Texture(byte[] data, int width, int height, string atlasTextureName)
         {
-            Name = "Unmanaged Atlas Texture";
+            Name = "Atlas Texture " + atlasTextureName;
             Size = new Vector2(width, height);
             TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4.CreateScale(1, -1, 1);
             CreateForGlyph(data);
@@ -94,10 +94,20 @@ namespace Emotion.Graphics.GLES
         #region IGLObject API
 
         /// <summary>
-        /// Use this texture for any following operations.
+        /// Use this texture for any following operations on slot 0.
         /// </summary>
         public void Bind()
         {
+            Bind(0);
+        }
+
+        /// <summary>
+        /// Use this texture for any following operations.
+        /// </summary>
+        /// <param name="slot">Which slot to bind in. 0-16 (32 on some systems)</param>
+        public void Bind(int slot)
+        {
+            GL.ActiveTexture(TextureUnit.Texture0 + slot);
             GL.BindTexture(TextureTarget.Texture2D, Pointer);
         }
 
@@ -148,7 +158,7 @@ namespace Emotion.Graphics.GLES
                 TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
 
                 // Bind the texture.
-                Bind();
+                Bind(0);
 
                 // Set scaling to pixel perfect.
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
@@ -193,7 +203,7 @@ namespace Emotion.Graphics.GLES
             Pointer = GL.GenTexture();
 
             // Bind the texture.
-            Bind();
+            Bind(0);
 
             // Set scaling to pixel perfect.
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
@@ -214,7 +224,7 @@ namespace Emotion.Graphics.GLES
             Pointer = GL.GenTexture();
 
             // Bind the texture.
-            Bind();
+            Bind(0);
 
             // Set scaling to pixel perfect.
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);

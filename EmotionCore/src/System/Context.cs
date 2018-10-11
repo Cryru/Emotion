@@ -183,10 +183,13 @@ namespace Emotion.System
         /// </summary>
         private static void WindowsSetup()
         {
-            // Set current directory.
-
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-            Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
+            // Set current directory to the process 
+            string processPath = AppDomain.CurrentDomain.BaseDirectory;
+            if (processPath != Environment.CurrentDirectory + "\\")
+            {
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
+            }
 
             // Set the DLL path on Windows.
             string libraryDirectory = Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86");
