@@ -245,30 +245,38 @@ namespace Emotion.System
         /// </summary>
         public static void Run()
         {
-            // Check if setup.
-            if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
+            try
+            {
+                // Check if setup.
+                if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
 
-            // Set running to true.
-            IsRunning = true;
+                // Set running to true.
+                IsRunning = true;
 
-            // Start running the loops. Blocking.
-            Host.Run();
+                // Start running the loops. Blocking.
+                Host.Run();
 
-            // Context has stopped running - cleanup.
-            Host.Close();
-            Renderer.Destroy();
+                // Context has stopped running - cleanup.
+                Host.Close();
+                Renderer.Destroy();
 
-            // Platform cleanup.
-            Host.Dispose();
+                // Platform cleanup.
+                Host.Dispose();
 
-            // Dereference objects.
-            Host = null;
-            Renderer = null;
-            Settings = null;
-            IsRunning = false;
+                // Dereference objects.
+                Host = null;
+                Renderer = null;
+                Settings = null;
+                IsRunning = false;
 
-            // Close application.
-            Environment.Exit(0);
+                // Close application.
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
+                File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
+            }
         }
 
         /// <summary>
