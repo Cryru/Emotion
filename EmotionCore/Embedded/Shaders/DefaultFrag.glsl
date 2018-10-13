@@ -1,4 +1,4 @@
-﻿#version 300 es
+#version 300 es
 
 #ifdef GL_ES
 precision highp float;

@@ -14,7 +14,7 @@ namespace Emotion.IO
 
         internal override void Create(byte[] data)
         {
-            Content = Encoding.Default.GetString(data).Replace("\r", "").Replace("ï»¿", "").Split('\n');
+            Content = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "").Split('\n');
         }
 
         internal override void Destroy()
