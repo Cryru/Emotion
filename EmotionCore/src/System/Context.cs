@@ -245,38 +245,51 @@ namespace Emotion.System
         /// </summary>
         public static void Run()
         {
+            // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
+            if (global::System.Diagnostics.Debugger.IsAttached)
+            {
+                InternalRun();
+                return;
+            }
+
+            // If no debugger is attached, wrap in a try-catch so that exception logs are generated.
             try
             {
-                // Check if setup.
-                if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
-
-                // Set running to true.
-                IsRunning = true;
-
-                // Start running the loops. Blocking.
-                Host.Run();
-
-                // Context has stopped running - cleanup.
-                Host.Close();
-                Renderer.Destroy();
-
-                // Platform cleanup.
-                Host.Dispose();
-
-                // Dereference objects.
-                Host = null;
-                Renderer = null;
-                Settings = null;
-                IsRunning = false;
-
-                // Close application.
-                Environment.Exit(0);
+                InternalRun();
             }
             catch (Exception ex)
             {
                 Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
                 File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
             }
+        }
+
+        private static void InternalRun()
+        {
+            // Check if setup.
+            if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
+
+            // Set running to true.
+            IsRunning = true;
+
+            // Start running the loops. Blocking.
+            Host.Run();
+
+            // Context has stopped running - cleanup.
+            Host.Close();
+            Renderer.Destroy();
+
+            // Platform cleanup.
+            Host.Dispose();
+
+            // Dereference objects.
+            Host = null;
+            Renderer = null;
+            Settings = null;
+            IsRunning = false;
+
+            // Close application.
+            Environment.Exit(0);
         }
 
         /// <summary>
