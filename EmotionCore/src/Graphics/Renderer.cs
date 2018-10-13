@@ -308,9 +308,10 @@ namespace Emotion.Graphics
         /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
         public void SyncCurrentShader(bool full = true)
         {
+            SetModelMatrix();
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
             if (full) ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
 
             Helpers.CheckError("Syncing shader");
         }
