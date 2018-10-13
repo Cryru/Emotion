@@ -258,6 +258,9 @@ namespace Emotion.Graphics
         /// </summary>
         internal void Clear()
         {
+            // Restore bound state. Some drivers unbind objects when swapping buffers.
+            ShaderProgram.Current.Bind();
+
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Helpers.CheckError("clear");
 
@@ -308,6 +311,8 @@ namespace Emotion.Graphics
             if (full) ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
+
+            Helpers.CheckError("Syncing shader");
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Emotion.Debug;
 using Emotion.Primitives;
 using Emotion.System;
 using Emotion.Utils;
@@ -240,7 +241,7 @@ namespace Emotion.Graphics.GLES
             unsafe
             {
                 float* matrixPtr = &matrix4.Row0.X;
-                ThreadManager.ExecuteGLThread(() => { GL.UniformMatrix4(id, 1, false, matrixPtr); });
+                GL.UniformMatrix4(id, 1, false, matrixPtr);
             }
         }
 
@@ -251,7 +252,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The int value to set it to.</param>
         public static void SetUniformInt(int id, int data)
         {
-            ThreadManager.ExecuteGLThread(() => { GL.Uniform1(id, data); });
+            GL.Uniform1(id, data);
         }
 
         /// <summary>
@@ -261,7 +262,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The float value to set it to.</param>
         public static void SetUniformFloat(int id, float data)
         {
-            ThreadManager.ExecuteGLThread(() => { GL.Uniform1(id, data); });
+            GL.Uniform1(id, data);
         }
 
         /// <summary>
@@ -271,7 +272,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The color value to set it to.</param>
         public static void SetUniformColor(int id, Color data)
         {
-            ThreadManager.ExecuteGLThread(() => { GL.Uniform4(id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f); });
+            GL.Uniform4(id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f);
         }
 
         /// <summary>
@@ -281,7 +282,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The int array value to set it to.</param>
         public static void SetUniformIntArray(int id, int[] data)
         {
-            ThreadManager.ExecuteGLThread(() => { GL.Uniform1(id, data.Length, data); });
+            GL.Uniform1(id, data.Length, data);
         }
 
         #endregion

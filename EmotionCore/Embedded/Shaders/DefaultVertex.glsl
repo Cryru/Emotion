@@ -22,5 +22,5 @@ void main() {
     Tid = tid;
 
     // Multiply by projection.
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertPos, 1);
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertPos, 1.0);
 }
