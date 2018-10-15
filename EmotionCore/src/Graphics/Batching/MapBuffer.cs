@@ -3,9 +3,11 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Graphics.GLES;
+using Emotion.Primitives;
 using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
@@ -24,7 +26,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public bool Mapping
         {
-            get => _dataPointer != null;
+            get => _startPointer != null && _dataPointer != null;
         }
 
         /// <summary>
@@ -32,7 +34,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public bool AnythingMapped
         {
-            get => _indicesCount != 0;
+            get => MappedVertices != 0;
         }
 
         /// <summary>
@@ -40,9 +42,14 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public int Size { get; private set; }
 
+        /// <summary>
+        /// The number of vertices mapped. Also the index of the highest mapped vertex.
+        /// </summary>
+        public int MappedVertices { get; private set; }
+
         #endregion
 
-        #region Draw State
+        #region Privates
 
         /// <summary>
         /// The VBO holding the buffer data of this map buffer.
@@ -55,14 +62,38 @@ namespace Emotion.Graphics.Batching
         protected VertexArray _vao;
 
         /// <summary>
+        /// The IBO holding the buffer indices for all map buffers.
+        /// </summary>
+        private static IndexBuffer _ibo;
+
+        #endregion
+
+        #region State
+
+        /// <summary>
+        /// The index to start drawing from.
+        /// </summary>
+        private int _startIndex;
+
+        /// <summary>
+        /// The index to stop drawing at.
+        /// </summary>
+        private int _endIndex = -1;
+
+        /// <summary>
+        /// The point where the data starts.
+        /// </summary>
+        protected VertexData* _startPointer;
+
+        /// <summary>
         /// The pointer currently being mapped to.
         /// </summary>
         protected VertexData* _dataPointer;
 
         /// <summary>
-        /// The number of indices mapped.
+        /// The list of textures the buffer TIDs (Texture IDs) require, in the correct order.
         /// </summary>
-        protected int _indicesCount;
+        private List<Texture> _textureList;
 
         #endregion
 
@@ -105,7 +136,30 @@ namespace Emotion.Graphics.Batching
                 _vao.Unbind();
 
                 Helpers.CheckError("map buffer - loading vbo into vao");
+
+                // Create ibo if needed.
+                if (_ibo != null) return;
+                // Generate indices.
+                ushort[] indices = new ushort[Renderer.MaxRenderable * 6];
+                uint offset = 0;
+                for (int i = 0; i < indices.Length; i += 6)
+                {
+                    indices[i] = (ushort) (offset + 0);
+                    indices[i + 1] = (ushort) (offset + 1);
+                    indices[i + 2] = (ushort) (offset + 2);
+                    indices[i + 3] = (ushort) (offset + 2);
+                    indices[i + 4] = (ushort) (offset + 3);
+                    indices[i + 5] = (ushort) (offset + 0);
+
+                    offset += 4;
+                }
+
+                _ibo = new IndexBuffer(indices);
+
+                Helpers.CheckError("map buffer - creating ibo");
             });
+
+            _textureList = new List<Texture>();
         }
 
         /// <summary>
@@ -123,9 +177,9 @@ namespace Emotion.Graphics.Batching
         #region Mapping
 
         /// <summary>
-        /// Start mapping the buffer. The buffer cannot be rendered until FinishMapping is called.
+        /// Start mapping the buffer. Does not have to be explicitly called before mapping.
         /// </summary>
-        public virtual void Start()
+        public virtual void StartMapping()
         {
             if (Mapping)
             {
@@ -135,38 +189,51 @@ namespace Emotion.Graphics.Batching
 
             ThreadManager.ForceGLThread();
 
-            _indicesCount = 0;
-
             Helpers.CheckError("map buffer - before start");
             _vbo.Bind();
-            _dataPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
+            _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
+            _dataPointer = _startPointer;
             Helpers.CheckError("map buffer - start");
         }
 
         /// <summary>
-        /// Fast-forward mapping the buffer a certain amount of spaces.
+        /// Maps the current vertex and advanced the current index by one.
         /// </summary>
-        /// <param name="count">The spaces to fast forward.</param>
-        public virtual void FastForward(int count)
+        /// <param name="color">The color of the vertex.</param>
+        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="texture">The texture of the vertex, if any.</param>
+        /// <param name="uv">The uv of the vertex's texture, if any.</param>
+        public void MapNextVertex(Color color, Vector3 vertex, Texture texture = null, Vector2? uv = null)
         {
-            if (!Mapping) Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to fast forward a buffer which never started mapping.");
+            // Check if mapping has started.
+            if (!Mapping) StartMapping();
+
+            InternalMapVertex(ColorToUint(color), GetTid(texture), VerifyUV(texture, uv), vertex);
+            _dataPointer++;
         }
 
         /// <summary>
-        /// Overrides the number of mapped indices. Experimental.
+        /// Moves the pointer to the specified index and maps the vertex.
         /// </summary>
-        /// <param name="count">The number of indices to set as mapped.</param>
-        public virtual void SetMappedIndices(int count)
+        /// <param name="index">The index of the vertex to map.</param>
+        /// <param name="color">The color of the vertex.</param>
+        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="texture">The texture of the vertex, if any.</param>
+        /// <param name="uv">The uv of the vertex's texture, if any.</param>
+        public void MapVertexAt(int index, Color color, Vector3 vertex, Texture texture = null, Vector2? uv = null)
         {
-            if (Mapping) Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to set the number of mapped indices while mapping.");
+            // Check if mapping has started.
+            if (!Mapping) StartMapping();
 
-            _indicesCount = count;
+            // Move the pointer and map the vertex.
+            MovePointerToVertex(index);
+            MapNextVertex(color, vertex, texture, uv);
         }
 
         /// <summary>
-        /// Finish mapping the buffer.
+        /// Finish mapping the buffer, flushing changes to the GPU.
         /// </summary>
-        public virtual void FinishMapping()
+        private void Flush()
         {
             if (!Mapping)
             {
@@ -176,6 +243,7 @@ namespace Emotion.Graphics.Batching
 
             ThreadManager.ForceGLThread();
 
+            _startPointer = null;
             _dataPointer = null;
 
             Helpers.CheckError("map buffer - before unmapping");
@@ -186,6 +254,176 @@ namespace Emotion.Graphics.Batching
 
         #endregion
 
-        public abstract void Render(Renderer renderer);
+        #region Helpers
+
+        /// <summary>
+        /// Moves the pointer to the specified vertex index.
+        /// </summary>
+        /// <param name="index">The index to move the pointer to.</param>
+        private void MovePointerToVertex(int index)
+        {
+            _dataPointer = _startPointer + index;
+        }
+
+        /// <summary>
+        /// Converts an Emotion color object to an uint. todo: Move to color class.
+        /// </summary>
+        /// <param name="color">The color to convert.</param>
+        /// <returns></returns>
+        private static uint ColorToUint(Color color)
+        {
+            return ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
+        }
+
+        /// <summary>
+        /// Maps a vertex.
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="tid"></param>
+        /// <param name="uv"></param>
+        /// <param name="vertex"></param>
+        private void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
+        {
+            _dataPointer->Color = color;
+            _dataPointer->Tid = tid;
+            _dataPointer->UV = uv;
+            _dataPointer->Vertex = vertex;
+
+            // Check if the mapped vertices count needs to be updated.
+            long currentVertex = _dataPointer - _startPointer;
+            if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
+        }
+
+        #endregion
+
+        #region Texturing
+
+        /// <summary>
+        /// Returns the texture id of the specified texture within the buffer.
+        /// </summary>
+        /// <param name="texture">The texture whose id to return</param>
+        /// <returns>The id of the texture.</returns>
+        private float GetTid(Texture texture)
+        {
+            // If no texture.
+            if (texture == null) return -1;
+
+            float tid = -1;
+
+            // Check if the texture is in the list of loaded textures.
+            for (int i = 0; i < _textureList.Count; i++)
+            {
+                if (_textureList[i].Pointer != texture.Pointer) continue; // todo: Try comparing references instead of pointers.
+                tid = i;
+                break;
+            }
+
+            // If not add it.
+            if (tid == -1)
+            {
+                // Check if there is space for adding.
+                if (_textureList.Count >= 16) throw new Exception("Texture limit of 16 per buffer reached.");
+
+                _textureList.Add(texture);
+                tid = _textureList.Count - 1;
+            }
+
+            return tid;
+        }
+
+        /// <summary>
+        /// Verifies the uv.
+        /// </summary>
+        /// <param name="texture">The texture the uv is for.</param>
+        /// <param name="uv">The uv to verify.</param>
+        /// <returns></returns>
+        protected virtual Vector2 VerifyUV(Texture texture, Vector2? uv)
+        {
+            // If no texture, the uv is empty.
+            if (texture == null) return Vector2.Zero;
+
+            return uv ?? Vector2.One;
+        }
+
+        /// <summary>
+        /// Bind all loaded textures for rendering.
+        /// </summary>
+        private void BindTextures()
+        {
+            // Bind textures.
+            for (int i = 0; i < _textureList.Count; i++)
+            {
+                _textureList[i].Bind(i);
+            }
+
+
+            Helpers.CheckError("map buffer - texture binding");
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Set the render range for the buffer.
+        /// </summary>
+        /// <param name="startIndex">The index of the vertex to start drawing from.</param>
+        /// <param name="endIndex">The index of the vertex to stop drawing at. If -1 will draw to MappedVertices.</param>
+        public void SetRenderRange(int startIndex = 0, int endIndex = -1)
+        {
+            _startIndex = startIndex;
+            _endIndex = endIndex;
+
+            // Check offset.
+            if (_startIndex >= MappedVertices)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.Renderer, $"Map buffer startIndex {_startIndex} is beyond mapped vertices - {MappedVertices}.");
+                _startIndex = 0;
+            }
+
+            if (_endIndex > Size)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.Renderer, $"Map buffer endIndex {_endIndex} is beyond size - {Size}.");
+                _endIndex = MappedVertices;
+            }
+
+            if (_startIndex > _endIndex)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.Renderer, $"Map buffer startIndex {_startIndex} is beyond endIndex - {_endIndex}.");
+                _startIndex = 0;
+                _endIndex = MappedVertices;
+            }
+        }
+
+        /// <summary>
+        /// Render the buffer.
+        /// </summary>
+        /// <param name="renderer">To renderer to render the buffer with.</param>
+        public virtual void Render(Renderer renderer)
+        {
+            ThreadManager.ForceGLThread();
+
+            // Check if anything is mapped.
+            if (!AnythingMapped) return;
+
+            // Check if mapping, in which case a flush is needed.
+            if (Mapping) Flush();
+
+            // Load textures.
+            BindTextures();
+
+            _vao.Bind();
+            _ibo.Bind();
+            Helpers.CheckError("map buffer - bind");
+
+            // Convert offset amd length.
+            IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
+            int length = _endIndex == -1 ? MappedVertices : _endIndex;
+
+            GL.DrawElements(PrimitiveType.Triangles, length, DrawElementsType.UnsignedShort, indexToPointer);
+            Helpers.CheckError("map buffer - draw");
+
+            _ibo.Unbind();
+            _vao.Unbind();
+            Helpers.CheckError("map buffer - unbind");
+        }
     }
 }

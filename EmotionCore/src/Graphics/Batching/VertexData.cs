@@ -22,6 +22,7 @@ namespace Emotion.Graphics.Batching
 
         // Location 2
         public float Tid;
+        // todo: this should be an int.
 
         // Location 3
         public uint Color;
