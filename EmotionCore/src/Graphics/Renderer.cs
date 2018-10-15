@@ -133,6 +133,7 @@ namespace Emotion.Graphics
                 {
                     Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
                     Shader.Shader5ExtensionMissing = true;
+                    ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
                 }
                 else
                 {
@@ -140,7 +141,6 @@ namespace Emotion.Graphics
                 }
             }
 
-            ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
             ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
 
             Helpers.CheckError("making default shaders");
