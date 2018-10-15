@@ -44,10 +44,6 @@ namespace Emotion.Graphics.GLES
         /// <param name="source">The shader string source.</param>
         public Shader(ShaderType type, string source)
         {
-            if (!Shader5ExtensionMissing)
-                throw new Exception(
-                    "Fragment shader failed to compile with the following errors:\nERROR: 0:21: error(#201) Requires extension support: support for dynamic indexing into arrays of opaque types (GL_ARB_gpu_shader5)\nERROR: error(#273) 1 compilation errors.  No code generated");
-
             Type = type;
 
             // Fix for MacOS.

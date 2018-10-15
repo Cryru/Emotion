@@ -183,7 +183,7 @@ namespace Emotion.System
             {
                 Debug.Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system capable of running the engine?");
                 Debug.Debugger.Log(MessageType.Error, MessageSource.Engine, ex.ToString());
-                throw ex;
+                throw;
             }
 
             // Start creating modules.
