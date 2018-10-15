@@ -236,7 +236,7 @@
     </None>
     <None Include="packages.config" />
     <EmbeddedResource Include="Embedded\Shaders\DefaultFrag.glsl" />
-    <EmbeddedResource Include="Embedded\Shaders\DefaultVertex.glsl" />
+    <EmbeddedResource Include="Embedded\Shaders\DefaultVert.glsl" />
     <None Include="AppleRun.command">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
