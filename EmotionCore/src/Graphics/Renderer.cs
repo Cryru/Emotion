@@ -120,6 +120,7 @@ namespace Emotion.Graphics
             try
             {
                 ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
+                ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
             }
             catch (Exception ex)
             {
@@ -128,15 +129,20 @@ namespace Emotion.Graphics
                 {
                     Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
                     Shader.Shader5ExtensionMissing = true;
+
+                    // Cleanup erred ones if any.
+                    ShaderProgram.DefaultVertShader?.Destroy();
+                    ShaderProgram.DefaultFragShader?.Destroy();
+
+                    // Recreate shaders.
                     ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
+                    ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
                 }
                 else
                 {
                     throw;
                 }
             }
-
-            ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
 
             Helpers.CheckError("making default shaders");
         }
