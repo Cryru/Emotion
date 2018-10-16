@@ -31,31 +31,11 @@ namespace Emotion.Graphics.GLES
 
         #endregion
 
-        #region Defaults
-
-        public static Shader DefaultVertex;
-        public static Shader DefaultFragment;
-
-        #endregion
-
         #region Flags
 
         public static bool Shader5ExtensionMissing = false;
 
         #endregion
-
-        /// <summary>
-        /// Load defaults.
-        /// </summary>
-        static Shader()
-        {
-            string defaultVertex = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVertex.glsl");
-            string defaultFrag = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
-            DefaultVertex = new Shader(ShaderType.VertexShader, defaultVertex);
-            DefaultFragment = new Shader(ShaderType.FragmentShader, defaultFrag);
-
-            Helpers.CheckError("making default shaders");
-        }
 
         /// <summary>
         /// Create, add source, and compile a new shader.
@@ -67,8 +47,6 @@ namespace Emotion.Graphics.GLES
             Type = type;
 
             // Fix for MacOS.
-            if (CurrentPlatform.OS == PlatformName.Mac) 
-
             if (CurrentPlatform.OS == PlatformName.Mac)
             {
                 source = source.Replace("#version 300 es", "#version 330");

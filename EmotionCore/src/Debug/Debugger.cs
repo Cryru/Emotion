@@ -117,7 +117,7 @@ namespace Emotion.Debug
             }
 
             // Log anything left.
-            while (!_loggingQueue.IsEmpty) LogThreadLoop();
+            while (LogInProgress()) LogThreadLoop();
         }
 
         #endregion
@@ -197,6 +197,15 @@ namespace Emotion.Debug
             // Restore the normal color.
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.BackgroundColor = ConsoleColor.Black;
+        }
+
+        /// <summary>
+        /// Whether something is in the logging pipeline.
+        /// </summary>
+        /// <returns></returns>
+        public static bool LogInProgress()
+        {
+            return !_loggingQueue.IsEmpty;
         }
 
         #endregion

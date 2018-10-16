@@ -53,8 +53,8 @@
     <Reference Include="Microsoft.CSharp">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTK.3.0.0\lib\net20\OpenTK.dll</HintPath>
+    <Reference Include="OpenTK, Version=3.0.1.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.0.1\lib\net20\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="SharpFont, Version=4.0.1.200, Culture=neutral, PublicKeyToken=48add4c483071cdf, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll</HintPath>
@@ -236,7 +236,7 @@
     </None>
     <None Include="packages.config" />
     <EmbeddedResource Include="Embedded\Shaders\DefaultFrag.glsl" />
-    <EmbeddedResource Include="Embedded\Shaders\DefaultVertex.glsl" />
+    <EmbeddedResource Include="Embedded\Shaders\DefaultVert.glsl" />
     <None Include="AppleRun.command">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

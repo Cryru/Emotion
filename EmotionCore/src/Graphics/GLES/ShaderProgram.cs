@@ -54,6 +54,20 @@ namespace Emotion.Graphics.GLES
 
         #endregion
 
+        #region Defaults
+
+        /// <summary>
+        /// The default vertex shader.
+        /// </summary>
+        public static Shader DefaultVertShader;
+
+        /// <summary>
+        /// The default fragment shader.
+        /// </summary>
+        public static Shader DefaultFragShader;
+
+        #endregion
+
         /// <summary>
         /// The program's unique id.
         /// </summary>
@@ -74,8 +88,8 @@ namespace Emotion.Graphics.GLES
                 if (Default == null) Default = this;
 
                 // Check if vert provided.
-                Shader vert = vertexShader ?? Shader.DefaultVertex;
-                Shader frag = fragmentShader ?? Shader.DefaultFragment;
+                Shader vert = vertexShader ?? DefaultVertShader;
+                Shader frag = fragmentShader ?? DefaultFragShader;
 
                 Init(vert, frag);
             });
@@ -90,8 +104,8 @@ namespace Emotion.Graphics.GLES
         {
             ThreadManager.ExecuteGLThread(() =>
             {
-                Shader vert = new Shader(ShaderType.VertexShader, vertexShader);
-                Shader frag = new Shader(ShaderType.FragmentShader, fragmentShader);
+                Shader vert = string.IsNullOrEmpty(vertexShader) ? DefaultVertShader : new Shader(ShaderType.VertexShader, vertexShader);
+                Shader frag = string.IsNullOrEmpty(fragmentShader) ? DefaultFragShader : new Shader(ShaderType.FragmentShader, fragmentShader);
 
                 Init(vert, frag);
             });

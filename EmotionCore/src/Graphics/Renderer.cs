@@ -4,6 +4,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
@@ -15,6 +17,7 @@ using Emotion.Primitives;
 using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
+using Soul;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
@@ -65,7 +68,7 @@ namespace Emotion.Graphics
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
-            // Check for required GL extensions.
+            // Flag missing extensions.
             int extCount = GL.GetInteger(GetPName.NumExtensions);
             bool found = false;
             for (int i = 0; i < extCount; i++)
@@ -75,20 +78,22 @@ namespace Emotion.Graphics
                 found = true;
                 break;
             }
-
             if (!found)
             {
-                Debugger.Log(MessageType.Error, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found. Forcing shaders to use version 400.");
+                Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
                 Shader.Shader5ExtensionMissing = true;
             }
 
-            // Create objects.
-            Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight));
-            MatrixStack = new TransformationStack();
+            // Create default shaders. This also sets some shader flags.
+            CreateDefaultShaders();
 
             // Create a default program, and use it.
             ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
+
+            // Create objects.
+            Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight));
+            MatrixStack = new TransformationStack();
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
@@ -107,6 +112,38 @@ namespace Emotion.Graphics
 
             // Setup debug.
             SetupDebug();
+        }
+
+        /// <summary>
+        /// Creates the default shaders.
+        /// </summary>
+        private void CreateDefaultShaders()
+        {
+            string defaultVert = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVert.glsl");
+            string defaultFrag = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
+
+            try
+            {
+                ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
+            }
+            catch (Exception ex)
+            {
+                // Check if one of the expected exceptions.
+                if (new Regex("GL_ARB_gpu_shader5").IsMatch(ex.ToString()))
+                {
+                    Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
+                    Shader.Shader5ExtensionMissing = true;
+                    ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
+
+            Helpers.CheckError("making default shaders");
         }
 
         /// <summary>
