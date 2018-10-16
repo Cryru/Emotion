@@ -31,12 +31,6 @@ namespace Emotion.Graphics.GLES
 
         #endregion
 
-        #region Flags
-
-        public static bool Shader5ExtensionMissing = false;
-
-        #endregion
-
         /// <summary>
         /// Create, add source, and compile a new shader.
         /// </summary>
@@ -54,7 +48,7 @@ namespace Emotion.Graphics.GLES
             }
 
             // Fix for missing GL_ARB_gpu_shader5.
-            if ((CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux) && Shader5ExtensionMissing)
+            if ((CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux) && Renderer.Shader5ExtensionMissing)
             {
                 source = source.Replace("#version 300 es", "#version 400");
                 Debugger.Log(MessageType.Warning, MessageSource.GL, "Shader version changed from '300 es` to 400' because the Shader5 extension is missing.");

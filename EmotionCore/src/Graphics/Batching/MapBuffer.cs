@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Graphics.GLES;
@@ -12,12 +13,13 @@ using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;
+using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
 namespace Emotion.Graphics.Batching
 {
-    public abstract unsafe class MapBuffer : IRenderable
+    public abstract unsafe class MapBuffer : Buffer, IRenderable
     {
         #region Properties
 
@@ -38,37 +40,66 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <summary>
-        /// The size of the buffer in vertices.
-        /// </summary>
-        public int Size { get; private set; }
-
-        /// <summary>
         /// The number of vertices mapped. Also the index of the highest mapped vertex.
         /// </summary>
         public int MappedVertices { get; private set; }
 
-        #endregion
-
-        #region Privates
+        /// <summary>
+        /// The number of objects mapped.
+        /// </summary>
+        public int MappedObjects
+        {
+            get => MappedVertices / 4;
+        }
 
         /// <summary>
-        /// The VBO holding the buffer data of this map buffer.
+        /// The size of individual objects which will be mapped in vertices.
         /// </summary>
-        protected Buffer _vbo;
+        public int ObjectSize { get; private set; }
+
+        /// <summary>
+        /// The number of indices per object.
+        /// </summary>
+        public int IndicesPerObject { get; private set; }
+
+        /// <summary>
+        /// The total number of objects that can fit in the buffer.
+        /// </summary>
+        public int SizeInObjects
+        {
+            get => Size / VertexData.SizeInBytes;
+        }
+
+        /// <summary>
+        /// The total number of vertices that can fit in the buffer.
+        /// </summary>
+        public int SizeInVertices
+        {
+            get => SizeInObjects / ObjectSize;
+        }
+
+        #endregion
+
+        #region Private Objects
 
         /// <summary>
         /// The VAO holding the buffer vertex attribute bindings for this map buffer.
         /// </summary>
-        protected VertexArray _vao;
+        private VertexArray _vao;
 
         /// <summary>
-        /// The IBO holding the buffer indices for all map buffers.
+        /// The index buffer to use when drawing.
         /// </summary>
-        private static IndexBuffer _ibo;
+        private IndexBuffer _ibo;
+
+        /// <summary>
+        /// The primitive type to draw with.
+        /// </summary>
+        private PrimitiveType _drawType;
 
         #endregion
 
-        #region State
+        #region Drawing State
 
         /// <summary>
         /// The index to start drawing from.
@@ -103,61 +134,38 @@ namespace Emotion.Graphics.Batching
         /// Create a new map buffer of the specified size.
         /// </summary>
         /// <param name="size">The size of the map buffer in vertices.</param>
-        protected MapBuffer(int size)
+        /// <param name="objectSize">The size of individual objects which will be mapped in vertices.</param>
+        /// <param name="ibo">The index buffer to use when drawing.</param>
+        /// <param name="indicesPerObject">The number of indices per object.</param>
+        /// <param name="drawType">The OpenGL primitive type to draw this buffer with.</param>
+        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * VertexData.SizeInBytes * objectSize, 3, BufferUsageHint.DynamicDraw)
         {
-            Size = size;
+            ObjectSize = objectSize;
+            _ibo = ibo;
+            IndicesPerObject = indicesPerObject;
+            _drawType = drawType;
 
-            // Calculate the size of the buffer.
-            int quadSize = VertexData.SizeInBytes * 4;
-            int bufferSize = size * quadSize;
+            _vao = new VertexArray();
 
-            ThreadManager.ExecuteGLThread(() =>
-            {
-                _vbo = new Buffer(bufferSize, 3, BufferUsageHint.DynamicDraw);
-                _vao = new VertexArray();
+            _vao.Bind();
+            base.Bind();
 
-                _vao.Bind();
-                _vbo.Bind();
+            GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
+            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
-                // todo: Move VAO creation to inheritors of the MapBuffer.
-                GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
-                GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+            GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
+            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "UV"));
 
-                GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
-                GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+            GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
+            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Tid"));
 
-                GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
-                GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
+            GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
+            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Color"));
 
-                GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
-                GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+            base.Unbind();
+            _vao.Unbind();
 
-                _vbo.Unbind();
-                _vao.Unbind();
-
-                Helpers.CheckError("map buffer - loading vbo into vao");
-
-                // Create ibo if needed.
-                if (_ibo != null) return;
-                // Generate indices.
-                ushort[] indices = new ushort[Renderer.MaxRenderable * 6];
-                uint offset = 0;
-                for (int i = 0; i < indices.Length; i += 6)
-                {
-                    indices[i] = (ushort) (offset + 0);
-                    indices[i + 1] = (ushort) (offset + 1);
-                    indices[i + 2] = (ushort) (offset + 2);
-                    indices[i + 3] = (ushort) (offset + 2);
-                    indices[i + 4] = (ushort) (offset + 3);
-                    indices[i + 5] = (ushort) (offset + 0);
-
-                    offset += 4;
-                }
-
-                _ibo = new IndexBuffer(indices);
-
-                Helpers.CheckError("map buffer - creating ibo");
-            });
+            Helpers.CheckError("map buffer - loading vbo into vao");
 
             _textureList = new List<Texture>();
         }
@@ -165,11 +173,50 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Destroy the map buffer freeing resources.
         /// </summary>
-        public void Delete()
+        public new void Delete()
         {
             ThreadManager.ForceGLThread();
-            _vbo?.Delete();
+            base.Delete();
             _vao?.Delete();
+        }
+
+        #endregion
+
+        #region Buffer API Overwrite
+
+        public new void Bind()
+        {
+            throw new InvalidOperationException("You cannot bind a map buffer.");
+        }
+
+        public new void Unbind()
+        {
+            throw new InvalidOperationException("You cannot unbind a map buffer.");
+        }
+
+        public new void Upload(int size, uint componentCount, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(Vector3[] data, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(Vector2[] data, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
         #endregion
@@ -190,8 +237,8 @@ namespace Emotion.Graphics.Batching
             ThreadManager.ForceGLThread();
 
             Helpers.CheckError("map buffer - before start");
-            _vbo.Bind();
-            _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
+            base.Bind();
+            _startPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
             _dataPointer = _startPointer;
             Helpers.CheckError("map buffer - start");
         }
@@ -247,7 +294,7 @@ namespace Emotion.Graphics.Batching
             _dataPointer = null;
 
             Helpers.CheckError("map buffer - before unmapping");
-            _vbo.Bind();
+            base.Bind();
             GL.UnmapBuffer(BufferTarget.ArrayBuffer);
             Helpers.CheckError("map buffer - unmapping");
         }
@@ -281,7 +328,7 @@ namespace Emotion.Graphics.Batching
         /// <returns></returns>
         protected static uint ColorToUint(Color color)
         {
-            return ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
+            return ((uint)color.A << 24) | ((uint)color.B << 16) | ((uint)color.G << 8) | color.R;
         }
 
         /// <summary>
@@ -293,14 +340,30 @@ namespace Emotion.Graphics.Batching
         /// <param name="vertex"></param>
         protected void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
+            long currentVertex = (_dataPointer - _startPointer) + 1;
+            currentVertex++;
+
+            // Check if going out of bounds.
+            if (currentVertex > SizeInVertices)
+            {
+                Debugger.Log(MessageType.Error, MessageSource.GL, $"Exceeding total vertices ({SizeInVertices}) in map buffer {_pointer}.");
+                return;
+            }
+
+            // Check if indices are going out of bounds.
+            if (currentVertex > _ibo.Count / IndicesPerObject)
+            {
+                Debugger.Log(MessageType.Error, MessageSource.GL, $"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.");
+                return;
+            }
+
             _dataPointer->Color = color;
             _dataPointer->Tid = tid;
             _dataPointer->UV = uv;
             _dataPointer->Vertex = vertex;
 
             // Check if the mapped vertices count needs to be updated.
-            long currentVertex = (_dataPointer - _startPointer) + 1;
-            if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
+            if (currentVertex > MappedVertices) MappedVertices = (int)currentVertex;
         }
 
         #endregion
@@ -372,11 +435,31 @@ namespace Emotion.Graphics.Batching
         #endregion
 
         /// <summary>
-        /// Set the render range for the buffer.
+        /// Set the render range for the buffer in objects.
+        /// </summary>
+        /// <param name="startIndex">The index of the object to start drawing from.</param>
+        /// <param name="endIndex">The index of the object to stop drawing at. If -1 will draw to MappedObjects.</param>
+        public void SetRenderRange(int startIndex = 0, int endIndex = -1)
+        {
+            if (startIndex != 0)
+            {
+                startIndex = startIndex * ObjectSize;
+            }
+
+            if (endIndex != -1)
+            {
+                endIndex = endIndex * ObjectSize;
+            }
+
+            SetRenderRangeVertices(startIndex, endIndex);
+        }
+
+        /// <summary>
+        /// Set the render range for the buffer in vertices.
         /// </summary>
         /// <param name="startIndex">The index of the vertex to start drawing from.</param>
         /// <param name="endIndex">The index of the vertex to stop drawing at. If -1 will draw to MappedVertices.</param>
-        public void SetRenderRange(int startIndex = 0, int endIndex = -1)
+        public void SetRenderRangeVertices(int startIndex = 0, int endIndex = -1)
         {
             _startIndex = startIndex;
             _endIndex = endIndex;
@@ -384,19 +467,19 @@ namespace Emotion.Graphics.Batching
             // Check offset.
             if (_startIndex >= MappedVertices)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, $"Map buffer startIndex {_startIndex} is beyond mapped vertices - {MappedVertices}.");
+                Debugger.Log(MessageType.Warning, MessageSource.GL, $"Map buffer startIndex {_startIndex} is beyond mapped vertices - {MappedVertices}.");
                 _startIndex = 0;
             }
 
             if (_endIndex > Size)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, $"Map buffer endIndex {_endIndex} is beyond size - {Size}.");
+                Debugger.Log(MessageType.Warning, MessageSource.GL, $"Map buffer endIndex {_endIndex} is beyond size - {Size}.");
                 _endIndex = MappedVertices;
             }
 
             if (_startIndex > _endIndex)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, $"Map buffer startIndex {_startIndex} is beyond endIndex - {_endIndex}.");
+                Debugger.Log(MessageType.Warning, MessageSource.GL, $"Map buffer startIndex {_startIndex} is beyond endIndex - {_endIndex}.");
                 _startIndex = 0;
                 _endIndex = MappedVertices;
             }
@@ -424,10 +507,10 @@ namespace Emotion.Graphics.Batching
             Helpers.CheckError("map buffer - bind");
 
             // Convert offset amd length.
-            IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
-            int length = _endIndex == -1 ? (MappedVertices / 4) * 6 : (_endIndex / 4) * 6;
+            IntPtr indexToPointer = (IntPtr)(_startIndex * sizeof(ushort));
+            int length = _endIndex == -1 ? MappedObjects * IndicesPerObject : _endIndex / ObjectSize * IndicesPerObject;
 
-            GL.DrawElements(PrimitiveType.Triangles, length, DrawElementsType.UnsignedShort, indexToPointer);
+            GL.DrawElements(_drawType, length, DrawElementsType.UnsignedShort, indexToPointer);
             Helpers.CheckError("map buffer - draw");
 
             _ibo.Unbind();

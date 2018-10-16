@@ -49,8 +49,14 @@ namespace Emotion.Graphics
         #region Render State
 
         private QuadMapBuffer _mainBuffer;
-        private QuadMapBuffer _mainLineBuffer;
+        private LineMapBuffer _mainLineBuffer;
         private bool _viewMatrixEnabled = true;
+
+        #endregion
+
+        #region Flags
+
+        public static bool Shader5ExtensionMissing;
 
         #endregion
 
@@ -76,7 +82,7 @@ namespace Emotion.Graphics
             if (!found)
             {
                 Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
-                Shader.Shader5ExtensionMissing = true;
+                Shader5ExtensionMissing = true;
             }
 
             // Create default shaders. This also sets some shader flags.
@@ -92,7 +98,7 @@ namespace Emotion.Graphics
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
-            _mainLineBuffer = new QuadMapBuffer(MaxRenderable);
+            _mainLineBuffer = new LineMapBuffer(MaxRenderable);
 
             // Check if the setup encountered any errors.
             Helpers.CheckError("renderer setup");
@@ -126,7 +132,7 @@ namespace Emotion.Graphics
                 if (new Regex("GL_ARB_gpu_shader5").IsMatch(ex.ToString()))
                 {
                     Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
-                    Shader.Shader5ExtensionMissing = true;
+                    Shader5ExtensionMissing = true;
 
                     // Cleanup erred ones if any.
                     ShaderProgram.DefaultVertShader?.Destroy();
@@ -429,8 +435,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderOutlineFlush()
         {
-            Render(_mainBuffer);
-            _mainBuffer.Reset();
+            Render(_mainLineBuffer);
+            _mainLineBuffer.Reset();
         }
 
         #endregion
@@ -471,7 +477,7 @@ namespace Emotion.Graphics
         /// <param name="color">The color of the line.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color)
         {
-            //_mainLineBuffer.Add(pointOne, pointTwo, color);
+            _mainLineBuffer.MapNextLine(pointOne, pointTwo, color);
             RenderOutlineFlush();
         }
 

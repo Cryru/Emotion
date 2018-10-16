@@ -9,6 +9,7 @@ using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
+using Emotion.System;
 using Convert = Soul.Convert;
 
 #endregion
@@ -123,7 +124,8 @@ namespace Emotion.Game.Text
         public RichText(Vector3 position, Vector2 size, Atlas fontAtlas) : base(position, size)
         {
             FontAtlas = fontAtlas;
-            _renderCache = new QuadMapBuffer(Renderer.MaxRenderable);
+
+            ThreadManager.ExecuteGLThread(() => { _renderCache = new QuadMapBuffer(Renderer.MaxRenderable); });
         }
 
         /// <summary>

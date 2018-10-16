@@ -20,24 +20,43 @@ namespace Emotion.Graphics.Batching
         #region Properties
 
         /// <summary>
-        /// The number of quads mapped. Also the index of the highest mapped quad.
+        /// The ibo to be used by all QuadMapBuffers.
         /// </summary>
-        public int MappedQuads
-        {
-            get => MappedVertices / 4;
-        }
+        private static readonly IndexBuffer _ibo;
 
         #endregion
 
+        static QuadMapBuffer()
+        {
+            // Generate indices.
+            ushort[] indices = new ushort[Renderer.MaxRenderable * 6];
+            uint offset = 0;
+            for (int i = 0; i < indices.Length; i += 6)
+            {
+                indices[i] = (ushort) (offset + 0);
+                indices[i + 1] = (ushort) (offset + 1);
+                indices[i + 2] = (ushort) (offset + 2);
+                indices[i + 3] = (ushort) (offset + 2);
+                indices[i + 4] = (ushort) (offset + 3);
+                indices[i + 5] = (ushort) (offset + 0);
+
+                offset += 4;
+            }
+
+            _ibo = new IndexBuffer(indices);
+
+            Helpers.CheckError("map buffer - creating ibo");
+        }
+
         /// <inheritdoc />
-        public QuadMapBuffer(int size) : base(size)
+        public QuadMapBuffer(int size) : base(size, 4, _ibo, 6, PrimitiveType.Triangles)
         {
         }
 
         #region Mapping
 
         /// <summary>
-        /// Maps the current quad and advanced the current index by one quad.
+        /// Maps the current quad and advances the current index by one quad.
         /// </summary>
         /// <param name="location">The location of the quad.</param>
         /// <param name="size">The size of the quad.</param>
@@ -83,8 +102,8 @@ namespace Emotion.Graphics.Batching
             // Check if mapping has started.
             if (!Mapping) StartMapping();
 
-            // Move the pointer and map the vertex.
-            MovePointerToVertex(index * 4);
+            // Move the pointer and map.
+            MovePointerToVertex(index * ObjectSize);
             MapNextQuad(location, size, color, texture, textureArea);
         }
 
@@ -100,16 +119,6 @@ namespace Emotion.Graphics.Batching
             if (uvRect == null)
                 return new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
             return (Rectangle) uvRect;
-        }
-
-        /// <summary>
-        /// Set the render range for the buffer.
-        /// </summary>
-        /// <param name="startIndex">The index of the quad to start drawing from.</param>
-        /// <param name="endIndex">The index of the quad to stop drawing at. If -1 will draw to MappedVertices.</param>
-        public new void SetRenderRange(int startIndex = 0, int endIndex = -1)
-        {
-            base.SetRenderRange(startIndex == 0 ? startIndex : startIndex * 4, endIndex == -1 ? endIndex : endIndex * 4);
         }
 
         #endregion
