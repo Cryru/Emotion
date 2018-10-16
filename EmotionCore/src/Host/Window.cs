@@ -43,7 +43,7 @@ namespace Emotion.Host
         private static GraphicsContextFlags _contextMode = GraphicsContextFlags.ForwardCompatible;
 
         /// <summary>
-        /// The minor version of the OpenGL context.
+        /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
         /// </summary>
         private static int _minorVersion;
 

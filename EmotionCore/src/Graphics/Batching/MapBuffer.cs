@@ -199,11 +199,11 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Maps the current vertex and advanced the current index by one.
         /// </summary>
-        /// <param name="color">The color of the vertex.</param>
         /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="color">The color of the vertex.</param>
         /// <param name="texture">The texture of the vertex, if any.</param>
         /// <param name="uv">The uv of the vertex's texture, if any.</param>
-        public void MapNextVertex(Color color, Vector3 vertex, Texture texture = null, Vector2? uv = null)
+        public void MapNextVertex(Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
@@ -216,18 +216,18 @@ namespace Emotion.Graphics.Batching
         /// Moves the pointer to the specified index and maps the vertex.
         /// </summary>
         /// <param name="index">The index of the vertex to map.</param>
-        /// <param name="color">The color of the vertex.</param>
         /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="color">The color of the vertex.</param>
         /// <param name="texture">The texture of the vertex, if any.</param>
         /// <param name="uv">The uv of the vertex's texture, if any.</param>
-        public void MapVertexAt(int index, Color color, Vector3 vertex, Texture texture = null, Vector2? uv = null)
+        public void MapVertexAt(int index, Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
 
             // Move the pointer and map the vertex.
             MovePointerToVertex(index);
-            MapNextVertex(color, vertex, texture, uv);
+            MapNextVertex(vertex, color, texture, uv);
         }
 
         /// <summary>
@@ -252,6 +252,15 @@ namespace Emotion.Graphics.Batching
             Helpers.CheckError("map buffer - unmapping");
         }
 
+        /// <summary>
+        /// Resets the buffer's mapping. Does not actually clear anything but rather resets the mapping trackers and cached textures.
+        /// </summary>
+        public void Reset()
+        {
+            _textureList.Clear();
+            MappedVertices = 0;
+        }
+
         #endregion
 
         #region Helpers
@@ -260,7 +269,7 @@ namespace Emotion.Graphics.Batching
         /// Moves the pointer to the specified vertex index.
         /// </summary>
         /// <param name="index">The index to move the pointer to.</param>
-        private void MovePointerToVertex(int index)
+        protected void MovePointerToVertex(int index)
         {
             _dataPointer = _startPointer + index;
         }
@@ -270,7 +279,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         /// <param name="color">The color to convert.</param>
         /// <returns></returns>
-        private static uint ColorToUint(Color color)
+        protected static uint ColorToUint(Color color)
         {
             return ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
         }
@@ -282,7 +291,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="tid"></param>
         /// <param name="uv"></param>
         /// <param name="vertex"></param>
-        private void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
+        protected void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
             _dataPointer->Color = color;
             _dataPointer->Tid = tid;
@@ -290,7 +299,7 @@ namespace Emotion.Graphics.Batching
             _dataPointer->Vertex = vertex;
 
             // Check if the mapped vertices count needs to be updated.
-            long currentVertex = _dataPointer - _startPointer;
+            long currentVertex = (_dataPointer - _startPointer) + 1;
             if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
         }
 
@@ -303,7 +312,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         /// <param name="texture">The texture whose id to return</param>
         /// <returns>The id of the texture.</returns>
-        private float GetTid(Texture texture)
+        protected float GetTid(Texture texture)
         {
             // If no texture.
             if (texture == null) return -1;
@@ -416,7 +425,7 @@ namespace Emotion.Graphics.Batching
 
             // Convert offset amd length.
             IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
-            int length = _endIndex == -1 ? MappedVertices : _endIndex;
+            int length = _endIndex == -1 ? (MappedVertices / 4) * 6 : (_endIndex / 4) * 6;
 
             GL.DrawElements(PrimitiveType.Triangles, length, DrawElementsType.UnsignedShort, indexToPointer);
             Helpers.CheckError("map buffer - draw");
