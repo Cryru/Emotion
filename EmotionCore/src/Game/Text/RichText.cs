@@ -9,6 +9,7 @@ using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
+using Emotion.System;
 using Convert = Soul.Convert;
 
 #endregion
@@ -123,7 +124,8 @@ namespace Emotion.Game.Text
         public RichText(Vector3 position, Vector2 size, Atlas fontAtlas) : base(position, size)
         {
             FontAtlas = fontAtlas;
-            _renderCache = new QuadMapBuffer(Renderer.MaxRenderable);
+
+            ThreadManager.ExecuteGLThread(() => { _renderCache = new QuadMapBuffer(Renderer.MaxRenderable); });
         }
 
         /// <summary>
@@ -467,7 +469,6 @@ namespace Emotion.Game.Text
         protected virtual void MapBuffer()
         {
             // Start mapping.
-            _renderCache.Start();
             _prevChar = '\0';
 
             // Iterate virtual lines.
@@ -494,9 +495,6 @@ namespace Emotion.Game.Text
 
                 NewLine();
             }
-
-            // Finish mapping.
-            _renderCache.FinishMapping();
         }
 
         /// <summary>
@@ -544,7 +542,7 @@ namespace Emotion.Game.Text
             Vector3 renderPos = new Vector3(_penX + glyph.MinX, _penY + glyph.YBearing, 0);
             Rectangle uv = new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height);
 
-            _renderCache.Add(renderPos, uv.Size, color, FontAtlas.Texture, uv);
+            _renderCache.MapNextQuad(renderPos, uv.Size, color, FontAtlas.Texture, uv);
 
             _penX += glyph.Advance;
         }

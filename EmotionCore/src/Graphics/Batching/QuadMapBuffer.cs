@@ -20,20 +20,12 @@ namespace Emotion.Graphics.Batching
         #region Properties
 
         /// <summary>
-        /// The IBO holding the buffer indices for all QuadMapBuffers.
+        /// The ibo to be used by all QuadMapBuffers.
         /// </summary>
-        private static IndexBuffer _ibo;
-
-        /// <summary>
-        /// The list of textures the buffer TIDs (Texture IDs) require, in the correct order.
-        /// </summary>
-        private List<Texture> _textureList;
+        private static readonly IndexBuffer _ibo;
 
         #endregion
 
-        /// <summary>
-        /// Generate the IBO used by all QuadMapBuffers.
-        /// </summary>
         static QuadMapBuffer()
         {
             // Generate indices.
@@ -57,160 +49,78 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <inheritdoc />
-        public QuadMapBuffer(int size) : base(size)
+        public QuadMapBuffer(int size) : base(size, 4, _ibo, 6, PrimitiveType.Triangles)
         {
-            _textureList = new List<Texture>();
         }
 
         #region Mapping
 
         /// <summary>
-        /// Start mapping the buffer.
+        /// Maps the current quad and advances the current index by one quad.
         /// </summary>
-        /// <param name="resetLoadedTextures">Whether to reset the list of loaded textures.</param>
-        public void Start(bool resetLoadedTextures)
+        /// <param name="location">The location of the quad.</param>
+        /// <param name="size">The size of the quad.</param>
+        /// <param name="color">The color of the quad.</param>
+        /// <param name="texture">The texture of the quad.</param>
+        /// <param name="textureArea">The texture area (UV) of the quad.</param>
+        public void MapNextQuad(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            // Reset loaded textures if needed.
-            if (resetLoadedTextures) _textureList.Clear();
+            // Check if mapping has started.
+            if (!Mapping) StartMapping();
 
-            // Start mapping.
-            Start();
+            Rectangle uv = VerifyUV(texture, textureArea);
+            float tid = GetTid(texture);
+            uint c = ColorToUint(color);
+
+            // Calculate UV positions
+            Vector2 nn = texture == null ? Vector2.Zero : Vector2.TransformPosition(uv.Location, texture.TextureMatrix);
+            Vector2 pn = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y),  texture.TextureMatrix);
+            Vector2 np = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X, uv.Y + uv.Height),  texture.TextureMatrix);
+            Vector2 pp = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y + uv.Height),  texture.TextureMatrix);
+
+            InternalMapVertex(c, tid, nn, location);
+            _dataPointer++;
+            InternalMapVertex(c, tid, pn, new Vector3(location.X + size.X, location.Y, location.Z));
+            _dataPointer++;
+            InternalMapVertex(c, tid, pp, new Vector3(location.X + size.X, location.Y + size.Y, location.Z));
+            _dataPointer++;
+            InternalMapVertex(c, tid, np, new Vector3(location.X, location.Y + size.Y, location.Z));
+            _dataPointer++;
         }
 
         /// <summary>
-        /// Map a part of the buffer as a quad.
+        /// Moves the pointer to the specified quad index and maps the quad.
         /// </summary>
-        /// <param name="location">The location of the vertices.</param>
-        /// <param name="size">The size of the vertices.</param>
-        /// <param name="color">The color of the vertices.</param>
-        /// <param name="texture">The texture of the vertices.</param>
-        /// <param name="textureArea">The texture area (UV) of the vertices.</param>
-        public void Add(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        /// <param name="index">The index of the quad to map.</param>
+        /// <param name="location">The location of the quad.</param>
+        /// <param name="size">The size of the quad.</param>
+        /// <param name="color">The color of the quad.</param>
+        /// <param name="texture">The texture of the quad.</param>
+        /// <param name="textureArea">The texture area (UV) of the quad.</param>
+        public void MapQuadAt(int index, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            // Convert the color to an int.
-            uint c = ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
+            // Check if mapping has started.
+            if (!Mapping) StartMapping();
 
-            // Map texture to texture list.
-            int tid = -1;
-            Matrix4 textureMatrix = Matrix4.Identity;
-            Rectangle uvRect = Rectangle.Empty;
-
-            // Check if the renderable has a texture.
-            if (texture != null)
-            {
-                // Get the texture matrix.
-                textureMatrix = texture.TextureMatrix;
-
-                // Get the UV rectangle. If none specified then the whole texture area is chosen.
-                if (textureArea == null)
-                    uvRect = new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
-                else
-                    uvRect = (Rectangle) textureArea;
-
-                // Check if the texture of the renderable is loaded into the list of this buffer.
-                for (int i = 0; i < _textureList.Count; i++)
-                {
-                    if (_textureList[i].Pointer != texture.Pointer) continue; // todo: Try comparing references instead of pointers.
-                    tid = i;
-                    break;
-                }
-
-                // If it wasn't found, add it.
-                if (tid == -1)
-                    // Check if reached texture limit, in which case the draw calls must be split.
-                    if (_textureList.Count >= 16)
-                    {
-                        throw new Exception("Texture limit of 16 (32 usually but MacGL implementation is lower) reached.");
-                    }
-                    else
-                    {
-                        _textureList.Add(texture);
-                        tid = _textureList.Count - 1;
-                    }
-            }
-
-            // Check if render limit reached.
-            if (_indicesCount / 6 >= Size) throw new Exception("Render limit of " + Size + " reached.");
-
-            Vector2 nn = texture == null ? Vector2.Zero : Vector2.TransformPosition(uvRect.Location, textureMatrix);
-            Vector2 pn = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), textureMatrix);
-            Vector2 np = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X, uvRect.Y + uvRect.Height), textureMatrix);
-            Vector2 pp = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), textureMatrix);
-
-            // Set four vertices.
-            _dataPointer->Vertex = location;
-            _dataPointer->UV = nn;
-            _dataPointer->Tid = tid;
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            _dataPointer->Vertex = new Vector3(location.X + size.X, location.Y, location.Z);
-            _dataPointer->UV = pn;
-            _dataPointer->Tid = tid;
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            _dataPointer->Vertex = new Vector3(location.X + size.X, location.Y + size.Y, location.Z);
-            _dataPointer->UV = pp;
-            _dataPointer->Tid = tid;
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            _dataPointer->Vertex = new Vector3(location.X, location.Y + size.Y, location.Z);
-            _dataPointer->UV = np;
-            _dataPointer->Tid = tid;
-            _dataPointer->Color = c;
-            _dataPointer++;
-
-            // Increment indices count.
-            _indicesCount += 6;
-        }
-
-        /// <inheritdoc />
-        public override void FastForward(int count)
-        {
-            base.FastForward(count);
-            _dataPointer += 4 * count;
-            _indicesCount += 6 * count;
+            // Move the pointer and map.
+            MovePointerToVertex(index * ObjectSize);
+            MapNextQuad(location, size, color, texture, textureArea);
         }
 
         #endregion
 
-        /// <inheritdoc />
-        public override void Render(Renderer _)
+        #region Helpers
+
+        private Rectangle VerifyUV(Texture texture, Rectangle? uvRect)
         {
-            if (!AnythingMapped)
-            {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to draw buffer that wasn't mapped.");
-                return;
-            }
+            if (texture == null) return Rectangle.Empty;
 
-            ThreadManager.ForceGLThread();
-
-            Helpers.CheckError("map buffer - before draw");
-
-            // Bind textures.
-            for (int i = 0; i < _textureList.Count; i++)
-            {
-                _textureList[i].Bind(i);
-            }
-
-            Helpers.CheckError("map buffer - texture binding");
-
-            _vao.Bind();
-            _ibo.Bind();
-            Helpers.CheckError("map buffer - bind");
-
-            int startIndex = 0 * 6;
-            IntPtr indexToPointer = (IntPtr) (startIndex * sizeof(ushort));
-            if (startIndex >= _indicesCount) return;
-
-            GL.DrawElements(PrimitiveType.Triangles, _indicesCount, DrawElementsType.UnsignedShort, indexToPointer);
-            Helpers.CheckError("map buffer - draw");
-
-            _ibo.Unbind();
-            _vao.Unbind();
-            Helpers.CheckError("map buffer - unbind");
+            // Get the UV rectangle. If none specified then the whole texture area is chosen.
+            if (uvRect == null)
+                return new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
+            return (Rectangle) uvRect;
         }
+
+        #endregion
     }
 }

@@ -124,6 +124,7 @@
     <Compile Include="src\Game\UI\Layout\CornerAnchor.cs" />
     <Compile Include="src\Game\UI\BasicButton.cs" />
     <Compile Include="src\Game\UI\ParentControl.cs" />
+    <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
     <Compile Include="src\Graphics\GLES\Texture.cs" />
     <Compile Include="src\Graphics\GLES\IGLObject.cs" />
@@ -132,7 +133,6 @@
     <Compile Include="src\Graphics\GLES\ShaderProgram.cs" />
     <Compile Include="src\Graphics\GLES\Buffer.cs" />
     <Compile Include="src\Graphics\GLES\VertexArray.cs" />
-    <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
     <Compile Include="src\Graphics\TransformRenderable.cs" />
     <Compile Include="src\Graphics\IRenderable.cs" />
     <Compile Include="src\Graphics\Renderer.cs" />

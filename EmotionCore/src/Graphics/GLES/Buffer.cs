@@ -15,7 +15,7 @@ namespace Emotion.Graphics.GLES
     /// A Vertex Buffer Object (VBO) is an OpenGL feature that provides methods for uploading vertex data (position, normal
     /// vector, color, etc.) to the video device for non-immediate-mode rendering.
     /// </summary>
-    public sealed class Buffer : IGLObject
+    public class Buffer : IGLObject
     {
         #region Properties
 
@@ -24,6 +24,11 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public uint ComponentCount { get; private set; }
 
+        /// <summary>
+        /// The size of the buffer in vertices.
+        /// </summary>
+        public int Size { get; private set; }
+
         #endregion
 
         #region Static
@@ -31,14 +36,14 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The currently bound buffer.
         /// </summary>
-        public static int BoundPointer;
+        public static int BoundPointer { get; internal set; }
 
         #endregion
 
         /// <summary>
         /// The pointer of the buffer within OpenGL.
         /// </summary>
-        private int _pointer;
+        protected int _pointer { get; private set; }
 
         /// <summary>
         /// Create a new buffer, and allocate empty space for it.
@@ -48,6 +53,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="usageHint">What the buffer will be used for.</param>
         public Buffer(int size, uint componentCount, BufferUsageHint usageHint = BufferUsageHint.StaticDraw)
         {
+            Size = size;
             _pointer = GL.GenBuffer();
             Upload(size, componentCount, usageHint);
         }

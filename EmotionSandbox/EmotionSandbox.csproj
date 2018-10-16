@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.Systems.CornerAnchorExample</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.Rendering.RenderingMany</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>

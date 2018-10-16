@@ -54,6 +54,12 @@ namespace Emotion.Graphics
 
         #endregion
 
+        #region Flags
+
+        public static bool Shader5ExtensionMissing;
+
+        #endregion
+
         #region Initialization
 
         internal Renderer()
@@ -76,7 +82,7 @@ namespace Emotion.Graphics
             if (!found)
             {
                 Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
-                Shader.Shader5ExtensionMissing = true;
+                Shader5ExtensionMissing = true;
             }
 
             // Create default shaders. This also sets some shader flags.
@@ -92,9 +98,7 @@ namespace Emotion.Graphics
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
-            _mainBuffer.Start();
             _mainLineBuffer = new LineMapBuffer(MaxRenderable);
-            _mainLineBuffer.Start();
 
             // Check if the setup encountered any errors.
             Helpers.CheckError("renderer setup");
@@ -128,7 +132,7 @@ namespace Emotion.Graphics
                 if (new Regex("GL_ARB_gpu_shader5").IsMatch(ex.ToString()))
                 {
                     Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
-                    Shader.Shader5ExtensionMissing = true;
+                    Shader5ExtensionMissing = true;
 
                     // Cleanup erred ones if any.
                     ShaderProgram.DefaultVertShader?.Destroy();
@@ -317,9 +321,8 @@ namespace Emotion.Graphics
             DrawDebug();
 
             // Flush unflushed buffers.
-            if (_mainBuffer.AnythingMapped || _mainLineBuffer.AnythingMapped)
+            if (_mainBuffer.Mapping || _mainLineBuffer.Mapping)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Unflushed render queues at the end of a frame.");
                 RenderFlush();
                 RenderOutlineFlush();
             }
@@ -404,7 +407,7 @@ namespace Emotion.Graphics
         /// <param name="textureArea">The texture area to render.</param>
         public void RenderQueue(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            _mainBuffer.Add(location, size, color, texture, textureArea);
+            _mainBuffer.MapNextQuad(location, size, color, texture, textureArea);
         }
 
         /// <summary>
@@ -415,7 +418,7 @@ namespace Emotion.Graphics
         /// <param name="color">The color of the lines.</param>
         public void RenderQueueOutline(Vector3 location, Vector2 size, Color color)
         {
-            _mainLineBuffer.Add(location, size, color);
+            _mainLineBuffer.MapNextQuad(location, size, color);
         }
 
         /// <summary>
@@ -423,12 +426,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderFlush()
         {
-            // Check if anything has been mapped.
-            if (!_mainBuffer.AnythingMapped) return;
-            // If still mapping, finish.
-            if (_mainBuffer.Mapping) _mainBuffer.FinishMapping();
             Render(_mainBuffer);
-            _mainBuffer.Start(true);
+            _mainBuffer.Reset();
         }
 
         /// <summary>
@@ -436,12 +435,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderOutlineFlush()
         {
-            // Check if anything has been mapped.
-            if (!_mainLineBuffer.AnythingMapped) return;
-            // If still mapping, finish.
-            if (_mainLineBuffer.Mapping) _mainLineBuffer.FinishMapping();
             Render(_mainLineBuffer);
-            _mainLineBuffer.Start();
+            _mainLineBuffer.Reset();
         }
 
         #endregion
@@ -470,7 +465,7 @@ namespace Emotion.Graphics
         /// <param name="color">The color of the lines.</param>
         public void RenderOutline(Vector3 location, Vector2 size, Color color)
         {
-            _mainLineBuffer.Add(location, size, color);
+            _mainLineBuffer.MapNextQuad(location, size, color);
             RenderOutlineFlush();
         }
 
@@ -482,7 +477,7 @@ namespace Emotion.Graphics
         /// <param name="color">The color of the line.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color)
         {
-            _mainLineBuffer.Add(pointOne, pointTwo, color);
+            _mainLineBuffer.MapNextLine(pointOne, pointTwo, color);
             RenderOutlineFlush();
         }
 

@@ -37,9 +37,6 @@ namespace EmotionSandbox.Examples.Rendering
             // This can be further optimized by creating the objects on another thread and then just passing them.
             ThreadManager.ExecuteGLThread(() =>
             {
-                // Start mapping the buffer.
-                _buffer.Start();
-
                 // Map buffer.
                 int x = 0;
                 int y = 0;
@@ -48,7 +45,7 @@ namespace EmotionSandbox.Examples.Rendering
                 {
                     // Add objects one after another of a random color.
                     Color randomColor = new Color(Utilities.GenerateRandomNumber(0, 255), Utilities.GenerateRandomNumber(0, 255), Utilities.GenerateRandomNumber(0, 255));
-                    _buffer.Add(new Vector3(x * size, y * size, 1), new Vector2(size, size), randomColor);
+                    _buffer.MapNextQuad(new Vector3(x * size, y * size, 1), new Vector2(size, size), randomColor);
 
                     x++;
                     if (x * size < 960)
@@ -56,9 +53,6 @@ namespace EmotionSandbox.Examples.Rendering
                     x = 0;
                     y++;
                 }
-
-                // Finish mapping.
-                _buffer.FinishMapping();
             });
         }
 
