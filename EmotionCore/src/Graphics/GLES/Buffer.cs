@@ -26,6 +26,15 @@ namespace Emotion.Graphics.GLES
 
         #endregion
 
+        #region Static
+
+        /// <summary>
+        /// The currently bound buffer.
+        /// </summary>
+        public static int BoundPointer;
+
+        #endregion
+
         /// <summary>
         /// The pointer of the buffer within OpenGL.
         /// </summary>
@@ -50,6 +59,8 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
+            if(BoundPointer == _pointer) return;
+            BoundPointer = _pointer;
             GL.BindBuffer(BufferTarget.ArrayBuffer, _pointer);
         }
 
@@ -58,6 +69,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Unbind()
         {
+            BoundPointer = 0;
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 

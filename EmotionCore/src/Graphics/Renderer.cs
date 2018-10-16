@@ -24,11 +24,6 @@ using Debugger = Emotion.Debug.Debugger;
 
 namespace Emotion.Graphics
 {
-    // todo: Think of a way to prevent having to think about the Z dimension too much. Especially with UI.
-    // - Maybe setup a different UIRender call.
-    // - Maybe render the UI to a different render target.
-    // - Maybe setup a UI buffer.
-    // - Maybe setup a separate UI renderer.
     public sealed class Renderer
     {
         /// <summary>
@@ -297,6 +292,8 @@ namespace Emotion.Graphics
         {
             // Restore bound state. Some drivers unbind objects when swapping buffers.
             ShaderProgram.Current.Bind();
+            GLES.Buffer.BoundPointer = 0;
+            IndexBuffer.BoundPointer = 0;
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Helpers.CheckError("clear");
@@ -345,9 +342,12 @@ namespace Emotion.Graphics
         /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
         public void SyncCurrentShader(bool full = true)
         {
-            SetModelMatrix();
+            if (full)
+            {
+                SetModelMatrix();
+                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
+            }
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
-            if (full) ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
 
             Helpers.CheckError("Syncing shader");
