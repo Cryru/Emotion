@@ -67,7 +67,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public int SizeInObjects
         {
-            get => Size / VertexData.SizeInBytes;
+            get => SizeInVertices / ObjectSize;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public int SizeInVertices
         {
-            get => SizeInObjects / ObjectSize;
+            get => Size / VertexData.SizeInBytes;
         }
 
         #endregion
@@ -133,12 +133,12 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Create a new map buffer of the specified size.
         /// </summary>
-        /// <param name="size">The size of the map buffer in vertices.</param>
+        /// <param name="size">The size of the map buffer in objects.</param>
         /// <param name="objectSize">The size of individual objects which will be mapped in vertices.</param>
         /// <param name="ibo">The index buffer to use when drawing.</param>
         /// <param name="indicesPerObject">The number of indices per object.</param>
         /// <param name="drawType">The OpenGL primitive type to draw this buffer with.</param>
-        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * VertexData.SizeInBytes * objectSize, 3, BufferUsageHint.DynamicDraw)
+        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3, BufferUsageHint.DynamicDraw)
         {
             ObjectSize = objectSize;
             _ibo = ibo;
@@ -340,8 +340,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="vertex"></param>
         protected void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
-            long currentVertex = (_dataPointer - _startPointer) + 1;
-            currentVertex++;
+            long currentVertex = (_dataPointer - _startPointer);
 
             // Check if going out of bounds.
             if (currentVertex > SizeInVertices)
@@ -351,7 +350,7 @@ namespace Emotion.Graphics.Batching
             }
 
             // Check if indices are going out of bounds.
-            if (currentVertex > _ibo.Count / IndicesPerObject)
+            if (currentVertex / ObjectSize > _ibo.Count / IndicesPerObject)
             {
                 Debugger.Log(MessageType.Error, MessageSource.GL, $"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.");
                 return;
@@ -362,6 +361,7 @@ namespace Emotion.Graphics.Batching
             _dataPointer->UV = uv;
             _dataPointer->Vertex = vertex;
 
+            currentVertex++;
             // Check if the mapped vertices count needs to be updated.
             if (currentVertex > MappedVertices) MappedVertices = (int)currentVertex;
         }

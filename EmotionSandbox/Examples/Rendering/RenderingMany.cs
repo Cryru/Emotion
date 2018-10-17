@@ -30,13 +30,13 @@ namespace EmotionSandbox.Examples.Rendering
 
         public override void Load()
         {
-            // Create a new map buffer.
-            _buffer = new QuadMapBuffer(Renderer.MaxRenderable);
-
             // These operations need to be performed on the GL thread.
             // This can be further optimized by creating the objects on another thread and then just passing them.
             ThreadManager.ExecuteGLThread(() =>
             {
+                // Create a new map buffer.
+                _buffer = new QuadMapBuffer(Renderer.MaxRenderable);
+
                 // Map buffer.
                 int x = 0;
                 int y = 0;
