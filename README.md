@@ -93,17 +93,20 @@ For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
 ## Projects Used
 
 OpenTK [OpenGL/OpenAL] : Context and host creation, input capturing, GL API and AL api.
-- OpenAL32.dll included.
-- openal.so included.
+- OpenAL32.dll included. x64/x86
+- openal.so included. x64
+    - libsndio.so.6.1 included.
 
 FreeImage-DotNet-Core [FreeImage] : Loading and converting images.
-- FreeImage.dll included.
-- FreeImage.so included.
-- FreeImage.dylib included.
+- FreeImage.dll included. x64/x86
+- FreeImage.so included. x64
+    - libpng14.14.dylib included.
+- FreeImage.dylib included. x64
 
 SharpFont [FreeType] : Loading fonts and glyphs, and rendering them.
-- freetype6.dll included.
-- freetype.so included.
+- freetype6.dll included. x64/x86
+- freetype.so included. x64
+- libfreetype.6.dylib included. x64
 
 TiledSharp [Modified] : Loading .tmx Tiled files.
 
