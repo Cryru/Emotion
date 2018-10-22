@@ -117,6 +117,7 @@ namespace Emotion.Graphics
                 Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
                 Shader5ExtensionMissing = true;
             }
+        }
 
         /// <summary>
         /// Creates the default shaders embedded into the binary.
