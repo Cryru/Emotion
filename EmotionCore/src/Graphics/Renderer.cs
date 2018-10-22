@@ -69,27 +69,14 @@ namespace Emotion.Graphics
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
-            // Flag missing extensions.
-            int extCount = GL.GetInteger(GetPName.NumExtensions);
-            bool found = false;
-            for (int i = 0; i < extCount; i++)
-            {
-                string extension = GL.GetString(StringNameIndexed.Extensions, i);
-                if (extension != "GL_ARB_gpu_shader5") continue;
-                found = true;
-                break;
-            }
-            if (!found)
-            {
-                Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
-                Shader5ExtensionMissing = true;
-            }
+            // Set execution flags, used for workarounding different GPU behaviour.
+            SetFlags();
 
             // Create default shaders. This also sets some shader flags.
             CreateDefaultShaders();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader)null, null);
             defaultProgram.Bind();
 
             // Create objects.
@@ -113,8 +100,26 @@ namespace Emotion.Graphics
             SetupDebug();
         }
 
+        private void SetFlags()
+        {
+            // Flag missing extensions.
+            int extCount = GL.GetInteger(GetPName.NumExtensions);
+            bool found = false;
+            for (int i = 0; i < extCount; i++)
+            {
+                string extension = GL.GetString(StringNameIndexed.Extensions, i);
+                if (extension.ToLower() != "gl_arb_gpu_shader5") continue;
+                found = true;
+                break;
+            }
+            if (!found)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
+                Shader5ExtensionMissing = true;
+            }
+
         /// <summary>
-        /// Creates the default shaders.
+        /// Creates the default shaders embedded into the binary.
         /// </summary>
         private void CreateDefaultShaders()
         {
@@ -129,7 +134,7 @@ namespace Emotion.Graphics
             catch (Exception ex)
             {
                 // Check if one of the expected exceptions.
-                if (new Regex("GL_ARB_gpu_shader5").IsMatch(ex.ToString()))
+                if (new Regex("gl_arb_gpu_shader5").IsMatch(ex.ToString().ToLower()))
                 {
                     Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
                     Shader5ExtensionMissing = true;
@@ -177,49 +182,49 @@ namespace Emotion.Graphics
         private void SetupDebug()
         {
             Context.ScriptingEngine.Expose("debugCamera",
-                (Func<string>) (() =>
-                {
-                    _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
-                        : null;
-                    _debugCameraDataText.Active = !_debugCameraDataText.Active;
+                (Func<string>)(() =>
+               {
+                   _debugCamera = _debugCamera == null
+                       ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight)) { Zoom = Camera.Zoom / 2f }
+                       : null;
+                   _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
-                    return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
-                }),
+                   return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
+               }),
                 "Enables the debug camera. Move it with the arrow keys. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fps",
-                (Func<string>) (() =>
-                {
-                    _fpsCounter = !_fpsCounter;
-                    _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
+                (Func<string>)(() =>
+               {
+                   _fpsCounter = !_fpsCounter;
+                   _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
 
-                    return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
-                }),
+                   return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
+               }),
                 "Enables the fps counter. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fbf",
-                (Func<string>) (() =>
-                {
-                    _frameByFrame = !_frameByFrame;
-                    _frameByFrameAdvance = false;
+                (Func<string>)(() =>
+               {
+                   _frameByFrame = !_frameByFrame;
+                   _frameByFrameAdvance = false;
 
-                    return "Frame by frame mode " + (_frameByFrame ? "enabled." : "disabled.");
-                }),
+                   return "Frame by frame mode " + (_frameByFrame ? "enabled." : "disabled.");
+               }),
                 "Enables the frame by frame mode. Press F11 to advance or hold F12 to fast forward. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("debugMouse",
-                (Func<string>) (() =>
-                {
-                    _drawMouse = !_drawMouse;
+                (Func<string>)(() =>
+               {
+                   _drawMouse = !_drawMouse;
 
-                    return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
-                }),
+                   return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
+               }),
                 "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
 
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
-            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
-            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
 
             Debugger.CornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
             Debugger.CornerAnchor.AddControl(_debugFpsCounterDataText, AnchorLocation.TopLeft);
@@ -567,6 +572,7 @@ namespace Emotion.Graphics
         /// <param name="renderable">The renderable to render.</param>
         public void Render(TransformRenderable renderable)
         {
+            Context.Settings = new Settings();
             MatrixStack.Push(renderable.ModelMatrix);
             SetModelMatrix();
             renderable.Render(this);

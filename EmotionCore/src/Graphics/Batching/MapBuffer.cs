@@ -238,7 +238,7 @@ namespace Emotion.Graphics.Batching
 
             Helpers.CheckError("map buffer - before start");
             base.Bind();
-            _startPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
+            _startPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
             _dataPointer = _startPointer;
             Helpers.CheckError("map buffer - start");
         }
