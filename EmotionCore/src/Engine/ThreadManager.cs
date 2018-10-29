@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace Emotion.System
+namespace Emotion.Engine
 {
     public sealed class ThreadManager
     {

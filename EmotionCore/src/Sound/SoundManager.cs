@@ -3,9 +3,9 @@
 #region Using
 
 using System.Collections.Generic;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.IO;
-using Emotion.System;
+using Emotion.Engine;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 

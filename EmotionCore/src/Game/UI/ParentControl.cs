@@ -3,7 +3,7 @@
 #region Using
 
 using System.Collections.Generic;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Graphics;
 using Emotion.Primitives;
 

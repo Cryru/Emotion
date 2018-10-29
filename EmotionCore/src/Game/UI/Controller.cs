@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Input;
 using Emotion.Primitives;
-using Emotion.System;
-using Debugger = Emotion.Debug.Debugger;
+using Emotion.Engine;
+using Debugger = Emotion.Debugging.Debugger;
 
 #endregion
 

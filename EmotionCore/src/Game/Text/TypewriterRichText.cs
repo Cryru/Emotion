@@ -2,7 +2,7 @@
 
 #region Using
 
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;

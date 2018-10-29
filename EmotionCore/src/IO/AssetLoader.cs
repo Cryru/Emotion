@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Soul;
 
 #endregion

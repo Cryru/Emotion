@@ -3,8 +3,8 @@
 #region Using
 
 using System.Collections.Generic;
-using Emotion.Debug;
-using Emotion.System;
+using Emotion.Debugging;
+using Emotion.Engine;
 
 #endregion
 

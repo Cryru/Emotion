@@ -9,13 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
-using Emotion.System;
+using Emotion.Engine;
 using Emotion.Utils;
 using Soul.Logging;
 
 #endregion
 
-namespace Emotion.Debug
+namespace Emotion.Debugging
 {
     public static class Debugger
     {

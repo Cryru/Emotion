@@ -9,7 +9,7 @@ using Color = Emotion.Primitives.Color;
 
 #endregion
 
-namespace Emotion.System
+namespace Emotion.Engine
 {
     public sealed class Settings
     {

@@ -4,9 +4,9 @@
 
 using System;
 using System.Linq;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Primitives;
-using Emotion.System;
+using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 

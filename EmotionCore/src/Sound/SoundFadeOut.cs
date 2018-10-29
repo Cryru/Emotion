@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Emotion.Debug;
+using Emotion.Debugging;
 
 #endregion
 

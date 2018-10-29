@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Jint;
 
 #if DEBUG
@@ -13,7 +13,7 @@ using Jint;
 
 #endregion
 
-namespace Emotion.System
+namespace Emotion.Engine
 {
     public sealed class ScriptingEngine
     {
@@ -22,7 +22,7 @@ namespace Emotion.System
         /// <summary>
         /// An instance of a JS interpreter.
         /// </summary>
-        private Engine _interpreter;
+        private Jint.Engine _interpreter;
 
         /// <summary>
         /// Exposed properties.
@@ -37,7 +37,7 @@ namespace Emotion.System
         internal ScriptingEngine()
         {
             // Define the Jint engine.
-            _interpreter = new Engine(opts =>
+            _interpreter = new Jint.Engine(opts =>
             {
                 // Set scripting timeout.
                 opts.TimeoutInterval(Context.Settings.ScriptTimeout);

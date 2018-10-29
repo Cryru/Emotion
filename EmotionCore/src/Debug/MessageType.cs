@@ -1,6 +1,6 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-namespace Emotion.Debug
+namespace Emotion.Debugging
 {
     public enum MessageType
     {

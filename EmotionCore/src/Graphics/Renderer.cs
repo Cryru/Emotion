@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
@@ -14,11 +14,11 @@ using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
-using Emotion.System;
+using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Soul;
-using Debugger = Emotion.Debug.Debugger;
+using Debugger = Emotion.Debugging.Debugger;
 
 #endregion
 

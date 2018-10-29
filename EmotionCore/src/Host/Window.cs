@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading;
-using Emotion.System;
+using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics;
@@ -76,7 +76,7 @@ namespace Emotion.Host
 
         public new void Run()
         {
-            Run(System.Context.Settings.CapFPS);
+            Run(Engine.Context.Settings.CapFPS);
         }
 
         #region Host API

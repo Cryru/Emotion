@@ -6,14 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
-using Emotion.System;
+using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;
-using Debugger = Emotion.Debug.Debugger;
+using Debugger = Emotion.Debugging.Debugger;
 
 #endregion
 

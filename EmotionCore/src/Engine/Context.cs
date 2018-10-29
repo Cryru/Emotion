@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
@@ -20,7 +20,7 @@ using Debugger = System.Diagnostics.Debugger;
 
 #endregion
 
-namespace Emotion.System
+namespace Emotion.Engine
 {
     public static class Context
     {
@@ -105,9 +105,9 @@ namespace Emotion.System
             IsSetup = true;
 
             // Initialize debugger so we have access to logging afterward.
-            Debug.Debugger.Initialize();
+            Debugging.Debugger.Initialize();
 
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, $"Starting Emotion v{Meta.Version}");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, $"Starting Emotion v{Meta.Version}");
 
             // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
             if (Debugger.IsAttached)
@@ -124,10 +124,10 @@ namespace Emotion.System
             catch (Exception ex)
             {
                 File.WriteAllText($"Logs{Path.DirectorySeparatorChar}InitCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
-                Debug.Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine was unable to initialize.\n{ex}");
+                Debugging.Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine was unable to initialize.\n{ex}");
 
                 // Flush logs.
-                while (Debug.Debugger.LogInProgress()) Task.Delay(1).Wait();
+                while (Debugging.Debugger.LogInProgress()) Task.Delay(1).Wait();
 
                 // Close.
                 Environment.Exit(1);
@@ -137,11 +137,11 @@ namespace Emotion.System
         private static void InternalSetup(Action<Settings> config = null)
         {
             // Initiate bootstrap.
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, $"Executed at: {Environment.CurrentDirectory}");
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, $"64Bit: {Environment.Is64BitProcess}");
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, $"OS: {CurrentPlatform.OS} ({Environment.OSVersion})");
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, $"CPU: {Environment.ProcessorCount}");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, $"Executed at: {Environment.CurrentDirectory}");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, $"64Bit: {Environment.Is64BitProcess}");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, $"OS: {CurrentPlatform.OS} ({Environment.OSVersion})");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, $"CPU: {Environment.ProcessorCount}");
 
             // Run platform specific boot.
             switch (CurrentPlatform.OS)
@@ -154,8 +154,8 @@ namespace Emotion.System
                     break;
             }
 
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, "Bootstrap complete.");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, "Bootstrap complete.");
 
             // Apply settings and run initial setup function.
             Settings initial = new Settings();
@@ -167,12 +167,12 @@ namespace Emotion.System
 
             try
             {
-                Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
+                Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
                 if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
                 {
                     Host = new Window(Settings);
                     Host.SetHooks(LoopUpdate, LoopDraw);
-                    Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
+                    Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
                 }
                 else
                 {
@@ -181,35 +181,35 @@ namespace Emotion.System
             }
             catch (Exception ex)
             {
-                Debug.Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system capable of running the engine?");
-                Debug.Debugger.Log(MessageType.Error, MessageSource.Engine, ex.ToString());
+                Debugging.Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system capable of running the engine?");
+                Debugging.Debugger.Log(MessageType.Error, MessageSource.Engine, ex.ToString());
                 throw;
             }
 
             // Start creating modules.
 
             // Scripting engine is first to provide the other modules the ability to expose functions.
-            Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
+            Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
             ScriptingEngine = new ScriptingEngine();
 
             // Asset loader is next so other modules - especially the renderer, can access the file system.
-            Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
+            Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
             AssetLoader = new AssetLoader();
 
             // The order of the next modules doesn't matter.
 
-            Debug.Debugger.InitializeModule();
+            Debugging.Debugger.InitializeModule();
 
-            Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
+            Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
             Renderer = new Renderer();
 
-            Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating sound manager...");
+            Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating sound manager...");
             SoundManager = new SoundManager();
 
-            Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating layer manager...");
+            Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating layer manager...");
             LayerManager = new LayerManager();
 
-            Debug.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating input manager...");
+            Debugging.Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating input manager...");
             InputManager = new InputManager();
         }
 
@@ -223,7 +223,7 @@ namespace Emotion.System
             if (processPath != Environment.CurrentDirectory + "\\")
             {
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                Debug.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
+                Debugging.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
             }
 
             // Set the DLL path on Windows.
@@ -232,7 +232,7 @@ namespace Emotion.System
             string path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("PATH", path + ";" + libraryDirectory, EnvironmentVariableTarget.Process);
 
-            Debug.Debugger.Log(MessageType.Info, MessageSource.Engine, "Library Folder: " + libraryDirectory);
+            Debugging.Debugger.Log(MessageType.Info, MessageSource.Engine, "Library Folder: " + libraryDirectory);
         }
 
         /// <summary>
@@ -254,12 +254,12 @@ namespace Emotion.System
                 string processName = Process.GetCurrentProcess().ProcessName;
                 string executableName = processName.Replace(processPath + "/", "");
 
-                Debug.Debugger.Log(MessageType.Warning, MessageSource.Engine, "It seems the process directory is not the executable directory. Will restart from correct directory.");
-                Debug.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Proper directory is: {processPath}");
-                Debug.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Executable is: {executableName}");
+                Debugging.Debugger.Log(MessageType.Warning, MessageSource.Engine, "It seems the process directory is not the executable directory. Will restart from correct directory.");
+                Debugging.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Proper directory is: {processPath}");
+                Debugging.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Executable is: {executableName}");
 
                 // Stop the debugger so that the new instance can attach itself to the console and perform logging in peace.
-                Debug.Debugger.Stop();
+                Debugging.Debugger.Stop();
 
                 // Restart the process.
                 Process.Start(executableName)?.WaitForExit();
@@ -267,7 +267,7 @@ namespace Emotion.System
             }
 
             // Open libraries.
-            Debug.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}");
+            Debugging.Debugger.Log(MessageType.Warning, MessageSource.Engine, $"libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}");
             Unix.dlopen("./Libraries/x64/libsndio.so.6.1", Unix.RTLD_NOW);
         }
 
@@ -295,10 +295,10 @@ namespace Emotion.System
             catch (Exception ex)
             {
                 File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
-                Debug.Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
+                Debugging.Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
 
                 // Flush logs.
-                while (Debug.Debugger.LogInProgress()) Task.Delay(1).Wait();
+                while (Debugging.Debugger.LogInProgress()) Task.Delay(1).Wait();
 
                 // Close.
                 Environment.Exit(1);
@@ -356,7 +356,7 @@ namespace Emotion.System
             //Task.Delay(1).Wait();
 
             // Update debugger.
-            Debug.Debugger.Update();
+            Debugging.Debugger.Update();
 
             // Update the sound manager. This is outside of a focus check so it can pause sounds on focus loss.
             SoundManager.Update();
@@ -409,7 +409,7 @@ namespace Emotion.System
             Helpers.CheckError("renderer end");
 
             // Draw debug.
-            Debug.Debugger.Draw();
+            Debugging.Debugger.Draw();
 
             // Swap buffers.
             Host.SwapBuffers();

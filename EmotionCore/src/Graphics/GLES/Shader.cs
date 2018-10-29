@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Emotion.Debug;
+using Emotion.Debugging;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Soul;
