@@ -79,11 +79,20 @@ namespace Emotion.Game.UI
         }
 
         /// <summary>
-        /// Is called by the UI controller when destroying the control. Perform cleanup here.
+        /// Perform cleanup here.
         /// </summary>
-        public virtual void Destroy()
+        protected virtual void InternalDestroy()
+        {
+
+        }
+
+        /// <summary>
+        /// Is called by the UI controller when destroying the control. Calls internal destroy.
+        /// </summary>
+        internal void Destroy()
         {
             Destroyed = true;
+            InternalDestroy();
         }
 
         #region UI Events

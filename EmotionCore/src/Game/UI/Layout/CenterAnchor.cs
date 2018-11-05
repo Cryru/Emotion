@@ -27,22 +27,20 @@ namespace Emotion.Game.UI.Layout
         #region Parenting
 
         /// <summary>
-        /// Add a control to the center anchor.
+        /// Add a child to the center anchor.
         /// </summary>
-        /// <param name="control">The control to add.</param>
-        /// <param name="margin">The margin of the control.</param>
-        public void AddControl(Control control, Rectangle margin)
+        /// <param name="transform">The child to add.</param>
+        public override void AddChild(Transform transform)
         {
-            AddControl((Transform) control, margin);
-            AddChild(control);
+            AddChild(transform, Rectangle.Empty);
         }
 
         /// <summary>
-        /// Add a transform to the center anchor.
+        /// Add a child to the center anchor.
         /// </summary>
-        /// <param name="transform">The transform to add.</param>
+        /// <param name="transform">The child to add.</param>
         /// <param name="margin">The margin of the control.</param>
-        public void AddControl(Transform transform, Rectangle margin)
+        public void AddChild(Transform transform, Rectangle margin)
         {
             LayoutControl anchorControl = new LayoutControl
             {
@@ -59,34 +57,33 @@ namespace Emotion.Game.UI.Layout
             transform.OnResize += _updateEvent;
 
             ApplyLogic();
+            base.AddChild(transform);
         }
 
         /// <summary>
-        /// Remove a transform from the center anchor. If not found nothing will happen.
+        /// Remove a child from the center anchor. If not found nothing will happen.
         /// </summary>
-        /// <param name="transform">The control to remove.</param>
-        public void RemoveControl(Transform transform)
+        /// <param name="transform">The child to remove.</param>
+        public override void RemoveChild(Transform transform)
         {
             lock (_controls)
             {
                 LayoutControl match = _controls.FirstOrDefault(x => x.Control == transform);
-                if (match != null) _controls.Remove(match);
+                if (match != null)
+                {
+                    _controls.Remove(match);
+                }
+                else
+                {
+                    return;
+                }
             }
 
             // Unhook from event.
             transform.OnResize -= _updateEvent;
 
             ApplyLogic();
-        }
-
-        /// <summary>
-        /// Remove a control from the center anchor. If not found nothing will happen.
-        /// </summary>
-        /// <param name="control">The control to remove.</param>
-        public void RemoveControl(Control control)
-        {
-            RemoveControl((Transform) control);
-            RemoveChild(control);
+            base.RemoveChild(transform);
         }
 
         #endregion

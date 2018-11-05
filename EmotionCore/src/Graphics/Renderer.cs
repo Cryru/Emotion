@@ -227,8 +227,8 @@ namespace Emotion.Graphics
             _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
             _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
 
-            Debugger.CornerAnchor.AddControl(_debugCameraDataText, AnchorLocation.BottomLeft);
-            Debugger.CornerAnchor.AddControl(_debugFpsCounterDataText, AnchorLocation.TopLeft);
+            Debugger.CornerAnchor.AddChild(_debugCameraDataText, AnchorLocation.BottomLeft);
+            Debugger.CornerAnchor.AddChild(_debugFpsCounterDataText, AnchorLocation.TopLeft);
         }
 
         [Conditional("DEBUG")]

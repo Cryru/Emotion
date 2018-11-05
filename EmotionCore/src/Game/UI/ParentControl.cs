@@ -16,33 +16,65 @@ namespace Emotion.Game.UI
         /// <summary>
         /// The children of this control.
         /// </summary>
-        protected List<Control> _children { get; set; } = new List<Control>();
+        protected List<Transform> _children { get; set; } = new List<Transform>();
 
         protected ParentControl(Vector3 position, Vector2 size) : base(position, size)
         {
         }
 
+        ///// <summary>
+        ///// Add a child to this control.
+        ///// </summary>
+        ///// <param name="control">The child to add.</param>
+        //public virtual void AddChild(Control control)
+        //{
+        //    Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child of type [{control.GetType()}]");
+        //    _children.Add(control);
+        //    control.Parent = this;
+        //    Controller.Add(control);
+        //}
+
+        ///// <summary>
+        ///// Remove a child of this control.
+        ///// </summary>
+        ///// <param name="control">A reference to the control to remove.</param>
+        //public virtual void RemoveChild(Control control)
+        //{
+        //    Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] removing child of type [{control.GetType()}]");
+        //    _children.Remove(control);
+        //    Controller.Remove(control);
+        //}
+
+        
         /// <summary>
         /// Add a child to this control.
         /// </summary>
-        /// <param name="control">The child to add.</param>
-        public void AddChild(Control control)
+        /// <param name="transform">The child to add. Can be a transform or a control.</param>
+        public virtual void AddChild(Transform transform)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child of type [{control.GetType()}]");
-            _children.Add(control);
-            control.Parent = this;
-            Controller.Add(control);
+            Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child transform.");
+            _children.Add(transform);
+
+            if (transform is Control control)
+            {
+                control.Parent = this;
+                Controller.Add(control);
+            }
         }
 
         /// <summary>
         /// Remove a child of this control.
         /// </summary>
-        /// <param name="control">A reference to the control to remove.</param>
-        public void RemoveChild(Control control)
+        /// <param name="transform">A reference to the child to remove.</param>
+        public virtual void RemoveChild(Transform transform)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] removing child of type [{control.GetType()}]");
-            _children.Remove(control);
-            Controller.Remove(control);
+            Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] removing child transform.");
+            _children.Remove(transform);
+
+            if (transform is Control control)
+            {
+                Controller.Remove(control);
+            }
         }
 
         /// <summary>
@@ -51,25 +83,31 @@ namespace Emotion.Game.UI
         /// <param name="renderer"></param>
         public override void Render(Renderer renderer)
         {
-            foreach (Control child in _children)
+            foreach (Transform child in _children)
             {
-                if (!child.Active) continue;
+                // Check if the child is a control.
+                if (!(child is Control childControl)) continue;
 
-                renderer.Render(child);
+                if (!childControl.Active) continue;
+
+                renderer.Render(childControl);
             }
         }
 
         /// <summary>
         /// Ensures children are destroyed.
         /// </summary>
-        public override void Destroy()
+        protected override void InternalDestroy()
         {
-            foreach (Control child in _children)
+            foreach (Transform child in _children)
             {
-                Controller.Remove(child);
+                // Check if the child is a control.
+                if (!(child is Control childControl)) continue;
+
+                Controller.Remove(childControl);
             }
 
-            base.Destroy();
+            _children.Clear();
         }
     }
 }

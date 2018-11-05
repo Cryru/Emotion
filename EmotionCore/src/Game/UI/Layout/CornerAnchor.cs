@@ -45,34 +45,19 @@ namespace Emotion.Game.UI.Layout
         /// Add a control to the anchor.
         /// </summary>
         /// <param name="control">The control to add.</param>
-        /// <param name="anchor">The corner of the screen to anchor the control to.</param>
-        public void AddControl(Control control, AnchorLocation anchor)
+        public override void AddChild(Transform control)
         {
-            AddControl((Transform) control, anchor);
-            AddChild(control);
+            AddChild(control, AnchorLocation.TopLeft);
         }
-
-        /// <summary>
-        /// Add a control to the anchor.
-        /// </summary>
-        /// <param name="control">The control to add.</param>
-        /// <param name="anchor">The corner of the screen to anchor the control to.</param>
-        /// <param name="margin">The margin of the control.</param>
-        public void AddControl(Control control, AnchorLocation anchor, Rectangle margin)
-        {
-            AddControl((Transform) control, anchor, margin);
-            AddChild(control);
-        }
-
 
         /// <summary>
         /// Add a control to the corner anchor.
         /// </summary>
         /// <param name="control">The control to add.</param>
         /// <param name="anchor">The corner of the screen to anchor the control to.</param>
-        public void AddControl(Transform control, AnchorLocation anchor)
+        public void AddChild(Transform control, AnchorLocation anchor)
         {
-            AddControl(control, anchor, Rectangle.Empty);
+            AddChild(control, anchor, Rectangle.Empty);
         }
 
         /// <summary>
@@ -81,7 +66,7 @@ namespace Emotion.Game.UI.Layout
         /// <param name="transform">The control to add.</param>
         /// <param name="anchor">The corner of the screen to anchor the control to.</param>
         /// <param name="margin">The margin of the control.</param>
-        public void AddControl(Transform transform, AnchorLocation anchor, Rectangle margin)
+        public void AddChild(Transform transform, AnchorLocation anchor, Rectangle margin)
         {
             AnchorLayoutControl anchorControl = new AnchorLayoutControl
             {
@@ -99,6 +84,7 @@ namespace Emotion.Game.UI.Layout
             transform.OnResize += _updateEvent;
 
             ApplyLogic();
+            base.AddChild(transform);
         }
 
 
@@ -106,28 +92,26 @@ namespace Emotion.Game.UI.Layout
         /// Remove a control from the corner anchor. If not found nothing will happen.
         /// </summary>
         /// <param name="transform">The control to remove.</param>
-        public void RemoveControl(Transform transform)
+        public override void RemoveChild(Transform transform)
         {
             lock (_controls)
             {
                 AnchorLayoutControl match = _controls.FirstOrDefault(x => x.Control == transform);
-                if (match != null) _controls.Remove(match);
+                if (match != null)
+                {
+                    _controls.Remove(match);
+                }
+                else
+                {
+                    return;
+                }
             }
 
             // Unhook from event.
             transform.OnResize -= _updateEvent;
 
             ApplyLogic();
-        }
-
-        /// <summary>
-        /// Remove a control from the center anchor. If not found nothing will happen.
-        /// </summary>
-        /// <param name="control">The control to remove.</param>
-        public void RemoveControl(Control control)
-        {
-            RemoveControl((Transform) control);
-            RemoveChild(control);
+            base.RemoveChild(transform);
         }
 
         #endregion

@@ -182,45 +182,6 @@ namespace Emotion.Graphics.Batching
 
         #endregion
 
-        #region Buffer API Overwrite
-
-        public new void Bind()
-        {
-            throw new InvalidOperationException("You cannot bind a map buffer.");
-        }
-
-        public new void Unbind()
-        {
-            throw new InvalidOperationException("You cannot unbind a map buffer.");
-        }
-
-        public new void Upload(int size, uint componentCount, BufferUsageHint usageHint)
-        {
-            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
-        }
-
-        public new void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
-        {
-            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
-        }
-
-        public new void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
-        {
-            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
-        }
-
-        public new void Upload(Vector3[] data, BufferUsageHint usageHint)
-        {
-            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
-        }
-
-        public new void Upload(Vector2[] data, BufferUsageHint usageHint)
-        {
-            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
-        }
-
-        #endregion
-
         #region Mapping
 
         /// <summary>
@@ -517,5 +478,44 @@ namespace Emotion.Graphics.Batching
             _vao.Unbind();
             Helpers.CheckError("map buffer - unbind");
         }
+
+        #region Buffer API Overwrite
+
+        public new void Bind()
+        {
+            throw new InvalidOperationException("You cannot bind a map buffer.");
+        }
+
+        public new void Unbind()
+        {
+            throw new InvalidOperationException("You cannot unbind a map buffer.");
+        }
+
+        public new void Upload(int size, uint componentCount, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(Vector3[] data, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        public new void Upload(Vector2[] data, BufferUsageHint usageHint)
+        {
+            throw new InvalidOperationException("Cannot upload to a map buffer directly.");
+        }
+
+        #endregion
     }
 }

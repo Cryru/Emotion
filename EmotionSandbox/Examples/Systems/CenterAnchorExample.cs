@@ -40,7 +40,7 @@ namespace EmotionSandbox.Examples.Systems
 
             // Create a component to center.
             BasicButton test = new BasicButton(new Vector3(10, 10, 0), new Vector2(100, 100));
-            _anchor.AddControl(test, new Rectangle(0, 100, 0, 0));
+            _anchor.AddChild(test, new Rectangle(0, 100, 0, 0));
         }
 
         public override void Update(float frameTime)

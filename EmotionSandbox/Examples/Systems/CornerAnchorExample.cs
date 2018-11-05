@@ -44,25 +44,25 @@ namespace EmotionSandbox.Examples.Systems
             for (int i = 0; i < 10; i++)
             {
                 BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
-                _anchor.AddControl(test, AnchorLocation.TopLeft, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
+                _anchor.AddChild(test, AnchorLocation.TopLeft, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
 
             for (int i = 0; i < 10; i++)
             {
                 BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
-                _anchor.AddControl(test, AnchorLocation.BottomLeft, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
+                _anchor.AddChild(test, AnchorLocation.BottomLeft, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
 
             for (int i = 0; i < 10; i++)
             {
                 BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
-                _anchor.AddControl(test, AnchorLocation.TopRight, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
+                _anchor.AddChild(test, AnchorLocation.TopRight, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
 
             for (int i = 0; i < 10; i++)
             {
                 BasicButton test = new BasicButton(new Vector3(0, 0, 0), new Vector2(randomizer.Next(10, 101), randomizer.Next(10, 101)));
-                _anchor.AddControl(test, AnchorLocation.BottomRight, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
+                _anchor.AddChild(test, AnchorLocation.BottomRight, new Rectangle(randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16), randomizer.Next(5, 16)));
             }
         }
 

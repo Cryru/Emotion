@@ -1,17 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
 using Emotion.Engine;
+using Emotion.Game.UI;
+using Emotion.Game.UI.Layout;
+using Emotion.Graphics.GLES;
+using Emotion.Graphics.Text;
+using Emotion.IO;
+using Emotion.Primitives;
 using EmotionSandbox.Examples.Generic;
 
 namespace EmotionSandbox.SoundPlayer
 {
     public class SoundPlayerScene : Layer
     {
+        #region Assets
+
+        private static string _playButton = "SoundPlayer/playButton.png";
+        private static string _defaultFont = "SoundPlayer/RobotoFont.woff2";
+
+        #endregion
+
+        private Controller _UIController;
+
         public static void Main()
         {
             Context.Setup();
@@ -22,22 +33,30 @@ namespace EmotionSandbox.SoundPlayer
 
         public override void Load()
         {
-            throw new NotImplementedException();
+            
+            Context.AssetLoader.Get<Font>(_defaultFont);
+
+            _UIController = new Controller();
+            CenterAnchor centerAnchor = new CenterAnchor();
+            _UIController.Add(centerAnchor);
+
+            BasicButton playButton = new BasicButton(Vector3.Zero, new Vector2(36, 36)) {Texture = Context.AssetLoader.Get<Texture>(_playButton)};
+            centerAnchor.AddChild(playButton);
         }
 
         public override void Update(float frameTime)
         {
-            throw new NotImplementedException();
+
         }
 
         public override void Draw(Renderer renderer)
         {
-            throw new NotImplementedException();
+            
         }
 
         public override void Unload()
         {
-            throw new NotImplementedException();
+
         }
     }
 }
