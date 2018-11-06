@@ -21,7 +21,7 @@ namespace EmotionSandbox.SoundPlayer
 
         #endregion
 
-        private Controller _UIController;
+        private Controller _uiController;
 
         public static void Main()
         {
@@ -29,6 +29,8 @@ namespace EmotionSandbox.SoundPlayer
 
             Context.LayerManager.Add(new LoadingScreen(), "__loading__", 0);
             Context.LayerManager.Add(new SoundPlayerScene(), "soundPlayer", 1);
+
+            Context.Run();
         }
 
         public override void Load()
@@ -36,22 +38,25 @@ namespace EmotionSandbox.SoundPlayer
             
             Context.AssetLoader.Get<Font>(_defaultFont);
 
-            _UIController = new Controller();
+            _uiController = new Controller();
             CenterAnchor centerAnchor = new CenterAnchor();
-            _UIController.Add(centerAnchor);
+            _uiController.Add(centerAnchor);
 
             BasicButton playButton = new BasicButton(Vector3.Zero, new Vector2(36, 36)) {Texture = Context.AssetLoader.Get<Texture>(_playButton)};
-            centerAnchor.AddChild(playButton);
+            centerAnchor.AddChild(playButton, new Rectangle(0, Context.Settings.RenderHeight / 2 - 36, 0, 0));
         }
 
         public override void Update(float frameTime)
         {
-
+            _uiController.Update();
         }
 
         public override void Draw(Renderer renderer)
         {
-            
+            // Render a cornflower background to hide the loading screen beneath this layer.
+            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+
+            _uiController.Draw();
         }
 
         public override void Unload()

@@ -24,6 +24,14 @@ namespace Emotion.Game.UI.Layout
             _updateEvent = (a, b) => ApplyLogic();
         }
 
+        public override void Init()
+        {
+            if (Parent == null)
+            {
+                Size = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
+            }
+        }
+
         #region Parenting
 
         /// <summary>
@@ -104,11 +112,8 @@ namespace Emotion.Game.UI.Layout
             renderer.RenderOutlineFlush();
             renderer.RenderFlush();
 
-            float screenWidth = Context.Settings.RenderWidth;
-            float screenHeight = Context.Settings.RenderHeight;
-
-            renderer.RenderQueueOutline(new Vector3(screenWidth / 2, 0, 0), new Vector2(0, screenHeight), Color.Pink);
-            renderer.RenderQueueOutline(new Vector3(0, screenHeight / 2, 0), new Vector2(screenWidth, 0), Color.Pink);
+            renderer.RenderQueueOutline(new Vector3(Width / 2, 0, 0), new Vector2(0, Height), Color.Pink);
+            renderer.RenderQueueOutline(new Vector3(0, Height / 2, 0), new Vector2(Width, 0), Color.Pink);
 
             lock (_controls)
             {
@@ -125,14 +130,11 @@ namespace Emotion.Game.UI.Layout
 
         private void ApplyLogic()
         {
-            float screenWidth = Context.Settings.RenderWidth;
-            float screenHeight = Context.Settings.RenderHeight;
-
             lock (_controls)
             {
                 foreach (LayoutControl control in _controls)
                 {
-                    Vector2 centralPoint = new Vector2(screenWidth / 2, screenHeight / 2);
+                    Vector2 centralPoint = new Vector2(Width / 2, Height / 2);
                     centralPoint.X += control.Margin.X;
                     centralPoint.Y += control.Margin.Y;
                     centralPoint.X -= control.Margin.Width;

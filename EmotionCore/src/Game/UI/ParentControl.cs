@@ -21,30 +21,6 @@ namespace Emotion.Game.UI
         protected ParentControl(Vector3 position, Vector2 size) : base(position, size)
         {
         }
-
-        ///// <summary>
-        ///// Add a child to this control.
-        ///// </summary>
-        ///// <param name="control">The child to add.</param>
-        //public virtual void AddChild(Control control)
-        //{
-        //    Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child of type [{control.GetType()}]");
-        //    _children.Add(control);
-        //    control.Parent = this;
-        //    Controller.Add(control);
-        //}
-
-        ///// <summary>
-        ///// Remove a child of this control.
-        ///// </summary>
-        ///// <param name="control">A reference to the control to remove.</param>
-        //public virtual void RemoveChild(Control control)
-        //{
-        //    Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] removing child of type [{control.GetType()}]");
-        //    _children.Remove(control);
-        //    Controller.Remove(control);
-        //}
-
         
         /// <summary>
         /// Add a child to this control.

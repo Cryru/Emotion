@@ -64,7 +64,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SoundPlayer\SoundPlayerScene.cs" />
-    <None Include="Assets\SoundPlayer\RobotoFont.woff2" />
+    <None Include="Assets\SoundPlayer\RobotoFont.woff2">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Examples\Input.cs" />
     <Compile Include="Examples\Generic\LoadingScreen.cs" />
     <Compile Include="Examples\Rendering\RenderingMany.cs" />
@@ -111,7 +113,9 @@
     <Content Include="Assets\LoadingCircleHalf.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\SoundPlayer\playButton.png" />
+    <Content Include="Assets\SoundPlayer\playButton.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\test.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

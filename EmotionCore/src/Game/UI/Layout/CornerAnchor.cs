@@ -39,6 +39,14 @@ namespace Emotion.Game.UI.Layout
             _updateEvent = (a, b) => ApplyLogic();
         }
 
+        public override void Init()
+        {
+            if (Parent == null)
+            {
+                Size = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
+            }
+        }
+
         #region Parenting
 
         /// <summary>
@@ -148,62 +156,56 @@ namespace Emotion.Game.UI.Layout
 
         private void DrawDebugBounds(Renderer renderer, Rectangle padding, Color color)
         {
-            float screenWidth = Context.Settings.RenderWidth;
-            float screenHeight = Context.Settings.RenderHeight;
-
             // Top
-            renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(screenWidth, padding.Y), color);
+            renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(Width, padding.Y), color);
 
             // Left
-            renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(padding.X, screenHeight), color);
+            renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(padding.X, Height), color);
 
             // Bottom
-            renderer.RenderQueueOutline(new Vector3(0, screenHeight - padding.Y, Z), new Vector2(screenWidth, padding.Y), color);
+            renderer.RenderQueueOutline(new Vector3(0, Height - padding.Y, Z), new Vector2(Width, padding.Y), color);
 
             // Right
-            renderer.RenderQueueOutline(new Vector3(screenWidth - padding.X, 0, Z), new Vector2(padding.X, screenHeight), color);
+            renderer.RenderQueueOutline(new Vector3(Width - padding.X, 0, Z), new Vector2(padding.X, Height), color);
         }
 
         private void ApplyLogic()
         {
-            float screenWidth = Context.Settings.RenderWidth;
-            float screenHeight = Context.Settings.RenderHeight;
-
             float limitPercentage = ColumnLimit / 100;
-            float screenWidthLimit = screenWidth * limitPercentage;
+            float widthLimit = Width * limitPercentage;
 
             AnchorPen topLeftPen = new AnchorPen
             {
                 Top = Padding.X,
                 Left = Padding.Y,
-                WidthLimit = screenWidthLimit,
+                WidthLimit = widthLimit,
                 NeededTop = 0
             };
 
             AnchorPen bottomLeftPen = new AnchorPen
             {
-                Top = screenHeight - Padding.Height,
+                Top = Height - Padding.Height,
                 Left = Padding.Y,
-                WidthLimit = screenWidthLimit,
-                NeededTop = screenHeight
+                WidthLimit = widthLimit,
+                NeededTop = Height
             };
 
             AnchorPen topRightPen = new AnchorPen
             {
                 Top = Padding.X,
-                Left = screenWidth - Padding.Width,
-                WidthLimit = screenWidthLimit,
+                Left = Width - Padding.Width,
+                WidthLimit = widthLimit,
                 NeededTop = 0,
-                Holder = screenWidth - Padding.Width
+                Holder = Width - Padding.Width
             };
 
             AnchorPen bottomRightPen = new AnchorPen
             {
-                Top = screenHeight - Padding.Height,
-                Left = screenWidth - Padding.Width,
-                WidthLimit = screenWidthLimit,
-                NeededTop = screenHeight,
-                Holder = screenWidth - Padding.Width
+                Top = Height - Padding.Height,
+                Left = Width - Padding.Width,
+                WidthLimit = widthLimit,
+                NeededTop = Height,
+                Holder = Width - Padding.Width
             };
 
             lock (_controls)
