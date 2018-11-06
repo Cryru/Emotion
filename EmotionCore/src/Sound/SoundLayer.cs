@@ -122,14 +122,6 @@ namespace Emotion.Sound
         }
 
         /// <summary>
-        /// Restart the current source.
-        /// </summary>
-        public void ResetCurrent()
-        {
-            ALThread.ExecuteALThread(() => { AL.SourceRewind(_pointer); });
-        }
-
-        /// <summary>
         /// Queue a file to be played on the layer.
         /// </summary>
         /// <param name="file"></param>

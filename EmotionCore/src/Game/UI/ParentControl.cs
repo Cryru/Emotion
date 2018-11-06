@@ -37,7 +37,7 @@ namespace Emotion.Game.UI
         /// <param name="transform">The child to add. Can be a transform or a control.</param>
         public virtual void AddChild(Transform transform)
         {
-            transform.Z++;
+            if(transform.Z <= Z) transform.Z++;
 
             Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child transform.");
             _children.Add(transform);
@@ -95,11 +95,19 @@ namespace Emotion.Game.UI
             foreach (Transform child in _children)
             {
                 // Check if the child is a control.
-                if (!(child is Control childControl)) continue;
+                if (child is Control childControl)
+                {
+                    if (!childControl.Active) continue;
 
-                if (!childControl.Active) continue;
+                    renderer.Render(childControl);
+                    continue;
+                }
 
-                renderer.Render(childControl);
+                // Check if the child is a transform renderable.
+                if (child is TransformRenderable childRenderable)
+                {
+                    renderer.Render(childRenderable);
+                }
             }
         }
 
