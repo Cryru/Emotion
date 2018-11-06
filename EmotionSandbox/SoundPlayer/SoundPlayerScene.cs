@@ -1,11 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
 using Emotion.Engine;
 using Emotion.Game.Layering;
-using Emotion.Graphics;
-using Emotion.Engine.Threading;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
+using Emotion.Graphics;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.IO;
@@ -13,19 +14,21 @@ using Emotion.Primitives;
 using Emotion.Sound;
 using EmotionSandbox.Examples.Generic;
 
+#endregion
+
 namespace EmotionSandbox.SoundPlayer
 {
     public class SoundPlayerScene : Layer
     {
         #region Assets
 
-        private static string _playButton = "SoundPlayer/playButton.png";
-        private static string _pauseButton = "SoundPlayer/pauseButton.png";
-        private static string _loopButton = "SoundPlayer/loopButton.png";
-        private static string _addButton = "SoundPlayer/addButton.png";
+        private readonly string _playButton = "SoundPlayer/playButton.png";
+        private readonly string _pauseButton = "SoundPlayer/pauseButton.png";
+        private readonly string _loopButton = "SoundPlayer/loopButton.png";
+        private readonly string _addButton = "SoundPlayer/addButton.png";
 
-        private static string _defaultFont = "SoundPlayer/RobotoFont.woff";
-        private static string[] _sounds = { "SoundPlayer/ElectricSleepMainMenu.wav", "SoundPlayer/up.wav", "SoundPlayer/down.wav" };
+        private readonly string _defaultFont = "SoundPlayer/RobotoFont.woff";
+        private readonly string[] _sounds = {"SoundPlayer/ElectricSleepMainMenu.wav", "SoundPlayer/up.wav", "SoundPlayer/down.wav"};
 
         #endregion
 
@@ -60,14 +63,9 @@ namespace EmotionSandbox.SoundPlayer
                     if (layer == null) return;
 
                     if (layer.Status == SoundStatus.Playing)
-                    {
                         layer.Pause();
-                    }
                     else
-                    {
                         layer.Resume();
-                    }
-
                 }
             };
             centerAnchor.AddChild(_controlButton, new Rectangle(0, Context.Settings.RenderHeight / 2 - 36, 0, 0));
@@ -108,13 +106,9 @@ namespace EmotionSandbox.SoundPlayer
                     OnClick = () =>
                     {
                         if (_append)
-                        {
                             Context.SoundManager.PlayQueue(Context.AssetLoader.Get<SoundFile>(_sounds[iCopy]), "main");
-                        }
                         else
-                        {
                             Context.SoundManager.Play(Context.AssetLoader.Get<SoundFile>(_sounds[iCopy]), "main");
-                        }
                     }
                 };
                 cornerAnchor.AddChild(addSoundText, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Host.RenderSize.X, 0));
@@ -138,9 +132,9 @@ namespace EmotionSandbox.SoundPlayer
         public override void Update(float frameTime)
         {
             _uiController.Update();
-            
+
             SoundLayer mainLayer = Context.SoundManager.Get("main");
-            if(mainLayer == null) return;
+            if (mainLayer == null) return;
 
             _controlButton.Texture = Context.AssetLoader.Get<Texture>(Context.SoundManager.Get("main")?.Status == SoundStatus.Playing ? _pauseButton : _playButton);
 

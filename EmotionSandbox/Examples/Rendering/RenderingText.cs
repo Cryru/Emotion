@@ -8,7 +8,6 @@ using Emotion.Game.Text;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
-using Emotion.Engine.Threading;
 using EmotionSandbox.Examples.Generic;
 
 #endregion

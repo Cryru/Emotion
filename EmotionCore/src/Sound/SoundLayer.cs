@@ -2,7 +2,6 @@
 
 #region Using
 
-using System;
 using System.Collections.Generic;
 using Emotion.Debug;
 using Emotion.Engine;
@@ -145,9 +144,6 @@ namespace Emotion.Sound
 
                 // Play if not playing.
                 if (Status == SoundStatus.Stopped) AL.SourcePlay(_pointer);
-
-                AL.GetSource(_pointer, ALGetSourcei.BuffersQueued, out int buffersLeft);
-                Console.WriteLine("play " + buffersLeft + " " + Status);
             });
         }
 
