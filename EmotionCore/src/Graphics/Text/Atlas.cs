@@ -3,9 +3,9 @@
 #region Using
 
 using System;
+using Emotion.Engine.Threading;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
-using Emotion.Engine;
 using SharpFont;
 
 #endregion
@@ -120,7 +120,7 @@ namespace Emotion.Graphics.Text
             Face = face;
 
             // Create texture.
-            ThreadManager.ExecuteGLThread(() => { Texture = new Texture(pixels, texWidth, texWidth, $"{face.FamilyName} {fontSize}"); });
+            GLThread.ExecuteGLThread(() => { Texture = new Texture(pixels, texWidth, texWidth, $"{face.FamilyName} {fontSize}"); });
         }
 
         /// <summary>

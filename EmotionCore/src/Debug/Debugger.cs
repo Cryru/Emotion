@@ -7,15 +7,15 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Engine;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
-using Emotion.Engine;
 using Emotion.Utils;
 using Soul.Logging;
 
 #endregion
 
-namespace Emotion.Debugging
+namespace Emotion.Debug
 {
     public static class Debugger
     {

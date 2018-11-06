@@ -4,16 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Emotion.Debugging;
+using Emotion.Debug;
+using Emotion.Engine.Threading;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.GLES.Buffer;
-using Debugger = Emotion.Debugging.Debugger;
 
 #endregion
 
@@ -151,16 +149,16 @@ namespace Emotion.Graphics.Batching
             base.Bind();
 
             GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
-            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
             GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
-            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "UV"));
+            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
 
             GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
-            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Tid"));
+            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
 
             GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
-            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte)Marshal.OffsetOf(typeof(VertexData), "Color"));
+            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 
             base.Unbind();
             _vao.Unbind();
@@ -175,7 +173,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public new void Delete()
         {
-            ThreadManager.ForceGLThread();
+            GLThread.ForceGLThread();
             base.Delete();
             _vao?.Delete();
         }
@@ -195,11 +193,11 @@ namespace Emotion.Graphics.Batching
                 return;
             }
 
-            ThreadManager.ForceGLThread();
+            GLThread.ForceGLThread();
 
             Helpers.CheckError("map buffer - before start");
             base.Bind();
-            _startPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
+            _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
             _dataPointer = _startPointer;
             Helpers.CheckError("map buffer - start");
         }
@@ -249,7 +247,7 @@ namespace Emotion.Graphics.Batching
                 return;
             }
 
-            ThreadManager.ForceGLThread();
+            GLThread.ForceGLThread();
 
             _startPointer = null;
             _dataPointer = null;
@@ -261,7 +259,8 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <summary>
-        /// Resets the buffer's mapping. Does not actually clear anything but rather resets the mapping trackers and cached textures.
+        /// Resets the buffer's mapping. Does not actually clear anything but rather resets the mapping trackers and cached
+        /// textures.
         /// </summary>
         public void Reset()
         {
@@ -289,7 +288,7 @@ namespace Emotion.Graphics.Batching
         /// <returns></returns>
         protected static uint ColorToUint(Color color)
         {
-            return ((uint)color.A << 24) | ((uint)color.B << 16) | ((uint)color.G << 8) | color.R;
+            return ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
         }
 
         /// <summary>
@@ -301,7 +300,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="vertex"></param>
         protected void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
-            long currentVertex = (_dataPointer - _startPointer);
+            long currentVertex = _dataPointer - _startPointer;
 
             // Check if going out of bounds.
             if (currentVertex > SizeInVertices)
@@ -324,7 +323,7 @@ namespace Emotion.Graphics.Batching
 
             currentVertex++;
             // Check if the mapped vertices count needs to be updated.
-            if (currentVertex > MappedVertices) MappedVertices = (int)currentVertex;
+            if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
         }
 
         #endregion
@@ -402,15 +401,9 @@ namespace Emotion.Graphics.Batching
         /// <param name="endIndex">The index of the object to stop drawing at. If -1 will draw to MappedObjects.</param>
         public void SetRenderRange(int startIndex = 0, int endIndex = -1)
         {
-            if (startIndex != 0)
-            {
-                startIndex = startIndex * ObjectSize;
-            }
+            if (startIndex != 0) startIndex = startIndex * ObjectSize;
 
-            if (endIndex != -1)
-            {
-                endIndex = endIndex * ObjectSize;
-            }
+            if (endIndex != -1) endIndex = endIndex * ObjectSize;
 
             SetRenderRangeVertices(startIndex, endIndex);
         }
@@ -452,7 +445,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="renderer">To renderer to render the buffer with.</param>
         public virtual void Render(Renderer renderer)
         {
-            ThreadManager.ForceGLThread();
+            GLThread.ForceGLThread();
 
             // Check if anything is mapped.
             if (!AnythingMapped) return;
@@ -468,7 +461,7 @@ namespace Emotion.Graphics.Batching
             Helpers.CheckError("map buffer - bind");
 
             // Convert offset amd length.
-            IntPtr indexToPointer = (IntPtr)(_startIndex * sizeof(ushort));
+            IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
             int length = _endIndex == -1 ? MappedObjects * IndicesPerObject : _endIndex / ObjectSize * IndicesPerObject;
 
             GL.DrawElements(_drawType, length, DrawElementsType.UnsignedShort, indexToPointer);

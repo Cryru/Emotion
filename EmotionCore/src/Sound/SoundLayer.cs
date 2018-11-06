@@ -2,9 +2,14 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
-using Emotion.Debugging;
+using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Engine.Threading;
+using Emotion.IO;
+using OpenTK.Audio.OpenAL;
+using Soul;
 
 #endregion
 
@@ -15,176 +20,299 @@ namespace Emotion.Sound
         #region Properties
 
         /// <summary>
-        /// The name of the layer.
+        /// The layer's name.
         /// </summary>
-        public string Name { get; internal set; }
+        public string Name { get; private set; }
 
         /// <summary>
-        /// The layer's volume.
+        /// The layer's volume from 0 to ???.
         /// </summary>
-        public float Volume;
+        public float Volume { get; set; } = 1f;
 
         /// <summary>
-        /// Whether the layer is paused.
+        /// Whether the layer is playing, is paused, etc.
         /// </summary>
-        public bool Paused;
+        public SoundStatus Status { get; private set; } = SoundStatus.Stopped;
 
         /// <summary>
-        /// Whether the source currently running is destroyed.
+        /// Whether to loop the currently playing source.
         /// </summary>
-        public bool SourceDestroyed
+        public bool Looping { get; set; }
+
+        /// <summary>
+        /// Loop the last queued track only instead of everything.
+        /// </summary>
+        public bool LoopLastOnly { get; set; } = true;
+
+        /// <summary>
+        /// The position currently playing within the current buffer in seconds.
+        /// </summary>
+        public float PlaybackLocation { get; private set; }
+
+        /// <summary>
+        /// The file currently playing.
+        /// </summary>
+        public SoundFile CurrentlyPlayingFile { get; private set; }
+
+        /// <summary>
+        /// The duration of the fade in effect.
+        /// </summary>
+        public int FadeInLength { get; set; }
+
+        /// <summary>
+        /// The duration of the fade out effect.
+        /// </summary>
+        public int FadeOutLength { get; set; }
+
+        #endregion
+
+        #region Internals
+
+        private int _pointer;
+        private Queue<SoundFile> _playQueue;
+
+        #endregion
+
+        public SoundLayer(string name)
         {
-            get => _source == null || _source.Destroyed;
+            Name = name;
+            _playQueue = new Queue<SoundFile>();
+
+            ALThread.ExecuteALThread(() =>
+            {
+                // Initiate source.
+                _pointer = AL.GenSource();
+
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Created {ToString()}.");
+            });
+        }
+
+        #region API
+
+        /// <summary>
+        /// Resume playing if paused.
+        /// </summary>
+        public void Resume()
+        {
+            if (Status != SoundStatus.Paused) return;
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, $"Resumed {ToString()}.");
+            ALThread.ExecuteALThread(() => { AL.SourcePlay(_pointer); });
         }
 
         /// <summary>
-        /// The source currently playing on the layer.
+        /// Pause if playing.
         /// </summary>
-        public SourceBase Source
+        public void Pause()
         {
-            get => _source;
-            set
-            {
-                DestroySource(_source);
+            if (Status != SoundStatus.Playing) return;
+            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, $"Paused {ToString()}.");
+            ALThread.ExecuteALThread(() => { AL.SourcePause(_pointer); });
+        }
 
-                _source = value;
-                _newSource = true;
-                StateApplication();
-            }
+        /// <summary>
+        /// Stop playing any files.
+        /// </summary>
+        public void StopPlayingAll()
+        {
+            ALThread.ExecuteALThread(() =>
+            {
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Stopped {ToString()}.");
+                AL.SourceStop(_pointer);
+                _playQueue.Clear();
+            });
+        }
+
+        /// <summary>
+        /// Restart the current source.
+        /// </summary>
+        public void ResetCurrent()
+        {
+            ALThread.ExecuteALThread(() => { AL.SourceRewind(_pointer); });
+        }
+
+        /// <summary>
+        /// Queue a file to be played on the layer.
+        /// </summary>
+        /// <param name="file"></param>
+        public void QueuePlay(SoundFile file)
+        {
+            ALThread.ExecuteALThread(() =>
+            {
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
+
+                AL.SourceQueueBuffer(_pointer, file.Pointer);
+                _playQueue.Enqueue(file);
+
+                // Play if not playing.
+                if (Status == SoundStatus.Stopped) AL.SourcePlay(_pointer);
+
+                AL.GetSource(_pointer, ALGetSourcei.BuffersQueued, out int buffersLeft);
+                Console.WriteLine("play " + buffersLeft + " " + Status);
+            });
+        }
+
+        /// <summary>
+        /// Destroy the layer freeing resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Destroyed {ToString()}.");
+
+            ALThread.ExecuteALThread(() => AL.DeleteSource(_pointer));
+            _pointer = -1;
+            _playQueue.Clear();
         }
 
         #endregion
 
         /// <summary>
-        /// Whether the source was paused by a focus loss.
+        /// Update the layer. Is called on the ALThread by the sound manager.
         /// </summary>
-        internal bool FocusLossPaused { get; private set; }
-
-        private SourceBase _source;
-        private List<SoundEffect> _soundEffects = new List<SoundEffect>();
-        private bool _newSource;
-
-        #region Logic
-
-        /// <summary>
-        /// Update the sound layer. If a settings object is provided the source is updated too.
-        /// </summary>
-        /// <param name="frameTime">Time passed since the last update. Used for updating the sound effects.</param>
-        /// <param name="focused">Whether the window is focused.</param>
-        /// <param name="settings">A settings object to update the source with.</param>
-        internal void Update(float frameTime, bool focused, Settings settings = null)
+        internal void Update()
         {
-            // Update effect.
-            UpdateEffects(frameTime);
+            // Update focused state.
+            if (!UpdateFocusedState()) return;
 
-            // Check if any source.
-            if (_source == null) return;
+            // Update volume.
+            UpdateVolume();
 
-            // Check focus loss.
-            if (FocusLossPaused && focused) FocusLossPaused = false;
-            else if (!focused && !FocusLossPaused)
-                FocusLossPaused = true;
+            // Swap buffers which have played off the stack.
+            PopPlayedSources();
 
-            // Apply the layer state to the source state.
-            StateApplication();
+            // Update paused/playing state.
+            UpdatePlayingState();
 
-            // Set volume.
-            _source.PersonalVolume = Volume;
+            // Update current file.
+            UpdateCurrentFile();
 
-            // Update source if needed.
-            if (settings != null) _source.Update(settings);
+            // Update playback location.
+            UpdatePlaybackLocation();
         }
 
-        /// <summary>
-        /// Applies the layer state onto the source state.
-        /// </summary>
-        internal void StateApplication()
+        #region Update Parts
+
+        private bool UpdateFocusedState()
         {
-            // Check if any source.
-            if (_source == null) return;
-
-            // Set volume.
-            _source.PersonalVolume = Volume;
-
-            // Apply paused state.
-            if ((Paused || FocusLossPaused) && _source.Playing) _source.Pause();
-
-            // Apply resume state.
-            if (!Paused && _source.Paused && !FocusLossPaused) _source.Play();
-
-            // Check if first play.
-            if (!_newSource || Paused || FocusLossPaused) return;
-            _source.Play();
-            _newSource = false;
-        }
-
-        /// <summary>
-        /// Updates attached effects and cleans them up when ready.
-        /// </summary>
-        /// <param name="frameTime"></param>
-        internal void UpdateEffects(float frameTime)
-        {
-            // Update sound effects in reverse so removing is supported.
-            for (int i = _soundEffects.Count - 1; i >= 0; i--)
-            {
-                // Check if the related source has been destroyed, or the effect has finished.
-                if (_soundEffects[i].RelatedLayer.SourceDestroyed || _soundEffects[i].Finished)
+            // Check if not focused.
+            if (!Context.Host.Focused)
+                switch (Status)
                 {
-                    _soundEffects.Remove(_soundEffects[i]);
-                    continue;
+                    // If focus loss paused, paused or not playing don't do anything.
+                    case SoundStatus.FocusLossPause:
+                    case SoundStatus.Paused:
+                    case SoundStatus.Stopped:
+                        return false;
+                    // If playing then focus loss pause.
+                    case SoundStatus.Playing:
+                        AL.SourcePause(_pointer);
+                        Status = SoundStatus.FocusLossPause;
+                        break;
                 }
+            // If focused and focus loss paused, resume.
+            else if (Context.Host.Focused && Status == SoundStatus.FocusLossPause)
+                AL.SourcePlay(_pointer);
 
-                // Check if not playing.
-                if (Paused || FocusLossPaused) continue;
+            return true;
+        }
 
-                // Update the effect.
-                _soundEffects[i].Update(frameTime);
+        private void UpdateVolume()
+        {
+            float systemVolume = Context.Settings.Sound ? Context.Settings.Volume : 0f;
+            float scaled = MathHelper.Clamp(Volume * (systemVolume / 100f), 0, 10);
+
+            // Perform fading.
+            if (CurrentlyPlayingFile != null)
+            {
+                float timeLeft = CurrentlyPlayingFile.Duration - PlaybackLocation;
+
+                // Check if fading in.
+                if (PlaybackLocation < FadeInLength) scaled = MathHelper.Lerp(0, scaled, PlaybackLocation / FadeInLength);
+
+                // Check if fading out.
+                if (timeLeft < FadeOutLength) scaled = MathHelper.Lerp(0, scaled, timeLeft / FadeOutLength);
+            }
+
+            AL.Source(_pointer, ALSourcef.Gain, scaled);
+            // todo: Check if this is needed
+            // AL.Source(_pointer, ALSourcef.MaxGain, scaled < 0 ? 0f : 1f);
+        }
+
+        private void PopPlayedSources()
+        {
+            // Get the number of processed buffers.
+            AL.GetSource(_pointer, ALGetSourcei.BuffersProcessed, out int processed);
+
+            // Pop off as many buffers off the stack as they were processed.
+            while (processed > 0)
+            {
+                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Finished playing buffer of {ToString()}.");
+
+                // Remove buffer.
+                AL.SourceUnqueueBuffers(_pointer, 1);
+                processed--;
+
+                // Remove from internal queue. The check is here for when switching from appending to single.
+                if (_playQueue.Count <= 0) continue;
+                SoundFile file = _playQueue.Dequeue();
+
+                // Loop if needed.
+                if (!Looping) continue;
+                // Check if looping on last.
+                if (LoopLastOnly)
+                {
+                    if (_playQueue.Count != 0) continue;
+                    QueuePlay(file);
+                    AL.SourcePlay(_pointer);
+                }
+                else
+                {
+                    QueuePlay(file);
+                    AL.SourcePlay(_pointer);
+                }
             }
         }
 
-        #endregion
-
-        #region Public API
-
-        /// <summary>
-        /// Apply a sound effect on the layer.
-        /// </summary>
-        /// <param name="soundEffect">The sound effect to apply.</param>
-        public void ApplySoundEffect(SoundEffect soundEffect)
+        private void UpdatePlayingState()
         {
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Applying sound effect " + soundEffect);
+            AL.GetSource(_pointer, ALGetSourcei.SourceState, out int status);
 
-            _soundEffects.Add(soundEffect);
+            switch ((ALSourceState) status)
+            {
+                case ALSourceState.Playing:
+                    Status = SoundStatus.Playing;
+                    break;
+                case ALSourceState.Paused:
+                    Status = Context.Host.Focused ? SoundStatus.Paused : SoundStatus.FocusLossPause;
+                    break;
+                case ALSourceState.Stopped:
+                    Status = SoundStatus.Stopped;
+                    break;
+            }
         }
 
-        /// <summary>
-        /// Destroys the source.
-        /// </summary>
-        public void DestroySource(SourceBase source = null)
+        private void UpdateCurrentFile()
         {
-            if (source == null) source = _source;
-            if (source == null) return;
+            AL.GetSource(_pointer, ALGetSourcei.Buffer, out int filePointer);
+            if (filePointer == 0)
+                CurrentlyPlayingFile = null;
+            else
+                foreach (SoundFile file in _playQueue)
+                {
+                    if (file.Pointer == filePointer) CurrentlyPlayingFile = file;
+                }
+        }
 
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Destroying sound source of layer [" + Name + "] " + source);
-
-            // End the source.
-            source.Stop();
-
-            // Destroy it.
-            source.Destroy();
+        private void UpdatePlaybackLocation()
+        {
+            AL.GetSource(_pointer, ALSourcef.SecOffset, out float playbackLoc);
+            PlaybackLocation = playbackLoc;
         }
 
         #endregion
-
-        #region Debugging
 
         public override string ToString()
         {
-            string result = "[SoundLayer " + Name + "]";
-            result += $"(source: {Source})";
-            return result;
+            return $"[Sound Layer] [ ALPointer: [{_pointer}] Name:[{Name}] Looping/LastOnly:[{Looping}/{LoopLastOnly}] Status:[{Status}] ]";
         }
-
-        #endregion
     }
 }

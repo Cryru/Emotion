@@ -3,9 +3,9 @@
 #region Using
 
 using System.IO;
+using Emotion.Engine.Threading;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Emotion.Utils;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
@@ -42,7 +42,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public Texture()
         {
-            ThreadManager.ExecuteGLThread(() => { Pointer = GL.GenTexture(); });
+            GLThread.ExecuteGLThread(() => { Pointer = GL.GenTexture(); });
             Size = new Vector2();
         }
 
@@ -124,7 +124,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public virtual void Delete()
         {
-            ThreadManager.ExecuteGLThread(() => { GL.DeleteTexture(Pointer); });
+            GLThread.ExecuteGLThread(() => { GL.DeleteTexture(Pointer); });
             Pointer = -1;
         }
 
@@ -152,7 +152,7 @@ namespace Emotion.Graphics.GLES
             }
 
             // Upload the texture on the GL thread.
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Pointer = GL.GenTexture();
                 TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);

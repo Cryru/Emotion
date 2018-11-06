@@ -2,10 +2,14 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
-using Emotion.Debugging;
-using Emotion.IO;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Emotion.Engine;
+using Emotion.Engine.Threading;
+using Emotion.IO;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 
@@ -17,132 +21,122 @@ namespace Emotion.Sound
     {
         private AudioContext _audioContext;
         private Dictionary<string, SoundLayer> _layers;
+        private Queue<Action> _soundThreadActions;
 
         public SoundManager()
         {
             _layers = new Dictionary<string, SoundLayer>();
+            _soundThreadActions = new Queue<Action>();
+
+            Thread soundThread = new Thread(SoundThreadLoop);
+            soundThread.Start();
+            while (!soundThread.IsAlive)
+            {
+            }
+        }
+
+        private void SoundThreadLoop()
+        {
             _audioContext = new AudioContext();
+            ALThread.BindThread();
 
             // Setup listener.
             AL.Listener(ALListener3f.Position, 0, 0, 0);
             AL.Listener(ALListener3f.Velocity, 0, 0, 0);
-        }
 
-        #region Layer
-
-        /// <summary>
-        /// Create a sound layer. If already exists returns the already existing layer.
-        /// </summary>
-        /// <param name="layerName">The name of the layer.</param>
-        /// <param name="startNow">Whether the layer should should out paused.</param>
-        /// <param name="volume">What volume to play the layer at. Can be changed later.</param>
-        /// <returns>The created sound layer which the manager will manage.</returns>
-        public SoundLayer CreateLayer(string layerName, bool startNow = true, float volume = 1f)
-        {
-            lock (_layers)
+            while (Context.IsRunning)
             {
-                if (_layers.ContainsKey(layerName)) return GetLayer(layerName);
-
-                _layers.Add(layerName, new SoundLayer
+                // Update running playbacks.
+                lock (_layers)
                 {
-                    Volume = volume,
-                    Paused = !startNow,
-                    Name = layerName
-                });
+                    foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+                    {
+                        layer.Value.Update();
+                    }
+                }
 
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Created layer [" + layerName + "]");
+                // Run queued actions.
+                ALThread.Run();
 
-                return GetLayer(layerName);
+                Task.Delay(1).Wait();
             }
+
+            // Dispose of the audio context.
+            _audioContext.Dispose();
         }
 
-        /// <summary>
-        /// Returns the specified layer. If the layer doesn't exist, returns null.
-        /// </summary>
-        /// <param name="layerName">The name of the layer to return.</param>
-        /// <returns>The specified layer.</returns>
-        public SoundLayer GetLayer(string layerName)
-        {
-            lock (_layers)
-            {
-                return !_layers.ContainsKey(layerName) ? null : _layers[layerName];
-            }
-        }
-
-        #endregion
-
-        #region Source
+        #region API
 
         /// <summary>
-        /// Play a sound file on a specified layer.
+        /// Plays the specified file on the specified layer.
+        /// If the layer doesn't exist it is created.
+        /// If sometimes else is playing on that layer it will be forcefully stopped.
         /// </summary>
-        /// <param name="layerName">The name of the layer.</param>
         /// <param name="file">The file to play.</param>
-        /// <returns>A sound source representing the file on the layer.</returns>
-        public Source PlayOnLayer(string layerName, SoundFile file)
+        /// <param name="layer">The layer to play on.</param>
+        [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
+        public void Play(SoundFile file, string layer)
         {
-            lock (_layers)
+            // Check whether the layer exists, and create it if it doesn't.
+            SoundLayer playBackLayer = Get(layer);
+            if (playBackLayer == null)
             {
-                Source newSource = new Source(file);
-                _layers[layerName].Source = newSource;
+                playBackLayer = new SoundLayer(layer);
 
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing [" + file.Name + "] on [" + _layers[layerName] + "]");
-
-                return newSource;
-            }
-        }
-
-        /// <summary>
-        /// Play a list of sound files on a specified layer.
-        /// </summary>
-        /// <param name="layerName">The name of the layer.</param>
-        /// <param name="files">The files to play.</param>
-        /// <returns>A streaming sound source representing the file on the layer.</returns>
-        public StreamingSource StreamOnLayer(string layerName, SoundFile[] files)
-        {
-            lock (_layers)
-            {
-                StreamingSource newSource = new StreamingSource(files);
-                _layers[layerName].Source = newSource;
-
-#if DEBUG
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, "Playing " + files.Length + " files on [" + _layers[layerName] + "]");
-                foreach (SoundFile file in files)
+                lock (_layers)
                 {
-                    Debugger.Log(MessageType.Info, MessageSource.SoundManager, " |- " + file.Name);
+                    _layers.Add(layer, playBackLayer);
                 }
-#endif
-
-                return newSource;
             }
+
+            // Check if the layer has anything playing on it.
+            if (playBackLayer.Status != SoundStatus.Stopped) playBackLayer.StopPlayingAll();
+
+            playBackLayer.QueuePlay(file);
         }
 
         /// <summary>
-        /// Returns the source running on the specified layer. If the layer has no source, or the layer doesn't exist, returns
-        /// null.
+        /// Plays the specified file on the specified layer.
+        /// If the layer doesn't exist it is created.
+        /// If sometimes else is playing on that layer this file will be appended to it.
         /// </summary>
-        /// <param name="layerName">The name of the layer whose source to return.</param>
-        /// <returns>The source running on the specified layer.</returns>
-        public SourceBase GetLayerSource(string layerName)
+        /// <param name="file">The file to play.</param>
+        /// <param name="layer">The layer to play on.</param>
+        [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
+        public void PlayQueue(SoundFile file, string layer)
         {
+            // Check whether the layer exists, and create it if it doesn't.
+            SoundLayer playBackLayer = Get(layer);
+            if (playBackLayer == null)
+            {
+                playBackLayer = new SoundLayer(layer);
+
+                lock (_layers)
+                {
+                    _layers.Add(layer, playBackLayer);
+                }
+            }
+
+            playBackLayer.QueuePlay(file);
+        }
+
+        /// <summary>
+        /// Returns the sound layer object of the requested name or null if none exists.
+        /// </summary>
+        /// <param name="layer">The name of the layer to look for.</param>
+        /// <returns>The layer with the specified name, or null if not found.</returns>
+        public SoundLayer Get(string layer)
+        {
+            SoundLayer playBackLayer;
+
             lock (_layers)
             {
-                SoundLayer layer = GetLayer(layerName);
-                return layer?.Source;
+                _layers.TryGetValue(layer, out playBackLayer);
             }
+
+            return playBackLayer;
         }
 
         #endregion
-
-        internal void Update()
-        {
-            lock (_layers)
-            {
-                foreach (KeyValuePair<string, SoundLayer> layer in _layers)
-                {
-                    layer.Value.Update(Context.FrameTime, Context.Host.Focused, Context.Settings);
-                }
-            }
-        }
     }
 }

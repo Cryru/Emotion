@@ -116,6 +116,8 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Libraries\Unix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Engine\Threading\ALThread.cs" />
+    <Compile Include="src\Engine\Threading\ThreadManager.cs" />
     <Compile Include="src\Game\Text\TypewriterRichText.cs" />
     <Compile Include="src\Game\UI\BasicTextBg.cs" />
     <Compile Include="src\Game\UI\BasicText.cs" />
@@ -152,10 +154,9 @@
     <Compile Include="src\Primitives\Point.cs" />
     <Compile Include="src\Primitives\Transform.cs" />
     <Compile Include="src\Primitives\Vector3.cs" />
-    <Compile Include="src\Sound\SourceBase.cs" />
-    <Compile Include="src\Sound\StreamingSource.cs" />
+    <Compile Include="src\Sound\SoundStatus.cs" />
     <Compile Include="src\Utils\CurrentPlatform.cs" />
-    <Compile Include="src\Engine\ThreadManager.cs" />
+    <Compile Include="src\Engine\Threading\GLThread.cs" />
     <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
     <Compile Include="src\IO\SoundFile.cs" />
@@ -179,12 +180,8 @@
     <Compile Include="src\Game\UI\Control.cs" />
     <Compile Include="src\Game\UI\Controller.cs" />
     <Compile Include="src\Game\UI\Panel.cs" />
-    <Compile Include="src\Sound\SoundFadeOut.cs" />
-    <Compile Include="src\Sound\SoundFadeIn.cs" />
-    <Compile Include="src\Sound\SoundEffect.cs" />
     <Compile Include="src\Sound\SoundLayer.cs" />
     <Compile Include="src\Sound\SoundManager.cs" />
-    <Compile Include="src\Sound\Source.cs" />
     <Compile Include="src\Utils\Helpers.cs" />
     <Compile Include="src\IO\AssetLoader.cs" />
     <Compile Include="src\Engine\Context.cs" />

@@ -5,8 +5,8 @@
 using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Emotion.Debugging;
+using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
@@ -14,11 +14,11 @@ using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Soul;
-using Debugger = Emotion.Debugging.Debugger;
+using Buffer = Emotion.Graphics.GLES.Buffer;
+using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -76,7 +76,7 @@ namespace Emotion.Graphics
             CreateDefaultShaders();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader)null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
 
             // Create objects.
@@ -112,6 +112,7 @@ namespace Emotion.Graphics
                 found = true;
                 break;
             }
+
             if (!found)
             {
                 Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
@@ -183,49 +184,49 @@ namespace Emotion.Graphics
         private void SetupDebug()
         {
             Context.ScriptingEngine.Expose("debugCamera",
-                (Func<string>)(() =>
-               {
-                   _debugCamera = _debugCamera == null
-                       ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight)) { Zoom = Camera.Zoom / 2f }
-                       : null;
-                   _debugCameraDataText.Active = !_debugCameraDataText.Active;
+                (Func<string>) (() =>
+                {
+                    _debugCamera = _debugCamera == null
+                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
+                        : null;
+                    _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
-                   return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
-               }),
+                    return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
+                }),
                 "Enables the debug camera. Move it with the arrow keys. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fps",
-                (Func<string>)(() =>
-               {
-                   _fpsCounter = !_fpsCounter;
-                   _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
+                (Func<string>) (() =>
+                {
+                    _fpsCounter = !_fpsCounter;
+                    _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
 
-                   return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
-               }),
+                    return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
+                }),
                 "Enables the fps counter. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fbf",
-                (Func<string>)(() =>
-               {
-                   _frameByFrame = !_frameByFrame;
-                   _frameByFrameAdvance = false;
+                (Func<string>) (() =>
+                {
+                    _frameByFrame = !_frameByFrame;
+                    _frameByFrameAdvance = false;
 
-                   return "Frame by frame mode " + (_frameByFrame ? "enabled." : "disabled.");
-               }),
+                    return "Frame by frame mode " + (_frameByFrame ? "enabled." : "disabled.");
+                }),
                 "Enables the frame by frame mode. Press F11 to advance or hold F12 to fast forward. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("debugMouse",
-                (Func<string>)(() =>
-               {
-                   _drawMouse = !_drawMouse;
+                (Func<string>) (() =>
+                {
+                    _drawMouse = !_drawMouse;
 
-                   return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
-               }),
+                    return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
+                }),
                 "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
 
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
-            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
-            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
 
             Debugger.CornerAnchor.AddChild(_debugCameraDataText, AnchorLocation.BottomLeft);
             Debugger.CornerAnchor.AddChild(_debugFpsCounterDataText, AnchorLocation.TopLeft);
@@ -308,7 +309,7 @@ namespace Emotion.Graphics
         {
             // Restore bound state. Some drivers unbind objects when swapping buffers.
             ShaderProgram.Current.Bind();
-            GLES.Buffer.BoundPointer = 0;
+            Buffer.BoundPointer = 0;
             IndexBuffer.BoundPointer = 0;
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -362,6 +363,7 @@ namespace Emotion.Graphics
                 SetModelMatrix();
                 ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             }
+
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
             ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
 
@@ -573,7 +575,6 @@ namespace Emotion.Graphics
         /// <param name="renderable">The renderable to render.</param>
         public void Render(TransformRenderable renderable)
         {
-            Context.Settings = new Settings();
             MatrixStack.Push(renderable.ModelMatrix);
             SetModelMatrix();
             renderable.Render(this);

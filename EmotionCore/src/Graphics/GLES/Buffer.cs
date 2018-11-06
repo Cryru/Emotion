@@ -3,8 +3,8 @@
 #region Using
 
 using System;
+using Emotion.Engine.Threading;
 using Emotion.Primitives;
-using Emotion.Engine;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -65,7 +65,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
-            if(BoundPointer == _pointer) return;
+            if (BoundPointer == _pointer) return;
             BoundPointer = _pointer;
             GL.BindBuffer(BufferTarget.ArrayBuffer, _pointer);
         }
@@ -91,7 +91,7 @@ namespace Emotion.Graphics.GLES
 
             ComponentCount = componentCount;
 
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 GL.BufferData(BufferTarget.ArrayBuffer, size, IntPtr.Zero, usageHint);
@@ -110,7 +110,7 @@ namespace Emotion.Graphics.GLES
 
             ComponentCount = componentCount;
 
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usageHint);
@@ -129,7 +129,7 @@ namespace Emotion.Graphics.GLES
 
             ComponentCount = componentCount;
 
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(uint), data, usageHint);
@@ -147,7 +147,7 @@ namespace Emotion.Graphics.GLES
 
             ComponentCount = 3;
 
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector3.SizeInBytes, data, usageHint);
@@ -165,7 +165,7 @@ namespace Emotion.Graphics.GLES
 
             ComponentCount = 2;
 
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector2.SizeInBytes, data, usageHint);

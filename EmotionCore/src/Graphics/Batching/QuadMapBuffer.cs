@@ -2,12 +2,8 @@
 
 #region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Debugging;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
@@ -74,9 +70,9 @@ namespace Emotion.Graphics.Batching
 
             // Calculate UV positions
             Vector2 nn = texture == null ? Vector2.Zero : Vector2.TransformPosition(uv.Location, texture.TextureMatrix);
-            Vector2 pn = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y),  texture.TextureMatrix);
-            Vector2 np = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X, uv.Y + uv.Height),  texture.TextureMatrix);
-            Vector2 pp = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y + uv.Height),  texture.TextureMatrix);
+            Vector2 pn = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y), texture.TextureMatrix);
+            Vector2 np = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
+            Vector2 pp = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), texture.TextureMatrix);
 
             InternalMapVertex(c, tid, nn, location);
             _dataPointer++;

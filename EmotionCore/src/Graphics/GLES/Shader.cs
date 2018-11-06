@@ -3,10 +3,9 @@
 #region Using
 
 using System;
-using Emotion.Debugging;
+using Emotion.Debug;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
-using Soul;
 
 #endregion
 

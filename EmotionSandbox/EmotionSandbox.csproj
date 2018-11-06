@@ -63,8 +63,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SoundPlayer\PlayerVolumeControl.cs" />
     <Compile Include="SoundPlayer\SoundPlayerScene.cs" />
-    <None Include="Assets\SoundPlayer\RobotoFont.woff2">
+    <Compile Include="SoundPlayer\SoundSelectionLabel.cs" />
+    <None Include="Assets\SoundPlayer\RobotoFont.woff">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Examples\Input.cs" />
@@ -104,7 +106,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\ElectricSleepMainMenu.wav">
+    <Content Include="Assets\SoundPlayer\addButton.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SoundPlayer\down.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SoundPlayer\ElectricSleepMainMenu.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\EmotionLogo.png">
@@ -113,7 +121,16 @@
     <Content Include="Assets\LoadingCircleHalf.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\SoundPlayer\loopButton.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SoundPlayer\pauseButton.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\SoundPlayer\playButton.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SoundPlayer\up.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\test.png">

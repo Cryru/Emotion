@@ -12,8 +12,12 @@ namespace Emotion.IO
 {
     public sealed class SoundFile : Asset
     {
+        /// <summary>
+        /// The duration of the sound file.
+        /// </summary>
+        public float Duration { get; private set; }
+
         internal int Pointer;
-        public int Duration { get; private set; }
 
         internal override void Create(byte[] data)
         {
@@ -79,7 +83,7 @@ namespace Emotion.IO
                     Pointer = AL.GenBuffer();
                     AL.BufferData(Pointer, GetSoundFormat(channels, bitsPerSample), soundData, soundData.Length, sampleRate);
 
-                    Duration = soundData.Length / (sampleRate * channels * bitsPerSample / 8);
+                    Duration = soundData.Length / (sampleRate * channels * bitsPerSample / 8f);
                 }
             }
         }

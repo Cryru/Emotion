@@ -3,7 +3,8 @@
 #region Using
 
 using System.Collections.Generic;
-using Emotion.Debugging;
+using System.Linq;
+using Emotion.Debug;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -14,6 +15,14 @@ namespace Emotion.Game.UI
     public abstract class ParentControl : Control
     {
         /// <summary>
+        /// The number of children attached to this control.
+        /// </summary>
+        public int ChildCount
+        {
+            get => _children.Count;
+        }
+
+        /// <summary>
         /// The children of this control.
         /// </summary>
         protected List<Transform> _children { get; set; } = new List<Transform>();
@@ -21,13 +30,15 @@ namespace Emotion.Game.UI
         protected ParentControl(Vector3 position, Vector2 size) : base(position, size)
         {
         }
-        
+
         /// <summary>
         /// Add a child to this control.
         /// </summary>
         /// <param name="transform">The child to add. Can be a transform or a control.</param>
         public virtual void AddChild(Transform transform)
         {
+            transform.Z++;
+
             Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child transform.");
             _children.Add(transform);
 
@@ -35,6 +46,31 @@ namespace Emotion.Game.UI
             {
                 control.Parent = this;
                 Controller.Add(control);
+            }
+        }
+
+        /// <summary>
+        /// Returns the child at the requested index.
+        /// </summary>
+        /// <param name="index">The index of the control to return.</param>
+        public Transform GetChild(int index)
+        {
+            lock (_children)
+            {
+                return _children[index];
+            }
+        }
+
+        /// <summary>
+        /// Returns child of a specific type.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <returns>The found children of the specified type.</returns>
+        public Transform[] GetChildByType<T>()
+        {
+            lock (_children)
+            {
+                return _children.Where(x => x is T).ToArray();
             }
         }
 
@@ -47,10 +83,7 @@ namespace Emotion.Game.UI
             Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] removing child transform.");
             _children.Remove(transform);
 
-            if (transform is Control control)
-            {
-                Controller.Remove(control);
-            }
+            if (transform is Control control) Controller.Remove(control);
         }
 
         /// <summary>

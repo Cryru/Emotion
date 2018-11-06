@@ -20,6 +20,11 @@ namespace Emotion.Game.UI
         public Texture Texture { get; set; }
 
         /// <summary>
+        /// The tint of the button's texture.
+        /// </summary>
+        public Color Tint { get; set; } = Color.White;
+
+        /// <summary>
         /// The event to trigger when the button is clicked.
         /// </summary>
         public Action OnClick { get; set; }
@@ -35,7 +40,7 @@ namespace Emotion.Game.UI
 
         public override void Render(Renderer renderer)
         {
-            renderer.Render(Vector3.Zero, Size, Color.White, Texture);
+            renderer.Render(Vector3.Zero, Size, Tint, Texture);
         }
     }
 }

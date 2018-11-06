@@ -3,12 +3,13 @@
 #region Using
 
 using System;
+using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
 using Emotion.Graphics;
 using Emotion.Primitives;
-using Emotion.Engine;
+using Emotion.Engine.Threading;
 using EmotionSandbox.Examples.Generic;
 
 #endregion

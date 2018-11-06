@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Emotion.Engine;
+using Emotion.Engine.Threading;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -44,7 +44,7 @@ namespace Emotion.Graphics.GLES
             if (_pointer == -1) throw new Exception("Cannot add a buffer to a destroyed array.");
             if (componentCount <= 0) componentCount = (int) buffer.ComponentCount;
 
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 buffer.Bind();

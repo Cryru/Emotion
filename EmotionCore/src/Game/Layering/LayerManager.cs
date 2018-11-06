@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Emotion.Debugging;
-using Emotion.Primitives;
+using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Primitives;
 using Emotion.Utils;
 
 #endregion

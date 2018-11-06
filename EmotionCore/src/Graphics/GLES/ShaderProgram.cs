@@ -4,9 +4,8 @@
 
 using System;
 using System.Linq;
-using Emotion.Debugging;
+using Emotion.Engine.Threading;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
@@ -82,7 +81,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="vertexShader">The program's vertex shader.</param>
         public ShaderProgram(Shader vertexShader, Shader fragmentShader)
         {
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 // Set the first ever as default.
                 if (Default == null) Default = this;
@@ -102,7 +101,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="vertexShader">The program's vertex shader.</param>
         public ShaderProgram(string vertexShader, string fragmentShader)
         {
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Shader vert = string.IsNullOrEmpty(vertexShader) ? DefaultVertShader : new Shader(ShaderType.VertexShader, vertexShader);
                 Shader frag = string.IsNullOrEmpty(fragmentShader) ? DefaultFragShader : new Shader(ShaderType.FragmentShader, fragmentShader);

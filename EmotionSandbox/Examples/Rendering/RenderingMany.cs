@@ -2,11 +2,12 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Primitives;
-using Emotion.Engine;
+using Emotion.Engine.Threading;
 using EmotionSandbox.Examples.Generic;
 using Soul;
 
@@ -32,7 +33,7 @@ namespace EmotionSandbox.Examples.Rendering
         {
             // These operations need to be performed on the GL thread.
             // This can be further optimized by creating the objects on another thread and then just passing them.
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 // Create a new map buffer.
                 _buffer = new QuadMapBuffer(Renderer.MaxRenderable);

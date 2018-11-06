@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using Emotion.Engine;
+using Emotion.Engine.Threading;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -55,7 +55,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
-            if(BoundPointer == _pointer) return;
+            if (BoundPointer == _pointer) return;
             BoundPointer = _pointer;
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _pointer);
         }
@@ -78,7 +78,7 @@ namespace Emotion.Graphics.GLES
             if (_pointer == -1) throw new Exception("Cannot upload data to a destroyed buffer.");
 
             Count = data.Length;
-            ThreadManager.ExecuteGLThread(() =>
+            GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 GL.BufferData(BufferTarget.ElementArrayBuffer, data.Length * sizeof(ushort), data, BufferUsageHint.StaticDraw);

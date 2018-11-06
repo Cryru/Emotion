@@ -3,8 +3,8 @@
 #region Using
 
 using System;
-using Emotion.Primitives;
 using Emotion.Engine;
+using Emotion.Primitives;
 using OpenTK.Input;
 
 #endregion

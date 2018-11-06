@@ -4,6 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff/branch/master?svg=true)](https://ci.appveyor.com/project/Cryru/emotion/branch/master)
 
 [Latest Debug Build](https://ci.appveyor.com/api/projects/Cryru/Emotion/artifacts/EmotionCore%2Fbin%2FEmotion%20Built%20Debug.zip?branch=master&job=Configuration%3A%20Debug-GLES)
+
 [Latest Release Build](https://ci.appveyor.com/api/projects/Cryru/Emotion/artifacts/EmotionCore%2Fbin%2FEmotion%20Built.zip?branch=master&job=Configuration%3A%20Release-GLES)
 
 ## What is it?

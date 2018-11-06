@@ -83,7 +83,6 @@ namespace Emotion.Game.UI
         /// </summary>
         protected virtual void InternalDestroy()
         {
-
         }
 
         /// <summary>

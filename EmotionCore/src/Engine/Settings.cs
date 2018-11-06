@@ -90,7 +90,7 @@ namespace Emotion.Engine
         /// <summary>
         /// The volume to play sound at. From 0 to 100.
         /// </summary>
-        public int Volume = 100;
+        public int Volume { get; set; } = 100;
 
         #endregion
     }

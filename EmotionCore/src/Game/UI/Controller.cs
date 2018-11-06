@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Emotion.Debugging;
+using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Input;
 using Emotion.Primitives;
-using Emotion.Engine;
-using Debugger = Emotion.Debugging.Debugger;
+using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -28,6 +28,14 @@ namespace Emotion.Game.UI
         /// The Z coordinate priority of all attached UI controls.
         /// </summary>
         public int UIPriority { get; set; } = 50;
+
+        /// <summary>
+        /// The number of controls attached.
+        /// </summary>
+        public int ControlCount
+        {
+            get => Controls.Count;
+        }
 
         #region State
 
@@ -57,6 +65,31 @@ namespace Emotion.Game.UI
                 Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{Id}] adding control of type [{control.GetType()}] {control}");
                 _controlsToBeAdded.Add(control);
                 control.Build(this); // Maybe the init in the build should be on another thread?
+            }
+        }
+
+        /// <summary>
+        /// Returns the control at the requested index.
+        /// </summary>
+        /// <param name="index">The index of the control to return.</param>
+        public Control Get(int index)
+        {
+            lock (Controls)
+            {
+                return Controls[index];
+            }
+        }
+
+        /// <summary>
+        /// Returns controls of a specific type.
+        /// </summary>
+        /// <typeparam name="T">The type of controls to return.</typeparam>
+        /// <returns>The found controls of the specified type.</returns>
+        public Control[] GetByType<T>()
+        {
+            lock (Controls)
+            {
+                return Controls.Where(x => x is T).ToArray();
             }
         }
 

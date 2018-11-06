@@ -3,10 +3,10 @@
 #region Using
 
 using System;
-using Emotion.Debugging;
+using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Host;
 using Emotion.Primitives;
-using Emotion.Engine;
 using OpenTK.Input;
 
 #endregion

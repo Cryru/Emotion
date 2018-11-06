@@ -2,12 +2,8 @@
 
 #region Using
 
-using System;
-using System.Collections.Generic;
-using Emotion.Debugging;
 using Emotion.Graphics.GLES;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 

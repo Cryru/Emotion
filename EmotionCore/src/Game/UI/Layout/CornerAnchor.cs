@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
-using Emotion.Engine;
 
 #endregion
 
@@ -41,10 +41,7 @@ namespace Emotion.Game.UI.Layout
 
         public override void Init()
         {
-            if (Parent == null)
-            {
-                Size = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
-            }
+            if (Parent == null) Size = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
         }
 
         #region Parenting
@@ -106,13 +103,9 @@ namespace Emotion.Game.UI.Layout
             {
                 AnchorLayoutControl match = _controls.FirstOrDefault(x => x.Control == transform);
                 if (match != null)
-                {
                     _controls.Remove(match);
-                }
                 else
-                {
                     return;
-                }
             }
 
             // Unhook from event.

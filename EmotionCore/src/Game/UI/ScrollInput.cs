@@ -2,10 +2,10 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
-using Emotion.Engine;
 using Soul;
 
 #endregion
@@ -30,6 +30,26 @@ namespace Emotion.Game.UI
         /// The current value of the input.
         /// </summary>
         public int Value { get; set; }
+
+        /// <summary>
+        /// Whether to keep the selector inside the bar or to keep its center inside. By default the center is kept inside only.
+        /// </summary>
+        public bool KeepSelectorInside { get; set; }
+
+        /// <summary>
+        /// How wide should the selector be compared to the total bar.
+        /// </summary>
+        public int SelectorRatio
+        {
+            get => _selectorRatio;
+            set
+            {
+                _selectorRatio = value;
+                SyncChildren();
+            }
+        }
+
+        private int _selectorRatio = 6;
 
         #endregion
 
@@ -58,7 +78,7 @@ namespace Emotion.Game.UI
 
         public override void MouseDown(MouseKeys key)
         {
-            ChangeValue(Context.InputManager.GetMousePosition());
+            ChangeValueFromClick(Context.InputManager.GetMousePosition());
         }
 
         public override void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
@@ -66,7 +86,21 @@ namespace Emotion.Game.UI
             // Check if the bar or selector is held with the left click.
             if (!Held[0] && !Selector.Held[0]) return;
 
-            ChangeValue(newPosition);
+            ChangeValueFromClick(newPosition);
+        }
+
+        protected virtual void ChangeValueFromClick(Vector2 clickPosition)
+        {
+            // Calculate the new value form the new mouse position.
+            float posWithinParent = clickPosition.X - GetTruePosition().X;
+            float increment = Width / 100;
+            Value = (int) (posWithinParent / increment);
+        }
+
+        protected virtual void SyncChildren()
+        {
+            Selector.Width = Width / 100 * SelectorRatio;
+            Selector.Height = (float) (Height + Height * 0.1 * 2);
         }
 
         public override void Render(Renderer renderer)
@@ -78,24 +112,12 @@ namespace Emotion.Game.UI
             renderer.Render(Vector3.Zero, Size, BarColor);
 
             // Calculate selector location.
-            Selector.X = Width / 100 * Value - Selector.Width / 2;
+            int selectionPoints = 100 + (KeepSelectorInside ? SelectorRatio : 0);
+            Selector.X = Width / selectionPoints * Value;
+            if (!KeepSelectorInside) Selector.X -= Selector.Width / 2;
 
             // Render child.
             base.Render(renderer);
-        }
-
-        public virtual void ChangeValue(Vector2 clickPosition)
-        {
-            // Calculate the new value form the new mouse position.
-            float posWithinParent = clickPosition.X - GetTruePosition().X;
-            float increment = Width / 100;
-            Value = (int) (posWithinParent / increment);
-        }
-
-        protected virtual void SyncChildren()
-        {
-            Selector.Width = Width / 100 * 6;
-            Selector.Height = (float) (Height + Height * 0.1 * 2);
         }
     }
 }

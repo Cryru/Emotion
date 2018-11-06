@@ -8,7 +8,7 @@ using System;
 
 namespace Emotion.Primitives
 {
-    public class Transform
+    public abstract class Transform
     {
         #region Properties
 

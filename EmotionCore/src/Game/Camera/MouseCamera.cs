@@ -2,8 +2,8 @@
 
 #region Using
 
-using Emotion.Primitives;
 using Emotion.Engine;
+using Emotion.Primitives;
 using Soul;
 
 #endregion
