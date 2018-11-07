@@ -8,11 +8,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Engine.Threading;
 using Emotion.IO;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
+using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -144,10 +146,9 @@ namespace Emotion.Sound
                 {
                     foreach (var layer in _layers)
                     {
-                        Debug.Debugger.Log(Debug.MessageType.Info, Debug.MessageSource.SoundManager, layer.ToString());
+                        Debugger.Log(MessageType.Info, MessageSource.SoundManager, layer.ToString());
                     }
                 }
-
             }), "Dumps the status of the sound manager.");
         }
 
