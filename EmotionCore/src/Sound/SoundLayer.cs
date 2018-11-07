@@ -155,6 +155,7 @@ namespace Emotion.Sound
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
 
+                // If playback is over but stop wasn't called then cleanup needs to be performed.
                 if (Status == SoundStatus.Stopped) StopPlayingAll();
 
                 AL.SourceQueueBuffer(_pointer, file.Pointer);

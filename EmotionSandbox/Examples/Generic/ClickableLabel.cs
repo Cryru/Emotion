@@ -10,13 +10,13 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace EmotionSandbox.SoundPlayer
+namespace EmotionSandbox.Examples.Generic
 {
-    public class SoundSelectionLabel : BasicText
+    public class ClickableLabel : BasicText
     {
         public Action OnClick { get; set; }
 
-        public SoundSelectionLabel(Font font, uint textSize, string text, Color color, Vector3 position) : base(font, textSize, text, color, position)
+        public ClickableLabel(Font font, uint textSize, string text, Color color, Vector3 position) : base(font, textSize, text, color, position)
         {
         }
 

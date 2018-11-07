@@ -62,7 +62,7 @@ namespace Emotion.Game.UI
         {
             lock (_controlsToBeAdded)
             {
-                Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{Id}] adding control of type [{control.GetType()}] {control}");
+                Debugger.Log(MessageType.Trace, MessageSource.UIController, $"[{Id}] adding control of type [{control.GetType()}] {control}");
                 _controlsToBeAdded.Add(control);
                 control.Build(this); // Maybe the init in the build should be on another thread?
             }
@@ -101,7 +101,7 @@ namespace Emotion.Game.UI
         {
             lock (_controlsToBeRemoved)
             {
-                Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{Id}] removing control of type [{control.GetType()}] {control}");
+                Debugger.Log(MessageType.Trace, MessageSource.UIController, $"[{Id}] removing control of type [{control.GetType()}] {control}");
                 _controlsToBeRemoved.Add(control);
             }
         }
@@ -414,7 +414,7 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Dispose()
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, "[" + Id + "] destroyed.");
+            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] destroyed.");
 
             lock (Controls)
             {

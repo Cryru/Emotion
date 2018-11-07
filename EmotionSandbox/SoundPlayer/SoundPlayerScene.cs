@@ -101,7 +101,7 @@ namespace EmotionSandbox.SoundPlayer
             {
                 int iCopy = i;
 
-                SoundSelectionLabel addSoundText = new SoundSelectionLabel(Context.AssetLoader.Get<Font>(_defaultFont), 15, _sounds[i], Color.White, Vector3.Zero)
+                ClickableLabel addSoundText = new ClickableLabel(Context.AssetLoader.Get<Font>(_defaultFont), 15, _sounds[i], Color.White, Vector3.Zero)
                 {
                     OnClick = () =>
                     {

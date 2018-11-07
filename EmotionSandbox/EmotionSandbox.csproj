@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.SoundPlayer.SoundPlayerScene</StartupObject>
+    <StartupObject>EmotionSandbox.Examples.ExampleStart</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -63,9 +63,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Examples\ExampleStart.cs" />
     <Compile Include="SoundPlayer\PlayerVolumeControl.cs" />
     <Compile Include="SoundPlayer\SoundPlayerScene.cs" />
-    <Compile Include="SoundPlayer\SoundSelectionLabel.cs" />
+    <Compile Include="Examples\Generic\ClickableLabel.cs" />
     <None Include="Assets\SoundPlayer\RobotoFont.woff">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
