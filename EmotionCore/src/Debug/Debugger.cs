@@ -107,10 +107,10 @@ namespace Emotion.Debug
             CornerAnchor = new CornerAnchor();
             _debugUIController.Add(CornerAnchor);
 
-            Context.ScriptingEngine.Expose("highlight", (Action<string>) ((source) =>
+            Context.ScriptingEngine.Expose("highlight", (Action<string>) (source =>
             {
                 bool parsed = Enum.TryParse(source, true, out MessageSource parsedSource);
-                if(!parsed) return;
+                if (!parsed) return;
                 _highlighted = parsedSource;
             }), "Highlights the specified message source.");
         }
@@ -203,10 +203,7 @@ namespace Emotion.Debug
             }
 
             // Check if highlighted.
-            if (source == _highlighted)
-            {
-                Console.ForegroundColor = ConsoleColor.Magenta;
-            }
+            if (source == _highlighted) Console.ForegroundColor = ConsoleColor.Magenta;
 
             // Log and display the message.
             _logger.Log("[" + type + "-" + source + "] " + message);

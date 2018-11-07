@@ -2,7 +2,6 @@
 
 #region Using
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Debug;
@@ -33,20 +32,7 @@ namespace Emotion.Sound
         /// <summary>
         /// Whether the layer is playing, is paused, etc.
         /// </summary>
-        public SoundStatus Status
-        {
-            get
-            {
-                if (ALThread.IsALThread())
-                {
-                    UpdatePlayingState();
-                }
-
-                return _status;
-            }
-            private set => _status = value;
-        }
-        private SoundStatus _status = SoundStatus.Stopped;
+        public SoundStatus Status { get; private set; }
 
         /// <summary>
         /// Whether to loop the currently playing source.
@@ -118,7 +104,11 @@ namespace Emotion.Sound
         {
             if (Status != SoundStatus.Paused) return;
             Debugger.Log(MessageType.Trace, MessageSource.SoundManager, $"Resumed {ToString()}.");
-            ALThread.ExecuteALThread(() => { AL.SourcePlay(_pointer); });
+            ALThread.ExecuteALThread(() =>
+            {
+                AL.SourcePlay(_pointer);
+                Status = SoundStatus.Playing;
+            });
         }
 
         /// <summary>
@@ -128,7 +118,11 @@ namespace Emotion.Sound
         {
             if (Status != SoundStatus.Playing) return;
             Debugger.Log(MessageType.Trace, MessageSource.SoundManager, $"Paused {ToString()}.");
-            ALThread.ExecuteALThread(() => { AL.SourcePause(_pointer); });
+            ALThread.ExecuteALThread(() =>
+            {
+                AL.SourcePause(_pointer);
+                Status = SoundStatus.Paused;
+            });
         }
 
         /// <summary>
@@ -143,6 +137,7 @@ namespace Emotion.Sound
                 // Stop playback.
                 AL.Source(_pointer, ALSourceb.Looping, false);
                 AL.SourceStop(_pointer);
+                Status = SoundStatus.Stopped;
 
                 // Clear buffers.
                 RemovePlayed();
@@ -160,17 +155,15 @@ namespace Emotion.Sound
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
 
-                if (Status == SoundStatus.Stopped)
-                {
-                    StopPlayingAll();
-                }
+                if (Status == SoundStatus.Stopped) StopPlayingAll();
 
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
 
                 // Play if not playing.
-                Console.WriteLine(Status);
-                if (Status == SoundStatus.Stopped) AL.SourcePlay(_pointer);
+                if (Status != SoundStatus.Stopped) return;
+                AL.SourcePlay(_pointer);
+                Status = SoundStatus.Playing;
             });
         }
 
@@ -306,7 +299,7 @@ namespace Emotion.Sound
         {
             AL.GetSource(_pointer, ALGetSourcei.SourceState, out int status);
 
-            switch ((ALSourceState)status)
+            switch ((ALSourceState) status)
             {
                 case ALSourceState.Playing:
                     Status = SoundStatus.Playing;

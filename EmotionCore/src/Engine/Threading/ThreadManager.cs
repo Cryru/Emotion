@@ -19,7 +19,7 @@ namespace Emotion.Engine.Threading
         /// The name of the thread being managed.
         /// </summary>
         public string ThreadName { get; private set; }
-        
+
         /// <summary>
         /// Whether to block the current thread when ExecuteOnThread is called.
         /// </summary>
