@@ -14,7 +14,7 @@ namespace Emotion.Engine.Threading
 
         static ALThread()
         {
-            _threadManager = new ThreadManager("AL Thread");
+            _threadManager = new ThreadManager("AL Thread") {BlockOnExecution = false};
         }
 
         /// <summary>

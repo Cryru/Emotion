@@ -47,6 +47,8 @@ namespace Emotion.IO
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
         public T Get<T>(string path) where T : Asset
         {
+            if (string.IsNullOrEmpty(path)) return null;
+
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
 
@@ -84,6 +86,8 @@ namespace Emotion.IO
         /// <param name="path">A path to the asset. Will be converted to an engine path.</param>
         public void Destroy(string path)
         {
+            if (string.IsNullOrEmpty(path)) return;
+
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
             Asset asset;

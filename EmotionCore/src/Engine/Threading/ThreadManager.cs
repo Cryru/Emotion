@@ -13,10 +13,19 @@ namespace Emotion.Engine.Threading
 {
     public class ThreadManager
     {
+        #region Properties
+
         /// <summary>
         /// The name of the thread being managed.
         /// </summary>
         public string ThreadName { get; private set; }
+        
+        /// <summary>
+        /// Whether to block the current thread when ExecuteOnThread is called.
+        /// </summary>
+        public bool BlockOnExecution { get; set; } = true;
+
+        #endregion
 
         /// <summary>
         /// The id of the managed thread.
@@ -96,6 +105,7 @@ namespace Emotion.Engine.Threading
             }
 
             // Block until the action is executed.
+            if (!BlockOnExecution) return;
             while (!done) Task.Delay(1).Wait();
         }
 

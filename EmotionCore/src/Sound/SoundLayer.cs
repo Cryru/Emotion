@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Debug;
@@ -32,7 +33,20 @@ namespace Emotion.Sound
         /// <summary>
         /// Whether the layer is playing, is paused, etc.
         /// </summary>
-        public SoundStatus Status { get; private set; } = SoundStatus.Stopped;
+        public SoundStatus Status
+        {
+            get
+            {
+                if (ALThread.IsALThread())
+                {
+                    UpdatePlayingState();
+                }
+
+                return _status;
+            }
+            private set => _status = value;
+        }
+        private SoundStatus _status = SoundStatus.Stopped;
 
         /// <summary>
         /// Whether to loop the currently playing source.
@@ -65,12 +79,12 @@ namespace Emotion.Sound
         /// <summary>
         /// The duration of the fade in effect.
         /// </summary>
-        public int FadeInLength { get; set; } = 2;
+        public int FadeInLength { get; set; }
 
         /// <summary>
         /// The duration of the fade out effect.
         /// </summary>
-        public int FadeOutLength { get; set; } = 0;
+        public int FadeOutLength { get; set; }
 
         #endregion
 
@@ -146,12 +160,16 @@ namespace Emotion.Sound
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
 
-                if (Status == SoundStatus.Stopped) StopPlayingAll();
+                if (Status == SoundStatus.Stopped)
+                {
+                    StopPlayingAll();
+                }
 
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
 
                 // Play if not playing.
+                Console.WriteLine(Status);
                 if (Status == SoundStatus.Stopped) AL.SourcePlay(_pointer);
             });
         }
@@ -186,7 +204,7 @@ namespace Emotion.Sound
 
                 // This sets the removed ones to null so the first and last positions are retained. The StopPlayingAll function will clear the list.
                 int notNull = _playList.FindIndex(x => x != null);
-                _playList[notNull] = null;
+                if (notNull != -1) _playList[notNull] = null;
             }
         }
 
@@ -288,7 +306,7 @@ namespace Emotion.Sound
         {
             AL.GetSource(_pointer, ALGetSourcei.SourceState, out int status);
 
-            switch ((ALSourceState) status)
+            switch ((ALSourceState)status)
             {
                 case ALSourceState.Playing:
                     Status = SoundStatus.Playing;
@@ -296,6 +314,7 @@ namespace Emotion.Sound
                 case ALSourceState.Paused:
                     Status = Context.Host.Focused ? SoundStatus.Paused : SoundStatus.FocusLossPause;
                     break;
+                case ALSourceState.Initial:
                 case ALSourceState.Stopped:
                     Status = SoundStatus.Stopped;
                     break;
@@ -317,7 +336,7 @@ namespace Emotion.Sound
 
         public override string ToString()
         {
-            return $"[Sound Layer] [ ALPointer: [{_pointer}] Name:[{Name}] Looping/LastOnly:[{Looping}/{LoopLastOnly}] Status:[{Status}] ]";
+            return $"[Sound Layer] [ ALPointer:[{_pointer}] Name:[{Name}] Looping/LastOnly:[{Looping}/{LoopLastOnly}] Status:[{Status}] ]";
         }
     }
 }

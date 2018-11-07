@@ -53,6 +53,11 @@ namespace Emotion.Debug
         /// </summary>
         private static Thread _consoleThread;
 
+        /// <summary>
+        /// Highlighted source.
+        /// </summary>
+        private static MessageSource _highlighted = MessageSource.Other;
+
         #endregion
 
         #region Initialization
@@ -101,6 +106,13 @@ namespace Emotion.Debug
             _debugUIController = new Controller();
             CornerAnchor = new CornerAnchor();
             _debugUIController.Add(CornerAnchor);
+
+            Context.ScriptingEngine.Expose("highlight", (Action<string>) ((source) =>
+            {
+                bool parsed = Enum.TryParse(source, true, out MessageSource parsedSource);
+                if(!parsed) return;
+                _highlighted = parsedSource;
+            }), "Highlights the specified message source.");
         }
 
         [Conditional("DEBUG")]
@@ -188,6 +200,12 @@ namespace Emotion.Debug
                 default:
                     Console.ForegroundColor = ConsoleColor.Gray;
                     break;
+            }
+
+            // Check if highlighted.
+            if (source == _highlighted)
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
             }
 
             // Log and display the message.

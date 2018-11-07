@@ -44,6 +44,14 @@ namespace Emotion.Game.Text
         public string Text { get; private set; } = "";
 
         /// <summary>
+        /// The text to render with tags removed.
+        /// </summary>
+        public string ProcessedText
+        {
+            get => _textStripped;
+        }
+
+        /// <summary>
         /// The font atlas to use when rendering.
         /// </summary>
         public Atlas FontAtlas

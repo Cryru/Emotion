@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +34,8 @@ namespace Emotion.Sound
             while (!soundThread.IsAlive)
             {
             }
+
+            InitDebug();
         }
 
         private void SoundThreadLoop()
@@ -82,9 +85,12 @@ namespace Emotion.Sound
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
 
             // Check if the layer has anything playing on it.
-            if (playBackLayer.Status != SoundStatus.Stopped) playBackLayer.StopPlayingAll();
+            ALThread.ExecuteALThread(() =>
+            {
+                playBackLayer.StopPlayingAll();
 
-            playBackLayer.QueuePlay(file);
+                playBackLayer.QueuePlay(file);
+            });
 
             return playBackLayer;
         }
@@ -109,10 +115,10 @@ namespace Emotion.Sound
         }
 
         /// <summary>
-        /// Returns the sound layer object of the requested name or null if none exists.
+        /// Returns the sound layer object of the requested name or create one if it doesn't.
         /// </summary>
         /// <param name="layer">The name of the layer to look for.</param>
-        /// <returns>The layer with the specified name, or null if not found.</returns>
+        /// <returns>The layer with the specified name.</returns>
         public SoundLayer GetLayer(string layer)
         {
             SoundLayer playBackLayer;
@@ -122,15 +128,37 @@ namespace Emotion.Sound
                 _layers.TryGetValue(layer, out playBackLayer);
             }
 
-            return playBackLayer;
+            return playBackLayer ?? CreateLayer(layer);
         }
+
+        #endregion
+
+        #region Debugging
+
+        [Conditional("DEBUG")]
+        private void InitDebug()
+        {
+            Context.ScriptingEngine.Expose("debugAudio", (Action) (() =>
+            {
+                lock (_layers)
+                {
+                    foreach (var layer in _layers)
+                    {
+                        Debug.Debugger.Log(Debug.MessageType.Info, Debug.MessageSource.SoundManager, layer.ToString());
+                    }
+                }
+
+            }), "Dumps the status of the sound manager.");
+        }
+
+        #endregion
 
         /// <summary>
         /// Creates the sound layer.
         /// </summary>
         /// <param name="layer">The name of the layer to create.</param>
         /// <returns>The created layer.</returns>
-        public SoundLayer CreateLayer(string layer)
+        private SoundLayer CreateLayer(string layer)
         {
             SoundLayer playBackLayer = new SoundLayer(layer);
 
@@ -141,7 +169,5 @@ namespace Emotion.Sound
 
             return playBackLayer;
         }
-
-        #endregion
     }
 }
