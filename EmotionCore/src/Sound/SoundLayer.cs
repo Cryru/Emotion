@@ -3,6 +3,7 @@
 #region Using
 
 using System.Collections.Generic;
+using System.Linq;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Engine.Threading;
@@ -44,9 +45,17 @@ namespace Emotion.Sound
         public bool LoopLastOnly { get; set; } = true;
 
         /// <summary>
-        /// The position currently playing within the current buffer in seconds.
+        /// The position of the playback within the TotalDuration.
         /// </summary>
         public float PlaybackLocation { get; private set; }
+
+        /// <summary>
+        /// The duration of all sounds queued on the layer.
+        /// </summary>
+        public float TotalDuration
+        {
+            get { return _playList.Sum(x => x?.Duration ?? 0); }
+        }
 
         /// <summary>
         /// The file currently playing.
@@ -56,26 +65,26 @@ namespace Emotion.Sound
         /// <summary>
         /// The duration of the fade in effect.
         /// </summary>
-        public int FadeInLength { get; set; }
+        public int FadeInLength { get; set; } = 2;
 
         /// <summary>
         /// The duration of the fade out effect.
         /// </summary>
-        public int FadeOutLength { get; set; }
+        public int FadeOutLength { get; set; } = 0;
 
         #endregion
 
         #region Internals
 
         private int _pointer;
-        private Queue<SoundFile> _playQueue;
+        private List<SoundFile> _playList;
 
         #endregion
 
         public SoundLayer(string name)
         {
             Name = name;
-            _playQueue = new Queue<SoundFile>();
+            _playList = new List<SoundFile>();
 
             ALThread.ExecuteALThread(() =>
             {
@@ -116,8 +125,14 @@ namespace Emotion.Sound
             ALThread.ExecuteALThread(() =>
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Stopped {ToString()}.");
+
+                // Stop playback.
+                AL.Source(_pointer, ALSourceb.Looping, false);
                 AL.SourceStop(_pointer);
-                _playQueue.Clear();
+
+                // Clear buffers.
+                RemovePlayed();
+                _playList.Clear();
             });
         }
 
@@ -131,8 +146,10 @@ namespace Emotion.Sound
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
 
+                if (Status == SoundStatus.Stopped) StopPlayingAll();
+
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
-                _playQueue.Enqueue(file);
+                _playList.Add(file);
 
                 // Play if not playing.
                 if (Status == SoundStatus.Stopped) AL.SourcePlay(_pointer);
@@ -146,12 +163,32 @@ namespace Emotion.Sound
         {
             Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Destroyed {ToString()}.");
 
-            ALThread.ExecuteALThread(() => AL.DeleteSource(_pointer));
+            ALThread.ExecuteALThread(() =>
+            {
+                StopPlayingAll();
+                AL.DeleteSource(_pointer);
+            });
             _pointer = -1;
-            _playQueue.Clear();
+            _playList.Clear();
         }
 
         #endregion
+
+        private void RemovePlayed()
+        {
+            ALThread.ForceALThread();
+
+            AL.GetSource(_pointer, ALGetSourcei.BuffersProcessed, out int processed);
+            while (processed > 0)
+            {
+                AL.SourceUnqueueBuffers(_pointer, 1);
+                processed--;
+
+                // This sets the removed ones to null so the first and last positions are retained. The StopPlayingAll function will clear the list.
+                int notNull = _playList.FindIndex(x => x != null);
+                _playList[notNull] = null;
+            }
+        }
 
         /// <summary>
         /// Update the layer. Is called on the ALThread by the sound manager.
@@ -161,17 +198,22 @@ namespace Emotion.Sound
             // Update focused state.
             if (!UpdateFocusedState()) return;
 
+            // Prepare variables in use by parts of the update.
+            AL.GetSource(_pointer, ALGetSourcei.Buffer, out int filePointer);
+            bool last = filePointer == _playList.LastOrDefault()?.Pointer;
+            bool first = filePointer == _playList.FirstOrDefault()?.Pointer;
+
             // Update volume.
-            UpdateVolume();
+            UpdateVolume(first, last);
 
             // Swap buffers which have played off the stack.
-            PopPlayedSources();
+            UpdateLooping(last);
 
             // Update paused/playing state.
             UpdatePlayingState();
 
             // Update current file.
-            UpdateCurrentFile();
+            UpdateCurrentFile(filePointer);
 
             // Update playback location.
             UpdatePlaybackLocation();
@@ -203,7 +245,7 @@ namespace Emotion.Sound
             return true;
         }
 
-        private void UpdateVolume()
+        private void UpdateVolume(bool first, bool last)
         {
             float systemVolume = Context.Settings.Sound ? Context.Settings.Volume : 0f;
             float scaled = MathHelper.Clamp(Volume * (systemVolume / 100f), 0, 10);
@@ -214,10 +256,11 @@ namespace Emotion.Sound
                 float timeLeft = CurrentlyPlayingFile.Duration - PlaybackLocation;
 
                 // Check if fading in.
-                if (PlaybackLocation < FadeInLength) scaled = MathHelper.Lerp(0, scaled, PlaybackLocation / FadeInLength);
+                if (PlaybackLocation < FadeInLength && first)
+                    scaled = MathHelper.Lerp(0, scaled, PlaybackLocation / FadeInLength);
 
-                // Check if fading out.
-                if (timeLeft < FadeOutLength) scaled = MathHelper.Lerp(0, scaled, timeLeft / FadeOutLength);
+                // Check if fading out. Fade out only the last buffer.
+                if (timeLeft < FadeOutLength && last) scaled = MathHelper.Lerp(0, scaled, timeLeft / FadeOutLength);
             }
 
             AL.Source(_pointer, ALSourcef.Gain, scaled);
@@ -225,39 +268,20 @@ namespace Emotion.Sound
             // AL.Source(_pointer, ALSourcef.MaxGain, scaled < 0 ? 0f : 1f);
         }
 
-        private void PopPlayedSources()
+        private void UpdateLooping(bool last)
         {
-            // Get the number of processed buffers.
-            AL.GetSource(_pointer, ALGetSourcei.BuffersProcessed, out int processed);
-
-            // Pop off as many buffers off the stack as they were processed.
-            while (processed > 0)
-            {
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Finished playing buffer of {ToString()}.");
-
-                // Remove buffer.
-                AL.SourceUnqueueBuffers(_pointer, 1);
-                processed--;
-
-                // Remove from internal queue. The check is here for when switching from appending to single.
-                if (_playQueue.Count <= 0) continue;
-                SoundFile file = _playQueue.Dequeue();
-
-                // Loop if needed.
-                if (!Looping) continue;
-                // Check if looping on last.
-                if (LoopLastOnly)
+            if (LoopLastOnly)
+                if (last)
                 {
-                    if (_playQueue.Count != 0) continue;
-                    QueuePlay(file);
-                    AL.SourcePlay(_pointer);
+                    RemovePlayed();
+                    AL.Source(_pointer, ALSourceb.Looping, Looping);
                 }
                 else
                 {
-                    QueuePlay(file);
-                    AL.SourcePlay(_pointer);
+                    AL.Source(_pointer, ALSourceb.Looping, false);
                 }
-            }
+            else
+                AL.Source(_pointer, ALSourceb.Looping, Looping);
         }
 
         private void UpdatePlayingState()
@@ -278,16 +302,9 @@ namespace Emotion.Sound
             }
         }
 
-        private void UpdateCurrentFile()
+        private void UpdateCurrentFile(int currentFilePointer)
         {
-            AL.GetSource(_pointer, ALGetSourcei.Buffer, out int filePointer);
-            if (filePointer == 0)
-                CurrentlyPlayingFile = null;
-            else
-                foreach (SoundFile file in _playQueue)
-                {
-                    if (file.Pointer == filePointer) CurrentlyPlayingFile = file;
-                }
+            CurrentlyPlayingFile = currentFilePointer == 0 ? null : _playList.FirstOrDefault(x => x?.Pointer == currentFilePointer);
         }
 
         private void UpdatePlaybackLocation()

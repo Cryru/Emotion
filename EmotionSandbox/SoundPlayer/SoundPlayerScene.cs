@@ -59,7 +59,7 @@ namespace EmotionSandbox.SoundPlayer
                 Texture = Context.AssetLoader.Get<Texture>(_playButton),
                 OnClick = () =>
                 {
-                    SoundLayer layer = Context.SoundManager.Get("main");
+                    SoundLayer layer = Context.SoundManager.GetLayer("main");
                     if (layer == null) return;
 
                     if (layer.Status == SoundStatus.Playing)
@@ -76,7 +76,7 @@ namespace EmotionSandbox.SoundPlayer
             };
             loopButton.OnClick = () =>
             {
-                SoundLayer layer = Context.SoundManager.Get("main");
+                SoundLayer layer = Context.SoundManager.GetLayer("main");
                 if (layer == null) return;
 
                 layer.Looping = !layer.Looping;
@@ -133,10 +133,10 @@ namespace EmotionSandbox.SoundPlayer
         {
             _uiController.Update();
 
-            SoundLayer mainLayer = Context.SoundManager.Get("main");
+            SoundLayer mainLayer = Context.SoundManager.GetLayer("main");
             if (mainLayer == null) return;
 
-            _controlButton.Texture = Context.AssetLoader.Get<Texture>(Context.SoundManager.Get("main")?.Status == SoundStatus.Playing ? _pauseButton : _playButton);
+            _controlButton.Texture = Context.AssetLoader.Get<Texture>(Context.SoundManager.GetLayer("main")?.Status == SoundStatus.Playing ? _pauseButton : _playButton);
 
             if (mainLayer.CurrentlyPlayingFile == null)
             {
@@ -145,9 +145,9 @@ namespace EmotionSandbox.SoundPlayer
             }
             else
             {
-                int playbackPercentage = (int) (100 * mainLayer.PlaybackLocation / mainLayer.CurrentlyPlayingFile.Duration);
+                int playbackPercentage = (int) (100 * mainLayer.PlaybackLocation / mainLayer.TotalDuration);
                 _soundBar.Value = playbackPercentage;
-                _soundBarInfo.Text = $"{mainLayer.PlaybackLocation}:{mainLayer.CurrentlyPlayingFile.Duration}";
+                _soundBarInfo.Text = $"{mainLayer.PlaybackLocation}:{mainLayer.TotalDuration}";
             }
         }
 

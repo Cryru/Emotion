@@ -74,25 +74,19 @@ namespace Emotion.Sound
         /// </summary>
         /// <param name="file">The file to play.</param>
         /// <param name="layer">The layer to play on.</param>
+        /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public void Play(SoundFile file, string layer)
+        public SoundLayer Play(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
-            SoundLayer playBackLayer = Get(layer);
-            if (playBackLayer == null)
-            {
-                playBackLayer = new SoundLayer(layer);
-
-                lock (_layers)
-                {
-                    _layers.Add(layer, playBackLayer);
-                }
-            }
+            SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
 
             // Check if the layer has anything playing on it.
             if (playBackLayer.Status != SoundStatus.Stopped) playBackLayer.StopPlayingAll();
 
             playBackLayer.QueuePlay(file);
+
+            return playBackLayer;
         }
 
         /// <summary>
@@ -102,22 +96,16 @@ namespace Emotion.Sound
         /// </summary>
         /// <param name="file">The file to play.</param>
         /// <param name="layer">The layer to play on.</param>
+        /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public void PlayQueue(SoundFile file, string layer)
+        public SoundLayer PlayQueue(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
-            SoundLayer playBackLayer = Get(layer);
-            if (playBackLayer == null)
-            {
-                playBackLayer = new SoundLayer(layer);
-
-                lock (_layers)
-                {
-                    _layers.Add(layer, playBackLayer);
-                }
-            }
+            SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
 
             playBackLayer.QueuePlay(file);
+
+            return playBackLayer;
         }
 
         /// <summary>
@@ -125,13 +113,30 @@ namespace Emotion.Sound
         /// </summary>
         /// <param name="layer">The name of the layer to look for.</param>
         /// <returns>The layer with the specified name, or null if not found.</returns>
-        public SoundLayer Get(string layer)
+        public SoundLayer GetLayer(string layer)
         {
             SoundLayer playBackLayer;
 
             lock (_layers)
             {
                 _layers.TryGetValue(layer, out playBackLayer);
+            }
+
+            return playBackLayer;
+        }
+
+        /// <summary>
+        /// Creates the sound layer.
+        /// </summary>
+        /// <param name="layer">The name of the layer to create.</param>
+        /// <returns>The created layer.</returns>
+        public SoundLayer CreateLayer(string layer)
+        {
+            SoundLayer playBackLayer = new SoundLayer(layer);
+
+            lock (_layers)
+            {
+                _layers.Add(layer, playBackLayer);
             }
 
             return playBackLayer;
