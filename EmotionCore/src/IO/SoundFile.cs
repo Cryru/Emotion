@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Emotion.Engine.Threading;
 using OpenTK.Audio.OpenAL;
 
 #endregion
@@ -80,8 +81,11 @@ namespace Emotion.IO
                     byte[] soundData = reader.ReadBytes(dataLength);
 
                     // Create a sound buffer and load it.
-                    Pointer = AL.GenBuffer();
-                    AL.BufferData(Pointer, GetSoundFormat(channels, bitsPerSample), soundData, soundData.Length, sampleRate);
+                    ALThread.ExecuteALThread(() =>
+                    {
+                        Pointer = AL.GenBuffer();
+                        AL.BufferData(Pointer, GetSoundFormat(channels, bitsPerSample), soundData, soundData.Length, sampleRate);
+                    });
 
                     Duration = soundData.Length / (sampleRate * channels * bitsPerSample / 8f);
                 }
@@ -90,7 +94,7 @@ namespace Emotion.IO
 
         internal override void Destroy()
         {
-            AL.DeleteBuffer(Pointer);
+            ALThread.ExecuteALThread(() => { AL.DeleteBuffer(Pointer); });
         }
 
         #region Helpers
