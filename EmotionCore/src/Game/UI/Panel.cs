@@ -4,6 +4,7 @@
 
 using Emotion.Graphics;
 using Emotion.Graphics.GLES;
+using Emotion.IO;
 using Emotion.Primitives;
 
 #endregion

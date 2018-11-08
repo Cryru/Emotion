@@ -12,6 +12,7 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Engine.Threading;
 using Emotion.IO;
+using Emotion.Utils;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using Debugger = Emotion.Debug.Debugger;
@@ -62,6 +63,8 @@ namespace Emotion.Sound
 
                 // Run queued actions.
                 ALThread.Run();
+
+                Helpers.CheckErrorAL("loop end");
 
                 Task.Delay(1).Wait();
             }
@@ -131,6 +134,20 @@ namespace Emotion.Sound
             }
 
             return playBackLayer ?? CreateLayer(layer);
+        }
+
+        /// <summary>
+        /// Remove a layer by its name.
+        /// </summary>
+        /// <param name="layer">The name of the layer to remove.</param>
+        public void RemoveLayer(string layer)
+        {
+            lock (_layers)
+            {
+                _layers.TryGetValue(layer, out SoundLayer playBackLayer);
+                _layers.Remove(layer);
+                playBackLayer?.Dispose();
+            }
         }
 
         #endregion

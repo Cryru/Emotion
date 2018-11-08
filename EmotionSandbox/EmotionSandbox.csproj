@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Examples\DocExample.cs" />
     <Compile Include="Examples\ExampleStart.cs" />
     <Compile Include="SoundPlayer\PlayerVolumeControl.cs" />
     <Compile Include="SoundPlayer\SoundPlayerScene.cs" />

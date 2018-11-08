@@ -16,27 +16,27 @@ namespace Emotion.Engine
         #region Window Settings
 
         /// <summary>
-        /// The window's title.
+        /// The window's title. "Untitled" by default.
         /// </summary>
         public string WindowTitle = "Untitled";
 
         /// <summary>
-        /// The width size of the window.
+        /// The width size of the window. By default this is 960.
         /// </summary>
         public int WindowWidth = 960;
 
         /// <summary>
-        /// The height size of the window.
+        /// The height size of the window. By default this is 540.
         /// </summary>
         public int WindowHeight = 540;
 
         /// <summary>
-        /// The window mode.
+        /// The window mode. Windowed by default.
         /// </summary>
         public WindowMode WindowMode = WindowMode.Windowed;
 
         /// <summary>
-        /// The window icon.
+        /// The window icon. Requires System.Drawing to use.
         /// </summary>
         public Icon WindowIcon;
 

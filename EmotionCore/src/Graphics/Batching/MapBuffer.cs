@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine.Threading;
 using Emotion.Graphics.GLES;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;

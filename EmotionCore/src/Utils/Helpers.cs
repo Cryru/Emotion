@@ -4,6 +4,7 @@
 
 using System;
 using Emotion.Primitives;
+using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -35,7 +36,7 @@ namespace Emotion.Utils
         }
 
         /// <summary>
-        /// Check for an OpenGL error.
+        /// Check for an OpenGL error. Must be called on the GLThread.
         /// </summary>
         /// <param name="location">Where the error check is.</param>
         public static void CheckError(string location)
@@ -44,6 +45,22 @@ namespace Emotion.Utils
             if (errorCheck != ErrorCode.NoError) throw new Exception("OpenGL error at " + location + ":\n" + errorCheck);
         }
 
+        /// <summary>
+        /// Check for an OpenAL error. Must be called on the ALThread.
+        /// </summary>
+        /// <param name="location">Where the error check is.</param>
+        public static void CheckErrorAL(string location)
+        {
+            ALError errorCheck = AL.GetError();
+            if (errorCheck != ALError.NoError) throw new Exception("OpenAL error at " + location + ":\n" + errorCheck);
+        }
+
+
+        /// <summary>
+        /// Converts a pixel font size to a point character size.
+        /// </summary>
+        /// <param name="pixelSize">The pixel size to convert.</param>
+        /// <returns>The provided pixel size in points.</returns>
         public static float PixelFontSizeToCharSize(uint pixelSize)
         {
             return (float) Math.Pow(96 / 72 / pixelSize, -1);

@@ -13,6 +13,7 @@ using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;

@@ -7,6 +7,7 @@ using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
 using Emotion.Graphics.GLES;
+using Emotion.IO;
 using Emotion.Primitives;
 using Soul;
 

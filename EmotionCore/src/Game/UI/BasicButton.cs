@@ -6,6 +6,7 @@ using System;
 using Emotion.Graphics;
 using Emotion.Graphics.GLES;
 using Emotion.Input;
+using Emotion.IO;
 using Emotion.Primitives;
 
 #endregion

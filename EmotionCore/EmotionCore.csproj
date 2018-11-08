@@ -129,7 +129,7 @@
     <Compile Include="src\Game\UI\ParentControl.cs" />
     <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
-    <Compile Include="src\Graphics\GLES\Texture.cs" />
+    <Compile Include="src\IO\Texture.cs" />
     <Compile Include="src\Graphics\GLES\IGLObject.cs" />
     <Compile Include="src\Graphics\GLES\IndexBuffer.cs" />
     <Compile Include="src\Graphics\GLES\Shader.cs" />

@@ -10,6 +10,9 @@ namespace Emotion.Graphics
 {
     public abstract class TransformRenderable : Transform, IRenderable
     {
+        /// <summary>
+        /// The model matrix of the renderable transform. Is automatically applied when rendered by the renderer.
+        /// </summary>
         public virtual Matrix4 ModelMatrix { get; protected set; } = Matrix4.Identity;
 
         #region Constructors

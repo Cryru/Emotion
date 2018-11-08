@@ -15,6 +15,9 @@ namespace Emotion.Utils
     /// </summary>
     public static class CurrentPlatform
     {
+        /// <summary>
+        /// The operating system the engine is running on.
+        /// </summary>
         public static PlatformName OS { get; private set; }
 
         static CurrentPlatform()

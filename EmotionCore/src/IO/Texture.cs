@@ -4,7 +4,7 @@
 
 using System.IO;
 using Emotion.Engine.Threading;
-using Emotion.IO;
+using Emotion.Graphics.GLES;
 using Emotion.Primitives;
 using Emotion.Utils;
 using FreeImageAPI;
@@ -12,7 +12,7 @@ using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.IO
 {
     public class Texture : Asset, IGLObject
     {

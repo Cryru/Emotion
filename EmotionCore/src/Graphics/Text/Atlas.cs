@@ -5,6 +5,7 @@
 using System;
 using Emotion.Engine.Threading;
 using Emotion.Graphics.GLES;
+using Emotion.IO;
 using Emotion.Primitives;
 using SharpFont;
 
@@ -47,7 +48,7 @@ namespace Emotion.Graphics.Text
         /// Create a new font atlas.
         /// </summary>
         /// <param name="fontBytes">The bytes of the font to create an atlas from.</param>
-        /// <param name="fontSize">The font size to create an atlas at.</param>
+        /// <param name="fontSize">The font size in points to create an atlas at.</param>
         /// <param name="glyphCount">the number of glyphs to cache.</param>
         public Atlas(byte[] fontBytes, uint fontSize, int glyphCount = 128)
         {
