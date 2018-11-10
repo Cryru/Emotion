@@ -51,6 +51,9 @@ namespace Emotion.Utils
         /// <param name="location">Where the error check is.</param>
         public static void CheckErrorAL(string location)
         {
+            // For some reason Mac reports errors left and right. As this happens only on that platform error checks are disabled there.
+            if(CurrentPlatform.OS == PlatformName.Mac) return;
+
             ALError errorCheck = AL.GetError();
             if (errorCheck != ALError.NoError) throw new Exception("OpenAL error at " + location + ":\n" + errorCheck);
         }

@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Debug;
@@ -179,13 +180,13 @@ namespace Emotion.Sound
 
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
-                Helpers.CheckErrorAL("queuing");
+                Helpers.CheckErrorAL($"queuing in source {_pointer}");
 
                 // Play if not playing.
                 if (Status != SoundStatus.Stopped) return;
                 AL.SourcePlay(_pointer);
                 Status = SoundStatus.Playing;
-                Helpers.CheckErrorAL("playing");
+                Helpers.CheckErrorAL($"playing source {_pointer}");
 
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Started playing [{file.Name}] on {ToString()}.");
             });
@@ -221,12 +222,12 @@ namespace Emotion.Sound
                 // Queue the file.
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
-                Helpers.CheckErrorAL("queuing single");
+                Helpers.CheckErrorAL($"queuing single in source {_pointer}");
 
                 // Play it.
                 AL.SourcePlay(_pointer);
                 Status = SoundStatus.Playing;
-                Helpers.CheckErrorAL("playing single");
+                Helpers.CheckErrorAL($"playing single in source {_pointer}");
 
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Stopped current and started playing [{file.Name}] on {ToString()}.");
             });
@@ -243,7 +244,7 @@ namespace Emotion.Sound
 
                 StopPlayingAll();
                 AL.DeleteSource(_pointer);
-                Helpers.CheckErrorAL("cleanup");
+                Helpers.CheckErrorAL($"cleanup of source {_pointer}");
 
                 _pointer = -1;
                 _playList.Clear();
@@ -260,15 +261,14 @@ namespace Emotion.Sound
             ALThread.ForceALThread();
 
             AL.GetSource(_pointer, ALGetSourcei.BuffersProcessed, out int processed);
+            Helpers.CheckErrorAL($"checking processed buffers of source {_pointer}");
             if (processed > 0)
             {
                 AL.SourceUnqueueBuffers(_pointer, processed);
-                _playList.RemoveRange(0, processed);
+                Helpers.CheckErrorAL($"removing {processed} buffers of source {_pointer}");
+                if(_playList.Count > 0) _playList.RemoveRange(0, Math.Min(_playList.Count, processed));
                 _isFirst = false;
             }
-
-
-            Helpers.CheckErrorAL("removing buffers");
         }
 
         private void PerformReset()
