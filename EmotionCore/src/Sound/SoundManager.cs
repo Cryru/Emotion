@@ -89,13 +89,7 @@ namespace Emotion.Sound
             // Check whether the layer exists, and create it if it doesn't.
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
 
-            // Check if the layer has anything playing on it.
-            ALThread.ExecuteALThread(() =>
-            {
-                playBackLayer.StopPlayingAll();
-
-                playBackLayer.QueuePlay(file);
-            });
+            playBackLayer.Play(file);
 
             return playBackLayer;
         }

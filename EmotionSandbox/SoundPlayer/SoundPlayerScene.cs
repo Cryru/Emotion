@@ -2,6 +2,8 @@
 
 #region Using
 
+using System.IO;
+using System.Linq;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Game.UI;
@@ -28,7 +30,7 @@ namespace EmotionSandbox.SoundPlayer
         private readonly string _addButton = "SoundPlayer/addButton.png";
 
         private readonly string _defaultFont = "SoundPlayer/RobotoFont.woff";
-        private readonly string[] _sounds = {"SoundPlayer/ElectricSleepMainMenu.wav", "SoundPlayer/up.wav", "SoundPlayer/down.wav"};
+        private static string[] _sounds = {};
 
         #endregion
 
@@ -50,6 +52,8 @@ namespace EmotionSandbox.SoundPlayer
 
         public override void Load()
         {
+            _sounds = Directory.GetFiles("Assets/SoundPlayer").Where(x => x.Contains(".wav")).Select(x => x.Replace("Assets/", "")).ToArray();
+
             _uiController = new Controller();
             CenterAnchor centerAnchor = new CenterAnchor();
             _uiController.Add(centerAnchor);
