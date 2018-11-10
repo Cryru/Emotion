@@ -13,12 +13,12 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 
 ## Platforms Tested On:
 
-- Windows 10 x64/x86
+- Windows 10 x64/x86 (Last commit: ce86a18f5bb30b989ca951beca62e9e326f588fc) Nov 10th
   - Intel HD Graphics 620
   - Nvidia 940MX
   - AMD R9 200
-- Ubuntu Xenial-Xerus x64
-- MacOS High-Sierra x64
+- Ubuntu Xenial-Xerus x64 (Commit Tested On: 5e7bea38bb197f85376d43e164f41ce7a6a5c341) Nov 6th
+- MacOS High-Sierra x64 (Commit Tested On: ce86a18f5bb30b989ca951beca62e9e326f588fc) Nov 10th
 
 ## Supported Platforms:
 
