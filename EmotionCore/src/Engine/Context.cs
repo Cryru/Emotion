@@ -364,7 +364,7 @@ namespace Emotion.Engine
 
             // If not rendering, then don't update user code.
             // The reason for this is because we are only skipping rendering when frame by frame mode is active, and the layer manager shouldn't trigger at all then.
-            if (Renderer.RenderFrame())
+            if (Renderer.RenderFrame() && Host.Focused)
             {
                 // Update the user code. When the context doesn't have focus the layer manager will perform a light update.
                 LayerManager.Update();
