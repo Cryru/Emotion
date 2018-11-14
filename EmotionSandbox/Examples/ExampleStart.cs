@@ -11,6 +11,7 @@ using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
+using EmotionSandbox.Examples.GameLogic;
 using EmotionSandbox.Examples.Generic;
 using EmotionSandbox.Examples.Rendering;
 using EmotionSandbox.SoundPlayer;
@@ -28,7 +29,7 @@ namespace EmotionSandbox.Examples
         #endregion
 
         private Controller _uiController;
-        private Type[] _scenes = {typeof(RenderingMany), typeof(RenderingRectangles), typeof(RenderingText), typeof(RenderingTextures), typeof(SoundPlayerScene)};
+        private Type[] _scenes = {typeof(RenderingMany), typeof(RenderingRectangles), typeof(RenderingText), typeof(RenderingTextures), typeof(SoundPlayerScene), typeof(Animation)};
 
         public static void Main()
         {

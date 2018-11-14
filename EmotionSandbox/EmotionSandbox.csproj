@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Examples\DocExample.cs" />
     <Compile Include="Examples\ExampleStart.cs" />
+    <Compile Include="Examples\GameLogic\Animation.cs" />
     <Compile Include="SoundPlayer\PlayerVolumeControl.cs" />
     <Compile Include="SoundPlayer\SoundPlayerScene.cs" />
     <Compile Include="Examples\Generic\ClickableLabel.cs" />
