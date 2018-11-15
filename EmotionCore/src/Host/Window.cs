@@ -54,13 +54,14 @@ namespace Emotion.Host
 
         static Window()
         {
-#if DEBUG
             // Debug context breaks on Macs, also they prefer 3.3 contexts.
             if (CurrentPlatform.OS == PlatformName.Mac)
             {
                 _minorVersion = 3;
                 return;
             }
+
+#if DEBUG
 
             _contextMode = GraphicsContextFlags.Debug;
 #endif

@@ -39,7 +39,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Release-GLES\EmotionCore.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">
@@ -242,21 +243,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Libraries\x64\freetype6.dll">
+    <None Include="Libraries\x64\freetype6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libraries\x86\FreeImage.dll">
+    </None>
+    <None Include="Libraries\x86\FreeImage.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libraries\x64\openal32.dll">
+    </None>
+    <None Include="Libraries\x64\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libraries\x86\freetype6.dll">
+    </None>
+    <None Include="Libraries\x86\freetype6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libraries\x86\openal32.dll">
+    </None>
+    <None Include="Libraries\x86\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
     <Compile Include="src\Primitives\Vector4.cs" />
   </ItemGroup>
   <ItemGroup />
