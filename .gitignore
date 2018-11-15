@@ -37,6 +37,8 @@ TestResults
 
 # Nuget
 packages/*
+*.nupkg
+EmotionCore/Emotion.targets
 
 # Soul
 Logs
