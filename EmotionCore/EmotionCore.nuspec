@@ -11,9 +11,7 @@
     <iconUrl>https://github.com/Cryru/Emotion/blob/master/EmotionLogo.png?raw=true</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>A game engine.</summary>
-    <description>Emotion is a cross-platform game engine written in C#, with the intent of removing overhead and providing abstraction without sacrificing control. The idea is, to make game development about game development and not about engine or low-level backend development, but allowing those who want to do that with the option to do so. The goal is to save time, and provide indie developers (and mostly myself) with a foundation.
-	
-	Please visit the GitHub page for the release version, this is the debug version used for development.
+    <description>Emotion is a cross-platform game engine written in C#, with the intent of removing overhead and providing abstraction without sacrificing control. The idea is, to make game development about game development and not about engine or low-level backend development, but allowing those who want to do that with the option to do so. The goal is to save time, and provide indie developers (and mostly myself) with a foundation. Please visit the GitHub page for the release version, this is the debug version used for development.
 	</description>
     <releaseNotes>Pre-release debug version.</releaseNotes>
     <copyright>Copyright 2018</copyright>

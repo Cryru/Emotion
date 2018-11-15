@@ -1,9 +1,11 @@
 # Emotion
 <img src="EmotionLogo.png" width="128px" />
 
-[![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff/branch/master?svg=true)](https://ci.appveyor.com/project/Cryru/emotion/branch/master) [![nuget](https://img.shields.io/nuget/v/Emotion.svg)](https://www.nuget.org/packages/Emotion/)
+[![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff/branch/master?svg=true)](https://ci.appveyor.com/project/Cryru/emotion/branch/master)
 
-[![debug artifact](https://img.shields.io/badge/Download-%20Debug%20Build-brightgreen.svg)](https://ci.appveyor.com/api/projects/Cryru/Emotion/artifacts/EmotionCore%2Fbin%2FEmotion%20Built%20Debug.zip?branch=master&job=Configuration%3A%20Debug-GLES) [![release artifact](https://img.shields.io/badge/Download-%20Release%20Build-brightgreen.svg)](https://ci.appveyor.com/api/projects/Cryru/Emotion/artifacts/EmotionCore%2Fbin%2FEmotion%20Built.zip?branch=master&job=Configuration%3A%20Release-GLES)
+Development: [![debug artifact](https://img.shields.io/badge/Download-%20Debug%20Build-brightgreen.svg)](https://ci.appveyor.com/api/projects/Cryru/Emotion/artifacts/EmotionCore%2Fbin%2FEmotion%20Built%20Debug.zip?branch=master&job=Configuration%3A%20Debug-GLES) [![nuget debug](https://img.shields.io/nuget/v/Emotion.svg)](https://www.nuget.org/packages/Emotion/)
+
+Deployment: [![release artifact](https://img.shields.io/badge/Download-%20Release%20Build-brightgreen.svg)](https://ci.appveyor.com/api/projects/Cryru/Emotion/artifacts/EmotionCore%2Fbin%2FEmotion%20Built.zip?branch=master&job=Configuration%3A%20Release-GLES)
 
 ## What is it?
 
