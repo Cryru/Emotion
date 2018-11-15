@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -150,7 +151,16 @@ namespace Emotion.Game.Layering
 
             Debugger.Log(MessageType.Trace, MessageSource.LayerManager, "Loading layer [" + layer.Name + "]");
 
-            layer.Load();
+            try
+            {
+                layer.Load();
+            }
+            catch (Exception ex)
+            {
+                Debugger.Log(MessageType.Error, MessageSource.LayerManager, $"Error while loading layer {layer.Name}\n{ex}");
+                if (Debugger.DebugMode) throw ex;
+            }
+
             _layers.Add(layer.Name, layer);
             _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
 
@@ -163,7 +173,15 @@ namespace Emotion.Game.Layering
 
             Debugger.Log(MessageType.Trace, MessageSource.LayerManager, "Unloading layer [" + layer.Name + "]");
 
-            layer.Unload();
+            try
+            {
+                layer.Unload();
+            }
+            catch (Exception ex)
+            {
+                Debugger.Log(MessageType.Error, MessageSource.LayerManager, $"Error while unloading layer {layer.Name}\n{ex}");
+                if (Debugger.DebugMode) throw ex;
+            };
 
             Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Unloaded layer [" + layer.Name + "]");
         }

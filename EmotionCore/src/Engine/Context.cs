@@ -111,7 +111,7 @@ namespace Emotion.Engine
             Debugger.Log(MessageType.Info, MessageSource.Engine, $"Starting Emotion v{Meta.Version}");
 
             // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
-            if (System.Diagnostics.Debugger.IsAttached)
+            if (Debugger.DebugMode)
             {
                 InternalSetup(config);
                 return;
@@ -140,6 +140,7 @@ namespace Emotion.Engine
             // Initiate bootstrap.
             Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
             Debugger.Log(MessageType.Info, MessageSource.Engine, $"Executed at: {Environment.CurrentDirectory}");
+            Debugger.Log(MessageType.Info, MessageSource.Engine, $"Debug Mode / Debugger Attached: {Debugger.DebugMode} / {System.Diagnostics.Debugger.IsAttached}");
             Debugger.Log(MessageType.Info, MessageSource.Engine, $"64Bit: {Environment.Is64BitProcess}");
             Debugger.Log(MessageType.Info, MessageSource.Engine, $"OS: {CurrentPlatform.OS} ({Environment.OSVersion})");
             Debugger.Log(MessageType.Info, MessageSource.Engine, $"CPU: {Environment.ProcessorCount}");

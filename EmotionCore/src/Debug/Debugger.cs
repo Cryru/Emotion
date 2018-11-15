@@ -19,6 +19,11 @@ namespace Emotion.Debug
 {
     public static class Debugger
     {
+        /// <summary>
+        /// Whether running in debug mode.
+        /// </summary>
+        public static bool DebugMode = false;
+
         #region Debug Assist Objects
 
         public static CornerAnchor CornerAnchor { get; private set; }
@@ -68,6 +73,8 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         internal static void Initialize()
         {
+            DebugMode = true;
+
             // Setup logging.
             _logger = new ImmediateLoggingService
             {
