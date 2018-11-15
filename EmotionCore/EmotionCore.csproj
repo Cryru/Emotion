@@ -39,8 +39,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>bin\Release-GLES\EmotionCore.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">

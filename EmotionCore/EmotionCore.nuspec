@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Emotion</id>
+    <version>0.2</version>
+    <title>Emotion Engine</title>
+    <authors>Vlad 'Cryru' Abadzhiev</authors>
+    <owners>Vlad 'Cryru' Abadzhiev</owners>
+    <licenseUrl>https://github.com/Cryru/Emotion/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
+    <iconUrl>https://github.com/Cryru/Emotion/blob/master/EmotionLogo.png?raw=true</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<summary>A game engine.</summary>
+    <description>Emotion is a cross-platform game engine written in C#, with the intent of removing overhead and providing abstraction without sacrificing control. The idea is, to make game development about game development and not about engine or low-level backend development, but allowing those who want to do that with the option to do so. The goal is to save time, and provide indie developers (and mostly myself) with a foundation.</description>
+    <releaseNotes>Pre-release.</releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>game-engine game engine emotion opengl gles opegles cross-platform game-development linux macos freeimage freetype openal</tags>
+  </metadata>
+  <files>
+	<file src="bin\Release-GLES\EmotionCore.dll" target="lib" />
+	<file src="bin\Release-GLES\EmotionCore.xml" target="lib" />
+	<file src="bin\Release-GLES\**" target="Build" />
+	<file src="Emotion.targets" target="Build" />
+</files>
+</package>
