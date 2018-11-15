@@ -80,6 +80,16 @@ namespace Emotion.Sound
         public int FadeOutLength { get; set; }
 
         /// <summary>
+        /// Whether to skip the natural fade out when a file is over but still want to keep the FadeOutLength property to support FadeOutOnChange.
+        /// </summary>
+        public bool SkipNaturalFadeOut { get; set; }
+
+        /// <summary>
+        /// Whether to fade in only on the first loop.
+        /// </summary>
+        public bool FadeInFirstLoopOnly { get; set; }
+
+        /// <summary>
         /// Whether to fade out the file when a new one is played. Makes for smooth transitions.
         /// </summary>
         public bool FadeOutOnChange { get; set; }
@@ -155,26 +165,10 @@ namespace Emotion.Sound
         /// <summary>
         /// Stop playing any files.
         /// </summary>
-        public void StopPlayingAll()
+        /// <param name="now">Whether to stop instantly or perform FadeOutOnChange if enabled.</param>
+        public void StopPlayingAll(bool now = false)
         {
-            Action stopPlayingAction = StopPlayingAll_Internal();
-
-            if (FadeOutOnChange)
-            {
-                SetupForceFadeOut(stopPlayingAction);
-                return;
-            }
-
-            ALThread.ExecuteALThread(stopPlayingAction);
-        }
-
-        /// <summary>
-        /// The internal version of StopPlayingAll which doesn't check for fade out on change.
-        /// </summary>
-        /// <returns></returns>
-        private Action StopPlayingAll_Internal()
-        {
-            return () =>
+            void StopPlayingAllInternal()
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Stopped {ToString()}.");
 
@@ -187,7 +181,15 @@ namespace Emotion.Sound
 
                 // Clear buffers.
                 PerformReset();
-            };
+            }
+
+            if (FadeOutOnChange && !now)
+            {
+                SetupForceFadeOut(StopPlayingAllInternal);
+                return;
+            }
+
+            ALThread.ExecuteALThread(StopPlayingAllInternal);
         }
 
         /// <summary>
@@ -196,7 +198,7 @@ namespace Emotion.Sound
         /// <param name="file"></param>
         public void QueuePlay(SoundFile file)
         {
-            ALThread.ExecuteALThread(() =>
+            void QueuePlayInternal()
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
 
@@ -214,7 +216,15 @@ namespace Emotion.Sound
                 Helpers.CheckErrorAL($"playing source {_pointer}");
 
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Started playing [{file.Name}] on {ToString()}.");
-            });
+            }
+
+            if (FadeOutOnChange)
+            {
+                SetupForceFadeOut(QueuePlayInternal);
+                return;
+            }
+
+            ALThread.ExecuteALThread(QueuePlayInternal);
         }
 
         /// <summary>
@@ -226,7 +236,7 @@ namespace Emotion.Sound
             void PlayInternal()
             {
                 // Stop whatever was playing before.
-                StopPlayingAll_Internal()();
+                StopPlayingAll(true);
 
                 // Queue the file.
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
@@ -257,7 +267,7 @@ namespace Emotion.Sound
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Destroyed {ToString()}.");
 
-                StopPlayingAll_Internal()();
+                StopPlayingAll(true);
                 AL.DeleteSource(_pointer);
                 Helpers.CheckErrorAL($"cleanup of source {_pointer}");
 
@@ -291,9 +301,20 @@ namespace Emotion.Sound
                 _forceFadeOut = true;
                 _forceFadeOutStartDuration = PlaybackLocation;
                 _forceFadeOutLength = MathHelper.Clamp(FadeOutLength, FadeOutLength, timeLeft);
+                _forceFadeOutEndEvent = action;
+            }
+            else
+            {
+                // Chain action if a new one is added.
+                Action oldAction = _forceFadeOutEndEvent;
+                _forceFadeOutEndEvent = () =>
+                {
+                    oldAction();
+                    action();
+                };
             }
 
-            _forceFadeOutEndEvent = action;
+
 
             Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Performing smooth fade out on {ToString()}.");
         }
@@ -424,6 +445,10 @@ namespace Emotion.Sound
                 // Check if fading in.
                 if (PlaybackLocation < FadeInLength && first)
                     scaled = MathHelper.Lerp(0, scaled, PlaybackLocation / FadeInLength);
+                else if (PlaybackLocation > FadeInLength && first && FadeInFirstLoopOnly)
+                {
+                    _isFirst = false;
+                }
 
                 // Check if performing a forced fade out due to FadeOutOnChange.
                 if (_forceFadeOut)
@@ -432,7 +457,7 @@ namespace Emotion.Sound
                     if (timeLeftForce != 0) scaled = MathHelper.Lerp(scaled, 0, timeLeftForce / _forceFadeOutLength);
                 }
                 // Check if performing a natural fading out. Fade out only the last buffer.
-                else if (timeLeft < FadeOutLength && last)
+                else if (timeLeft < FadeOutLength && last && !SkipNaturalFadeOut)
                 {
                     scaled = MathHelper.Lerp(0, scaled, timeLeft / FadeOutLength);
                 }

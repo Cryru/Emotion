@@ -68,9 +68,6 @@ namespace Emotion.Sound
 
                 Task.Delay(1).Wait();
             }
-
-            // Dispose of the audio context.
-            _audioContext.Dispose();
         }
 
         #region API
@@ -180,6 +177,14 @@ namespace Emotion.Sound
             }
 
             return playBackLayer;
+        }
+
+        /// <summary>
+        /// Destroy the audio context.
+        /// </summary>
+        public void Dispose()
+        {
+            ALThread.ExecuteALThread(() => { _audioContext.Dispose(); });
         }
     }
 }

@@ -317,17 +317,15 @@ namespace Emotion.Engine
             // Start running the loops. Blocking.
             Host.Run();
 
-            // Context has stopped running - cleanup.
+            // Context has stopped running - cleanup modules.
             Host.Close();
             Renderer.Destroy();
+            SoundManager.Dispose();
 
-            // Platform cleanup.
+            // Platform host cleanup.
             Host.Dispose();
 
-            // Dereference objects.
-            Host = null;
-            Renderer = null;
-            Settings = null;
+            // Switch running.
             IsRunning = false;
 
             // Close application.
