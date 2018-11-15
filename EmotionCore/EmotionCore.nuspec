@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Emotion</id>
-    <version>$ver$</version>
+    <version>0</version>
     <title>Emotion Engine Debug</title>
     <authors>Vlad 'Cryru' Abadzhiev</authors>
     <owners>Vlad 'Cryru' Abadzhiev</owners>
