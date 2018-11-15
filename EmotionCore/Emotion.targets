@@ -103,7 +103,7 @@
 			<Link>Soul.Core.dll</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Include="$(MSBuildThisFileDirectory)Soul.Core.dll">
+		<None Include="$(MSBuildThisFileDirectory)Soul.Logging.dll">
 			<Link>Soul.Logging.dll</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
