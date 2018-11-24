@@ -73,7 +73,7 @@ namespace Emotion.Sound
         /// <summary>
         /// The duration of the fade in effect in seconds.
         /// </summary>
-        public int FadeInLength { get; set; };
+        public int FadeInLength { get; set; }
 
         /// <summary>
         /// The duration of the fade out effect in seconds.
