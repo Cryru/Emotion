@@ -18,7 +18,8 @@ using Soul;
 namespace Emotion.Sound
 {
     /// <summary>
-    /// A sound layer is in charge of playing one sound or a list of sounds asynchronously. To play multiple sounds you would use different layers.
+    /// A sound layer is in charge of playing one sound or a list of sounds asynchronously. To play multiple sounds you would
+    /// use different layers.
     /// </summary>
     public sealed class SoundLayer
     {
@@ -72,7 +73,7 @@ namespace Emotion.Sound
         /// <summary>
         /// The duration of the fade in effect in seconds.
         /// </summary>
-        public int FadeInLength { get; set; }
+        public int FadeInLength { get; set; };
 
         /// <summary>
         /// The duration of the fade out effect in seconds.
@@ -80,14 +81,15 @@ namespace Emotion.Sound
         public int FadeOutLength { get; set; }
 
         /// <summary>
-        /// Whether to skip the natural fade out when a file is over but still want to keep the FadeOutLength property to support FadeOutOnChange.
+        /// Whether to skip the natural fade out when a file is over but still want to keep the FadeOutLength property to support
+        /// FadeOutOnChange.
         /// </summary>
         public bool SkipNaturalFadeOut { get; set; }
 
         /// <summary>
         /// Whether to fade in only on the first loop.
         /// </summary>
-        public bool FadeInFirstLoopOnly { get; set; }
+        public bool FadeInFirstLoopOnly { get; set; };
 
         /// <summary>
         /// Whether to fade out the file when a new one is played. Makes for smooth transitions.
@@ -166,8 +168,10 @@ namespace Emotion.Sound
         /// Stop playing any files.
         /// </summary>
         /// <param name="now">Whether to stop instantly or perform FadeOutOnChange if enabled.</param>
-        public void StopPlayingAll(bool now = false)
+        public ContinuousAction StopPlayingAll(bool now = false)
         {
+            ContinuousAction thisAction = new ContinuousAction();
+
             void StopPlayingAllInternal()
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Stopped {ToString()}.");
@@ -175,29 +179,33 @@ namespace Emotion.Sound
                 // Stop playback, clear played buffer.
                 AL.Source(_pointer, ALSourceb.Looping, false);
                 AL.SourceStop(_pointer);
+                // Remove played buffers.
                 RemovePlayed();
                 Status = SoundStatus.Stopped;
                 Helpers.CheckErrorAL("stopping");
 
-                // Clear buffers.
+                // Reset tracker variables.
                 PerformReset();
+
+                thisAction.Done();
             }
 
             if (FadeOutOnChange && !now)
-            {
                 SetupForceFadeOut(StopPlayingAllInternal);
-                return;
-            }
+            else
+                ALThread.ExecuteALThread(StopPlayingAllInternal);
 
-            ALThread.ExecuteALThread(StopPlayingAllInternal);
+            return thisAction;
         }
 
         /// <summary>
         /// Queue a file to be played on the layer.
         /// </summary>
         /// <param name="file"></param>
-        public void QueuePlay(SoundFile file)
+        public ContinuousAction QueuePlay(SoundFile file)
         {
+            ContinuousAction thisAction = new ContinuousAction();
+
             void QueuePlayInternal()
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
@@ -216,23 +224,26 @@ namespace Emotion.Sound
                 Helpers.CheckErrorAL($"playing source {_pointer}");
 
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Started playing [{file.Name}] on {ToString()}.");
+
+                thisAction.Done();
             }
 
             if (FadeOutOnChange)
-            {
                 SetupForceFadeOut(QueuePlayInternal);
-                return;
-            }
+            else
+                ALThread.ExecuteALThread(QueuePlayInternal);
 
-            ALThread.ExecuteALThread(QueuePlayInternal);
+            return thisAction;
         }
 
         /// <summary>
         /// Play a file on the layer. If any previous file is playing it will be stopped.
         /// </summary>
         /// <param name="file">The file to play.</param>
-        public void Play(SoundFile file)
+        public ContinuousAction Play(SoundFile file)
         {
+            ContinuousAction thisAction = new ContinuousAction();
+
             void PlayInternal()
             {
                 // Stop whatever was playing before.
@@ -242,13 +253,14 @@ namespace Emotion.Sound
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
                 Helpers.CheckErrorAL($"queuing single in source {_pointer}");
-
                 // Play it.
                 AL.SourcePlay(_pointer);
                 Status = SoundStatus.Playing;
                 Helpers.CheckErrorAL($"playing single in source {_pointer}");
 
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Started playing [{file.Name}] on {ToString()}.");
+
+                thisAction.Done();
             }
 
             // Check if forcing a fade out.
@@ -256,13 +268,17 @@ namespace Emotion.Sound
                 SetupForceFadeOut(PlayInternal);
             else
                 ALThread.ExecuteALThread(PlayInternal);
+
+            return thisAction;
         }
 
         /// <summary>
         /// Destroy the layer freeing resources.
         /// </summary>
-        public void Dispose()
+        public ContinuousAction Dispose()
         {
+            ContinuousAction thisAction = new ContinuousAction();
+
             ALThread.ExecuteALThread(() =>
             {
                 Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Destroyed {ToString()}.");
@@ -273,7 +289,11 @@ namespace Emotion.Sound
 
                 _pointer = -1;
                 _playList.Clear();
+
+                thisAction.Done();
             });
+
+            return thisAction;
         }
 
         #endregion
@@ -314,8 +334,6 @@ namespace Emotion.Sound
                 };
             }
 
-
-
             Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Performing smooth fade out on {ToString()}.");
         }
 
@@ -349,6 +367,7 @@ namespace Emotion.Sound
             _forceFadeOut = false;
             _forceFadeOutLength = 0f;
             _forceFadeOutStartDuration = 0f;
+            PlaybackLocation = 0;
         }
 
         /// <summary>
@@ -372,11 +391,10 @@ namespace Emotion.Sound
             AL.GetSource(_pointer, ALGetSourcei.Buffer, out int filePointer);
             AL.GetSource(_pointer, ALGetSourcei.BuffersQueued, out int queuedBuffers);
             bool last = queuedBuffers == 1;
-            bool first = _isFirst;
             Helpers.CheckErrorAL($"buffer getting of source {_pointer}");
 
             // Update volume.
-            UpdateVolume(first, last);
+            UpdateVolume(last);
 
             // Swap buffers which have played off the stack.
             UpdateLooping(last);
@@ -430,12 +448,12 @@ namespace Emotion.Sound
             return true;
         }
 
-        private void UpdateVolume(bool first, bool last)
+        private void UpdateVolume(bool last)
         {
             Helpers.CheckErrorAL($"before updating of volume of source {_pointer}");
 
-            float systemVolume = Context.Settings.Sound ? Context.Settings.Volume : 0f;
-            float scaled = MathHelper.Clamp(Volume * (systemVolume / 100f), 0, 10);
+            float systemVolume = Context.Settings.Sound ? Context.Settings.Volume / 100f : 0f;
+            float scaled = MathHelper.Clamp(Volume * systemVolume, 0, 10);
 
             // Perform fading.
             if (CurrentlyPlayingFile != null)
@@ -443,12 +461,10 @@ namespace Emotion.Sound
                 float timeLeft = CurrentlyPlayingFile.Duration - PlaybackLocation;
 
                 // Check if fading in.
-                if (PlaybackLocation < FadeInLength && first)
+                if (PlaybackLocation < FadeInLength && _isFirst)
                     scaled = MathHelper.Lerp(0, scaled, PlaybackLocation / FadeInLength);
-                else if (PlaybackLocation > FadeInLength && first && FadeInFirstLoopOnly)
-                {
+                else if (PlaybackLocation > FadeInLength && _isFirst && FadeInFirstLoopOnly)
                     _isFirst = false;
-                }
 
                 // Check if performing a forced fade out due to FadeOutOnChange.
                 if (_forceFadeOut)
