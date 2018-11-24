@@ -27,4 +27,4 @@ echo $result
 
 $result | Out-File -FilePath "Emotion.targets"
 
-nuget pack .\EmotionCore.nuspec
+nuget pack .\EmotionCore.nuspec -Version $($env:APPVEYOR_BUILD_VERSION)
