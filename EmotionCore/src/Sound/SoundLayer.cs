@@ -89,7 +89,7 @@ namespace Emotion.Sound
         /// <summary>
         /// Whether to fade in only on the first loop.
         /// </summary>
-        public bool FadeInFirstLoopOnly { get; set; };
+        public bool FadeInFirstLoopOnly { get; set; }
 
         /// <summary>
         /// Whether to fade out the file when a new one is played. Makes for smooth transitions.
