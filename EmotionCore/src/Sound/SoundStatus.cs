@@ -4,6 +4,7 @@ namespace Emotion.Sound
 {
     public enum SoundStatus
     {
+        Initial,
         Playing,
         Paused,
         Stopped,

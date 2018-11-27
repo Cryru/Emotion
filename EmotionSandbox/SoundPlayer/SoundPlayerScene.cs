@@ -9,7 +9,6 @@ using Emotion.Game.Layering;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
 using Emotion.Graphics;
-using Emotion.Graphics.GLES;
 using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -30,7 +29,7 @@ namespace EmotionSandbox.SoundPlayer
         private readonly string _addButton = "SoundPlayer/addButton.png";
 
         private readonly string _defaultFont = "SoundPlayer/RobotoFont.woff";
-        private static string[] _sounds = {};
+        private static string[] _sounds = { };
 
         #endregion
 
@@ -88,7 +87,7 @@ namespace EmotionSandbox.SoundPlayer
             };
             centerAnchor.AddChild(loopButton, new Rectangle(-40, Context.Settings.RenderHeight / 2 - 36, 0, 0));
 
-            _soundBar = new ScrollInput(Vector3.Zero, new Vector2(Context.Host.RenderSize.X - 40, 10))
+            _soundBar = new ScrollInput(Vector3.Zero, new Vector2(Context.Settings.RenderWidth - 40, 10))
             {
                 KeepSelectorInside = true,
                 SelectorRatio = 3
@@ -115,7 +114,7 @@ namespace EmotionSandbox.SoundPlayer
                             Context.SoundManager.Play(Context.AssetLoader.Get<SoundFile>(_sounds[iCopy]), "main");
                     }
                 };
-                cornerAnchor.AddChild(addSoundText, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Host.RenderSize.X, 0));
+                cornerAnchor.AddChild(addSoundText, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderWidth, 0));
             }
 
             BasicButton appendButton = new BasicButton(Vector3.Zero, new Vector2(36, 36))
@@ -127,7 +126,7 @@ namespace EmotionSandbox.SoundPlayer
                 _append = !_append;
                 appendButton.Tint = _append ? Color.Green : Color.White;
             };
-            cornerAnchor.AddChild(appendButton, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Host.RenderSize.X, 0));
+            cornerAnchor.AddChild(appendButton, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderWidth, 0));
 
             PlayerVolumeControl volumeControl = new PlayerVolumeControl(Vector3.Zero, new Vector2(100, 20));
             cornerAnchor.AddChild(volumeControl, AnchorLocation.TopRight, new Rectangle(0, 20, 20, 0));
@@ -158,7 +157,7 @@ namespace EmotionSandbox.SoundPlayer
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
 
             _uiController.Draw();
         }

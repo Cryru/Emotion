@@ -5,7 +5,7 @@
 using System;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Host;
+using Emotion.Engine.Hosting.Desktop;
 using Emotion.Primitives;
 using OpenTK.Input;
 
@@ -129,12 +129,20 @@ namespace Emotion.Input
 
         #region Mouse
 
+        /// <summary>
+        /// The amount the scroll wheel is scrolled.
+        /// </summary>
+        /// <returns>The amount the scroll wheel is scrolled.</returns>
         public float GetMouseScroll()
         {
             _mouseWheelScroll = Mouse.GetState().WheelPrecise;
             return _mouseWheelScroll;
         }
 
+        /// <summary>
+        /// The amount the mouse has scrolled since the last check.
+        /// </summary>
+        /// <returns>The amount the mouse has scrolled since the last check.</returns>
         public float GetMouseScrollRelative()
         {
             float position = Mouse.GetState().WheelPrecise;

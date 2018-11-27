@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Emotion.Graphics;
-using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using TiledSharp;

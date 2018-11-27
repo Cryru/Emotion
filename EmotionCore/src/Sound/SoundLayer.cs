@@ -38,7 +38,7 @@ namespace Emotion.Sound
         /// <summary>
         /// Whether the layer is playing, is paused, etc.
         /// </summary>
-        public SoundStatus Status { get; private set; }
+        public SoundStatus Status { get; private set; } = SoundStatus.Initial;
 
         /// <summary>
         /// Whether to loop the currently playing source.
@@ -73,12 +73,12 @@ namespace Emotion.Sound
         /// <summary>
         /// The duration of the fade in effect in seconds.
         /// </summary>
-        public int FadeInLength { get; set; }
+        public float FadeInLength { get; set; }
 
         /// <summary>
         /// The duration of the fade out effect in seconds.
         /// </summary>
-        public int FadeOutLength { get; set; }
+        public float FadeOutLength { get; set; }
 
         /// <summary>
         /// Whether to skip the natural fade out when a file is over but still want to keep the FadeOutLength property to support
@@ -179,6 +179,7 @@ namespace Emotion.Sound
                 // Stop playback, clear played buffer.
                 AL.Source(_pointer, ALSourceb.Looping, false);
                 AL.SourceStop(_pointer);
+
                 // Remove played buffers.
                 RemovePlayed();
                 Status = SoundStatus.Stopped;
@@ -412,7 +413,7 @@ namespace Emotion.Sound
             if (_forceFadeOut)
             {
                 float timeLeftForce = PlaybackLocation - _forceFadeOutStartDuration;
-                if (timeLeftForce > _forceFadeOutLength || Status == SoundStatus.Stopped)
+                if (timeLeftForce > _forceFadeOutLength || Status == SoundStatus.Stopped || timeLeftForce < 0)
                 {
                     _forceFadeOut = false;
                     _forceFadeOutEndEvent();
@@ -455,8 +456,8 @@ namespace Emotion.Sound
             float systemVolume = Context.Settings.Sound ? Context.Settings.Volume / 100f : 0f;
             float scaled = MathHelper.Clamp(Volume * systemVolume, 0, 10);
 
-            // Perform fading.
-            if (CurrentlyPlayingFile != null)
+            // Perform fading if anything is playing and not muted.
+            if (CurrentlyPlayingFile != null && scaled != 0f)
             {
                 float timeLeft = CurrentlyPlayingFile.Duration - PlaybackLocation;
 
@@ -478,8 +479,13 @@ namespace Emotion.Sound
                     scaled = MathHelper.Lerp(0, scaled, timeLeft / FadeOutLength);
                 }
             }
+            // Set volume to 0 when not playing.
+            else if(CurrentlyPlayingFile == null)
+            {
+                scaled = 0f;
+            }
 
-            // Fix ultra low values.
+            // Clamp ultra low resulting values. These can break OpenAL.
             if (scaled < 0.000f) scaled = 0f;
 
             AL.Source(_pointer, ALSourcef.Gain, scaled);
@@ -527,7 +533,15 @@ namespace Emotion.Sound
 
         private void UpdateCurrentFile(int currentFilePointer)
         {
-            CurrentlyPlayingFile = currentFilePointer == 0 ? null : _playList.FirstOrDefault(x => x?.Pointer == currentFilePointer);
+            // The currently playing file is considered to be the one at the front of the playlist which isn't a null.
+            // This logic is enforced by the RemovePlayed() function in the layer Update loop.
+            CurrentlyPlayingFile = _playList.FirstOrDefault(x => x != null);
+
+            // The current buffer is always reported as 0 on Mac.
+            if ((CurrentlyPlayingFile?.Pointer ?? 0) != currentFilePointer && CurrentPlatform.OS != PlatformName.Mac)
+            {
+                Debugger.Log(MessageType.Warning, MessageSource.SoundManager, $"Currently playing file might be wrong for layer [{Name}].");
+            }
         }
 
         private void UpdatePlaybackLocation()
@@ -546,7 +560,7 @@ namespace Emotion.Sound
         /// <returns></returns>
         public override string ToString()
         {
-            return $"[Sound Layer] [ALPointer:[{_pointer}] Name:[{Name}] Looping/LastOnly:[{Looping}/{LoopLastOnly}] Status:[{Status}]";
+            return $"[Sound Layer] [ALPointer:[{_pointer}] Name:[{Name}] Playback:[{PlaybackLocation}/{TotalDuration}] Status:[{Status}]]";
         }
     }
 }

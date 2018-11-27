@@ -91,8 +91,8 @@ namespace Emotion.Engine
                 // Check if timeout, and if not throw an exception.
                 if (ex.Message != "The operation has timed out." && Context.Settings.StrictScripts) throw ex;
 
-                Debugger.Log(MessageType.Warning, MessageSource.ScriptingEngine, "Scripting error: " + ex);
-                Debugger.Log(MessageType.Trace, MessageSource.ScriptingEngine, " " + script);
+                Debugger.Log(MessageType.Error, MessageSource.ScriptingEngine, "Scripting error: " + ex);
+                Debugger.Log(MessageType.Error, MessageSource.ScriptingEngine, " " + script);
 
                 return null;
             }

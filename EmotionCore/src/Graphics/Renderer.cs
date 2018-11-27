@@ -57,11 +57,30 @@ namespace Emotion.Graphics
 
         #region Flags
 
+        /// <summary>
+        /// The major version of the OpenGL context.
+        /// </summary>
+        public static int OpenGLMajorVersion = 3;
+
+        /// <summary>
+        /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
+        /// </summary>
+        public static int OpenGLMinorVersion;
+
+        /// <summary>
+        /// Whether the "gl_arb_gpu_shader5" OpenGL extension is missing. In which case the shaders must be patched.
+        /// </summary>
         public static bool Shader5ExtensionMissing;
 
         #endregion
 
         #region Initialization
+
+        static Renderer()
+        {
+            // Macs prefer 3.3 contexts.
+            if (CurrentPlatform.OS == PlatformName.Mac) OpenGLMinorVersion = 3;
+        }
 
         internal Renderer()
         {
@@ -70,7 +89,7 @@ namespace Emotion.Graphics
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
 
-            // Set execution flags, used for workarounding different GPU behaviour.
+            // Set execution flags, used for workarounding different GPU behavior.
             SetFlags();
 
             // Create default shaders. This also sets some shader flags.

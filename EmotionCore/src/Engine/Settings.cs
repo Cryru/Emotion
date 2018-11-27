@@ -4,7 +4,8 @@
 
 using System;
 using System.Drawing;
-using Emotion.Host;
+using Emotion.Engine.Hosting.Desktop;
+using Emotion.Primitives;
 using Color = Emotion.Primitives.Color;
 
 #endregion
@@ -50,14 +51,27 @@ namespace Emotion.Engine
         public Color ClearColor = Color.CornflowerBlue;
 
         /// <summary>
+        /// The render size as a vector2. Contains RenderWidth and RenderHeight.
+        /// </summary>
+        public Vector2 RenderSize
+        {
+            get => new Vector2(RenderWidth, RenderHeight);
+            set
+            {
+                RenderWidth = (int) value.X;
+                RenderHeight = (int) value.Y;
+            }
+        }
+
+        /// <summary>
         /// The width to render at.
         /// </summary>
-        public int RenderWidth = 960;
+        public float RenderWidth = 960;
 
         /// <summary>
         /// The height to render at.
         /// </summary>
-        public int RenderHeight = 540;
+        public float RenderHeight = 540;
 
         /// <summary>
         /// The maximum fps to render at.

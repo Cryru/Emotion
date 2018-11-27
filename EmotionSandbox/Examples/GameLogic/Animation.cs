@@ -43,7 +43,7 @@ namespace EmotionSandbox.Examples.GameLogic
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
 
             // Draw a random one of the three textures, and make it transparent red.
             renderer.Render(new Vector3(10, 220, 0), new Vector2(100, 100), Color.White, _animatedTexture.Texture, _animatedTexture.CurrentFrame);

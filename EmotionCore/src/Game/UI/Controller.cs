@@ -19,6 +19,9 @@ using Debugger = Emotion.Debug.Debugger;
 
 namespace Emotion.Game.UI
 {
+    /// <summary>
+    /// A UI controller which manages events for UI controls.
+    /// </summary>
     public sealed class Controller
     {
         private static int _nextControllerId;
@@ -46,6 +49,9 @@ namespace Emotion.Game.UI
 
         #endregion
 
+        /// <summary>
+        /// Create a new UI controller which manages events for UI controls.
+        /// </summary>
         public Controller()
         {
             SetupDebug();
@@ -348,6 +354,7 @@ namespace Emotion.Game.UI
 
             Parallel.ForEach(Controls, oc =>
             {
+                if (!oc.Active) return;
                 if (oc.Held[key]) held = true;
             });
 
@@ -395,6 +402,7 @@ namespace Emotion.Game.UI
             renderer.RenderOutlineFlush();
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             string result = "[UI Controller " + Id + "]\n";

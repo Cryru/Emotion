@@ -4,7 +4,6 @@
 
 using System;
 using Emotion.Engine.Threading;
-using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using SharpFont;

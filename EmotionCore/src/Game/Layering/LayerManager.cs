@@ -181,7 +181,7 @@ namespace Emotion.Game.Layering
             {
                 Debugger.Log(MessageType.Error, MessageSource.LayerManager, $"Error while unloading layer {layer.Name}\n{ex}");
                 if (Debugger.DebugMode) throw ex;
-            };
+            }
 
             Debugger.Log(MessageType.Info, MessageSource.LayerManager, "Unloaded layer [" + layer.Name + "]");
         }

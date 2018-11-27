@@ -22,7 +22,7 @@ namespace Emotion.Debug
         /// <summary>
         /// Whether running in debug mode.
         /// </summary>
-        public static bool DebugMode = false;
+        public static bool DebugMode;
 
         #region Debug Assist Objects
 

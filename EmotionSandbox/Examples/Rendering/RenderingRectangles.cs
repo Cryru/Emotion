@@ -35,7 +35,7 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
 
             // Render a red square at 10, 10 with size 10, 10
             renderer.Render(new Vector3(10, 10, 0), new Vector2(10, 10), Color.Red);

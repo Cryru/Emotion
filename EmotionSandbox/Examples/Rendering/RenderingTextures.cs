@@ -5,7 +5,6 @@
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
-using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using EmotionSandbox.Examples.Generic;
@@ -52,7 +51,7 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
 
             // Render a 100, 100 rectangle at 10, 10 and texture it using the loaded texture.
             // The color is white because we don't want to tint the texture. The texture is not loaded again by the asset loader as it was loaded in the Load function.

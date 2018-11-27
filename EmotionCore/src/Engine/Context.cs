@@ -7,22 +7,27 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Emotion.Debug;
+using Emotion.Engine.Hosting;
+using Emotion.Engine.Hosting.Desktop;
 using Emotion.Engine.Threading;
 using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
-using Emotion.Host;
 using Emotion.Input;
 using Emotion.IO;
 using Emotion.Libraries;
 using Emotion.Sound;
 using Emotion.Utils;
+using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
 namespace Emotion.Engine
 {
+    /// <summary>
+    /// The Emotion engine context. Manages everything done by the engine, and provides access to the different systems.
+    /// </summary>
     public static class Context
     {
         #region Properties
@@ -89,11 +94,11 @@ namespace Emotion.Engine
         /// <summary>
         /// The context's host. This can be the window, the activity or whatever.
         /// </summary>
-        public static IHost Host { get; private set; }
+        public static IHost Host { get; set; }
 
         #endregion
 
-        #region Initialization
+        #region API
 
         /// <summary>
         /// Prepare the Emotion engine.
@@ -167,26 +172,31 @@ namespace Emotion.Engine
             // Setup thread manager.
             GLThread.BindThread();
 
-            try
-            {
-                Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
-                if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
+            // Create host if not created.
+            if (Host == null)
+                try
                 {
-                    Host = new Window(Settings);
-                    Host.SetHooks(LoopUpdate, LoopDraw);
-                    Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
+                    Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
+                    if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
+                    {
+                        Host = new OtkWindow();
+                        Debugger.Log(MessageType.Info, MessageSource.Engine, "Created OpenTK window host.");
+                    }
+                    else
+                    {
+                        throw new Exception("Unsupported platform.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    throw new Exception("Unsupported platform.");
+                    Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system supported?");
+                    Debugger.Log(MessageType.Error, MessageSource.Engine, ex.ToString());
+                    throw;
                 }
-            }
-            catch (Exception ex)
-            {
-                Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system capable of running the engine?");
-                Debugger.Log(MessageType.Error, MessageSource.Engine, ex.ToString());
-                throw;
-            }
+
+            // Apply settings and hook.
+            Host.ApplySettings(Settings);
+            Host.SetHooks(LoopUpdate, LoopDraw, Resize);
 
             // Start creating modules.
 
@@ -214,6 +224,74 @@ namespace Emotion.Engine
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating input manager...");
             InputManager = new InputManager();
         }
+
+        /// <summary>
+        /// Start running the engine loop. Can be blocking depending on the host.
+        /// </summary>
+        public static void Run()
+        {
+            // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                InternalRun();
+                return;
+            }
+
+            // If no debugger is attached, wrap in a try-catch so that exception logs are generated.
+            try
+            {
+                InternalRun();
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
+                Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
+
+                // Flush logs.
+                while (Debugger.LogInProgress()) Task.Delay(1).Wait();
+
+                // Close.
+                Environment.Exit(1);
+            }
+        }
+
+        private static void InternalRun()
+        {
+            // Check if setup.
+            if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
+
+            // Set running to true.
+            IsRunning = true;
+
+            // Start running the loops. Blocking.
+            Host.Run();
+        }
+
+        /// <summary>
+        /// Stops running the engine.
+        /// </summary>
+        public static void Quit()
+        {
+            // Switch running to false.
+            IsRunning = false;
+
+            // Close the host.
+            Host.Close();
+
+            // Cleanup modules.
+            Renderer.Destroy();
+            SoundManager.Dispose();
+
+            // Cleanup the host.
+            Host.Dispose();
+
+            // Close application.
+            Environment.Exit(0);
+        }
+
+        #endregion
+
+        #region OS Specific Initialization
 
         /// <summary>
         /// WindowsNT bootstrap.
@@ -275,76 +353,7 @@ namespace Emotion.Engine
 
         #endregion
 
-        #region API
-
-        /// <summary>
-        /// Start running the engine loop. Blocking.
-        /// </summary>
-        public static void Run()
-        {
-            // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                InternalRun();
-                return;
-            }
-
-            // If no debugger is attached, wrap in a try-catch so that exception logs are generated.
-            try
-            {
-                InternalRun();
-            }
-            catch (Exception ex)
-            {
-                File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
-                Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
-
-                // Flush logs.
-                while (Debugger.LogInProgress()) Task.Delay(1).Wait();
-
-                // Close.
-                Environment.Exit(1);
-            }
-        }
-
-        private static void InternalRun()
-        {
-            // Check if setup.
-            if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
-
-            // Set running to true.
-            IsRunning = true;
-
-            // Start running the loops. Blocking.
-            Host.Run();
-
-            // Context has stopped running - cleanup modules.
-            Host.Close();
-            Renderer.Destroy();
-            SoundManager.Dispose();
-
-            // Platform host cleanup.
-            Host.Dispose();
-
-            // Switch running.
-            IsRunning = false;
-
-            // Close application.
-            Environment.Exit(0);
-        }
-
-        /// <summary>
-        /// Stops running the engine.
-        /// </summary>
-        public static void Quit()
-        {
-            // Stops the window unblocking the Start function.
-            Host.Close();
-        }
-
-        #endregion
-
-        #region Loops
+        #region Loops and Host Events
 
         /// <summary>
         /// Is run every tick by the host.
@@ -363,11 +372,7 @@ namespace Emotion.Engine
 
             // If not rendering, then don't update user code.
             // The reason for this is because we are only skipping rendering when frame by frame mode is active, and the layer manager shouldn't trigger at all then.
-            if (Renderer.RenderFrame() && Host.Focused)
-            {
-                // Update the user code. When the context doesn't have focus the layer manager will perform a light update.
-                LayerManager.Update();
-            }
+            if (Renderer.RenderFrame() && Host.Focused) LayerManager.Update();
 
             // Run input. This is outside of a focus check so it can capture the first input when focus is claimed.
             InputManager.Update();
@@ -388,9 +393,8 @@ namespace Emotion.Engine
             // Run the thread manager.
             GLThread.Run();
 
+            // Get frame time and increment total time.
             FrameTime = frameTime;
-
-            // Add to time.
             TotalTime += frameTime;
 
             // Clear the screen.
@@ -410,6 +414,29 @@ namespace Emotion.Engine
 
             // Swap buffers.
             Host.SwapBuffers();
+        }
+
+        private static void Resize()
+        {
+            // Calculate borderbox / pillarbox.
+            float targetAspectRatio = Settings.RenderWidth / Settings.RenderHeight;
+
+            float width = Host.Size.X;
+            float height = (int) (width / targetAspectRatio + 0.5f);
+
+            // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
+            if (height > Host.Size.Y)
+            {
+                height = Host.Size.Y;
+                width = (int) (height * targetAspectRatio + 0.5f);
+            }
+
+            int vpX = (int) (Host.Size.X / 2 - width / 2);
+            int vpY = (int) (Host.Size.Y / 2 - height / 2);
+
+            // Set viewport.
+            GL.Viewport(vpX, vpY, (int) width, (int) height);
+            GL.Scissor(vpX, vpY, (int) width, (int) height);
         }
 
         #endregion

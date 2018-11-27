@@ -46,17 +46,15 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Update(float fr)
         {
             _twRichText.Update(fr);
-            if (_twRichText.EffectFinished)
-            {
-                _twRichText.SetText(_twRichText.Text);
-                _twRichText.SetTypewriterEffect(1000);
-            }
+            if (!_twRichText.EffectFinished) return;
+            _twRichText.SetText(_twRichText.Text);
+            _twRichText.SetTypewriterEffect(1000);
         }
 
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Host.RenderSize.X, Context.Host.RenderSize.Y), Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
 
             // Render the text.
             renderer.RenderString(Context.AssetLoader.Get<Font>("ExampleFont.ttf"), 20, "Hello, I am simple text rendered by the renderer.", new Vector3(0, 0, 1), Color.White);

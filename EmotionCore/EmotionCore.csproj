@@ -146,8 +146,8 @@
     <Compile Include="src\Game\Text\RichText.cs" />
     <Compile Include="src\Graphics\Text\TextAlignment.cs" />
     <Compile Include="src\Graphics\Text\TextEffect.cs" />
-    <Compile Include="src\Host\IHost.cs" />
-    <Compile Include="src\Host\Window.cs" />
+    <Compile Include="src\Engine\Hosting\IHost.cs" />
+    <Compile Include="src\Engine\Hosting\Desktop\OTKWindow.cs" />
     <Compile Include="src\Graphics\Batching\MapBuffer.cs" />
     <Compile Include="src\Graphics\TransformationStack.cs" />
     <Compile Include="src\Graphics\Batching\VertexData.cs" />
@@ -166,7 +166,7 @@
     <Compile Include="src\IO\Other.cs" />
     <Compile Include="src\Debug\MessageSource.cs" />
     <Compile Include="src\Debug\MessageType.cs" />
-    <Compile Include="src\Host\WindowMode.cs" />
+    <Compile Include="src\Engine\Hosting\Desktop\WindowMode.cs" />
     <Compile Include="src\Game\Layering\LayerManager.cs" />
     <Compile Include="src\Game\Layering\Layer.cs" />
     <Compile Include="src\Engine\ScriptingEngine.cs" />

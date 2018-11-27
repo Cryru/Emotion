@@ -4,18 +4,20 @@
 
 using System;
 using System.Threading;
-using Emotion.Engine;
+using Emotion.Graphics;
 using Emotion.Utils;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
 using Vector2 = Emotion.Primitives.Vector2;
 
 #endregion
 
-namespace Emotion.Host
+namespace Emotion.Engine.Hosting.Desktop
 {
-    internal sealed class Window : GameWindow, IHost
+    /// <summary>
+    /// An OpenTK window.
+    /// </summary>
+    internal sealed class OtkWindow : GameWindow, IHost
     {
         #region Properties
 
@@ -24,7 +26,7 @@ namespace Emotion.Host
         /// </summary>
         public new Vector2 Size
         {
-            get => new Vector2(Width, Height);
+            get => new Vector2(ClientSize.Width, ClientSize.Height);
             set
             {
                 Width = (int) value.X;
@@ -33,70 +35,48 @@ namespace Emotion.Host
         }
 
         /// <summary>
-        /// The size of the projection matrix.
-        /// </summary>
-        public Vector2 RenderSize { get; private set; }
-
-        /// <summary>
         /// The context's mode.
         /// </summary>
         private static GraphicsContextFlags _contextMode = GraphicsContextFlags.ForwardCompatible;
 
-        /// <summary>
-        /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
-        /// </summary>
-        private static int _minorVersion;
+        #endregion
+
+        #region Hooks and Trackers
 
         private Action<float> _updateHook;
         private Action<float> _drawHook;
+        private Action _resizeHook;
+
+        private bool _isFirstApplySettings = true;
 
         #endregion
 
-        static Window()
+        static OtkWindow()
         {
-            // Debug context breaks on Macs, also they prefer 3.3 contexts.
-            if (CurrentPlatform.OS == PlatformName.Mac)
-            {
-                _minorVersion = 3;
-                return;
-            }
-
 #if DEBUG
-
-            _contextMode = GraphicsContextFlags.Debug;
+            // Debug context breaks on Macs.
+            if (CurrentPlatform.OS != PlatformName.Mac) _contextMode = GraphicsContextFlags.Debug;
 #endif
         }
 
-        internal Window(Settings settings) : base(960, 540, GraphicsMode.Default, "Emotion Window Host", GameWindowFlags.Default, DisplayDevice.Default, 3, _minorVersion, _contextMode, null, true)
+        internal OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
+            GameWindowFlags.Default, DisplayDevice.Default, Renderer.OpenGLMajorVersion, Renderer.OpenGLMinorVersion, _contextMode, null, true)
         {
-            ApplySettings(settings, true);
-            OnResize(null);
-
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
-        }
-
-        public new void Run()
-        {
-            Run(Engine.Context.Settings.CapFPS);
         }
 
         #region Host API
 
-        public void SetHooks(Action<float> update, Action<float> draw)
+        public void SetHooks(Action<float> onUpdate, Action<float> onDraw, Action onResize)
         {
-            _updateHook = update;
-            _drawHook = draw;
+            _updateHook = onUpdate;
+            _drawHook = onDraw;
+            _resizeHook = onResize;
         }
 
         public void ApplySettings(Settings settings)
         {
-            ApplySettings(settings, false);
-        }
-
-        public void ApplySettings(Settings settings, bool firstTime)
-        {
             Title = settings.WindowTitle;
-            RenderSize = new Vector2(settings.RenderWidth, settings.RenderHeight);
 
             // Apply window mode.
             switch (settings.WindowMode)
@@ -106,7 +86,7 @@ namespace Emotion.Host
                     WindowState = WindowState.Normal;
                     Width = DisplayDevice.Default.Width;
                     Height = DisplayDevice.Default.Height;
-                    if (CurrentPlatform.OS == PlatformName.Linux && firstTime) return;
+                    if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
                     X = 0;
                     Y = 0;
                     break;
@@ -119,11 +99,18 @@ namespace Emotion.Host
                     WindowState = WindowState.Normal;
                     Width = settings.WindowWidth;
                     Height = settings.WindowHeight;
-                    if (CurrentPlatform.OS == PlatformName.Linux && firstTime) return;
+                    if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
                     X = DisplayDevice.Default.Width / 2 - settings.WindowWidth / 2;
                     Y = DisplayDevice.Default.Height / 2 - settings.WindowHeight / 2;
                     break;
             }
+
+            _isFirstApplySettings = false;
+        }
+
+        public new void Run()
+        {
+            Run(Engine.Context.Settings.CapFPS); // Run is blocking.
         }
 
         #endregion
@@ -144,27 +131,13 @@ namespace Emotion.Host
 
         #endregion
 
+        #region Event Wrapping
+
         protected override void OnResize(EventArgs e)
         {
-            // Calculate borderbox / pillarbox.
-            float targetAspectRatio = RenderSize.X / RenderSize.Y;
-
-            float width = ClientSize.Width;
-            float height = (int) (width / targetAspectRatio + 0.5f);
-
-            // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
-            if (height > ClientSize.Height)
-            {
-                height = ClientSize.Height;
-                width = (int) (height * targetAspectRatio + 0.5f);
-            }
-
-            int vpX = (int) (ClientSize.Width / 2 - width / 2);
-            int vpY = (int) (ClientSize.Height / 2 - height / 2);
-
-            // Set viewport.
-            GL.Viewport(vpX, vpY, (int) width, (int) height);
-            GL.Scissor(vpX, vpY, (int) width, (int) height);
+            _resizeHook();
         }
+
+        #endregion
     }
 }

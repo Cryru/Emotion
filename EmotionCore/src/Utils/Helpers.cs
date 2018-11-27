@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using Emotion.Debug;
 using Emotion.Primitives;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.ES30;
@@ -51,11 +52,15 @@ namespace Emotion.Utils
         /// <param name="location">Where the error check is.</param>
         public static void CheckErrorAL(string location)
         {
-            // For some reason Mac reports errors left and right. As this happens only on that platform error checks are disabled there.
-            if(CurrentPlatform.OS == PlatformName.Mac) return;
-
+            // Get the error.
             ALError errorCheck = AL.GetError();
-            if (errorCheck != ALError.NoError) throw new Exception("OpenAL error at " + location + ":\n" + errorCheck);
+
+            // Check if anything.
+            if (errorCheck == ALError.NoError) return;
+            Debugger.Log(MessageType.Error, MessageSource.Other, "OpenAL error at " + location + ":\n" + errorCheck);
+
+            // For some reason Mac reports errors left and right. As this happens only on that platform error checks are disabled there.
+            if (CurrentPlatform.OS != PlatformName.Mac) throw new Exception("OpenAL error at " + location + ":\n" + errorCheck);
         }
 
 
