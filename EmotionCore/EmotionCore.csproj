@@ -147,7 +147,7 @@
     <Compile Include="src\Graphics\Text\TextAlignment.cs" />
     <Compile Include="src\Graphics\Text\TextEffect.cs" />
     <Compile Include="src\Engine\Hosting\IHost.cs" />
-    <Compile Include="src\Engine\Hosting\Desktop\OTKWindow.cs" />
+    <Compile Include="src\Engine\Hosting\Desktop\OtkWindow.cs" />
     <Compile Include="src\Graphics\Batching\MapBuffer.cs" />
     <Compile Include="src\Graphics\TransformationStack.cs" />
     <Compile Include="src\Graphics\Batching\VertexData.cs" />

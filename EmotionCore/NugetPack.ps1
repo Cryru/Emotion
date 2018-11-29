@@ -12,7 +12,7 @@ $result += "	<ItemGroup>"
 Foreach($file in $files)
 {
  # Get the relative path of the file.
- $currentFilePath = (Resolve-Path -Path ($file).PSPath -Relative).Replace(".\", "")
+ $currentFilePath = (Resolve-Path -Path ($file).PSPath -Relative).Replace(".\", "").Replace("bin\Debug-GLES\", "")
  $targetsItem = "		<None Include=`"`$(MSBuildThisFileDirectory)" + $currentFilePath + "`">
 			<Link>" + $currentFilePath + "</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
