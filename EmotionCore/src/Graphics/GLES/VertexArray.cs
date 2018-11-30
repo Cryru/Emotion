@@ -83,7 +83,7 @@ namespace Emotion.Graphics.GLES
 
             foreach (Buffer b in _buffers)
             {
-                b.Delete();
+                b?.Delete();
             }
 
             _buffers.Clear();

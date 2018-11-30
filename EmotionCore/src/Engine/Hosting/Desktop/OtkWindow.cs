@@ -112,7 +112,8 @@ namespace Emotion.Engine.Hosting.Desktop
 
         public new void Run()
         {
-            Run(Engine.Context.Settings.CapFPS); // Run is blocking.
+            // Run is blocking.
+            Run(Engine.Context.Settings.CapFPS);
         }
 
         #endregion

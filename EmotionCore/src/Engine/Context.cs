@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Debug.Logging;
@@ -124,8 +125,10 @@ namespace Emotion.Engine
 
             Log.Info($"Starting Emotion v{Meta.Version}", MessageSource.Engine);
 
+#if !DEBUG
             try
             {
+#endif
                 // Initiate bootstrap.
                 Log.Info("-------------------------------", MessageSource.Engine);
                 Log.Info($"Executed at: {Environment.CurrentDirectory}", MessageSource.Engine);
@@ -207,13 +210,13 @@ namespace Emotion.Engine
 
                 Log.Trace("Creating input manager...", MessageSource.Engine);
                 InputManager = new InputManager();
+#if !DEBUG
             }
             catch (Exception ex)
             {
-                File.WriteAllText($"Logs{Path.DirectorySeparatorChar}InitCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
-                Log.Error("Unable to initialize.", ex, MessageSource.Engine);
-                Quit();
+                Log.Error("Emotion engine was unable to initialize.", ex, MessageSource.Engine);
             }
+#endif
         }
 
         /// <summary>
@@ -221,8 +224,10 @@ namespace Emotion.Engine
         /// </summary>
         public static void Run()
         {
+#if !DEBUG
             try
             {
+#endif
                 // Check if setup.
                 if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
 
@@ -231,13 +236,13 @@ namespace Emotion.Engine
 
                 // Start running the loops. Blocking.
                 Host.Run();
+#if !DEBUG
             }
             catch (Exception ex)
             {
-                File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
                 Log.Error("Emotion engine has encountered a crash.", ex, MessageSource.Engine);
-                Quit();
             }
+#endif
         }
 
         /// <summary>
@@ -395,21 +400,21 @@ namespace Emotion.Engine
             float targetAspectRatio = Settings.RenderWidth / Settings.RenderHeight;
 
             float width = Host.Size.X;
-            float height = (int) (width / targetAspectRatio + 0.5f);
+            float height = (int)(width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > Host.Size.Y)
             {
                 height = Host.Size.Y;
-                width = (int) (height * targetAspectRatio + 0.5f);
+                width = (int)(height * targetAspectRatio + 0.5f);
             }
 
-            int vpX = (int) (Host.Size.X / 2 - width / 2);
-            int vpY = (int) (Host.Size.Y / 2 - height / 2);
+            int vpX = (int)(Host.Size.X / 2 - width / 2);
+            int vpY = (int)(Host.Size.Y / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int) width, (int) height);
-            GL.Scissor(vpX, vpY, (int) width, (int) height);
+            GL.Viewport(vpX, vpY, (int)width, (int)height);
+            GL.Scissor(vpX, vpY, (int)width, (int)height);
         }
 
         #endregion

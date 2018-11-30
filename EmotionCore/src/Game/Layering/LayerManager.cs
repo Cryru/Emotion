@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,15 +26,9 @@ namespace Emotion.Game.Layering
         /// </summary>
         private Dictionary<string, Layer> _layers;
 
-        /// <summary>
-        /// Tasks to run. Loading and unloading layers.
-        /// </summary>
-        private ConcurrentQueue<Task> _managementTasks;
-
         internal LayerManager()
         {
             _layers = new Dictionary<string, Layer>();
-            _managementTasks = new ConcurrentQueue<Task>();
         }
 
         #region Loops
@@ -45,21 +38,6 @@ namespace Emotion.Game.Layering
         /// </summary>
         internal void Update()
         {
-            // Check if any management tasks are pending.
-            if (!_managementTasks.IsEmpty)
-            {
-                // Get the current task.
-                _managementTasks.TryPeek(out Task currentTask);
-                if (currentTask != null)
-                {
-                    // If completed remove it from the queue.
-                    if (currentTask.IsCompleted) _managementTasks.TryDequeue(out Task _);
-
-                    // If not started, start it.
-                    if (currentTask.Status == TaskStatus.Created) currentTask.Start();
-                }
-            }
-
             // Update layers. The list conversion copies the list, allowing the dictionary to be edited. Do not replace with locks.
             foreach (Layer layer in _layers.Values.ToList())
             {
@@ -105,10 +83,7 @@ namespace Emotion.Game.Layering
             layer.Priority = priority;
             layer.Name = name;
 
-            Task loadLayer = new Task(() => LoadLayer(layer));
-            _managementTasks.Enqueue(loadLayer);
-
-            return loadLayer;
+            return Task.Run(() => LoadLayer(layer));
         }
 
         /// <summary>
@@ -140,10 +115,7 @@ namespace Emotion.Game.Layering
         {
             _layers.Remove(layer.Name);
 
-            Task unloadLayer = new Task(() => { UnloadLayer(layer); });
-            _managementTasks.Enqueue(unloadLayer);
-
-            return unloadLayer;
+            return Task.Run(() => UnloadLayer(layer));
         }
 
         #endregion
@@ -152,41 +124,39 @@ namespace Emotion.Game.Layering
 
         private void LoadLayer(Layer layer)
         {
-            Thread.CurrentThread.Name = $"Layer Loading Task - {layer.Name}";
-            Context.Log.Trace($"Loading layer [{layer.Name}].", MessageSource.LayerManager);
-
             try
             {
+                Thread.CurrentThread.Name = $"Layer Loading Task - {layer.Name}";
+                Context.Log.Trace($"Loading layer [{layer.Name}].", MessageSource.LayerManager);
+
                 layer.Load();
+
+                _layers.Add(layer.Name, layer);
+                _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
+
+                Context.Log.Info($"Loaded layer [{layer.Name}].", MessageSource.LayerManager);
             }
             catch (Exception ex)
             {
                 Context.Log.Error($"Error while loading layer {layer.Name}.", ex, MessageSource.LayerManager);
-                if (Debugger.DebugMode) throw ex;
             }
-
-            _layers.Add(layer.Name, layer);
-            _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
-
-            Context.Log.Info($"Loaded layer [{layer.Name}].", MessageSource.LayerManager);
         }
 
         private void UnloadLayer(Layer layer)
         {
-            Thread.CurrentThread.Name = $"Layer Unloading Task - {layer.Name}";
-            Context.Log.Trace($"Unloading layer [{layer.Name}].", MessageSource.LayerManager);
-
             try
             {
+                Thread.CurrentThread.Name = $"Layer Unloading Task - {layer.Name}";
+                Context.Log.Trace($"Unloading layer [{layer.Name}].", MessageSource.LayerManager);
+
                 layer.Unload();
+                
+                Context.Log.Info($"Unloaded layer [{layer.Name}].", MessageSource.LayerManager);
             }
             catch (Exception ex)
             {
                 Context.Log.Error($"Error while unloading layer [{layer.Name}].", ex, MessageSource.LayerManager);
-                if (Debugger.DebugMode) throw ex;
             }
-
-            Context.Log.Info($"Unloaded layer [{layer.Name}].", MessageSource.LayerManager);
         }
 
         #endregion
