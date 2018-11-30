@@ -5,12 +5,12 @@
 using System;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Utils;
+using Emotion.Libraries;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.Graphics.Objects
 {
     /// <summary>
     /// A Shader is a user-defined program designed to run on some stage of a graphics processor.

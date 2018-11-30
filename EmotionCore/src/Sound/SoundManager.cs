@@ -10,9 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Engine.Threading;
-using Emotion.IO;
-using Emotion.Utils;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 
@@ -63,7 +60,7 @@ namespace Emotion.Sound
                 // Run queued actions.
                 ALThread.Run();
 
-                Helpers.CheckErrorAL("loop end");
+                ALThread.CheckError("loop end");
 
                 Task.Delay(1).Wait();
             }

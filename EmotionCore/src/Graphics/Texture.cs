@@ -3,11 +3,9 @@
 #region Using
 
 using System.IO;
-using Emotion.Engine.Threading;
-using Emotion.Graphics.GLES;
+using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utils;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
 
@@ -174,7 +172,7 @@ namespace Emotion.Graphics
                 // Upload the texture.
                 GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(freeImageBitmap));
 
-                Helpers.CheckError("uploading texture");
+                GLThread.CheckError("uploading texture");
 
                 // Cleanup FreeImage object.
                 FreeImage.Unload(freeImageBitmap);
@@ -213,7 +211,7 @@ namespace Emotion.Graphics
             // Upload the texture.
             GL.TexImage2D(TextureTarget2d.Texture2D, 0, componentCount, (int) Size.X, (int) Size.Y, 0, format, PixelType.UnsignedByte, data);
 
-            Helpers.CheckError("uploading texture");
+            GLThread.CheckError("uploading texture");
         }
 
         /// <summary>
@@ -240,7 +238,7 @@ namespace Emotion.Graphics
             // Upload the texture.
             GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
 
-            Helpers.CheckError("uploading texture");
+            GLThread.CheckError("uploading texture");
         }
 
         #endregion

@@ -4,11 +4,10 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Emotion.Libraries;
 
 #endregion
 
-namespace Emotion.Utils
+namespace Emotion.Libraries
 {
     /// <summary>
     /// Handles platform checking.
@@ -70,13 +69,5 @@ namespace Emotion.Utils
                     break;
             }
         }
-    }
-
-    public enum PlatformName
-    {
-        Windows,
-        Linux,
-        Mac,
-        Other
     }
 }

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Emotion.Engine.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;

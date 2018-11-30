@@ -242,5 +242,27 @@ namespace Emotion.Primitives
         public static readonly Color Transparent = new Color(0, 0, 0, 0);
 
         #endregion
+
+        /// <summary>
+        /// Converts an Emotion color object to an uint.
+        /// </summary>
+        /// <returns>A uint packed value representing the color.</returns>
+        public uint ToUint()
+        {
+            return ((uint) A << 24) | ((uint) B << 16) | ((uint) G << 8) | R;
+        }
+
+        /// <summary>
+        /// Converts a four component color to an uint.
+        /// </summary>
+        /// <param name="r">The red component.</param>
+        /// <param name="g">The green component.</param>
+        /// <param name="b">The blue component.</param>
+        /// <param name="a">The alpha component.</param>
+        /// <returns>A uint packed value representing the color.</returns>
+        public static uint ToUint(byte r, byte g, byte b, byte a)
+        {
+            return ((uint) a << 24) | ((uint) b << 16) | ((uint) g << 8) | r;
+        }
     }
 }

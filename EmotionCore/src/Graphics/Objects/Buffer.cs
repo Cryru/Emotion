@@ -3,13 +3,12 @@
 #region Using
 
 using System;
-using Emotion.Engine.Threading;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.Graphics.Objects
 {
     /// <summary>
     /// A Vertex Buffer Object (VBO) is an OpenGL feature that provides methods for uploading vertex data (position, normal

@@ -11,14 +11,13 @@ using Emotion.Game.Camera;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Batching;
-using Emotion.Graphics.GLES;
+using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
-using Emotion.IO;
+using Emotion.Libraries;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Soul;
-using Buffer = Emotion.Graphics.GLES.Buffer;
+using Buffer = Emotion.Graphics.Objects.Buffer;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
@@ -63,17 +62,19 @@ namespace Emotion.Graphics
         /// <summary>
         /// The major version of the OpenGL context.
         /// </summary>
-        public static int OpenGLMajorVersion = 3;
+        public static int OpenGLMajorVersion { get; private set; } = 3;
 
         /// <summary>
         /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
         /// </summary>
-        public static int OpenGLMinorVersion;
+        public static int OpenGLMinorVersion { get; private set; }
 
         /// <summary>
         /// Whether the "gl_arb_gpu_shader5" OpenGL extension is missing. In which case the shaders must be patched.
         /// </summary>
-        public static bool Shader5ExtensionMissing;
+        public static bool Shader5ExtensionMissing { get; private set; }
+
+        public static int CircleDetail = 30;
 
         #endregion
 
@@ -111,7 +112,7 @@ namespace Emotion.Graphics
             _mainLineBuffer = new LineMapBuffer(MaxRenderable);
 
             // Check if the setup encountered any errors.
-            Helpers.CheckError("renderer setup");
+            GLThread.CheckError("renderer setup");
 
             // Setup additional GL arguments.
             GL.Enable(EnableCap.Blend);
@@ -178,7 +179,7 @@ namespace Emotion.Graphics
                 }
             }
 
-            Helpers.CheckError("making default shaders");
+            GLThread.CheckError("making default shaders");
         }
 
         /// <summary>
@@ -305,7 +306,7 @@ namespace Emotion.Graphics
             IndexBuffer.BoundPointer = 0;
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            Helpers.CheckError("clear");
+            GLThread.CheckError("clear");
 
             // Sync the current shader.
             SyncCurrentShader();
@@ -358,7 +359,7 @@ namespace Emotion.Graphics
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
             ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
 
-            Helpers.CheckError("Syncing shader");
+            GLThread.CheckError("Syncing shader");
         }
 
         /// <summary>
@@ -471,6 +472,59 @@ namespace Emotion.Graphics
         {
             _mainLineBuffer.MapNextQuad(location, size, color);
             RenderOutlineFlush();
+        }
+
+        /// <summary>
+        /// Render a circle outline.
+        /// </summary>
+        /// <param name="position">The top right position of the imaginary rectangle with encompasses the circle.</param>
+        /// <param name="radius">The circle radius.</param>
+        /// <param name="color">The circle color.</param>
+        public void RenderCircleOutline(Vector3 position, float radius, Color color)
+        {
+            // Flush the buffer.
+            RenderOutlineFlush();
+
+            // Add the string's model matrix.
+            MatrixStack.Push(Matrix4.CreateTranslation(position));
+
+            float fX = 0;
+            float fY = 0;
+            float pX = 0;
+            float pY = 0;
+
+            // Generate points.
+            for (uint i = 0; i < CircleDetail; i++)
+            {
+                float angle = (float) (i * 2 * Math.PI / CircleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
+
+                if (i == 0)
+                {
+                    _mainLineBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
+                    fX = x;
+                    fY = y;
+                }
+                else if (i == CircleDetail - 1)
+                {
+                    _mainLineBuffer.MapNextLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                    _mainLineBuffer.MapNextLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                }
+                else
+                {
+                    _mainLineBuffer.MapNextLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                }
+
+                pX = x;
+                pY = y;
+            }
+
+            // Render the circle.
+            RenderOutlineFlush();
+
+            // Remove the model matrix.
+            MatrixStack.Pop();
         }
 
         /// <summary>

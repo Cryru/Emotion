@@ -1,6 +1,6 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.Graphics.Objects
 {
     public interface IGLObject
     {

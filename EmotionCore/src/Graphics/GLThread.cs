@@ -3,10 +3,12 @@
 #region Using
 
 using System;
+using Emotion.Engine;
+using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Engine.Threading
+namespace Emotion.Graphics
 {
     public static class GLThread
     {
@@ -62,5 +64,15 @@ namespace Emotion.Engine.Threading
         }
 
         #endregion
+
+        /// <summary>
+        /// Check for an OpenGL error. Must be called on the GLThread.
+        /// </summary>
+        /// <param name="location">Where the error check is.</param>
+        public static void CheckError(string location)
+        {
+            ErrorCode errorCheck = GL.GetError();
+            if (errorCheck != ErrorCode.NoError) throw new Exception("OpenGL error at " + location + ":\n" + errorCheck);
+        }
     }
 }

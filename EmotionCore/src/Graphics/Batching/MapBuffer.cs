@@ -7,13 +7,10 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Engine.Threading;
-using Emotion.Graphics.GLES;
-using Emotion.IO;
+using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
-using Buffer = Emotion.Graphics.GLES.Buffer;
+using Buffer = Emotion.Graphics.Objects.Buffer;
 
 #endregion
 
@@ -168,7 +165,7 @@ namespace Emotion.Graphics.Batching
             Unbind();
             _vao.Unbind();
 
-            Helpers.CheckError("map buffer - loading vbo into vao");
+            GLThread.CheckError("map buffer - loading vbo into vao");
 
             _textureList = new List<Texture>();
         }
@@ -200,11 +197,11 @@ namespace Emotion.Graphics.Batching
 
             GLThread.ForceGLThread();
 
-            Helpers.CheckError("map buffer - before start");
+            GLThread.CheckError("map buffer - before start");
             Bind();
             _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
             _dataPointer = _startPointer;
-            Helpers.CheckError("map buffer - start");
+            GLThread.CheckError("map buffer - start");
         }
 
         /// <summary>
@@ -219,7 +216,7 @@ namespace Emotion.Graphics.Batching
             // Check if mapping has started.
             if (!Mapping) StartMapping();
 
-            InternalMapVertex(ColorToUint(color), GetTid(texture), VerifyUV(texture, uv), vertex);
+            InternalMapVertex(color.ToUint(), GetTid(texture), VerifyUV(texture, uv), vertex);
             _dataPointer++;
         }
 
@@ -257,10 +254,10 @@ namespace Emotion.Graphics.Batching
             _startPointer = null;
             _dataPointer = null;
 
-            Helpers.CheckError("map buffer - before unmapping");
+            GLThread.CheckError("map buffer - before unmapping");
             Bind();
             GL.UnmapBuffer(BufferTarget.ArrayBuffer);
-            Helpers.CheckError("map buffer - unmapping");
+            GLThread.CheckError("map buffer - unmapping");
         }
 
         /// <summary>
@@ -284,16 +281,6 @@ namespace Emotion.Graphics.Batching
         protected void MovePointerToVertex(int index)
         {
             _dataPointer = _startPointer + index;
-        }
-
-        /// <summary>
-        /// Converts an Emotion color object to an uint. todo: Move to color class.
-        /// </summary>
-        /// <param name="color">The color to convert.</param>
-        /// <returns></returns>
-        protected static uint ColorToUint(Color color)
-        {
-            return ((uint) color.A << 24) | ((uint) color.B << 16) | ((uint) color.G << 8) | color.R;
         }
 
         /// <summary>
@@ -394,7 +381,7 @@ namespace Emotion.Graphics.Batching
             }
 
 
-            Helpers.CheckError("map buffer - texture binding");
+            GLThread.CheckError("map buffer - texture binding");
         }
 
         #endregion
@@ -463,18 +450,18 @@ namespace Emotion.Graphics.Batching
 
             _vao.Bind();
             _ibo.Bind();
-            Helpers.CheckError("map buffer - bind");
+            GLThread.CheckError("map buffer - bind");
 
             // Convert offset amd length.
             IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
             int length = _endIndex == -1 ? MappedObjects * IndicesPerObject : _endIndex / ObjectSize * IndicesPerObject;
 
             GL.DrawElements(_drawType, length, DrawElementsType.UnsignedShort, indexToPointer);
-            Helpers.CheckError("map buffer - draw");
+            GLThread.CheckError("map buffer - draw");
 
             _ibo.Unbind();
             _vao.Unbind();
-            Helpers.CheckError("map buffer - unbind");
+            GLThread.CheckError("map buffer - unbind");
         }
 
         #region Buffer API Overwrite

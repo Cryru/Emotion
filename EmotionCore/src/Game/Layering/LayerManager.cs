@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Graphics;
 using Emotion.Primitives;
-using Emotion.Utils;
 
 #endregion
 
@@ -60,7 +60,7 @@ namespace Emotion.Game.Layering
                 Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, layer.Priority));
                 layer.Draw(Context.Renderer);
                 Context.Renderer.MatrixStack.Pop();
-                Helpers.CheckError("layer draw");
+                GLThread.CheckError("layer draw");
             }
         }
 
@@ -150,7 +150,7 @@ namespace Emotion.Game.Layering
                 Context.Log.Trace($"Unloading layer [{layer.Name}].", MessageSource.LayerManager);
 
                 layer.Unload();
-                
+
                 Context.Log.Info($"Unloaded layer [{layer.Name}].", MessageSource.LayerManager);
             }
             catch (Exception ex)

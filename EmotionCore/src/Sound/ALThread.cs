@@ -3,10 +3,14 @@
 #region Using
 
 using System;
+using Emotion.Debug;
+using Emotion.Engine;
+using Emotion.Libraries;
+using OpenTK.Audio.OpenAL;
 
 #endregion
 
-namespace Emotion.Engine.Threading
+namespace Emotion.Sound
 {
     public static class ALThread
     {
@@ -62,5 +66,22 @@ namespace Emotion.Engine.Threading
         }
 
         #endregion
+
+        /// <summary>
+        /// Check for an OpenAL error. Must be called on the ALThread.
+        /// </summary>
+        /// <param name="location">Where the error check is.</param>
+        public static void CheckError(string location)
+        {
+            // Get the error.
+            ALError errorCheck = AL.GetError();
+
+            // Check if anything.
+            if (errorCheck == ALError.NoError) return;
+            Context.Log.Error($"OpenAL error at {location}:\n{errorCheck}", MessageSource.SoundManager);
+
+            // For some reason Mac reports errors left and right. As this happens only on that platform error checks are disabled there.
+            if (CurrentPlatform.OS != PlatformName.Mac) throw new Exception("OpenAL error at " + location + ":\n" + errorCheck);
+        }
     }
 }

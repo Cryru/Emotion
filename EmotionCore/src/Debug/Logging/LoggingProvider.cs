@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.ExceptionServices;
 using Emotion.Engine;
 
 #endregion
@@ -27,7 +26,8 @@ namespace Emotion.Debug.Logging
         }
 
         /// <summary>
-        /// Log an error. These messages are fatal to code execution. If in debug mode the exception will be thrown, otherwise the Context.Quit() method will be invoked.
+        /// Log an error. These messages are fatal to code execution. If in debug mode the exception will be thrown, otherwise the
+        /// Context.Quit() method will be invoked.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="ex">The exception if any.</param>

@@ -2,10 +2,8 @@
 
 #region Using
 
-using Emotion.Graphics.GLES;
-using Emotion.IO;
+using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -42,7 +40,7 @@ namespace Emotion.Graphics.Batching
 
             _ibo = new IndexBuffer(indices);
 
-            Helpers.CheckError("map buffer - creating ibo");
+            GLThread.CheckError("map buffer - creating ibo");
         }
 
         /// <inheritdoc />
@@ -67,7 +65,7 @@ namespace Emotion.Graphics.Batching
 
             Rectangle uv = VerifyUV(texture, textureArea);
             float tid = GetTid(texture);
-            uint c = ColorToUint(color);
+            uint c = color.ToUint();
 
             // Calculate UV positions
             Vector2 nn = texture == null ? Vector2.Zero : Vector2.TransformPosition(uv.Location, texture.TextureMatrix);

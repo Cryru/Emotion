@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace Emotion.Engine.Threading
+namespace Emotion.Engine
 {
+    /// <summary>
+    /// Manages execution on a specific frame.
+    /// </summary>
     public class ThreadManager
     {
         #region Properties

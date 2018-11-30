@@ -3,8 +3,6 @@
 #region Using
 
 using System;
-using Emotion.Engine.Threading;
-using Emotion.IO;
 using Emotion.Primitives;
 using SharpFont;
 
@@ -195,5 +193,15 @@ namespace Emotion.Graphics.Text
         }
 
         #endregion
+
+        /// <summary>
+        /// Converts a pixel font size to a point character size.
+        /// </summary>
+        /// <param name="pixelSize">The pixel size to convert.</param>
+        /// <returns>The provided pixel size in points.</returns>
+        public static float PixelFontSizeToCharSize(uint pixelSize)
+        {
+            return (float) Math.Pow(96 / 72 / pixelSize, -1);
+        }
     }
 }

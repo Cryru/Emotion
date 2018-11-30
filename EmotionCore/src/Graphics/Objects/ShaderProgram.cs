@@ -4,14 +4,12 @@
 
 using System;
 using System.Linq;
-using Emotion.Engine.Threading;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.Graphics.Objects
 {
     /// <summary>
     /// A Program Object represents fully processed executable code, in the OpenGL Shading Language, for one or more Shader
@@ -125,7 +123,7 @@ namespace Emotion.Graphics.GLES
             GL.DetachShader(_pointer, frag.Pointer);
             GL.ValidateProgram(_pointer);
 
-            Helpers.CheckError("making program");
+            GLThread.CheckError("making program");
 
             // Set default uniforms.
             SetUniformIntArray("textures", Enumerable.Range(0, 15).ToArray());
@@ -193,7 +191,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformMatrix4(string name, Matrix4 matrix4)
         {
             SetUniformMatrix4(GetUniformLocation(name), matrix4);
-            Helpers.CheckError("setting mat4 uniform");
+            GLThread.CheckError("setting mat4 uniform");
         }
 
         /// <summary>
@@ -204,7 +202,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformInt(string name, int data)
         {
             SetUniformInt(GetUniformLocation(name), data);
-            Helpers.CheckError("setting int uniform");
+            GLThread.CheckError("setting int uniform");
         }
 
         /// <summary>
@@ -215,7 +213,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformFloat(string name, float data)
         {
             SetUniformFloat(GetUniformLocation(name), data);
-            Helpers.CheckError("setting float uniform");
+            GLThread.CheckError("setting float uniform");
         }
 
         /// <summary>
@@ -226,7 +224,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformColor(string name, Color data)
         {
             SetUniformColor(GetUniformLocation(name), data);
-            Helpers.CheckError("setting color uniform");
+            GLThread.CheckError("setting color uniform");
         }
 
         /// <summary>
@@ -237,7 +235,7 @@ namespace Emotion.Graphics.GLES
         public void SetUniformIntArray(string name, int[] data)
         {
             SetUniformIntArray(GetUniformLocation(name), data);
-            Helpers.CheckError("setting int array uniform");
+            GLThread.CheckError("setting int array uniform");
         }
 
         #endregion

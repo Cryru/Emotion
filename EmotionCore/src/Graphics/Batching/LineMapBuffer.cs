@@ -2,10 +2,8 @@
 
 #region Using
 
-using Emotion.Graphics.GLES;
-using Emotion.IO;
+using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -44,7 +42,7 @@ namespace Emotion.Graphics.Batching
 
             _ibo = new IndexBuffer(indices);
 
-            Helpers.CheckError("map buffer - creating ibo");
+            GLThread.CheckError("map buffer - creating ibo");
         }
 
         /// <inheritdoc />
@@ -64,7 +62,7 @@ namespace Emotion.Graphics.Batching
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
-            uint c = ColorToUint(color);
+            uint c = color.ToUint();
 
             InternalMapVertex(c, -1, Vector2.Zero, location);
             _dataPointer++;
@@ -107,7 +105,7 @@ namespace Emotion.Graphics.Batching
             // Check if mapping has started.
             if (!Mapping) StartMapping();
 
-            uint c = ColorToUint(color);
+            uint c = color.ToUint();
 
             InternalMapVertex(c, -1, Vector2.Zero, pointOne);
             _dataPointer++;

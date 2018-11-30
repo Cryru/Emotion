@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Engine.Threading;
-using Emotion.IO;
-using Emotion.Utils;
+using Emotion.Libraries;
 using OpenTK.Audio.OpenAL;
 using Soul;
 
@@ -127,7 +125,7 @@ namespace Emotion.Sound
             {
                 // Initiate source.
                 _pointer = AL.GenSource();
-                Helpers.CheckErrorAL("creating source");
+                ALThread.CheckError("creating source");
                 Context.Log.Info($"Created {this}.", MessageSource.SoundManager);
             });
         }
@@ -145,7 +143,7 @@ namespace Emotion.Sound
             {
                 AL.SourcePlay(_pointer);
                 Status = SoundStatus.Playing;
-                Helpers.CheckErrorAL("resuming");
+                ALThread.CheckError("resuming");
             });
         }
 
@@ -160,7 +158,7 @@ namespace Emotion.Sound
             {
                 AL.SourcePause(_pointer);
                 Status = SoundStatus.Paused;
-                Helpers.CheckErrorAL("pausing");
+                ALThread.CheckError("pausing");
             });
         }
 
@@ -183,7 +181,7 @@ namespace Emotion.Sound
                 // Remove played buffers.
                 RemovePlayed();
                 Status = SoundStatus.Stopped;
-                Helpers.CheckErrorAL("stopping");
+                ALThread.CheckError("stopping");
 
                 // Reset tracker variables.
                 PerformReset();
@@ -216,13 +214,13 @@ namespace Emotion.Sound
 
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
-                Helpers.CheckErrorAL($"queuing in source {_pointer}");
+                ALThread.CheckError($"queuing in source {_pointer}");
 
                 // Play if not playing.
                 if (Status != SoundStatus.Stopped) return;
                 AL.SourcePlay(_pointer);
                 Status = SoundStatus.Playing;
-                Helpers.CheckErrorAL($"playing source {_pointer}");
+                ALThread.CheckError($"playing source {_pointer}");
 
                 Context.Log.Info($"Started playing [{file.Name}] on {this}.", MessageSource.SoundManager);
 
@@ -253,11 +251,11 @@ namespace Emotion.Sound
                 // Queue the file.
                 AL.SourceQueueBuffer(_pointer, file.Pointer);
                 _playList.Add(file);
-                Helpers.CheckErrorAL($"queuing single in source {_pointer}");
+                ALThread.CheckError($"queuing single in source {_pointer}");
                 // Play it.
                 AL.SourcePlay(_pointer);
                 Status = SoundStatus.Playing;
-                Helpers.CheckErrorAL($"playing single in source {_pointer}");
+                ALThread.CheckError($"playing single in source {_pointer}");
 
                 Context.Log.Info($"Started playing [{file.Name}] on {this}.", MessageSource.SoundManager);
 
@@ -286,7 +284,7 @@ namespace Emotion.Sound
 
                 StopPlayingAll(true);
                 AL.DeleteSource(_pointer);
-                Helpers.CheckErrorAL($"cleanup of source {_pointer}");
+                ALThread.CheckError($"cleanup of source {_pointer}");
 
                 _pointer = -1;
                 _playList.Clear();
@@ -348,10 +346,10 @@ namespace Emotion.Sound
             ALThread.ForceALThread();
 
             AL.GetSource(_pointer, ALGetSourcei.BuffersProcessed, out int processed);
-            Helpers.CheckErrorAL($"checking processed buffers of source {_pointer}");
+            ALThread.CheckError($"checking processed buffers of source {_pointer}");
             if (processed <= 0) return;
             AL.SourceUnqueueBuffers(_pointer, processed);
-            Helpers.CheckErrorAL($"removing {processed} buffers of source {_pointer}");
+            ALThread.CheckError($"removing {processed} buffers of source {_pointer}");
             if (_playList.Count > 0) _playList.RemoveRange(0, Math.Min(_playList.Count, processed));
             _isFirst = false;
         }
@@ -377,11 +375,11 @@ namespace Emotion.Sound
             // Check if buffer is initialized or destroyed.
             if (_pointer <= 0) return;
 
-            Helpers.CheckErrorAL($"start update of source {_pointer}");
+            ALThread.CheckError($"start update of source {_pointer}");
 
             // Update focused state.
             if (!UpdateFocusedState()) return;
-            Helpers.CheckErrorAL($"focus update of source {_pointer}");
+            ALThread.CheckError($"focus update of source {_pointer}");
 
             // Remove played buffers.
             RemovePlayed();
@@ -390,7 +388,7 @@ namespace Emotion.Sound
             AL.GetSource(_pointer, ALGetSourcei.Buffer, out int filePointer);
             AL.GetSource(_pointer, ALGetSourcei.BuffersQueued, out int queuedBuffers);
             bool last = queuedBuffers == 1;
-            Helpers.CheckErrorAL($"buffer getting of source {_pointer}");
+            ALThread.CheckError($"buffer getting of source {_pointer}");
 
             // Update volume.
             UpdateVolume(last);
@@ -418,7 +416,7 @@ namespace Emotion.Sound
                 }
             }
 
-            Helpers.CheckErrorAL($"end update of source {_pointer}");
+            ALThread.CheckError($"end update of source {_pointer}");
         }
 
         #region Update Parts
@@ -449,7 +447,7 @@ namespace Emotion.Sound
 
         private void UpdateVolume(bool last)
         {
-            Helpers.CheckErrorAL($"before updating of volume of source {_pointer}");
+            ALThread.CheckError($"before updating of volume of source {_pointer}");
 
             float systemVolume = Context.Settings.Sound ? Context.Settings.Volume / 100f : 0f;
             float scaled = MathHelper.Clamp(Volume * systemVolume, 0, 10);
@@ -487,7 +485,7 @@ namespace Emotion.Sound
             if (scaled < 0.000f) scaled = 0f;
 
             AL.Source(_pointer, ALSourcef.Gain, scaled);
-            Helpers.CheckErrorAL($"updating of volume of source {_pointer} to {scaled}");
+            ALThread.CheckError($"updating of volume of source {_pointer} to {scaled}");
         }
 
         private void UpdateLooping(bool last)
@@ -505,7 +503,7 @@ namespace Emotion.Sound
             else
                 AL.Source(_pointer, ALSourceb.Looping, Looping);
 
-            Helpers.CheckErrorAL($"updating of looping of source {_pointer}");
+            ALThread.CheckError($"updating of looping of source {_pointer}");
         }
 
         private void UpdatePlayingState()
@@ -526,7 +524,7 @@ namespace Emotion.Sound
                     break;
             }
 
-            Helpers.CheckErrorAL($"updating of state of source {_pointer}");
+            ALThread.CheckError($"updating of state of source {_pointer}");
         }
 
         private void UpdateCurrentFile(int currentFilePointer)
@@ -545,7 +543,7 @@ namespace Emotion.Sound
             AL.GetSource(_pointer, ALSourcef.SecOffset, out float playbackLoc);
             PlaybackLocation = playbackLoc;
 
-            Helpers.CheckErrorAL($"updating of playback location of source {_pointer}");
+            ALThread.CheckError($"updating of playback location of source {_pointer}");
         }
 
         #endregion

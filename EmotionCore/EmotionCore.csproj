@@ -96,6 +96,8 @@
     <When Condition="$(DefineConstants.Contains('GLES'))" />
   </Choose>
   <ItemGroup>
+    <Compile Include="Libraries\CurrentPlatform.cs" />
+    <Compile Include="Libraries\PlatformName.cs" />
     <Compile Include="Libraries\TiledSharp\ImageLayer.cs" />
     <Compile Include="Libraries\TiledSharp\Layer.cs" />
     <Compile Include="Libraries\TiledSharp\Map.cs" />
@@ -120,8 +122,7 @@
     <Compile Include="src\Debug\Logging\DefaultLogger.cs" />
     <Compile Include="src\Debug\Logging\LoggingProvider.cs" />
     <Compile Include="src\Engine\ContinuousAction.cs" />
-    <Compile Include="src\Engine\Threading\ALThread.cs" />
-    <Compile Include="src\Engine\Threading\ThreadManager.cs" />
+    <Compile Include="src\Engine\ThreadManager.cs" />
     <Compile Include="src\Game\Text\TypewriterRichText.cs" />
     <Compile Include="src\Game\UI\BasicTextBg.cs" />
     <Compile Include="src\Game\UI\BasicText.cs" />
@@ -132,13 +133,14 @@
     <Compile Include="src\Game\UI\ParentControl.cs" />
     <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
+    <Compile Include="src\Graphics\GLThread.cs" />
     <Compile Include="src\Graphics\Texture.cs" />
-    <Compile Include="src\Graphics\GLES\IGLObject.cs" />
-    <Compile Include="src\Graphics\GLES\IndexBuffer.cs" />
-    <Compile Include="src\Graphics\GLES\Shader.cs" />
-    <Compile Include="src\Graphics\GLES\ShaderProgram.cs" />
-    <Compile Include="src\Graphics\GLES\Buffer.cs" />
-    <Compile Include="src\Graphics\GLES\VertexArray.cs" />
+    <Compile Include="src\Graphics\Objects\IGLObject.cs" />
+    <Compile Include="src\Graphics\Objects\IndexBuffer.cs" />
+    <Compile Include="src\Graphics\Objects\Shader.cs" />
+    <Compile Include="src\Graphics\Objects\ShaderProgram.cs" />
+    <Compile Include="src\Graphics\Objects\Buffer.cs" />
+    <Compile Include="src\Graphics\Objects\VertexArray.cs" />
     <Compile Include="src\Graphics\TransformRenderable.cs" />
     <Compile Include="src\Graphics\IRenderable.cs" />
     <Compile Include="src\Graphics\Renderer.cs" />
@@ -158,9 +160,8 @@
     <Compile Include="src\Primitives\Point.cs" />
     <Compile Include="src\Primitives\Transform.cs" />
     <Compile Include="src\Primitives\Vector3.cs" />
+    <Compile Include="src\Sound\ALThread.cs" />
     <Compile Include="src\Sound\SoundStatus.cs" />
-    <Compile Include="src\Utils\CurrentPlatform.cs" />
-    <Compile Include="src\Engine\Threading\GLThread.cs" />
     <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
     <Compile Include="src\Sound\SoundFile.cs" />
@@ -186,7 +187,6 @@
     <Compile Include="src\Game\UI\Panel.cs" />
     <Compile Include="src\Sound\SoundLayer.cs" />
     <Compile Include="src\Sound\SoundManager.cs" />
-    <Compile Include="src\Utils\Helpers.cs" />
     <Compile Include="src\IO\AssetLoader.cs" />
     <Compile Include="src\Engine\Context.cs" />
     <Compile Include="src\Input\MouseKeys.cs" />

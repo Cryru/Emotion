@@ -5,7 +5,7 @@
 using System;
 using System.Threading;
 using Emotion.Graphics;
-using Emotion.Utils;
+using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;
 using Vector2 = Emotion.Primitives.Vector2;

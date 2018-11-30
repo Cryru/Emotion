@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using Emotion.Engine.Threading;
 using Emotion.IO;
 using OpenTK.Audio.OpenAL;
 

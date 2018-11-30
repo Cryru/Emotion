@@ -3,12 +3,11 @@
 #region Using
 
 using System;
-using Emotion.Engine.Threading;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.Graphics.Objects
 {
     /// <summary>
     /// The index buffer is a list of pointers within the vertex buffer.

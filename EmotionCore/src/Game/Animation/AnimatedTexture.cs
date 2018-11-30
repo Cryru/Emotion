@@ -4,9 +4,7 @@
 
 using System;
 using Emotion.Graphics;
-using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utils;
 
 #endregion
 
@@ -56,7 +54,7 @@ namespace Emotion.Game.Animation
         /// </summary>
         public Rectangle CurrentFrame
         {
-            get => Helpers.GetFrameBounds(Texture.Size, _frameSize, _spacing, CurrentFrameIndex);
+            get => GetFrameBounds(Texture.Size, _frameSize, _spacing, CurrentFrameIndex);
         }
 
         /// <summary>
@@ -283,5 +281,27 @@ namespace Emotion.Game.Animation
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns the bounds of a frame within a spritesheet texture.
+        /// </summary>
+        /// <param name="textureSize">The size of the spritesheet texture.</param>
+        /// <param name="frameSize">The size of individual frames.</param>
+        /// <param name="spacing">The spacing between frames.</param>
+        /// <param name="frameId">The index of the frame we are looking for. 0 based.</param>
+        /// <returns>The bounds of a frame within a spritesheet texture.</returns>
+        public static Rectangle GetFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int frameId)
+        {
+            // Get the total number of columns.
+            int columns = (int) (textureSize.X / frameSize.X);
+
+            // Get the current row and column.
+            int row = (int) (frameId / (float) columns);
+            int column = frameId % columns;
+
+            // Find the frame we are looking for.
+            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
+                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
+        }
     }
 }

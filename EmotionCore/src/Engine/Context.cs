@@ -10,7 +10,6 @@ using Emotion.Debug;
 using Emotion.Debug.Logging;
 using Emotion.Engine.Hosting;
 using Emotion.Engine.Hosting.Desktop;
-using Emotion.Engine.Threading;
 using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
@@ -18,7 +17,6 @@ using Emotion.Input;
 using Emotion.IO;
 using Emotion.Libraries;
 using Emotion.Sound;
-using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
 
@@ -375,15 +373,15 @@ namespace Emotion.Engine
 
             // Clear the screen.
             Renderer.Clear();
-            Helpers.CheckError("renderer clear");
+            GLThread.CheckError("renderer clear");
 
             // Draw the layers.
             LayerManager.Draw();
-            Helpers.CheckError("layer draw");
+            GLThread.CheckError("layer draw");
 
             // Finish rendering.
             Renderer.End();
-            Helpers.CheckError("renderer end");
+            GLThread.CheckError("renderer end");
 
             // Draw debug.
             Debugger.Draw();

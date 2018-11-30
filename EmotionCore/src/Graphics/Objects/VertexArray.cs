@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using Emotion.Engine.Threading;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.GLES
+namespace Emotion.Graphics.Objects
 {
     public sealed class VertexArray : IGLObject
     {
