@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Debug.Logging;
@@ -129,87 +128,86 @@ namespace Emotion.Engine
             try
             {
 #endif
-                // Initiate bootstrap.
-                Log.Info("-------------------------------", MessageSource.Engine);
-                Log.Info($"Executed at: {Environment.CurrentDirectory}", MessageSource.Engine);
-                Log.Info($"Debug Mode / Debugger Attached: {Debugger.DebugMode} / {System.Diagnostics.Debugger.IsAttached}", MessageSource.Engine);
-                Log.Info($"64Bit: {Environment.Is64BitProcess}", MessageSource.Engine);
-                Log.Info($"OS: {CurrentPlatform.OS} ({Environment.OSVersion})", MessageSource.Engine);
-                Log.Info($"CPU: {Environment.ProcessorCount}", MessageSource.Engine);
+            // Initiate bootstrap.
+            Log.Info("-------------------------------", MessageSource.Engine);
+            Log.Info($"Executed at: {Environment.CurrentDirectory}", MessageSource.Engine);
+            Log.Info($"Debug Mode / Debugger Attached: {Debugger.DebugMode} / {System.Diagnostics.Debugger.IsAttached}", MessageSource.Engine);
+            Log.Info($"64Bit: {Environment.Is64BitProcess}", MessageSource.Engine);
+            Log.Info($"OS: {CurrentPlatform.OS} ({Environment.OSVersion})", MessageSource.Engine);
+            Log.Info($"CPU: {Environment.ProcessorCount}", MessageSource.Engine);
 
-                // Run platform specific boot.
-                switch (CurrentPlatform.OS)
+            // Run platform specific boot.
+            switch (CurrentPlatform.OS)
+            {
+                case PlatformName.Windows:
+                    WindowsSetup();
+                    break;
+                case PlatformName.Linux:
+                    LinuxSetup();
+                    break;
+            }
+
+            Log.Info("-------------------------------", MessageSource.Engine);
+            Log.Info("Bootstrap complete.", MessageSource.Engine);
+
+            // Apply settings and run initial setup function.
+            Settings initial = new Settings();
+            config?.Invoke(initial);
+            Settings = initial;
+
+            // Setup thread manager.
+            GLThread.BindThread();
+
+            // Create host if not created.
+            if (Host == null)
+                try
                 {
-                    case PlatformName.Windows:
-                        WindowsSetup();
-                        break;
-                    case PlatformName.Linux:
-                        LinuxSetup();
-                        break;
+                    Log.Trace("Creating host...", MessageSource.Engine);
+                    if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
+                    {
+                        Host = new OtkWindow();
+                        Log.Info("Created OpenTK window host.", MessageSource.Engine);
+                    }
+                    else
+                    {
+                        throw new Exception("Unsupported platform.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Could not create host. Is the system supported?", ex, MessageSource.Engine);
+                    return;
                 }
 
-                Log.Info("-------------------------------", MessageSource.Engine);
-                Log.Info("Bootstrap complete.", MessageSource.Engine);
+            // Apply settings and hook.
+            Host.ApplySettings(Settings);
+            Host.SetHooks(LoopUpdate, LoopDraw, Resize, Quit);
 
-                // Apply settings and run initial setup function.
-                Settings initial = new Settings();
-                config?.Invoke(initial);
-                Settings = initial;
+            // Start creating modules.
 
-                // Setup thread manager.
-                GLThread.BindThread();
+            // Scripting engine is first to provide the other modules the ability to expose functions.
+            Log.Trace("Creating scripting engine...", MessageSource.Engine);
+            ScriptingEngine = new ScriptingEngine();
 
-                // Create host if not created.
-                if (Host == null)
-                    try
-                    {
-                        Log.Trace("Creating host...", MessageSource.Engine);
-                        if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
-                        {
-                            Host = new OtkWindow();
-                            Log.Info("Created OpenTK window host.", MessageSource.Engine);
-                        }
-                        else
-                        {
-                            throw new Exception("Unsupported platform.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error("Could not create host. Is the system supported?", ex, MessageSource.Engine);
-                        Quit();
-                        return;
-                    }
+            // Asset loader is next so other modules - especially the renderer, can access the file system.
+            Log.Trace("Creating asset loader...", MessageSource.Engine);
+            AssetLoader = new AssetLoader();
 
-                // Apply settings and hook.
-                Host.ApplySettings(Settings);
-                Host.SetHooks(LoopUpdate, LoopDraw, Resize, Quit);
+            // The order of the next modules doesn't matter.
 
-                // Start creating modules.
+            Debugger.InitializeModule();
 
-                // Scripting engine is first to provide the other modules the ability to expose functions.
-                Log.Trace("Creating scripting engine...", MessageSource.Engine);
-                ScriptingEngine = new ScriptingEngine();
+            Log.Trace("Creating renderer...", MessageSource.Engine);
+            Renderer = new Renderer();
 
-                // Asset loader is next so other modules - especially the renderer, can access the file system.
-                Log.Trace("Creating asset loader...", MessageSource.Engine);
-                AssetLoader = new AssetLoader();
+            Log.Trace("Creating sound manager...", MessageSource.Engine);
+            SoundManager = new SoundManager();
 
-                // The order of the next modules doesn't matter.
+            Log.Trace("Creating layer manager...", MessageSource.Engine);
+            LayerManager = new LayerManager();
 
-                Debugger.InitializeModule();
-
-                Log.Trace("Creating renderer...", MessageSource.Engine);
-                Renderer = new Renderer();
-
-                Log.Trace("Creating sound manager...", MessageSource.Engine);
-                SoundManager = new SoundManager();
-
-                Log.Trace("Creating layer manager...", MessageSource.Engine);
-                LayerManager = new LayerManager();
-
-                Log.Trace("Creating input manager...", MessageSource.Engine);
-                InputManager = new InputManager();
+            Log.Trace("Creating input manager...", MessageSource.Engine);
+            InputManager = new InputManager();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -228,14 +226,14 @@ namespace Emotion.Engine
             try
             {
 #endif
-                // Check if setup.
-                if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
+            // Check if setup.
+            if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
 
-                // Set running to true.
-                IsRunning = true;
+            // Set running to true.
+            IsRunning = true;
 
-                // Start running the loops. Blocking.
-                Host.Run();
+            // Start running the loops. Blocking.
+            Host.Run();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -400,21 +398,21 @@ namespace Emotion.Engine
             float targetAspectRatio = Settings.RenderWidth / Settings.RenderHeight;
 
             float width = Host.Size.X;
-            float height = (int)(width / targetAspectRatio + 0.5f);
+            float height = (int) (width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > Host.Size.Y)
             {
                 height = Host.Size.Y;
-                width = (int)(height * targetAspectRatio + 0.5f);
+                width = (int) (height * targetAspectRatio + 0.5f);
             }
 
-            int vpX = (int)(Host.Size.X / 2 - width / 2);
-            int vpY = (int)(Host.Size.Y / 2 - height / 2);
+            int vpX = (int) (Host.Size.X / 2 - width / 2);
+            int vpY = (int) (Host.Size.Y / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int)width, (int)height);
-            GL.Scissor(vpX, vpY, (int)width, (int)height);
+            GL.Viewport(vpX, vpY, (int) width, (int) height);
+            GL.Scissor(vpX, vpY, (int) width, (int) height);
         }
 
         #endregion
