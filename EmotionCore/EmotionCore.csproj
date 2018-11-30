@@ -132,7 +132,7 @@
     <Compile Include="src\Game\UI\ParentControl.cs" />
     <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
-    <Compile Include="src\IO\Texture.cs" />
+    <Compile Include="src\Graphics\Texture.cs" />
     <Compile Include="src\Graphics\GLES\IGLObject.cs" />
     <Compile Include="src\Graphics\GLES\IndexBuffer.cs" />
     <Compile Include="src\Graphics\GLES\Shader.cs" />
@@ -163,7 +163,7 @@
     <Compile Include="src\Engine\Threading\GLThread.cs" />
     <Compile Include="src\Game\Animation\AnimatedTexture.cs" />
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
-    <Compile Include="src\IO\SoundFile.cs" />
+    <Compile Include="src\Sound\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
     <Compile Include="src\IO\Other.cs" />
     <Compile Include="src\Debug\MessageSource.cs" />

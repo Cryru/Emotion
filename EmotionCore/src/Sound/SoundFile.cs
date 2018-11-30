@@ -5,11 +5,12 @@
 using System;
 using System.IO;
 using Emotion.Engine.Threading;
+using Emotion.IO;
 using OpenTK.Audio.OpenAL;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.Sound
 {
     public sealed class SoundFile : Asset
     {

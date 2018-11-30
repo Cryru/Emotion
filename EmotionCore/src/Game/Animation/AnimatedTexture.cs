@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
