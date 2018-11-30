@@ -25,6 +25,9 @@ using Debugger = Emotion.Debug.Debugger;
 
 namespace Emotion.Graphics
 {
+    /// <summary>
+    /// The object which takes care of rendering and managing GL.
+    /// </summary>
     public sealed class Renderer
     {
         /// <summary>
@@ -85,11 +88,11 @@ namespace Emotion.Graphics
         internal Renderer()
         {
             // Renderer bootstrap.
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
+            Context.Log.Info("Loading Emotion OpenTK-GLES Renderer...", MessageSource.Renderer);
+            Context.Log.Info($"GL: {GL.GetString(StringName.Version)} on {GL.GetString(StringName.Renderer)}", MessageSource.Renderer);
+            Context.Log.Info($"GLSL: {GL.GetString(StringName.ShadingLanguageVersion)}", MessageSource.Renderer);
 
-            // Set execution flags, used for workarounding different GPU behavior.
+            // Set execution flags, used for abstracting different GPU behavior.
             SetFlags();
 
             // Create default shaders. This also sets some shader flags.
@@ -135,7 +138,7 @@ namespace Emotion.Graphics
 
             if (!found)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
+                Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found.", MessageSource.GL);
                 Shader5ExtensionMissing = true;
             }
         }
@@ -143,7 +146,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Creates the default shaders embedded into the binary.
         /// </summary>
-        private void CreateDefaultShaders()
+        private static void CreateDefaultShaders()
         {
             string defaultVert = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVert.glsl");
             string defaultFrag = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
@@ -158,7 +161,7 @@ namespace Emotion.Graphics
                 // Check if one of the expected exceptions.
                 if (new Regex("gl_arb_gpu_shader5").IsMatch(ex.ToString().ToLower()))
                 {
-                    Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was found, but is not supported.");
+                    Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was found, but is not supported.", MessageSource.GL);
                     Shader5ExtensionMissing = true;
 
                     // Cleanup erred ones if any.
@@ -196,8 +199,6 @@ namespace Emotion.Graphics
 
         private CameraBase _debugCamera;
         private bool _fpsCounter;
-        private bool _frameByFrame;
-        private bool _frameByFrameAdvance;
         private bool _drawMouse;
 
         [Conditional("DEBUG")]
@@ -224,16 +225,6 @@ namespace Emotion.Graphics
                     return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
                 }),
                 "Enables the fps counter. Invoke again to cancel.");
-
-            Context.ScriptingEngine.Expose("fbf",
-                (Func<string>) (() =>
-                {
-                    _frameByFrame = !_frameByFrame;
-                    _frameByFrameAdvance = false;
-
-                    return "Frame by frame mode " + (_frameByFrame ? "enabled." : "disabled.");
-                }),
-                "Enables the frame by frame mode. Press F11 to advance or hold F12 to fast forward. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("debugMouse",
                 (Func<string>) (() =>
@@ -269,14 +260,6 @@ namespace Emotion.Graphics
 
                 _debugCamera.Update();
             }
-
-            // Update frame by frame mode.
-            if (_frameByFrame)
-            {
-                _frameByFrameAdvance = false;
-                if (Context.InputManager.IsKeyDown("F11")) _frameByFrameAdvance = true;
-                if (Context.InputManager.IsKeyHeld("F12")) _frameByFrameAdvance = true;
-            }
         }
 
         [Conditional("DEBUG")]
@@ -297,30 +280,19 @@ namespace Emotion.Graphics
 
             if (_fpsCounter) _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
 
-            if (_drawMouse)
-            {
-                Vector2 mouseLocation = Context.InputManager.GetMousePosition();
-                mouseLocation.X -= 5;
-                mouseLocation.Y -= 5;
+            if (!_drawMouse) return;
+            Vector2 mouseLocation = Context.InputManager.GetMousePosition();
+            mouseLocation.X -= 5;
+            mouseLocation.Y -= 5;
 
-                DisableViewMatrix();
-                RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
-                EnableViewMatrix();
-            }
+            DisableViewMatrix();
+            RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
+            EnableViewMatrix();
         }
 
         #endregion
 
         #region System API
-
-        /// <summary>
-        /// Whether to render the next frame.
-        /// </summary>
-        /// <returns>Whether to render the next frame.</returns>
-        internal bool RenderFrame()
-        {
-            return !_frameByFrame || _frameByFrameAdvance;
-        }
 
         /// <summary>
         /// Clear the screen.
@@ -358,8 +330,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Updates the renderer.
         /// </summary>
-        /// <param name="_">The time passed from the previous update to now. Unused.</param>
-        internal void Update(float _)
+        internal void Update()
         {
             // Update debugging features.
             UpdateDebug();
@@ -398,6 +369,11 @@ namespace Emotion.Graphics
             ShaderProgram.Current.SetUniformMatrix4("modelMatrix", MatrixStack.CurrentMatrix);
         }
 
+        /// <summary>
+        /// Transforms a point through the viewMatrix converting it from screen space to world space.
+        /// </summary>
+        /// <param name="position">The point to transform.</param>
+        /// <returns>The provided point in the world.</returns>
         public Vector2 ScreenToWorld(Vector2 position)
         {
             return Vector2.TransformPosition(position, (_debugCamera ?? Camera).ViewMatrix.Inverted());

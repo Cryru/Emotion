@@ -4,6 +4,7 @@
 
 using System;
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
 
@@ -43,14 +44,14 @@ namespace Emotion.Graphics.GLES
             if (CurrentPlatform.OS == PlatformName.Mac)
             {
                 source = source.Replace("#version 300 es", "#version 330");
-                Debugger.Log(MessageType.Warning, MessageSource.GL, "Shader version changed from '300 es' to '330' because Mac platform was detected.");
+                Context.Log.Warning("Shader version changed from '300 es' to '330' because Mac platform was detected.", MessageSource.GL);
             }
 
             // Fix for missing GL_ARB_gpu_shader5.
             if ((CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux) && Renderer.Shader5ExtensionMissing)
             {
                 source = source.Replace("#version 300 es", "#version 400");
-                Debugger.Log(MessageType.Warning, MessageSource.GL, "Shader version changed from '300 es` to 400' because the Shader5 extension is missing.");
+                Context.Log.Warning("Shader version changed from '300 es` to 400' because the Shader5 extension is missing.", MessageSource.GL);
             }
 
             // Create and compile the shader.

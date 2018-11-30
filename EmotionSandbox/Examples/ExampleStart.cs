@@ -9,7 +9,6 @@ using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
-using Emotion.IO;
 using Emotion.Primitives;
 using EmotionSandbox.Examples.GameLogic;
 using EmotionSandbox.Examples.Generic;

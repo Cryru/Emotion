@@ -46,6 +46,7 @@ namespace Emotion.Engine.Hosting.Desktop
         private Action<float> _updateHook;
         private Action<float> _drawHook;
         private Action _resizeHook;
+        private Action _closeHook;
 
         private bool _isFirstApplySettings = true;
 
@@ -67,11 +68,12 @@ namespace Emotion.Engine.Hosting.Desktop
 
         #region Host API
 
-        public void SetHooks(Action<float> onUpdate, Action<float> onDraw, Action onResize)
+        public void SetHooks(Action<float> onUpdate, Action<float> onDraw, Action onResize, Action onClose)
         {
             _updateHook = onUpdate;
             _drawHook = onDraw;
             _resizeHook = onResize;
+            _closeHook = onClose;
         }
 
         public void ApplySettings(Settings settings)
@@ -136,6 +138,11 @@ namespace Emotion.Engine.Hosting.Desktop
         protected override void OnResize(EventArgs e)
         {
             _resizeHook();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _closeHook();
         }
 
         #endregion

@@ -7,12 +7,16 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Emotion.Debug;
+using Emotion.Engine;
 using Soul;
 
 #endregion
 
 namespace Emotion.IO
 {
+    /// <summary>
+    /// Manages loading and unloading of assets.
+    /// </summary>
     public class AssetLoader
     {
         #region Properties
@@ -65,7 +69,7 @@ namespace Emotion.IO
             byte[] fileContents = ReadFile(enginePath);
 
             // Create an instance of the asset and add it.
-            DebugMessageWrap("Creating", enginePath, typeof(T), MessageType.Info);
+            DebugMessageWrap("Creating", enginePath, typeof(T), MessageType.Trace);
             T temp = (T) Activator.CreateInstance(typeof(T));
             temp.Name = enginePath;
             temp.Create(fileContents);
@@ -74,7 +78,7 @@ namespace Emotion.IO
                 _loadedAssets.Add(enginePath, temp);
             }
 
-            DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Trace);
+            DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Info);
 
             // Return.
             return temp;
@@ -132,7 +136,7 @@ namespace Emotion.IO
         {
             string parsedPath = AssetPathToAssetCrossPlatform(path);
 
-            if (!File.Exists(parsedPath)) throw new Exception("The file " + parsedPath + " could not be found.");
+            if (!File.Exists(parsedPath)) throw new Exception($"The file {parsedPath} could not be found.");
 
             // Load the bytes of the file.
             return File.ReadAllBytes(parsedPath);
@@ -171,7 +175,7 @@ namespace Emotion.IO
         /// <param name="messageType">The type of message to log.</param>
         private void DebugMessageWrap(string operation, string path, Type type, MessageType messageType)
         {
-            Debugger.Log(messageType, MessageSource.AssetLoader, operation + " asset [" + path + "]" + (type != null ? " of type " + type : ""));
+            Context.Log.Log(messageType, MessageSource.AssetLoader, $"{operation} asset [{path}]{(type != null ? " of type " + type : "")}");
         }
 
         #endregion

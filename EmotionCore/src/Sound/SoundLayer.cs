@@ -128,7 +128,7 @@ namespace Emotion.Sound
                 // Initiate source.
                 _pointer = AL.GenSource();
                 Helpers.CheckErrorAL("creating source");
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Created {ToString()}.");
+                Context.Log.Info($"Created {this}.", MessageSource.SoundManager);
             });
         }
 
@@ -140,7 +140,7 @@ namespace Emotion.Sound
         public void Resume()
         {
             if (Status != SoundStatus.Paused) return;
-            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, $"Resumed {ToString()}.");
+            Context.Log.Trace($"Resumed {this}.", MessageSource.SoundManager);
             ALThread.ExecuteALThread(() =>
             {
                 AL.SourcePlay(_pointer);
@@ -155,7 +155,7 @@ namespace Emotion.Sound
         public void Pause()
         {
             if (Status != SoundStatus.Playing) return;
-            Debugger.Log(MessageType.Trace, MessageSource.SoundManager, $"Paused {ToString()}.");
+            Context.Log.Trace($"Paused {this}.", MessageSource.SoundManager);
             ALThread.ExecuteALThread(() =>
             {
                 AL.SourcePause(_pointer);
@@ -174,7 +174,7 @@ namespace Emotion.Sound
 
             void StopPlayingAllInternal()
             {
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Stopped {ToString()}.");
+                Context.Log.Info($"Stopped {this}.", MessageSource.SoundManager);
 
                 // Stop playback, clear played buffer.
                 AL.Source(_pointer, ALSourceb.Looping, false);
@@ -209,7 +209,7 @@ namespace Emotion.Sound
 
             void QueuePlayInternal()
             {
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Queued [{file.Name}] on {ToString()}.");
+                Context.Log.Info($"Queued [{file.Name}] on {this}.", MessageSource.SoundManager);
 
                 // If playback is over but stop wasn't called then cleanup needs to be performed.
                 if (Status == SoundStatus.Stopped) PerformReset();
@@ -224,7 +224,7 @@ namespace Emotion.Sound
                 Status = SoundStatus.Playing;
                 Helpers.CheckErrorAL($"playing source {_pointer}");
 
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Started playing [{file.Name}] on {ToString()}.");
+                Context.Log.Info($"Started playing [{file.Name}] on {this}.", MessageSource.SoundManager);
 
                 thisAction.Done();
             }
@@ -259,7 +259,7 @@ namespace Emotion.Sound
                 Status = SoundStatus.Playing;
                 Helpers.CheckErrorAL($"playing single in source {_pointer}");
 
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Started playing [{file.Name}] on {ToString()}.");
+                Context.Log.Info($"Started playing [{file.Name}] on {this}.", MessageSource.SoundManager);
 
                 thisAction.Done();
             }
@@ -282,7 +282,7 @@ namespace Emotion.Sound
 
             ALThread.ExecuteALThread(() =>
             {
-                Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Destroyed {ToString()}.");
+                Context.Log.Info($"Destroyed {this}.", MessageSource.SoundManager);
 
                 StopPlayingAll(true);
                 AL.DeleteSource(_pointer);
@@ -335,7 +335,7 @@ namespace Emotion.Sound
                 };
             }
 
-            Debugger.Log(MessageType.Info, MessageSource.SoundManager, $"Performing smooth fade out on {ToString()}.");
+            Context.Log.Info($"Performing smooth fade out on {this}.", MessageSource.SoundManager);
         }
 
         #endregion
@@ -349,13 +349,11 @@ namespace Emotion.Sound
 
             AL.GetSource(_pointer, ALGetSourcei.BuffersProcessed, out int processed);
             Helpers.CheckErrorAL($"checking processed buffers of source {_pointer}");
-            if (processed > 0)
-            {
-                AL.SourceUnqueueBuffers(_pointer, processed);
-                Helpers.CheckErrorAL($"removing {processed} buffers of source {_pointer}");
-                if (_playList.Count > 0) _playList.RemoveRange(0, Math.Min(_playList.Count, processed));
-                _isFirst = false;
-            }
+            if (processed <= 0) return;
+            AL.SourceUnqueueBuffers(_pointer, processed);
+            Helpers.CheckErrorAL($"removing {processed} buffers of source {_pointer}");
+            if (_playList.Count > 0) _playList.RemoveRange(0, Math.Min(_playList.Count, processed));
+            _isFirst = false;
         }
 
         /// <summary>
@@ -480,7 +478,7 @@ namespace Emotion.Sound
                 }
             }
             // Set volume to 0 when not playing.
-            else if(CurrentlyPlayingFile == null)
+            else if (CurrentlyPlayingFile == null)
             {
                 scaled = 0f;
             }
@@ -539,9 +537,7 @@ namespace Emotion.Sound
 
             // The current buffer is always reported as 0 on Mac.
             if ((CurrentlyPlayingFile?.Pointer ?? 0) != currentFilePointer && CurrentPlatform.OS != PlatformName.Mac)
-            {
-                Debugger.Log(MessageType.Warning, MessageSource.SoundManager, $"Currently playing file might be wrong for layer [{Name}].");
-            }
+                Context.Log.Warning($"Currently playing file might be wrong for layer [{Name}].", MessageSource.SoundManager);
         }
 
         private void UpdatePlaybackLocation()

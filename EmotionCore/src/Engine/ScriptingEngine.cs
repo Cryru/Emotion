@@ -14,6 +14,9 @@ using Emotion.Debug;
 
 namespace Emotion.Engine
 {
+    /// <summary>
+    /// A Javascript engine used to execute code at runtime.
+    /// </summary>
     public sealed class ScriptingEngine
     {
         #region Declarations
@@ -81,7 +84,7 @@ namespace Emotion.Engine
 
                 // If it isn't empty log it.
                 if (scriptResponse != null)
-                    Debugger.Log(MessageType.Info, MessageSource.ScriptingEngine, "Script executed, result: " + scriptResponse);
+                    Context.Log.Trace($"Script executed, result: ${scriptResponse}", MessageSource.ScriptingEngine);
 
                 // Return the response.
                 return scriptResponse;
@@ -91,8 +94,7 @@ namespace Emotion.Engine
                 // Check if timeout, and if not throw an exception.
                 if (ex.Message != "The operation has timed out." && Context.Settings.StrictScripts) throw ex;
 
-                Debugger.Log(MessageType.Error, MessageSource.ScriptingEngine, "Scripting error: " + ex);
-                Debugger.Log(MessageType.Error, MessageSource.ScriptingEngine, " " + script);
+                Context.Log.Error($"Scripting error in script: [{script}]", ex, MessageSource.ScriptingEngine);
 
                 return null;
             }

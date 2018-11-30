@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -12,6 +13,9 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.UI
 {
+    /// <summary>
+    /// A UI control which parents other UI controls.
+    /// </summary>
     public abstract class ParentControl : Control
     {
         /// <summary>
@@ -27,6 +31,11 @@ namespace Emotion.Game.UI
         /// </summary>
         protected List<Transform> _children { get; set; } = new List<Transform>();
 
+        /// <summary>
+        /// Create a new parent control.
+        /// </summary>
+        /// <param name="position">The position of the control.</param>
+        /// <param name="size">The size of the control.</param>
         protected ParentControl(Vector3 position, Vector2 size) : base(position, size)
         {
         }
@@ -39,14 +48,12 @@ namespace Emotion.Game.UI
         {
             if (transform.Z <= Z) transform.Z++;
 
-            Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] adding child transform.");
+            Context.Log.Trace($"[{this}] added child transform {transform}.", MessageSource.UIController);
             _children.Add(transform);
 
-            if (transform is Control control)
-            {
-                control.Parent = this;
-                Controller.Add(control);
-            }
+            if (!(transform is Control control)) return;
+            control.Parent = this;
+            Controller.Add(control);
         }
 
         /// <summary>
@@ -80,7 +87,7 @@ namespace Emotion.Game.UI
         /// <param name="transform">A reference to the child to remove.</param>
         public virtual void RemoveChild(Transform transform)
         {
-            Debugger.Log(MessageType.Info, MessageSource.UIController, $"[{this}] removing child transform.");
+            Context.Log.Trace($"[{this}] removed child transform {transform}.", MessageSource.UIController);
             _children.Remove(transform);
 
             if (transform is Control control) Controller.Remove(control);

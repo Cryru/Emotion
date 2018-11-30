@@ -36,7 +36,7 @@ Context.Setup();
             SoundLayer layer = Context.SoundManager.CreateLayer("example");
             Source source = Context.SoundManager.PlayOnLayer("example", _song);
             source.Looping = true;
-            source.OnFinished += (e, a) => { Debugger.Log(MessageType.Info, MessageSource.Game, "Sound is over."); };
+            source.OnFinished += (e, a) => { Context.Log.Info(  MessageSource.Game, "Sound is over."); };
 
             SoundFadeIn effectTest = new SoundFadeIn(5000, Context.SoundManager.GetLayer("example"));
             layer.ApplySoundEffect(effectTest);
@@ -49,13 +49,13 @@ Context.Setup();
             if (Context.Input.IsKeyDown("W"))
             {
                 Context.Settings.Volume += 10;
-                Debugger.Log(MessageType.Info, MessageSource.Game, "Volume is at: " + Context.Settings.Volume);
+                Context.Log.Info(  MessageSource.Game, "Volume is at: " + Context.Settings.Volume);
             }
 
             if (Context.Input.IsKeyDown("S"))
             {
                 Context.Settings.Volume -= 10;
-                Debugger.Log(MessageType.Info, MessageSource.Game, "Volume is at: " + Context.Settings.Volume);
+                Context.Log.Info(  MessageSource.Game, "Volume is at: " + Context.Settings.Volume);
             }
         }
 

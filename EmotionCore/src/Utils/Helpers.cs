@@ -4,6 +4,7 @@
 
 using System;
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Primitives;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.ES30;
@@ -12,6 +13,9 @@ using OpenTK.Graphics.ES30;
 
 namespace Emotion.Utils
 {
+    /// <summary>
+    /// Helpers functions. These have to be moved to their respective classes, but are here for now.
+    /// </summary>
     public static class Helpers
     {
         /// <summary>
@@ -57,7 +61,7 @@ namespace Emotion.Utils
 
             // Check if anything.
             if (errorCheck == ALError.NoError) return;
-            Debugger.Log(MessageType.Error, MessageSource.Other, "OpenAL error at " + location + ":\n" + errorCheck);
+            Context.Log.Error($"OpenAL error at {location}:\n{errorCheck}", MessageSource.SoundManager);
 
             // For some reason Mac reports errors left and right. As this happens only on that platform error checks are disabled there.
             if (CurrentPlatform.OS != PlatformName.Mac) throw new Exception("OpenAL error at " + location + ":\n" + errorCheck);

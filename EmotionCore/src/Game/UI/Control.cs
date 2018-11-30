@@ -11,6 +11,9 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.UI
 {
+    /// <summary>
+    /// A UI control.
+    /// </summary>
     public abstract class Control : TransformRenderable
     {
         #region Properties
@@ -67,6 +70,11 @@ namespace Emotion.Game.UI
 
         #endregion
 
+        /// <summary>
+        /// Create a new UI control.
+        /// </summary>
+        /// <param name="position">The position of the control on the screen.</param>
+        /// <param name="size">The size of the control.</param>
         protected Control(Vector3 position, Vector2 size) : base(position, size)
         {
         }
@@ -96,30 +104,57 @@ namespace Emotion.Game.UI
 
         #region UI Events
 
+        /// <summary>
+        /// The mouse has entered the control.
+        /// </summary>
+        /// <param name="mousePosition">The position of the mouse.</param>
         public virtual void MouseEnter(Vector2 mousePosition)
         {
         }
 
+        /// <summary>
+        /// The mouse has left the control.
+        /// </summary>
+        /// <param name="mousePosition">The position of the mouse.</param>
         public virtual void MouseLeave(Vector2 mousePosition)
         {
         }
 
+        /// <summary>
+        /// The mouse has clicked on the control.
+        /// </summary>
+        /// <param name="key">The key which was clicked.</param>
         public virtual void MouseDown(MouseKeys key)
         {
         }
 
+        /// <summary>
+        /// A mouse key was let go on the control.
+        /// </summary>
+        /// <param name="key">The key which was let go.</param>
         public virtual void MouseUp(MouseKeys key)
         {
         }
 
+        /// <summary>
+        /// The mouse moved within the control.
+        /// </summary>
+        /// <param name="oldPosition">The old position of the mouse.</param>
+        /// <param name="newPosition">The new position of the mouse.</param>
         public virtual void MouseMoved(Vector2 oldPosition, Vector2 newPosition)
         {
         }
 
+        /// <summary>
+        /// The control was activated. This happens when Active is set to true, and it was false previously.
+        /// </summary>
         public virtual void OnActivate()
         {
         }
 
+        /// <summary>
+        /// The control was deactivated. This happens when Active is set to false, and it was true previously.
+        /// </summary>
         public virtual void OnDeactivate()
         {
         }
@@ -128,6 +163,10 @@ namespace Emotion.Game.UI
 
         #region Debugging
 
+        /// <summary>
+        /// Convert the control to a string.
+        /// </summary>
+        /// <returns>The control as a string.</returns>
         public override string ToString()
         {
             return $"[Transform:{base.ToString()} Active:{Active} MouseInside:{MouseInside} Destroyed:{Destroyed}]";

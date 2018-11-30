@@ -13,7 +13,6 @@ using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Input;
 using Emotion.Primitives;
-using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -68,7 +67,7 @@ namespace Emotion.Game.UI
         {
             lock (_controlsToBeAdded)
             {
-                Debugger.Log(MessageType.Trace, MessageSource.UIController, $"[{Id}] adding control of type [{control.GetType()}] {control}");
+                Context.Log.Trace($"Controller [{Id}] adding control of type [{control.GetType()}] {control}", MessageSource.UIController);
                 _controlsToBeAdded.Add(control);
                 control.Build(this); // Maybe the init in the build should be on another thread?
             }
@@ -107,7 +106,7 @@ namespace Emotion.Game.UI
         {
             lock (_controlsToBeRemoved)
             {
-                Debugger.Log(MessageType.Trace, MessageSource.UIController, $"[{Id}] removing control of type [{control.GetType()}] {control}");
+                Context.Log.Trace($"Controller [{Id}] removing control of type [{control.GetType()}] {control}", MessageSource.UIController);
                 _controlsToBeRemoved.Add(control);
             }
         }
@@ -173,7 +172,7 @@ namespace Emotion.Game.UI
                 Control c = _controlsToBeRemoved[i];
                 c.Destroy();
                 Controls.Remove(c);
-                Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] removed control " + c);
+                Context.Log.Trace($"Controller [{Id}] removed control of type [{c.GetType()}] {c}", MessageSource.UIController);
             }
 
             _controlsToBeRemoved.Clear();
@@ -190,7 +189,7 @@ namespace Emotion.Game.UI
             {
                 Control c = _controlsToBeAdded[i];
                 Controls.Add(c);
-                Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] added control " + c);
+                Context.Log.Info($"Controller [{Id}] added control of type [{c.GetType()}] {c}", MessageSource.UIController);
             }
 
             _controlsToBeAdded.Clear();
@@ -212,7 +211,7 @@ namespace Emotion.Game.UI
                 {
                     // Check if it was previously, which means it was deactivated.
                     if (!c.WasActive) return;
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was deactivated - " + c);
+                    Context.Log.Trace($"Controller [{Id}] deactivated control of type [{c.GetType()}] {c}", MessageSource.UIController);
                     c.WasActive = false;
                     c.OnDeactivate();
 
@@ -223,7 +222,7 @@ namespace Emotion.Game.UI
                 // Check if it was previously inactive, which means it was activated.
                 if (!c.WasActive)
                 {
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Control was activated - " + c);
+                    Context.Log.Trace($"Controller [{Id}] activated control of type [{c.GetType()}] {c}", MessageSource.UIController);
                     c.WasActive = true;
                     c.OnActivate();
                 }
@@ -236,7 +235,7 @@ namespace Emotion.Game.UI
                 {
                     // Check if the mouse was already triggered as being inside.
                     if (c.MouseInside) return;
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse entered control with id " + Controls.IndexOf(c) + " - " + c);
+                    Context.Log.Trace($"Controller [{Id}] mouse entered control of type [{c.GetType()}] {c}", MessageSource.UIController);
                     c.MouseInside = true;
                     c.MouseEnter(mousePosition);
                 }
@@ -244,7 +243,7 @@ namespace Emotion.Game.UI
                 {
                     // Check if the mouse was inside before.
                     if (!c.MouseInside) return;
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse left control with id " + Controls.IndexOf(c) + " - " + c);
+                    Context.Log.Trace($"Controller [{Id}] mouse left control of type [{c.GetType()}] {c}", MessageSource.UIController);
                     c.MouseInside = false;
                     c.MouseLeave(mousePosition);
                 }
@@ -274,7 +273,7 @@ namespace Emotion.Game.UI
                     {
                         // If the button wasn't held, but now is.
                         if (c.Held[i] || HeldSomewhere(i)) continue;
-                        Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] Mouse clicked using [" + currentKey + "] control with id " + Controls.IndexOf(c) + " - " + c);
+                        Context.Log.Trace($"Controller [{Id}] mouse clicked using key {currentKey} control of type [{c.GetType()}] {c}", MessageSource.UIController);
                         c.Held[i] = true;
                         c.MouseDown(currentKey);
                     }
@@ -283,8 +282,7 @@ namespace Emotion.Game.UI
                     if (held) continue;
                     // If the button was held, but now isn't.
                     if (!c.Held[i]) continue;
-                    Debugger.Log(MessageType.Trace, MessageSource.UIController,
-                        "Mouse let go of key [" + currentKey + "] on control " + Controls.IndexOf(c) + " of type [" + c + "]" + " with priority " + c.Z);
+                    Context.Log.Trace($"Controller [{Id}] mouse let go using key {currentKey} control of type [{c.GetType()}] {c}", MessageSource.UIController);
                     c.Held[i] = false;
                     c.MouseUp(currentKey);
                 }
@@ -422,7 +420,7 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Dispose()
         {
-            Debugger.Log(MessageType.Trace, MessageSource.UIController, "[" + Id + "] destroyed.");
+            Context.Log.Info($"Controller [{Id}] destroyed", MessageSource.UIController);
 
             lock (Controls)
             {

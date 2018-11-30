@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Emotion.Debug;
+using Emotion.Debug.Logging;
 using Emotion.Engine.Hosting;
 using Emotion.Engine.Hosting.Desktop;
 using Emotion.Engine.Threading;
@@ -92,9 +93,14 @@ namespace Emotion.Engine
         public static SoundManager SoundManager { get; private set; }
 
         /// <summary>
-        /// The context's host. This can be the window, the activity or whatever.
+        /// A platform host for the engine. It must provide a GL context, surface, input, and the standard update-draw loop.
         /// </summary>
         public static IHost Host { get; set; }
+
+        /// <summary>
+        /// The logging of the engine.
+        /// </summary>
+        public static LoggingProvider Log { get; set; }
 
         #endregion
 
@@ -110,119 +116,104 @@ namespace Emotion.Engine
             if (IsSetup) throw new Exception("Context is already setup.");
             IsSetup = true;
 
-            // Initialize debugger so we have access to logging afterward.
+            // Initialize logger first of all.
+            if (Log == null) Log = new DefaultLogger();
+
+            // Initialize debugger.
             Debugger.Initialize();
 
-            Debugger.Log(MessageType.Info, MessageSource.Engine, $"Starting Emotion v{Meta.Version}");
+            Log.Info($"Starting Emotion v{Meta.Version}", MessageSource.Engine);
 
-            // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
-            if (Debugger.DebugMode)
-            {
-                InternalSetup(config);
-                return;
-            }
-
-            // If no debugger is attached, wrap in a try-catch so that exception logs are generated.
             try
             {
-                InternalSetup(config);
+                // Initiate bootstrap.
+                Log.Info("-------------------------------", MessageSource.Engine);
+                Log.Info($"Executed at: {Environment.CurrentDirectory}", MessageSource.Engine);
+                Log.Info($"Debug Mode / Debugger Attached: {Debugger.DebugMode} / {System.Diagnostics.Debugger.IsAttached}", MessageSource.Engine);
+                Log.Info($"64Bit: {Environment.Is64BitProcess}", MessageSource.Engine);
+                Log.Info($"OS: {CurrentPlatform.OS} ({Environment.OSVersion})", MessageSource.Engine);
+                Log.Info($"CPU: {Environment.ProcessorCount}", MessageSource.Engine);
+
+                // Run platform specific boot.
+                switch (CurrentPlatform.OS)
+                {
+                    case PlatformName.Windows:
+                        WindowsSetup();
+                        break;
+                    case PlatformName.Linux:
+                        LinuxSetup();
+                        break;
+                }
+
+                Log.Info("-------------------------------", MessageSource.Engine);
+                Log.Info("Bootstrap complete.", MessageSource.Engine);
+
+                // Apply settings and run initial setup function.
+                Settings initial = new Settings();
+                config?.Invoke(initial);
+                Settings = initial;
+
+                // Setup thread manager.
+                GLThread.BindThread();
+
+                // Create host if not created.
+                if (Host == null)
+                    try
+                    {
+                        Log.Trace("Creating host...", MessageSource.Engine);
+                        if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
+                        {
+                            Host = new OtkWindow();
+                            Log.Info("Created OpenTK window host.", MessageSource.Engine);
+                        }
+                        else
+                        {
+                            throw new Exception("Unsupported platform.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Could not create host. Is the system supported?", ex, MessageSource.Engine);
+                        Quit();
+                        return;
+                    }
+
+                // Apply settings and hook.
+                Host.ApplySettings(Settings);
+                Host.SetHooks(LoopUpdate, LoopDraw, Resize, Quit);
+
+                // Start creating modules.
+
+                // Scripting engine is first to provide the other modules the ability to expose functions.
+                Log.Trace("Creating scripting engine...", MessageSource.Engine);
+                ScriptingEngine = new ScriptingEngine();
+
+                // Asset loader is next so other modules - especially the renderer, can access the file system.
+                Log.Trace("Creating asset loader...", MessageSource.Engine);
+                AssetLoader = new AssetLoader();
+
+                // The order of the next modules doesn't matter.
+
+                Debugger.InitializeModule();
+
+                Log.Trace("Creating renderer...", MessageSource.Engine);
+                Renderer = new Renderer();
+
+                Log.Trace("Creating sound manager...", MessageSource.Engine);
+                SoundManager = new SoundManager();
+
+                Log.Trace("Creating layer manager...", MessageSource.Engine);
+                LayerManager = new LayerManager();
+
+                Log.Trace("Creating input manager...", MessageSource.Engine);
+                InputManager = new InputManager();
             }
             catch (Exception ex)
             {
                 File.WriteAllText($"Logs{Path.DirectorySeparatorChar}InitCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
-                Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine was unable to initialize.\n{ex}");
-
-                // Flush logs.
-                while (Debugger.LogInProgress()) Task.Delay(1).Wait();
-
-                // Close.
-                Environment.Exit(1);
+                Log.Error("Unable to initialize.", ex, MessageSource.Engine);
+                Quit();
             }
-        }
-
-        private static void InternalSetup(Action<Settings> config = null)
-        {
-            // Initiate bootstrap.
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, $"Executed at: {Environment.CurrentDirectory}");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, $"Debug Mode / Debugger Attached: {Debugger.DebugMode} / {System.Diagnostics.Debugger.IsAttached}");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, $"64Bit: {Environment.Is64BitProcess}");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, $"OS: {CurrentPlatform.OS} ({Environment.OSVersion})");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, $"CPU: {Environment.ProcessorCount}");
-
-            // Run platform specific boot.
-            switch (CurrentPlatform.OS)
-            {
-                case PlatformName.Windows:
-                    WindowsSetup();
-                    break;
-                case PlatformName.Linux:
-                    LinuxSetup();
-                    break;
-            }
-
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "-------------------------------");
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "Bootstrap complete.");
-
-            // Apply settings and run initial setup function.
-            Settings initial = new Settings();
-            config?.Invoke(initial);
-            Settings = initial;
-
-            // Setup thread manager.
-            GLThread.BindThread();
-
-            // Create host if not created.
-            if (Host == null)
-                try
-                {
-                    Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
-                    if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
-                    {
-                        Host = new OtkWindow();
-                        Debugger.Log(MessageType.Info, MessageSource.Engine, "Created OpenTK window host.");
-                    }
-                    else
-                    {
-                        throw new Exception("Unsupported platform.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debugger.Log(MessageType.Error, MessageSource.Engine, "Could not create host. Is the system supported?");
-                    Debugger.Log(MessageType.Error, MessageSource.Engine, ex.ToString());
-                    throw;
-                }
-
-            // Apply settings and hook.
-            Host.ApplySettings(Settings);
-            Host.SetHooks(LoopUpdate, LoopDraw, Resize);
-
-            // Start creating modules.
-
-            // Scripting engine is first to provide the other modules the ability to expose functions.
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating scripting engine...");
-            ScriptingEngine = new ScriptingEngine();
-
-            // Asset loader is next so other modules - especially the renderer, can access the file system.
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating asset loader...");
-            AssetLoader = new AssetLoader();
-
-            // The order of the next modules doesn't matter.
-
-            Debugger.InitializeModule();
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
-            Renderer = new Renderer();
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating sound manager...");
-            SoundManager = new SoundManager();
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating layer manager...");
-            LayerManager = new LayerManager();
-
-            Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating input manager...");
-            InputManager = new InputManager();
         }
 
         /// <summary>
@@ -230,41 +221,23 @@ namespace Emotion.Engine
         /// </summary>
         public static void Run()
         {
-            // If the debugger is attached, don't wrap in a try-catch so that exceptions can be traced easier.
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                InternalRun();
-                return;
-            }
-
-            // If no debugger is attached, wrap in a try-catch so that exception logs are generated.
             try
             {
-                InternalRun();
+                // Check if setup.
+                if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
+
+                // Set running to true.
+                IsRunning = true;
+
+                // Start running the loops. Blocking.
+                Host.Run();
             }
             catch (Exception ex)
             {
                 File.WriteAllText($"Logs{Path.DirectorySeparatorChar}FatalCrash_{DateTime.Now.ToFileTime()}", ex.ToString());
-                Debugger.Log(MessageType.Error, MessageSource.Engine, $"Emotion engine has encountered a crash.\n{ex}");
-
-                // Flush logs.
-                while (Debugger.LogInProgress()) Task.Delay(1).Wait();
-
-                // Close.
-                Environment.Exit(1);
+                Log.Error("Emotion engine has encountered a crash.", ex, MessageSource.Engine);
+                Quit();
             }
-        }
-
-        private static void InternalRun()
-        {
-            // Check if setup.
-            if (!IsSetup) throw new Exception("You must call Context.Setup before calling Context.Run");
-
-            // Set running to true.
-            IsRunning = true;
-
-            // Start running the loops. Blocking.
-            Host.Run();
         }
 
         /// <summary>
@@ -276,14 +249,15 @@ namespace Emotion.Engine
             IsRunning = false;
 
             // Close the host.
-            Host.Close();
+            Host?.Close();
 
             // Cleanup modules.
-            Renderer.Destroy();
-            SoundManager.Dispose();
+            Renderer?.Destroy();
+            SoundManager?.Dispose();
 
             // Cleanup the host.
-            Host.Dispose();
+            Host?.Dispose();
+            Log?.Dispose();
 
             // Close application.
             Environment.Exit(0);
@@ -303,7 +277,7 @@ namespace Emotion.Engine
             if (processPath != Environment.CurrentDirectory + "\\")
             {
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Process directory was wrong, set to: {Environment.CurrentDirectory}");
+                Log.Warning($"Process directory was wrong, set to: {Environment.CurrentDirectory}", MessageSource.Engine);
             }
 
             // Set the DLL path on Windows.
@@ -312,7 +286,7 @@ namespace Emotion.Engine
             string path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("PATH", path + ";" + libraryDirectory, EnvironmentVariableTarget.Process);
 
-            Debugger.Log(MessageType.Info, MessageSource.Engine, "Library Folder: " + libraryDirectory);
+            Log.Info($"Library Folder: {libraryDirectory}", MessageSource.Engine);
         }
 
         /// <summary>
@@ -334,9 +308,9 @@ namespace Emotion.Engine
                 string processName = Process.GetCurrentProcess().ProcessName;
                 string executableName = processName.Replace(processPath + "/", "");
 
-                Debugger.Log(MessageType.Warning, MessageSource.Engine, "It seems the process directory is not the executable directory. Will restart from correct directory.");
-                Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Proper directory is: {processPath}");
-                Debugger.Log(MessageType.Warning, MessageSource.Engine, $"Executable is: {executableName}");
+                Log.Warning("It seems the process directory is not the executable directory. Will restart from correct directory.", MessageSource.Engine);
+                Log.Warning($"Proper directory is: {processPath}", MessageSource.Engine);
+                Log.Warning($"Executable is: {executableName}", MessageSource.Engine);
 
                 // Stop the debugger so that the new instance can attach itself to the console and perform logging in peace.
                 Debugger.Stop();
@@ -347,7 +321,7 @@ namespace Emotion.Engine
             }
 
             // Open libraries.
-            Debugger.Log(MessageType.Warning, MessageSource.Engine, $"libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}");
+            Log.Warning($"libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}", MessageSource.Engine);
             Unix.dlopen("./Libraries/x64/libsndio.so.6.1", Unix.RTLD_NOW);
         }
 
@@ -368,11 +342,10 @@ namespace Emotion.Engine
             Debugger.Update();
 
             // Update the renderer.
-            Renderer.Update(frameTime);
+            Renderer.Update();
 
-            // If not rendering, then don't update user code.
-            // The reason for this is because we are only skipping rendering when frame by frame mode is active, and the layer manager shouldn't trigger at all then.
-            if (Renderer.RenderFrame() && Host.Focused) LayerManager.Update();
+            // If not focused don't update user code.
+            if (Host.Focused) LayerManager.Update();
 
             // Run input. This is outside of a focus check so it can capture the first input when focus is claimed.
             InputManager.Update();
@@ -383,8 +356,8 @@ namespace Emotion.Engine
         /// </summary>
         private static void LoopDraw(float frameTime)
         {
-            // If not focused, or the renderer tells us not to render the frame - don't draw.
-            if (!Host.Focused || !Renderer.RenderFrame())
+            // If not focused, don't draw.
+            if (!Host.Focused)
             {
                 Task.Delay(1).Wait();
                 return;

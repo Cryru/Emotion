@@ -15,7 +15,6 @@ using Emotion.IO;
 using Emotion.Utils;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
-using Debugger = Emotion.Debug.Debugger;
 
 #endregion
 
@@ -152,9 +151,9 @@ namespace Emotion.Sound
             {
                 lock (_layers)
                 {
-                    foreach (var layer in _layers)
+                    foreach (KeyValuePair<string, SoundLayer> layer in _layers)
                     {
-                        Debugger.Log(MessageType.Info, MessageSource.SoundManager, layer.ToString());
+                        Context.Log.Info(layer.ToString(), MessageSource.SoundManager);
                     }
                 }
             }), "Dumps the status of the sound manager.");

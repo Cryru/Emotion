@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
@@ -44,7 +45,13 @@ namespace Emotion.Game.Text
 
         #endregion
 
-        public TypewriterRichText(Vector3 position, Vector2 size, Atlas atlas) : base(position, size, atlas)
+        /// <summary>
+        /// Create a rich text object which applies a typewriter effect.
+        /// </summary>
+        /// <param name="position">The position of the RichText.</param>
+        /// <param name="size">The size of the RichText.</param>
+        /// <param name="fontAtlas">The font atlas to use.</param>
+        public TypewriterRichText(Vector3 position, Vector2 size, Atlas fontAtlas) : base(position, size, fontAtlas)
         {
         }
 
@@ -118,6 +125,7 @@ namespace Emotion.Game.Text
 
         #region RichText API
 
+        /// <inheritdoc />
         public override void Render(Renderer renderer)
         {
             if (_updateRenderCache || !_renderCache.AnythingMapped)
@@ -131,7 +139,7 @@ namespace Emotion.Game.Text
             {
                 MapBuffer();
                 _updateRenderCache = false;
-                Debugger.Log(MessageType.Warning, MessageSource.GL, "RichText buffer wasn't mapped, and it didn't intend to map it.");
+                Context.Log.Warning("RichText buffer wasn't mapped, and it didn't intend to map it.", MessageSource.GL);
             }
 
             // Check if anything is mapped in the cache buffer.

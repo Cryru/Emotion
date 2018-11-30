@@ -35,7 +35,7 @@ Context.Setup();
             SoundLayer layer = Context.SoundManager.CreateLayer("example");
             StreamingSource source = Context.SoundManager.StreamOnLayer("example", files);
             source.Looping = true;
-            source.OnFinished += (e, a) => { Debugger.Log(MessageType.Info, MessageSource.Game, "Sound is over."); };
+            source.OnFinished += (e, a) => { Context.Log.Info(  MessageSource.Game, "Sound is over."); };
         }
 
         private int _prev = -1;
@@ -45,7 +45,7 @@ Context.Setup();
             int id = ((StreamingSource) Context.SoundManager.GetLayerSource("example")).FileId;
 
             if (_prev == id) return;
-            Debugger.Log(MessageType.Info, MessageSource.Game, "Streaming source is playing id " + id + " which is " + Context.SoundManager.GetLayerSource("example").FileName);
+            Context.Log.Info(  MessageSource.Game, "Streaming source is playing id " + id + " which is " + Context.SoundManager.GetLayerSource("example").FileName);
             _prev = id;
         }
 

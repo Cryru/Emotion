@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Engine.Threading;
 using Emotion.Graphics.GLES;
 using Emotion.IO;
@@ -18,6 +19,9 @@ using Buffer = Emotion.Graphics.GLES.Buffer;
 
 namespace Emotion.Graphics.Batching
 {
+    /// <summary>
+    /// A buffer which supports mapping to.
+    /// </summary>
     public abstract unsafe class MapBuffer : Buffer, IRenderable
     {
         #region Properties
@@ -147,7 +151,7 @@ namespace Emotion.Graphics.Batching
             _vao = new VertexArray();
 
             _vao.Bind();
-            base.Bind();
+            Bind();
 
             GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
             GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
@@ -161,7 +165,7 @@ namespace Emotion.Graphics.Batching
             GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
             GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 
-            base.Unbind();
+            Unbind();
             _vao.Unbind();
 
             Helpers.CheckError("map buffer - loading vbo into vao");
@@ -190,14 +194,14 @@ namespace Emotion.Graphics.Batching
         {
             if (Mapping)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to start mapping a buffer which is already mapping.");
+                Context.Log.Warning("Tried to start mapping a buffer which is already mapping.", MessageSource.GL);
                 return;
             }
 
             GLThread.ForceGLThread();
 
             Helpers.CheckError("map buffer - before start");
-            base.Bind();
+            Bind();
             _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
             _dataPointer = _startPointer;
             Helpers.CheckError("map buffer - start");
@@ -244,7 +248,7 @@ namespace Emotion.Graphics.Batching
         {
             if (!Mapping)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.Renderer, "Tried to finish mapping a buffer which never started mapping.");
+                Context.Log.Warning("Tried to finish mapping a buffer which never started mapping.", MessageSource.GL);
                 return;
             }
 
@@ -254,7 +258,7 @@ namespace Emotion.Graphics.Batching
             _dataPointer = null;
 
             Helpers.CheckError("map buffer - before unmapping");
-            base.Bind();
+            Bind();
             GL.UnmapBuffer(BufferTarget.ArrayBuffer);
             Helpers.CheckError("map buffer - unmapping");
         }
@@ -306,14 +310,14 @@ namespace Emotion.Graphics.Batching
             // Check if going out of bounds.
             if (currentVertex > SizeInVertices)
             {
-                Debugger.Log(MessageType.Error, MessageSource.GL, $"Exceeding total vertices ({SizeInVertices}) in map buffer {_pointer}.");
+                Context.Log.Error($"Exceeding total vertices ({SizeInVertices}) in map buffer {_pointer}.", MessageSource.GL);
                 return;
             }
 
             // Check if indices are going out of bounds.
             if (currentVertex / ObjectSize > _ibo.Count / IndicesPerObject)
             {
-                Debugger.Log(MessageType.Error, MessageSource.GL, $"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.");
+                Context.Log.Error($"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.", MessageSource.GL);
                 return;
             }
 
@@ -422,19 +426,19 @@ namespace Emotion.Graphics.Batching
             // Check offset.
             if (_startIndex >= MappedVertices)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.GL, $"Map buffer startIndex {_startIndex} is beyond mapped vertices - {MappedVertices}.");
+                Context.Log.Warning($"Map buffer startIndex {_startIndex} is beyond mapped vertices - {MappedVertices}.", MessageSource.GL);
                 _startIndex = 0;
             }
 
             if (_endIndex > Size)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.GL, $"Map buffer endIndex {_endIndex} is beyond size - {Size}.");
+                Context.Log.Warning($"Map buffer endIndex {_endIndex} is beyond size - {Size}.", MessageSource.GL);
                 _endIndex = MappedVertices;
             }
 
             if (_startIndex > _endIndex)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.GL, $"Map buffer startIndex {_startIndex} is beyond endIndex - {_endIndex}.");
+                Context.Log.Warning($"Map buffer startIndex {_startIndex} is beyond endIndex - {_endIndex}.", MessageSource.GL);
                 _startIndex = 0;
                 _endIndex = MappedVertices;
             }
@@ -475,36 +479,54 @@ namespace Emotion.Graphics.Batching
 
         #region Buffer API Overwrite
 
-        public new void Bind()
-        {
-            throw new InvalidOperationException("You cannot bind a map buffer.");
-        }
-
-        public new void Unbind()
-        {
-            throw new InvalidOperationException("You cannot unbind a map buffer.");
-        }
-
+        /// <summary>
+        /// Cannot upload to a map buffer directly
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="componentCount"></param>
+        /// <param name="usageHint"></param>
         public new void Upload(int size, uint componentCount, BufferUsageHint usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
+        /// <summary>
+        /// Cannot upload to a map buffer directly
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="componentCount"></param>
+        /// <param name="usageHint"></param>
         public new void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
+        /// <summary>
+        /// Cannot upload to a map buffer directly
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="componentCount"></param>
+        /// <param name="usageHint"></param>
         public new void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
+        /// <summary>
+        /// Cannot upload to a map buffer directly
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="usageHint"></param>
         public new void Upload(Vector3[] data, BufferUsageHint usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
+        /// <summary>
+        /// Cannot upload to a map buffer directly
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="usageHint"></param>
         public new void Upload(Vector2[] data, BufferUsageHint usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");

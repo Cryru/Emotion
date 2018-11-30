@@ -207,7 +207,7 @@ namespace Emotion.Input
         {
             if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && _keyboardLast.IsKeyDown(otKey);
 #if DEBUG
-            Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
+            Context.Log.Error($"Couldn't find key [{key}] for held check.", MessageSource.Input);
 #endif
             return false;
         }
@@ -221,7 +221,7 @@ namespace Emotion.Input
         {
             if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && !_keyboardLast.IsKeyDown(otKey);
 #if DEBUG
-            Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
+            Context.Log.Error($"Couldn't find key [{key}] for down check.", MessageSource.Input);
 #endif
             return false;
         }
@@ -235,7 +235,7 @@ namespace Emotion.Input
         {
             if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyUp(otKey) && !_keyboardLast.IsKeyUp(otKey);
 #if DEBUG
-            Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
+            Context.Log.Error($"Couldn't find key [{key}] for up check.", MessageSource.Input);
 #endif
             return false;
         }
