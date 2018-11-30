@@ -60,17 +60,14 @@ namespace Emotion.Game.Layering
                 }
             }
 
-            // Update layers. The list conversion copies the list, allowing the dictionary to be edited.
-            lock (_layers)
+            // Update layers. The list conversion copies the list, allowing the dictionary to be edited. Do not replace with locks.
+            foreach (Layer layer in _layers.Values.ToList())
             {
-                foreach (Layer layer in _layers.Values)
-                {
-                    // If the window is not focused run the light update, otherwise run the full update.
-                    if (!Context.Host.Focused)
-                        layer.LightUpdate(Context.FrameTime);
-                    else
-                        layer.Update(Context.FrameTime);
-                }
+                // If the window is not focused run the light update, otherwise run the full update.
+                if (!Context.Host.Focused)
+                    layer.LightUpdate(Context.FrameTime);
+                else
+                    layer.Update(Context.FrameTime);
             }
         }
 
@@ -79,15 +76,13 @@ namespace Emotion.Game.Layering
         /// </summary>
         internal void Draw()
         {
-            lock (_layers)
+            // Update layers. The list conversion copies the list, allowing the dictionary to be edited. Do not replace with locks.
+            foreach (Layer layer in _layers.Values.ToList())
             {
-                foreach (Layer layer in _layers.Values)
-                {
-                    Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, layer.Priority));
-                    layer.Draw(Context.Renderer);
-                    Context.Renderer.MatrixStack.Pop();
-                    Helpers.CheckError("layer draw");
-                }
+                Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, layer.Priority));
+                layer.Draw(Context.Renderer);
+                Context.Renderer.MatrixStack.Pop();
+                Helpers.CheckError("layer draw");
             }
         }
 
@@ -123,12 +118,9 @@ namespace Emotion.Game.Layering
         /// <returns>The layer with the provided name, or null if none found.</returns>
         public Layer Get(string name)
         {
-            lock (_layers)
-            {
-                if (_layers.ContainsKey(name)) return _layers[name];
+            if (_layers.ContainsKey(name)) return _layers[name];
 
-                return _layers.ContainsKey(name) ? _layers[name] : null;
-            }
+            return _layers.ContainsKey(name) ? _layers[name] : null;
         }
 
         /// <summary>
@@ -137,10 +129,7 @@ namespace Emotion.Game.Layering
         /// <param name="name">The layer's name to unload.</param>
         public Task Remove(string name)
         {
-            lock (_layers)
-            {
-                return Remove(_layers[name]);
-            }
+            return Remove(_layers[name]);
         }
 
         /// <summary>
@@ -149,10 +138,7 @@ namespace Emotion.Game.Layering
         /// <param name="layer">The layer to unload.</param>
         public Task Remove(Layer layer)
         {
-            lock (_layers)
-            {
-                _layers.Remove(layer.Name);
-            }
+            _layers.Remove(layer.Name);
 
             Task unloadLayer = new Task(() => { UnloadLayer(layer); });
             _managementTasks.Enqueue(unloadLayer);
@@ -179,11 +165,8 @@ namespace Emotion.Game.Layering
                 if (Debugger.DebugMode) throw ex;
             }
 
-            lock (_layers)
-            {
-                _layers.Add(layer.Name, layer);
-                _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
-            }
+            _layers.Add(layer.Name, layer);
+            _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
 
             Context.Log.Info($"Loaded layer [{layer.Name}].", MessageSource.LayerManager);
         }
