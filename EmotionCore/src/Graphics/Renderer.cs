@@ -74,6 +74,9 @@ namespace Emotion.Graphics
         /// </summary>
         public static bool Shader5ExtensionMissing { get; private set; }
 
+        /// <summary>
+        /// How detailed drawn circles should be.
+        /// </summary>
         public static int CircleDetail = 30;
 
         #endregion
@@ -477,16 +480,18 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a circle outline.
         /// </summary>
-        /// <param name="position">The top right position of the imaginary rectangle with encompasses the circle.</param>
+        /// <param name="position">The top right position of the imaginary rectangle which encompasses the circle. Can be modified with "useCenter"</param>
         /// <param name="radius">The circle radius.</param>
         /// <param name="color">The circle color.</param>
-        public void RenderCircleOutline(Vector3 position, float radius, Color color)
+        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
+        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false)
         {
             // Flush the buffer.
             RenderOutlineFlush();
 
-            // Add the string's model matrix.
-            MatrixStack.Push(Matrix4.CreateTranslation(position));
+            // Add the circle's model matrix.
+            MatrixStack.Push(useCenter ? Matrix4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4.CreateTranslation(position));
+
 
             float fX = 0;
             float fY = 0;
