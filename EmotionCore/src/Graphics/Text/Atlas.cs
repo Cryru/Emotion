@@ -10,6 +10,9 @@ using SharpFont;
 
 namespace Emotion.Graphics.Text
 {
+    /// <summary>
+    /// A font atlas is a texture which contains all the letters from a font in a certain size.
+    /// </summary>
     public sealed class Atlas
     {
         #region Properties
@@ -32,12 +35,12 @@ namespace Emotion.Graphics.Text
         /// <summary>
         /// The spacing between lines for this atlas.
         /// </summary>
-        public float LineSpacing;
+        public float LineSpacing { get; set; }
 
         /// <summary>
         /// The highest a letter can be in this atlas.
         /// </summary>
-        public float Ascent;
+        public float Ascent { get; set; }
 
         #endregion
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Engine;
 using Soul.Logging;
 
 #endregion
@@ -62,8 +63,10 @@ namespace Emotion.Debug.Logging
             }
             catch (Exception ex)
             {
-                // Where is this going to be logged lul.
-                Error("Logging thread has crashed.", ex, MessageSource.Debugger);
+                if (ex.Message != "Thread was being aborted." || Context.IsRunning)
+                {
+                    Error("Logging thread has crashed.", ex, MessageSource.Debugger);
+                }
             }
         }
 

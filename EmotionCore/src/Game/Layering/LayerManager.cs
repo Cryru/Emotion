@@ -2,7 +2,6 @@
 
 #region Using
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -124,39 +123,47 @@ namespace Emotion.Game.Layering
 
         private void LoadLayer(Layer layer)
         {
+#if !DEBUG
             try
             {
-                Thread.CurrentThread.Name = $"Layer Loading Task - {layer.Name}";
-                Context.Log.Trace($"Loading layer [{layer.Name}].", MessageSource.LayerManager);
+#endif
+            Thread.CurrentThread.Name = $"Layer Loading Task - {layer.Name}";
+            Context.Log.Trace($"Loading layer [{layer.Name}].", MessageSource.LayerManager);
 
-                layer.Load();
+            layer.Load();
 
-                _layers.Add(layer.Name, layer);
-                _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
+            _layers.Add(layer.Name, layer);
+            _layers = _layers.OrderBy(x => x.Value.Priority).ToList().ToDictionary(x => x.Key, x => x.Value);
 
-                Context.Log.Info($"Loaded layer [{layer.Name}].", MessageSource.LayerManager);
+            Context.Log.Info($"Loaded layer [{layer.Name}].", MessageSource.LayerManager);
+#if !DEBUG
             }
             catch (Exception ex)
             {
                 Context.Log.Error($"Error while loading layer {layer.Name}.", ex, MessageSource.LayerManager);
             }
+#endif
         }
 
         private void UnloadLayer(Layer layer)
         {
+#if !DEBUG
             try
             {
-                Thread.CurrentThread.Name = $"Layer Unloading Task - {layer.Name}";
-                Context.Log.Trace($"Unloading layer [{layer.Name}].", MessageSource.LayerManager);
+#endif
+            Thread.CurrentThread.Name = $"Layer Unloading Task - {layer.Name}";
+            Context.Log.Trace($"Unloading layer [{layer.Name}].", MessageSource.LayerManager);
 
-                layer.Unload();
+            layer.Unload();
 
-                Context.Log.Info($"Unloaded layer [{layer.Name}].", MessageSource.LayerManager);
+            Context.Log.Info($"Unloaded layer [{layer.Name}].", MessageSource.LayerManager);
+#if !DEBUG
             }
             catch (Exception ex)
             {
                 Context.Log.Error($"Error while unloading layer [{layer.Name}].", ex, MessageSource.LayerManager);
             }
+#endif
         }
 
         #endregion

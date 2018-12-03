@@ -84,7 +84,7 @@ namespace Emotion.Graphics
 
         static Renderer()
         {
-            // Macs prefer 3.3 contexts.
+            // Macs prefer 3.3 contexts. But the Linux I test on hates it.
             if (CurrentPlatform.OS == PlatformName.Mac) OpenGLMinorVersion = 3;
         }
 

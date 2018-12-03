@@ -92,9 +92,14 @@ namespace Emotion.Engine
             catch (Exception ex)
             {
                 // Check if timeout, and if not throw an exception.
-                if (ex.Message != "The operation has timed out." && Context.Settings.StrictScripts) throw ex;
-
-                Context.Log.Error($"Scripting error in script: [{script}]", ex, MessageSource.ScriptingEngine);
+                if (ex.Message != "The operation has timed out." && Context.Settings.StrictScripts)
+                {
+                    Context.Log.Error($"Scripting error in script: [{script}]", ex, MessageSource.ScriptingEngine);
+                }
+                else
+                {
+                    Context.Log.Warning($"Scripting error in script: [{script}]\n{ex}", MessageSource.ScriptingEngine);
+                }
 
                 return null;
             }

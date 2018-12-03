@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;
@@ -70,7 +69,14 @@ namespace Emotion.Game.Text
 
         #region Configuration
 
+        /// <summary>
+        /// Characters not to render.
+        /// </summary>
         public static char[] CharactersToNotRender = {'\n'};
+
+        /// <summary>
+        /// The character to separate a tag from its attributes.
+        /// </summary>
         public static char TagAttributeSeparator = '-';
 
         #endregion
@@ -79,7 +85,14 @@ namespace Emotion.Game.Text
 
         #region Objects
 
+        /// <summary>
+        /// The map buffer cache of the entire text.
+        /// </summary>
         protected QuadMapBuffer _renderCache { get; set; }
+
+        /// <summary>
+        /// Whether the cache needs to be updated.
+        /// </summary>
         protected bool _updateRenderCache { get; set; }
 
         #endregion
@@ -241,15 +254,10 @@ namespace Emotion.Game.Text
         /// <param name="text">The text to wrap.</param>
         /// <param name="wrapBounds">The bounds to wrap it in.</param>
         /// <param name="wrapResult">The list to populate with the wrapping result. Each line is a new entry.</param>
-        /// <param name="performHeightWrapping">
-        /// Whether to wrap vertically as well. True by default, if set to false text will
-        /// overflow.
-        /// </param>
-        protected virtual void Wrap(Atlas fontAtlas, string text, Vector2 wrapBounds, List<string> wrapResult, bool performHeightWrapping = true)
+        protected virtual void Wrap(Atlas fontAtlas, string text, Vector2 wrapBounds, List<string> wrapResult)
         {
             wrapResult.Clear();
 
-            float currentHeight = 0;
             string currentLine = "";
             bool breakSkipMode = false;
             int breakSkipModeLimit = -1;
@@ -297,13 +305,6 @@ namespace Emotion.Game.Text
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
                 if (textSize.X > wrapBounds.X || text[i] == '\n')
                 {
-                    if (performHeightWrapping)
-                    {
-                        // Check if a new line can be pushed without exceeding the height.
-                        if (currentHeight + textSize.Y + fontAtlas.LineSpacing > wrapBounds.Y) return;
-                        currentHeight += textSize.Y + fontAtlas.LineSpacing;
-                    }
-
                     // Push new line.
                     wrapResult.Add(currentLine);
                     currentLine = "";
@@ -474,6 +475,9 @@ namespace Emotion.Game.Text
 
         #region Buffer Mapping Helpers
 
+        /// <summary>
+        /// Maps the render cache buffer.
+        /// </summary>
         protected virtual void MapBuffer()
         {
             // Start mapping.
