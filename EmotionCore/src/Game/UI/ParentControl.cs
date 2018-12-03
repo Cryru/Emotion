@@ -96,8 +96,7 @@ namespace Emotion.Game.UI
         /// <summary>
         /// Renders all children.
         /// </summary>
-        /// <param name="renderer"></param>
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             foreach (Transform child in _children)
             {
@@ -106,12 +105,12 @@ namespace Emotion.Game.UI
                 {
                     if (!childControl.Active) continue;
 
-                    renderer.Render(childControl);
+                    Context.Renderer.Render(childControl);
                     continue;
                 }
 
                 // Check if the child is a transform renderable.
-                if (child is TransformRenderable childRenderable) renderer.Render(childRenderable);
+                if (child is TransformRenderable childRenderable) Context.Renderer.Render(childRenderable);
             }
         }
 

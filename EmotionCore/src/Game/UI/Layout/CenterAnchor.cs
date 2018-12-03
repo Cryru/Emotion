@@ -92,32 +92,31 @@ namespace Emotion.Game.UI.Layout
         /// <summary>
         /// Performs checks on whether the anchoring logic is applied.
         /// </summary>
-        /// <param name="renderer">The renderer to use for debugging.</param>
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             // Render children;
-            base.Render(renderer);
+            base.Render();
 
             // Check if performing debug drawing.
             if (!Controller.DebugDraw) return;
 
 #if DEBUG
-            renderer.RenderOutlineFlush();
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 
-            renderer.RenderQueueOutline(new Vector3(Width / 2, 0, 0), new Vector2(0, Height), Color.Pink);
-            renderer.RenderQueueOutline(new Vector3(0, Height / 2, 0), new Vector2(Width, 0), Color.Pink);
+            Context.Renderer.RenderQueueOutline(new Vector3(Width / 2, 0, 0), new Vector2(0, Height), Color.Pink);
+            Context.Renderer.RenderQueueOutline(new Vector3(0, Height / 2, 0), new Vector2(Width, 0), Color.Pink);
 
             lock (_controls)
             {
                 foreach (LayoutControl control in _controls)
                 {
-                    control.Draw(renderer);
+                    control.Render();
                 }
             }
 
-            renderer.RenderOutlineFlush();
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 #endif
         }
 

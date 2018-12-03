@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;
@@ -428,7 +429,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Draw the RichText object. Can be overloaded.
         /// </summary>
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             if (_updateRenderCache)
             {
@@ -440,7 +441,7 @@ namespace Emotion.Game.Text
             if (!_renderCache.AnythingMapped) return;
 
             // Draw the buffer.
-            renderer.Render(_renderCache, true);
+            _renderCache.Render();
         }
 
         /// <summary>

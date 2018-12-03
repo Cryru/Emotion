@@ -40,7 +40,7 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <summary>
-        /// The number of vertices mapped. Also the index of the highest mapped vertex.
+        /// The number of total vertices mapped. Also the index of the highest mapped vertex.
         /// </summary>
         public int MappedVertices { get; private set; }
 
@@ -205,40 +205,6 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <summary>
-        /// Maps the current vertex and advanced the current index by one.
-        /// </summary>
-        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
-        /// <param name="color">The color of the vertex.</param>
-        /// <param name="texture">The texture of the vertex, if any.</param>
-        /// <param name="uv">The uv of the vertex's texture, if any.</param>
-        public void MapNextVertex(Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
-        {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
-            InternalMapVertex(color.ToUint(), GetTid(texture), VerifyUV(texture, uv), vertex);
-            _dataPointer++;
-        }
-
-        /// <summary>
-        /// Moves the pointer to the specified index and maps the vertex.
-        /// </summary>
-        /// <param name="index">The index of the vertex to map.</param>
-        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
-        /// <param name="color">The color of the vertex.</param>
-        /// <param name="texture">The texture of the vertex, if any.</param>
-        /// <param name="uv">The uv of the vertex's texture, if any.</param>
-        public void MapVertexAt(int index, Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
-        {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
-            // Move the pointer and map the vertex.
-            MovePointerToVertex(index);
-            MapNextVertex(vertex, color, texture, uv);
-        }
-
-        /// <summary>
         /// Finish mapping the buffer, flushing changes to the GPU.
         /// </summary>
         private void Flush()
@@ -275,10 +241,28 @@ namespace Emotion.Graphics.Batching
         #region Helpers
 
         /// <summary>
+        /// Increment the mapping pointer.
+        /// </summary>
+        /// <param name="amount">The amount to increment by.</param>
+        public void IncrementPointer(int amount)
+        {
+            _dataPointer += amount;
+        }
+
+        /// <summary>
+        /// Decrement the mapping pointer.
+        /// </summary>
+        /// <param name="amount">The amount to decrement by.</param>
+        public void DecrementPointer(int amount)
+        {
+            _dataPointer -= amount;
+        }
+
+        /// <summary>
         /// Moves the pointer to the specified vertex index.
         /// </summary>
         /// <param name="index">The index to move the pointer to.</param>
-        protected void MovePointerToVertex(int index)
+        public void MovePointerToVertex(int index)
         {
             _dataPointer = _startPointer + index;
         }
@@ -290,7 +274,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="tid"></param>
         /// <param name="uv"></param>
         /// <param name="vertex"></param>
-        protected void InternalMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
+        public void UnsafeMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
             long currentVertex = _dataPointer - _startPointer;
 
@@ -302,7 +286,7 @@ namespace Emotion.Graphics.Batching
             }
 
             // Check if indices are going out of bounds.
-            if (currentVertex / ObjectSize > _ibo.Count / IndicesPerObject)
+            if (_ibo != null && currentVertex / ObjectSize > _ibo.Count / IndicesPerObject)
             {
                 Context.Log.Error($"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.", MessageSource.GL);
                 return;
@@ -326,13 +310,14 @@ namespace Emotion.Graphics.Batching
         /// Returns the texture id of the specified texture within the buffer.
         /// </summary>
         /// <param name="texture">The texture whose id to return</param>
+        /// <param name="addIfMissing">Whether to add the texture to the buffer if it is not part of it already.</param>
         /// <returns>The id of the texture.</returns>
-        protected float GetTid(Texture texture)
+        public int GetTid(Texture texture, bool addIfMissing = true)
         {
             // If no texture.
             if (texture == null) return -1;
 
-            float tid = -1;
+            int tid = -1;
 
             // Check if the texture is in the list of loaded textures.
             for (int i = 0; i < _textureList.Count; i++)
@@ -343,30 +328,18 @@ namespace Emotion.Graphics.Batching
             }
 
             // If not add it.
-            if (tid == -1)
-            {
-                // Check if there is space for adding.
-                if (_textureList.Count >= 16) throw new Exception("Texture limit of 16 per buffer reached.");
+            if (tid != -1) return tid;
 
-                _textureList.Add(texture);
-                tid = _textureList.Count - 1;
-            }
+            // Check if skipping add.
+            if (!addIfMissing) return -1;
+
+            // Check if there is space for adding.
+            if (_textureList.Count >= 16) throw new Exception("Texture limit of 16 per buffer reached.");
+
+            _textureList.Add(texture);
+            tid = _textureList.Count - 1;
 
             return tid;
-        }
-
-        /// <summary>
-        /// Verifies the uv.
-        /// </summary>
-        /// <param name="texture">The texture the uv is for.</param>
-        /// <param name="uv">The uv to verify.</param>
-        /// <returns></returns>
-        protected virtual Vector2 VerifyUV(Texture texture, Vector2? uv)
-        {
-            // If no texture, the uv is empty.
-            if (texture == null) return Vector2.Zero;
-
-            return uv ?? Vector2.One;
         }
 
         /// <summary>
@@ -434,8 +407,7 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Render the buffer.
         /// </summary>
-        /// <param name="renderer">To renderer to render the buffer with.</param>
-        public virtual void Render(Renderer renderer)
+        public virtual void Render()
         {
             GLThread.ForceGLThread();
 
@@ -449,7 +421,7 @@ namespace Emotion.Graphics.Batching
             BindTextures();
 
             _vao.Bind();
-            _ibo.Bind();
+            _ibo?.Bind();
             GLThread.CheckError("map buffer - bind");
 
             // Convert offset amd length.
@@ -459,7 +431,7 @@ namespace Emotion.Graphics.Batching
             GL.DrawElements(_drawType, length, DrawElementsType.UnsignedShort, indexToPointer);
             GLThread.CheckError("map buffer - draw");
 
-            _ibo.Unbind();
+            _ibo?.Unbind();
             _vao.Unbind();
             GLThread.CheckError("map buffer - unbind");
         }

@@ -49,6 +49,6 @@ namespace Emotion.Graphics
             ModelMatrix = Matrix4.CreateTranslation(Position);
         }
 
-        public abstract void Render(Renderer renderer);
+        public abstract void Render();
     }
 }

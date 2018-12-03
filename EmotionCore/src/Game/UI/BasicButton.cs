@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
@@ -37,9 +38,9 @@ namespace Emotion.Game.UI
             OnClick?.Invoke();
         }
 
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
-            renderer.Render(Vector3.Zero, Size, Tint, Texture);
+            Context.Renderer.Render(Vector3.Zero, Size, Tint, Texture);
         }
     }
 }

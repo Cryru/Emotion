@@ -9,22 +9,36 @@ using Emotion.Primitives;
 
 namespace Emotion.Graphics.Batching
 {
+    /// <summary>
+    /// Represents the data of a single vertex.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct VertexData
     {
+        /// <summary>
+        /// The size of vertex data in bytes.
+        /// </summary>
         public static readonly int SizeInBytes = Marshal.SizeOf(new VertexData());
 
-        // Location 0
+        /// <summary>
+        /// The vertex itself.
+        /// </summary>
         public Vector3 Vertex;
 
-        // Location 1
+        /// <summary>
+        /// The UV of the vertex's texture.
+        /// </summary>
         public Vector2 UV;
 
-        // Location 2
+        /// <summary>
+        /// The texture's id within the loaded textures.
+        /// </summary>
         public float Tid;
         // todo: this should be an int.
 
-        // Location 3
+        /// <summary>
+        /// The packed color of the vertex.
+        /// </summary>
         public uint Color;
     }
 }

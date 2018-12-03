@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -103,11 +104,10 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// Draw the map using the specified renderer.
         /// </summary>
-        /// <param name="renderer">The renderer to use to draw the map.</param>
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             // Flush the buffer.
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 
             // Check if anything is loaded.
             if (TiledMap == null || !_loaded) return;
@@ -157,12 +157,12 @@ namespace Emotion.Game.Tiled
                     tRect.Y *= ratioDifferenceY;
 
                     // Check if visible rectangle exists.
-                    renderer.RenderQueue(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
+                    Context.Renderer.RenderQueue(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
                 }
             }
 
             // Flush the rendered tiles.
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
         }
 
         #region Animated Tiles

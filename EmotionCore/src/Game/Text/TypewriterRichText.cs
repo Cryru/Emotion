@@ -126,7 +126,7 @@ namespace Emotion.Game.Text
         #region RichText API
 
         /// <inheritdoc />
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             if (_updateRenderCache || !_renderCache.AnythingMapped)
             {
@@ -152,7 +152,7 @@ namespace Emotion.Game.Text
             if (!EffectFinished) _renderCache.SetRenderRange(0, _characterEffectIndex);
             else _renderCache.SetRenderRange(0, _textStripped.Length);
 
-            renderer.Render(_renderCache, true);
+            _renderCache.Render();
         }
 
         #endregion

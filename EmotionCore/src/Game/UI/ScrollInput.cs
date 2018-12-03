@@ -103,13 +103,13 @@ namespace Emotion.Game.UI
             Selector.Height = (float) (Height + Height * 0.1 * 2);
         }
 
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             // Clamp value.
             Value = (int) MathHelper.Clamp(Value, 0, 100);
 
             // Draw bar.
-            renderer.Render(Vector3.Zero, Size, BarColor);
+            Context.Renderer.Render(Vector3.Zero, Size, BarColor);
 
             // Calculate selector location.
             int selectionPoints = 100 + (KeepSelectorInside ? SelectorRatio : 0);
@@ -117,7 +117,7 @@ namespace Emotion.Game.UI
             if (!KeepSelectorInside) Selector.X -= Selector.Width / 2;
 
             // Render child.
-            base.Render(renderer);
+            base.Render();
         }
     }
 }

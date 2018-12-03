@@ -52,7 +52,6 @@ namespace Emotion.Graphics
         #region Render State
 
         private QuadMapBuffer _mainBuffer;
-        private LineMapBuffer _mainLineBuffer;
         private bool _viewMatrixEnabled = true;
 
         #endregion
@@ -112,7 +111,6 @@ namespace Emotion.Graphics
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
-            _mainLineBuffer = new LineMapBuffer(MaxRenderable);
 
             // Check if the setup encountered any errors.
             GLThread.CheckError("renderer setup");
@@ -191,7 +189,6 @@ namespace Emotion.Graphics
         internal void Destroy()
         {
             _mainBuffer.Delete();
-            _mainLineBuffer.Delete();
         }
 
         #endregion
@@ -324,10 +321,9 @@ namespace Emotion.Graphics
             DrawDebug();
 
             // Flush unflushed buffers.
-            if (_mainBuffer.Mapping || _mainLineBuffer.Mapping)
+            if (_mainBuffer.Mapping)
             {
                 RenderFlush();
-                RenderOutlineFlush();
             }
         }
 
@@ -419,14 +415,30 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Queue a render of an outline.
+        /// </summary>
+        /// <param name="pointOne">The first point.</param>
+        /// <param name="pointTwo">The second point.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderQueueLine(Vector3 pointOne, Vector3 pointTwo, Color color, int thickness = 1)
+        {
+            _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
+        }
+
+        /// <summary>
         /// Queue a render of a rectangle outline.
         /// </summary>
         /// <param name="location">The location of the rectangle.</param>
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
-        public void RenderQueueOutline(Vector3 location, Vector2 size, Color color)
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderQueueOutline(Vector3 location, Vector2 size, Color color, int thickness = 1)
         {
-            _mainLineBuffer.MapNextQuad(location, size, color);
+            RenderQueueLine(location, new Vector3(location.X + size.X, location.Y, location.Z), color, thickness);
+            RenderQueueLine(new Vector3(location.X + size.X, location.Y, location.Z), new Vector3(location.X + size.X, location.Y + size.Y, location.Z), color, thickness);
+            RenderQueueLine(new Vector3(location.X + size.X, location.Y + size.Y, location.Z), new Vector3(location.X, location.Y + size.Y, location.Z), color, thickness);
+            RenderQueueLine(new Vector3(location.X, location.Y + size.Y, location.Z), location, color, thickness);
         }
 
         /// <summary>
@@ -436,15 +448,6 @@ namespace Emotion.Graphics
         {
             Render(_mainBuffer);
             _mainBuffer.Reset();
-        }
-
-        /// <summary>
-        /// Flushed the main outline buffer, and restarts its mapping.
-        /// </summary>
-        public void RenderOutlineFlush()
-        {
-            Render(_mainLineBuffer);
-            _mainLineBuffer.Reset();
         }
 
         #endregion
@@ -471,10 +474,11 @@ namespace Emotion.Graphics
         /// <param name="location">The location of the rectangle.</param>
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
-        public void RenderOutline(Vector3 location, Vector2 size, Color color)
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderOutline(Vector3 location, Vector2 size, Color color, int thickness = 1)
         {
-            _mainLineBuffer.MapNextQuad(location, size, color);
-            RenderOutlineFlush();
+            RenderQueueOutline(location, size, color, thickness);
+            RenderFlush();
         }
 
         /// <summary>
@@ -487,11 +491,10 @@ namespace Emotion.Graphics
         public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false)
         {
             // Flush the buffer.
-            RenderOutlineFlush();
+            RenderFlush();
 
             // Add the circle's model matrix.
             MatrixStack.Push(useCenter ? Matrix4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4.CreateTranslation(position));
-
 
             float fX = 0;
             float fY = 0;
@@ -507,18 +510,19 @@ namespace Emotion.Graphics
 
                 if (i == 0)
                 {
-                    _mainLineBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
+                    RenderQueueLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + x, radius + y, 0), color);
                     fX = x;
                     fY = y;
                 }
                 else if (i == CircleDetail - 1)
                 {
-                    _mainLineBuffer.MapNextLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
-                    _mainLineBuffer.MapNextLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                    RenderQueueLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                    RenderQueueLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                    
                 }
                 else
                 {
-                    _mainLineBuffer.MapNextLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                    RenderQueueLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
                 }
 
                 pX = x;
@@ -526,7 +530,7 @@ namespace Emotion.Graphics
             }
 
             // Render the circle.
-            RenderOutlineFlush();
+            RenderFlush();
 
             // Remove the model matrix.
             MatrixStack.Pop();
@@ -538,10 +542,11 @@ namespace Emotion.Graphics
         /// <param name="pointOne">The first point.</param>
         /// <param name="pointTwo">The second point.</param>
         /// <param name="color">The color of the line.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color)
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, int thickness = 1)
         {
-            _mainLineBuffer.MapNextLine(pointOne, pointTwo, color);
-            RenderOutlineFlush();
+            _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
+            RenderFlush();
         }
 
         /// <summary>
@@ -608,7 +613,7 @@ namespace Emotion.Graphics
         public void Render(IRenderable renderable, bool skipModelMatrix = false)
         {
             if (!skipModelMatrix) SetModelMatrix();
-            renderable.Render(this);
+            renderable.Render();
         }
 
         /// <summary>
@@ -620,7 +625,7 @@ namespace Emotion.Graphics
         {
             MatrixStack.Push(modelMatrix);
             SetModelMatrix();
-            renderable.Render(this);
+            renderable.Render();
             MatrixStack.Pop();
         }
 
@@ -632,7 +637,7 @@ namespace Emotion.Graphics
         {
             MatrixStack.Push(renderable.ModelMatrix);
             SetModelMatrix();
-            renderable.Render(this);
+            renderable.Render();
             MatrixStack.Pop();
         }
 

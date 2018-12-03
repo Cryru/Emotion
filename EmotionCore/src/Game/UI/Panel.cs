@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -29,58 +30,58 @@ namespace Emotion.Game.UI
         {
         }
 
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             // Check if a texture is set.
             if (PanelTexture == null) return;
 
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 
             // Draw fill.
-            if (Fill != Rectangle.Empty) renderer.RenderQueue(Vector3.Zero, Size, Color.White, PanelTexture, Fill);
+            if (Fill != Rectangle.Empty) Context.Renderer.RenderQueue(Vector3.Zero, Size, Color.White, PanelTexture, Fill);
 
             // Draw lines.
             if (Top != Rectangle.Empty)
                 for (float x = 0; x <= Width - Top.Width * Scale; x += Top.Width * Scale)
                 {
-                    renderer.RenderQueue(new Vector3(x, 0, 0), new Vector2(Top.Width * Scale, Top.Height * Scale), Color.White, PanelTexture, Top);
+                    Context.Renderer.RenderQueue(new Vector3(x, 0, 0), new Vector2(Top.Width * Scale, Top.Height * Scale), Color.White, PanelTexture, Top);
                 }
 
             if (Left != Rectangle.Empty)
                 for (float y = 0; y <= Height - Left.Height * Scale; y += Left.Height * Scale)
                 {
-                    renderer.RenderQueue(new Vector3(0, y, 0), new Vector2(Left.Width * Scale, Left.Height * Scale), Color.White, PanelTexture, Left);
+                    Context.Renderer.RenderQueue(new Vector3(0, y, 0), new Vector2(Left.Width * Scale, Left.Height * Scale), Color.White, PanelTexture, Left);
                 }
 
             if (Right != Rectangle.Empty)
                 for (float y = 0; y <= Height - Right.Height * Scale; y += Right.Height * Scale)
                 {
-                    renderer.RenderQueue(new Vector3(Width - Right.Width * Scale, y, 0), new Vector2(Right.Width * Scale, Right.Height * Scale), Color.White, PanelTexture, Right);
+                    Context.Renderer.RenderQueue(new Vector3(Width - Right.Width * Scale, y, 0), new Vector2(Right.Width * Scale, Right.Height * Scale), Color.White, PanelTexture, Right);
                 }
 
             if (Bottom != Rectangle.Empty)
                 for (float x = 0; x <= Width - Bottom.Width * Scale; x += Bottom.Width * Scale)
                 {
-                    renderer.RenderQueue(new Vector3(x, Height - Bottom.Height * Scale, 0), new Vector2(Bottom.Width * Scale, Bottom.Height * Scale), Color.White, PanelTexture, Bottom);
+                    Context.Renderer.RenderQueue(new Vector3(x, Height - Bottom.Height * Scale, 0), new Vector2(Bottom.Width * Scale, Bottom.Height * Scale), Color.White, PanelTexture, Bottom);
                 }
 
             // Draw corners.
             if (TopLeftCorner != Rectangle.Empty)
-                renderer.RenderQueue(Vector3.Zero, new Vector2(TopLeftCorner.Width * Scale, TopLeftCorner.Height * Scale), Color.White, PanelTexture, TopLeftCorner);
+                Context.Renderer.RenderQueue(Vector3.Zero, new Vector2(TopLeftCorner.Width * Scale, TopLeftCorner.Height * Scale), Color.White, PanelTexture, TopLeftCorner);
             if (TopRightCorner != Rectangle.Empty)
-                renderer.RenderQueue(new Vector3(Width - TopRightCorner.Width * Scale, 0, 0), new Vector2(TopRightCorner.Width * Scale, TopRightCorner.Height * Scale), Color.White, PanelTexture,
+                Context.Renderer.RenderQueue(new Vector3(Width - TopRightCorner.Width * Scale, 0, 0), new Vector2(TopRightCorner.Width * Scale, TopRightCorner.Height * Scale), Color.White, PanelTexture,
                     TopRightCorner);
             if (BottomRightCorner != Rectangle.Empty)
-                renderer.RenderQueue(new Vector3(Width - BottomRightCorner.Width * Scale, Height - BottomRightCorner.Height * Scale, 0), new Vector2(BottomRightCorner.Width * Scale,
+                Context.Renderer.RenderQueue(new Vector3(Width - BottomRightCorner.Width * Scale, Height - BottomRightCorner.Height * Scale, 0), new Vector2(BottomRightCorner.Width * Scale,
                     BottomRightCorner.Height * Scale), Color.White, PanelTexture, BottomRightCorner);
             if (BottomLeftCorner != Rectangle.Empty)
-                renderer.RenderQueue(new Vector3(0, Height - BottomLeftCorner.Height * Scale, 0), new Vector2(BottomLeftCorner.Width * Scale, BottomLeftCorner.Height * Scale), Color.White,
+                Context.Renderer.RenderQueue(new Vector3(0, Height - BottomLeftCorner.Height * Scale, 0), new Vector2(BottomLeftCorner.Width * Scale, BottomLeftCorner.Height * Scale), Color.White,
                     PanelTexture, BottomLeftCorner);
 
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 
             // Draw children.
-            base.Render(renderer);
+            base.Render();
         }
     }
 }

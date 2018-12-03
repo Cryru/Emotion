@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -35,10 +36,10 @@ namespace Emotion.Game.UI
             _scrollBar = parent;
         }
 
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             // Render the selector according to whether it is held or not.
-            renderer.Render(Vector3.Zero, Size, Held[0] ? HeldColor : Color);
+            Context.Renderer.Render(Vector3.Zero, Size, Held[0] ? HeldColor : Color);
         }
 
         public override void MouseEnter(Vector2 mousePosition)

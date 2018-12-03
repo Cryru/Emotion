@@ -120,46 +120,45 @@ namespace Emotion.Game.UI.Layout
         /// <summary>
         /// Performs checks on whether the anchoring logic is applied.
         /// </summary>
-        /// <param name="renderer">The renderer to use for debugging.</param>
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
-            base.Render(renderer);
+            base.Render();
 
             // Check if performing debug drawing.
             if (!Controller.DebugDraw) return;
 
 #if DEBUG
-            renderer.RenderOutlineFlush();
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 
-            DrawDebugBounds(renderer, Padding, Color.Red);
+            DrawDebugBounds(Padding, Color.Red);
 
             lock (_controls)
             {
                 foreach (AnchorLayoutControl control in _controls)
                 {
-                    control.Draw(renderer);
+                    control.Render();
                 }
             }
 
-            renderer.RenderOutlineFlush();
-            renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
+            Context.Renderer.RenderFlush();
 #endif
         }
 
-        private void DrawDebugBounds(Renderer renderer, Rectangle padding, Color color)
+        private void DrawDebugBounds(Rectangle padding, Color color)
         {
             // Top
-            renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(Width, padding.Y), color);
+            Context.Renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(Width, padding.Y), color);
 
             // Left
-            renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(padding.X, Height), color);
+            Context.Renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(padding.X, Height), color);
 
             // Bottom
-            renderer.RenderQueueOutline(new Vector3(0, Height - padding.Y, Z), new Vector2(Width, padding.Y), color);
+            Context.Renderer.RenderQueueOutline(new Vector3(0, Height - padding.Y, Z), new Vector2(Width, padding.Y), color);
 
             // Right
-            renderer.RenderQueueOutline(new Vector3(Width - padding.X, 0, Z), new Vector2(padding.X, Height), color);
+            Context.Renderer.RenderQueueOutline(new Vector3(Width - padding.X, 0, Z), new Vector2(padding.X, Height), color);
         }
 
         private void ApplyLogic()

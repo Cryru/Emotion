@@ -4,6 +4,6 @@ namespace Emotion.Graphics
 {
     public interface IRenderable
     {
-        void Render(Renderer renderer);
+        void Render();
     }
 }

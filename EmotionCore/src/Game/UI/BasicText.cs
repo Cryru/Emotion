@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
@@ -77,7 +78,7 @@ namespace Emotion.Game.UI
             Color = color;
         }
 
-        public override void Render(Renderer renderer)
+        public override void Render()
         {
             if (_updateSize)
             {
@@ -87,7 +88,7 @@ namespace Emotion.Game.UI
                 _updateSize = false;
             }
 
-            renderer.RenderString(_font, _textSize, _text, Vector3.Zero, Color);
+            Context.Renderer.RenderString(_font, _textSize, _text, Vector3.Zero, Color);
         }
     }
 }

@@ -113,6 +113,16 @@ namespace Emotion.Primitives
             return obj is Color color && Equals(color);
         }
 
+        /// <summary>
+        /// Compares whether current instance is equal to specified object.
+        /// </summary>
+        /// <param name="color">The <see cref="Color" /> to compare.</param>
+        /// <returns><c>true</c> if the instances are equal; <c>false</c> otherwise.</returns>
+        public bool Equals(Color color)
+        {
+            return color.R == R && color.G == G && color.B == B && color.A == A;
+        }
+
         #region Functions
 
         /// <summary>
