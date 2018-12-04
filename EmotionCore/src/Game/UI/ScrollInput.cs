@@ -2,11 +2,11 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
-using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
-using Soul;
+
 
 #endregion
 
@@ -106,7 +106,7 @@ namespace Emotion.Game.UI
         public override void Render()
         {
             // Clamp value.
-            Value = (int) MathHelper.Clamp(Value, 0, 100);
+            Value = (int) MathExtension.Clamp(Value, 0, 100);
 
             // Draw bar.
             Context.Renderer.Render(Vector3.Zero, Size, BarColor);

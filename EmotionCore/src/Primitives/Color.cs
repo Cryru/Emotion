@@ -5,7 +5,7 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Soul;
+using Emotion.Engine;
 
 #endregion
 
@@ -134,12 +134,12 @@ namespace Emotion.Primitives
         /// <returns>Interpolated <see cref="Color" />.</returns>
         public static Color Lerp(Color value1, Color value2, float amount)
         {
-            amount = MathHelper.Clamp(amount, 0, 1);
+            amount = MathExtension.Clamp(amount, 0, 1);
             return new Color(
-                (byte) MathHelper.Lerp(value1.R, value2.R, amount),
-                (byte) MathHelper.Lerp(value1.G, value2.G, amount),
-                (byte) MathHelper.Lerp(value1.B, value2.B, amount),
-                (byte) MathHelper.Lerp(value1.A, value2.A, amount));
+                (byte) MathExtension.Lerp(value1.R, value2.R, amount),
+                (byte) MathExtension.Lerp(value1.G, value2.G, amount),
+                (byte) MathExtension.Lerp(value1.B, value2.B, amount),
+                (byte) MathExtension.Lerp(value1.A, value2.A, amount));
         }
 
         /// <summary>

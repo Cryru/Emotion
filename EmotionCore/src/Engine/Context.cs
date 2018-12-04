@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Debug.Logging;
@@ -133,6 +134,7 @@ namespace Emotion.Engine
             Log.Info($"64Bit: {Environment.Is64BitProcess}", MessageSource.Engine);
             Log.Info($"OS: {CurrentPlatform.OS} ({Environment.OSVersion})", MessageSource.Engine);
             Log.Info($"CPU: {Environment.ProcessorCount}", MessageSource.Engine);
+            Log.Info($"SIMD Vectors: {Vector.IsHardwareAccelerated}", MessageSource.Engine);
 
             // Run platform specific boot.
             switch (CurrentPlatform.OS)
@@ -246,6 +248,8 @@ namespace Emotion.Engine
         /// </summary>
         public static void Quit()
         {
+            if(!IsRunning) return;
+
             // Switch running to false.
             IsRunning = false;
 
@@ -396,21 +400,21 @@ namespace Emotion.Engine
             float targetAspectRatio = Settings.RenderWidth / Settings.RenderHeight;
 
             float width = Host.Size.X;
-            float height = (int) (width / targetAspectRatio + 0.5f);
+            float height = (int)(width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > Host.Size.Y)
             {
                 height = Host.Size.Y;
-                width = (int) (height * targetAspectRatio + 0.5f);
+                width = (int)(height * targetAspectRatio + 0.5f);
             }
 
-            int vpX = (int) (Host.Size.X / 2 - width / 2);
-            int vpY = (int) (Host.Size.Y / 2 - height / 2);
+            int vpX = (int)(Host.Size.X / 2 - width / 2);
+            int vpY = (int)(Host.Size.Y / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int) width, (int) height);
-            GL.Scissor(vpX, vpY, (int) width, (int) height);
+            GL.Viewport(vpX, vpY, (int)width, (int)height);
+            GL.Scissor(vpX, vpY, (int)width, (int)height);
         }
 
         #endregion

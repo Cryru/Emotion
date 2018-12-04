@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using Emotion.Debug;
 using Emotion.Engine;
@@ -16,9 +17,9 @@ using Emotion.Graphics.Text;
 using Emotion.Libraries;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
-using Soul;
 using Buffer = Emotion.Graphics.Objects.Buffer;
 using Debugger = Emotion.Debug.Debugger;
+
 
 #endregion
 
@@ -150,8 +151,8 @@ namespace Emotion.Graphics
         /// </summary>
         private static void CreateDefaultShaders()
         {
-            string defaultVert = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVert.glsl");
-            string defaultFrag = Utilities.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
+            string defaultVert = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVert.glsl");
+            string defaultFrag = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
 
             try
             {
@@ -321,10 +322,7 @@ namespace Emotion.Graphics
             DrawDebug();
 
             // Flush unflushed buffers.
-            if (_mainBuffer.Mapping)
-            {
-                RenderFlush();
-            }
+            if (_mainBuffer.Mapping) RenderFlush();
         }
 
         /// <summary>
@@ -352,10 +350,10 @@ namespace Emotion.Graphics
             if (full)
             {
                 SetModelMatrix();
-                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
+                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
             }
 
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4.Identity);
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4x4.Identity);
             ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
 
             GLThread.CheckError("Syncing shader");
@@ -376,7 +374,7 @@ namespace Emotion.Graphics
         /// <returns>The provided point in the world.</returns>
         public Vector2 ScreenToWorld(Vector2 position)
         {
-            return Vector2.TransformPosition(position, (_debugCamera ?? Camera).ViewMatrix.Inverted());
+            return Vector2.Transform(position, (_debugCamera ?? Camera).ViewMatrix.Inverted());
         }
 
         /// <summary>
@@ -385,7 +383,7 @@ namespace Emotion.Graphics
         public void DisableViewMatrix()
         {
             _viewMatrixEnabled = false;
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", Matrix4.Identity);
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
         }
 
         /// <summary>
@@ -421,7 +419,7 @@ namespace Emotion.Graphics
         /// <param name="pointTwo">The second point.</param>
         /// <param name="color">The color of the line.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderQueueLine(Vector3 pointOne, Vector3 pointTwo, Color color, int thickness = 1)
+        public void RenderQueueLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
         {
             _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
         }
@@ -433,7 +431,7 @@ namespace Emotion.Graphics
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderQueueOutline(Vector3 location, Vector2 size, Color color, int thickness = 1)
+        public void RenderQueueOutline(Vector3 location, Vector2 size, Color color, float thickness = 1)
         {
             RenderQueueLine(location, new Vector3(location.X + size.X, location.Y, location.Z), color, thickness);
             RenderQueueLine(new Vector3(location.X + size.X, location.Y, location.Z), new Vector3(location.X + size.X, location.Y + size.Y, location.Z), color, thickness);
@@ -475,7 +473,7 @@ namespace Emotion.Graphics
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderOutline(Vector3 location, Vector2 size, Color color, int thickness = 1)
+        public void RenderOutline(Vector3 location, Vector2 size, Color color, float thickness = 1)
         {
             RenderQueueOutline(location, size, color, thickness);
             RenderFlush();
@@ -484,7 +482,10 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a circle outline.
         /// </summary>
-        /// <param name="position">The top right position of the imaginary rectangle which encompasses the circle. Can be modified with "useCenter"</param>
+        /// <param name="position">
+        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
+        /// with "useCenter"
+        /// </param>
         /// <param name="radius">The circle radius.</param>
         /// <param name="color">The circle color.</param>
         /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
@@ -494,7 +495,7 @@ namespace Emotion.Graphics
             RenderFlush();
 
             // Add the circle's model matrix.
-            MatrixStack.Push(useCenter ? Matrix4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4.CreateTranslation(position));
+            MatrixStack.Push(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
 
             float fX = 0;
             float fY = 0;
@@ -518,7 +519,6 @@ namespace Emotion.Graphics
                 {
                     RenderQueueLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
                     RenderQueueLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
-                    
                 }
                 else
                 {
@@ -563,7 +563,7 @@ namespace Emotion.Graphics
             RenderFlush();
 
             // Add the string's model matrix.
-            MatrixStack.Push(Matrix4.CreateTranslation(position));
+            MatrixStack.Push(Matrix4x4.CreateTranslation(position));
 
             // Queue letters.
             Rectangle[] uvs = new Rectangle[text.Length];
@@ -621,7 +621,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>
         /// <param name="modelMatrix">The renderable's model matrix.</param>
-        public void Render(IRenderable renderable, Matrix4 modelMatrix)
+        public void Render(IRenderable renderable, Matrix4x4 modelMatrix)
         {
             MatrixStack.Push(modelMatrix);
             SetModelMatrix();

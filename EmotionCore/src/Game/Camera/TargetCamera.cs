@@ -2,9 +2,9 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
 using Emotion.Primitives;
-using Soul;
 
 #endregion
 
@@ -35,8 +35,8 @@ namespace Emotion.Game.Camera
             if (Target == null) return;
 
             // Smooth.
-            float lx = MathHelper.Lerp(Center.X, Target.X, MathHelper.Clamp(Speed * Context.FrameTime, 0, 1));
-            float ly = MathHelper.Lerp(Center.Y, Target.Y, MathHelper.Clamp(Speed * Context.FrameTime, 0, 1));
+            float lx = MathExtension.Lerp(Center.X, Target.X, MathExtension.Clamp(Speed * Context.FrameTime, 0, 1));
+            float ly = MathExtension.Lerp(Center.Y, Target.Y, MathExtension.Clamp(Speed * Context.FrameTime, 0, 1));
 
             Center = new Vector2(lx, ly);
 

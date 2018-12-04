@@ -2,6 +2,8 @@
 
 #region Using
 
+using System.Numerics;
+using Emotion.Engine;
 using Emotion.Primitives;
 
 #endregion
@@ -15,7 +17,7 @@ namespace Emotion.Game.Camera
         /// <summary>
         /// The camera's matrix.
         /// </summary>
-        public Matrix4 ViewMatrix { get; protected set; }
+        public Matrix4x4 ViewMatrix { get; protected set; }
 
         /// <summary>
         /// How zoomed the camera is.
@@ -50,8 +52,9 @@ namespace Emotion.Game.Camera
         protected virtual void UpdateMatrix()
         {
             if (!_updateMatrix) return;
-            ViewMatrix = Matrix4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4.CreateScale(Zoom) * Matrix4.CreateTranslation(Width / 2, Height / 2, Z) *
-                         Matrix4.CreateTranslation(-(int) X, -(int) Y, Z);
+
+            ViewMatrix = Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4x4.CreateScale(Zoom) * Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z) *
+                         Matrix4x4.CreateTranslation(-(int) X, -(int) Y, Z);
             _updateMatrix = false;
         }
     }

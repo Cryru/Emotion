@@ -4,6 +4,7 @@
 
 using System;
 using System.Drawing;
+using System.Numerics;
 using Emotion.Engine.Hosting.Desktop;
 using Emotion.Primitives;
 using Color = Emotion.Primitives.Color;

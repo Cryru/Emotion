@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Emotion.Debug;
 using Emotion.Engine;
-using Soul;
 
 #endregion
 
@@ -159,7 +158,7 @@ namespace Emotion.IO
         /// <returns>The converted path.</returns>
         private string AssetPathToAssetCrossPlatform(string path)
         {
-            return RootDirectory + Path.DirectorySeparatorChar + Utilities.CrossPlatformPath(path);
+            return RootDirectory + Path.DirectorySeparatorChar + Helpers.CrossPlatformPath(path);
         }
 
         #endregion

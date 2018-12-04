@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
     <id>Emotion</id>
     <version>0</version>
@@ -16,11 +16,14 @@
     <releaseNotes>Pre-release debug version.</releaseNotes>
     <copyright>Copyright 2018</copyright>
     <tags>game-engine game engine emotion opengl gles opegles cross-platform game-development linux macos freeimage freetype openal</tags>
+    <dependencies>
+        <dependency id="System.Numerics.Vectors" version="4.5.0" />
+    </dependencies>
   </metadata>
   <files>
-	<file src="bin\Debug-GLES\EmotionCore.dll" target="lib" />
-	<file src="bin\Debug-GLES\EmotionCore.xml" target="lib" />
+	<file src="bin\Debug-GLES\EmotionCore.dll" target="lib\net462" />
+	<file src="bin\Debug-GLES\EmotionCore.xml" target="lib\net462" />
 	<file src="bin\Debug-GLES\**" target="Build" />
 	<file src="Emotion.targets" target="Build" />
-</files>
+  </files>
 </package>

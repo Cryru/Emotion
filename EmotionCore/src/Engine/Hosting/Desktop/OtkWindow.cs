@@ -3,12 +3,13 @@
 #region Using
 
 using System;
+using System.ComponentModel;
 using System.Threading;
 using Emotion.Graphics;
 using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;
-using Vector2 = Emotion.Primitives.Vector2;
+using Vector2 = System.Numerics.Vector2;
 
 #endregion
 
@@ -141,8 +142,9 @@ namespace Emotion.Engine.Hosting.Desktop
             _resizeHook();
         }
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnClosing(CancelEventArgs e)
         {
+            base.OnClosing(e);
             _closeHook();
         }
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
@@ -57,7 +58,7 @@ namespace Emotion.Game.Layering
             // Update layers. The list conversion copies the list, allowing the dictionary to be edited. Do not replace with locks.
             foreach (Layer layer in _layers.Values.ToList())
             {
-                Context.Renderer.MatrixStack.Push(Matrix4.CreateTranslation(0, 0, layer.Priority));
+                Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(0, 0, layer.Priority));
                 layer.Draw(Context.Renderer);
                 Context.Renderer.MatrixStack.Pop();
                 GLThread.CheckError("layer draw");

@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
-using Convert = Soul.Convert;
+
 
 #endregion
 
@@ -464,7 +466,7 @@ namespace Emotion.Game.Text
             foreach (TextEffect e in effects)
             {
                 if (e.Name == "color" && e.Attributes?.Length >= 3)
-                    textColor = new Color(Convert.StringToInt(e.Attributes[0]), Convert.StringToInt(e.Attributes[1]), Convert.StringToInt(e.Attributes[2]));
+                    textColor = new Color(Helpers.StringToInt(e.Attributes[0]), Helpers.StringToInt(e.Attributes[1]), Helpers.StringToInt(e.Attributes[2]));
             }
 
             // Render the glyph.

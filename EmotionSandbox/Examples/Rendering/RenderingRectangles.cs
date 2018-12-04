@@ -2,6 +2,7 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;

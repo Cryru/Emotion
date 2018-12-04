@@ -4,7 +4,9 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using Emotion.Primitives;
+using OpenTK;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -188,7 +190,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="matrix4">The matrix value to set it to.</param>
-        public void SetUniformMatrix4(string name, Matrix4 matrix4)
+        public void SetUniformMatrix4(string name, Matrix4x4 matrix4)
         {
             SetUniformMatrix4(GetUniformLocation(name), matrix4);
             GLThread.CheckError("setting mat4 uniform");
@@ -247,11 +249,11 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="id">The id of the uniform to upload to.</param>
         /// <param name="matrix4">The matrix value to set it to.</param>
-        public static void SetUniformMatrix4(int id, Matrix4 matrix4)
+        public static void SetUniformMatrix4(int id, Matrix4x4 matrix4)
         {
             unsafe
             {
-                float* matrixPtr = &matrix4.Row0.X;
+                float* matrixPtr = &matrix4.M11;
                 GL.UniformMatrix4(id, 1, false, matrixPtr);
             }
         }

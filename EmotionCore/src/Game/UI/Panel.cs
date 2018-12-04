@@ -2,9 +2,11 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
+
 
 #endregion
 
@@ -69,7 +71,8 @@ namespace Emotion.Game.UI
             if (TopLeftCorner != Rectangle.Empty)
                 Context.Renderer.RenderQueue(Vector3.Zero, new Vector2(TopLeftCorner.Width * Scale, TopLeftCorner.Height * Scale), Color.White, PanelTexture, TopLeftCorner);
             if (TopRightCorner != Rectangle.Empty)
-                Context.Renderer.RenderQueue(new Vector3(Width - TopRightCorner.Width * Scale, 0, 0), new Vector2(TopRightCorner.Width * Scale, TopRightCorner.Height * Scale), Color.White, PanelTexture,
+                Context.Renderer.RenderQueue(new Vector3(Width - TopRightCorner.Width * Scale, 0, 0), new Vector2(TopRightCorner.Width * Scale, TopRightCorner.Height * Scale), Color.White,
+                    PanelTexture,
                     TopRightCorner);
             if (BottomRightCorner != Rectangle.Empty)
                 Context.Renderer.RenderQueue(new Vector3(Width - BottomRightCorner.Width * Scale, Height - BottomRightCorner.Height * Scale, 0), new Vector2(BottomRightCorner.Width * Scale,

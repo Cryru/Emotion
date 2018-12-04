@@ -2,9 +2,8 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
-using Emotion.Primitives;
-using Soul;
 
 #endregion
 
@@ -48,8 +47,8 @@ namespace Emotion.Game.Camera
             Vector2 mouseLocation = Context.Renderer.ScreenToWorld(Context.InputManager.GetMousePosition());
 
             // Smooth between the mouse location and the target.
-            float lx = MathHelper.Lerp(Target.Center.X, mouseLocation.X, MathHelper.Clamp(Speed * Context.FrameTime, 0, CameraMaxDistance));
-            float ly = MathHelper.Lerp(Target.Center.Y, mouseLocation.Y, MathHelper.Clamp(Speed * Context.FrameTime, 0, CameraMaxDistance));
+            float lx = MathExtension.Lerp(Target.Center.X, mouseLocation.X, MathExtension.Clamp(Speed * Context.FrameTime, 0, CameraMaxDistance));
+            float ly = MathExtension.Lerp(Target.Center.Y, mouseLocation.Y, MathExtension.Clamp(Speed * Context.FrameTime, 0, CameraMaxDistance));
 
             Center = new Vector2(lx, ly);
 

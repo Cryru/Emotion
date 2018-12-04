@@ -3,7 +3,8 @@
 namespace Emotion.Graphics.Text
 {
     /// <summary>
-    /// A glyph is a single reference to a part of a font atlas and holds information pertaining to the layout of the character it represents.
+    /// A glyph is a single reference to a part of a font atlas and holds information pertaining to the layout of the character
+    /// it represents.
     /// </summary>
     public struct Glyph
     {
@@ -42,19 +43,21 @@ namespace Emotion.Graphics.Text
         public float YOffset { get; set; }
 
         // Metrics
-        
+
         /// <summary>
         /// The distance to increment the pen position when the glyph is drawn as part of a string of text.
         /// </summary>
         public float Advance { get; set; }
 
         /// <summary>
-        /// This is the vertical distance from the current cursor position (on the baseline) to the topmost border of the glyph image's bounding box, minus the ascend of the font.
+        /// This is the vertical distance from the current cursor position (on the baseline) to the topmost border of the glyph
+        /// image's bounding box, minus the ascend of the font.
         /// </summary>
         public float YBearing { get; set; }
 
         /// <summary>
-        /// Horizontal Bearing X. This is the horizontal distance from the current cursor position to the leftmost border of the glyph image's bounding box.
+        /// Horizontal Bearing X. This is the horizontal distance from the current cursor position to the leftmost border of the
+        /// glyph image's bounding box.
         /// </summary>
         public float MinX { get; set; }
 

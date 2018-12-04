@@ -2,6 +2,7 @@
 Set-Variable -Name files -Value (Get-ChildItem -Path ./bin/Debug-GLES -Recurse -File -Exclude "EmotionCore.dll")
 
 [string[]] $result = @()
+[string[]] $exceptions = @("System.Numerics.Vectors.dll", "System.Numerics.Vectors.xml", "OpenTK.xml")
 
 # Add header.
 $result += "<?xml version=`"1.0`" encoding=`"utf-8`"?>"
@@ -9,15 +10,18 @@ $result += "<Project ToolsVersion=`"4.0`" xmlns=`"http://schemas.microsoft.com/d
 $result += "	<ItemGroup>"
 
 # Go through all files.
-Foreach($file in $files)
-{
- # Get the relative path of the file.
- $currentFilePath = (Resolve-Path -Path ($file).PSPath -Relative).Replace(".\", "").Replace("bin\Debug-GLES\", "")
- $targetsItem = "		<None Include=`"`$(MSBuildThisFileDirectory)" + $currentFilePath + "`">
+Foreach ($file in $files) {
+    # Get the relative path of the file.
+    $currentFilePath = (Resolve-Path -Path ($file).PSPath -Relative).Replace(".\", "").Replace("bin\Debug-GLES\", "")
+
+    # Check if exception.
+    if ($exceptions.Contains($currentFilePath)) {continue}
+
+    $targetsItem = "		<None Include=`"`$(MSBuildThisFileDirectory)" + $currentFilePath + "`">
 			<Link>" + $currentFilePath + "</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>";
- $result += $targetsItem
+    $result += $targetsItem
 }
 
 $result += "	</ItemGroup>"

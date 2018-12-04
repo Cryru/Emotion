@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Emotion.Primitives;
 
 #endregion
@@ -15,17 +16,17 @@ namespace Emotion.Graphics
         /// <summary>
         /// Returns the top matrix.
         /// </summary>
-        public Matrix4 CurrentMatrix
+        public Matrix4x4 CurrentMatrix
         {
             get => _stack.Peek();
         }
 
-        private Stack<Matrix4> _stack;
+        private Stack<Matrix4x4> _stack;
 
         internal TransformationStack()
         {
-            _stack = new Stack<Matrix4>();
-            Push(Matrix4.Identity, false);
+            _stack = new Stack<Matrix4x4>();
+            Push(Matrix4x4.Identity, false);
         }
 
         #region API
@@ -35,7 +36,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="matrix">The matrix to add.</param>
         /// <param name="multiply">Whether to multiply the new matrix by the previous matrix.</param>
-        public void Push(Matrix4 matrix, bool multiply = true)
+        public void Push(Matrix4x4 matrix, bool multiply = true)
         {
             if (multiply)
                 _stack.Push(CurrentMatrix * matrix);

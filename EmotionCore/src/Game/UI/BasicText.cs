@@ -2,8 +2,8 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
-using Emotion.Graphics;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 

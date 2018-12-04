@@ -2,6 +2,7 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
@@ -44,7 +45,7 @@ namespace EmotionSandbox.Examples.Rendering
                 for (int i = 0; i < Renderer.MaxRenderable; i++)
                 {
                     // Add objects one after another of a random color.
-                    Color randomColor = new Color(Utilities.GenerateRandomNumber(0, 255), Utilities.GenerateRandomNumber(0, 255), Utilities.GenerateRandomNumber(0, 255));
+                    Color randomColor = new Color(Helpers.GenerateRandomNumber(0, 255), Helpers.GenerateRandomNumber(0, 255), Helpers.GenerateRandomNumber(0, 255));
                     _buffer.MapNextQuad(new Vector3(x * size, y * size, 1), new Vector2(size, size), randomColor);
 
                     x++;
@@ -69,7 +70,7 @@ namespace EmotionSandbox.Examples.Rendering
             renderer.Render(_buffer);
 
             // You can also pass a model matrix to modify the buffer, applying the change to all vertices mapped into it at once.
-            renderer.Render(_buffer, Matrix4.CreateScale(0.25f, 0.25f, 1) * Matrix4.CreateTranslation(400, 400, 1));
+            renderer.Render(_buffer, Matrix4x4.CreateScale(0.25f, 0.25f, 1) * Matrix4x4.CreateTranslation(400, 400, 1));
         }
 
         public override void Unload()

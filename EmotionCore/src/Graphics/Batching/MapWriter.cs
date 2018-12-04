@@ -3,7 +3,9 @@
 #region Using
 
 using System;
+using System.Numerics;
 using Emotion.Primitives;
+
 
 #endregion
 
@@ -89,11 +91,11 @@ namespace Emotion.Graphics.Batching
             uint c = color.ToUint();
 
             // Calculate UV positions
-            Vector2 nnUV = texture == null ? Vector2.Zero : Vector2.TransformPosition(uv.Location, texture.TextureMatrix);
-            Vector2 pnUV = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y), texture.TextureMatrix);
-            Vector2 npUV = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
-            Vector2 ppUV = texture == null ? Vector2.Zero : Vector2.TransformPosition(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), texture.TextureMatrix);
-            
+            Vector2 nnUV = texture == null ? Vector2.Zero : Vector2.Transform(uv.Location, texture.TextureMatrix);
+            Vector2 pnUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y), texture.TextureMatrix);
+            Vector2 npUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
+            Vector2 ppUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), texture.TextureMatrix);
+
             // Calculate vert positions.
             Vector3 pnV = new Vector3(location.X + size.X, location.Y, location.Z);
             Vector3 npV = new Vector3(location.X, location.Y + size.Y, location.Z);
@@ -120,13 +122,13 @@ namespace Emotion.Graphics.Batching
         /// <param name="pointTwo">The size of the second point.</param>
         /// <param name="color">The color of the vertices.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public static void MapNextLine(this MapBuffer buffer, Vector3 pointOne, Vector3 pointTwo, Color color, int thickness = 1)
+        public static void MapNextLine(this MapBuffer buffer, Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
         {
             // Check if mapping has started.
             if (!buffer.Mapping) buffer.StartMapping();
 
             uint c = color.ToUint();
-            Vector2 normal = new Vector2(pointTwo.Y - pointOne.Y, -(pointTwo.X - pointOne.X)).Normalized() * thickness;
+            Vector2 normal = Vector2.Normalize(new Vector2(pointTwo.Y - pointOne.Y, -(pointTwo.X - pointOne.X))) * thickness;
             float z = Math.Max(pointOne.Z, pointTwo.Z);
 
             buffer.UnsafeMapVertex(c, -1, Vector2.Zero, new Vector3(pointOne.X + normal.X, pointOne.Y + normal.Y, z));

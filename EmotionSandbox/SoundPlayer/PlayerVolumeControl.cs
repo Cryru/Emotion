@@ -4,7 +4,7 @@
 
 using Emotion.Engine;
 using Emotion.Game.UI;
-using Emotion.Primitives;
+using System.Numerics;
 
 #endregion
 

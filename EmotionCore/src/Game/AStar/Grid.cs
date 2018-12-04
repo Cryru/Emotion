@@ -3,6 +3,7 @@
 #region Using
 
 using System.Linq;
+using System.Numerics;
 using Emotion.Game.Tiled;
 using Emotion.Primitives;
 

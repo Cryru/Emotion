@@ -9,7 +9,6 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Libraries;
 using OpenTK.Audio.OpenAL;
-using Soul;
 
 #endregion
 
@@ -319,7 +318,7 @@ namespace Emotion.Sound
 
                 _forceFadeOut = true;
                 _forceFadeOutStartDuration = PlaybackLocation;
-                _forceFadeOutLength = MathHelper.Clamp(FadeOutLength, FadeOutLength, timeLeft);
+                _forceFadeOutLength = MathExtension.Clamp(FadeOutLength, FadeOutLength, timeLeft);
                 _forceFadeOutEndEvent = action;
             }
             else
@@ -450,7 +449,7 @@ namespace Emotion.Sound
             ALThread.CheckError($"before updating of volume of source {_pointer}");
 
             float systemVolume = Context.Settings.Sound ? Context.Settings.Volume / 100f : 0f;
-            float scaled = MathHelper.Clamp(Volume * systemVolume, 0, 10);
+            float scaled = MathExtension.Clamp(Volume * systemVolume, 0, 10);
 
             // Perform fading if anything is playing and not muted.
             if (CurrentlyPlayingFile != null && scaled != 0f)
@@ -459,7 +458,7 @@ namespace Emotion.Sound
 
                 // Check if fading in.
                 if (PlaybackLocation < FadeInLength && _isFirst)
-                    scaled = MathHelper.Lerp(0, scaled, PlaybackLocation / FadeInLength);
+                    scaled = MathExtension.Lerp(0, scaled, PlaybackLocation / FadeInLength);
                 else if (PlaybackLocation > FadeInLength && _isFirst && FadeInFirstLoopOnly)
                     _isFirst = false;
 
@@ -467,12 +466,12 @@ namespace Emotion.Sound
                 if (_forceFadeOut)
                 {
                     float timeLeftForce = PlaybackLocation - _forceFadeOutStartDuration;
-                    if (timeLeftForce != 0) scaled = MathHelper.Lerp(scaled, 0, timeLeftForce / _forceFadeOutLength);
+                    if (timeLeftForce != 0) scaled = MathExtension.Lerp(scaled, 0, timeLeftForce / _forceFadeOutLength);
                 }
                 // Check if performing a natural fading out. Fade out only the last buffer.
                 else if (timeLeft < FadeOutLength && last && !SkipNaturalFadeOut)
                 {
-                    scaled = MathHelper.Lerp(0, scaled, timeLeft / FadeOutLength);
+                    scaled = MathExtension.Lerp(0, scaled, timeLeft / FadeOutLength);
                 }
             }
             // Set volume to 0 when not playing.

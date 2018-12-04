@@ -3,8 +3,11 @@
 #region Using
 
 using System;
-using Emotion.Primitives;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using Emotion.Engine;
 using OpenTK.Graphics.ES30;
+
 
 #endregion
 
@@ -149,7 +152,7 @@ namespace Emotion.Graphics.Objects
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector3.SizeInBytes, data, usageHint);
+                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Helpers.Vector3SizeInBytes, data, usageHint);
             });
         }
 
@@ -167,7 +170,7 @@ namespace Emotion.Graphics.Objects
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector2.SizeInBytes, data, usageHint);
+                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Helpers.Vector2SizeInBytes, data, usageHint);
             });
         }
 

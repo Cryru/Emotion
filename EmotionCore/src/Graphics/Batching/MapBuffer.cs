@@ -4,13 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics.Objects;
-using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
+
 
 #endregion
 
@@ -19,7 +20,7 @@ namespace Emotion.Graphics.Batching
     /// <summary>
     /// A buffer which supports mapping to.
     /// </summary>
-    public abstract unsafe class MapBuffer : Buffer, IRenderable
+    public unsafe class MapBuffer : Buffer, IRenderable
     {
         #region Properties
 

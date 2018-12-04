@@ -2,6 +2,8 @@
 
 #region Using
 
+using System;
+using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Engine;
 using Emotion.Game.Layering;
@@ -42,11 +44,11 @@ namespace EmotionSandbox.Examples.Generic
             float logoCenterX = Context.Settings.RenderWidth / 2 - size / 4;
             float logoCenterY = Context.Settings.RenderHeight / 2 - size / 4;
 
-            Matrix4 rotationMatrix =
-                Matrix4.CreateTranslation(size / 2, size / 2, 0).Inverted() *
-                Matrix4.CreateRotationZ(Convert.DegreesToRadians((int) _deg)) *
-                Matrix4.CreateTranslation(size / 2, size / 2, 0) *
-                Matrix4.CreateTranslation(centerX, centerY, 0);
+            Matrix4x4 rotationMatrix =
+                Matrix4x4.CreateTranslation(size / 2, size / 2, 0).Inverted() *
+                Matrix4x4.CreateRotationZ(Helpers.DegreesToRadians((int) _deg)) *
+                Matrix4x4.CreateTranslation(size / 2, size / 2, 0) *
+                Matrix4x4.CreateTranslation(centerX, centerY, 0);
 
             renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, new Color("#35383d"));
 

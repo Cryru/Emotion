@@ -3,6 +3,7 @@
 #region Using
 
 using System.IO;
+using System.Numerics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -25,7 +26,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The texture matrix used to convert UVs.
         /// </summary>
-        public Matrix4 TextureMatrix { get; protected set; }
+        public Matrix4x4 TextureMatrix { get; protected set; }
 
         /// <summary>
         /// The OpenGL pointer of this texture.
@@ -63,12 +64,12 @@ namespace Emotion.Graphics
         /// <param name="componentCount">The texture's component count.</param>
         /// <param name="format">The format of the bytes.</param>
         /// <param name="textureMatrix">An additional matrix to multiply the texture matrix by.</param>
-        public Texture(byte[] data, int width, int height, TextureComponentCount componentCount, PixelFormat format, Matrix4? textureMatrix = null)
+        public Texture(byte[] data, int width, int height, TextureComponentCount componentCount, PixelFormat format, Matrix4x4? textureMatrix = null)
         {
             Name = "Custom Texture";
             Size = new Vector2(width, height);
-            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
-            if (textureMatrix != null) TextureMatrix *= (Matrix4) textureMatrix;
+            TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
+            if (textureMatrix != null) TextureMatrix *= (Matrix4x4) textureMatrix;
             CreateFromBytes(data, componentCount, format);
         }
 
@@ -84,7 +85,7 @@ namespace Emotion.Graphics
         {
             Name = "Atlas Texture " + atlasTextureName;
             Size = new Vector2(width, height);
-            TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4.CreateScale(1, -1, 1);
+            TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4x4.CreateScale(1, -1, 1);
             CreateForGlyph(data);
         }
 
@@ -154,7 +155,7 @@ namespace Emotion.Graphics
             GLThread.ExecuteGLThread(() =>
             {
                 Pointer = GL.GenTexture();
-                TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
+                TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
 
                 // Bind the texture.
                 Bind(0);

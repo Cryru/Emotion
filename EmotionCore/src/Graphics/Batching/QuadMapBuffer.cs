@@ -3,7 +3,6 @@
 #region Using
 
 using Emotion.Graphics.Objects;
-using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -13,7 +12,7 @@ namespace Emotion.Graphics.Batching
     /// <summary>
     /// A map buffer optimized for drawing quads.
     /// </summary>
-    public sealed unsafe class QuadMapBuffer : MapBuffer
+    public sealed class QuadMapBuffer : MapBuffer
     {
         #region Properties
 

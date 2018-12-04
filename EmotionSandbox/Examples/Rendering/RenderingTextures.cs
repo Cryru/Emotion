@@ -2,6 +2,7 @@
 
 #region Using
 
+using System.Numerics;
 using Emotion.Engine;
 using Emotion.Game.Layering;
 using Emotion.Graphics;
@@ -44,7 +45,7 @@ namespace EmotionSandbox.Examples.Rendering
             if (_randomTimer >= 1000)
             {
                 _randomTimer -= 1000;
-                _random = Utilities.GenerateRandomNumber(1, 3);
+                _random = Helpers.GenerateRandomNumber(1, 3);
             }
         }
 

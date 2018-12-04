@@ -7,6 +7,7 @@
 #region Using
 
 using System;
+using System.Numerics;
 using Emotion.Primitives;
 
 #endregion
