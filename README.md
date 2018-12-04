@@ -11,65 +11,28 @@ Deployment: [![release artifact](https://img.shields.io/badge/Download-%20Releas
 
 Emotion is a cross-platform game engine written in C#, with the intent of removing overhead and providing abstraction without sacrificing control. The idea is, to make game development about game development and not about engine or low-level backend development, but allowing those who want to do that with the option to do so. The goal is to save time, and provide indie developers (and mostly myself) with a foundation.
 
-## Platforms Tested On:
-
-- Windows 10 x64/x86 (Last Test On: Build 193) Nov 27th
-  - Intel HD Graphics 620
-  - Nvidia 940MX
-  - AMD R9 200
-- Ubuntu Xenial-Xerus x64 (Last Commit Tested On: 5e7bea38bb197f85376d43e164f41ce7a6a5c341) Nov 6th
-- MacOS High-Sierra x64 (Last Test On: Build 193) Nov 27th
-
-## Supported Platforms:
-
-- Windows Vista/7/8/8.1/10 x64/x86
-- Debian 9+ x64
-- MacOS High-Sierra+ x64
-- Android 5.0+ (Planned)
-
-For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
-
-### Building Notes:
-
-- On Linux build without a machine config, and make sure the .exe **doesn't** carry a config specifying the runtime.
-
-## Requirements:
-
-- OpenGL Support Options
-  - ES 3 on Anything
-  - 3.3 Core on MacOS
-  - 3.0 Core on Windows or Linux
-- GLSL Support Options
-  - 300 es support on Windows or Linux
-  - 300 support on MacOS
-- Dynamically Uniform Expression Support Options
-  - The "GL_ARB_gpu_shader5" extension
-  - GLSL 400 on Windows or Linux
-
-#### Linux
-
-Most installations should include the proper libraries to run the engine, but some repos I've tested have some missing ones. Here is a list of ones I've found missing which the engine depends on:
-
-- libjxr0 (https://packages.debian.org/sid/libjxr0)
-
-- libopenjp2-7 (https://packages.debian.org/stretch/libopenjp2-7)
-
 ## Features So Far
 
 - Window creation.
+- SIMD vector and matrix math.
 - Mouse and keyboard input.
   - Captured only while the window has focus preventing rogue clicks.
 - Asset loading and management.
   - Textures: All FreeImage supported formats. ex. BMP/PNG/JPEG/GIF
-  - Fonts: All FreeType supported formats. ex. TTF
+  - Fonts: All FreeType supported formats. ex. TTF/OTF
   - Sounds: RIFF WAV
+  - Text Files
+  - Binaries
 - Camera system.
   - Default cameras include one which follows the mouse and one which follows a target transform.
 - Rendering
-  - Primitives like lines and rectangles.
+  - Drawing of things like lines, rectangles, triangles, and circles.
+    - These are all drawn as triangles, no GL_LINES here, monsieur!
+    - Super fast rendering of many objects at once through the magic of MapBuffers.
   - Transformation matrix.
   - Batching and buffer mapping.
-  - Square textures.
+  - Textures and alpha.
+  - Spritesheet based animation.
   - Text.
     - Includes advanced font drawing with control over each individual glyph.
     - Richtext featuring auto wrapping, alignment, markup, and more.
@@ -78,6 +41,7 @@ Most installations should include the proper libraries to run the engine, but so
 - UI system.
   - Customize base controls through inheritance or use them straight away.
   - Layouting and anchoring.
+  - Parenting system.
 - Tiled integration and rendering.
   - Includes layer opacity, multiple tilesets, animated tiles, and more.
 - An implementation of A*.
@@ -86,13 +50,55 @@ Most installations should include the proper libraries to run the engine, but so
 - Logging and graphical debugging.
 - Scenes in the form of layers. Have your UI, pause menu, levels, or anything on separate scenes.
 
-## How to use it?
+## How to develop for it?
 
-1. Download a release packet from the GitHub releases page, or compile the engine yourself.
-2. Create a C# project, reference EmotionCore.dll, and setup the library files to copy on compilation. You will need them in the same folder as your executable.
-3. Write a game.
+1. Go on Nuget and add the "Emotion" package to your project.
+2. Write a game.
+3. Before releasing, download the release packet and use that instead of the nuget package.
 
-For examples you can refer to the [EmotionSandbox](EmotionSandbox) project.
+For examples you can refer to the [EmotionSandbox](EmotionSandbox) project. Detailed documentation is a work in progress.
+
+## Platforms
+
+### Platforms Tested On:
+
+- Windows 10 x64/x86 (Last Test On: Build 210) Dec 4th
+  - Intel HD Graphics 620
+  - Nvidia 940MX
+  - AMD R9 200
+- Ubuntu Xenial-Xerus x64 (Last Commit Tested On: 5e7bea38bb197f85376d43e164f41ce7a6a5c341) Nov 6th
+- MacOS High-Sierra x64 (Last Test On: Build 210) Dec 4th
+
+### Theoretically Supported Platforms:
+
+- Windows Vista/7/8/8.1/10 x64/x86
+- Debian 9+ x64
+- MacOS High-Sierra+ x64
+
+### Planned Platforms:
+
+- Android 5.0+
+
+## Building:
+
+Just clone and build. Everything is included.
+
+For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
+
+On Linux build without a machine config, and make sure the .exe **doesn't** carry a config specifying the runtime.
+
+## Requirements:
+
+- OpenGL Support
+  - OpenGL ES 3
+  - 3.3 Core on MacOS
+  - 3.0 Core on Windows or Linux
+- GLSL Support Options
+  - 300 es support on Windows or Linux
+  - 300 support on MacOS
+- Dynamically Uniform Expression Support Options
+  - The "GL_ARB_gpu_shader5" extension
+  - GLSL 400 on Windows or Linux
 
 ## Projects Used
 
@@ -116,10 +122,19 @@ TiledSharp [Modified] : Loading .tmx Tiled files.
 
 Jint : Javascript script engine.
 
-Soul : Logging.
+System.Numerics : Vector and matrix math.
+
+### Linux
+
+Most installations should include the proper libraries to run the engine, but some repos I've tested have some missing ones. Here is a list of ones I've found missing which the engine depends on:
+
+- libjxr0 (https://packages.debian.org/sid/libjxr0)
+
+- libopenjp2-7 (https://packages.debian.org/stretch/libopenjp2-7)
 
 ## Inspired By
 
 - Processing
 - MonoGame
 - LOVE Framework
+- Sparky
