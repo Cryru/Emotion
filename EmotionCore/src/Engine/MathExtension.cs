@@ -35,5 +35,60 @@ namespace Emotion.Engine
         {
             return a + (b - a) * blend;
         }
+
+        /// <summary>
+        /// Performs a Hermite spline interpolation using the specified floats.
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="tangent1"></param>
+        /// <param name="value2"></param>
+        /// <param name="tangent2"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public static float Hermite(float value1, float tangent1, float value2, float tangent2, float amount)
+        {
+            // All transformed to double not to lose precision
+            // Otherwise, for high numbers of param:amount the result is NaN instead of Infinity
+            double v1 = value1, v2 = value2, t1 = tangent1, t2 = tangent2, s = amount, result;
+            double sCubed = s * s * s;
+            double sSquared = s * s;
+
+            switch (amount)
+            {
+                case 0f:
+                    result = value1;
+                    break;
+                case 1f:
+                    result = value2;
+                    break;
+                default:
+                    result = (2 * v1 - 2 * v2 + t2 + t1) * sCubed +
+                             (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared +
+                             t1 * s +
+                             v1;
+                    break;
+            }
+
+            return (float) result;
+        }
+
+        /// <summary>
+        /// Smoothly interpolates between two values.
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="value2"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public static float SmoothStep(float value1, float value2, float amount)
+        {
+            // It is expected that 0 < amount < 1
+            // If amount < 0, return value1
+            // If amount > 1, return value2
+
+            float result = Clamp(amount, 0f, 1f);
+            result = Hermite(value1, 0f, value2, 0f, result);
+
+            return result;
+        }
     }
 }
