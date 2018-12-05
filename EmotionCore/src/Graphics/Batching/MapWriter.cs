@@ -6,7 +6,6 @@ using System;
 using System.Numerics;
 using Emotion.Primitives;
 
-
 #endregion
 
 namespace Emotion.Graphics.Batching

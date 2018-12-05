@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Emotion - https://github.com/Cryru/Emotion
 
 namespace Emotion.Engine.Configuration
 {

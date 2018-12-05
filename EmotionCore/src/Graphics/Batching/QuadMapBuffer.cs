@@ -2,7 +2,6 @@
 
 #region Using
 
-using Emotion.Graphics.Objects;
 using OpenTK.Graphics.ES30;
 
 #endregion

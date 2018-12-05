@@ -3,8 +3,6 @@
 #region Using
 
 using System;
-using System.Drawing;
-using Emotion.Engine.Hosting.Desktop;
 
 #endregion
 

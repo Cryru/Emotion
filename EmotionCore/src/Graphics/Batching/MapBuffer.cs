@@ -12,7 +12,6 @@ using Emotion.Graphics.Objects;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
 
-
 #endregion
 
 namespace Emotion.Graphics.Batching
@@ -164,7 +163,6 @@ namespace Emotion.Graphics.Batching
         /// <param name="size">The size of the map buffer in objects.</param>
         public MapBuffer(int size) : this(size, 3, null, 3, PrimitiveType.Triangles)
         {
-
         }
 
         /// <summary>

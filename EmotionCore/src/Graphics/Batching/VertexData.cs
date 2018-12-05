@@ -5,7 +5,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-
 #endregion
 
 namespace Emotion.Graphics.Batching

@@ -1,7 +1,5 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-using System.Numerics;
-
 namespace Emotion.Engine
 {
     /// <summary>

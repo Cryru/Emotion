@@ -7,7 +7,6 @@ using System.Numerics;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Engine.Hosting.Desktop;
-using Emotion.Primitives;
 using OpenTK.Input;
 
 #endregion

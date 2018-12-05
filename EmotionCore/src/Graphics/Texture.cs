@@ -6,7 +6,6 @@ using System.IO;
 using System.Numerics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
-using Emotion.Primitives;
 using FreeImageAPI;
 using OpenTK.Graphics.ES30;
 

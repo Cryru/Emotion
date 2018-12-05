@@ -6,7 +6,6 @@ using System.Numerics;
 using Emotion.Engine;
 using Emotion.Primitives;
 
-
 #endregion
 
 namespace Emotion.Game.UI

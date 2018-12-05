@@ -12,7 +12,6 @@ using Emotion.Graphics.Batching;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 
-
 #endregion
 
 namespace Emotion.Game.Text

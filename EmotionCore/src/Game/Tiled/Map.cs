@@ -12,7 +12,6 @@ using Emotion.IO;
 using Emotion.Primitives;
 using TiledSharp;
 
-
 #endregion
 
 namespace Emotion.Game.Tiled

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics;
-using Emotion.Primitives;
 
 #endregion
 

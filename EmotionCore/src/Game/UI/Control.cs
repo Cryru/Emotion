@@ -8,7 +8,6 @@ using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.Primitives;
 
-
 #endregion
 
 namespace Emotion.Game.UI

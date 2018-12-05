@@ -6,7 +6,6 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using Emotion.Engine.Configuration;
-using Emotion.Graphics;
 using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;

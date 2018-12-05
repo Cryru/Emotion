@@ -5,7 +5,6 @@
 using System;
 using System.Numerics;
 using Emotion.Engine.Configuration;
-using Emotion.Primitives;
 using OpenTK.Input;
 
 #endregion

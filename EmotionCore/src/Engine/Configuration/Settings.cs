@@ -2,12 +2,6 @@
 
 #region Using
 
-using System;
-using System.Drawing;
-using System.Numerics;
-using Emotion.Engine.Hosting.Desktop;
-using Color = Emotion.Primitives.Color;
-
 #endregion
 
 namespace Emotion.Engine.Configuration

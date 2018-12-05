@@ -4,10 +4,8 @@
 
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Emotion.Engine;
 using OpenTK.Graphics.ES30;
-
 
 #endregion
 

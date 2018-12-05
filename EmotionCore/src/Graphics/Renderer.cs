@@ -20,7 +20,6 @@ using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
 using Debugger = Emotion.Debug.Debugger;
 
-
 #endregion
 
 namespace Emotion.Graphics
@@ -187,7 +186,10 @@ namespace Emotion.Graphics
                 (Func<string>) (() =>
                 {
                     _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height)) {Zoom = Camera.Zoom / 2f}
+                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
+                        {
+                            Zoom = Camera.Zoom / 2f
+                        }
                         : null;
                     _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
@@ -327,7 +329,8 @@ namespace Emotion.Graphics
             if (full)
             {
                 SetModelMatrix();
-                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
+                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix",
+                    Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
             }
 
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4x4.Identity);

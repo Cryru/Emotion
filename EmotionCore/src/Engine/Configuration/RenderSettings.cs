@@ -2,10 +2,8 @@
 
 #region Using
 
-using System.Drawing;
 using System.Numerics;
-using Emotion.Engine.Hosting.Desktop;
-using Color = Emotion.Primitives.Color;
+using Emotion.Primitives;
 
 #endregion
 

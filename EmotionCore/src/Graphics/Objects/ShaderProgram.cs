@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Numerics;
 using Emotion.Primitives;
-using OpenTK;
 using OpenTK.Graphics.ES30;
 
 #endregion

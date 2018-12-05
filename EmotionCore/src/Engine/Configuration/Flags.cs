@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Emotion - https://github.com/Cryru/Emotion
 
 namespace Emotion.Engine.Configuration
 {
@@ -20,7 +16,7 @@ namespace Emotion.Engine.Configuration
         /// Flags related to the RichText class.
         /// </summary>
         public RichTextFlags RichTextFlags { get; } = new RichTextFlags();
-        
+
         /// <summary>
         /// The root directory in which assets are located, relative to the execution directory.
         /// </summary>

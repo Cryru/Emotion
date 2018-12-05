@@ -10,7 +10,6 @@ using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
-
 #endregion
 
 namespace Emotion.Game.UI

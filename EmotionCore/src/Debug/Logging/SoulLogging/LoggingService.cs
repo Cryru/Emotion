@@ -1,4 +1,4 @@
-﻿// Soul - https://github.com/Cryru/Soul
+﻿// Emotion - https://github.com/Cryru/Emotion
 
 #region Using
 
