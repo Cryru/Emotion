@@ -69,20 +69,6 @@ namespace Emotion.Game.Text
 
         #endregion
 
-        #region Configuration
-
-        /// <summary>
-        /// Characters not to render.
-        /// </summary>
-        public static char[] CharactersToNotRender = {'\n'};
-
-        /// <summary>
-        /// The character to separate a tag from its attributes.
-        /// </summary>
-        public static char TagAttributeSeparator = '-';
-
-        #endregion
-
         #region State
 
         #region Objects
@@ -238,7 +224,7 @@ namespace Emotion.Game.Text
             else
             {
                 string[] tagDataSplit = tag.Split('=');
-                string[] attributes = tagDataSplit.Length > 1 ? tagDataSplit[1].Split(TagAttributeSeparator) : null;
+                string[] attributes = tagDataSplit.Length > 1 ? tagDataSplit[1].Split(Context.Flags.RichTextFlags.TagAttributeSeparator) : null;
 
                 parsedEffects.Add(new TextEffect
                 {
@@ -541,7 +527,7 @@ namespace Emotion.Game.Text
         protected void AddGlyph(char c, Color color, float xOffset, float yOffset = 0)
         {
             // Check if rendering a character we don't want visible, in which case we replace it with a space.
-            if (CharactersToNotRender.Contains(c)) c = ' ';
+            if (Context.Flags.RichTextFlags.CharactersToNotRender.Contains(c)) c = ' ';
 
             // Get atlas, glyph, and kerning.
             Glyph glyph = FontAtlas.Glyphs[c];

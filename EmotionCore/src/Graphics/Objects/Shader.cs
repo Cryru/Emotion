@@ -48,7 +48,7 @@ namespace Emotion.Graphics.Objects
             }
 
             // Fix for missing GL_ARB_gpu_shader5.
-            if ((CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux) && Renderer.Shader5ExtensionMissing)
+            if ((CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux) && Context.Flags.RenderFlags.Shader5ExtensionMissing)
             {
                 source = source.Replace("#version 300 es", "#version 400");
                 Context.Log.Warning("Shader version changed from '300 es` to 400' because the Shader5 extension is missing.", MessageSource.GL);

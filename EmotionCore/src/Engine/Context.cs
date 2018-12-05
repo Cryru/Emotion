@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Debug.Logging;
+using Emotion.Engine.Configuration;
 using Emotion.Engine.Hosting;
 using Emotion.Engine.Hosting.Desktop;
 using Emotion.External;
@@ -56,6 +57,11 @@ namespace Emotion.Engine
         /// The settings the context's settings.
         /// </summary>
         public static Settings Settings { get; private set; }
+
+        /// <summary>
+        /// Functionality related engine configuration.
+        /// </summary>
+        public static Flags Flags { get; private set; }
 
         #endregion
 
@@ -114,6 +120,9 @@ namespace Emotion.Engine
             // Check if it was already setup.
             if (IsSetup) throw new Exception("Context is already setup.");
             IsSetup = true;
+
+            // Setup flags.
+            Flags = new Flags();
 
             // Initialize logger first of all.
             if (Log == null) Log = new DefaultLogger();
@@ -180,7 +189,7 @@ namespace Emotion.Engine
                 }
 
             // Apply settings and hook.
-            Host.ApplySettings(Settings);
+            Host.ApplySettings(Settings.HostSettings);
             Host.SetHooks(LoopUpdate, LoopDraw, Resize, Quit);
 
             // Start creating modules.
@@ -397,7 +406,7 @@ namespace Emotion.Engine
         private static void Resize()
         {
             // Calculate borderbox / pillarbox.
-            float targetAspectRatio = Settings.RenderWidth / Settings.RenderHeight;
+            float targetAspectRatio = Settings.RenderSettings.Width / Settings.RenderSettings.Height;
 
             float width = Host.Size.X;
             float height = (int)(width / targetAspectRatio + 0.5f);

@@ -117,6 +117,14 @@
     <Compile Include="src\Debug\Logging\LoggingProvider.cs" />
     <Compile Include="src\Debug\Logging\SoulLogging\ImmediateLoggingService.cs" />
     <Compile Include="src\Debug\Logging\SoulLogging\LoggingService.cs" />
+    <Compile Include="src\Engine\Configuration\Flags.cs" />
+    <Compile Include="src\Engine\Configuration\RenderFlags.cs" />
+    <Compile Include="src\Engine\Configuration\RichTextFlags.cs" />
+    <Compile Include="src\Engine\Configuration\SoundSettings.cs" />
+    <Compile Include="src\Engine\Configuration\Settings.cs" />
+    <Compile Include="src\Engine\Configuration\RenderSettings.cs" />
+    <Compile Include="src\Engine\Configuration\ScriptingSettings.cs" />
+    <Compile Include="src\Engine\Configuration\WindowSettings.cs" />
     <Compile Include="src\Engine\ContinuousAction.cs" />
     <Compile Include="src\Engine\Helpers.cs" />
     <Compile Include="src\Engine\MathExtension.cs" />
@@ -192,7 +200,6 @@
     <Compile Include="src\Game\Camera\TargetCamera.cs" />
     <Compile Include="src\Game\Camera\MouseCamera.cs" />
     <Compile Include="src\Game\Tiled\Map.cs" />
-    <Compile Include="src\Engine\Settings.cs" />
     <Compile Include="src\Game\Tiled\AnimatedTile.cs" />
     <Compile Include="src\Primitives\Color.cs" />
     <Compile Include="src\Primitives\Rectangle.cs" />

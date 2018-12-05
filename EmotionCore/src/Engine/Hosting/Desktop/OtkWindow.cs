@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel;
 using System.Threading;
+using Emotion.Engine.Configuration;
 using Emotion.Graphics;
 using Emotion.Libraries;
 using OpenTK;
@@ -62,7 +63,7 @@ namespace Emotion.Engine.Hosting.Desktop
         }
 
         internal OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
-            GameWindowFlags.Default, DisplayDevice.Default, Renderer.OpenGLMajorVersion, Renderer.OpenGLMinorVersion, _contextMode, null, true)
+            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
         }
@@ -77,9 +78,9 @@ namespace Emotion.Engine.Hosting.Desktop
             _closeHook = onClose;
         }
 
-        public void ApplySettings(Settings settings)
+        public void ApplySettings(HostSettings settings)
         {
-            Title = settings.WindowTitle;
+            Title = settings.Title;
 
             // Apply window mode.
             switch (settings.WindowMode)
@@ -100,11 +101,11 @@ namespace Emotion.Engine.Hosting.Desktop
                 default:
                     WindowBorder = WindowBorder.Fixed;
                     WindowState = WindowState.Normal;
-                    Width = settings.WindowWidth;
-                    Height = settings.WindowHeight;
+                    Width = settings.Width;
+                    Height = settings.Height;
                     if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
-                    X = DisplayDevice.Default.Width / 2 - settings.WindowWidth / 2;
-                    Y = DisplayDevice.Default.Height / 2 - settings.WindowHeight / 2;
+                    X = DisplayDevice.Default.Width / 2 - settings.Width / 2;
+                    Y = DisplayDevice.Default.Height / 2 - settings.Height / 2;
                     break;
             }
 
@@ -114,7 +115,7 @@ namespace Emotion.Engine.Hosting.Desktop
         public new void Run()
         {
             // Run is blocking.
-            Run(Engine.Context.Settings.CapFPS);
+            Run(Engine.Context.Settings.RenderSettings.CapFPS);
         }
 
         #endregion

@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using Emotion.Engine.Configuration;
 using Emotion.Primitives;
 using OpenTK.Input;
 
@@ -30,7 +31,7 @@ namespace Emotion.Engine.Hosting
         /// Applies host settings to the host.
         /// </summary>
         /// <param name="settings"></param>
-        void ApplySettings(Settings settings);
+        void ApplySettings(HostSettings settings);
 
         /// <summary>
         /// Setup function hooks for host functionality.

@@ -72,7 +72,7 @@ namespace EmotionSandbox.SoundPlayer
                         layer.Resume();
                 }
             };
-            centerAnchor.AddChild(_controlButton, new Rectangle(0, Context.Settings.RenderHeight / 2 - 36, 0, 0));
+            centerAnchor.AddChild(_controlButton, new Rectangle(0, Context.Settings.RenderSettings.Height / 2 - 36, 0, 0));
 
             BasicButton loopButton = new BasicButton(Vector3.Zero, new Vector2(36, 36))
             {
@@ -86,17 +86,17 @@ namespace EmotionSandbox.SoundPlayer
                 layer.Looping = !layer.Looping;
                 loopButton.Tint = layer.Looping ? Color.Green : Color.White;
             };
-            centerAnchor.AddChild(loopButton, new Rectangle(-40, Context.Settings.RenderHeight / 2 - 36, 0, 0));
+            centerAnchor.AddChild(loopButton, new Rectangle(-40, Context.Settings.RenderSettings.Height / 2 - 36, 0, 0));
 
-            _soundBar = new ScrollInput(Vector3.Zero, new Vector2(Context.Settings.RenderWidth - 40, 10))
+            _soundBar = new ScrollInput(Vector3.Zero, new Vector2(Context.Settings.RenderSettings.Width - 40, 10))
             {
                 KeepSelectorInside = true,
                 SelectorRatio = 3
             };
-            centerAnchor.AddChild(_soundBar, new Rectangle(0, Context.Settings.RenderHeight / 2 - 10, 0, 0));
+            centerAnchor.AddChild(_soundBar, new Rectangle(0, Context.Settings.RenderSettings.Height / 2 - 10, 0, 0));
 
             _soundBarInfo = new BasicText(Context.AssetLoader.Get<Font>(_defaultFont), 13, "N/A", Color.White, Vector3.Zero);
-            centerAnchor.AddChild(_soundBarInfo, new Rectangle(100, Context.Settings.RenderHeight / 2 - 30, 0, 0));
+            centerAnchor.AddChild(_soundBarInfo, new Rectangle(100, Context.Settings.RenderSettings.Height / 2 - 30, 0, 0));
 
             CornerAnchor cornerAnchor = new CornerAnchor();
             _uiController.Add(cornerAnchor);
@@ -115,7 +115,7 @@ namespace EmotionSandbox.SoundPlayer
                             Context.SoundManager.Play(Context.AssetLoader.Get<SoundFile>(_sounds[iCopy]), "main");
                     }
                 };
-                cornerAnchor.AddChild(addSoundText, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderWidth, 0));
+                cornerAnchor.AddChild(addSoundText, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderSettings.Width, 0));
             }
 
             BasicButton appendButton = new BasicButton(Vector3.Zero, new Vector2(36, 36))
@@ -127,7 +127,7 @@ namespace EmotionSandbox.SoundPlayer
                 _append = !_append;
                 appendButton.Tint = _append ? Color.Green : Color.White;
             };
-            cornerAnchor.AddChild(appendButton, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderWidth, 0));
+            cornerAnchor.AddChild(appendButton, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderSettings.Width, 0));
 
             PlayerVolumeControl volumeControl = new PlayerVolumeControl(Vector3.Zero, new Vector2(100, 20));
             cornerAnchor.AddChild(volumeControl, AnchorLocation.TopRight, new Rectangle(0, 20, 20, 0));
@@ -158,7 +158,7 @@ namespace EmotionSandbox.SoundPlayer
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSettings.Size, Color.CornflowerBlue);
 
             _uiController.Draw();
         }

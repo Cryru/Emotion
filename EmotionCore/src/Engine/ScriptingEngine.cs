@@ -42,7 +42,7 @@ namespace Emotion.Engine
             _interpreter = new Jint.Engine(opts =>
             {
                 // Set scripting timeout.
-                opts.TimeoutInterval(Context.Settings.ScriptTimeout);
+                opts.TimeoutInterval(Context.Settings.ScriptingSettings.Timeout);
 #if DEBUG
                 // Enable scripting debugging.
                 opts.DebugMode();
@@ -92,7 +92,7 @@ namespace Emotion.Engine
             catch (Exception ex)
             {
                 // Check if timeout, and if not throw an exception.
-                if (ex.Message != "The operation has timed out." && Context.Settings.StrictScripts)
+                if (ex.Message != "The operation has timed out." && Context.Settings.ScriptingSettings.StrictScripts)
                     Context.Log.Error($"Scripting error in script: [{script}]", ex, MessageSource.ScriptingEngine);
                 else
                     Context.Log.Warning($"Scripting error in script: [{script}]\n{ex}", MessageSource.ScriptingEngine);

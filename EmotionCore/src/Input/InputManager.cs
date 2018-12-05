@@ -120,8 +120,8 @@ namespace Emotion.Input
             // Check for fullscreen toggling key combo.
             if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
             {
-                Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
-                Context.Host.ApplySettings(Context.Settings);
+                Context.Settings.HostSettings.WindowMode = Context.Settings.HostSettings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
+                Context.Host.ApplySettings(Context.Settings.HostSettings);
             }
 
             // Check for closing combo.
@@ -158,8 +158,8 @@ namespace Emotion.Input
         /// <returns>The position of the mouse cursor within the window.</returns>
         public Vector2 GetMousePosition()
         {
-            float scaleX = Context.Settings.RenderWidth / Context.Host.Size.X;
-            float scaleY = Context.Settings.RenderHeight / Context.Host.Size.Y;
+            float scaleX = Context.Settings.RenderSettings.Width / Context.Host.Size.X;
+            float scaleY = Context.Settings.RenderSettings.Height / Context.Host.Size.Y;
 
             Vector2 mouseLocation = new Vector2(MouseLocation.X * scaleX, MouseLocation.Y * scaleY);
             return mouseLocation;

@@ -14,13 +14,13 @@ namespace EmotionSandbox.SoundPlayer
     {
         public PlayerVolumeControl(Vector3 position, Vector2 size) : base(position, size)
         {
-            Value = Context.Settings.Volume;
+            Value = Context.Settings.SoundSettings.Volume;
         }
 
         protected override void ChangeValueFromClick(Vector2 clickPosition)
         {
             base.ChangeValueFromClick(clickPosition);
-            Context.Settings.Volume = Value;
+            Context.Settings.SoundSettings.Volume = Value;
         }
     }
 }

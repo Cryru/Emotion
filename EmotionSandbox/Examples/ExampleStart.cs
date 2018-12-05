@@ -60,7 +60,7 @@ namespace EmotionSandbox.Examples
                         Context.LayerManager.Add((Layer) Activator.CreateInstance(_scenes[iCopy]), _scenes[iCopy].ToString(), 1);
                     }
                 };
-                cornerAnchor.AddChild(addSceneLabel, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderWidth, 0));
+                cornerAnchor.AddChild(addSceneLabel, AnchorLocation.TopLeft, new Rectangle(0, 0, Context.Settings.RenderSettings.Width, 0));
             }
         }
 

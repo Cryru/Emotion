@@ -76,7 +76,7 @@ namespace EmotionSandbox.Examples.Systems
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSettings.Size, Color.CornflowerBlue);
 
             // Draw the controller.
             _uiController.Draw();

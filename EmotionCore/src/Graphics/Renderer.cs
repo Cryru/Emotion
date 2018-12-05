@@ -57,36 +57,15 @@ namespace Emotion.Graphics
 
         #endregion
 
-        #region Flags
-
-        /// <summary>
-        /// The major version of the OpenGL context.
-        /// </summary>
-        public static int OpenGLMajorVersion { get; private set; } = 3;
-
-        /// <summary>
-        /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
-        /// </summary>
-        public static int OpenGLMinorVersion { get; private set; }
-
-        /// <summary>
-        /// Whether the "gl_arb_gpu_shader5" OpenGL extension is missing. In which case the shaders must be patched.
-        /// </summary>
-        public static bool Shader5ExtensionMissing { get; private set; }
-
-        /// <summary>
-        /// How detailed drawn circles should be.
-        /// </summary>
-        public static int CircleDetail = 30;
-
-        #endregion
-
         #region Initialization
 
         static Renderer()
         {
+            // Check for minimum version.
+            if (Context.Flags.RenderFlags.OpenGLMajorVersion < 3) Context.Log.Error("Minimum OpenGL major version is 3.", MessageSource.Renderer);
+
             // Macs prefer 3.3 contexts. But the Linux I test on hates it.
-            if (CurrentPlatform.OS == PlatformName.Mac) OpenGLMinorVersion = 3;
+            if (CurrentPlatform.OS == PlatformName.Mac && Context.Flags.RenderFlags.OpenGLMajorVersion == 3) Context.Flags.RenderFlags.OpenGLMinorVersion = 3;
         }
 
         internal Renderer()
@@ -107,7 +86,7 @@ namespace Emotion.Graphics
             defaultProgram.Bind();
 
             // Create objects.
-            Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight));
+            Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height));
             MatrixStack = new TransformationStack();
 
             // Setup main map buffer.
@@ -139,11 +118,9 @@ namespace Emotion.Graphics
                 break;
             }
 
-            if (!found)
-            {
-                Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found.", MessageSource.GL);
-                Shader5ExtensionMissing = true;
-            }
+            if (found) return;
+            Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found.", MessageSource.GL);
+            Context.Flags.RenderFlags.Shader5ExtensionMissing = true;
         }
 
         /// <summary>
@@ -165,7 +142,7 @@ namespace Emotion.Graphics
                 if (new Regex("gl_arb_gpu_shader5").IsMatch(ex.ToString().ToLower()))
                 {
                     Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was found, but is not supported.", MessageSource.GL);
-                    Shader5ExtensionMissing = true;
+                    Context.Flags.RenderFlags.Shader5ExtensionMissing = true;
 
                     // Cleanup erred ones if any.
                     ShaderProgram.DefaultVertShader?.Destroy();
@@ -210,7 +187,7 @@ namespace Emotion.Graphics
                 (Func<string>) (() =>
                 {
                     _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight)) {Zoom = Camera.Zoom / 2f}
+                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height)) {Zoom = Camera.Zoom / 2f}
                         : null;
                     _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
@@ -350,7 +327,7 @@ namespace Emotion.Graphics
             if (full)
             {
                 SetModelMatrix();
-                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderWidth, Context.Settings.RenderHeight, 0, -100, 100));
+                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
             }
 
             ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4x4.Identity);
@@ -503,9 +480,9 @@ namespace Emotion.Graphics
             float pY = 0;
 
             // Generate points.
-            for (uint i = 0; i < CircleDetail; i++)
+            for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float) (i * 2 * Math.PI / CircleDetail - Math.PI / 2);
+                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
                 float x = (float) Math.Cos(angle) * radius;
                 float y = (float) Math.Sin(angle) * radius;
 
@@ -515,7 +492,7 @@ namespace Emotion.Graphics
                     fX = x;
                     fY = y;
                 }
-                else if (i == CircleDetail - 1)
+                else if (i == Context.Flags.RenderFlags.CircleDetail - 1)
                 {
                     RenderQueueLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
                     RenderQueueLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);

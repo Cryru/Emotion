@@ -448,7 +448,7 @@ namespace Emotion.Sound
         {
             ALThread.CheckError($"before updating of volume of source {_pointer}");
 
-            float systemVolume = Context.Settings.Sound ? Context.Settings.Volume / 100f : 0f;
+            float systemVolume = Context.Settings.SoundSettings.Sound ? Context.Settings.SoundSettings.Volume / 100f : 0f;
             float scaled = MathExtension.Clamp(Volume * systemVolume, 0, 10);
 
             // Perform fading if anything is playing and not muted.

@@ -64,7 +64,7 @@ namespace EmotionSandbox.Examples.Rendering
         public override void Draw(Renderer renderer)
         {
             // Render a cornflower background to hide the loading screen beneath this layer.
-            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, Color.CornflowerBlue);
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSettings.Size, Color.CornflowerBlue);
 
             // Draw the buffer. This draws everything mapped into it using one draw call, making drawing such objects incredibly efficient.
             renderer.Render(_buffer);

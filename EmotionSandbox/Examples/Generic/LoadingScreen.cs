@@ -38,11 +38,11 @@ namespace EmotionSandbox.Examples.Generic
 
         public override void Draw(Renderer renderer)
         {
-            float size = Context.Settings.RenderHeight - 160;
-            float centerX = Context.Settings.RenderWidth / 2 - size / 2;
-            float centerY = Context.Settings.RenderHeight / 2 - size / 2;
-            float logoCenterX = Context.Settings.RenderWidth / 2 - size / 4;
-            float logoCenterY = Context.Settings.RenderHeight / 2 - size / 4;
+            float size = Context.Settings.RenderSettings.Height - 160;
+            float centerX = Context.Settings.RenderSettings.Width / 2 - size / 2;
+            float centerY = Context.Settings.RenderSettings.Height / 2 - size / 2;
+            float logoCenterX = Context.Settings.RenderSettings.Width / 2 - size / 4;
+            float logoCenterY = Context.Settings.RenderSettings.Height / 2 - size / 4;
 
             Matrix4x4 rotationMatrix =
                 Matrix4x4.CreateTranslation(size / 2, size / 2, 0).Inverted() *
@@ -50,7 +50,7 @@ namespace EmotionSandbox.Examples.Generic
                 Matrix4x4.CreateTranslation(size / 2, size / 2, 0) *
                 Matrix4x4.CreateTranslation(centerX, centerY, 0);
 
-            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSize, new Color("#35383d"));
+            renderer.Render(new Vector3(0, 0, 0), Context.Settings.RenderSettings.Size, new Color("#35383d"));
 
             if (_circleLoaded)
             {

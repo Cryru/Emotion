@@ -41,7 +41,7 @@ namespace Emotion.Game.UI.Layout
 
         public override void Init()
         {
-            if (Parent == null) Size = new Vector2(Context.Settings.RenderWidth, Context.Settings.RenderHeight);
+            if (Parent == null) Size = new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height);
         }
 
         #region Parenting
