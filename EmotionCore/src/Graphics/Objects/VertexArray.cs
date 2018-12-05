@@ -10,6 +10,9 @@ using OpenTK.Graphics.ES30;
 
 namespace Emotion.Graphics.Objects
 {
+    /// <summary>
+    /// Object that stores all of the state needed to supply vertex data.
+    /// </summary>
     public sealed class VertexArray : IGLObject
     {
         private List<Buffer> _buffers = new List<Buffer>();
@@ -19,9 +22,12 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         private int _pointer;
 
+        /// <summary>
+        /// Create a new vertex array.
+        /// </summary>
         public VertexArray()
         {
-            _pointer = GL.GenVertexArray();
+            GLThread.ExecuteGLThread(() => _pointer = GL.GenVertexArray());
         }
 
         /// <summary>

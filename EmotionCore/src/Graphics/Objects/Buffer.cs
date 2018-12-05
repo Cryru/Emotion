@@ -56,7 +56,7 @@ namespace Emotion.Graphics.Objects
         public Buffer(int size, uint componentCount, BufferUsageHint usageHint = BufferUsageHint.StaticDraw)
         {
             Size = size;
-            _pointer = GL.GenBuffer();
+            GLThread.ExecuteGLThread(() => _pointer = GL.GenBuffer());
             Upload(size, componentCount, usageHint);
         }
 
@@ -179,7 +179,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Delete()
         {
-            GL.DeleteBuffer(_pointer);
+            GLThread.ExecuteGLThread(() => GL.DeleteBuffer(_pointer));
             _pointer = -1;
         }
 

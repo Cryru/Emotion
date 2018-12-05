@@ -50,7 +50,7 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public int MappedObjects
         {
-            get => MappedVertices / 4;
+            get => MappedVertices / ObjectSize;
         }
 
         /// <summary>
@@ -82,6 +82,11 @@ namespace Emotion.Graphics.Batching
         #endregion
 
         #region Private Objects
+
+        /// <summary>
+        /// The default IBO.
+        /// </summary>
+        private static IndexBuffer _defaultIbo;
 
         /// <summary>
         /// The VAO holding the buffer vertex attribute bindings for this map buffer.
@@ -131,42 +136,76 @@ namespace Emotion.Graphics.Batching
 
         #region Initialization and Deletion
 
+        static MapBuffer()
+        {
+            // Generate indices.
+            ushort[] indices = new ushort[Renderer.MaxRenderable * 6];
+            uint offset = 0;
+            for (int i = 0; i < indices.Length; i += 6)
+            {
+                indices[i] = (ushort) (offset + 0);
+                indices[i + 1] = (ushort) (offset + 1);
+                indices[i + 2] = (ushort) (offset + 2);
+                indices[i + 3] = (ushort) (offset + 2);
+                indices[i + 4] = (ushort) (offset + 3);
+                indices[i + 5] = (ushort) (offset + 0);
+
+                offset += 4;
+            }
+
+            _defaultIbo = new IndexBuffer(indices);
+
+            GLThread.CheckError("map buffer - creating ibo");
+        }
+
+        /// <summary>
+        /// Create a default triangle map buffer of the specified size.
+        /// </summary>
+        /// <param name="size">The size of the map buffer in objects.</param>
+        public MapBuffer(int size) : this(size, 3, null, 3, PrimitiveType.Triangles)
+        {
+
+        }
+
         /// <summary>
         /// Create a new map buffer of the specified size.
         /// </summary>
         /// <param name="size">The size of the map buffer in objects.</param>
         /// <param name="objectSize">The size of individual objects which will be mapped in vertices.</param>
-        /// <param name="ibo">The index buffer to use when drawing.</param>
+        /// <param name="ibo">The index buffer to use when drawing. If null the default triangle one will be used.</param>
         /// <param name="indicesPerObject">The number of indices per object.</param>
         /// <param name="drawType">The OpenGL primitive type to draw this buffer with.</param>
         protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3, BufferUsageHint.DynamicDraw)
         {
             ObjectSize = objectSize;
-            _ibo = ibo;
+            _ibo = ibo ?? _defaultIbo;
             IndicesPerObject = indicesPerObject;
             _drawType = drawType;
 
             _vao = new VertexArray();
 
-            _vao.Bind();
-            Bind();
+            GLThread.ExecuteGLThread(() =>
+            {
+                _vao.Bind();
+                Bind();
 
-            GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
-            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+                GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
+                GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
-            GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
-            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+                GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
+                GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
 
-            GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
-            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
+                GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
+                GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
 
-            GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
-            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+                GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
+                GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 
-            Unbind();
-            _vao.Unbind();
+                Unbind();
+                _vao.Unbind();
 
-            GLThread.CheckError("map buffer - loading vbo into vao");
+                GLThread.CheckError("map buffer - loading vbo into vao");
+            });
 
             _textureList = new List<Texture>();
         }
@@ -196,13 +235,14 @@ namespace Emotion.Graphics.Batching
                 return;
             }
 
-            GLThread.ForceGLThread();
-
-            GLThread.CheckError("map buffer - before start");
-            Bind();
-            _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
-            _dataPointer = _startPointer;
-            GLThread.CheckError("map buffer - start");
+            GLThread.ExecuteGLThread(() =>
+            {
+                GLThread.CheckError("map buffer - before start");
+                Bind();
+                _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
+                _dataPointer = _startPointer;
+                GLThread.CheckError("map buffer - start");
+            });
         }
 
         /// <summary>

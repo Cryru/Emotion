@@ -43,7 +43,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="data">The initial data to upload.</param>
         public IndexBuffer(ushort[] data)
         {
-            _pointer = GL.GenBuffer();
+            GLThread.ExecuteGLThread(() => _pointer = GL.GenBuffer());
             Upload(data);
         }
 
