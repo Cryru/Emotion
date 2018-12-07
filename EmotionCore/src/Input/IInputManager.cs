@@ -1,4 +1,10 @@
-﻿using System.Numerics;
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
+using System.Numerics;
+
+#endregion
 
 namespace Emotion.Input
 {

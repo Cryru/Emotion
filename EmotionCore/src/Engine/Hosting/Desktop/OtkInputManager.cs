@@ -85,10 +85,8 @@ namespace Emotion.Engine.Hosting.Desktop
                 _inputFocus = false;
                 _requestInputFocusClick = false;
             }
-            if (_host.Focused && !_inputFocus)
-            {
-                _requestInputFocusClick = true;
-            }
+
+            if (_host.Focused && !_inputFocus) _requestInputFocusClick = true;
 
             // Transfer current to last, and clear current.
             _keyboardLast = _keyboard;
@@ -141,7 +139,6 @@ namespace Emotion.Engine.Hosting.Desktop
                 _inputFocus = true;
                 _requestInputFocusClick = false;
                 Context.Log.Warning("Regained input focus.", MessageSource.Other);
-
             }
 
             if (!_inputFocus) return;

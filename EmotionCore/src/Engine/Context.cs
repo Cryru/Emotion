@@ -96,7 +96,7 @@ namespace Emotion.Engine
         /// A platform host for the engine. It must provide a GL context, surface, input, and the standard update-draw loop.
         /// </summary>
         public static IHost Host { get; set; }
-        
+
         /// <summary>
         /// Handles input from the mouse, keyboard, and other devices. Is created and managed by the host.
         /// </summary>
