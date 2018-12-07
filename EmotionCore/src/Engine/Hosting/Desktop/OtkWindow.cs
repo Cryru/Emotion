@@ -48,11 +48,13 @@ namespace Emotion.Engine.Hosting.Desktop
         private Action<float> _drawHook;
         private Action _resizeHook;
         private Action _closeHook;
+        private OtkInputManager _inputManager;
 
         private bool _isFirstApplySettings = true;
 
         #endregion
 
+        /// <inheritdoc />
         static OtkWindow()
         {
 #if DEBUG
@@ -61,14 +63,18 @@ namespace Emotion.Engine.Hosting.Desktop
 #endif
         }
 
+        /// <inheritdoc />
         internal OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
             GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
+            _inputManager = new OtkInputManager(this);
+            Engine.Context.InputManager = _inputManager;
         }
 
         #region Host API
 
+        /// <inheritdoc />
         public void SetHooks(Action<float> onUpdate, Action<float> onDraw, Action onResize, Action onClose)
         {
             _updateHook = onUpdate;
@@ -77,6 +83,7 @@ namespace Emotion.Engine.Hosting.Desktop
             _closeHook = onClose;
         }
 
+        /// <inheritdoc />
         public void ApplySettings(HostSettings settings)
         {
             Title = settings.Title;
@@ -111,6 +118,7 @@ namespace Emotion.Engine.Hosting.Desktop
             _isFirstApplySettings = false;
         }
 
+        /// <inheritdoc />
         public new void Run()
         {
             // Run is blocking.
@@ -121,12 +129,15 @@ namespace Emotion.Engine.Hosting.Desktop
 
         #region Updating and Rendering
 
+        /// <inheritdoc />
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             _updateHook?.Invoke((float) e.Time * 1000);
+            _inputManager.Update();
             base.OnUpdateFrame(e);
         }
 
+        /// <inheritdoc />
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             _drawHook?.Invoke((float) e.Time * 1000);
@@ -137,11 +148,13 @@ namespace Emotion.Engine.Hosting.Desktop
 
         #region Event Wrapping
 
+        /// <inheritdoc />
         protected override void OnResize(EventArgs e)
         {
             _resizeHook();
         }
 
+        /// <inheritdoc />
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);

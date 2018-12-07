@@ -78,11 +78,6 @@ namespace Emotion.Engine
         public static AssetLoader AssetLoader { get; private set; }
 
         /// <summary>
-        /// Handles input from the mouse, keyboard, and other devices.
-        /// </summary>
-        public static InputManager InputManager { get; private set; }
-
-        /// <summary>
         /// A javascript engine.
         /// </summary>
         public static ScriptingEngine ScriptingEngine { get; private set; }
@@ -101,6 +96,11 @@ namespace Emotion.Engine
         /// A platform host for the engine. It must provide a GL context, surface, input, and the standard update-draw loop.
         /// </summary>
         public static IHost Host { get; set; }
+        
+        /// <summary>
+        /// Handles input from the mouse, keyboard, and other devices. Is created and managed by the host.
+        /// </summary>
+        public static IInputManager InputManager { get; set; }
 
         /// <summary>
         /// The logging of the engine.
@@ -214,9 +214,6 @@ namespace Emotion.Engine
 
             Log.Trace("Creating layer manager...", MessageSource.Engine);
             LayerManager = new LayerManager();
-
-            Log.Trace("Creating input manager...", MessageSource.Engine);
-            InputManager = new InputManager();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -360,9 +357,6 @@ namespace Emotion.Engine
 
             // If not focused don't update user code.
             if (Host.Focused) LayerManager.Update();
-
-            // Run input. This is outside of a focus check so it can capture the first input when focus is claimed.
-            InputManager.Update();
         }
 
         /// <summary>

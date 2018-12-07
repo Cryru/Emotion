@@ -5,7 +5,6 @@
 using System;
 using System.Numerics;
 using Emotion.Engine.Configuration;
-using OpenTK.Input;
 
 #endregion
 
@@ -50,12 +49,6 @@ namespace Emotion.Engine.Hosting
         /// Swap OpenGL buffers on the host.
         /// </summary>
         void SwapBuffers();
-
-        // Events.
-        event EventHandler<MouseButtonEventArgs> MouseDown;
-        event EventHandler<MouseButtonEventArgs> MouseUp;
-        event EventHandler<MouseMoveEventArgs> MouseMove;
-        event EventHandler<EventArgs> FocusedChanged;
 
         /// <summary>
         /// Close the host.

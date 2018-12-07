@@ -5,109 +5,109 @@
 using System;
 using System.Numerics;
 using Emotion.Debug;
-using Emotion.Engine;
-using Emotion.Engine.Hosting.Desktop;
+using Emotion.Input;
 using OpenTK.Input;
 
 #endregion
 
-namespace Emotion.Input
+namespace Emotion.Engine.Hosting.Desktop
 {
     /// <summary>
     /// Handles input from the mouse, keyboard, and other devices.
     /// </summary>
-    public class InputManager
+    public class OtkInputManager : IInputManager
     {
-        internal bool[] MouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
-        internal bool[] MousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
-        internal bool[] MouseUp = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+        #region Properties
+
+        /// <summary>
+        /// The held status of mouse buttons.
+        /// </summary>
+        private bool[] _mouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+
+        /// <summary>
+        /// The pressed down status of mouse buttons.
+        /// </summary>
+        private bool[] _mousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+
+        /// <summary>
+        /// The pressed up status of mouse buttons.
+        /// </summary>
+        private bool[] _mouseUp = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+
+        /// <summary>
+        /// The status of the keyboard in the last frame.
+        /// </summary>
         private KeyboardState _keyboardLast;
+
+        /// <summary>
+        /// The status of the keyboard this frame.
+        /// </summary>
         private KeyboardState _keyboard;
-        private bool _noFocus;
-        internal Vector2 MouseLocation;
+
+        /// <summary>
+        /// An internal mouse position based on the window which is more accurate than directly polling the mouse.
+        /// </summary>
+        private Vector2 _mouseLocation;
+
+        /// <summary>
+        /// The scroll of the mouse. Stored for relative calculations.
+        /// </summary>
         private float _mouseWheelScroll;
 
-        internal InputManager()
-        {
-            Context.Host.MouseDown += WindowMouseDown;
-            Context.Host.MouseUp += WindowMouseUp;
-            // Moves an internal mouse position based on the window which is more accurate than directly polling the mouse.
-            Context.Host.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
-            // Sets the unfocused tag.
-            Context.Host.FocusedChanged += (sender, e) =>
-            {
-                if (!Context.Host.Focused) _noFocus = true;
-            };
-        }
-
         /// <summary>
-        /// Handles the window mouse down event in order to determine a button has been pressed.
+        /// The Otk host.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void WindowMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (_noFocus) return;
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    MousePressed[0] = true;
-                    break;
-                case MouseButton.Right:
-                    MousePressed[1] = true;
-                    break;
-                case MouseButton.Middle:
-                    MousePressed[2] = true;
-                    break;
-            }
-        }
+        private OtkWindow _host;
 
-        /// <summary>
-        /// Handles the window mouse down event in order to determine a button is no longer held.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void WindowMouseUp(object sender, MouseButtonEventArgs e)
+        #endregion
+
+        #region Input Focus Tracker
+
+        private bool _inputFocus = true;
+        private bool _requestInputFocusClick;
+
+        #endregion
+
+        internal OtkInputManager(OtkWindow host)
         {
-            if (_noFocus) return;
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    MouseHeld[0] = false;
-                    MouseUp[0] = true;
-                    break;
-                case MouseButton.Right:
-                    MouseHeld[1] = false;
-                    MouseUp[1] = true;
-                    break;
-                case MouseButton.Middle:
-                    MouseHeld[2] = false;
-                    MouseUp[1] = true;
-                    break;
-            }
+            _host = host;
+
+            host.MouseDown += WindowMouseDown;
+            host.MouseUp += WindowMouseUp;
+            host.MouseMove += (sender, e) => { _mouseLocation = new Vector2(e.X, e.Y); };
         }
 
         internal void Update()
         {
+            // Set input focus to false if host focus is lost.
+            if (!_host.Focused)
+            {
+                _inputFocus = false;
+                _requestInputFocusClick = false;
+            }
+            if (_host.Focused && !_inputFocus)
+            {
+                _requestInputFocusClick = true;
+            }
+
             // Transfer current to last, and clear current.
             _keyboardLast = _keyboard;
 
             // Reset mouse states and transfer pressed to held.
-            for (int i = 0; i < MousePressed.Length; i++)
+            for (int i = 0; i < _mousePressed.Length; i++)
             {
-                if (MousePressed[i]) MouseHeld[i] = MousePressed[i];
-                MousePressed[i] = false;
-                MouseUp[i] = false;
+                if (_mousePressed[i]) _mouseHeld[i] = _mousePressed[i];
+                _mousePressed[i] = false;
+                _mouseUp[i] = false;
             }
 
             // Check if focus has returned and skip input loop if no focus.
-            if (Context.Host.Focused && _noFocus) _noFocus = false;
-            if (_noFocus)
+            if (!_inputFocus)
             {
-                for (int i = 0; i < MousePressed.Length; i++)
+                for (int i = 0; i < _mousePressed.Length; i++)
                 {
-                    MousePressed[i] = false;
-                    MouseHeld[i] = false;
+                    _mousePressed[i] = false;
+                    _mouseHeld[i] = false;
                 }
 
                 return;
@@ -126,6 +126,65 @@ namespace Emotion.Input
             // Check for closing combo.
             if (IsKeyDown("Escape")) Context.Quit();
         }
+
+        #region Events
+
+        /// <summary>
+        /// Handles the window mouse down event in order to determine a button has been pressed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WindowMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (_requestInputFocusClick)
+            {
+                _inputFocus = true;
+                _requestInputFocusClick = false;
+                Context.Log.Warning("Regained input focus.", MessageSource.Other);
+
+            }
+
+            if (!_inputFocus) return;
+            switch (e.Button)
+            {
+                case MouseButton.Left:
+                    _mousePressed[0] = true;
+                    break;
+                case MouseButton.Right:
+                    _mousePressed[1] = true;
+                    break;
+                case MouseButton.Middle:
+                    _mousePressed[2] = true;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Handles the window mouse down event in order to determine a button is no longer held.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WindowMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!_inputFocus) return;
+            switch (e.Button)
+            {
+                case MouseButton.Left:
+                    _mouseHeld[0] = false;
+                    _mouseUp[0] = true;
+                    break;
+                case MouseButton.Right:
+                    _mouseHeld[1] = false;
+                    _mouseUp[1] = true;
+                    break;
+                case MouseButton.Middle:
+                    _mouseHeld[2] = false;
+                    _mouseUp[1] = true;
+                    break;
+            }
+        }
+
+        #endregion
 
         #region Mouse
 
@@ -160,7 +219,7 @@ namespace Emotion.Input
             float scaleX = Context.Settings.RenderSettings.Width / Context.Host.Size.X;
             float scaleY = Context.Settings.RenderSettings.Height / Context.Host.Size.Y;
 
-            Vector2 mouseLocation = new Vector2(MouseLocation.X * scaleX, MouseLocation.Y * scaleY);
+            Vector2 mouseLocation = new Vector2(_mouseLocation.X * scaleX, _mouseLocation.Y * scaleY);
             return mouseLocation;
         }
 
@@ -171,7 +230,7 @@ namespace Emotion.Input
         /// <returns>Whether the mouse key was pressed down.</returns>
         public bool IsMouseKeyDown(MouseKeys key)
         {
-            return MousePressed[(int) key];
+            return _mousePressed[(int) key];
         }
 
         /// <summary>
@@ -181,7 +240,7 @@ namespace Emotion.Input
         /// <returns>Whether the mouse key was let go.</returns>
         public bool IsMouseKeyUp(MouseKeys key)
         {
-            return MouseUp[(int) key];
+            return _mouseUp[(int) key];
         }
 
         /// <summary>
@@ -191,7 +250,7 @@ namespace Emotion.Input
         /// <returns>Whether the mouse key is being held down.</returns>
         public bool IsMouseKeyHeld(MouseKeys key)
         {
-            return MouseHeld[(int) key];
+            return _mouseHeld[(int) key];
         }
 
         #endregion

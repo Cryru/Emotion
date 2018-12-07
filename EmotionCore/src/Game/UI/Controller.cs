@@ -255,7 +255,7 @@ namespace Emotion.Game.UI
         /// Processes mouse button press events.
         /// </summary>
         /// <param name="inputManager">The input module.</param>
-        private void ButtonPresses(InputManager inputManager)
+        private void ButtonPresses(IInputManager inputManager)
         {
             Parallel.ForEach(Controls, c =>
             {
