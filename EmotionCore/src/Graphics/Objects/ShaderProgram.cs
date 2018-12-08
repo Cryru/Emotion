@@ -69,7 +69,7 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The program's unique id.
         /// </summary>
-        private int _pointer;
+        internal int Pointer;
 
         #region Initialization
 
@@ -115,14 +115,14 @@ namespace Emotion.Graphics.Objects
             ShaderProgram current = Current;
 
             // Create the program and attach shaders.
-            _pointer = GL.CreateProgram();
-            GL.AttachShader(_pointer, vert.Pointer);
-            GL.AttachShader(_pointer, frag.Pointer);
+            Pointer = GL.CreateProgram();
+            GL.AttachShader(Pointer, vert.Pointer);
+            GL.AttachShader(Pointer, frag.Pointer);
             Link();
             Bind();
-            GL.DetachShader(_pointer, vert.Pointer);
-            GL.DetachShader(_pointer, frag.Pointer);
-            GL.ValidateProgram(_pointer);
+            GL.DetachShader(Pointer, vert.Pointer);
+            GL.DetachShader(Pointer, frag.Pointer);
+            GL.ValidateProgram(Pointer);
 
             GLThread.CheckError("making program");
 
@@ -140,11 +140,11 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         private void Link()
         {
-            GL.LinkProgram(_pointer);
+            GL.LinkProgram(Pointer);
 
             // Check link status.
-            string programStatus = GL.GetProgramInfoLog(_pointer);
-            if (programStatus != "") throw new Exception("Failed to link program " + _pointer + " : " + programStatus);
+            string programStatus = GL.GetProgramInfoLog(Pointer);
+            if (programStatus != "") throw new Exception("Failed to link program " + Pointer + " : " + programStatus);
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Bind()
         {
-            GL.UseProgram(_pointer);
+            GL.UseProgram(Pointer);
             Current = this;
         }
 
@@ -169,7 +169,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Delete()
         {
-            GL.DeleteProgram(_pointer);
+            GL.DeleteProgram(Pointer);
         }
 
         /// <summary>
@@ -179,7 +179,17 @@ namespace Emotion.Graphics.Objects
         /// <returns>The id of the uniform the name belongs to.</returns>
         public int GetUniformLocation(string name)
         {
-            return GL.GetUniformLocation(_pointer, name);
+            return GL.GetUniformLocation(Pointer, name);
+        }
+
+        /// <summary>
+        /// Checks whether the current shader and the one provided are the same.
+        /// </summary>
+        /// <param name="obj">The shader to compare with.</param>
+        /// <returns>Whether the two shader programs are the same.</returns>
+        public bool Equals(ShaderProgram obj)
+        {
+            return this.Pointer == obj.Pointer;
         }
 
         #region Uniform Upload

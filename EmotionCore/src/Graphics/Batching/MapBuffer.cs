@@ -78,6 +78,11 @@ namespace Emotion.Graphics.Batching
             get => Size / VertexData.SizeInBytes;
         }
 
+        /// <summary>
+        /// The Z index of the vertex with the lowest Z index which has been mapped.
+        /// </summary>
+        public float Z { get; private set; }
+
         #endregion
 
         #region Private Objects
@@ -273,11 +278,8 @@ namespace Emotion.Graphics.Batching
         {
             _textureList.Clear();
             MappedVertices = 0;
+            Z = 0;
         }
-
-        #endregion
-
-        #region Helpers
 
         /// <summary>
         /// Increment the mapping pointer.
@@ -337,8 +339,12 @@ namespace Emotion.Graphics.Batching
             _dataPointer->Vertex = vertex;
 
             currentVertex++;
+
             // Check if the mapped vertices count needs to be updated.
             if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
+
+            // Check if the Z property needs to be updated.
+            if(vertex.Z < Z) Z = vertex.Z;
         }
 
         #endregion

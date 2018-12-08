@@ -9,10 +9,16 @@ using System.Numerics;
 
 namespace Emotion.Primitives
 {
-    public abstract class Transform
+    /// <summary>
+    /// A class which holds the position and size of an entity.
+    /// </summary>
+    public class Transform
     {
         #region Properties
 
+        /// <summary>
+        /// The location of the transform on the X-axis.
+        /// </summary>
         public float X
         {
             get => _x;
@@ -25,6 +31,9 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The location of the transform on the Y-axis.
+        /// </summary>
         public float Y
         {
             get => _y;
@@ -37,6 +46,9 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The location of the transform on the Z-axis.
+        /// </summary>
         public float Z
         {
             get => _z;
@@ -49,6 +61,9 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The width of the transform.
+        /// </summary>
         public float Width
         {
             get => _width;
@@ -61,6 +76,9 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The height of the transform.
+        /// </summary>
         public float Height
         {
             get => _height;
@@ -77,6 +95,9 @@ namespace Emotion.Primitives
 
         #region Higher Properties
 
+        /// <summary>
+        /// The position of the transform within 3D space.
+        /// </summary>
         public Vector3 Position
         {
             get => new Vector3(X, Y, Z);
@@ -88,6 +109,9 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The size of the transform.
+        /// </summary>
         public Vector2 Size
         {
             get => new Vector2(Width, Height);
@@ -98,18 +122,27 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The right side of a transform, as if it was a rectangle.
+        /// </summary>
         public float RightSide
         {
             get => X + Width;
             set => X = value - Width;
         }
 
+        /// <summary>
+        /// The bottom side of the transform, as if it was a rectangle.
+        /// </summary>
         public float BottomSide
         {
             get => Y + Height;
             set => Y = value - Height;
         }
 
+        /// <summary>
+        /// The center of the transform, as if it was a rectangle.
+        /// </summary>
         public Vector2 Center
         {
             get => new Vector2(X + Width / 2, Y + Height / 2);
@@ -120,6 +153,9 @@ namespace Emotion.Primitives
             }
         }
 
+        /// <summary>
+        /// The center of the transform, as if it was a rectangle, relative to its position.
+        /// </summary>
         public Vector2 CenterRelative
         {
             get => new Vector2(Width / 2, Height / 2);
@@ -153,10 +189,20 @@ namespace Emotion.Primitives
 
         #region Constructors
 
+        /// <summary>
+        /// Create a new transform from a vec3 and a vec2.
+        /// </summary>
+        /// <param name="position">The position of the transform.</param>
+        /// <param name="size">The size of the transform.</param>
         protected Transform(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
         {
         }
 
+        /// <param name="x">The position of the transform on the X axis.</param>
+        /// <param name="y">The position of the transform on the Y axis.</param>
+        /// <param name="z">The position of the transform ont he Z axis.</param>
+        /// <param name="width">The width of the transform.</param>
+        /// <param name="height">The height of the transform.</param>
         protected Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
         {
             X = x;
@@ -189,9 +235,13 @@ namespace Emotion.Primitives
             return new Rectangle(X, Y, Width, Height);
         }
 
+        /// <summary>
+        /// Converts the transform to a string.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
-            return $"[X:{X} Y:{Y} Z:{Z} | Width:{Width} Height:{Height}]";
+            return $"[Position: {Position} | Size: {Size}]";
         }
     }
 }

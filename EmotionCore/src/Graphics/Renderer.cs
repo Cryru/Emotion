@@ -523,7 +523,7 @@ namespace Emotion.Graphics
         /// <param name="pointTwo">The second point.</param>
         /// <param name="color">The color of the line.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, int thickness = 1)
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
         {
             _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
             RenderFlush();
