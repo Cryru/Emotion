@@ -4,7 +4,9 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Emotion.Engine.Configuration;
 using Emotion.Libraries;
 using OpenTK;
@@ -30,8 +32,8 @@ namespace Emotion.Engine.Hosting.Desktop
             get => new Vector2(ClientSize.Width, ClientSize.Height);
             set
             {
-                Width = (int) value.X;
-                Height = (int) value.Y;
+                Width = (int)value.X;
+                Height = (int)value.Y;
             }
         }
 
@@ -51,6 +53,10 @@ namespace Emotion.Engine.Hosting.Desktop
         private OtkInputManager _inputManager;
 
         private bool _isFirstApplySettings = true;
+
+        private static TimeSpan _accumulator;
+        private static long _prevTick;
+        private static TimeSpan _maxDelta = TimeSpan.FromMilliseconds(100);
 
         #endregion
 
@@ -121,27 +127,33 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <inheritdoc />
         public new void Run()
         {
-            // Run is blocking.
-            Run(Engine.Context.Settings.RenderSettings.CapFPS);
-        }
+            Visible = true;
+            OnLoad(EventArgs.Empty);
+            OnResize(EventArgs.Empty);
 
-        #endregion
+            float targetTime = Engine.Context.Settings.RenderSettings.CapFPS <= 0 ? 0 : (float) Math.Floor(1000f / Engine.Context.Settings.RenderSettings.CapFPS);
 
-        #region Updating and Rendering
+            // Start the main loop.
+            Stopwatch deltaTimer = Stopwatch.StartNew();
+            while (true)
+            {
+                // Advance the accumulator.
+                var curTick = deltaTimer.Elapsed.Ticks;
+                _accumulator += TimeSpan.FromTicks(curTick - _prevTick);
+                _prevTick = curTick;
 
-        /// <inheritdoc />
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            _updateHook?.Invoke((float) e.Time * 1000);
-            _inputManager.Update();
-            base.OnUpdateFrame(e);
-        }
+                // Check if the time elapsed has surpassed the max.
+                if (_accumulator > _maxDelta)
+                {
+                    _accumulator = _maxDelta;
+                }
 
-        /// <inheritdoc />
-        protected override void OnRenderFrame(FrameEventArgs e)
-        {
-            _drawHook?.Invoke((float) e.Time * 1000);
-            base.OnRenderFrame(e);
+                ProcessEvents();
+                _inputManager.Update();
+                _updateHook?.Invoke(_accumulator.Milliseconds);
+                _drawHook?.Invoke(_accumulator.Milliseconds);
+                _accumulator = TimeSpan.Zero;
+            }
         }
 
         #endregion

@@ -43,7 +43,7 @@ namespace Emotion.Engine.Configuration
         public float Height = 540;
 
         /// <summary>
-        /// The maximum fps to render at.
+        /// The maximum fps to render at. Set to 0 if uncapped. VSync and other settings might still cap it.
         /// </summary>
         public int CapFPS = 60;
     }
