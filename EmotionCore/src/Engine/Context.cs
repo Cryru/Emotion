@@ -349,6 +349,10 @@ namespace Emotion.Engine
             // Throttle so the whole CPU isn't used up by update cycles. Useful only when the Update loop runs on a separate thread.
             //Task.Delay(1).Wait();
 
+            // Get frame time and increment total time.
+            FrameTime = frameTime;
+            TotalTime += frameTime;
+
             // Update debugger.
             Debugger.Update();
 
@@ -362,7 +366,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Is run every frame by the host.
         /// </summary>
-        private static void LoopDraw(float frameTime)
+        private static void LoopDraw()
         {
             // If not focused, don't draw.
             if (!Host.Focused)
@@ -373,10 +377,6 @@ namespace Emotion.Engine
 
             // Run the thread manager.
             GLThread.Run();
-
-            // Get frame time and increment total time.
-            FrameTime = frameTime;
-            TotalTime += frameTime;
 
             // Clear the screen.
             Renderer.Clear();
@@ -403,21 +403,21 @@ namespace Emotion.Engine
             float targetAspectRatio = Settings.RenderSettings.Width / Settings.RenderSettings.Height;
 
             float width = Host.Size.X;
-            float height = (int) (width / targetAspectRatio + 0.5f);
+            float height = (int)(width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > Host.Size.Y)
             {
                 height = Host.Size.Y;
-                width = (int) (height * targetAspectRatio + 0.5f);
+                width = (int)(height * targetAspectRatio + 0.5f);
             }
 
-            int vpX = (int) (Host.Size.X / 2 - width / 2);
-            int vpY = (int) (Host.Size.Y / 2 - height / 2);
+            int vpX = (int)(Host.Size.X / 2 - width / 2);
+            int vpY = (int)(Host.Size.Y / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int) width, (int) height);
-            GL.Scissor(vpX, vpY, (int) width, (int) height);
+            GL.Viewport(vpX, vpY, (int)width, (int)height);
+            GL.Scissor(vpX, vpY, (int)width, (int)height);
         }
 
         #endregion

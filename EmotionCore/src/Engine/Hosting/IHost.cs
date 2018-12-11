@@ -38,7 +38,7 @@ namespace Emotion.Engine.Hosting
         /// <param name="onDraw">Draw loop cycle.</param>
         /// <param name="onResize">Resize event.</param>
         /// <param name="onClose">Host close event.</param>
-        void SetHooks(Action<float> onUpdate, Action<float> onDraw, Action onResize, Action onClose);
+        void SetHooks(Action<float> onUpdate, Action onDraw, Action onResize, Action onClose);
 
         /// <summary>
         /// Start running the host loop.

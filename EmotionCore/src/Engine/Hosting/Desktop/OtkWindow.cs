@@ -47,7 +47,7 @@ namespace Emotion.Engine.Hosting.Desktop
         #region Hooks and Trackers
 
         private Action<float> _updateHook;
-        private Action<float> _drawHook;
+        private Action _drawHook;
         private Action _resizeHook;
         private Action _closeHook;
         private OtkInputManager _inputManager;
@@ -81,7 +81,7 @@ namespace Emotion.Engine.Hosting.Desktop
         #region Host API
 
         /// <inheritdoc />
-        public void SetHooks(Action<float> onUpdate, Action<float> onDraw, Action onResize, Action onClose)
+        public void SetHooks(Action<float> onUpdate, Action onDraw, Action onResize, Action onClose)
         {
             _updateHook = onUpdate;
             _drawHook = onDraw;
@@ -131,7 +131,8 @@ namespace Emotion.Engine.Hosting.Desktop
             OnLoad(EventArgs.Empty);
             OnResize(EventArgs.Empty);
 
-            float targetTime = Engine.Context.Settings.RenderSettings.CapFPS <= 0 ? 0 : (float) Math.Floor(1000f / Engine.Context.Settings.RenderSettings.CapFPS);
+            bool fixedStep = Engine.Context.Settings.RenderSettings.CapFPS > 0;
+            float targetTime = fixedStep ? (float)Math.Floor(1000f / Engine.Context.Settings.RenderSettings.CapFPS) : 0;
 
             // Start the main loop.
             Stopwatch deltaTimer = Stopwatch.StartNew();
@@ -148,11 +149,20 @@ namespace Emotion.Engine.Hosting.Desktop
                     _accumulator = _maxDelta;
                 }
 
-                ProcessEvents();
-                _inputManager.Update();
-                _updateHook?.Invoke(_accumulator.Milliseconds);
-                _drawHook?.Invoke(_accumulator.Milliseconds);
-                _accumulator = TimeSpan.Zero;
+                while (_accumulator.Milliseconds > targetTime)
+                {
+                    ProcessEvents();
+                    _inputManager.Update();
+                    _updateHook?.Invoke(fixedStep ? targetTime : _accumulator.Milliseconds);
+                    _accumulator = _accumulator.Subtract(TimeSpan.FromMilliseconds(targetTime));
+
+                    if (!fixedStep)
+                    {
+                        _accumulator = TimeSpan.Zero;
+                        break;
+                    } 
+                }
+                _drawHook?.Invoke();
             }
         }
 

@@ -64,7 +64,6 @@ namespace Emotion.Engine.Hosting.Desktop
         #region Input Focus Tracker
 
         private bool _inputFocus = true;
-        private bool _requestInputFocusClick;
 
         #endregion
 
@@ -83,10 +82,7 @@ namespace Emotion.Engine.Hosting.Desktop
             if (!_host.Focused)
             {
                 _inputFocus = false;
-                _requestInputFocusClick = false;
             }
-
-            if (_host.Focused && !_inputFocus) _requestInputFocusClick = true;
 
             // Transfer current to last, and clear current.
             _keyboardLast = _keyboard;
@@ -134,11 +130,11 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <param name="e"></param>
         private void WindowMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (_requestInputFocusClick)
+            if (_host.Focused && !_inputFocus)
             {
                 _inputFocus = true;
-                _requestInputFocusClick = false;
-                Context.Log.Warning("Regained input focus.", MessageSource.Other);
+                Context.Log.Warning("Regained input focus.", MessageSource.Input);
+                return;
             }
 
             if (!_inputFocus) return;
