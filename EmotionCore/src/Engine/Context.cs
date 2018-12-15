@@ -360,7 +360,7 @@ namespace Emotion.Engine
             Renderer.Update();
 
             // If not focused don't update user code.
-            if (Host.Focused) LayerManager.Update();
+            LayerManager.Update();
         }
 
         /// <summary>
