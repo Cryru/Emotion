@@ -20,19 +20,19 @@ namespace Emotion.Engine.Hosting.Desktop
         #region Properties
 
         /// <summary>
-        /// The held status of mouse buttons.
+        /// The state of the mouse captured from the host.
         /// </summary>
-        private bool[] _mouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+        private bool[] _mouseHolder = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
 
         /// <summary>
-        /// The pressed down status of mouse buttons.
+        /// The state of the mouse for the last update.
         /// </summary>
-        private bool[] _mousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+        private bool[] _mouseLast = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
 
         /// <summary>
-        /// The pressed up status of mouse buttons.
+        /// The state of the mouse for the current update.
         /// </summary>
-        private bool[] _mouseUp = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
+        private bool[] _mouse = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
 
         /// <summary>
         /// The status of the keyboard in the last frame.
@@ -84,29 +84,31 @@ namespace Emotion.Engine.Hosting.Desktop
                 _inputFocus = false;
             }
 
-            // Transfer current to last, and clear current.
-            _keyboardLast = _keyboard;
-
-            // Reset mouse states and transfer pressed to held.
-            for (int i = 0; i < _mousePressed.Length; i++)
-            {
-                if (_mousePressed[i]) _mouseHeld[i] = _mousePressed[i];
-                _mousePressed[i] = false;
-                _mouseUp[i] = false;
-            }
-
             // Check if focus has returned and skip input loop if no focus.
             if (!_inputFocus)
             {
-                for (int i = 0; i < _mousePressed.Length; i++)
+                for (int i = 0; i < _mouse.Length; i++)
                 {
-                    _mousePressed[i] = false;
-                    _mouseHeld[i] = false;
+                    _mouse[i] = false;
+                    _mouseLast[i] = false;
                 }
 
                 return;
             }
 
+            // Transfer current to last.
+            for (int i = 0; i < _mouse.Length; i++)
+            {
+                _mouseLast[i] = _mouse[i];
+            }
+            // Transfer holder to current.
+            for (int i = 0; i < _mouse.Length; i++)
+            {
+                _mouse[i] = _mouseHolder[i];
+            }
+
+            // Transfer current to last, and clear current.
+            _keyboardLast = _keyboard;
             // Get current keyboard state.
             _keyboard = Keyboard.GetState();
 
@@ -141,13 +143,13 @@ namespace Emotion.Engine.Hosting.Desktop
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    _mousePressed[0] = true;
+                    _mouseHolder[0] = true;
                     break;
                 case MouseButton.Right:
-                    _mousePressed[1] = true;
+                    _mouseHolder[1] = true;
                     break;
                 case MouseButton.Middle:
-                    _mousePressed[2] = true;
+                    _mouseHolder[2] = true;
                     break;
             }
         }
@@ -163,16 +165,13 @@ namespace Emotion.Engine.Hosting.Desktop
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    _mouseHeld[0] = false;
-                    _mouseUp[0] = true;
+                    _mouseHolder[0] = false;
                     break;
                 case MouseButton.Right:
-                    _mouseHeld[1] = false;
-                    _mouseUp[1] = true;
+                    _mouseHolder[1] = false;
                     break;
                 case MouseButton.Middle:
-                    _mouseHeld[2] = false;
-                    _mouseUp[1] = true;
+                    _mouseHolder[2] = false;
                     break;
             }
         }
@@ -223,7 +222,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the mouse key was pressed down.</returns>
         public bool IsMouseKeyDown(MouseKeys key)
         {
-            return _mousePressed[(int) key];
+            return _mouse[(int) key] && !_mouseLast[(int) key];
         }
 
         /// <summary>
@@ -233,7 +232,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the mouse key was let go.</returns>
         public bool IsMouseKeyUp(MouseKeys key)
         {
-            return _mouseUp[(int) key];
+            return _mouseLast[(int) key] && !_mouse[(int) key];
         }
 
         /// <summary>
@@ -243,7 +242,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the mouse key is being held down.</returns>
         public bool IsMouseKeyHeld(MouseKeys key)
         {
-            return _mouseHeld[(int) key];
+            return _mouse[(int) key] && _mouseLast[(int) key];
         }
 
         #endregion
