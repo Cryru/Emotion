@@ -81,7 +81,7 @@ namespace Emotion.Engine.Hosting.Desktop
             // Set input focus to false if host focus is lost.
             if (!_host.Focused)
             {
-                _inputFocus = false;
+                if(Context.Flags.InputFocusRequireClick) _inputFocus = false;
             }
 
             // Check if focus has returned and skip input loop if no focus.

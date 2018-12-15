@@ -21,5 +21,10 @@ namespace Emotion.Engine.Configuration
         /// The root directory in which assets are located, relative to the execution directory.
         /// </summary>
         public string AssetRootDirectory = "Assets";
+
+        /// <summary>
+        /// Whether input focus is regained only after a mouse click is detected.
+        /// </summary>
+        public bool InputFocusRequireClick = true;
     }
 }

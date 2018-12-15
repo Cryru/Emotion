@@ -267,10 +267,11 @@ namespace Emotion.Game.UI
                 for (int i = 0; i < mouseButtons.Length; i++)
                 {
                     MouseKeys currentKey = (MouseKeys) Enum.Parse(typeof(MouseKeys), mouseButtons[i]);
-                    bool held = inputManager.IsMouseKeyHeld(currentKey);
+                    bool down = inputManager.IsMouseKeyDown(currentKey);
+                    bool up = inputManager.IsMouseKeyUp(currentKey);
 
                     // Check if the mouse is held.
-                    if (held && c.MouseInside)
+                    if (down && c.MouseInside)
                     {
                         // If the button wasn't held, but now is.
                         if (c.Held[i] || HeldSomewhere(i)) continue;
@@ -279,13 +280,13 @@ namespace Emotion.Game.UI
                         c.MouseDown(currentKey);
                     }
 
-                    // Check if the button is being held.
-                    if (held) continue;
                     // If the button was held, but now isn't.
-                    if (!c.Held[i]) continue;
-                    Context.Log.Trace($"Controller [{Id}] mouse let go using key {currentKey} control of type [{c.GetType()}] {c}", MessageSource.UIController);
-                    c.Held[i] = false;
-                    c.MouseUp(currentKey);
+                    if (up && c.Held[i])
+                    {
+                        Context.Log.Trace($"Controller [{Id}] mouse let go using key {currentKey} control of type [{c.GetType()}] {c}", MessageSource.UIController);
+                        c.Held[i] = false;
+                        c.MouseUp(currentKey);
+                    }
                 }
             });
         }
