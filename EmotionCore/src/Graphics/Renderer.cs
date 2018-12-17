@@ -14,7 +14,6 @@ using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
-using Emotion.Libraries;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
@@ -78,7 +77,7 @@ namespace Emotion.Graphics
             CreateDefaultShaders();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader)null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
 
             // Create objects.
@@ -180,42 +179,42 @@ namespace Emotion.Graphics
         private void SetupDebug()
         {
             Context.ScriptingEngine.Expose("debugCamera",
-                (Func<string>)(() =>
-               {
-                   _debugCamera = _debugCamera == null
-                       ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
-                       {
-                           Zoom = Camera.Zoom / 2f
-                       }
-                       : null;
-                   _debugCameraDataText.Active = !_debugCameraDataText.Active;
+                (Func<string>) (() =>
+                {
+                    _debugCamera = _debugCamera == null
+                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
+                        {
+                            Zoom = Camera.Zoom / 2f
+                        }
+                        : null;
+                    _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
-                   return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
-               }),
+                    return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
+                }),
                 "Enables the debug camera. Move it with the arrow keys. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fps",
-                (Func<string>)(() =>
-               {
-                   _fpsCounter = !_fpsCounter;
-                   _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
+                (Func<string>) (() =>
+                {
+                    _fpsCounter = !_fpsCounter;
+                    _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
 
-                   return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
-               }),
+                    return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
+                }),
                 "Enables the fps counter. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("debugMouse",
-                (Func<string>)(() =>
-               {
-                   _drawMouse = !_drawMouse;
+                (Func<string>) (() =>
+                {
+                    _drawMouse = !_drawMouse;
 
-                   return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
-               }),
+                    return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
+                }),
                 "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
 
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
-            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
-            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
 
             Debugger.CornerAnchor.AddChild(_debugCameraDataText, AnchorLocation.BottomLeft);
             Debugger.CornerAnchor.AddChild(_debugFpsCounterDataText, AnchorLocation.TopLeft);
@@ -482,9 +481,9 @@ namespace Emotion.Graphics
             // Generate points.
             for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float)Math.Cos(angle) * radius;
-                float y = (float)Math.Sin(angle) * radius;
+                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
 
                 if (i == 0)
                 {
@@ -601,9 +600,9 @@ namespace Emotion.Graphics
             // Generate points.
             for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float)Math.Cos(angle) * radius;
-                float y = (float)Math.Sin(angle) * radius;
+                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
 
                 _mainBuffer.MapNextVertex(new Vector3(radius + pX, radius + pY, 0), color);
                 _mainBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
