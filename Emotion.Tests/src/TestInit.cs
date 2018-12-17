@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Diagnostics;
 using System.Drawing;
 using System.Threading.Tasks;
 using Emotion.Engine;
