@@ -268,7 +268,7 @@ namespace Emotion.Engine
             Log?.Dispose();
 
             // Close application.
-            Environment.Exit(0);
+            if(Flags.CloseEnvironmentOnQuit) Environment.Exit(0);
         }
 
         #endregion

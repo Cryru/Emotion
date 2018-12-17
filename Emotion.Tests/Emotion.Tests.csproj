@@ -67,6 +67,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Interop\DebugLogger.cs" />
     <Compile Include="src\Interop\TestHost.cs" />
     <Compile Include="src\Interop\TestInputManager.cs" />
     <Compile Include="src\Layers\LayerLoadingTest.cs" />
