@@ -77,6 +77,9 @@ namespace Emotion.Game.Layering
         /// <returns>The thread task which will load the layer.</returns>
         public Task Add(Layer layer, string name, int priority)
         {
+            // Check if layer is null.
+            if(layer == null) return Task.CompletedTask;
+
             Context.Log.Trace($"Preparing to load layer [{name}]", MessageSource.LayerManager);
 
             // Setup layer properties.
@@ -104,7 +107,8 @@ namespace Emotion.Game.Layering
         /// <param name="name">The layer's name to unload.</param>
         public Task Remove(string name)
         {
-            return Remove(_layers[name]);
+            // Check if layer exists, otherwise find it and call Remove with reference.
+            return !_layers.ContainsKey(name) ? Task.CompletedTask : Remove(_layers[name]);
         }
 
         /// <summary>
@@ -113,6 +117,9 @@ namespace Emotion.Game.Layering
         /// <param name="layer">The layer to unload.</param>
         public Task Remove(Layer layer)
         {
+            // Check if layer is null.
+            if (layer == null) return Task.CompletedTask;
+
             _layers.Remove(layer.Name);
 
             return Task.Run(() => UnloadLayer(layer));
