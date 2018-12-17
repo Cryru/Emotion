@@ -61,7 +61,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Functionality related engine configuration.
         /// </summary>
-        public static Flags Flags { get; private set; }
+        public static Flags Flags { get; private set; } = new Flags();
 
         #endregion
 
@@ -120,9 +120,6 @@ namespace Emotion.Engine
             // Check if it was already setup.
             if (IsSetup) throw new Exception("Context is already setup.");
             IsSetup = true;
-
-            // Setup flags.
-            Flags = new Flags();
 
             // Initialize logger first of all.
             if (Log == null) Log = new DefaultLogger();

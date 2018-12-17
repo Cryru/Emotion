@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealerGame", "HealerGame\He
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectricSleep", "ElectricSleep\ElectricSleep.csproj", "{4E9C0095-E1C7-429E-A70F-701F78972E2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emotion.Tests", "Emotion.Tests\Emotion.Tests.csproj", "{35D0FDAC-885A-4F6C-A976-B5165007946C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug-GLES|Any CPU = Debug-GLES|Any CPU
@@ -32,6 +34,10 @@ Global
 		{4E9C0095-E1C7-429E-A70F-701F78972E2D}.Debug-GLES|Any CPU.Build.0 = Debug|Any CPU
 		{4E9C0095-E1C7-429E-A70F-701F78972E2D}.Release-GLES|Any CPU.ActiveCfg = Release|Any CPU
 		{4E9C0095-E1C7-429E-A70F-701F78972E2D}.Release-GLES|Any CPU.Build.0 = Release|Any CPU
+		{35D0FDAC-885A-4F6C-A976-B5165007946C}.Debug-GLES|Any CPU.ActiveCfg = Debug|Any CPU
+		{35D0FDAC-885A-4F6C-A976-B5165007946C}.Debug-GLES|Any CPU.Build.0 = Debug|Any CPU
+		{35D0FDAC-885A-4F6C-A976-B5165007946C}.Release-GLES|Any CPU.ActiveCfg = Release|Any CPU
+		{35D0FDAC-885A-4F6C-A976-B5165007946C}.Release-GLES|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
