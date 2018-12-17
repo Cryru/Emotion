@@ -27,7 +27,7 @@ namespace Emotion.Engine.Configuration
         public bool Shader5ExtensionMissing { get; set; }
 
         /// <summary>
-        /// How detailed drawn circles should be. Updates instantly.
+        /// How detailed drawn circles should be. Updates instantly. Default is 30.
         /// </summary>
         public int CircleDetail = 30;
     }
