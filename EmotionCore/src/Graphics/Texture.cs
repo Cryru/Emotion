@@ -189,7 +189,7 @@ namespace Emotion.Graphics
 
         #endregion
 
-        #region Other
+        #region Texture Creation
 
         /// <summary>
         /// Create a texture from bytes.
@@ -210,6 +210,7 @@ namespace Emotion.Graphics
 
             // Upload the texture.
             GL.TexImage2D(TextureTarget2d.Texture2D, 0, componentCount, (int) Size.X, (int) Size.Y, 0, format, PixelType.UnsignedByte, data);
+            GL.GenerateMipmap(TextureTarget.Texture2D);
 
             GLThread.CheckError("uploading texture");
         }
@@ -237,6 +238,7 @@ namespace Emotion.Graphics
 
             // Upload the texture.
             GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
+            GL.GenerateMipmap(TextureTarget.Texture2D);
 
             GLThread.CheckError("uploading texture");
         }

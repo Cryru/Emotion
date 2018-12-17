@@ -91,8 +91,7 @@ On Linux build without a machine config, and make sure the .exe **doesn't** carr
 
 - OpenGL Support
   - OpenGL ES 3
-  - 3.3 Core on MacOS
-  - 3.0 Core on Windows or Linux
+  - 3.3 Core on MacOS, Windows and Linux (This means it won't run on Linux VMs)
 - GLSL Support Options
   - 300 es support on Windows or Linux
   - 300 support on MacOS

@@ -61,10 +61,7 @@ namespace Emotion.Graphics
         static Renderer()
         {
             // Check for minimum version.
-            if (Context.Flags.RenderFlags.OpenGLMajorVersion < 3) Context.Log.Error("Minimum OpenGL major version is 3.", MessageSource.Renderer);
-
-            // Macs prefer 3.3 contexts. But the Linux I test on hates it.
-            if (CurrentPlatform.OS == PlatformName.Mac && Context.Flags.RenderFlags.OpenGLMajorVersion == 3) Context.Flags.RenderFlags.OpenGLMinorVersion = 3;
+            if (Context.Flags.RenderFlags.OpenGLMajorVersion < 3 || Context.Flags.RenderFlags.OpenGLMinorVersion < 3) Context.Log.Error("Minimum OpenGL version is 3.3", MessageSource.Renderer);
         }
 
         internal Renderer()

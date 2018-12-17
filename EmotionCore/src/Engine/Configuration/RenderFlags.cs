@@ -15,9 +15,10 @@ namespace Emotion.Engine.Configuration
 
         /// <summary>
         /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
-        /// Will be forcefully switched to "3" on MacOS if OpenGLMajorVersion is 3.
+        /// 3.2 is required for the "gl_arb_gpu_shader5" extension.
+        /// For some reason the Linux I test on would prefer 3.0 though.
         /// </summary>
-        public int OpenGLMinorVersion { get; set; }
+        public int OpenGLMinorVersion { get; set; } = 3;
 
         /// <summary>
         /// Whether the "gl_arb_gpu_shader5" OpenGL extension is missing. In which case the shaders must be patched.
