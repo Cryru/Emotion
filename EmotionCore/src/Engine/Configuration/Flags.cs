@@ -26,5 +26,10 @@ namespace Emotion.Engine.Configuration
         /// Whether input focus is regained only after a mouse click is detected.
         /// </summary>
         public bool InputFocusRequireClick = true;
+
+        /// <summary>
+        /// Whether to call Environment.Exit when Context.Quit is called. On by default.
+        /// </summary>
+        public bool CloseEnvironmentOnQuit = true;
     }
 }

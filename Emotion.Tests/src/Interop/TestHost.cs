@@ -41,11 +41,6 @@ namespace Emotion.Tests.Interop
             }
         }
 
-        /// <summary>
-        /// The context's mode.
-        /// </summary>
-        private static GraphicsContextFlags _contextMode = GraphicsContextFlags.ForwardCompatible;
-
         #endregion
 
         #region Hooks and Trackers
@@ -59,14 +54,13 @@ namespace Emotion.Tests.Interop
         private bool _isFirstApplySettings = true;
 
         private static TimeSpan _accumulator;
-        private static long _prevTick;
         private static TimeSpan _maxDelta = TimeSpan.FromMilliseconds(100);
 
         #endregion
 
         /// <inheritdoc />
         internal TestHost() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
-            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
+            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, GraphicsContextFlags.Offscreen, null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
             _inputManager = new TestInputManager(this);

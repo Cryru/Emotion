@@ -2,6 +2,7 @@
 
 #region Using
 
+using System;
 using System.Drawing;
 using System.Threading.Tasks;
 using Emotion.Engine;
@@ -19,10 +20,12 @@ namespace Emotion.Tests
     {
         private static TestHost _testingHost = new TestHost();
 
-        [ClassInitialize]
+        [AssemblyInitialize]
         public static void StartTest(TestContext _)
         {
+            Context.Flags.CloseEnvironmentOnQuit = false;
             Context.Host = _testingHost;
+            Context.Log = new DebugLogger();
             Context.Setup();
             Context.Run();
         }
@@ -59,6 +62,9 @@ namespace Emotion.Tests
                 _testingHost.RunCycle();
             }
 
+            // Run a cycle to ensure update and draw are called.
+            _testingHost.RunCycle();
+
             // Remove layer.
             Task removingTask = Context.LayerManager.Remove(testLayer);
             // Wait for unloading to complete.
@@ -81,7 +87,7 @@ namespace Emotion.Tests
             Assert.IsTrue(loadingTask.IsCompleted);
 
             // Unload non-existing. This shouldn't throw any errors.
-            removingTask = Context.LayerManager.Remove((Layer) null);
+            removingTask = Context.LayerManager.Remove((Layer)null);
             _testingHost.RunCycle();
             Assert.IsTrue(removingTask.IsCompleted);
 

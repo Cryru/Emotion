@@ -45,12 +45,6 @@ namespace Emotion.Tests.Interop
 
         #endregion
 
-        #region Input Focus Tracker
-
-        private bool _inputFocus = true;
-
-        #endregion
-
         internal TestInputManager(TestHost host)
         {
             _host = host;
