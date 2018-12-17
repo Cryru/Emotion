@@ -13,6 +13,9 @@ using OpenTK.Graphics.ES30;
 
 namespace Emotion.Graphics
 {
+    /// <summary>
+    /// A drawable image.
+    /// </summary>
     public class Texture : Asset, IGLObject
     {
         #region Properties
@@ -82,7 +85,7 @@ namespace Emotion.Graphics
         /// <param name="atlasTextureName">The name of the font atlas this texture belongs to.</param>
         public Texture(byte[] data, int width, int height, string atlasTextureName)
         {
-            Name = "Atlas Texture " + atlasTextureName;
+            Name = $"Atlas Texture {atlasTextureName}";
             Size = new Vector2(width, height);
             TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4x4.CreateScale(1, -1, 1);
             CreateForGlyph(data);
@@ -241,6 +244,28 @@ namespace Emotion.Graphics
             GL.GenerateMipmap(TextureTarget.Texture2D);
 
             GLThread.CheckError("uploading texture");
+        }
+
+        #endregion
+
+        
+        #region Other
+
+        /// <summary>
+        /// Create a new texture with a modified matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix to modify the texture with.</param>
+        /// <returns>A new texture which is a copy of this texture but has a modified matrix.</returns>
+        public Texture ModifyMatrix(Matrix4x4 matrix)
+        {
+            Texture newTe = new Texture
+            {
+                Pointer = Pointer,
+                Size = Size,
+                TextureMatrix = TextureMatrix * matrix,
+                Name = $"{Name} Modified by {matrix}"
+            };
+            return newTe;
         }
 
         #endregion
