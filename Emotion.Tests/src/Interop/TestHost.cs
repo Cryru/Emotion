@@ -4,23 +4,27 @@
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Threading;
-using System.Threading.Tasks;
 using Emotion.Engine.Configuration;
+using Emotion.Engine.Hosting;
+using Emotion.Engine.Hosting.Desktop;
 using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using Vector2 = System.Numerics.Vector2;
 
 #endregion
 
-namespace Emotion.Engine.Hosting.Desktop
+namespace Emotion.Tests.Interop
 {
     /// <summary>
     /// An OpenTK window.
     /// </summary>
-    internal sealed class OtkWindow : GameWindow, IHost
+    internal sealed class TestHost : GameWindow, IHost
     {
         #region Properties
 
@@ -32,8 +36,8 @@ namespace Emotion.Engine.Hosting.Desktop
             get => new Vector2(ClientSize.Width, ClientSize.Height);
             set
             {
-                Width = (int)value.X;
-                Height = (int)value.Y;
+                Width = (int) value.X;
+                Height = (int) value.Y;
             }
         }
 
@@ -50,7 +54,7 @@ namespace Emotion.Engine.Hosting.Desktop
         private Action _drawHook;
         private Action _resizeHook;
         private Action _closeHook;
-        private OtkInputManager _inputManager;
+        private TestInputManager _inputManager;
 
         private bool _isFirstApplySettings = true;
 
@@ -61,20 +65,11 @@ namespace Emotion.Engine.Hosting.Desktop
         #endregion
 
         /// <inheritdoc />
-        static OtkWindow()
-        {
-#if DEBUG
-            // Debug context breaks on Macs.
-            if (CurrentPlatform.OS != PlatformName.Mac) _contextMode = GraphicsContextFlags.Debug;
-#endif
-        }
-
-        /// <inheritdoc />
-        internal OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
+        internal TestHost() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
             GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
-            _inputManager = new OtkInputManager(this);
+            _inputManager = new TestInputManager(this);
             Engine.Context.InputManager = _inputManager;
         }
 
@@ -130,38 +125,6 @@ namespace Emotion.Engine.Hosting.Desktop
             Visible = true;
             OnLoad(EventArgs.Empty);
             OnResize(EventArgs.Empty);
-
-            bool fixedStep = Engine.Context.Settings.RenderSettings.CapFPS > 0;
-            float targetTime = fixedStep ? (float)Math.Floor(1000f / Engine.Context.Settings.RenderSettings.CapFPS) : 0;
-
-            // Start the main loop.
-            Stopwatch deltaTimer = Stopwatch.StartNew();
-            while (true)
-            {
-                // Advance the accumulator.
-                long curTick = deltaTimer.Elapsed.Ticks;
-                _accumulator += TimeSpan.FromTicks(curTick - _prevTick);
-                _prevTick = curTick;
-
-                // Check if the time elapsed has surpassed the max.
-                if (_accumulator > _maxDelta)
-                {
-                    _accumulator = _maxDelta;
-                }
-
-                while (_accumulator.Milliseconds > targetTime)
-                {
-                    ProcessEvents();
-                    _inputManager.Update();
-                    _updateHook?.Invoke(fixedStep ? targetTime : _accumulator.Milliseconds);
-                    _accumulator = _accumulator.Subtract(TimeSpan.FromMilliseconds(targetTime));
-
-                    if (fixedStep) continue;
-                    _accumulator = TimeSpan.Zero;
-                    break;
-                }
-                _drawHook?.Invoke();
-            }
         }
 
         #endregion
@@ -179,6 +142,37 @@ namespace Emotion.Engine.Hosting.Desktop
         {
             base.OnClosing(e);
             _closeHook();
+        }
+
+        #endregion
+
+        #region Testing
+
+        public void RunCycle()
+        {
+            // Check if the time elapsed has surpassed the max.
+            if (_accumulator > _maxDelta) _accumulator = _maxDelta;
+
+            ProcessEvents();
+            _inputManager.Update();
+            _updateHook?.Invoke(16);
+            _drawHook?.Invoke();
+        }
+
+        public Bitmap TakeScreenshot()
+        {
+            if (GraphicsContext.CurrentContext == null)
+                throw new GraphicsContextMissingException();
+            int w = ClientSize.Width;
+            int h = ClientSize.Height;
+            Bitmap bmp = new Bitmap(w, h);
+            BitmapData data =
+                bmp.LockBits(ClientRectangle, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.ES30.PixelFormat.Rgb, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            return bmp;
         }
 
         #endregion
