@@ -381,7 +381,7 @@ namespace Emotion.Game.UI
 
                     return "UI debugging " + (DebugDraw ? "enabled." : "disabled.");
                 }),
-                "Enables the UI debugging. Showing the bounds of all UI controls.");
+                $"Enables the UI debugging. Showing the bounds of all UI controls. Created by controller {_nextControllerId}");
         }
 
         [Conditional("DEBUG")]

@@ -67,7 +67,11 @@ namespace Emotion.Engine.Hosting.Desktop
 
         #endregion
 
-        internal OtkInputManager(OtkWindow host)
+        /// <summary>
+        /// Create a new OtkInputManager.
+        /// </summary>
+        /// <param name="host">The OpenTK window host of this input manager.</param>
+        public OtkInputManager(OtkWindow host)
         {
             _host = host;
 

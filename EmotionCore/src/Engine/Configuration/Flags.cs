@@ -31,5 +31,10 @@ namespace Emotion.Engine.Configuration
         /// Whether to call Environment.Exit when Context.Quit is called. On by default.
         /// </summary>
         public bool CloseEnvironmentOnQuit = true;
+
+        /// <summary>
+        /// Whether to expect console input.
+        /// </summary>
+        public bool ConsoleInput = true;
     }
 }

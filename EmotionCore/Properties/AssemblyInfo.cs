@@ -12,11 +12,11 @@ using Emotion;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("EmotionCore")]
-[assembly: AssemblyDescription("A simple 2D game engine.")]
+[assembly: AssemblyDescription("A game engine.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("www.cryru.info")]
+[assembly: AssemblyCompany("www.github.com/Cryru")]
 [assembly: AssemblyProduct("Emotion")]
-[assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: AssemblyCopyright("Copyright © 2019")]
 [assembly: AssemblyTrademark("Vlad 'Cryru' Abadzhiev")]
 [assembly: AssemblyCulture("")]
 

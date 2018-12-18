@@ -19,7 +19,7 @@ namespace Emotion.Engine.Hosting.Desktop
     /// <summary>
     /// An OpenTK window.
     /// </summary>
-    internal sealed class OtkWindow : GameWindow, IHost
+    public sealed class OtkWindow : GameWindow, IHost
     {
         #region Properties
 
@@ -68,8 +68,10 @@ namespace Emotion.Engine.Hosting.Desktop
 #endif
         }
 
-        /// <inheritdoc />
-        internal OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
+        /// <summary>
+        /// An OpenTK window host. Is created automatically.
+        /// </summary>
+        public OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
             GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
@@ -135,7 +137,7 @@ namespace Emotion.Engine.Hosting.Desktop
 
             // Start the main loop.
             Stopwatch deltaTimer = Stopwatch.StartNew();
-            while (true)
+            while (Engine.Context.IsRunning)
             {
                 // Advance the accumulator.
                 long curTick = deltaTimer.Elapsed.Ticks;

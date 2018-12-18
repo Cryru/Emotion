@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Debug.Logging;
@@ -136,6 +137,7 @@ namespace Emotion.Engine
             // Initiate bootstrap.
             Log.Info("-------------------------------", MessageSource.Engine);
             Log.Info($"Executed at: {Environment.CurrentDirectory}", MessageSource.Engine);
+            Log.Info($"Executed by: {Assembly.GetCallingAssembly()}", MessageSource.Engine);
             Log.Info($"Debug Mode / Debugger Attached: {Debugger.DebugMode} / {System.Diagnostics.Debugger.IsAttached}", MessageSource.Engine);
             Log.Info($"64Bit: {Environment.Is64BitProcess}", MessageSource.Engine);
             Log.Info($"OS: {CurrentPlatform.OS} ({Environment.OSVersion})", MessageSource.Engine);
@@ -184,6 +186,12 @@ namespace Emotion.Engine
                     Log.Error("Could not create host. Is the system supported?", ex, MessageSource.Engine);
                     return;
                 }
+
+            // Check if input was setup.
+            if (InputManager == null)
+            {
+                Log.Error("Host didn't setup an input manager.", MessageSource.Engine);
+            }
 
             // Apply settings and hook.
             Host.ApplySettings(Settings.HostSettings);

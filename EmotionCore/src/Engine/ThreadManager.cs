@@ -52,16 +52,16 @@ namespace Emotion.Engine
         /// <summary>
         /// Binds the current thread as the managed thread.
         /// </summary>
-        internal void BindThread()
+        public void BindThread()
         {
             _threadId = Thread.CurrentThread.ManagedThreadId;
-            Thread.CurrentThread.Name = ThreadName;
+            if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = ThreadName;
         }
 
         /// <summary>
         /// Performs queued tasks on the managed thread.
         /// </summary>
-        internal void Run()
+        public void Run()
         {
             // Check if on the managed thread.
             if (!IsManagedThread()) throw new Exception("The managed thread has changed.");

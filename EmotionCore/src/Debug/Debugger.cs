@@ -112,6 +112,9 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         private static void ConsoleThread()
         {
+            // Check whether to expect console input.
+            if(!Context.Flags.ConsoleInput) return;
+
             // Delay console thread on other OS as crashes happen.
             if (CurrentPlatform.OS != PlatformName.Windows) Thread.Sleep(2000);
 
@@ -141,7 +144,7 @@ namespace Emotion.Debug
         {
             // Check if there is a command to execute.
             if (_command == string.Empty) return;
-            Context.ScriptingEngine.RunScript(_command);
+            Console.WriteLine(Context.ScriptingEngine.RunScript($"return {_command};"));
             _command = "";
 
             // Update the debug UI controller.

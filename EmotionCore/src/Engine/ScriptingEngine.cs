@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Emotion.Debug;
+using Jint.Parser;
 
 #if DEBUG
 
@@ -75,12 +76,17 @@ namespace Emotion.Engine
         /// <returns></returns>
         public object RunScript(string script, bool safe = true)
         {
-            if (safe) script = "(function () { return " + script + "; })()";
+            if (safe) script = "(function () { " + script + " })()";
 
             try
             {
                 // Run the script and get the response.
-                object scriptResponse = _interpreter.Execute(script).GetCompletionValue();
+                ParserOptions parser = new ParserOptions
+                {
+                    Source = script
+                };
+
+                object scriptResponse = _interpreter.Execute(script, parser).GetCompletionValue();
 
                 // If it isn't empty log it.
                 if (scriptResponse != null)

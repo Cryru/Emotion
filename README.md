@@ -11,6 +11,19 @@ Deployment: [![release artifact](https://img.shields.io/badge/Download-%20Releas
 
 Emotion is a cross-platform game engine written in C#, with the intent of removing overhead and providing abstraction without sacrificing control. The idea is, to make game development about game development and not about engine or low-level backend development, but allowing those who want to do that with the option to do so. The goal is to save time, and provide indie developers (and mostly myself) with a foundation.
 
+## Requirements:
+
+- At least .Net Framework 4.6.2 or the equivalent Mono runtime.
+- OpenGL Support
+  - OpenGL ES 3
+  - 3.3 Core on MacOS, Windows and Linux (This means it won't run on Linux VMs)
+- GLSL Support Options
+  - 300 es support on Windows or Linux
+  - 300 support on MacOS
+- Dynamically Uniform Expression Support Options
+  - The "GL_ARB_gpu_shader5" extension
+  - GLSL 400 on Windows or Linux
+
 ## Features So Far
 
 - Window creation.
@@ -111,18 +124,6 @@ Just clone and build. Everything is included.
 For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
 
 On Linux build without a machine config, and make sure the .exe **doesn't** carry a config specifying the runtime.
-
-## Requirements:
-
-- OpenGL Support
-  - OpenGL ES 3
-  - 3.3 Core on MacOS, Windows and Linux (This means it won't run on Linux VMs)
-- GLSL Support Options
-  - 300 es support on Windows or Linux
-  - 300 support on MacOS
-- Dynamically Uniform Expression Support Options
-  - The "GL_ARB_gpu_shader5" extension
-  - GLSL 400 on Windows or Linux
 
 ## Testing and QA
 
