@@ -268,7 +268,7 @@ namespace Emotion.Engine
             Log?.Dispose();
 
             // Close application.
-            if(Flags.CloseEnvironmentOnQuit) Environment.Exit(0);
+            if (Flags.CloseEnvironmentOnQuit) Environment.Exit(0);
         }
 
         #endregion
@@ -400,21 +400,21 @@ namespace Emotion.Engine
             float targetAspectRatio = Settings.RenderSettings.Width / Settings.RenderSettings.Height;
 
             float width = Host.Size.X;
-            float height = (int)(width / targetAspectRatio + 0.5f);
+            float height = (int) (width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > Host.Size.Y)
             {
                 height = Host.Size.Y;
-                width = (int)(height * targetAspectRatio + 0.5f);
+                width = (int) (height * targetAspectRatio + 0.5f);
             }
 
-            int vpX = (int)(Host.Size.X / 2 - width / 2);
-            int vpY = (int)(Host.Size.Y / 2 - height / 2);
+            int vpX = (int) (Host.Size.X / 2 - width / 2);
+            int vpY = (int) (Host.Size.Y / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int)width, (int)height);
-            GL.Scissor(vpX, vpY, (int)width, (int)height);
+            GL.Viewport(vpX, vpY, (int) width, (int) height);
+            GL.Scissor(vpX, vpY, (int) width, (int) height);
         }
 
         #endregion

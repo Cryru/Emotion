@@ -4,24 +4,35 @@
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Threading;
 using Emotion.Engine.Configuration;
+using Emotion.Engine.Hosting;
+using Emotion.Engine.Hosting.Desktop;
+using Emotion.Graphics;
 using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using Vector2 = System.Numerics.Vector2;
 
 #endregion
 
-namespace Emotion.Engine.Hosting.Desktop
+namespace Emotion.Tests.Interoperability
 {
     /// <summary>
-    /// An OpenTK window.
+    /// An OpenTK window used for testing.
     /// </summary>
-    internal sealed class OtkWindow : GameWindow, IHost
+    public sealed class TestHost : GameWindow, IHost
     {
         #region Properties
+
+        /// <summary>
+        /// Whether the window is focused. Accessible so tests can set it.
+        /// </summary>
+        public new bool Focused { get; set; } = true;
 
         /// <summary>
         /// The size of the window.
@@ -36,11 +47,6 @@ namespace Emotion.Engine.Hosting.Desktop
             }
         }
 
-        /// <summary>
-        /// The context's mode.
-        /// </summary>
-        private static GraphicsContextFlags _contextMode = GraphicsContextFlags.ForwardCompatible;
-
         #endregion
 
         #region Hooks and Trackers
@@ -49,31 +55,19 @@ namespace Emotion.Engine.Hosting.Desktop
         private Action _drawHook;
         private Action _resizeHook;
         private Action _closeHook;
-        private OtkInputManager _inputManager;
+        private TestInputManager _inputManager;
 
         private bool _isFirstApplySettings = true;
-
-        private static TimeSpan _accumulator;
-        private static long _prevTick;
-        private static TimeSpan _maxDelta = TimeSpan.FromMilliseconds(100);
 
         #endregion
 
         /// <inheritdoc />
-        static OtkWindow()
-        {
-#if DEBUG
-            // Debug context breaks on Macs.
-            if (CurrentPlatform.OS != PlatformName.Mac) _contextMode = GraphicsContextFlags.Debug;
-#endif
-        }
-
-        /// <inheritdoc />
-        internal OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
-            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
+        internal TestHost() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
+            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, GraphicsContextFlags.Offscreen,
+            null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
-            _inputManager = new OtkInputManager(this);
+            _inputManager = new TestInputManager(this);
             Engine.Context.InputManager = _inputManager;
         }
 
@@ -126,39 +120,9 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <inheritdoc />
         public new void Run()
         {
-            Visible = true;
+            Visible = false;
             OnLoad(EventArgs.Empty);
             OnResize(EventArgs.Empty);
-
-            bool fixedStep = Engine.Context.Settings.RenderSettings.CapFPS > 0;
-            float targetTime = fixedStep ? (float) Math.Floor(1000f / Engine.Context.Settings.RenderSettings.CapFPS) : 0;
-
-            // Start the main loop.
-            Stopwatch deltaTimer = Stopwatch.StartNew();
-            while (true)
-            {
-                // Advance the accumulator.
-                long curTick = deltaTimer.Elapsed.Ticks;
-                _accumulator += TimeSpan.FromTicks(curTick - _prevTick);
-                _prevTick = curTick;
-
-                // Check if the time elapsed has surpassed the max.
-                if (_accumulator > _maxDelta) _accumulator = _maxDelta;
-
-                while (_accumulator.Milliseconds > targetTime)
-                {
-                    ProcessEvents();
-                    _inputManager.Update();
-                    _updateHook?.Invoke(fixedStep ? targetTime : _accumulator.Milliseconds);
-                    _accumulator = _accumulator.Subtract(TimeSpan.FromMilliseconds(targetTime));
-
-                    if (fixedStep) continue;
-                    _accumulator = TimeSpan.Zero;
-                    break;
-                }
-
-                _drawHook?.Invoke();
-            }
         }
 
         #endregion
@@ -176,6 +140,43 @@ namespace Emotion.Engine.Hosting.Desktop
         {
             base.OnClosing(e);
             _closeHook();
+        }
+
+        #endregion
+
+        #region Testing
+
+        /// <summary>
+        /// Run a single cycle of the host loop.
+        /// </summary>
+        /// <param name="frameTime">How much time should've passed.</param>
+        public void RunCycle(float frameTime = 0)
+        {
+            ProcessEvents();
+            _inputManager.Update();
+            _updateHook?.Invoke(frameTime);
+            _drawHook?.Invoke();
+        }
+
+        /// <summary>
+        /// Take a screenshot of the host framebuffer.
+        /// </summary>
+        /// <returns>A screenshot of the host framebuffer.</returns>
+        public Bitmap TakeScreenshot()
+        {
+            // Ensure that its called on the GLThread.
+            GLThread.ForceGLThread();
+
+            int w = ClientSize.Width;
+            int h = ClientSize.Height;
+            Bitmap bmp = new Bitmap(w, h);
+            BitmapData data =
+                bmp.LockBits(ClientRectangle, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL4.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+            return bmp;
         }
 
         #endregion

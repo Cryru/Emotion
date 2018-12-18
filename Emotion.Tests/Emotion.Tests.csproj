@@ -66,10 +66,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Interop\DebugLogger.cs" />
-    <Compile Include="src\Interop\TestHost.cs" />
-    <Compile Include="src\Interop\TestInputManager.cs" />
-    <Compile Include="src\Layers\LayerLoadingTest.cs" />
+    <Compile Include="src\Helpers.cs" />
+    <Compile Include="src\Interoperability\DebugLogger.cs" />
+    <Compile Include="src\Interoperability\TestHost.cs" />
+    <Compile Include="src\Interoperability\TestInputManager.cs" />
+    <Compile Include="src\Layers\ExternalLayer.cs" />
+    <Compile Include="src\Tests\AnimatingTexture.cs" />
+    <Compile Include="src\Tests\TextureDrawing.cs" />
+    <Compile Include="src\Tests\Layering.cs" />
+    <Compile Include="src\Layers\LayerLoading.cs" />
     <Compile Include="src\TestInit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -82,6 +87,35 @@
       <Project>{723c67bd-47ee-482d-bc0d-728211d7f5f1}</Project>
       <Name>EmotionCore</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Textures\16bmp.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\24bitbmp.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\256bmp.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\logoAlpha.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\spritesheetAnimation.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\standardGif.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\standardJpg.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\standardPng.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\standardTif.tif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

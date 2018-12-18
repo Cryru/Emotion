@@ -2,13 +2,10 @@
 
 #region Using
 
-using System;
 using System.Drawing;
-using System.Threading.Tasks;
+using System.Numerics;
 using Emotion.Engine;
-using Emotion.Game.Layering;
-using Emotion.Tests.Interop;
-using Emotion.Tests.Layers;
+using Emotion.Tests.Interoperability;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
@@ -18,13 +15,16 @@ namespace Emotion.Tests
     [TestClass]
     public class TestInit
     {
-        private static TestHost _testingHost = new TestHost();
+        /// <summary>
+        /// The Emotion host used for testing.
+        /// </summary>
+        public static TestHost TestingHost = new TestHost();
 
         [AssemblyInitialize]
         public static void StartTest(TestContext _)
         {
             Context.Flags.CloseEnvironmentOnQuit = false;
-            Context.Host = _testingHost;
+            Context.Host = TestingHost;
             Context.Log = new DebugLogger();
             Context.Setup();
             Context.Run();
@@ -40,60 +40,11 @@ namespace Emotion.Tests
         /// Test whether the testing harness works.
         /// </summary>
         [TestMethod]
-        public void TestHarnessTest()
+        public void HarnessTest()
         {
-            _testingHost.RunCycle();
-            Bitmap bitmap = _testingHost.TakeScreenshot();
-            Assert.AreEqual(new System.Numerics.Vector2(bitmap.Size.Width, bitmap.Size.Height), _testingHost.Size);
-        }
-
-        /// <summary>
-        /// Test whether loading and unloading of layers in addition to the update and draw hooks work.
-        /// </summary>
-        [TestMethod]
-        public void TestLayerLoading()
-        {
-            // Add layer.
-            LayerLoadingTest testLayer = new LayerLoadingTest();
-            Task loadingTask = Context.LayerManager.Add(testLayer, "test", 0);
-            // Wait for loading to complete.
-            while (!loadingTask.IsCompleted)
-            {
-                _testingHost.RunCycle();
-            }
-
-            // Run a cycle to ensure update and draw are called.
-            _testingHost.RunCycle();
-
-            // Remove layer.
-            Task removingTask = Context.LayerManager.Remove(testLayer);
-            // Wait for unloading to complete.
-            while (!removingTask.IsCompleted)
-            {
-                _testingHost.RunCycle();
-            }
-
-            // Assert everything was called correctly.
-            Assert.IsTrue(testLayer.LoadCalled);
-            Assert.IsTrue(testLayer.UpdateCalled);
-            Assert.IsTrue(testLayer.DrawCalled);
-            Assert.IsTrue(testLayer.UnloadCalled);
-
-            // --- Negative
-
-            // Load null. This shouldn't throw any errors.
-            loadingTask = Context.LayerManager.Add(null, "no layer here", 0);
-            _testingHost.RunCycle();
-            Assert.IsTrue(loadingTask.IsCompleted);
-
-            // Unload non-existing. This shouldn't throw any errors.
-            removingTask = Context.LayerManager.Remove((Layer)null);
-            _testingHost.RunCycle();
-            Assert.IsTrue(removingTask.IsCompleted);
-
-            removingTask = Context.LayerManager.Remove("non existing");
-            _testingHost.RunCycle();
-            Assert.IsTrue(removingTask.IsCompleted);
+            TestingHost.RunCycle();
+            Bitmap bitmap = TestingHost.TakeScreenshot();
+            Assert.AreEqual(new Vector2(bitmap.Size.Width, bitmap.Size.Height), TestingHost.Size);
         }
     }
 }

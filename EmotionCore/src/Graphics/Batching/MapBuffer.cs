@@ -344,7 +344,7 @@ namespace Emotion.Graphics.Batching
             if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
 
             // Check if the Z property needs to be updated.
-            if(vertex.Z < Z) Z = vertex.Z;
+            if (vertex.Z < Z) Z = vertex.Z;
         }
 
         #endregion

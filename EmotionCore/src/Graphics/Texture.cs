@@ -248,7 +248,7 @@ namespace Emotion.Graphics
 
         #endregion
 
-        
+
         #region Other
 
         /// <summary>

@@ -21,6 +21,18 @@ namespace Emotion.Game.Layering
     /// </summary>
     public class LayerManager
     {
+        #region Properties
+
+        /// <summary>
+        /// An array of the currently loaded layers.
+        /// </summary>
+        public Layer[] LoadedLayers
+        {
+            get => _layers.Values.ToArray();
+        }
+
+        #endregion
+
         /// <summary>
         /// Layers currently running.
         /// </summary>
@@ -77,8 +89,11 @@ namespace Emotion.Game.Layering
         /// <returns>The thread task which will load the layer.</returns>
         public Task Add(Layer layer, string name, int priority)
         {
+            // Convert name to case invariant.
+            name = name.ToLower();
+
             // Check if layer is null.
-            if(layer == null) return Task.CompletedTask;
+            if (layer == null) return Task.CompletedTask;
 
             Context.Log.Trace($"Preparing to load layer [{name}]", MessageSource.LayerManager);
 
@@ -96,6 +111,9 @@ namespace Emotion.Game.Layering
         /// <returns>The layer with the provided name, or null if none found.</returns>
         public Layer Get(string name)
         {
+            // Convert name to case invariant.
+            name = name.ToLower();
+
             if (_layers.ContainsKey(name)) return _layers[name];
 
             return _layers.ContainsKey(name) ? _layers[name] : null;
@@ -107,6 +125,9 @@ namespace Emotion.Game.Layering
         /// <param name="name">The layer's name to unload.</param>
         public Task Remove(string name)
         {
+            // Convert name to case invariant.
+            name = name.ToLower();
+
             // Check if layer exists, otherwise find it and call Remove with reference.
             return !_layers.ContainsKey(name) ? Task.CompletedTask : Remove(_layers[name]);
         }

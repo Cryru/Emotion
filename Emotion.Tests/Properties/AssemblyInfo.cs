@@ -1,6 +1,11 @@
+// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#endregion
 
 [assembly: AssemblyTitle("Emotion.Tests")]
 [assembly: AssemblyDescription("")]

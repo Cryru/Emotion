@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using Emotion.Debug;
 using Emotion.Engine;
 
@@ -18,6 +19,24 @@ namespace Emotion.IO
     /// </summary>
     public class AssetLoader
     {
+        #region Properties
+
+        /// <summary>
+        /// An array of the currently loaded assets.
+        /// </summary>
+        public Asset[] LoadedAssets
+        {
+            get
+            {
+                lock (_loadedAssets)
+                {
+                    return _loadedAssets.Values.ToArray();
+                }
+            }
+        }
+
+        #endregion
+
         #region Objects
 
         /// <summary>

@@ -189,7 +189,7 @@ namespace Emotion.Graphics.Objects
         /// <returns>Whether the two shader programs are the same.</returns>
         public bool Equals(ShaderProgram obj)
         {
-            return this.Pointer == obj.Pointer;
+            return Pointer == obj.Pointer;
         }
 
         #region Uniform Upload

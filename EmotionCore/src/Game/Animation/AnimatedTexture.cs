@@ -4,6 +4,8 @@
 
 using System;
 using System.Numerics;
+using Emotion.Debug;
+using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -11,6 +13,9 @@ using Emotion.Primitives;
 
 namespace Emotion.Game.Animation
 {
+    /// <summary>
+    /// A class for animating a texture.
+    /// </summary>
     public sealed class AnimatedTexture
     {
         #region Properties
@@ -36,7 +41,7 @@ namespace Emotion.Game.Animation
         public int StartingFrame { get; set; }
 
         /// <summary>
-        /// The frame index to end on from the total frame count. Inclusive.
+        /// The frame index to end on from the total frame count. Zero indexed. Inclusive.
         /// </summary>
         public int EndingFrame { get; set; }
 
@@ -46,7 +51,7 @@ namespace Emotion.Game.Animation
         public float TimeBetweenFrames { get; set; }
 
         /// <summary>
-        /// The index of the current frame within the total frame count.
+        /// The index of the current frame within the total frame count. Zero indexed.
         /// </summary>
         public int CurrentFrameIndex { get; private set; }
 
@@ -59,11 +64,19 @@ namespace Emotion.Game.Animation
         }
 
         /// <summary>
-        /// The number of frames the configured animation has in total.
+        /// The number of frames the configured animation has in total. Zero indexed.
         /// </summary>
         public int AnimationFrames
         {
-            get => GetTotalFrames();
+            get => EndingFrame - StartingFrame;
+        }
+
+        /// <summary>
+        /// The total number of frames in the spritesheet. Zero indexed. Inclusive.
+        /// </summary>
+        public int TotalFrames
+        {
+            get => (int) (Texture.Size.X / _frameSize.X * Texture.Size.Y / _frameSize.Y - 1);
         }
 
         #endregion
@@ -75,6 +88,18 @@ namespace Emotion.Game.Animation
         private bool _inReverse;
 
         /// <summary>
+        /// Create a new animated texture object. Which will animate from the first frame to the last.
+        /// </summary>
+        /// <param name="texture">The spritesheet texture.</param>
+        /// <param name="frameSize">The size of frames within the texture. It is assumed that all frames are of the same size.</param>
+        /// <param name="loopType">The type of loop to apply to the animation.</param>
+        /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
+        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames)
+            : this(texture, frameSize, loopType, timeBetweenFrames, 0, (int) (texture.Size.X / frameSize.X * texture.Size.Y / frameSize.Y - 1))
+        {
+        }
+
+        /// <summary>
         /// Create a new animated texture object.
         /// </summary>
         /// <param name="texture">The spritesheet texture.</param>
@@ -82,7 +107,7 @@ namespace Emotion.Game.Animation
         /// <param name="loopType">The type of loop to apply to the animation.</param>
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
-        /// <param name="endingFrame">The frame index to end on from the total frame count. Inclusive.</param>
+        /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
         public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame) : this(texture, frameSize, Vector2.Zero,
             loopType, timeBetweenFrames, startingFrame, endingFrame)
         {
@@ -97,7 +122,7 @@ namespace Emotion.Game.Animation
         /// <param name="loopType">The type of loop to apply to the animation.</param>
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
-        /// <param name="endingFrame">The frame index to end on from the total frame count. Inclusive.</param>
+        /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
         public AnimatedTexture(Texture texture, Vector2 frameSize, Vector2 spacing, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame)
         {
             Texture = texture;
@@ -109,6 +134,7 @@ namespace Emotion.Game.Animation
             EndingFrame = endingFrame;
             TimeBetweenFrames = timeBetweenFrames;
 
+            ClampFrameParameters();
             Reset();
         }
 
@@ -118,13 +144,17 @@ namespace Emotion.Game.Animation
         /// <param name="frameTime">The time passed since the last update.</param>
         public void Update(float frameTime)
         {
-            // Error checkers.
-            AssureFrameInRange();
+            // Clamp frame parameters.
+            ClampFrameParameters();
+
+            // Clamp frame within range.
+            if (CurrentFrameIndex < StartingFrame) CurrentFrameIndex = StartingFrame;
+            if (CurrentFrameIndex > EndingFrame) CurrentFrameIndex = EndingFrame;
 
             _timePassed += frameTime;
 
             // Timer.
-            if (!(_timePassed > TimeBetweenFrames)) return;
+            if (!(_timePassed >= TimeBetweenFrames)) return;
             _timePassed -= TimeBetweenFrames;
             NextFrame();
         }
@@ -171,7 +201,7 @@ namespace Emotion.Game.Animation
                     break;
                 case AnimationLoopType.NormalThenReverse:
                     // If the global frame is the last frame and going in reverse or the first and not going in reverse.
-                    if (CurrentFrameIndex == EndingFrame && _inReverse == false ||
+                    if (CurrentFrameIndex == EndingFrame && !_inReverse ||
                         CurrentFrameIndex == StartingFrame && _inReverse)
                     {
                         // Change the reverse flag.
@@ -218,47 +248,29 @@ namespace Emotion.Game.Animation
             }
         }
 
-        private void AssureFrameInRange()
-        {
-            switch (LoopType)
-            {
-                case AnimationLoopType.None:
-                case AnimationLoopType.Normal:
-                case AnimationLoopType.NormalThenReverse when !_inReverse:
-                    if (CurrentFrameIndex < StartingFrame) CurrentFrameIndex = StartingFrame;
-                    if (CurrentFrameIndex > EndingFrame) CurrentFrameIndex = EndingFrame;
-                    break;
-                case AnimationLoopType.NoneReverse:
-                case AnimationLoopType.Reverse:
-                case AnimationLoopType.NormalThenReverse when _inReverse:
-                    if (CurrentFrameIndex > StartingFrame) CurrentFrameIndex = StartingFrame;
-                    if (CurrentFrameIndex < EndingFrame) CurrentFrameIndex = EndingFrame;
-                    break;
-            }
-        }
-
         #endregion
 
         #region Helpers
 
         /// <summary>
-        /// Returns the number of frames in the animation.
+        /// Clamp the starting and ending frames.
         /// </summary>
-        /// <returns>The number of frames the animation range contains.</returns>
-        private int GetTotalFrames()
+        private void ClampFrameParameters()
         {
-            switch (LoopType)
+            if (StartingFrame < 0)
             {
-                case AnimationLoopType.None:
-                case AnimationLoopType.Normal:
-                case AnimationLoopType.NormalThenReverse:
-                    return EndingFrame - StartingFrame;
-                case AnimationLoopType.Reverse:
-                case AnimationLoopType.NoneReverse:
-                    return StartingFrame - EndingFrame;
+                StartingFrame = 0;
+                CurrentFrameIndex = GetStartingFrame();
             }
 
-            return -1;
+            if (EndingFrame > TotalFrames) EndingFrame = TotalFrames;
+            if (StartingFrame > EndingFrame)
+            {
+                StartingFrame = 0;
+                CurrentFrameIndex = GetStartingFrame();
+            }
+
+            if (EndingFrame < StartingFrame) EndingFrame = TotalFrames;
         }
 
         /// <summary>
@@ -295,6 +307,13 @@ namespace Emotion.Game.Animation
         {
             // Get the total number of columns.
             int columns = (int) (textureSize.X / frameSize.X);
+
+            // If invalid number of columns this means the texture size is larger than the frame size.
+            if (columns == 0)
+            {
+                Context.Log.Warning($"Invalid frame size of [{frameSize}] for image of size [{textureSize}].", MessageSource.Game);
+                return new Rectangle(Vector2.Zero, textureSize);
+            }
 
             // Get the current row and column.
             int row = (int) (frameId / (float) columns);
