@@ -83,6 +83,8 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 2. Write a game.
 3. Before releasing, download the release packet and use that instead of the nuget package.
 
+If interested you can use the visual debugger found here - [Rationale](https://github.com/Cryru/Rationale)
+
 ### Resources
 
 You can refer to the unit tests for specific information here - [Emotion.Tests](Emotion.Tests).
