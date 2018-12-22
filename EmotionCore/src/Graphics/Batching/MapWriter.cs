@@ -61,7 +61,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad.</param>
         /// <param name="textureArea">The texture area (UV) of the quad.</param>
-        public static void MapQuadAt(this MapBuffer buffer, int index, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public static void MapQuadAt(this QuadMapBuffer buffer, int index, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             // Check if mapping has started.
             if (!buffer.Mapping) buffer.StartMapping();
@@ -80,7 +80,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad.</param>
         /// <param name="textureArea">The texture area (UV) of the quad.</param>
-        public static void MapNextQuad(this MapBuffer buffer, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public static void MapNextQuad(this QuadMapBuffer buffer, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             // Check if mapping has started.
             if (!buffer.Mapping) buffer.StartMapping();

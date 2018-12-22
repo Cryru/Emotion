@@ -218,9 +218,11 @@ namespace Emotion.Graphics.Batching
         /// </summary>
         public new void Delete()
         {
-            GLThread.ForceGLThread();
-            base.Delete();
-            _vao?.Delete();
+            GLThread.ExecuteGLThread(() =>
+            {
+                base.Delete();
+                _vao?.Delete();
+            });
         }
 
         #endregion
