@@ -147,7 +147,14 @@ namespace Emotion.Engine.Hosting.Desktop
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    _mouseHolder[0] = true;
+                    if (Libraries.CurrentPlatform.OS == Libraries.PlatformName.Mac && IsKeyHeld("WinLeft"))
+                    {
+                        _mouseHolder[1] = true;
+                    }
+                    else
+                    {
+                        _mouseHolder[0] = true;
+                    }
                     break;
                 case MouseButton.Right:
                     _mouseHolder[1] = true;
@@ -169,7 +176,14 @@ namespace Emotion.Engine.Hosting.Desktop
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    _mouseHolder[0] = false;
+                    if (Libraries.CurrentPlatform.OS == Libraries.PlatformName.Mac && IsKeyHeld("WinLeft"))
+                    {
+                        _mouseHolder[1] = false;
+                    }
+                    else
+                    {
+                        _mouseHolder[0] = false;
+                    }
                     break;
                 case MouseButton.Right:
                     _mouseHolder[1] = false;

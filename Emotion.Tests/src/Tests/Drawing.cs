@@ -271,6 +271,9 @@ namespace Emotion.Tests.Tests
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));
         }
 
+        /// <summary>
+        /// Tests map buffer functions and rendering.
+        /// </summary>
         [TestMethod]
         public void MapBufferTest()
         {
