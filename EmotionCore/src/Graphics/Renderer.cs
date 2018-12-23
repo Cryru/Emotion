@@ -14,6 +14,7 @@ using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
+using Emotion.Libraries;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
@@ -100,8 +101,18 @@ namespace Emotion.Graphics
             SetupDebug();
         }
 
+        /// <summary>
+        /// Sets flags needed to align GPU behavior.
+        /// </summary>
         private void SetFlags()
         {
+            // Override shader version for Macs.
+            if (CurrentPlatform.OS == PlatformName.Mac)
+            {
+                Context.Flags.RenderFlags.ShaderVersionOverride = "#version 330";
+                Context.Log.Warning("Shader version changed from '300 es' to '330' because Mac platform was detected.", MessageSource.GL);
+            }
+
             // Flag missing extensions.
             int extCount = GL.GetInteger(GetPName.NumExtensions);
             bool found = false;
@@ -114,8 +125,8 @@ namespace Emotion.Graphics
             }
 
             if (found) return;
-            Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found.", MessageSource.GL);
-            Context.Flags.RenderFlags.Shader5ExtensionMissing = true;
+            Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found. Shader version changed from '300 es` to 400'.", MessageSource.GL);
+            Context.Flags.RenderFlags.ShaderVersionOverride = "#version 400";
         }
 
         /// <summary>
@@ -136,19 +147,21 @@ namespace Emotion.Graphics
                 // Check if one of the expected exceptions.
                 if (new Regex("gl_arb_gpu_shader5").IsMatch(ex.ToString().ToLower()))
                 {
-                    Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was found, but is not supported.", MessageSource.GL);
-                    Context.Flags.RenderFlags.Shader5ExtensionMissing = true;
+                    // So the extension is not supported. Try to compile with shader version "400".
+                    Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was found, but is not supported. Shader version changed from '300 es` to 400'.", MessageSource.GL);
+                    Context.Flags.RenderFlags.ShaderVersionOverride = "#version 400";
 
                     // Cleanup erred ones if any.
                     ShaderProgram.DefaultVertShader?.Destroy();
                     ShaderProgram.DefaultFragShader?.Destroy();
 
-                    // Recreate shaders.
+                    // Recreate shaders. If version 400 is not supported, then minimum requirements aren't met.
                     ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
                     ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
                 }
                 else
                 {
+                    // Some other error was found.
                     throw;
                 }
             }

@@ -21,14 +21,19 @@ namespace Emotion.Engine.Configuration
         public int OpenGLMinorVersion { get; set; } = 3;
 
         /// <summary>
-        /// Whether the "gl_arb_gpu_shader5" OpenGL extension is missing. In which case the shaders must be patched.
-        /// Will be forcefully switched by the Renderer when checking extensions and loading shaders.
+        /// An override for the shader version. Each shader compiled after setting this will override the default version with the string.
+        /// On Mac the shader version is forced to "330 core" and if the "gl_arb_gpu_shader5" OpenGL extension is missing it is forced to "400".
         /// </summary>
-        public bool Shader5ExtensionMissing { get; set; }
+        public string ShaderVersionOverride = "";
 
         /// <summary>
         /// How detailed drawn circles should be. Updates instantly. Default is 30.
         /// </summary>
         public int CircleDetail = 30;
+
+        /// <summary>
+        /// The maximum textures that can be mapped in one MapBuffer. If more than the allowed textures are mapped an exception is raised.
+        /// </summary>
+        public int TextureArrayLimit = 16;
     }
 }

@@ -2,11 +2,13 @@
 
 #region Using
 
+using System;
 using System.Linq;
 using System.Numerics;
 using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
+using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Tests.Interoperability;
@@ -18,10 +20,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Emotion.Tests.Tests
 {
     /// <summary>
-    /// Tests connected with texture drawing.
+    /// Tests connected with drawing.
     /// </summary>
     [TestClass]
-    public class TextureDrawing
+    public class Drawing
     {
         /// <summary>
         /// Test whether loading and drawing of textures works.
@@ -267,6 +269,191 @@ namespace Emotion.Tests.Tests
 
             // Ensure the textures are unloaded.
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));
+        }
+
+        [TestMethod]
+        public void MapBufferTest()
+        {
+             // Get the host.
+            TestHost host = TestInit.TestingHost;
+
+            // Shader to test shader drawing.
+            ShaderProgram testShader = new ShaderProgram(null, @"#version 300 es
+
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform sampler2D textures[16];
+
+// Comes in from the vertex shader.
+in vec2 UV;
+in vec4 vertColor;
+in float Tid;
+
+out vec4 fragColor;
+
+void main() {
+    vec4 temp;
+
+    // Check if a texture is in use.
+    if (Tid >= 0.0)
+    {
+        // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
+        temp = texture(textures[int(Tid)], UV) * vertColor;
+    } else {
+        // If no texture then just use the color.
+        temp = vertColor;
+    }
+
+    fragColor = vec4(temp.y, temp.x, 0, temp.w);
+}");
+
+            // Reference map buffers to test with.
+            QuadMapBuffer quadBuffer = null;
+            QuadMapBuffer overflowVerts = null;
+            QuadMapBuffer overflowTextures = null;
+            QuadMapBuffer colorBarfBuffer = null;
+
+            bool exceptionRaised = false;
+
+            // Create layer for this test.
+            ExternalLayer extLayer = new ExternalLayer
+            {
+                // Load the textures.
+                ExtLoad = () =>
+                {
+                    // Init quad buffer.
+                    quadBuffer = new QuadMapBuffer(20);
+                    quadBuffer.MapNextQuad(new Vector3(5, 10, 0), new Vector2(20, 20), Color.White);
+                    quadBuffer.MapNextQuad(new Vector3(5, 40, 0), new Vector2(20, 20), Color.White);
+                    quadBuffer.MapNextQuad(new Vector3(5, 70, 0), new Vector2(20, 20), Color.White);
+                    quadBuffer.MapNextQuad(new Vector3(5, 100, 0), new Vector2(20, 20), Color.White);
+                    quadBuffer.MapNextQuad(new Vector3(5, 130, 0), new Vector2(20, 20), Color.White);
+                    quadBuffer.MapNextQuad(new Vector3(5, 160, 0), new Vector2(20, 20), Color.White);
+                    quadBuffer.MapNextQuad(new Vector3(5, 190, 0), new Vector2(20, 20), Color.White);
+
+                    // Init overflow buffer.
+                    // The size is smaller than what we are mapping, the expected behavior is not to map the third one.
+                    overflowVerts = new QuadMapBuffer(2);
+                    overflowVerts.MapNextQuad(new Vector3(5, 10, 0), new Vector2(20, 20), Color.White);
+                    overflowVerts.MapNextQuad(new Vector3(5, 40, 0), new Vector2(20, 20), Color.White);
+                    overflowVerts.MapNextQuad(new Vector3(5, 70, 0), new Vector2(20, 20), Color.White);
+
+                    // Init a buffer which will overflow the texture limit.
+                    Context.Flags.RenderFlags.TextureArrayLimit = 2;
+                    overflowTextures = new QuadMapBuffer(30);
+                    overflowTextures.MapNextQuad(new Vector3(5, 10, 0), new Vector2(20, 20), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    overflowTextures.MapNextQuad(new Vector3(5, 40, 0), new Vector2(20, 20), Color.White, Context.AssetLoader.Get<Texture>("Textures/standardPng.png"));
+
+                    try
+                    {
+                        overflowTextures.MapNextQuad(new Vector3(5, 70, 0), new Vector2(20, 20), Color.White, Context.AssetLoader.Get<Texture>("Textures/standardGif.gif"));
+                    }
+                    catch (Exception)
+                    {
+                        exceptionRaised = true;
+                    }
+
+                    // An exception should've been raised.
+                    Assert.IsTrue(exceptionRaised);
+
+                    // Map color barf.
+                    colorBarfBuffer = new QuadMapBuffer(100);
+                    int x = 0;
+                    int y = 0;
+                    const int size = 5;
+                    for (int i = 0; i < 100; i++)
+                    {
+                        // Map quad.
+                        colorBarfBuffer.MapNextQuad(new Vector3(x * size, y * size, 1), new Vector2(size, size), new Color(i, 255 - i, 125 + i));
+
+                        // Grid logic.
+                        x++;
+                        if (x * size < 25)
+                            continue;
+                        x = 0;
+                        y++;
+                    }
+                },
+                // Unload the texture.
+                ExtUnload = () =>
+                {
+                    // Unloads buffers.
+                    quadBuffer.Delete();
+                    overflowVerts.Delete();
+                    overflowTextures.Delete();
+                    colorBarfBuffer.Delete();
+
+                    // Unload textures.
+                    Context.AssetLoader.Destroy("Textures/logoAlpha.png");
+                    Context.AssetLoader.Destroy("Textures/standardPng.png");
+                    Context.AssetLoader.Destroy("Textures/standardGif.gif");
+                },
+                // Draw textures.
+                ExtDraw = () =>
+                {
+                    // Draw a map buffer.
+                    Context.Renderer.Render(quadBuffer);
+
+                    // Now draw it with a shader and a matrix.
+                    testShader.Bind();
+                    Context.Renderer.SyncCurrentShader();
+                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(25, 0, 0));
+
+                    Context.Renderer.Render(quadBuffer);
+
+                    Context.Renderer.MatrixStack.Pop();
+                    testShader.Unbind();
+
+                    // Draw overflow.
+                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(50, 0, 0));
+                    Context.Renderer.Render(overflowVerts);
+                    Context.Renderer.MatrixStack.Pop();
+
+                    // Draw texture overflow.
+                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(75, 0, 0));
+                    Context.Renderer.Render(overflowTextures);
+                    Context.Renderer.MatrixStack.Pop();
+
+                    // Draw color barf.
+                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(100, 0, 0));
+                    Context.Renderer.Render(colorBarfBuffer);
+                    Context.Renderer.MatrixStack.Pop();
+                }
+            };
+
+            // Add layer.
+            Helpers.LoadLayer(extLayer, "map buffer test layer");
+
+            // Check if what is currently on screen is what is expected.
+            Assert.AreEqual("SfWiHfUEc5BBSpivGu4jLUCwxO6GsXEGD+mr4IC1CFs=", host.TakeScreenshot().Hash());
+
+            // Remap the first square and the tenth in the color barf buffer to test arbitrary remapping.
+            colorBarfBuffer.MapQuadAt(0, new Vector3(0, 0, 1), new Vector2(5, 5), new Color(255, 255, 255));
+            colorBarfBuffer.MapQuadAt(10, new Vector3(250, 0, 1), new Vector2(5, 5), new Color(255, 255, 255));
+
+            // Run a cycle (two for double buffering) to draw the changed map.
+            host.RunCycle();
+            host.RunCycle();
+            Assert.AreEqual("R/Avj2tjahUl4v4ans2vk5feOWUM+QJ2ec41i9Go6sI=", host.TakeScreenshot().Hash());
+
+            // Set render range, and test rendering with that.
+            colorBarfBuffer.SetRenderRange(0, 10);
+            host.RunCycle();
+            host.RunCycle();
+            Assert.AreEqual("Ew/b2KiGeLLzJuUvKW674tk2wvwy3UxYHjeBgMednqk=", host.TakeScreenshot().Hash());
+
+            // Cleanup layer.
+            Helpers.UnloadLayer(extLayer);
+
+            // Ensure no layers are left loaded.
+            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+
+            // Ensure the textures are unloaded.
+            Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));
+            Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/standardPng.png"));
+            Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/standardGif.gif"));
         }
     }
 }

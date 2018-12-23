@@ -76,9 +76,9 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Create a shader program.
         /// </summary>
-        /// <param name="fragmentShader">The program's fragment shader.</param>
-        /// <param name="vertexShader">The program's vertex shader.</param>
-        public ShaderProgram(Shader vertexShader, Shader fragmentShader)
+        /// <param name="fragmentShader">The program's fragment shader or null to use default.</param>
+        /// <param name="vertexShader">The program's vertex shader or null to use default.</param>
+        internal ShaderProgram(Shader vertexShader, Shader fragmentShader)
         {
             GLThread.ExecuteGLThread(() =>
             {
@@ -96,8 +96,8 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Create a shader program from shader strings.
         /// </summary>
-        /// <param name="fragmentShader">The program's fragment shader.</param>
-        /// <param name="vertexShader">The program's vertex shader.</param>
+        /// <param name="fragmentShader">The program's fragment shader or null to use default.</param>
+        /// <param name="vertexShader">The program's vertex shader or null to use default.</param>
         public ShaderProgram(string vertexShader, string fragmentShader)
         {
             GLThread.ExecuteGLThread(() =>

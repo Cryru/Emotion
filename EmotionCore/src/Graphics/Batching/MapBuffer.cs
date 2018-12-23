@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Graphics.Objects;
+using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
 
@@ -77,11 +78,6 @@ namespace Emotion.Graphics.Batching
         {
             get => Size / VertexData.SizeInBytes;
         }
-
-        /// <summary>
-        /// The Z index of the vertex with the lowest Z index which has been mapped.
-        /// </summary>
-        public float Z { get; private set; }
 
         #endregion
 
@@ -160,14 +156,6 @@ namespace Emotion.Graphics.Batching
             _defaultIbo = new IndexBuffer(indices);
 
             GLThread.CheckError("map buffer - creating ibo");
-        }
-
-        /// <summary>
-        /// Create a default triangle map buffer of the specified size.
-        /// </summary>
-        /// <param name="size">The size of the map buffer in objects.</param>
-        public MapBuffer(int size) : this(size, 3, null, 3, PrimitiveType.Triangles)
-        {
         }
 
         /// <summary>
@@ -280,25 +268,9 @@ namespace Emotion.Graphics.Batching
         {
             _textureList.Clear();
             MappedVertices = 0;
-            Z = 0;
-        }
 
-        /// <summary>
-        /// Increment the mapping pointer.
-        /// </summary>
-        /// <param name="amount">The amount to increment by.</param>
-        public void IncrementPointer(int amount)
-        {
-            _dataPointer += amount;
-        }
-
-        /// <summary>
-        /// Decrement the mapping pointer.
-        /// </summary>
-        /// <param name="amount">The amount to decrement by.</param>
-        public void DecrementPointer(int amount)
-        {
-            _dataPointer -= amount;
+            // Reset pointer if mapping.
+            if (Mapping) _dataPointer = _startPointer;
         }
 
         /// <summary>
@@ -313,11 +285,11 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Maps a vertex.
         /// </summary>
-        /// <param name="color"></param>
-        /// <param name="tid"></param>
-        /// <param name="uv"></param>
-        /// <param name="vertex"></param>
-        public void UnsafeMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
+        /// <param name="color">The color of the vertex as a packed uint.</param>
+        /// <param name="tid">The internal id of the texture for the vertex or -1 if none.</param>
+        /// <param name="uv">The UV for the texture.</param>
+        /// <param name="vertex">The vertex itself.</param>
+        protected void UnsafeMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
             long currentVertex = _dataPointer - _startPointer;
 
@@ -344,9 +316,6 @@ namespace Emotion.Graphics.Batching
 
             // Check if the mapped vertices count needs to be updated.
             if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
-
-            // Check if the Z property needs to be updated.
-            if (vertex.Z < Z) Z = vertex.Z;
         }
 
         #endregion
@@ -369,7 +338,7 @@ namespace Emotion.Graphics.Batching
             // Check if the texture is in the list of loaded textures.
             for (int i = 0; i < _textureList.Count; i++)
             {
-                if (_textureList[i].Pointer != texture.Pointer) continue; // todo: Try comparing references instead of pointers.
+                if (_textureList[i].Pointer != texture.Pointer) continue;
                 tid = i;
                 break;
             }
@@ -381,7 +350,10 @@ namespace Emotion.Graphics.Batching
             if (!addIfMissing) return -1;
 
             // Check if there is space for adding.
-            if (_textureList.Count >= 16) throw new Exception("Texture limit of 16 per buffer reached.");
+            if (_textureList.Count >= Context.Flags.RenderFlags.TextureArrayLimit)
+            {
+                throw new Exception($"Texture limit of buffer {_pointer} reached.");
+            }
 
             _textureList.Add(texture);
             tid = _textureList.Count - 1;
@@ -402,6 +374,78 @@ namespace Emotion.Graphics.Batching
 
 
             GLThread.CheckError("map buffer - texture binding");
+        }
+
+        #endregion
+
+        #region Friendly Mapping API
+
+        /// <summary>
+        /// Moves the pointer to the specified index and maps the vertex.
+        /// </summary>
+        /// <param name="index">The index of the vertex to map.</param>
+        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="color">The color of the vertex.</param>
+        /// <param name="texture">The texture of the vertex, if any.</param>
+        /// <param name="uv">The uv of the vertex's texture, if any.</param>
+        public void MapVertexAt(int index, Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
+        {
+            // Check if mapping has started.
+            if (!Mapping) StartMapping();
+
+            // Move the pointer and map the vertex.
+            MovePointerToVertex(index);
+            MapNextVertex(vertex, color, texture, uv);
+        }
+
+        /// <summary>
+        /// Maps the current vertex and advanced the current index by one.
+        /// </summary>
+        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="color">The color of the vertex.</param>
+        /// <param name="texture">The texture of the vertex, if any.</param>
+        /// <param name="uv">The uv of the vertex's texture, if any.</param>
+        public void MapNextVertex(Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
+        {
+            // Check if mapping has started.
+            if (!Mapping) StartMapping();
+
+            UnsafeMapVertex(color.ToUint(), GetTid(texture), Verify2dUV(texture, uv), vertex);
+            _dataPointer++;
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Verifies the uv.
+        /// </summary>
+        /// <param name="texture">The texture the uv is for.</param>
+        /// <param name="uv">The uv to verify.</param>
+        /// <returns></returns>
+        protected static Vector2 Verify2dUV(Texture texture, Vector2? uv)
+        {
+            // If no texture, the uv is empty.
+            if (texture == null) return Vector2.Zero;
+
+            return uv ?? Vector2.One;
+        }
+
+        /// <summary>
+        /// Verifies the uv.
+        /// </summary>
+        /// <param name="texture">The texture the uv is for.</param>
+        /// <param name="uvRect">The uv rectangle to verify.</param>
+        /// <returns></returns>
+        protected static Rectangle VerifyRectUV(Texture texture, Rectangle? uvRect)
+        {
+            if (texture == null) return Rectangle.Empty;
+
+            // Get the UV rectangle. If none specified then the whole texture area is chosen.
+            if (uvRect == null)
+                return new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
+            return (Rectangle) uvRect;
         }
 
         #endregion

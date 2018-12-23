@@ -137,7 +137,7 @@
     <Compile Include="src\Game\UI\Layout\CornerAnchor.cs" />
     <Compile Include="src\Game\UI\BasicButton.cs" />
     <Compile Include="src\Game\UI\ParentControl.cs" />
-    <Compile Include="src\Graphics\Batching\MapWriter.cs" />
+    <Compile Include="src\Graphics\Batching\TriMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
     <Compile Include="src\Graphics\GLThread.cs" />
     <Compile Include="src\Graphics\Texture.cs" />

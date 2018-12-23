@@ -72,7 +72,7 @@
     <Compile Include="src\Interoperability\TestInputManager.cs" />
     <Compile Include="src\Layers\ExternalLayer.cs" />
     <Compile Include="src\Tests\AnimatingTexture.cs" />
-    <Compile Include="src\Tests\TextureDrawing.cs" />
+    <Compile Include="src\Tests\Drawing.cs" />
     <Compile Include="src\Tests\Layering.cs" />
     <Compile Include="src\Layers\LayerLoading.cs" />
     <Compile Include="src\TestInit.cs" />

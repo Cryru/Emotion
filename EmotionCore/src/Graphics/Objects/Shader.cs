@@ -40,18 +40,18 @@ namespace Emotion.Graphics.Objects
         {
             Type = type;
 
-            // Fix for MacOS.
-            if (CurrentPlatform.OS == PlatformName.Mac)
+            // Check if a version override is set.
+            if (!string.IsNullOrEmpty(Context.Flags.RenderFlags.ShaderVersionOverride))
             {
-                source = source.Replace("#version 300 es", "#version 330");
-                Context.Log.Warning("Shader version changed from '300 es' to '330' because Mac platform was detected.", MessageSource.GL);
+                source = source.Replace("#version 300 es", Context.Flags.RenderFlags.ShaderVersionOverride);
             }
 
-            // Fix for missing GL_ARB_gpu_shader5.
-            if ((CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux) && Context.Flags.RenderFlags.Shader5ExtensionMissing)
+            // Fix for those who cannot bind more than one texture. This number usually means that the
+            // "GL_ARB_gpu_shader5" extension is both missing and shader version "400" is not supported.
+            if (Context.Flags.RenderFlags.TextureArrayLimit == 1)
             {
-                source = source.Replace("#version 300 es", "#version 400");
-                Context.Log.Warning("Shader version changed from '300 es` to 400' because the Shader5 extension is missing.", MessageSource.GL);
+                source = source.Replace("int(Tid)", "0");
+                Context.Log.Warning("Shader texture sampling changed to index 0 as the TextureArrayLimit flag is set to 1.", MessageSource.GL);
             }
 
             // Create and compile the shader.
