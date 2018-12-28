@@ -188,10 +188,7 @@ namespace Emotion.Engine
                 }
 
             // Check if input was setup.
-            if (InputManager == null)
-            {
-                Log.Error("Host didn't setup an input manager.", MessageSource.Engine);
-            }
+            if (InputManager == null) Log.Error("Host didn't setup an input manager.", MessageSource.Engine);
 
             // Apply settings and hook.
             Host.ApplySettings(Settings.HostSettings);

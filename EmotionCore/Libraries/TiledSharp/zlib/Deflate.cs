@@ -665,7 +665,7 @@ namespace Ionic.Zlib
         // the current block must be flushed.
         internal bool _tr_tally(int dist, int lc)
         {
-            pending[_distanceOffset + last_lit * 2] = unchecked((byte) ((uint) dist >> 8) );
+            pending[_distanceOffset + last_lit * 2] = unchecked((byte) ((uint) dist >> 8));
             pending[_distanceOffset + last_lit * 2 + 1] = unchecked((byte) dist);
             pending[_lengthOffset + last_lit] = unchecked((byte) lc);
             last_lit++;

@@ -30,11 +30,6 @@ namespace Emotion.Game.Layering
         #endregion
 
         /// <summary>
-        /// Whether to unload the layer on the next layer update.
-        /// </summary>
-        internal bool ToUnload = false;
-
-        /// <summary>
         /// Is run when the layer is loading.
         /// </summary>
         public abstract void Load();

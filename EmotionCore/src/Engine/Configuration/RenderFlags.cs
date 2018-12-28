@@ -21,8 +21,10 @@ namespace Emotion.Engine.Configuration
         public int OpenGLMinorVersion { get; set; } = 3;
 
         /// <summary>
-        /// An override for the shader version. Each shader compiled after setting this will override the default version with the string.
-        /// On Mac the shader version is forced to "330 core" and if the "gl_arb_gpu_shader5" OpenGL extension is missing it is forced to "400".
+        /// An override for the shader version. Each shader compiled after setting this will override the default version with the
+        /// string.
+        /// On Mac the shader version is forced to "330 core" and if the "gl_arb_gpu_shader5" OpenGL extension is missing it is
+        /// forced to "400".
         /// </summary>
         public string ShaderVersionOverride = "";
 
@@ -32,7 +34,8 @@ namespace Emotion.Engine.Configuration
         public int CircleDetail = 30;
 
         /// <summary>
-        /// The maximum textures that can be mapped in one MapBuffer. If more than the allowed textures are mapped an exception is raised.
+        /// The maximum textures that can be mapped in one MapBuffer. If more than the allowed textures are mapped an exception is
+        /// raised.
         /// </summary>
         public int TextureArrayLimit = 16;
     }

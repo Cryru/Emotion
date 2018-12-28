@@ -113,7 +113,7 @@ namespace Emotion.Debug
         private static void ConsoleThread()
         {
             // Check whether to expect console input.
-            if(!Context.Flags.ConsoleInput) return;
+            if (!Context.Flags.ConsoleInput) return;
 
             // Delay console thread on other OS as crashes happen.
             if (CurrentPlatform.OS != PlatformName.Windows) Thread.Sleep(2000);

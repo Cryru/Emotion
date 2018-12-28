@@ -227,7 +227,7 @@ namespace Emotion.Primitives
                      || r2.Right < Left
                      || r2.Top > Bottom
                      || r2.Bottom < Top
-            );
+                );
         }
 
         #endregion

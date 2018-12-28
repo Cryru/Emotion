@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using Emotion.Debug;
 using Emotion.Input;
+using Emotion.Libraries;
 using OpenTK.Input;
 
 #endregion
@@ -147,14 +148,10 @@ namespace Emotion.Engine.Hosting.Desktop
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    if (Libraries.CurrentPlatform.OS == Libraries.PlatformName.Mac && IsKeyHeld("WinLeft"))
-                    {
+                    if (CurrentPlatform.OS == PlatformName.Mac && IsKeyHeld("WinLeft"))
                         _mouseHolder[1] = true;
-                    }
                     else
-                    {
                         _mouseHolder[0] = true;
-                    }
                     break;
                 case MouseButton.Right:
                     _mouseHolder[1] = true;
@@ -176,14 +173,10 @@ namespace Emotion.Engine.Hosting.Desktop
             switch (e.Button)
             {
                 case MouseButton.Left:
-                    if (Libraries.CurrentPlatform.OS == Libraries.PlatformName.Mac && IsKeyHeld("WinLeft"))
-                    {
+                    if (CurrentPlatform.OS == PlatformName.Mac && IsKeyHeld("WinLeft"))
                         _mouseHolder[1] = false;
-                    }
                     else
-                    {
                         _mouseHolder[0] = false;
-                    }
                     break;
                 case MouseButton.Right:
                     _mouseHolder[1] = false;
@@ -274,6 +267,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the key is being held down.</returns>
         public bool IsKeyHeld(string key)
         {
+            if (!_host.Focused) return false;
             if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && _keyboardLast.IsKeyDown(otKey);
 #if DEBUG
             Context.Log.Error($"Couldn't find key [{key}] for held check.", MessageSource.Input);
@@ -288,6 +282,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the key was pressed down.</returns>
         public bool IsKeyDown(string key)
         {
+            if (!_host.Focused) return false;
             if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && !_keyboardLast.IsKeyDown(otKey);
 #if DEBUG
             Context.Log.Error($"Couldn't find key [{key}] for down check.", MessageSource.Input);
@@ -302,6 +297,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the key was let go.</returns>
         public bool IsKeyUp(string key)
         {
+            if (!_host.Focused) return false;
             if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyUp(otKey) && !_keyboardLast.IsKeyUp(otKey);
 #if DEBUG
             Context.Log.Error($"Couldn't find key [{key}] for up check.", MessageSource.Input);
@@ -316,6 +312,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the key is being held down.</returns>
         public bool IsKeyHeld(short key)
         {
+            if (!_host.Focused) return false;
             return _keyboard.IsKeyDown(key) && _keyboardLast.IsKeyDown(key);
         }
 
@@ -326,6 +323,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the key was pressed down.</returns>
         public bool IsKeyDown(short key)
         {
+            if (!_host.Focused) return false;
             return _keyboard.IsKeyDown(key) && !_keyboardLast.IsKeyDown(key);
         }
 
@@ -336,6 +334,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>Whether the key was let go.</returns>
         public bool IsKeyUp(short key)
         {
+            if (!_host.Focused) return false;
             return _keyboard.IsKeyUp(key) && !_keyboardLast.IsKeyUp(key);
         }
 

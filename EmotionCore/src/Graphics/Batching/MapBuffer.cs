@@ -350,10 +350,7 @@ namespace Emotion.Graphics.Batching
             if (!addIfMissing) return -1;
 
             // Check if there is space for adding.
-            if (_textureList.Count >= Context.Flags.RenderFlags.TextureArrayLimit)
-            {
-                throw new Exception($"Texture limit of buffer {_pointer} reached.");
-            }
+            if (_textureList.Count >= Context.Flags.RenderFlags.TextureArrayLimit) throw new Exception($"Texture limit of buffer {_pointer} reached.");
 
             _textureList.Add(texture);
             tid = _textureList.Count - 1;

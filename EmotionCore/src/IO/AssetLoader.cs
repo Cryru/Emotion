@@ -84,6 +84,14 @@ namespace Emotion.IO
             temp.Create(fileContents);
             lock (_loadedAssets)
             {
+                // Check if the asset is already loaded, in which case return it.
+                if (_loadedAssets.ContainsKey(enginePath))
+                {
+                    temp.Destroy();
+                    return (T) _loadedAssets[enginePath];
+                }
+
+                // If still not added - add it.
                 _loadedAssets.Add(enginePath, temp);
             }
 

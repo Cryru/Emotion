@@ -151,13 +151,12 @@ namespace Emotion.Graphics
                     Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was found, but is not supported. Shader version changed from '300 es` to 400'.", MessageSource.GL);
                     Context.Flags.RenderFlags.ShaderVersionOverride = "#version 400";
 
-                    // Cleanup erred ones if any.
+                    // Cleanup created ones if any.
                     ShaderProgram.DefaultVertShader?.Destroy();
                     ShaderProgram.DefaultFragShader?.Destroy();
 
-                    // Recreate shaders. If version 400 is not supported, then minimum requirements aren't met.
-                    ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
-                    ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
+                    // Recreate shaders. If version 400 is not supported too, then minimum requirements aren't met.
+                    CreateDefaultShaders();
                 }
                 else
                 {

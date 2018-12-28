@@ -5,7 +5,6 @@
 using System;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Libraries;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -41,10 +40,7 @@ namespace Emotion.Graphics.Objects
             Type = type;
 
             // Check if a version override is set.
-            if (!string.IsNullOrEmpty(Context.Flags.RenderFlags.ShaderVersionOverride))
-            {
-                source = source.Replace("#version 300 es", Context.Flags.RenderFlags.ShaderVersionOverride);
-            }
+            if (!string.IsNullOrEmpty(Context.Flags.RenderFlags.ShaderVersionOverride)) source = source.Replace("#version 300 es", Context.Flags.RenderFlags.ShaderVersionOverride);
 
             // Fix for those who cannot bind more than one texture. This number usually means that the
             // "GL_ARB_gpu_shader5" extension is both missing and shader version "400" is not supported.
