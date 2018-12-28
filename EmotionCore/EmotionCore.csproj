@@ -208,7 +208,6 @@
     <Compile Include="src\Meta.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Embedded\Shaders\ColorFrag.glsl" />
     <None Include="FreeImage-dotnet-core.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
