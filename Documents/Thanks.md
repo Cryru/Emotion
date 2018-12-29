@@ -8,6 +8,7 @@ Nicolas
 theDaftDev
 nnevatie
 vassvik
+Klems
 
 Game Industry People:
 

@@ -247,9 +247,10 @@ namespace Emotion.Tests.Tests
                     Context.Renderer.Render(buffer);
 
                     // Render text.
-                    Context.Renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 15, "This is test text", new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 0, 1), Color.Black);
-                    Context.Renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 15, "This is test text", new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 10, 2), Color.Black);
-                    Context.Renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 15, "This is test text", new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 20, 1), Color.Black);
+                    Context.Renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 0, 1), Color.Red);
+                    Context.Renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 10, 2), Color.Green);
+                    Context.Renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 20, 1), Color.Blue);
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 0, 0), new Vector2(200, 100), Color.Black);
                 }
             };
 
@@ -259,7 +260,7 @@ namespace Emotion.Tests.Tests
             // Check if what is currently on screen is what is expected.
             // This render is not 100% correct though, the hearts on the right for instance shouldn't be smooth as it is an alternating 0-1 chain.
             // This has to do with the DepthFunc being set to GL_Always.
-            Assert.AreEqual("FOw5W39qcUcrIpHkBudAzC288obGqqFJx3E1GRGp/hE=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("pUYi+vsKignI6YeXj/TSrouo1yMF7n2HV5ghLO2mOw4=", host.TakeScreenshot().Hash());
 
             // Cleanup layer.
             Helpers.UnloadLayer(extLayer);
