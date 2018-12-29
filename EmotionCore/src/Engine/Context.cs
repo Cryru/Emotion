@@ -401,6 +401,12 @@ namespace Emotion.Engine
 
         private static void Resize()
         {
+            // Check if host size is 0.
+            if (Host.Size.X == 0 || Host.Size.Y == 0)
+            {
+                Log.Warning("Host reported a size of 0.", MessageSource.Engine);
+            }
+
             // Calculate borderbox / pillarbox.
             float targetAspectRatio = Settings.RenderSettings.Width / Settings.RenderSettings.Height;
 
