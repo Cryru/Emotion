@@ -163,9 +163,6 @@ namespace Emotion.Engine
             config?.Invoke(initial);
             Settings = initial;
 
-            // Setup thread manager.
-            GLThread.BindThread();
-
             // Create host if not created.
             if (Host == null)
                 try
@@ -193,6 +190,9 @@ namespace Emotion.Engine
             // Apply settings and hook.
             Host.ApplySettings(Settings.HostSettings);
             Host.SetHooks(LoopUpdate, LoopDraw, Resize, Quit);
+
+            // Setup graphics.
+            GraphicsManager.Setup();
 
             // Start creating modules.
 

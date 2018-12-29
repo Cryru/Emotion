@@ -140,6 +140,7 @@
     <Compile Include="src\Graphics\Batching\TriMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
     <Compile Include="src\Graphics\GLThread.cs" />
+    <Compile Include="src\Graphics\GraphicsManager.cs" />
     <Compile Include="src\Graphics\Texture.cs" />
     <Compile Include="src\Graphics\Objects\IGLObject.cs" />
     <Compile Include="src\Graphics\Objects\IndexBuffer.cs" />
