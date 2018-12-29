@@ -101,11 +101,11 @@ namespace Emotion.Game.UI.Layout
             if (!Controller.DebugDraw) return;
 
 #if DEBUG
-            Context.Renderer.RenderFlush();
-            Context.Renderer.RenderFlush();
 
-            Context.Renderer.RenderQueueOutline(new Vector3(Width / 2, 0, 0), new Vector2(0, Height), Color.Pink);
-            Context.Renderer.RenderQueueOutline(new Vector3(0, Height / 2, 0), new Vector2(Width, 0), Color.Pink);
+
+
+            Context.Renderer.RenderOutline(new Vector3(Width / 2, 0, 0), new Vector2(0, Height), Color.Pink);
+            Context.Renderer.RenderOutline(new Vector3(0, Height / 2, 0), new Vector2(Width, 0), Color.Pink);
 
             lock (_controls)
             {
@@ -115,8 +115,8 @@ namespace Emotion.Game.UI.Layout
                 }
             }
 
-            Context.Renderer.RenderFlush();
-            Context.Renderer.RenderFlush();
+
+
 #endif
         }
 

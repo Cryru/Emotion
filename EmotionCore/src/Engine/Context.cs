@@ -50,6 +50,11 @@ namespace Emotion.Engine
         public static float FrameTime { get; private set; }
 
         /// <summary>
+        /// The raw frame time unhindered by the semi-fixed step. Used for FPS meters and such.
+        /// </summary>
+        public static float RawFrameTime { get; private set; }
+
+        /// <summary>
         /// The time which has passed since start. Used for tracking time in shaders and such.
         /// </summary>
         public static float TotalTime { get; private set; }
@@ -107,6 +112,15 @@ namespace Emotion.Engine
         /// The logging of the engine.
         /// </summary>
         public static LoggingProvider Log { get; set; }
+
+        #endregion
+
+        #region Privates
+
+        /// <summary>
+        /// The raw frame timer.
+        /// </summary>
+        private static Stopwatch _rawTimer;
 
         #endregion
 
@@ -240,6 +254,9 @@ namespace Emotion.Engine
             // Set running to true.
             IsRunning = true;
 
+            // Start tracking raw frame time.
+            _rawTimer = Stopwatch.StartNew();
+
             // Start running the loops. Blocking.
             Host.Run();
 #if !DEBUG
@@ -370,6 +387,10 @@ namespace Emotion.Engine
         /// </summary>
         private static void LoopDraw()
         {
+            // Track raw time.
+            RawFrameTime = _rawTimer.ElapsedMilliseconds;
+            _rawTimer.Restart();
+
             // If not focused, don't draw.
             if (!Host.Focused)
             {

@@ -29,12 +29,24 @@ namespace Emotion.Game.Camera
 
         #endregion
 
+        /// <summary>
+        /// The last known position of the target.
+        /// </summary>
         private Vector2 _targetLastPosition;
 
-        public MouseCamera(Vector3 position, Vector2 size) : base(position, size)
+        /// <summary>
+        /// Create a new camera which follows the mouse cursor.
+        /// </summary>
+        /// <param name="position">The starting position of the camera.</param>
+        /// <param name="size">The size of the camera's viewport.</param>
+        /// <param name="zoom">The camera's zoom.</param>
+        public MouseCamera(Vector3 position, Vector2 size, float zoom = 1f) : base(position, size, zoom)
         {
         }
-
+        
+        /// <summary>
+        /// The camera is updated once per frame automatically by the renderer.
+        /// </summary>
         public override void Update()
         {
             // Check if no target.
@@ -54,8 +66,6 @@ namespace Emotion.Game.Camera
 
             // Record position.
             _targetLastPosition = Target.Center;
-
-            UpdateMatrix();
         }
     }
 }

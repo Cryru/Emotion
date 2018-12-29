@@ -69,9 +69,10 @@ namespace Emotion.Game.Layering
             // Update layers. The list conversion copies the list, allowing the dictionary to be edited. Do not replace with locks.
             foreach (Layer layer in _layers.Values.ToList())
             {
-                Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(0, 0, layer.Priority));
+                Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(0, 0, layer.Priority));
                 layer.Draw(Context.Renderer);
-                Context.Renderer.MatrixStack.Pop();
+                Context.Renderer.PopModelMatrix();
+
                 GLThread.CheckError("layer draw");
             }
         }

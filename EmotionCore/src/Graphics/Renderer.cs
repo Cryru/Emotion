@@ -5,8 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using System.Text.RegularExpressions;
-using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
@@ -14,7 +12,6 @@ using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Batching;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
-using Emotion.Libraries;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 using Buffer = Emotion.Graphics.Objects.Buffer;
@@ -40,29 +37,47 @@ namespace Emotion.Graphics
         /// <summary>
         /// The renderer's camera.
         /// </summary>
-        public CameraBase Camera;
-
-        /// <summary>
-        /// The model matrix stack.
-        /// </summary>
-        public TransformationStack MatrixStack;
+        public CameraBase Camera
+        {
+            get => _camera;
+            set
+            {
+                _camera = value;
+                _camera.Update();
+            }
+        }
 
         #endregion
 
         #region Render State
 
+        /// <summary>
+        /// Private camera tracker.
+        /// </summary>
+        private CameraBase _camera;
+
+        /// <summary>
+        /// The main drawing buffer.
+        /// </summary>
         private QuadMapBuffer _mainBuffer;
-        private bool _viewMatrixEnabled = true;
+
+        /// <summary>
+        /// The model matrix stack.
+        /// </summary>
+        private TransformationStack _modelMatrix;
 
         #endregion
 
         #region Initialization
 
+        /// <summary>
+        /// Creates a new renderer. Is called by the Context when initializing modules.
+        /// </summary>
         internal Renderer()
         {
             // Create objects.
             Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height));
-            MatrixStack = new TransformationStack();
+            _modelMatrix = new TransformationStack();
 
             // Setup main map buffer.
             _mainBuffer = new QuadMapBuffer(MaxRenderable);
@@ -94,42 +109,42 @@ namespace Emotion.Graphics
         private void SetupDebug()
         {
             Context.ScriptingEngine.Expose("debugCamera",
-                (Func<string>) (() =>
-                {
-                    _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
-                        {
-                            Zoom = Camera.Zoom / 2f
-                        }
-                        : null;
-                    _debugCameraDataText.Active = !_debugCameraDataText.Active;
+                (Func<string>)(() =>
+               {
+                   _debugCamera = _debugCamera == null
+                       ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
+                       {
+                           Zoom = Camera.Zoom / 2f
+                       }
+                       : null;
+                   _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
-                    return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
-                }),
+                   return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
+               }),
                 "Enables the debug camera. Move it with the arrow keys. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fps",
-                (Func<string>) (() =>
-                {
-                    _fpsCounter = !_fpsCounter;
-                    _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
+                (Func<string>)(() =>
+               {
+                   _fpsCounter = !_fpsCounter;
+                   _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
 
-                    return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
-                }),
+                   return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
+               }),
                 "Enables the fps counter. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("debugMouse",
-                (Func<string>) (() =>
-                {
-                    _drawMouse = !_drawMouse;
+                (Func<string>)(() =>
+               {
+                   _drawMouse = !_drawMouse;
 
-                    return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
-                }),
+                   return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
+               }),
                 "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
 
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
-            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
-            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
 
             Debugger.CornerAnchor.AddChild(_debugCameraDataText, AnchorLocation.BottomLeft);
             Debugger.CornerAnchor.AddChild(_debugFpsCounterDataText, AnchorLocation.TopLeft);
@@ -170,16 +185,16 @@ namespace Emotion.Graphics
                                             $"Camera Location: {Camera}";
             }
 
-            if (_fpsCounter) _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.FrameTime:N0}";
+            if (_fpsCounter) _debugFpsCounterDataText.Text = $"FPS: {1000 / Context.RawFrameTime:N0}";
 
             if (!_drawMouse) return;
             Vector2 mouseLocation = Context.InputManager.GetMousePosition();
             mouseLocation.X -= 5;
             mouseLocation.Y -= 5;
 
-            DisableViewMatrix();
+            Camera.Enabled = false;
             RenderOutline(new Vector3(mouseLocation.X, mouseLocation.Y, 100), new Vector2(10, 10), Color.Pink);
-            EnableViewMatrix();
+            Camera.Enabled = true;
         }
 
         #endregion
@@ -199,8 +214,11 @@ namespace Emotion.Graphics
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GLThread.CheckError("clear");
 
+            // Update the current camera.
+            Camera.Update();
+            
             // Sync the current shader.
-            SyncCurrentShader();
+            SystemSyncCurrentShader();
         }
 
         /// <summary>
@@ -211,8 +229,8 @@ namespace Emotion.Graphics
             // Draw any debugging if needed.
             DrawDebug();
 
-            // Flush unflushed buffers.
-            if (_mainBuffer.Mapping) RenderFlush();
+            // Submit remaining rendered.
+            Submit();
         }
 
         /// <summary>
@@ -222,41 +240,11 @@ namespace Emotion.Graphics
         {
             // Update debugging features.
             UpdateDebug();
-
-            // Update the current camera.
-            Camera.Update();
         }
 
         #endregion
 
         #region Other APIs
-
-        /// <summary>
-        /// Synchronize the current shader's properties with the actual ones. This doesn't set the model matrix.
-        /// </summary>
-        /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
-        public void SyncCurrentShader(bool full = true)
-        {
-            if (full)
-            {
-                SetModelMatrix();
-                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix",
-                    Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
-            }
-
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", _viewMatrixEnabled ? (_debugCamera ?? Camera).ViewMatrix : Matrix4x4.Identity);
-            ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
-
-            GLThread.CheckError("Syncing shader");
-        }
-
-        /// <summary>
-        /// Set the current model matrix for the current shader.
-        /// </summary>
-        public void SetModelMatrix()
-        {
-            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", MatrixStack.CurrentMatrix);
-        }
 
         /// <summary>
         /// Transforms a point through the viewMatrix converting it from screen space to world space.
@@ -268,83 +256,12 @@ namespace Emotion.Graphics
             return Vector2.Transform(position, (_debugCamera ?? Camera).ViewMatrix.Inverted());
         }
 
-        /// <summary>
-        /// Disables the view matrix until the shader is resynchronized or it is re-enabled.
-        /// </summary>
-        public void DisableViewMatrix()
-        {
-            _viewMatrixEnabled = false;
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
-        }
-
-        /// <summary>
-        /// Enables the view matrix.
-        /// </summary>
-        public void EnableViewMatrix()
-        {
-            _viewMatrixEnabled = true;
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
-        }
-
         #endregion
 
-        #region Batching Render API
+        #region Rendering
 
         /// <summary>
-        /// Queue a render on the main map buffer.
-        /// </summary>
-        /// <param name="location">The location of the buffer.</param>
-        /// <param name="size">The size of the buffer.</param>
-        /// <param name="color">The color of the vertices.</param>
-        /// <param name="texture">The texture to use.</param>
-        /// <param name="textureArea">The texture area to render.</param>
-        public void RenderQueue(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
-        {
-            _mainBuffer.MapNextQuad(location, size, color, texture, textureArea);
-        }
-
-        /// <summary>
-        /// Queue a render of an outline.
-        /// </summary>
-        /// <param name="pointOne">The first point.</param>
-        /// <param name="pointTwo">The second point.</param>
-        /// <param name="color">The color of the line.</param>
-        /// <param name="thickness">How thick the line should be.</param>
-        public void RenderQueueLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
-        {
-            _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
-        }
-
-        /// <summary>
-        /// Queue a render of a rectangle outline.
-        /// </summary>
-        /// <param name="location">The location of the rectangle.</param>
-        /// <param name="size">The size of the rectangle.</param>
-        /// <param name="color">The color of the lines.</param>
-        /// <param name="thickness">How thick the line should be.</param>
-        public void RenderQueueOutline(Vector3 location, Vector2 size, Color color, float thickness = 1)
-        {
-            RenderQueueLine(location, new Vector3(location.X + size.X, location.Y, location.Z), color, thickness);
-            RenderQueueLine(new Vector3(location.X + size.X, location.Y, location.Z), new Vector3(location.X + size.X, location.Y + size.Y, location.Z), color, thickness);
-            RenderQueueLine(new Vector3(location.X + size.X, location.Y + size.Y, location.Z), new Vector3(location.X, location.Y + size.Y, location.Z), color, thickness);
-            RenderQueueLine(new Vector3(location.X, location.Y + size.Y, location.Z), location, color, thickness);
-        }
-
-        /// <summary>
-        /// Flushes the main map buffer, and restarts its mapping.
-        /// </summary>
-        public void RenderFlush()
-        {
-            Render(_mainBuffer);
-            _mainBuffer.Reset();
-        }
-
-        #endregion
-
-        #region Instant Render
-
-        /// <summary>
-        /// Instantly render a quad to the screen.
+        /// Render a quad to the screen.
         /// </summary>
         /// <param name="location">The location of the quad.</param>
         /// <param name="size">The size of the quad.</param>
@@ -353,91 +270,7 @@ namespace Emotion.Graphics
         /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
         public void Render(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            RenderQueue(location, size, color, texture, textureArea);
-            RenderFlush();
-        }
-
-        /// <summary>
-        /// Instantly render a rectangle outline.
-        /// </summary>
-        /// <param name="location">The location of the rectangle.</param>
-        /// <param name="size">The size of the rectangle.</param>
-        /// <param name="color">The color of the lines.</param>
-        /// <param name="thickness">How thick the line should be.</param>
-        public void RenderOutline(Vector3 location, Vector2 size, Color color, float thickness = 1)
-        {
-            RenderQueueOutline(location, size, color, thickness);
-            RenderFlush();
-        }
-
-        /// <summary>
-        /// Render a circle outline.
-        /// </summary>
-        /// <param name="position">
-        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
-        /// with "useCenter"
-        /// </param>
-        /// <param name="radius">The circle radius.</param>
-        /// <param name="color">The circle color.</param>
-        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
-        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false)
-        {
-            // Flush the buffer.
-            RenderFlush();
-
-            // Add the circle's model matrix.
-            MatrixStack.Push(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
-
-            float fX = 0;
-            float fY = 0;
-            float pX = 0;
-            float pY = 0;
-
-            // Generate points.
-            for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
-            {
-                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
-
-                if (i == 0)
-                {
-                    RenderQueueLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + x, radius + y, 0), color);
-                    fX = x;
-                    fY = y;
-                }
-                else if (i == Context.Flags.RenderFlags.CircleDetail - 1)
-                {
-                    RenderQueueLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
-                    RenderQueueLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
-                }
-                else
-                {
-                    RenderQueueLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
-                }
-
-                pX = x;
-                pY = y;
-            }
-
-            // Render the circle.
-            RenderFlush();
-
-            // Remove the model matrix.
-            MatrixStack.Pop();
-        }
-
-        /// <summary>
-        /// Instantly render a line.
-        /// </summary>
-        /// <param name="pointOne">The first point.</param>
-        /// <param name="pointTwo">The second point.</param>
-        /// <param name="color">The color of the line.</param>
-        /// <param name="thickness">How thick the line should be.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
-        {
-            _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
-            RenderFlush();
+            _mainBuffer.MapNextQuad(location, size, color, texture, textureArea);
         }
 
         /// <summary>
@@ -450,11 +283,8 @@ namespace Emotion.Graphics
         /// <param name="color">The color to render in.</param>
         public void RenderString(Font font, uint textSize, string text, Vector3 position, Color color)
         {
-            // Flush the buffer.
-            RenderFlush();
-
             // Add the string's model matrix.
-            MatrixStack.Push(Matrix4x4.CreateTranslation(position));
+            PushToModelMatrix(Matrix4x4.CreateTranslation(position));
 
             // Queue letters.
             Rectangle[] uvs = new Rectangle[text.Length];
@@ -478,15 +308,90 @@ namespace Emotion.Graphics
 
                 Vector3 renderPos = new Vector3(g.MinX + penX, penY + g.YBearing, position.Z);
                 uvs[i] = new Rectangle(g.X, g.Y, g.Width, g.Height);
-                RenderQueue(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
+                Render(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
                 penX += g.Advance;
             }
 
-            // Render the whole string.
-            RenderFlush();
+            // Remove the model matrix.
+            PopModelMatrix();
+        }
+
+        /// <summary>
+        /// Render a line.
+        /// </summary>
+        /// <param name="pointOne">The first point.</param>
+        /// <param name="pointTwo">The second point.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
+        {
+            _mainBuffer.MapNextLine(pointOne, pointTwo, color, thickness);
+        }
+
+        /// <summary>
+        /// Render a rectangle outline.
+        /// </summary>
+        /// <param name="location">The location of the rectangle.</param>
+        /// <param name="size">The size of the rectangle.</param>
+        /// <param name="color">The color of the lines.</param>
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderOutline(Vector3 location, Vector2 size, Color color, float thickness = 1)
+        {
+            RenderLine(location, new Vector3(location.X + size.X, location.Y, location.Z), color, thickness);
+            RenderLine(new Vector3(location.X + size.X, location.Y, location.Z), new Vector3(location.X + size.X, location.Y + size.Y, location.Z), color, thickness);
+            RenderLine(new Vector3(location.X + size.X, location.Y + size.Y, location.Z), new Vector3(location.X, location.Y + size.Y, location.Z), color, thickness);
+            RenderLine(new Vector3(location.X, location.Y + size.Y, location.Z), location, color, thickness);
+        }
+
+        /// <summary>
+        /// Render a circle outline.
+        /// </summary>
+        /// <param name="position">
+        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
+        /// with "useCenter"
+        /// </param>
+        /// <param name="radius">The circle radius.</param>
+        /// <param name="color">The circle color.</param>
+        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
+        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false)
+        {
+            // Add the circle's model matrix.
+            PushToModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
+
+            float fX = 0;
+            float fY = 0;
+            float pX = 0;
+            float pY = 0;
+
+            // Generate points.
+            for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
+            {
+                float angle = (float)(i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float)Math.Cos(angle) * radius;
+                float y = (float)Math.Sin(angle) * radius;
+
+                if (i == 0)
+                {
+                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + x, radius + y, 0), color);
+                    fX = x;
+                    fY = y;
+                }
+                else if (i == Context.Flags.RenderFlags.CircleDetail - 1)
+                {
+                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                }
+                else
+                {
+                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                }
+
+                pX = x;
+                pY = y;
+            }
 
             // Remove the model matrix.
-            MatrixStack.Pop();
+            PopModelMatrix();
         }
 
         /// <summary>
@@ -501,11 +406,8 @@ namespace Emotion.Graphics
         /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
         public void RenderCircle(Vector3 position, float radius, Color color, bool useCenter = false)
         {
-            // Flush the buffer.
-            RenderFlush();
-
             // Add the circle's model matrix.
-            MatrixStack.Push(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
+            PushToModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
 
             float pX = 0;
             float pY = 0;
@@ -515,9 +417,9 @@ namespace Emotion.Graphics
             // Generate points.
             for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
+                float angle = (float)(i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float)Math.Cos(angle) * radius;
+                float y = (float)Math.Sin(angle) * radius;
 
                 _mainBuffer.MapNextVertex(new Vector3(radius + pX, radius + pY, 0), color);
                 _mainBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
@@ -541,54 +443,173 @@ namespace Emotion.Graphics
                 pY = y;
             }
 
-            // Render the circle.
-            RenderFlush();
-
             // Remove the model matrix.
-            MatrixStack.Pop();
+            PopModelMatrix();
+        }
+
+        /// <summary>
+        /// Submit all render commands so far.
+        /// </summary>
+        public void Submit()
+        {
+            // Check if anything was mapped at all.
+            if (!_mainBuffer.Mapping || !_mainBuffer.AnythingMapped) return;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                _mainBuffer.Render();
+                _mainBuffer.Reset();
+            });
         }
 
         #endregion
 
-        #region Object Rendering
+        #region State Modification
 
         /// <summary>
-        /// Queue a renderable to be rendered at the end of the frame.
+        /// Sets the current shader to the one specified. If null sets the shader to the default one.
         /// </summary>
-        /// <param name="renderable">The renderable to render.</param>
-        /// <param name="skipModelMatrix">
-        /// Whether to skip applying the transformation stack matrix as model matrix. You want to do
-        /// this when your renderable is rendering other renderables. Off by default.
-        /// </param>
-        public void Render(IRenderable renderable, bool skipModelMatrix = false)
+        /// <param name="shader">The shader to set.</param>
+        public void SetShader(ShaderProgram shader = null)
         {
-            if (!skipModelMatrix) SetModelMatrix();
-            renderable.Render();
+            GLThread.ExecuteGLThread(() =>
+            {
+                // Check if setting to the same shader.
+                if (shader == ShaderProgram.Current) return;
+
+                // Flush the draw buffer.
+                Submit();
+
+                // Default or provided switch.
+                if (shader == null)
+                    ShaderProgram.Default.Bind();
+                else
+                    shader.Bind();
+
+                // Sync shader uniforms.
+                SystemSyncCurrentShader();
+            });
         }
 
         /// <summary>
-        /// Queue a renderable to be rendered at the end of the frame.
+        /// Push a matrix on top of the model matrix stack.
+        /// </summary>
+        /// <param name="matrix">The matrix to add.</param>
+        /// <param name="multiply">Whether to multiply the new matrix by the previous matrix.</param>
+        public void PushToModelMatrix(Matrix4x4 matrix, bool multiply = true)
+        {
+            // Flush the draw buffer.
+            Submit();
+
+            // Push into stack and update shader.
+            _modelMatrix.Push(matrix, multiply);
+            GLThread.ExecuteGLThread(() => { ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix); });
+        }
+
+        /// <summary>
+        /// Remove the top matrix from the model matrix stack.
+        /// </summary>
+        public void PopModelMatrix()
+        {
+            // Flush the draw buffer.
+            Submit();
+
+            // Pop out of stack and update shader.
+            _modelMatrix.Pop();
+            GLThread.ExecuteGLThread(() => { ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix); });
+        }
+
+        #endregion
+
+        #region Renderable
+
+        /// <summary>
+        /// Render a renderable object.
+        /// </summary>
+        /// <param name="renderable">The renderable to render.</param>
+        public void Render(IRenderable renderable)
+        {
+            // Render the draw buffer.
+            Submit();
+
+            // Render the renderable.
+            GLThread.ExecuteGLThread(renderable.Render);
+        }
+
+        /// <summary>
+        /// Render a renderable object with a model matrix.
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>
         /// <param name="modelMatrix">The renderable's model matrix.</param>
-        public void Render(IRenderable renderable, Matrix4x4 modelMatrix)
+        /// <param name="multiplyMatrix">Whether to multiply the new matrix by the previous matrix.</param>
+        public void Render(IRenderable renderable, Matrix4x4 modelMatrix, bool multiplyMatrix = true)
         {
-            MatrixStack.Push(modelMatrix);
-            SetModelMatrix();
-            renderable.Render();
-            MatrixStack.Pop();
+            // Push the model matrix.
+            PushToModelMatrix(modelMatrix, multiplyMatrix);
+
+            // Render the renderable.
+            GLThread.ExecuteGLThread(renderable.Render);
+
+            // Pop model matrix.
+            PopModelMatrix();
         }
 
         /// <summary>
         /// Queue a renderable to be rendered at the end of the frame.
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>
-        public void Render(TransformRenderable renderable)
+        /// <param name="multiplyMatrix">Whether to multiply the new matrix by the previous matrix.</param>
+        public void Render(TransformRenderable renderable, bool multiplyMatrix = true)
         {
-            MatrixStack.Push(renderable.ModelMatrix);
-            SetModelMatrix();
-            renderable.Render();
-            MatrixStack.Pop();
+            // Push the model matrix.
+            PushToModelMatrix(renderable.ModelMatrix, multiplyMatrix);
+
+            // Render the renderable.
+            GLThread.ExecuteGLThread(renderable.Render);
+
+            // Pop model matrix.
+            PopModelMatrix();
+        }
+
+        #endregion
+
+        #region System Functions
+
+        /// <summary>
+        /// Updated the camera's matrix.
+        /// System function.
+        /// </summary>
+        public void UpdateCameraMatrix()
+        {
+            // Flush the draw buffer.
+            Submit();
+
+            // Upload to the shader.
+            GLThread.ExecuteGLThread(() =>
+            {
+                ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+            });
+        }
+
+        /// <summary>
+        /// Synchronize the current shader's uniform properties with the actual ones.
+        /// System function.
+        /// </summary>
+        /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
+        public void SystemSyncCurrentShader(bool full = true)
+        {
+            GLThread.ExecuteGLThread(() =>
+            {
+                if (full)
+                    ShaderProgram.Current.SetUniformMatrix4("projectionMatrix",
+                        Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
+
+                ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
+                ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+                ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
+
+                GLThread.CheckError("Syncing shader");
+            });
         }
 
         #endregion

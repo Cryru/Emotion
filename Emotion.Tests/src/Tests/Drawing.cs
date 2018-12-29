@@ -201,30 +201,30 @@ namespace Emotion.Tests.Tests
                     // Queue draw.
                     for (int i = 0; i < 50; i++)
                     {
-                        Context.Renderer.RenderQueue(new Vector3(maxX + 5 * i, maxY + 5 * i, i), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                        Context.Renderer.Render(new Vector3(maxX + 5 * i, maxY + 5 * i, i), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
                     }
 
                     for (int i = 0; i < 50; i++)
                     {
-                        Context.Renderer.RenderQueue(new Vector3(maxX + 5 * i, maxY + maxY - 5 * i, i + 49), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                        Context.Renderer.Render(new Vector3(maxX + 5 * i, maxY + maxY - 5 * i, i + 49), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
                     }
 
                     // Draw line 0-1/1-0 with queuing.
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 50, 0, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 100, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 150, 0, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 200, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 250, 0, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 300, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 50, 0, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 100, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 150, 0, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 200, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 250, 0, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 300, 0, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
 
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 50, 100, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 100, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 150, 100, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 200, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 250, 100, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Context.Renderer.RenderQueue(new Vector3(Context.Settings.RenderSettings.Width - 300, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 50, 100, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 100, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 150, 100, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 200, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 250, 100, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width - 300, 100, 1), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
 
                     // Render line 0-1/1-0 without queing.
                     Context.Renderer.Render(new Vector3(Context.Settings.RenderSettings.Width, 200, 0), new Vector2(100, 100), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
@@ -401,29 +401,28 @@ void main() {
                     Context.Renderer.Render(quadBuffer);
 
                     // Now draw it with a shader and a matrix.
-                    testShader.Bind();
-                    Context.Renderer.SyncCurrentShader();
-                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(25, 0, 0));
+                    Context.Renderer.SetShader(testShader);
+                    Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(25, 0, 0));
 
                     Context.Renderer.Render(quadBuffer);
 
-                    Context.Renderer.MatrixStack.Pop();
-                    testShader.Unbind();
+                    Context.Renderer.PopModelMatrix();
+                    Context.Renderer.SetShader();
 
                     // Draw overflow.
-                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(50, 0, 0));
+                    Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(50, 0, 0));
                     Context.Renderer.Render(overflowVerts);
-                    Context.Renderer.MatrixStack.Pop();
+                    Context.Renderer.PopModelMatrix();
 
                     // Draw texture overflow.
-                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(75, 0, 0));
+                    Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(75, 0, 0));
                     Context.Renderer.Render(overflowTextures);
-                    Context.Renderer.MatrixStack.Pop();
+                    Context.Renderer.PopModelMatrix();
 
                     // Draw color barf.
-                    Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(100, 0, 0));
+                    Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(100, 0, 0));
                     Context.Renderer.Render(colorBarfBuffer);
-                    Context.Renderer.MatrixStack.Pop();
+                    Context.Renderer.PopModelMatrix();
                 }
             };
 

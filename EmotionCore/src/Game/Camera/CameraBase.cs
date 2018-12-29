@@ -3,15 +3,35 @@
 #region Using
 
 using System.Numerics;
+using Emotion.Engine;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
 
 namespace Emotion.Game.Camera
 {
+    /// <summary>
+    /// The basis for a camera object.
+    /// </summary>
     public class CameraBase : Transform
     {
         #region Properties
+
+        /// <summary>
+        /// Whether the camera is enabled.
+        /// </summary>
+        public bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                _enabled = value;
+                RecreateMatrix();
+            }
+        }
+
+        private bool _enabled;
 
         /// <summary>
         /// The camera's matrix.
@@ -27,34 +47,57 @@ namespace Emotion.Game.Camera
             set
             {
                 _zoom = value;
-                _updateMatrix = true;
+                RecreateMatrix();
             }
         }
 
-        private float _zoom = 1f;
-        private bool _updateMatrix = true;
+        private float _zoom;
 
         #endregion
 
-        public CameraBase(Vector3 position, Vector2 size) : base(position, size)
+        /// <summary>
+        /// Create a new camera basis.
+        /// </summary>
+        /// <param name="position">The position of the camera.</param>
+        /// <param name="size">The size of the camera's viewport.</param>
+        /// <param name="zoom">The camera's zoom.</param>
+        public CameraBase(Vector3 position, Vector2 size, float zoom = 1f) : base(position, size)
         {
-            UpdateMatrix();
-            OnMove += (a, b) => _updateMatrix = true;
-            OnResize += (a, b) => _updateMatrix = true;
+            _zoom = zoom;
+
+            RecreateMatrix();
+            OnMove += (a, b) => RecreateMatrix();
+            OnResize += (a, b) => RecreateMatrix();
         }
 
+        /// <summary>
+        /// Update the camera. The current camera is updated before each frame.
+        /// </summary>
         public virtual void Update()
         {
-            UpdateMatrix();
+
         }
 
-        protected virtual void UpdateMatrix()
+        /// <summary>
+        /// Recreates the view matrix of the camera and updates it for the renderer.
+        /// </summary>
+        protected virtual void RecreateMatrix()
         {
-            if (!_updateMatrix) return;
+            // If the camera is disabled, its matrix is a default identity matrix.
+            if (!Enabled)
+            {
+                ViewMatrix = Matrix4x4.Identity;
+            }
+            else
+            {
+                // Actions:
+                // 1. Apply zoom (translations is to ensure zoom is at the center of the camera.
+                // 2. Apply translation to camera position.
+                ViewMatrix = Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4x4.CreateScale(Zoom) * Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z) *
+                             Matrix4x4.CreateTranslation(-(int) X, -(int) Y, Z);
+            }
 
-            ViewMatrix = Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4x4.CreateScale(Zoom) * Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z) *
-                         Matrix4x4.CreateTranslation(-(int) X, -(int) Y, Z);
-            _updateMatrix = false;
+            Context.Renderer?.UpdateCameraMatrix();
         }
     }
 }

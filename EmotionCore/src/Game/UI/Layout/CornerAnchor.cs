@@ -128,8 +128,8 @@ namespace Emotion.Game.UI.Layout
             if (!Controller.DebugDraw) return;
 
 #if DEBUG
-            Context.Renderer.RenderFlush();
-            Context.Renderer.RenderFlush();
+
+
 
             DrawDebugBounds(Padding, Color.Red);
 
@@ -141,24 +141,24 @@ namespace Emotion.Game.UI.Layout
                 }
             }
 
-            Context.Renderer.RenderFlush();
-            Context.Renderer.RenderFlush();
+
+
 #endif
         }
 
         private void DrawDebugBounds(Rectangle padding, Color color)
         {
             // Top
-            Context.Renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(Width, padding.Y), color);
+            Context.Renderer.RenderOutline(new Vector3(0, 0, Z), new Vector2(Width, padding.Y), color);
 
             // Left
-            Context.Renderer.RenderQueueOutline(new Vector3(0, 0, Z), new Vector2(padding.X, Height), color);
+            Context.Renderer.RenderOutline(new Vector3(0, 0, Z), new Vector2(padding.X, Height), color);
 
             // Bottom
-            Context.Renderer.RenderQueueOutline(new Vector3(0, Height - padding.Y, Z), new Vector2(Width, padding.Y), color);
+            Context.Renderer.RenderOutline(new Vector3(0, Height - padding.Y, Z), new Vector2(Width, padding.Y), color);
 
             // Right
-            Context.Renderer.RenderQueueOutline(new Vector3(Width - padding.X, 0, Z), new Vector2(padding.X, Height), color);
+            Context.Renderer.RenderOutline(new Vector3(Width - padding.X, 0, Z), new Vector2(padding.X, Height), color);
         }
 
         private void ApplyLogic()

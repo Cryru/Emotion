@@ -10,6 +10,9 @@ using System.Numerics;
 
 namespace Emotion.Graphics
 {
+    /// <summary>
+    /// A stack of 4x4 matrices. Each matrix pushed is multiplied by the last one in the stack.
+    /// </summary>
     public sealed class TransformationStack
     {
         /// <summary>

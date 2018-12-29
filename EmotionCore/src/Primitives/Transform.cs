@@ -100,12 +100,16 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector3 Position
         {
-            get => new Vector3(X, Y, Z);
+            get => new Vector3(_x, _y, _z);
             set
             {
-                X = value.X;
-                Y = value.Y;
-                Z = value.Z;
+                if(_x == value.X && _y == value.Y && _z == value.Z) return;
+
+                _x = value.X;
+                _y = value.Y;
+                _z = value.Z;
+
+                OnMove?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -114,11 +118,15 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 Size
         {
-            get => new Vector2(Width, Height);
+            get => new Vector2(_width, _height);
             set
             {
-                Width = value.X;
-                Height = value.Y;
+                if(_width == value.X && _height == value.Y) return;
+
+                _width = value.X;
+                _height = value.Y;
+
+                OnResize?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -127,7 +135,7 @@ namespace Emotion.Primitives
         /// </summary>
         public float RightSide
         {
-            get => X + Width;
+            get => _x + _width;
             set => X = value - Width;
         }
 
@@ -136,7 +144,7 @@ namespace Emotion.Primitives
         /// </summary>
         public float BottomSide
         {
-            get => Y + Height;
+            get => _y + _height;
             set => Y = value - Height;
         }
 
@@ -145,11 +153,13 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 Center
         {
-            get => new Vector2(X + Width / 2, Y + Height / 2);
+            get => new Vector2(_x + _width / 2, _y + _height / 2);
             set
             {
-                X = value.X - Width / 2;
-                Y = value.Y - Height / 2;
+                _x = (int) value.X - _width / 2;
+                _y = (int) value.Y - _height / 2;
+
+                OnMove?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -158,7 +168,7 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 CenterRelative
         {
-            get => new Vector2(Width / 2, Height / 2);
+            get => new Vector2(_width / 2, _height / 2);
         }
 
         #endregion
@@ -205,11 +215,11 @@ namespace Emotion.Primitives
         /// <param name="height">The height of the transform.</param>
         protected Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
         {
-            X = x;
-            Y = y;
-            Z = z;
-            Width = width;
-            Height = height;
+            _x = x;
+            _y = y;
+            _z = z;
+            _width = width;
+            _height = height;
         }
 
         #endregion
@@ -232,7 +242,7 @@ namespace Emotion.Primitives
         /// <returns>A rectangle which represents the transform.</returns>
         public Rectangle ToRectangle()
         {
-            return new Rectangle(X, Y, Width, Height);
+            return new Rectangle(_x, _y, _width, _height);
         }
 
         /// <summary>

@@ -107,9 +107,6 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public override void Render()
         {
-            // Flush the buffer.
-            Context.Renderer.RenderFlush();
-
             // Check if anything is loaded.
             if (TiledMap == null || !_loaded) return;
 
@@ -158,12 +155,9 @@ namespace Emotion.Game.Tiled
                     tRect.Y *= ratioDifferenceY;
 
                     // Check if visible rectangle exists.
-                    Context.Renderer.RenderQueue(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
+                    Context.Renderer.Render(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId], tiUv);
                 }
             }
-
-            // Flush the rendered tiles.
-            Context.Renderer.RenderFlush();
         }
 
         #region Animated Tiles

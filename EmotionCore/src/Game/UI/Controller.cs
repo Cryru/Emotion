@@ -117,8 +117,8 @@ namespace Emotion.Game.UI
         /// </summary>
         public void Draw()
         {
-            Context.Renderer.DisableViewMatrix();
-            Context.Renderer.MatrixStack.Push(Matrix4x4.CreateTranslation(0, 0, UIPriority));
+            Context.Renderer.Camera.Enabled = false;
+            Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(0, 0, UIPriority));
 
             foreach (Control c in Controls)
             {
@@ -130,8 +130,8 @@ namespace Emotion.Game.UI
             }
 
             DrawDebug(Context.Renderer);
-            Context.Renderer.MatrixStack.Pop();
-            Context.Renderer.EnableViewMatrix();
+            Context.Renderer.PopModelMatrix();
+            Context.Renderer.Camera.Enabled = true;
         }
 
         /// <summary>
@@ -393,13 +393,13 @@ namespace Emotion.Game.UI
 
             foreach (Control control in Controls)
             {
-                renderer.RenderQueueOutline(control.GetTruePosition().LocationZ(control.Z + 1), control.Size, control.Active ? Color.Green : Color.Red);
+                renderer.RenderOutline(control.GetTruePosition().LocationZ(control.Z + 1), control.Size, control.Active ? Color.Green : Color.Red);
 
                 if (control == top)
                     renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.GetTruePosition().LocationZ(control.Z + 2), Color.Yellow);
             }
 
-            renderer.RenderFlush();
+
         }
 
         /// <inheritdoc />
