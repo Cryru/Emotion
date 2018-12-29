@@ -51,7 +51,7 @@ namespace Emotion.Graphics
 
             // Setup additional GL arguments.
             GL.Enable(EnableCap.Blend);
-            GL.DepthFunc(DepthFunction.Always);
+            GL.DepthFunc(DepthFunction.Lequal);
             GL.Enable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
         }

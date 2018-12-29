@@ -259,7 +259,7 @@ namespace Emotion.Tests.Tests
             // Check if what is currently on screen is what is expected.
             // This render is not 100% correct though, the hearts on the right for instance shouldn't be smooth as it is an alternating 0-1 chain.
             // This has to do with the DepthFunc being set to GL_Always.
-            Assert.AreEqual("cZswFyUuG7sNprOMV95w1JRTnOIgyXOqICyzDHlKk5o=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("FOw5W39qcUcrIpHkBudAzC288obGqqFJx3E1GRGp/hE=", host.TakeScreenshot().Hash());
 
             // Cleanup layer.
             Helpers.UnloadLayer(extLayer);

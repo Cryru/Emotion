@@ -23,4 +23,6 @@ void main() {
         // If no texture then just use the color.
         fragColor = vertColor;
     }
+
+    if (fragColor.a < 0.01) discard;
 }
