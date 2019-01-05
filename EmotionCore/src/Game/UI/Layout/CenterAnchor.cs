@@ -103,7 +103,6 @@ namespace Emotion.Game.UI.Layout
 #if DEBUG
 
 
-
             Context.Renderer.RenderOutline(new Vector3(Width / 2, 0, 0), new Vector2(0, Height), Color.Pink);
             Context.Renderer.RenderOutline(new Vector3(0, Height / 2, 0), new Vector2(Width, 0), Color.Pink);
 
@@ -114,7 +113,6 @@ namespace Emotion.Game.UI.Layout
                     control.Render();
                 }
             }
-
 
 
 #endif

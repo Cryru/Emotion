@@ -43,7 +43,7 @@ namespace Emotion.Game.Camera
         public MouseCamera(Vector3 position, Vector2 size, float zoom = 1f) : base(position, size, zoom)
         {
         }
-        
+
         /// <summary>
         /// The camera is updated once per frame automatically by the renderer.
         /// </summary>

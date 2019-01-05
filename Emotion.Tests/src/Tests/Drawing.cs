@@ -12,7 +12,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Tests.Interoperability;
-using Emotion.Tests.Layers;
+using Emotion.Tests.Scenes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
@@ -41,8 +41,8 @@ namespace Emotion.Tests.Tests
             // Get the host.
             TestHost host = TestInit.TestingHost;
 
-            // Create layer for this test.
-            ExternalLayer extLayer = new ExternalLayer
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
             {
                 // This will test loading testing in another thread.
                 ExtLoad = () =>
@@ -71,17 +71,14 @@ namespace Emotion.Tests.Tests
                 }
             };
 
-            // Add layer.
-            Helpers.LoadLayer(extLayer, "texture test layer");
+            // Load scene.
+            Helpers.LoadScene(extScene);
 
             // Check if what is currently on screen is what is expected.
             Assert.AreEqual("lsDdE6FX8qi9qc/Q/hxE9XbduqIBFK9QICiLzjoLxCQ=", host.TakeScreenshot().Hash());
 
-            // Cleanup layer.
-            Helpers.UnloadLayer(extLayer);
-
-            // Ensure no layers are left loaded.
-            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+            // Cleanup.
+            Helpers.UnloadScene();
 
             // Ensure the textures are unloaded.
             Assert.AreEqual(textures.Length, textures.Except(Context.AssetLoader.LoadedAssets.Select(x => x.Name)).Count());
@@ -96,8 +93,8 @@ namespace Emotion.Tests.Tests
             // Get the host.
             TestHost host = TestInit.TestingHost;
 
-            // Create layer for this test.
-            ExternalLayer extLayer = new ExternalLayer
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
             {
                 // This will test loading testing in another thread.
                 ExtLoad = () =>
@@ -122,17 +119,14 @@ namespace Emotion.Tests.Tests
                 }
             };
 
-            // Add layer.
-            Helpers.LoadLayer(extLayer, "texture alpha test layer");
+            // Load scene.
+            Helpers.LoadScene(extScene);
 
             // Check if what is currently on screen is what is expected.
             Assert.AreEqual("MtlaEdCKLT5205oeCNAJP2NYvKbU/iByuf8CbE1jEAw=", host.TakeScreenshot().Hash());
 
-            // Cleanup layer.
-            Helpers.UnloadLayer(extLayer);
-
-            // Ensure no layers are left loaded.
-            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+            // Cleanup.
+            Helpers.UnloadScene();
 
             // Ensure the textures are unloaded.
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));
@@ -152,8 +146,8 @@ namespace Emotion.Tests.Tests
             // Reference a map buffer to test drawing with that as well.
             QuadMapBuffer buffer = null;
 
-            // Create layer for this test.
-            ExternalLayer extLayer = new ExternalLayer
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
             {
                 // Load the textures.
                 ExtLoad = () =>
@@ -254,19 +248,16 @@ namespace Emotion.Tests.Tests
                 }
             };
 
-            // Add layer.
-            Helpers.LoadLayer(extLayer, "texture depth test layer");
+            // Load scene.
+            Helpers.LoadScene(extScene);
 
             // Check if what is currently on screen is what is expected.
             // This render is not 100% correct though, the hearts on the right for instance shouldn't be smooth as it is an alternating 0-1 chain.
             // This has to do with the DepthFunc being set to GL_Always.
             Assert.AreEqual("pUYi+vsKignI6YeXj/TSrouo1yMF7n2HV5ghLO2mOw4=", host.TakeScreenshot().Hash());
 
-            // Cleanup layer.
-            Helpers.UnloadLayer(extLayer);
-
-            // Ensure no layers are left loaded.
-            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+            // Cleanup.
+            Helpers.UnloadScene();
 
             // Ensure the textures are unloaded.
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));
@@ -321,8 +312,8 @@ void main() {
 
             bool exceptionRaised = false;
 
-            // Create layer for this test.
-            ExternalLayer extLayer = new ExternalLayer
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
             {
                 // Load the textures.
                 ExtLoad = () =>
@@ -426,8 +417,8 @@ void main() {
                 }
             };
 
-            // Add layer.
-            Helpers.LoadLayer(extLayer, "map buffer test layer");
+            // Load scene.
+            Helpers.LoadScene(extScene);
 
             // Check if what is currently on screen is what is expected.
             Assert.AreEqual("SfWiHfUEc5BBSpivGu4jLUCwxO6GsXEGD+mr4IC1CFs=", host.TakeScreenshot().Hash());
@@ -447,11 +438,8 @@ void main() {
             host.RunCycle();
             Assert.AreEqual("Ew/b2KiGeLLzJuUvKW674tk2wvwy3UxYHjeBgMednqk=", host.TakeScreenshot().Hash());
 
-            // Cleanup layer.
-            Helpers.UnloadLayer(extLayer);
-
-            // Ensure no layers are left loaded.
-            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+            // Cleanup.
+            Helpers.UnloadScene();
 
             // Ensure the textures are unloaded.
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));

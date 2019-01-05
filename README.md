@@ -72,7 +72,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 - Graphical debugging and a command console.
   - Debug the camera, or UI through the engine.
   - Execute scripting commands at real time.
-- Scenes in the form of layers. Have your UI, pause menu, levels, or anything on separate scenes.
+- Scenes.
 - Framerate independent timing, semi-fixed step and free-step based on configuration.
   - Managed delta time and total time access in the shader for cool effects.
   - The update loop will always be up to date when a target fps is selected.

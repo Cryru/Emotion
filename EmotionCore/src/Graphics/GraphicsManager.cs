@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
+﻿// Emotion - https://github.com/Cryru/Emotion
+
+#region Using
+
+using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Game.Camera;
-using Emotion.Graphics.Batching;
 using Emotion.Graphics.Objects;
 using Emotion.Libraries;
 using OpenTK.Graphics.ES30;
+
+#endregion
 
 namespace Emotion.Graphics
 {
@@ -43,7 +42,7 @@ namespace Emotion.Graphics
             CreateDefaultShaders();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader)null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
 
             // Check if the setup encountered any errors.

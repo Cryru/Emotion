@@ -13,8 +13,8 @@ using Emotion.Debug.Logging;
 using Emotion.Engine.Configuration;
 using Emotion.Engine.Hosting;
 using Emotion.Engine.Hosting.Desktop;
+using Emotion.Engine.Scenography;
 using Emotion.External;
-using Emotion.Game.Layering;
 using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.IO;
@@ -89,9 +89,9 @@ namespace Emotion.Engine
         public static ScriptingEngine ScriptingEngine { get; private set; }
 
         /// <summary>
-        /// Module which manages the different layers which make up the game.
+        /// Module which manages loading and unloading of scenes.
         /// </summary>
-        public static LayerManager LayerManager { get; private set; }
+        public static SceneManager SceneManager { get; private set; }
 
         /// <summary>
         /// Manages sound.
@@ -228,8 +228,8 @@ namespace Emotion.Engine
             Log.Trace("Creating sound manager...", MessageSource.Engine);
             SoundManager = new SoundManager();
 
-            Log.Trace("Creating layer manager...", MessageSource.Engine);
-            LayerManager = new LayerManager();
+            Log.Trace("Creating scene manager...", MessageSource.Engine);
+            SceneManager = new SceneManager();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -378,8 +378,8 @@ namespace Emotion.Engine
             // Update the renderer.
             Renderer.Update();
 
-            // If not focused don't update user code.
-            LayerManager.Update();
+            // Update user code.
+            SceneManager.Update();
         }
 
         /// <summary>
@@ -391,6 +391,9 @@ namespace Emotion.Engine
             RawFrameTime = _rawTimer.ElapsedMilliseconds;
             _rawTimer.Restart();
 
+            // Run the thread manager.
+            GLThread.Run();
+
             // If not focused, don't draw.
             if (!Host.Focused)
             {
@@ -398,15 +401,12 @@ namespace Emotion.Engine
                 return;
             }
 
-            // Run the thread manager.
-            GLThread.Run();
-
             // Clear the screen.
             Renderer.Clear();
             GLThread.CheckError("renderer clear");
 
-            // Draw the layers.
-            LayerManager.Draw();
+            // Draw the user scene.
+            SceneManager.Draw();
             GLThread.CheckError("layer draw");
 
             // Finish rendering.
@@ -423,10 +423,7 @@ namespace Emotion.Engine
         private static void Resize()
         {
             // Check if host size is 0.
-            if (Host.Size.X == 0 || Host.Size.Y == 0)
-            {
-                Log.Warning("Host reported a size of 0.", MessageSource.Engine);
-            }
+            if (Host.Size.X == 0 || Host.Size.Y == 0) Log.Warning("Host reported a size of 0.", MessageSource.Engine);
 
             // Calculate borderbox / pillarbox.
             float targetAspectRatio = Settings.RenderSettings.Width / Settings.RenderSettings.Height;

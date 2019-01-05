@@ -128,6 +128,9 @@
     <Compile Include="src\Engine\ContinuousAction.cs" />
     <Compile Include="src\Engine\Helpers.cs" />
     <Compile Include="src\Engine\MathExtension.cs" />
+    <Compile Include="src\Engine\Scenography\DefaultLoadingScene.cs" />
+    <Compile Include="src\Engine\Scenography\Scene.cs" />
+    <Compile Include="src\Engine\Scenography\SceneManager.cs" />
     <Compile Include="src\Engine\ThreadManager.cs" />
     <Compile Include="src\Game\Text\TypewriterRichText.cs" />
     <Compile Include="src\Game\UI\BasicTextBg.cs" />
@@ -176,8 +179,6 @@
     <Compile Include="src\Debug\MessageSource.cs" />
     <Compile Include="src\Debug\MessageType.cs" />
     <Compile Include="src\Engine\Hosting\Desktop\WindowMode.cs" />
-    <Compile Include="src\Game\Layering\LayerManager.cs" />
-    <Compile Include="src\Game\Layering\Layer.cs" />
     <Compile Include="src\Engine\ScriptingEngine.cs" />
     <Compile Include="src\Game\AStar\Path.cs" />
     <Compile Include="src\Game\AStar\Grid.cs" />

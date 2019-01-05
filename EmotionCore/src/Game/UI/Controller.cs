@@ -398,8 +398,6 @@ namespace Emotion.Game.UI
                 if (control == top)
                     renderer.RenderString(Context.AssetLoader.Get<Font>("debugFont.otf"), 10, control.GetType().ToString(), control.GetTruePosition().LocationZ(control.Z + 2), Color.Yellow);
             }
-
-
         }
 
         /// <inheritdoc />

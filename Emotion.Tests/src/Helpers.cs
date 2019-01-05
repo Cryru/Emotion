@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Emotion.Engine;
 using Emotion.Tests.Interoperability;
-using Emotion.Tests.Layers;
+using Emotion.Tests.Scenes;
 
 #endregion
 
@@ -37,11 +37,17 @@ namespace Emotion.Tests
         public static Dictionary<int, string> Hashes = new Dictionary<int, string>();
 
         /// <summary>
+        /// The scene to keep loaded when none is loaded.
+        /// </summary>
+        private static SceneLoading _trashScene;
+
+        /// <summary>
         /// Get the test host. Don't call the helpers file before it has been created.
         /// </summary>
         static Helpers()
         {
             _host = TestInit.TestingHost;
+            _trashScene = new SceneLoading();
         }
 
         /// <summary>
@@ -70,30 +76,25 @@ namespace Emotion.Tests
         /// Load a layer. Handles waiting and running the test host's cycle.
         /// </summary>
         /// <param name="reference">A reference to the test layer to load.</param>
-        /// <param name="name">Name of the layer.</param>
-        /// <param name="priority">Priority of the layer.</param>
-        public static void LoadLayer(LayerLoading reference, string name, int priority = 0)
+        /// <param name="requireDraw">Whether a draw call is required.</param>
+        public static void LoadScene(SceneLoading reference, bool requireDraw = true)
         {
             // Add layer.
-            Task loadingTask = Context.LayerManager.Add(reference, name, priority);
+            Task loadingTask = Context.SceneManager.SetScene(reference);
             // Wait for loading to complete.
-            while (!loadingTask.IsCompleted || !reference.DrawCalled) _host.RunCycle();
+            while (!loadingTask.IsCompleted || (requireDraw && !reference.DrawCalled)) _host.RunCycle();
 
             // Run an additional cycle to ensure buffers are swapped.
             _host.RunCycle();
         }
 
         /// <summary>
-        /// Unload a layer. Handles waiting and running the test host's cycle.
+        /// Unload the current scene.
         /// </summary>
-        /// <param name="layer">A reference to the layer to remove.</param>
-        public static void UnloadLayer(LayerLoading layer)
+        /// <param name="requireDraw">Whether to require a draw call afterwards.</param>
+        public static void UnloadScene(bool requireDraw = true)
         {
-            // Remove the layer.
-            Task removingTask = Context.LayerManager.Remove(layer);
-
-            // Wait for it to complete.
-            while (!removingTask.IsCompleted || !layer.UnloadCalled) _host.RunCycle();
+            LoadScene(_trashScene, requireDraw);
         }
     }
 }

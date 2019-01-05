@@ -4,7 +4,6 @@
 
 using System.Numerics;
 using Emotion.Engine;
-using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
@@ -75,7 +74,6 @@ namespace Emotion.Game.Camera
         /// </summary>
         public virtual void Update()
         {
-
         }
 
         /// <summary>
@@ -85,17 +83,10 @@ namespace Emotion.Game.Camera
         {
             // If the camera is disabled, its matrix is a default identity matrix.
             if (!Enabled)
-            {
                 ViewMatrix = Matrix4x4.Identity;
-            }
             else
-            {
-                // Actions:
-                // 1. Apply zoom (translations is to ensure zoom is at the center of the camera.
-                // 2. Apply translation to camera position.
                 ViewMatrix = Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4x4.CreateScale(Zoom) * Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z) *
                              Matrix4x4.CreateTranslation(-(int) X, -(int) Y, Z);
-            }
 
             Context.Renderer?.UpdateCameraMatrix();
         }

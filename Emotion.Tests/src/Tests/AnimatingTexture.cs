@@ -8,7 +8,7 @@ using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Tests.Interoperability;
-using Emotion.Tests.Layers;
+using Emotion.Tests.Scenes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
@@ -38,8 +38,8 @@ namespace Emotion.Tests.Tests
             AnimatedTexture noLoopReverse = null;
             AnimatedTexture reverseLoop = null;
 
-            // Create the test layer.
-            ExternalLayer extLayer = new ExternalLayer
+            // Create the test scene.
+            ExternalScene extScene = new ExternalScene
             {
                 // Load the animated texture classes. This also tests loading in another thread.
                 ExtLoad = () =>
@@ -80,8 +80,8 @@ namespace Emotion.Tests.Tests
                 }
             };
 
-            // Add layer.
-            Helpers.LoadLayer(extLayer, "texture animation test layer");
+            // Add scene.
+            Helpers.LoadScene(extScene);
 
             // Assert the objects are as expected.
             Assert.AreEqual(3, normalLoop.AnimationFrames);
@@ -265,11 +265,8 @@ namespace Emotion.Tests.Tests
             Assert.AreEqual(3, noLoopReverse.CurrentFrameIndex);
             Assert.AreEqual(3, reverseLoop.CurrentFrameIndex);
 
-            // Cleanup layer.
-            Helpers.UnloadLayer(extLayer);
-
-            // Ensure no layers are left loaded.
-            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+            // Cleanup.
+            Helpers.UnloadScene();
         }
 
         /// <summary>
@@ -286,8 +283,8 @@ namespace Emotion.Tests.Tests
             AnimatedTexture wrongFrameSizeAltConstructor = null;
             AnimatedTexture frameChange = null;
 
-            // Create the test layer.
-            ExternalLayer extLayer = new ExternalLayer
+            // Create the test scene.
+            ExternalScene extScene = new ExternalScene
             {
                 // Load the animated texture classes. This also tests loading in another thread.
                 ExtLoad = () =>
@@ -322,8 +319,8 @@ namespace Emotion.Tests.Tests
                 }
             };
 
-            // Add layer.
-            Helpers.LoadLayer(extLayer, "texture animation test layer");
+            // Add scene.
+            Helpers.LoadScene(extScene);
 
             // Perform unit tests.
             AnimatedTexture wrongStartingFrame = new AnimatedTexture(Context.AssetLoader.Get<Texture>("Textures/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Normal, 500, -10, 3);
@@ -462,11 +459,8 @@ namespace Emotion.Tests.Tests
             Assert.AreEqual(500, frameChange.TimeBetweenFrames);
             Assert.AreEqual(1, frameChange.LoopCount);
 
-            // Cleanup layer.
-            Helpers.UnloadLayer(extLayer);
-
-            // Ensure no layers are left loaded.
-            Assert.AreEqual(0, Context.LayerManager.LoadedLayers.Length);
+            // Cleanup.
+            Helpers.UnloadScene();
         }
     }
 }

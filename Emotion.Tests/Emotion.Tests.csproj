@@ -70,11 +70,11 @@
     <Compile Include="src\Interoperability\DebugLogger.cs" />
     <Compile Include="src\Interoperability\TestHost.cs" />
     <Compile Include="src\Interoperability\TestInputManager.cs" />
-    <Compile Include="src\Layers\ExternalLayer.cs" />
+    <Compile Include="src\Scenes\ExternalScene.cs" />
     <Compile Include="src\Tests\AnimatingTexture.cs" />
     <Compile Include="src\Tests\Drawing.cs" />
-    <Compile Include="src\Tests\Layering.cs" />
-    <Compile Include="src\Layers\LayerLoading.cs" />
+    <Compile Include="src\Tests\Scenography.cs" />
+    <Compile Include="src\Scenes\SceneLoading.cs" />
     <Compile Include="src\TestInit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

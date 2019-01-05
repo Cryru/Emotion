@@ -130,7 +130,6 @@ namespace Emotion.Game.UI.Layout
 #if DEBUG
 
 
-
             DrawDebugBounds(Padding, Color.Red);
 
             lock (_controls)
@@ -140,7 +139,6 @@ namespace Emotion.Game.UI.Layout
                     control.Render();
                 }
             }
-
 
 
 #endif

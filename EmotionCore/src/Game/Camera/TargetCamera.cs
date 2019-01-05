@@ -2,7 +2,9 @@
 
 #region Using
 
+using System;
 using System.Numerics;
+using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Primitives;
 
@@ -83,12 +85,9 @@ namespace Emotion.Game.Camera
         /// </summary>
         /// <param name="sender">The target itself.</param>
         /// <param name="e">Empty.</param>
-        private void TargetEventTracker(object sender, System.EventArgs e)
+        private void TargetEventTracker(object sender, EventArgs e)
         {
-            if (sender != Target)
-            {
-                Context.Log.Warning("Received a camera update event from an unknown source.", Debug.MessageSource.Game);
-            }
+            if (sender != Target) Context.Log.Warning("Received a camera update event from an unknown source.", MessageSource.Game);
 
             Update();
         }

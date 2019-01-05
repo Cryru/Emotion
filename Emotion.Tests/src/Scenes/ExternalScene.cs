@@ -7,12 +7,12 @@ using Emotion.Graphics;
 
 #endregion
 
-namespace Emotion.Tests.Layers
+namespace Emotion.Tests.Scenes
 {
     /// <summary>
-    /// Layer which allows for external calls to its functions.
+    /// Scene which allows for external calls to its functions.
     /// </summary>
-    public class ExternalLayer : LayerLoading
+    public class ExternalScene : SceneLoading
     {
         public Action ExtLoad = null;
         public Action ExtUpdate = null;

@@ -4,34 +4,43 @@
 
 using System.Threading;
 using Emotion.Engine;
-using Emotion.Game.Layering;
+using Emotion.Engine.Scenography;
 using Emotion.Graphics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
-namespace Emotion.Tests.Layers
+namespace Emotion.Tests.Scenes
 {
     /// <summary>
-    /// Layer used for testing loading and unloading of layers.
+    /// Scene used for testing loading and unloading of scenes.
     /// </summary>
-    public class LayerLoading : Layer
+    public class SceneLoading : Scene
     {
         public bool LoadCalled;
+        public bool SyncLoadCalled;
         public bool UpdateCalled;
-        public bool LightUpdateCalled;
+        public int FocusLossCalled;
         public bool DrawCalled;
         public bool UnloadCalled;
+        public bool SyncUnloadCalled;
 
         public override void Load()
         {
             // Check if also not called on the GL Thread.
-            if (Thread.CurrentThread.Name != "GL Thread") LoadCalled = true;
+            if (Thread.CurrentThread.Name != "GL Thread")
+            {
+                LoadCalled = true;
+            }
+            else
+            {
+                SyncLoadCalled = true;
+            }
         }
 
-        public override void LightUpdate(float frameTime)
+        public override void FocusLoss()
         {
-            LightUpdateCalled = true;
+            FocusLossCalled++;
         }
 
         public override void Update(float frameTime)
@@ -48,7 +57,15 @@ namespace Emotion.Tests.Layers
 
         public override void Unload()
         {
-            UnloadCalled = true;
+            // Check if also not called on the GL Thread.
+            if (Thread.CurrentThread.Name != "GL Thread")
+            {
+                UnloadCalled = true;
+            }
+            else
+            {
+                SyncUnloadCalled = true;
+            }
         }
     }
 }

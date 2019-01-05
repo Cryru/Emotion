@@ -81,9 +81,11 @@ namespace Emotion.Game.UI
             Color addOpacity = Color;
             addOpacity.A = (byte) _opacity;
 
-            renderer.Camera.Enabled = false;;
+            renderer.Camera.Enabled = false;
+            ;
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height), addOpacity);
-            renderer.Camera.Enabled = true;;
+            renderer.Camera.Enabled = true;
+            ;
         }
 
         /// <summary>

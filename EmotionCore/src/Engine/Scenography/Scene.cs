@@ -6,31 +6,20 @@ using Emotion.Graphics;
 
 #endregion
 
-namespace Emotion.Game.Layering
+namespace Emotion.Engine.Scenography
 {
-    public abstract class Layer
+    /// <summary>
+    /// A single scene.
+    /// </summary>
+    public abstract class Scene
     {
-        #region Properties
-
         /// <summary>
-        /// The name of the layer. Is set when loaded.
+        /// Whether focus loss was called.
         /// </summary>
-        public string Name { get; internal set; } = "";
+        public bool FocusLossCalled { get; set; } = false;
 
         /// <summary>
-        /// The priority of the layer. Is set when loaded.
-        /// </summary>
-        public int Priority { get; internal set; }
-
-        /// <summary>
-        /// Whether to draw and update the layer.
-        /// </summary>
-        public bool Active { get; set; } = true;
-
-        #endregion
-
-        /// <summary>
-        /// Is run when the layer is loading.
+        /// Is run when the scene is loading.
         /// </summary>
         public abstract void Load();
 
@@ -47,15 +36,14 @@ namespace Emotion.Game.Layering
         public abstract void Draw(Renderer renderer);
 
         /// <summary>
-        /// Is run when the layer is unloaded.
+        /// Is run when the scene is unloading.
         /// </summary>
         public abstract void Unload();
 
         /// <summary>
-        /// Is run when the window is not focused.
+        /// Is run when the host is unfocused.
         /// </summary>
-        /// <param name="frameTime">The time passed since the last update or light update.</param>
-        public virtual void LightUpdate(float frameTime)
+        public virtual void FocusLoss()
         {
         }
     }

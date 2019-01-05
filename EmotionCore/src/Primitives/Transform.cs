@@ -103,7 +103,7 @@ namespace Emotion.Primitives
             get => new Vector3(_x, _y, _z);
             set
             {
-                if(_x == value.X && _y == value.Y && _z == value.Z) return;
+                if (_x == value.X && _y == value.Y && _z == value.Z) return;
 
                 _x = value.X;
                 _y = value.Y;
@@ -121,7 +121,7 @@ namespace Emotion.Primitives
             get => new Vector2(_width, _height);
             set
             {
-                if(_width == value.X && _height == value.Y) return;
+                if (_width == value.X && _height == value.Y) return;
 
                 _width = value.X;
                 _height = value.Y;

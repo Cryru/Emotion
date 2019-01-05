@@ -37,7 +37,6 @@ namespace Emotion.Game.UI
             if (PanelTexture == null) return;
 
 
-
             // Draw fill.
             if (Fill != Rectangle.Empty) Context.Renderer.Render(Vector3.Zero, Size, Color.White, PanelTexture, Fill);
 
@@ -79,7 +78,6 @@ namespace Emotion.Game.UI
             if (BottomLeftCorner != Rectangle.Empty)
                 Context.Renderer.Render(new Vector3(0, Height - BottomLeftCorner.Height * Scale, 0), new Vector2(BottomLeftCorner.Width * Scale, BottomLeftCorner.Height * Scale), Color.White,
                     PanelTexture, BottomLeftCorner);
-
 
 
             // Draw children.
