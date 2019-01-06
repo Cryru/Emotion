@@ -69,6 +69,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 - A Javascript scripting engine.
 - Logging.
   - Runs on another thread as not to interrupt your game.
+  - Remote logging to PaperTrail and other services.
 - Graphical debugging and a command console.
   - Debug the camera, or UI through the engine.
   - Execute scripting commands at real time.
