@@ -107,7 +107,7 @@ The latest build is always tested on the configurations listed as `Primary`.
   - AMD R9 200
   - 970M
 - Ubuntu Xenial-Xerus x64 `(Last Commit Tested On: 5e7bea38bb197f85376d43e164f41ce7a6a5c341) Nov 6th`
-- MacOS High-Sierra x64 `(Last Test On: Build 210) Dec 4th`
+- MacOS High-Sierra x64 `(Last Test On: Build 243) Jan 6th`
 
 ### Supported Platforms:
 
