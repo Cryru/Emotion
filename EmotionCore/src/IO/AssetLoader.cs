@@ -3,10 +3,11 @@
 #region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
+using System.Reflection;
 using Emotion.Debug;
 using Emotion.Engine;
 
@@ -42,13 +43,49 @@ namespace Emotion.IO
         /// <summary>
         /// Loaded assets.
         /// </summary>
-        private Dictionary<string, Asset> _loadedAssets;
+        private ConcurrentDictionary<string, Asset> _loadedAssets;
+
+        /// <summary>
+        /// Manifest of all assets.
+        /// </summary>
+        private ConcurrentDictionary<string, AssetSource> _assetManifest;
 
         #endregion
 
         internal AssetLoader()
         {
-            _loadedAssets = new Dictionary<string, Asset>();
+            // Create sources list, and add file source.
+            List<AssetSource> assetSources = new List<AssetSource> {new FileAssetSource(Context.Flags.AssetRootDirectory)};
+
+            // Add embedded sources.
+            List<Assembly> sourceAssemblies = new List<Assembly>
+            {
+                Assembly.GetCallingAssembly(), // This is the assembly which called this function. Should be Emotion.
+                Assembly.GetExecutingAssembly(), // Is Emotion.
+                Assembly.GetEntryAssembly() // Is game or debugger.
+            };
+
+            // Additional assemblies set by config.
+            sourceAssemblies.AddRange(Context.Flags.AdditionalAssetAssemblies);
+
+            // Remove duplicate assemblies.
+            sourceAssemblies = sourceAssemblies.Distinct().ToList();
+
+            // Create sources.
+            foreach (Assembly assembly in sourceAssemblies)
+            {
+                assetSources.Add(new EmbeddedAssetSource(assembly, Context.Flags.AssetRootDirectory));
+            }
+
+            // Populate manifest.
+            _assetManifest = new ConcurrentDictionary<string, AssetSource>(StringComparer.OrdinalIgnoreCase);
+            foreach (AssetSource source in assetSources)
+            {
+                string[] assets = source.GetManifest();
+                assets.AsParallel().ForAll(x => _assetManifest.TryAdd(x, source));
+            }
+
+            _loadedAssets = new ConcurrentDictionary<string, Asset>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -65,37 +102,30 @@ namespace Emotion.IO
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
 
-            lock (_loadedAssets)
+            // Check if the asset is already loaded, in which case return it.
+            bool loaded = _loadedAssets.TryGetValue(enginePath, out Asset loadedAsset);
+            if (loaded) return (T) loadedAsset;
+
+            // Check if the asset exists in the manifest.
+            bool contains = _assetManifest.TryGetValue(enginePath, out AssetSource source);
+            if (!contains)
             {
-                // Check if the asset is already loaded, in which case return it.
-                if (_loadedAssets.ContainsKey(enginePath)) return (T) _loadedAssets[enginePath];
+                Context.Log.Error($"Asset [{enginePath}] not found in manifest.", MessageSource.AssetLoader);
+                return null;
             }
 
-            // Check whether the file exists.
-            if (!Exists(enginePath)) throw new Exception("Could not find asset " + enginePath);
-
-            // Read the file.
-            byte[] fileContents = ReadFile(enginePath);
+            // Get the asset.
+            byte[] fileContents = source.GetAsset(enginePath);
 
             // Create an instance of the asset and add it.
             DebugMessageWrap("Creating", enginePath, typeof(T), MessageType.Trace);
             T temp = (T) Activator.CreateInstance(typeof(T));
             temp.Name = enginePath;
             temp.Create(fileContents);
-            lock (_loadedAssets)
-            {
-                // Check if the asset is already loaded, in which case return it.
-                if (_loadedAssets.ContainsKey(enginePath))
-                {
-                    temp.Destroy();
-                    return (T) _loadedAssets[enginePath];
-                }
-
-                // If still not added - add it.
-                _loadedAssets.Add(enginePath, temp);
-            }
-
             DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Info);
+
+            // Add it to the loaded assets.
+            _loadedAssets.TryAdd(enginePath, temp);
 
             // Return.
             return temp;
@@ -111,23 +141,13 @@ namespace Emotion.IO
 
             // Convert the path to an engine path.
             string enginePath = PathToEnginePath(path);
-            Asset asset;
 
-            lock (_loadedAssets)
-            {
-                // Check if loaded.
-                if (!_loadedAssets.ContainsKey(enginePath)) return;
+            // Check if the asset is already loaded, if not do nothing. Also remove it from the list.
+            bool loaded = _loadedAssets.TryRemove(enginePath, out Asset asset);
+            if (!loaded) return;
 
-                // Log that destruction will commence.
-                DebugMessageWrap("Destroying", enginePath, _loadedAssets[enginePath].GetType(), MessageType.Info);
-
-                // Assign to destroy the asset outside of the lock.
-                asset = _loadedAssets[enginePath];
-
-                // Remove from the list.
-                _loadedAssets.Remove(enginePath);
-            }
-
+            // Dispose of asset.
+            DebugMessageWrap("Destroying", enginePath, asset.GetType(), MessageType.Info);
             asset.Destroy();
             DebugMessageWrap("Destroyed", enginePath, null, MessageType.Trace);
         }
@@ -135,48 +155,23 @@ namespace Emotion.IO
         #region Helpers
 
         /// <summary>
-        /// Returns whether the specified file exists.
+        /// Returns whether the specified asset exists.
         /// </summary>
-        /// <param name="path">The path to the file.</param>
+        /// <param name="path">The path to the asset.</param>
         /// <returns>True if it exists, false otherwise.</returns>
         public bool Exists(string path)
         {
-            return File.Exists(PathToAssetCrossPlatform(path));
+            return _assetManifest.ContainsKey(PathToEnginePath(path));
         }
 
         /// <summary>
-        /// Reads a file and returns its contents as a byte array.
-        /// </summary>
-        /// <param name="path">The path to the file.</param>
-        /// <returns>The contents of the file as a byte array.</returns>
-        private byte[] ReadFile(string path)
-        {
-            string parsedPath = PathToAssetCrossPlatform(path);
-
-            if (!File.Exists(parsedPath)) throw new Exception($"The file {parsedPath} could not be found.");
-
-            // Load the bytes of the file.
-            return File.ReadAllBytes(parsedPath);
-        }
-
-        /// <summary>
-        /// Converts the provided path to an engine universal format,
+        /// Converts the provided path to an engine universal format.
         /// </summary>
         /// <param name="path">The path to convert.</param>
         /// <returns>The converted path.</returns>
         public static string PathToEnginePath(string path)
         {
-            return path.Replace('/', '$').Replace('\\', '$').Replace('$', '/');
-        }
-
-        /// <summary>
-        /// Converts the provided path to the current platform's path signature.
-        /// </summary>
-        /// <param name="path">The path to convert.</param>
-        /// <returns>The converted path.</returns>
-        private static string PathToAssetCrossPlatform(string path)
-        {
-            return Context.Flags.AssetRootDirectory + Path.DirectorySeparatorChar + Helpers.CrossPlatformPath(path);
+            return path.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/');
         }
 
         #endregion

@@ -25,11 +25,26 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public TmxMap TiledMap { get; protected set; }
 
+        /// <summary>
+        /// Loaded tileset textures.
+        /// </summary>
+        public List<Texture> Tilesets { get; private set; } = new List<Texture>();
+
         #endregion
 
-        public List<Texture> Tilesets { get; private set; } = new List<Texture>();
+        /// <summary>
+        /// Animated tile meta data.
+        /// </summary>
         protected List<AnimatedTile> _animatedTiles = new List<AnimatedTile>();
+
+        /// <summary>
+        /// todo: reference Context.AssetLoader
+        /// </summary>
         private AssetLoader _assetLoader;
+
+        /// <summary>
+        /// Whether the map is loaded.
+        /// </summary>
         private bool _loaded;
 
         /// <summary>
@@ -51,10 +66,30 @@ namespace Emotion.Game.Tiled
             Reset(mapPath, tileSetFolder);
         }
 
+        /// <summary>
+        /// Reset the tile map with another map and tileset. If an empty string is provided the map is reset to an unloaded state.
+        /// </summary>
+        /// <param name="mapPath">The path to the new map.</param>
+        /// <param name="tileSetFolder">The path to the new tileset.</param>
         public void Reset(string mapPath, string tileSetFolder)
         {
+            // Check if tileSetFolder ends in a slash.
+            if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/')
+            {
+                tileSetFolder += "/";
+            }
+
             // Reset loading flag.
             _loaded = false;
+
+            // Dispose of old tilesets.
+            if (Tilesets.Count > 0)
+            {
+                foreach (Texture tileset in Tilesets)
+                {
+                    _assetLoader.Destroy(tileset.Name);
+                }
+            }
 
             // Reset holders.
             Tilesets.Clear();
@@ -78,7 +113,7 @@ namespace Emotion.Game.Tiled
                 if (tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
                 if (tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\'));
 
-                Texture temp = _assetLoader.Get<Texture>(tileSetFolder + '/' + tilesetFile);
+                Texture temp = _assetLoader.Get<Texture>(tileSetFolder + tilesetFile);
                 Tilesets.Add(temp);
             }
 

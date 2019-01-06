@@ -35,6 +35,11 @@ namespace Emotion.Game.Tiled
         private int _currentFrame;
         private Collection<TmxAnimationFrame> _frames;
 
+        /// <summary>
+        /// Meta data for an animated tile map tile.
+        /// </summary>
+        /// <param name="gid">The global id of the tile.</param>
+        /// <param name="frames">The animation frames of the tile.</param>
         public AnimatedTile(int gid, Collection<TmxAnimationFrame> frames)
         {
             Id = gid;

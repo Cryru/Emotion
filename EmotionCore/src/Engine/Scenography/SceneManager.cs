@@ -143,7 +143,7 @@ namespace Emotion.Engine.Scenography
             }
             catch (Exception ex)
             {
-                Context.Log.Error($"Error while loading scene {scene}.", ex, MessageSource.LayerManager);
+                Context.Log.Error($"Error while loading scene {scene}.", new Exception("Couldn't load scene.", ex), MessageSource.LayerManager);
             }
         }
 
@@ -159,7 +159,7 @@ namespace Emotion.Engine.Scenography
             }
             catch (Exception ex)
             {
-                Context.Log.Error($"Error while unloading scene [{scene}].", ex, MessageSource.LayerManager);
+                Context.Log.Error($"Error while unloading scene [{scene}].", new Exception("Couldn't unload scene.", ex), MessageSource.LayerManager);
             }
         }
 

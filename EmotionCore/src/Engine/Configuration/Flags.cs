@@ -1,5 +1,7 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+using System.Reflection;
+
 namespace Emotion.Engine.Configuration
 {
     /// <summary>
@@ -21,6 +23,11 @@ namespace Emotion.Engine.Configuration
         /// The root directory in which assets are located, relative to the execution directory.
         /// </summary>
         public string AssetRootDirectory = "Assets";
+
+        /// <summary>
+        /// Additional assemblies to look for embedded assets in.
+        /// </summary>
+        public Assembly[] AdditionalAssetAssemblies = new Assembly[0];
 
         /// <summary>
         /// Whether input focus is regained only after a mouse click is detected.

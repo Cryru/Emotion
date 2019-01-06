@@ -168,6 +168,9 @@
     <Compile Include="src\Graphics\Batching\VertexData.cs" />
     <Compile Include="src\Input\IInputManager.cs" />
     <Compile Include="src\IO\Asset.cs" />
+    <Compile Include="src\IO\AssetSource.cs" />
+    <Compile Include="src\IO\EmbeddedAssetSource.cs" />
+    <Compile Include="src\IO\FileAssetSource.cs" />
     <Compile Include="src\Primitives\Extensions.cs" />
     <Compile Include="src\Primitives\Transform.cs" />
     <Compile Include="src\Sound\ALThread.cs" />
@@ -184,9 +187,7 @@
     <Compile Include="src\Game\AStar\Path.cs" />
     <Compile Include="src\Game\AStar\Grid.cs" />
     <Compile Include="src\Game\AStar\Node.cs" />
-    <None Include="Assets\debugFont.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="Assets\debugFont.otf" />
     <Compile Include="src\Game\UI\ScreenFader.cs" />
     <Compile Include="src\Game\UI\ScrollInputSelector.cs" />
     <Compile Include="src\Game\UI\ScrollInput.cs" />
