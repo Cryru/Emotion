@@ -66,12 +66,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\Embedded\embedText.txt" />
     <Compile Include="src\Helpers.cs" />
     <Compile Include="src\Interoperability\DebugLogger.cs" />
     <Compile Include="src\Interoperability\TestHost.cs" />
     <Compile Include="src\Interoperability\TestInputManager.cs" />
     <Compile Include="src\Scenes\ExternalScene.cs" />
     <Compile Include="src\Tests\AnimatingTexture.cs" />
+    <Compile Include="src\Tests\Assets.cs" />
     <Compile Include="src\Tests\Drawing.cs" />
     <Compile Include="src\Tests\Scenography.cs" />
     <Compile Include="src\Scenes\SceneLoading.cs" />
@@ -116,6 +118,9 @@
     <Content Include="Assets\Textures\standardTif.tif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="OtherAssets\LoremIpsum.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

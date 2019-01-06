@@ -216,7 +216,7 @@ namespace Emotion.Engine
 
             // Asset loader is next so other modules - especially the renderer, can access the file system.
             Log.Trace("Creating asset loader...", MessageSource.Engine);
-            AssetLoader = new AssetLoader();
+            AssetLoader = new AssetLoader(Flags.AssetRootDirectory, Flags.AdditionalAssetAssemblies);
 
             // The order of the next modules doesn't matter.
 

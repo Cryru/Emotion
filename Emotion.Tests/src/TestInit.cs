@@ -24,6 +24,7 @@ namespace Emotion.Tests
         public static void StartTest(TestContext _)
         {
             Context.Flags.CloseEnvironmentOnQuit = false;
+            Context.Flags.AdditionalAssetAssemblies = new[] {typeof(TestInit).Assembly};
             Context.Host = TestingHost;
             Context.Log = new DebugLogger();
             Context.Setup();

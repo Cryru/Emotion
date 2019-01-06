@@ -93,7 +93,8 @@ namespace Emotion.IO
         /// <returns>An engine path corresponding to the embedded path.</returns>
         public string EmbeddedPathToEnginePath(string embeddedPath)
         {
-            int rootIndex = embeddedPath.IndexOf(Folder + ".", StringComparison.Ordinal);
+            string folder = $".{Folder}.";
+            int rootIndex = embeddedPath.IndexOf(folder, StringComparison.Ordinal);
 
             // if not in the root folder then it doesn't concern us.
             if (rootIndex == -1)
@@ -102,7 +103,7 @@ namespace Emotion.IO
             }
 
             // Remove everything before the root folder.
-            string noRoot = embeddedPath.Substring(rootIndex).Replace(Folder + ".", "");
+            string noRoot = embeddedPath.Substring(rootIndex).Replace(folder, "");
 
             // Extract extension because it will be converted to a slash otherwise.
             string extension = noRoot.Substring(noRoot.LastIndexOf(".", StringComparison.Ordinal));

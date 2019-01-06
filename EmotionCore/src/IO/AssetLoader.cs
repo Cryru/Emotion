@@ -27,13 +27,15 @@ namespace Emotion.IO
         /// </summary>
         public Asset[] LoadedAssets
         {
-            get
-            {
-                lock (_loadedAssets)
-                {
-                    return _loadedAssets.Values.ToArray();
-                }
-            }
+            get => _loadedAssets.Values.ToArray();
+        }
+
+        /// <summary>
+        /// An array of all assets in the manifest.
+        /// </summary>
+        public string[] AllAssets
+        {
+            get => _assetManifest.Keys.ToArray();
         }
 
         #endregion
@@ -52,10 +54,15 @@ namespace Emotion.IO
 
         #endregion
 
-        internal AssetLoader()
+        /// <summary>
+        /// Create a new asset loader.
+        /// </summary>
+        /// <param name="rootFolder">The root folder of the assets. Embedded assets are also expected to be here.</param>
+        /// <param name="additionalAssemblies">Additional assemblies to load assets from.</param>
+        public AssetLoader(string rootFolder, Assembly[] additionalAssemblies = null)
         {
             // Create sources list, and add file source.
-            List<AssetSource> assetSources = new List<AssetSource> {new FileAssetSource(Context.Flags.AssetRootDirectory)};
+            List<AssetSource> assetSources = new List<AssetSource> {new FileAssetSource(rootFolder)};
 
             // Add embedded sources.
             List<Assembly> sourceAssemblies = new List<Assembly>
@@ -65,16 +72,16 @@ namespace Emotion.IO
                 Assembly.GetEntryAssembly() // Is game or debugger.
             };
 
-            // Additional assemblies set by config.
-            sourceAssemblies.AddRange(Context.Flags.AdditionalAssetAssemblies);
+            // Add additional assemblies.
+            if (additionalAssemblies != null) sourceAssemblies.AddRange(additionalAssemblies);
 
-            // Remove duplicate assemblies.
-            sourceAssemblies = sourceAssemblies.Distinct().ToList();
+            // Remove duplicate assemblies and null assemblies.
+            sourceAssemblies = sourceAssemblies.Distinct().Where(x => x != null).ToList();
 
             // Create sources.
             foreach (Assembly assembly in sourceAssemblies)
             {
-                assetSources.Add(new EmbeddedAssetSource(assembly, Context.Flags.AssetRootDirectory));
+                assetSources.Add(new EmbeddedAssetSource(assembly, rootFolder));
             }
 
             // Populate manifest.
