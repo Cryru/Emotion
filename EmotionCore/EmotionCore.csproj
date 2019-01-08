@@ -59,6 +59,9 @@
       <HintPath>..\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Steamworks.NET">
+      <HintPath>Libraries\Steamworks Net\Steamworks.NET.dll</HintPath>
+    </Reference>
     <Reference Include="System">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
@@ -92,6 +95,7 @@
   <ItemGroup>
     <Compile Include="Libraries\CurrentPlatform.cs" />
     <Compile Include="Libraries\PlatformName.cs" />
+    <Compile Include="Libraries\Steamworks Net\SteamModule.cs" />
     <Compile Include="Libraries\TiledSharp\ImageLayer.cs" />
     <Compile Include="Libraries\TiledSharp\Layer.cs" />
     <Compile Include="Libraries\TiledSharp\Map.cs" />
@@ -215,6 +219,9 @@
     <None Include="FreeImage-dotnet-core.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Libraries\Steamworks Net\Steamworks.NET.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Libraries\x64\FreeImage.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -234,6 +241,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Libraries\x64\libsndio.so.6.1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\x64\libsteam_api.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\x64\libsteam_api.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Libraries\x64\openal32.so">
@@ -269,7 +282,19 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Libraries\Steamworks Net\Steamworks.NET-Mono.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\Steamworks Net\Steamworks.NET.dll" />
+    <Content Include="Libraries\Steamworks Net\Steamworks.NET.pdb" />
+    <Content Include="Libraries\x64\steam_api64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\x86\steam_api.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

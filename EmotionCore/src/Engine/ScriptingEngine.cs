@@ -65,7 +65,11 @@ namespace Emotion.Engine
         public void Expose(string name, object exposedData, string description = "")
         {
             _interpreter.SetValue(name, exposedData);
-            _exposedProperties.Add(name + " - " + description);
+
+            lock (_exposedProperties)
+            {
+                _exposedProperties.Add(name + " - " + description);
+            }
         }
 
         /// <summary>

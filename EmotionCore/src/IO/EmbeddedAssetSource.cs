@@ -80,7 +80,7 @@ namespace Emotion.IO
 
                 // Read from stream.
                 data = new byte[stream.Length];
-                stream.Read(data, 0, (int)stream.Length);
+                stream.Read(data, 0, (int) stream.Length);
             }
 
             return data;
@@ -97,10 +97,7 @@ namespace Emotion.IO
             int rootIndex = embeddedPath.IndexOf(folder, StringComparison.Ordinal);
 
             // if not in the root folder then it doesn't concern us.
-            if (rootIndex == -1)
-            {
-                return null;
-            }
+            if (rootIndex == -1) return null;
 
             // Remove everything before the root folder.
             string noRoot = embeddedPath.Substring(rootIndex).Replace(folder, "");

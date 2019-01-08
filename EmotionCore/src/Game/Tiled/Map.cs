@@ -74,22 +74,17 @@ namespace Emotion.Game.Tiled
         public void Reset(string mapPath, string tileSetFolder)
         {
             // Check if tileSetFolder ends in a slash.
-            if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/')
-            {
-                tileSetFolder += "/";
-            }
+            if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/') tileSetFolder += "/";
 
             // Reset loading flag.
             _loaded = false;
 
             // Dispose of old tilesets.
             if (Tilesets.Count > 0)
-            {
                 foreach (Texture tileset in Tilesets)
                 {
                     _assetLoader.Destroy(tileset.Name);
                 }
-            }
 
             // Reset holders.
             Tilesets.Clear();

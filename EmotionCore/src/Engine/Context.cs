@@ -19,6 +19,7 @@ using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.IO;
 using Emotion.Libraries;
+using Emotion.Libraries.Steamworks_Net;
 using Emotion.Sound;
 using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
@@ -112,6 +113,15 @@ namespace Emotion.Engine
         /// The logging of the engine.
         /// </summary>
         public static LoggingProvider Log { get; set; }
+
+        #endregion
+
+        #region Plugin Modules
+
+        /// <summary>
+        /// Integration with Steam.
+        /// </summary>
+        public static SteamModule Steam { get; set; }
 
         #endregion
 
@@ -289,6 +299,9 @@ namespace Emotion.Engine
             Host?.Dispose();
             Log?.Dispose();
 
+            // Close plugins.
+            Steam?.Dispose();
+
             // Close application.
             if (Flags.CloseEnvironmentOnQuit) Environment.Exit(0);
         }
@@ -357,6 +370,38 @@ namespace Emotion.Engine
 
         #endregion
 
+        #region Plugins
+
+        /// <summary>
+        /// Setups the Steam Emotion module using Steamworks NET. This can fail if:
+        /// <para>   </para>
+        /// [*] The Steam client isn't running. A running Steam client is required to provide implementations of the various
+        /// Steamworks interfaces.
+        /// <para>   </para>
+        /// [*] The Steam client couldn't determine the App ID of game. If you're running your application from the executable or
+        /// debugger directly then you must have a [code-inline]steam_appid.txt[/code-inline] in your game directory next to the
+        /// executable, with your app ID in it and nothing else. Steam will look for this file in the current working directory. If
+        /// you are running your executable from a different directory you may need to relocate the
+        /// [code-inline]steam_appid.txt[/code-inline] file.
+        /// <para>   </para>
+        /// [*] Your application is not running under the same OS user context as the Steam client, such as a different user or
+        /// administration access level.
+        /// <para>   </para>
+        /// [*] Ensure that you own a license for the App ID on the currently active Steam account. Your game must show up in your
+        /// Steam library.
+        /// <para>   </para>
+        /// [*] Your App ID is not completely set up, i.e. in Release State: Unavailable, or it's missing default packages.
+        /// </summary>
+        /// <param name="appId">The id of your steam app.</param>
+        public static void EnableSteam(uint appId)
+        {
+            if (!IsSetup) throw new Exception("Context needs to be setup to enable Steam integration.");
+
+            Steam = new SteamModule(appId);
+        }
+
+        #endregion
+
         #region Loops and Host Events
 
         /// <summary>
@@ -380,6 +425,9 @@ namespace Emotion.Engine
 
             // Update user code.
             SceneManager.Update();
+
+            // Update plugins.
+            Steam?.Update();
         }
 
         /// <summary>

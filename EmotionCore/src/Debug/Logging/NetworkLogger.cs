@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Emotion.Debug.Logging.SoulLogging;
 using Emotion.Engine;
 
 #endregion
@@ -94,10 +92,7 @@ namespace Emotion.Debug.Logging
             bool success = Send(type, source.ToString(), message);
 
             // Remove from queue if sent.
-            if (success)
-            {
-                _loggingQueue.TryDequeue(out _);
-            }
+            if (success) _loggingQueue.TryDequeue(out _);
         }
 
         private void FlushRemainingLogs()
@@ -145,7 +140,7 @@ namespace Emotion.Debug.Logging
 
             string dateTime = DateTime.UtcNow.ToString("s");
             string hostName = _userId;
-            message = $"<{16 * 8 + (int)logLevel}>{dateTime} {hostName} {sender} {message}";
+            message = $"<{16 * 8 + (int) logLevel}>{dateTime} {hostName} {sender} {message}";
             byte[] bytes = Encoding.UTF8.GetBytes(message);
             _udpClient.SendAsync(bytes, bytes.Length, _hostName, _port);
 

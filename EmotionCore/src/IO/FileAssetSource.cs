@@ -28,10 +28,7 @@ namespace Emotion.IO
             Folder = folder;
 
             // Check if folder exists.
-            if (!Directory.Exists(Folder))
-            {
-                Directory.CreateDirectory(Folder);
-            }
+            if (!Directory.Exists(Folder)) Directory.CreateDirectory(Folder);
 
             // Populate internal manifest.
             string[] files = Directory.GetFiles(Folder, "*", SearchOption.AllDirectories);

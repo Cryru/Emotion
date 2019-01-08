@@ -78,6 +78,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
   - Managed delta time and total time access in the shader for cool effects.
   - The update loop will always be up to date when a target fps is selected.
 - Lots of configuration through settings and flags.
+- Steam integration.
 
 ## How to develop for it?
 
@@ -135,27 +136,29 @@ The engine has unit and integration tests, but they aren't automatically run as 
 
 ## Projects Used
 
-OpenTK [OpenGL/OpenAL] : Context and host creation, input capturing, GL API and AL api.
+[OpenTK](https://github.com/opentk/opentk) [OpenGL/OpenAL] : Context and host creation, input capturing, GL API and AL api.
 - OpenAL32.dll included. x64/x86
 - openal.so included. x64
     - libsndio.so.6.1 included.
 
-FreeImage-DotNet-Core [FreeImage] : Loading and converting images.
+[FreeImage-DotNet-Core](https://github.com/matgr1/FreeImage-dotnet-core) [FreeImage] : Loading and converting images.
 - FreeImage.dll included. x64/x86
 - FreeImage.so included. x64
     - libpng14.14.dylib included.
 - FreeImage.dylib included. x64
 
-SharpFont [FreeType] : Loading fonts and glyphs, and rendering them.
+[SharpFont](https://github.com/Robmaister/SharpFont) [FreeType] : Loading fonts and glyphs, and rendering them.
 - freetype6.dll included. x64/x86
 - freetype.so included. x64
 - libfreetype.6.dylib included. x64
 
-TiledSharp [Modified] : Loading .tmx Tiled files.
+[TiledSharp](https://github.com/marshallward/TiledSharp) [Modified] : Loading .tmx Tiled files.
 
-Jint : Javascript script engine.
+[Jint](https://github.com/sebastienros/jint) : Javascript script engine.
 
 System.Numerics : Vector and matrix math.
+
+[Steamworks.Net](https://github.com/rlabrecque/Steamworks.NET) : Steam integration support.
 
 ### Linux
 
