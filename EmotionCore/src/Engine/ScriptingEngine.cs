@@ -3,7 +3,7 @@
 #region Using
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Emotion.Debug;
 using Jint.Parser;
 
@@ -30,7 +30,7 @@ namespace Emotion.Engine
         /// <summary>
         /// Exposed properties.
         /// </summary>
-        private List<string> _exposedProperties = new List<string>();
+        private ConcurrentBag<string> _exposedProperties = new ConcurrentBag<string>();
 
         #endregion
 
@@ -65,11 +65,7 @@ namespace Emotion.Engine
         public void Expose(string name, object exposedData, string description = "")
         {
             _interpreter.SetValue(name, exposedData);
-
-            lock (_exposedProperties)
-            {
-                _exposedProperties.Add(name + " - " + description);
-            }
+            _exposedProperties.Add(name + " - " + description);
         }
 
         /// <summary>

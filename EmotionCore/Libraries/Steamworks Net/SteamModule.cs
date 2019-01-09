@@ -43,28 +43,37 @@ namespace Emotion.Libraries.Steamworks_Net
         {
             // Check whether package is correct.
             bool correctPackage = Packsize.Test();
+            if (!correctPackage) Context.Log.Warning("SteamWorks.Net package is incorrect. Use Mono dll on Linux and MacOS.", MessageSource.Other);
 
-            if (!correctPackage) Context.Log.Warning("Steamworks.Net package is incorrect. Use Mono dll on Linux and MacOS.", MessageSource.Other);
-
-            // Check whether the native steamworks dll is correct.
+            // Check whether the native SteamWorks dll is correct.
             bool correctNative = DllCheck.Test();
+            if (!correctNative) Context.Log.Warning("SteamWorks native DLL is not the correct version.", MessageSource.Other);
 
-            if (!correctNative) Context.Log.Warning("Steamworks native DLL is not the correct version.", MessageSource.Other);
+            if (Debugger.DebugMode)
+            {
+                // If in debug mode, create app id file if missing.
+                if (!File.Exists("steam_appid.txt")) File.WriteAllText("steam_appid.txt", appId.ToString());
+            }
+            else
+            {
+                // If not in debug mode, delete app id file.
+                if (File.Exists("steam_appid.txt")) File.Delete("steam_appid.txt");
+            }
 
-
-            // Create app id file if missing.
-            if (!File.Exists("steam_appid.txt")) File.WriteAllText("steam_appid.txt", appId.ToString());
-
-            bool needToRestart = SteamAPI.RestartAppIfNecessary(new AppId_t(appId));
+            AppId_t idStruct = new AppId_t(appId);
+            bool needToRestart = SteamAPI.RestartAppIfNecessary(idStruct);
 
             // If not started through Steam, close the app. Steam will start it.
-            if (needToRestart) Environment.Exit(0);
+            if (needToRestart)
+            {
+                Context.Log.Warning("Game not started through Steam. Restarting...", MessageSource.Other);
+                Environment.Exit(0);
+                return;
+            }
 
+            // Init the SteamWorks API.
             bool initSuccess = SteamAPI.Init();
-
-            // Check if init.
             if (!initSuccess) throw new Exception("Couldn't connect to Steam.");
-
             _isSetup = true;
 
             // Request user stats.
