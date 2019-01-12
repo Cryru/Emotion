@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
+using OpenTK;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 
@@ -17,16 +18,21 @@ using OpenTK.Audio.OpenAL;
 
 namespace Emotion.Sound
 {
+    /// <summary>
+    /// Manages audio and interop with OpenAL.
+    /// </summary>
     public class SoundManager
     {
-        private AudioContext _audioContext;
         private Dictionary<string, SoundLayer> _layers;
-        private Queue<Action> _soundThreadActions;
+        private ContextHandle _context;
+        private IntPtr _device;
 
-        public SoundManager()
+        /// <summary>
+        /// Create a new sound manager.
+        /// </summary>
+        internal SoundManager()
         {
             _layers = new Dictionary<string, SoundLayer>();
-            _soundThreadActions = new Queue<Action>();
 
             Thread soundThread = new Thread(SoundThreadLoop);
             soundThread.Start();
@@ -39,30 +45,54 @@ namespace Emotion.Sound
 
         private void SoundThreadLoop()
         {
-            _audioContext = new AudioContext();
-            ALThread.BindThread();
-
-            // Setup listener.
-            AL.Listener(ALListener3f.Position, 0, 0, 0);
-            AL.Listener(ALListener3f.Velocity, 0, 0, 0);
-
-            while (Context.IsRunning)
+            try
             {
-                // Update running playbacks.
-                lock (_layers)
+                // Create audio context.
+                Context.Log.Info($"Creating audio device on [{AudioContext.DefaultDevice}].", MessageSource.SoundManager);
+                _device = Alc.OpenDevice(null);
+                int[] attr = new int[0];
+                _context = Alc.CreateContext(_device, attr);
+                if (_context.Handle == IntPtr.Zero)
                 {
-                    foreach (KeyValuePair<string, SoundLayer> layer in _layers)
-                    {
-                        layer.Value.Update();
-                    }
+                    Context.Log.Error("Couldn't create OpenAL context.", MessageSource.SoundManager);
                 }
 
-                // Run queued actions.
-                ALThread.Run();
+                bool success = Alc.MakeContextCurrent(_context);
+                if (!success)
+                {
+                    Context.Log.Error("Couldn't make OpenAL context current.", MessageSource.SoundManager);
+                }
+                Context.Log.Info("Created audio device.", MessageSource.SoundManager);
 
-                ALThread.CheckError("loop end");
+                // Bind thread manager.
+                ALThread.BindThread();
 
-                Task.Delay(1).Wait();
+                // Setup listener.
+                AL.Listener(ALListener3f.Position, 0, 0, 0);
+                AL.Listener(ALListener3f.Velocity, 0, 0, 0);
+
+                while (Context.IsRunning)
+                {
+                    // Update running playbacks.
+                    lock (_layers)
+                    {
+                        foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+                        {
+                            layer.Value.Update();
+                        }
+                    }
+
+                    // Run queued actions.
+                    ALThread.Run();
+
+                    ALThread.CheckError("loop end");
+
+                    Task.Delay(1).Wait();
+                }
+            }
+            catch (Exception ex)
+            {
+                Context.Log.Error("Error in AL loop.", ex, MessageSource.SoundManager);
             }
         }
 
@@ -180,7 +210,13 @@ namespace Emotion.Sound
         /// </summary>
         public void Dispose()
         {
-            ALThread.ExecuteALThread(() => { _audioContext.Dispose(); });
+            ALThread.ExecuteALThread(() =>
+            {
+                ContextHandle unbound = new ContextHandle(IntPtr.Zero);
+                Alc.MakeContextCurrent(unbound);
+                Alc.DestroyContext(_context);
+                Alc.CloseDevice(_device);
+            });
         }
     }
 }

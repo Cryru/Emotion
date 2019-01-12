@@ -107,7 +107,10 @@ The latest build is always tested on the configurations listed as `Primary`.
   - Nvidia 940MX `(Primary)`
   - AMD R9 200
   - 970M
-- Ubuntu Xenial-Xerus x64 `(Last Commit Tested On: 5e7bea38bb197f85376d43e164f41ce7a6a5c341) Nov 6th`
+- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 248) Nov 6th`
+  - OpenGL MESA Driver (Despite it supporting only a lower version of OpenGL than required.)
+- Linux Mint 19.1 `(Last Test On: Build 248) Jan 12th`
+  - Nvidia 1060
 - MacOS High-Sierra x64 `(Last Test On: Build 243) Jan 6th`
 
 ### Supported Platforms:
@@ -128,7 +131,7 @@ Just clone and build. Everything is included.
 
 For information on how to build for other platforms check out: https://github.com/Cryru/The-Struggles-Of-Running-And-Statically-Linking-Mono
 
-On Linux build without a machine config, and make sure the .exe **doesn't** carry a config specifying the runtime.
+To use Steamworks on Linux and Mac you need to move the `Steamworks.Net-Mono.dll` file from the `Libraries/Steamworks` folder to the root and overwrite the default Steamworks.Net there BEFORE PACKAGING.
 
 ## Testing and QA
 
@@ -159,14 +162,6 @@ The engine has unit and integration tests, but they aren't automatically run as 
 System.Numerics : Vector and matrix math.
 
 [Steamworks.Net](https://github.com/rlabrecque/Steamworks.NET) : Steam integration support.
-
-### Linux
-
-Most installations should include the proper libraries to run the engine, but some repos I've tested have some missing ones. Here is a list of ones I've found missing which the engine depends on:
-
-- libjxr0 (https://packages.debian.org/sid/libjxr0)
-
-- libopenjp2-7 (https://packages.debian.org/stretch/libopenjp2-7)
 
 ## Inspired By
 

@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -19,7 +20,7 @@ using Emotion.Graphics;
 using Emotion.Input;
 using Emotion.IO;
 using Emotion.Libraries;
-using Emotion.Libraries.Steamworks_Net;
+using Emotion.Libraries.Steamworks;
 using Emotion.Sound;
 using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
@@ -283,8 +284,6 @@ namespace Emotion.Engine
         /// </summary>
         public static void Quit()
         {
-            if (!IsRunning) return;
-
             // Switch running to false.
             IsRunning = false;
 
@@ -363,9 +362,20 @@ namespace Emotion.Engine
                 Environment.Exit(0);
             }
 
-            // Open libraries.
-            Log.Warning($"libsndio.so.6.1 found: {File.Exists("./Libraries/x64/libsndio.so.6.1")}", MessageSource.Engine);
-            Unix.dlopen("./Libraries/x64/libsndio.so.6.1", Unix.RTLD_NOW);
+            // Log library folder.
+            string libRoot = "./Libraries/Linux/";
+            Log.Info($"Library Folder: {libRoot}", MessageSource.Engine);
+
+            // Load other libraries.
+            List<string> dlOpenLibraries = new List<string>() {"libsndio.so.6.1"};
+            if (File.Exists("load.txt")) dlOpenLibraries.AddRange(File.ReadAllLines("load.txt"));
+            foreach (string library in dlOpenLibraries)
+            {
+                string libPath = libRoot + library;
+                bool exists = File.Exists(libPath);
+                Log.Warning($"{libPath} found: {exists}", MessageSource.Engine);
+                Unix.dlopen(libPath, Unix.RTLD_NOW);
+            }
         }
 
         #endregion
