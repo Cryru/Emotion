@@ -4,6 +4,6 @@
 cd "$(dirname "$0")"
 
 # Override library path. Otherwise freetype cannot find libpng.
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./Libraries/x64/
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./Libraries/MacOS/
 
 ./MacBundle

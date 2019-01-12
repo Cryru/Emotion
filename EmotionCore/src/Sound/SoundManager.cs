@@ -26,6 +26,8 @@ namespace Emotion.Sound
         private Dictionary<string, SoundLayer> _layers;
         private ContextHandle _context;
         private IntPtr _device;
+        private bool _loopRunning = false;
+        private Thread _soundThread;
 
         /// <summary>
         /// Create a new sound manager.
@@ -34,9 +36,9 @@ namespace Emotion.Sound
         {
             _layers = new Dictionary<string, SoundLayer>();
 
-            Thread soundThread = new Thread(SoundThreadLoop);
-            soundThread.Start();
-            while (!soundThread.IsAlive)
+            _soundThread = new Thread(SoundThreadLoop);
+            _soundThread.Start();
+            while (!_soundThread.IsAlive)
             {
             }
 
@@ -71,7 +73,8 @@ namespace Emotion.Sound
                 AL.Listener(ALListener3f.Position, 0, 0, 0);
                 AL.Listener(ALListener3f.Velocity, 0, 0, 0);
 
-                while (Context.IsRunning)
+                _loopRunning = true;
+                while (_loopRunning)
                 {
                     // Update running playbacks.
                     lock (_layers)
@@ -87,12 +90,18 @@ namespace Emotion.Sound
 
                     ALThread.CheckError("loop end");
 
-                    Task.Delay(1).Wait();
+                    Task.Delay((int) Context.RawFrameTime).Wait();
                 }
+
+                // Cleanup.
+                ContextHandle unbound = new ContextHandle(IntPtr.Zero);
+                Alc.MakeContextCurrent(unbound);
+                Alc.DestroyContext(_context);
+                Alc.CloseDevice(_device);
             }
             catch (Exception ex)
             {
-                Context.Log.Error("Error in AL loop.", ex, MessageSource.SoundManager);
+                if(_loopRunning) Context.Log.Error("Error in AL loop.", ex, MessageSource.SoundManager);
             }
         }
 
@@ -210,13 +219,10 @@ namespace Emotion.Sound
         /// </summary>
         public void Dispose()
         {
-            ALThread.ExecuteALThread(() =>
+            _loopRunning = false;
+            while (_soundThread.IsAlive)
             {
-                ContextHandle unbound = new ContextHandle(IntPtr.Zero);
-                Alc.MakeContextCurrent(unbound);
-                Alc.DestroyContext(_context);
-                Alc.CloseDevice(_device);
-            });
+            }
         }
     }
 }

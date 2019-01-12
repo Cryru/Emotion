@@ -38,13 +38,13 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
   - Text Files
   - Binaries
 - Camera system.
-  - Default cameras include one which follows the mouse and one which follows a target transform. Create your own cameras and share!
+  - Default cameras include one which follows the mouse and one which follows a target transform. 
+  - Easy to create your own.
 - Rendering
   - Drawing of things like lines, rectangles, triangles, and circles.
     - These are all drawn as triangles, no GL_LINES here, monsieur!
-    - Super fast rendering of many objects at once through the magic of MapBuffers.
+    - Super fast rendering of many objects at once (less draw calls) through the magic of MapBuffers, batching, and streaming.
   - Model matrix stack.
-  - Super fast rendering with less draw calls using streaming, batching, and map buffers.
   - Textures with alpha testing and blending.
    - Draw order independent.
   - Spritesheet based animation.
@@ -69,7 +69,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 - A Javascript scripting engine.
 - Logging.
   - Runs on another thread as not to interrupt your game.
-  - Remote logging to PaperTrail and other services.
+  - Remote logging to PaperTrail and other services which support the protocol.
 - Graphical debugging and a command console.
   - Debug the camera, or UI through the engine.
   - Execute scripting commands at real time.
@@ -107,11 +107,11 @@ The latest build is always tested on the configurations listed as `Primary`.
   - Nvidia 940MX `(Primary)`
   - AMD R9 200
   - 970M
-- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 248) Nov 6th`
+- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 248) Jan 12th`
   - OpenGL MESA Driver (Despite it supporting only a lower version of OpenGL than required.)
 - Linux Mint 19.1 `(Last Test On: Build 248) Jan 12th`
   - Nvidia 1060
-- MacOS High-Sierra x64 `(Last Test On: Build 243) Jan 6th`
+- MacOS High-Sierra x64 `(Last Test On: Build 249) Jan 12th`
 
 ### Supported Platforms:
 
@@ -143,6 +143,7 @@ The engine has unit and integration tests, but they aren't automatically run as 
 - OpenAL32.dll included. x64/x86
 - openal.so included. x64
     - libsndio.so.6.1 included.
+- libopenal.1.dylib x64
 
 [FreeImage-DotNet-Core](https://github.com/matgr1/FreeImage-dotnet-core) [FreeImage] : Loading and converting images.
 - FreeImage.dll included. x64/x86
@@ -162,6 +163,12 @@ The engine has unit and integration tests, but they aren't automatically run as 
 System.Numerics : Vector and matrix math.
 
 [Steamworks.Net](https://github.com/rlabrecque/Steamworks.NET) : Steam integration support.
+- Steamworks.Net.dll incldued. x86
+- Steamworks.Net-Mono.cll included. Mac/Linux x86
+    - libsteam_api.dylib x64
+    - libsteam_api.so x64
+    - steam_api.dll x86
+    - steam_api64.dll x64
 
 ## Inspired By
 

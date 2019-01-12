@@ -222,10 +222,13 @@
     <None Include="FreeImage-dotnet-core.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x64\FreeImage.dll">
+    <None Include="Libraries\MacOS\libopenal.1.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x64\FreeImage.dylib">
+    <None Include="Libraries\Windowsx64\FreeImage.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libraries\MacOS\FreeImage.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Libraries\Linux\FreeImage.so">
@@ -234,16 +237,16 @@
     <None Include="Libraries\Linux\freetype.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x64\libfreetype.6.dylib">
+    <None Include="Libraries\MacOS\libfreetype.6.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x64\libpng14.14.dylib">
+    <None Include="Libraries\MacOS\libpng14.14.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Libraries\Linux\libsndio.so.6.1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x64\libsteam_api.dylib">
+    <None Include="Libraries\MacOS\libsteam_api.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Libraries\Linux\libsteam_api.so">
@@ -269,19 +272,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Libraries\x64\freetype6.dll">
+    <None Include="Libraries\Windowsx64\freetype6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x86\FreeImage.dll">
+    <None Include="Libraries\Windowsx86\FreeImage.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x64\openal32.dll">
+    <None Include="Libraries\Windowsx64\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x86\freetype6.dll">
+    <None Include="Libraries\Windowsx86\freetype6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Libraries\x86\openal32.dll">
+    <None Include="Libraries\Windowsx86\openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -290,10 +293,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Libraries\Steamworks\Steamworks.NET.dll" />
-    <Content Include="Libraries\x64\steam_api64.dll">
+    <Content Include="Libraries\Windowsx64\steam_api64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libraries\x86\steam_api.dll">
+    <Content Include="Libraries\Windowsx86\steam_api.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

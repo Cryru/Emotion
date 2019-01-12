@@ -323,7 +323,7 @@ namespace Emotion.Engine
             }
 
             // Set the DLL path on Windows.
-            string libraryDirectory = Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "x64" : "x86");
+            string libraryDirectory = Environment.CurrentDirectory + "\\Libraries\\" + (Environment.Is64BitProcess ? "Windowsx64" : "Windowsx86");
             Windows.SetDllDirectory(libraryDirectory);
             string path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("PATH", path + ";" + libraryDirectory, EnvironmentVariableTarget.Process);
