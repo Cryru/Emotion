@@ -6,7 +6,9 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Emotion.Engine.Configuration;
+using Emotion.Graphics;
 using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Graphics;
@@ -92,6 +94,19 @@ namespace Emotion.Engine.Hosting.Desktop
 
         /// <inheritdoc />
         public void ApplySettings(HostSettings settings)
+        {
+            // OSX and Linux error if settings are updated on another thread.
+            if (!_isFirstApplySettings && (!GLThread.IsGLThread() || CurrentPlatform.OS != PlatformName.Windows))
+            {
+                Task.Run(() => GLThread.ExecuteGLThread(() => InternalApplySettings(settings)));
+            }
+            else
+            {
+                InternalApplySettings(settings);
+            }
+        }
+
+        private void InternalApplySettings(HostSettings settings)
         {
             Title = settings.Title;
 

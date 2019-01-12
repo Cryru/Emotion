@@ -43,7 +43,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 - Rendering
   - Drawing of things like lines, rectangles, triangles, and circles.
     - These are all drawn as triangles, no GL_LINES here, monsieur!
-    - Super fast rendering of many objects at once (less draw calls) through the magic of MapBuffers, batching, and streaming.
+  - Super fast rendering of many objects at once (less draw calls) through the magic of MapBuffers, batching, and streaming.
   - Model matrix stack.
   - Textures with alpha testing and blending.
    - Draw order independent.

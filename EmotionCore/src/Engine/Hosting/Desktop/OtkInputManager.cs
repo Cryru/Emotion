@@ -219,11 +219,15 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <returns>The position of the mouse cursor within the window.</returns>
         public Vector2 GetMousePosition()
         {
-            float scaleX = Context.Settings.RenderSettings.Width / Context.Host.Size.X;
-            float scaleY = Context.Settings.RenderSettings.Height / Context.Host.Size.Y;
+            // Get the difference in scale.
+            float scaleX = Context.Flags.ScaleResX / Context.Settings.RenderSettings.Width;
+            float scaleY = Context.Flags.ScaleResY / Context.Settings.RenderSettings.Height;
 
-            Vector2 mouseLocation = new Vector2(_mouseLocation.X * scaleX, _mouseLocation.Y * scaleY);
-            return mouseLocation;
+            // Calculate letterbox/pillarbox margins.
+            float marginX = Context.Host.Size.X / 2 - Context.Flags.ScaleResX / 2;
+            float marginY = Context.Host.Size.Y / 2 - Context.Flags.ScaleResY / 2;
+
+            return new Vector2((_mouseLocation.X - marginX) / scaleX, (_mouseLocation.Y - marginY) / scaleY);
         }
 
         /// <summary>

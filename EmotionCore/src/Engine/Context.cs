@@ -502,6 +502,10 @@ namespace Emotion.Engine
             // Set viewport.
             GL.Viewport(vpX, vpY, (int) width, (int) height);
             GL.Scissor(vpX, vpY, (int) width, (int) height);
+
+            // Cache calculations in case someone needs to use them.
+            Context.Flags.ScaleResX = width;
+            Context.Flags.ScaleResY = height;
         }
 
         #endregion
