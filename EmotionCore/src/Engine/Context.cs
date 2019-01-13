@@ -178,6 +178,9 @@ namespace Emotion.Engine
                 case PlatformName.Linux:
                     LinuxSetup();
                     break;
+                case PlatformName.Mac:
+                    MacSetup();
+                    break;
             }
 
             Log.Info("-------------------------------", MessageSource.Engine);
@@ -365,11 +368,44 @@ namespace Emotion.Engine
             // Log library folder.
             string libRoot = "./Libraries/Linux/";
             Log.Info($"Library Folder: {libRoot}", MessageSource.Engine);
+            LoadUnixLibraries(libRoot, new List<string>() {"libsndio.so.6.1"});
+        }
 
+        /// <summary>
+        /// MacOS bootstrap.
+        /// </summary>
+        private static void MacSetup()
+        {
+            // Get the path of the process AKA where the engine was launched from.
+            string processPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            if (processPath == null) throw new Exception("Failed to get the process path.");
+
+            // Check if the process path is the current path.
+            if (processPath != Environment.CurrentDirectory)
+            {
+                // Set the current path to the process path.
+                Directory.SetCurrentDirectory(processPath);
+                Unix.chdir(processPath);
+
+                Log.Warning($"Process directory was wrong, set to: {processPath}", MessageSource.Engine);
+            }
+            
+            // Log library folder.
+            string libRoot = $"./Libraries/MacOS/";
+            Log.Info($"Library Folder: {libRoot}", MessageSource.Engine);
+            LoadUnixLibraries(libRoot, new List<string>() { "libpng14.14.dylib" });
+        }
+
+        /// <summary>
+        /// Loads libraries using libdl and dlopen on Unix platforms.
+        /// </summary>
+        /// <param name="libRoot">The root folder of the libraries.</param>
+        /// <param name="libraries">List of libraries to load.</param>
+        private static void LoadUnixLibraries(string libRoot, List<string> libraries)
+        {
             // Load other libraries.
-            List<string> dlOpenLibraries = new List<string>() {"libsndio.so.6.1"};
-            if (File.Exists("load.txt")) dlOpenLibraries.AddRange(File.ReadAllLines("load.txt"));
-            foreach (string library in dlOpenLibraries)
+            if (File.Exists("load.txt")) libraries.AddRange(File.ReadAllLines("load.txt"));
+            foreach (string library in libraries)
             {
                 string libPath = libRoot + library;
                 bool exists = File.Exists(libPath);

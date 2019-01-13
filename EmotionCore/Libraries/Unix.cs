@@ -25,7 +25,7 @@ namespace Emotion.Libraries
         [DllImport("libc")]
         public static extern int uname(IntPtr buf);
 
-        [DllImport("libdl.so")]
+        [DllImport("libdl")]
         public static extern IntPtr dlopen(string fileName, int flags);
 
         [DllImport("MonoPosixHelper", SetLastError = true, EntryPoint = "Mono_Posix_Syscall_getcwd")]
