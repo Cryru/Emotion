@@ -45,7 +45,7 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// Whether the map is loaded.
         /// </summary>
-        private bool _loaded;
+        protected bool _loaded;
 
         /// <summary>
         /// Create a new map object from a Tiled map.

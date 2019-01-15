@@ -11,7 +11,7 @@ namespace Emotion.Debug
         Debugger,
         FileManager,
         ScriptingEngine,
-        LayerManager,
+        SceneManager,
         AssetLoader,
         Input,
         Renderer,
@@ -20,6 +20,10 @@ namespace Emotion.Debug
 
         // User
         Game,
-        UIController
+        UIController,
+
+        // Other
+        StdOut,
+        StdErr
     }
 }

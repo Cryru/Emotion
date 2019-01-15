@@ -122,6 +122,7 @@
     <Compile Include="src\Debug\Logging\LoggingProvider.cs" />
     <Compile Include="src\Debug\Logging\SoulLogging\ImmediateLoggingService.cs" />
     <Compile Include="src\Debug\Logging\SoulLogging\LoggingService.cs" />
+    <Compile Include="src\Debug\Logging\StringWriterExt.cs" />
     <Compile Include="src\Engine\Configuration\Flags.cs" />
     <Compile Include="src\Engine\Configuration\RenderFlags.cs" />
     <Compile Include="src\Engine\Configuration\RichTextFlags.cs" />

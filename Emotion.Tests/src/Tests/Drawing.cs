@@ -123,7 +123,7 @@ namespace Emotion.Tests.Tests
             Helpers.LoadScene(extScene);
 
             // Check if what is currently on screen is what is expected.
-            Assert.AreEqual("MtlaEdCKLT5205oeCNAJP2NYvKbU/iByuf8CbE1jEAw=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("/0r3NzR0HB+t6UfGxLiIWhAdghVnnlb0F8hTbmFutQU=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();
@@ -254,7 +254,7 @@ namespace Emotion.Tests.Tests
             // Check if what is currently on screen is what is expected.
             // This render is not 100% correct though, the hearts on the right for instance shouldn't be smooth as it is an alternating 0-1 chain.
             // This has to do with the DepthFunc being set to GL_Always.
-            Assert.AreEqual("pUYi+vsKignI6YeXj/TSrouo1yMF7n2HV5ghLO2mOw4=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("J0m0+IMHE2dtLnk1OLyKCS/YDqka8q79YmJ66P0Fzjw=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();
@@ -302,6 +302,8 @@ void main() {
     }
 
     fragColor = vec4(temp.y, temp.x, 0, temp.w);
+
+    if (fragColor.a < 0.01) discard;
 }");
 
             // Reference map buffers to test with.

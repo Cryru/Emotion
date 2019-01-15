@@ -92,7 +92,7 @@ namespace Emotion.Engine.Scenography
             // Check if scene is null.
             if (scene == null) return Task.CompletedTask;
 
-            Context.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.LayerManager);
+            Context.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
             return Task.Run(() =>
             {
@@ -110,7 +110,7 @@ namespace Emotion.Engine.Scenography
                 // Swap from loading.
                 SwapActive(scene);
 
-                Context.Log.Info($"Swapped current scene to [{scene}]", MessageSource.LayerManager);
+                Context.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
             });
         }
 
@@ -135,15 +135,15 @@ namespace Emotion.Engine.Scenography
         {
             try
             {
-                Context.Log.Trace($"Loading scene [{scene}].", MessageSource.LayerManager);
+                Context.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
 
                 scene.Load();
 
-                Context.Log.Info($"Loaded scene [{scene}].", MessageSource.LayerManager);
+                Context.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
             }
             catch (Exception ex)
             {
-                Context.Log.Error($"Error while loading scene {scene}.", new Exception("Couldn't load scene.", ex), MessageSource.LayerManager);
+                Context.Log.Error($"Error while loading scene {scene}.", new Exception("Couldn't load scene.", ex), MessageSource.SceneManager);
             }
         }
 
@@ -151,15 +151,15 @@ namespace Emotion.Engine.Scenography
         {
             try
             {
-                Context.Log.Trace($"Unloading scene [{scene}].", MessageSource.LayerManager);
+                Context.Log.Trace($"Unloading scene [{scene}].", MessageSource.SceneManager);
 
                 scene.Unload();
 
-                Context.Log.Info($"Unloaded scene [{scene}].", MessageSource.LayerManager);
+                Context.Log.Info($"Unloaded scene [{scene}].", MessageSource.SceneManager);
             }
             catch (Exception ex)
             {
-                Context.Log.Error($"Error while unloading scene [{scene}].", new Exception("Couldn't unload scene.", ex), MessageSource.LayerManager);
+                Context.Log.Error($"Error while unloading scene [{scene}].", new Exception("Couldn't unload scene.", ex), MessageSource.SceneManager);
             }
         }
 

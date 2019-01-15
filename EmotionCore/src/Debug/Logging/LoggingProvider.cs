@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using Emotion.Engine;
 
 #endregion
@@ -15,6 +16,17 @@ namespace Emotion.Debug.Logging
     /// </summary>
     public abstract class LoggingProvider : IDisposable
     {
+        /// <summary>
+        /// Create a new logging provider.
+        /// </summary>
+        protected LoggingProvider()
+        {
+            // Attach to default std.
+            StringWriterExt redirectErr = new StringWriterExt(true);
+            Console.SetError(redirectErr);
+            redirectErr.OnUpdate += () => { Error(redirectErr.ToString(), MessageSource.StdErr); };
+        }
+
         /// <summary>
         /// Log an error. These messages are fatal to code execution.
         /// </summary>
