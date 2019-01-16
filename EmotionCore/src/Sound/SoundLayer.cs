@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Libraries;
 using OpenTK.Audio.OpenAL;
 
 #endregion
@@ -69,16 +68,13 @@ namespace Emotion.Sound
             get
             {
                 // Check if anything playing.
-                if(PlayList.Count == 0) return null;
+                if (PlayList.Count == 0) return null;
 
                 // Calculate currently playing through the playback and the playlist.
                 SoundFile[] tempList = PlayList.ToArray();
                 for (int i = 0; i < tempList.Length; i++)
                 {
-                    if (PlaybackLocation <= tempList[i].Duration)
-                    {
-                        return tempList[i];
-                    }
+                    if (PlaybackLocation <= tempList[i].Duration) return tempList[i];
                 }
 
                 // Unknown.
@@ -230,7 +226,7 @@ namespace Emotion.Sound
             void QueuePlayInternal()
             {
                 // Check if mixing number of channels.
-                if (PlayList.Count  > 0 && PlayList[0].Channels != file.Channels)
+                if (PlayList.Count > 0 && PlayList[0].Channels != file.Channels)
                 {
                     Context.Log.Warning("Queuing a track with a different number of channels to the one(s) in the playlist is not supported.", MessageSource.SoundManager);
                     return;

@@ -2,20 +2,11 @@
 
 #region Using
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Engine;
-using Emotion.Graphics;
-using Emotion.Graphics.Batching;
-using Emotion.Graphics.Objects;
-using Emotion.Graphics.Text;
-using Emotion.Primitives;
 using Emotion.Sound;
-using Emotion.Tests.Interoperability;
 using Emotion.Tests.Scenes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -76,7 +67,8 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // The currently playing file should be the one which was played.
@@ -163,7 +155,8 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // The currently playing file should be the one which was played.
@@ -245,7 +238,8 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // Wait for everything to queue.
@@ -325,7 +319,8 @@ namespace Emotion.Tests.Tests
         }
 
         /// <summary>
-        /// Test whether queuing of files with a different channel count produces the expected negative result, as it is an unsupported operation.
+        /// Test whether queuing of files with a different channel count produces the expected negative result, as it is an
+        /// unsupported operation.
         /// </summary>
         [TestMethod]
         public void SoundQueueChannelMix()
@@ -360,7 +355,8 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // Only the first queued track should play. As the other one could not be queued.
@@ -438,7 +434,8 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // Wait for it to finish.
@@ -459,9 +456,10 @@ namespace Emotion.Tests.Tests
             // Wait until it starts playing.
             watch.Restart();
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
-            {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+            {
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // Stop playing.
@@ -475,7 +473,8 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
 
             // Stop playing.
@@ -541,9 +540,10 @@ namespace Emotion.Tests.Tests
             while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
             {
                 // Timeout.
-                if(watch.ElapsedMilliseconds > 1000) break;
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
             }
-            
+
             // Wait for everything to queue.
             Task.WaitAll(asyncTasks.ToArray());
             asyncTasks.Clear();
@@ -566,15 +566,126 @@ namespace Emotion.Tests.Tests
             // And the duration shouldn't have changed.
             Assert.AreEqual(soundFiles[0].Duration + soundFiles[1].Duration, layer.TotalDuration);
 
-            // Play for 4 more seconds and a half. This should be within the last track.
+            // Play for 4 more seconds and a half. This should finish the second track.
             Task.Delay(4500).Wait();
 
             // First file should be playing now as it has looped.
             Assert.AreEqual(soundFiles[0], layer.CurrentlyPlayingFile);
             // But the top of the playlist should still be the first file.
             Assert.AreEqual(soundFiles[0], layer.PlayList[0]);
+            Assert.AreEqual(2, layer.PlayList.Count);
             // And the duration shouldn't have changed.
             Assert.AreEqual(soundFiles[0].Duration + soundFiles[1].Duration, layer.TotalDuration);
+
+            // Should still be playing.
+            Assert.IsTrue(layer.Status == SoundStatus.Playing);
+
+            // Stop playing.
+            layer.StopPlayingAll();
+
+            // Cleanup sound.
+            foreach (SoundFile sf in soundFiles)
+            {
+                Context.AssetLoader.Destroy(sf.Name);
+            }
+
+            // Wait half a second for cleanup.
+            Task.Delay(500).Wait();
+
+            // Should be cleaned up.
+            foreach (SoundFile sf in soundFiles)
+            {
+                Assert.AreEqual(-1, sf.ALBuffer);
+            }
+
+            soundFiles.Clear();
+
+            // Remove the layer.
+            Context.SoundManager.RemoveLayer("testLayer");
+            Assert.AreEqual(0, Context.SoundManager.Layers.Length);
+
+            // Cleanup.
+            Helpers.UnloadScene();
+
+            // Restore sound thread frequency.
+            Context.Flags.SoundThreadFrequency = 200;
+        }
+
+        /// <summary>
+        /// Test whether looping of a queue works, when looping the last only.
+        /// </summary>
+        [TestMethod]
+        public void LoopLastQueue()
+        {
+            // Create a holder for the sound files.
+            List<SoundFile> soundFiles = new List<SoundFile>();
+            List<Task> asyncTasks = new List<Task>();
+
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
+            {
+                // This will test loading testing in another thread.
+                ExtLoad = () =>
+                {
+                    soundFiles.Add(Context.AssetLoader.Get<SoundFile>("Sounds/noice.wav"));
+                    soundFiles.Add(Context.AssetLoader.Get<SoundFile>("Sounds/sadMeme.wav"));
+                    asyncTasks.Add(Context.SoundManager.PlayQueue(soundFiles[0], "testLayer"));
+                    asyncTasks.Add(Context.SoundManager.PlayQueue(soundFiles[1], "testLayer"));
+                    Context.SoundManager.GetLayer("testLayer").Looping = true;
+                }
+            };
+
+            // Load scene.
+            Helpers.LoadScene(extScene);
+
+            // Set instant sound thread.
+            Context.Flags.SoundThreadFrequency = 1;
+
+            // Get the layer playing on.
+            SoundLayer layer = Context.SoundManager.GetLayer("testLayer");
+
+            // Wait until it starts playing. Should be a couple of updates on the AL thread.
+            Stopwatch watch = Stopwatch.StartNew();
+            while (layer.Status == SoundStatus.Initial || layer.CurrentlyPlayingFile == null)
+            {
+                // Timeout.
+                if (watch.ElapsedMilliseconds > 1000)
+                    break;
+            }
+
+            // Wait for everything to queue.
+            Task.WaitAll(asyncTasks.ToArray());
+            asyncTasks.Clear();
+
+            // Assert that the duration is correct.
+            Assert.AreEqual(soundFiles[0].Duration + soundFiles[1].Duration, layer.TotalDuration);
+
+            // The currently playing file should be the first.
+            Assert.AreEqual(soundFiles[0], layer.CurrentlyPlayingFile);
+            // It should also be at the top of the playlist.
+            Assert.AreEqual(soundFiles[0], layer.PlayList[0]);
+
+            // Play for 4 seconds, which should bring it to the second track.
+            Task.Delay(4000).Wait();
+
+            // Second file should be playing.
+            Assert.AreEqual(soundFiles[1], layer.CurrentlyPlayingFile);
+            // The playlist should now only contain one item and it should be the second file, as the first doesn't loop.
+            Assert.AreEqual(soundFiles[1], layer.PlayList[0]);
+            Assert.AreEqual(1, layer.PlayList.Count);
+            // And the duration should be only the second file.
+            Assert.AreEqual(soundFiles[1].Duration, layer.TotalDuration);
+
+            // Play for 4 more seconds and a half. This should finish the second track.
+            Task.Delay(4500).Wait();
+
+            // Second file should be playing as we are looping the last only.
+            Assert.AreEqual(soundFiles[1], layer.CurrentlyPlayingFile);
+            // The playlist should now only contain one item and it should be the second file, as the first doesn't loop.
+            Assert.AreEqual(soundFiles[1], layer.PlayList[0]);
+            Assert.AreEqual(1, layer.PlayList.Count);
+            // And the duration should be only the second file.
+            Assert.AreEqual(soundFiles[1].Duration, layer.TotalDuration);
 
             // Should still be playing.
             Assert.IsTrue(layer.Status == SoundStatus.Playing);

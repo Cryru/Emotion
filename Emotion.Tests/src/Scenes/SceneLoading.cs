@@ -29,13 +29,9 @@ namespace Emotion.Tests.Scenes
         {
             // Check if also not called on the GL Thread.
             if (Thread.CurrentThread.Name != "GL Thread")
-            {
                 LoadCalled = true;
-            }
             else
-            {
                 SyncLoadCalled = true;
-            }
         }
 
         public override void FocusLoss()
@@ -59,13 +55,9 @@ namespace Emotion.Tests.Scenes
         {
             // Check if also not called on the GL Thread.
             if (Thread.CurrentThread.Name != "GL Thread")
-            {
                 UnloadCalled = true;
-            }
             else
-            {
                 SyncUnloadCalled = true;
-            }
         }
     }
 }

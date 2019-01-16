@@ -56,10 +56,7 @@ namespace Emotion.Debug.Logging
                     Task.Delay(100).Wait();
 
                     // Perform logging.
-                    while (!_loggingQueue.IsEmpty)
-                    {
-                        LogThreadLoop();
-                    }
+                    while (!_loggingQueue.IsEmpty) LogThreadLoop();
                 }
 
                 FlushRemainingLogs();

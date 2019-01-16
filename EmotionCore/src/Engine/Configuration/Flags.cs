@@ -57,7 +57,7 @@ namespace Emotion.Engine.Configuration
         /// Read only. The scaled width to fit host resolution. Takes margins into account and is calculated on resize.
         /// </summary>
         public float ScaleResX = 0;
-        
+
         /// <summary>
         /// Read only. The scaled height to fit host resolution. Takes margins into account and is calculated on resize.
         /// </summary>

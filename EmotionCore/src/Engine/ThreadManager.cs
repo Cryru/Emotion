@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,7 +69,7 @@ namespace Emotion.Engine
             while (!_queue.IsEmpty)
             {
                 bool dequeued = _queue.TryDequeue(out Task task);
-                if(dequeued) task.RunSynchronously();
+                if (dequeued) task.RunSynchronously();
             }
         }
 

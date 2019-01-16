@@ -82,7 +82,7 @@ namespace Emotion.Tests
             // Add layer.
             Task loadingTask = Context.SceneManager.SetScene(reference);
             // Wait for loading to complete.
-            while (!loadingTask.IsCompleted || (requireDraw && !reference.DrawCalled)) _host.RunCycle();
+            while (!loadingTask.IsCompleted || requireDraw && !reference.DrawCalled) _host.RunCycle();
 
             // Run an additional cycle to ensure buffers are swapped.
             _host.RunCycle();

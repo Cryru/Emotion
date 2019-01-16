@@ -97,13 +97,9 @@ namespace Emotion.Engine.Hosting.Desktop
         {
             // OSX and Linux error if settings are updated on another thread.
             if (!_isFirstApplySettings && (!GLThread.IsGLThread() || CurrentPlatform.OS != PlatformName.Windows))
-            {
                 Task.Run(() => GLThread.ExecuteGLThread(() => InternalApplySettings(settings)));
-            }
             else
-            {
                 InternalApplySettings(settings);
-            }
         }
 
         private void InternalApplySettings(HostSettings settings)

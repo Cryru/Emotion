@@ -368,7 +368,7 @@ namespace Emotion.Engine
             // Log library folder.
             string libRoot = "./Libraries/Linux/";
             Log.Info($"Library Folder: {libRoot}", MessageSource.Engine);
-            LoadUnixLibraries(libRoot, new List<string>() {"libsndio.so.6.1"});
+            LoadUnixLibraries(libRoot, new List<string> {"libsndio.so.6.1"});
         }
 
         /// <summary>
@@ -389,11 +389,11 @@ namespace Emotion.Engine
 
                 Log.Warning($"Process directory was wrong, set to: {processPath}", MessageSource.Engine);
             }
-            
+
             // Log library folder.
-            string libRoot = $"./Libraries/MacOS/";
+            string libRoot = "./Libraries/MacOS/";
             Log.Info($"Library Folder: {libRoot}", MessageSource.Engine);
-            LoadUnixLibraries(libRoot, new List<string>() { "libpng14.14.dylib" });
+            LoadUnixLibraries(libRoot, new List<string> {"libpng14.14.dylib"});
         }
 
         /// <summary>
@@ -540,8 +540,8 @@ namespace Emotion.Engine
             GL.Scissor(vpX, vpY, (int) width, (int) height);
 
             // Cache calculations in case someone needs to use them.
-            Context.Flags.ScaleResX = width;
-            Context.Flags.ScaleResY = height;
+            Flags.ScaleResX = width;
+            Flags.ScaleResY = height;
         }
 
         #endregion

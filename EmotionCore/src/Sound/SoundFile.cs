@@ -32,7 +32,7 @@ namespace Emotion.Sound
         /// The number of channels the file has.
         /// </summary>
         public int Channels { get; private set; }
-        
+
         /// <summary>
         /// The sample rate of the file.
         /// </summary>
@@ -133,7 +133,7 @@ namespace Emotion.Sound
             // ReSharper disable once BaseObjectEqualsIsObjectEquals
             return base.Equals(obj);
         }
-        
+
         /// <inheritdoc />
         public override int GetHashCode()
         {

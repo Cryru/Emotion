@@ -3,10 +3,10 @@
 #region Using
 
 using System.IO;
+using System.Linq;
 using Emotion.Engine;
 using Emotion.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
 
 #endregion
 
@@ -44,7 +44,7 @@ namespace Emotion.Tests.Tests
             TextFile insensitive = Context.AssetLoader.Get<TextFile>("embedded/embedtext.txt");
 
             // Should even be the same reference.
-            Assert.IsTrue(object.ReferenceEquals(insensitive, textFile));
+            Assert.IsTrue(ReferenceEquals(insensitive, textFile));
 
             // Destroy it.
             Context.AssetLoader.Destroy("Embedded/embedText.txt");
@@ -86,7 +86,7 @@ namespace Emotion.Tests.Tests
 
             // Loading a file which exists both embedded and file.
             // In this case the file loader will load the file, and the embedded file won't be considered a part of the main manifest.
-            AssetLoader conflictLoader = new AssetLoader("OtherAssets", new [] { typeof(Assets).Assembly });
+            AssetLoader conflictLoader = new AssetLoader("OtherAssets", new[] {typeof(Assets).Assembly});
             loremIpsum = conflictLoader.Get<TextFile>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
@@ -111,7 +111,7 @@ namespace Emotion.Tests.Tests
             Assert.AreEqual(1, conflictLoader.AllAssets.Length);
 
             // Creating an asset loader with a non existent root directory should create that directory.
-            if(Directory.Exists("NewDir")) Directory.Delete("NewDir");
+            if (Directory.Exists("NewDir")) Directory.Delete("NewDir");
             Assert.IsFalse(Directory.Exists("NewDir"));
             AssetLoader noDirectory = new AssetLoader("NewDir");
             Assert.IsTrue(Directory.Exists("NewDir"));

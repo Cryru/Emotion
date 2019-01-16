@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -61,16 +60,10 @@ namespace Emotion.Sound
                 _device = Alc.OpenDevice(null);
                 int[] attr = new int[0];
                 _context = Alc.CreateContext(_device, attr);
-                if (_context.Handle == IntPtr.Zero)
-                {
-                    Context.Log.Error("Couldn't create OpenAL context.", MessageSource.SoundManager);
-                }
+                if (_context.Handle == IntPtr.Zero) Context.Log.Error("Couldn't create OpenAL context.", MessageSource.SoundManager);
 
                 bool success = Alc.MakeContextCurrent(_context);
-                if (!success)
-                {
-                    Context.Log.Error("Couldn't make OpenAL context current.", MessageSource.SoundManager);
-                }
+                if (!success) Context.Log.Error("Couldn't make OpenAL context current.", MessageSource.SoundManager);
                 Context.Log.Info("Created audio device.", MessageSource.SoundManager);
 
                 // Bind thread manager.
@@ -102,8 +95,6 @@ namespace Emotion.Sound
                     // Maximum of one buffer will be cleaned per loop.
                     bool took = _buffersToDestroy.TryTake(out SoundFile soundFile);
                     if (took)
-                    {
-                        // Check if any of the layers are using it.
                         foreach (KeyValuePair<string, SoundLayer> layer in _layers)
                         {
                             // If it is within the playlist, it is in use.
@@ -120,7 +111,6 @@ namespace Emotion.Sound
                                 _buffersToDestroy.Add(soundFile);
                             }
                         }
-                    }
 
                     // Update in interval specified in flag.
                     Task.Delay(Context.Flags.SoundThreadFrequency).Wait();
@@ -134,7 +124,7 @@ namespace Emotion.Sound
             }
             catch (Exception ex)
             {
-                if(_loopRunning && !(ex is ThreadAbortException)) Context.Log.Error("Error in AL loop.", new Exception(ex.Message, ex), MessageSource.SoundManager);
+                if (_loopRunning && !(ex is ThreadAbortException)) Context.Log.Error("Error in AL loop.", new Exception(ex.Message, ex), MessageSource.SoundManager);
             }
         }
 
@@ -260,10 +250,7 @@ namespace Emotion.Sound
         {
             SoundLayer playBackLayer = new SoundLayer(layer);
             bool added = _layers.TryAdd(layer, playBackLayer);
-            if (!added)
-            {
-                Context.Log.Error($"Couldn't add sound layer {layer}", MessageSource.SoundManager);
-            }
+            if (!added) Context.Log.Error($"Couldn't add sound layer {layer}", MessageSource.SoundManager);
             return playBackLayer;
         }
 
@@ -276,6 +263,7 @@ namespace Emotion.Sound
             while (!_soundThread.IsCompleted)
             {
             }
+
             _soundThread.Dispose();
         }
     }
