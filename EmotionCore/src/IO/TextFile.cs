@@ -12,12 +12,12 @@ namespace Emotion.IO
     {
         public string[] Content { get; private set; }
 
-        internal override void Create(byte[] data)
+        internal override void CreateAsset(byte[] data)
         {
             Content = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "").Split('\n');
         }
 
-        internal override void Destroy()
+        internal override void DestroyAsset()
         {
             Content = null;
         }

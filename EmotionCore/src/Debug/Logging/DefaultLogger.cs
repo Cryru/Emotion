@@ -52,18 +52,21 @@ namespace Emotion.Debug.Logging
             {
                 while (!Environment.HasShutdownStarted)
                 {
-                    // Sleep.
-                    Task.Delay(1).Wait();
+                    // Check for logs every 100 ms.
+                    Task.Delay(100).Wait();
 
-                    // Perform loop.
-                    LogThreadLoop();
+                    // Perform logging.
+                    while (!_loggingQueue.IsEmpty)
+                    {
+                        LogThreadLoop();
+                    }
                 }
 
                 FlushRemainingLogs();
             }
             catch (Exception ex)
             {
-                if (ex.Message != "Thread was being aborted." && !(ex is ThreadAbortException) || Context.IsRunning) Error("Logging thread has crashed.", ex, MessageSource.Debugger);
+                if (Context.IsRunning && !(ex is ThreadAbortException)) Error("Logging thread has crashed.", new Exception(ex.Message, ex), MessageSource.Debugger);
             }
         }
 

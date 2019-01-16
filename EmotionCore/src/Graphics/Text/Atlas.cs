@@ -129,7 +129,7 @@ namespace Emotion.Graphics.Text
         /// </summary>
         public void Destroy()
         {
-            Texture.Destroy();
+            Texture.DestroyAsset();
             Face.Dispose();
         }
 

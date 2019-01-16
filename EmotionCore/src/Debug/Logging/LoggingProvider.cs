@@ -25,6 +25,12 @@ namespace Emotion.Debug.Logging
             StringWriterExt redirectErr = new StringWriterExt(true);
             Console.SetError(redirectErr);
             redirectErr.OnUpdate += () => { Error(redirectErr.ToString(), MessageSource.StdErr); };
+
+            // Attach to unhandled exceptions.
+            AppDomain.CurrentDomain.UnhandledException += (e, a) => { Error($"Unhandled exception: {e}.", MessageSource.StdErr); };
+
+            // Ensure log dispose is called when app domain closes.
+            AppDomain.CurrentDomain.ProcessExit += (e, a) => { Dispose(); };
         }
 
         /// <summary>

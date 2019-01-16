@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Libraries;
@@ -12,6 +13,9 @@ using OpenTK.Audio.OpenAL;
 
 namespace Emotion.Sound
 {
+    /// <summary>
+    /// The thread the AL context was created on.
+    /// </summary>
     public static class ALThread
     {
         private static ThreadManager _threadManager;
@@ -52,9 +56,9 @@ namespace Emotion.Sound
         /// Execute the action on the AL thread. Will block the current thread until ready.
         /// </summary>
         /// <param name="action">The action to execute.</param>
-        public static void ExecuteALThread(Action action)
+        public static Task ExecuteALThread(Action action)
         {
-            _threadManager.ExecuteOnThread(action);
+            return _threadManager.ExecuteOnThread(action);
         }
 
         /// <summary>
@@ -73,6 +77,9 @@ namespace Emotion.Sound
         /// <param name="location">Where the error check is.</param>
         public static void CheckError(string location)
         {
+            // Check if on AL thread.
+            if (!IsALThread()) Context.Log.Error($"Error checking location {location} was executed outside of the AL thread.", MessageSource.SoundManager);
+
             // Get the error.
             ALError errorCheck = AL.GetError();
 

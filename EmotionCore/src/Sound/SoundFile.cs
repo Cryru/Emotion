@@ -4,23 +4,45 @@
 
 using System;
 using System.IO;
+using Emotion.Engine;
 using Emotion.IO;
-using OpenTK.Audio.OpenAL;
 
 #endregion
 
 namespace Emotion.Sound
 {
+    /// <summary>
+    /// A sound file asset. Supports WAV.
+    /// </summary>
     public sealed class SoundFile : Asset
     {
+        #region Properties
+
         /// <summary>
         /// The duration of the sound file.
         /// </summary>
         public float Duration { get; private set; }
 
-        internal int Pointer;
+        /// <summary>
+        /// Sound file pointer to the internal system.
+        /// </summary>
+        public int ALBuffer { get; internal set; }
 
-        internal override void Create(byte[] data)
+        /// <summary>
+        /// The number of channels the file has.
+        /// </summary>
+        public int Channels { get; private set; }
+        
+        /// <summary>
+        /// The sample rate of the file.
+        /// </summary>
+        public int SampleRate { get; private set; }
+
+        #endregion
+
+        #region Asset API
+
+        internal override void CreateAsset(byte[] data)
         {
             using (MemoryStream stream = new MemoryStream(data))
             {
@@ -51,9 +73,9 @@ namespace Emotion.Sound
                     int chunkSize = reader.ReadInt32();
                     // Audio format.
                     reader.ReadInt16();
-                    int channels = reader.ReadInt16();
+                    Channels = reader.ReadInt16();
                     // Frequency.
-                    int sampleRate = reader.ReadInt32();
+                    SampleRate = reader.ReadInt32();
                     // Byte rate.
                     reader.ReadInt32();
                     // Block align.
@@ -81,40 +103,41 @@ namespace Emotion.Sound
                     byte[] soundData = reader.ReadBytes(dataLength);
 
                     // Create a sound buffer and load it.
-                    ALThread.ExecuteALThread(() =>
-                    {
-                        Pointer = AL.GenBuffer();
-                        AL.BufferData(Pointer, GetSoundFormat(channels, bitsPerSample), soundData, soundData.Length, sampleRate);
-                    });
+                    ALBuffer = Context.SoundManager.CreateBuffer(Channels, bitsPerSample, soundData, SampleRate);
 
-                    Duration = soundData.Length / (sampleRate * channels * bitsPerSample / 8f);
+                    // Calculate duration.
+                    Duration = soundData.Length / (SampleRate * Channels * bitsPerSample / 8f);
                 }
             }
         }
 
-        internal override void Destroy()
-        {
-            ALThread.ExecuteALThread(() => { AL.DeleteBuffer(Pointer); });
-        }
-
-        #region Helpers
-
         /// <summary>
-        /// Returns the type of sound format based on channels and bits.
+        /// Queue the sound file to be destroyed when it is no longer in use.
         /// </summary>
-        /// <param name="channels">The number of channels.</param>
-        /// <param name="bits">The number of bits.</param>
-        /// <returns>The OpenAL </returns>
-        private static ALFormat GetSoundFormat(int channels, int bits)
+        internal override void DestroyAsset()
         {
-            switch (channels)
-            {
-                case 1: return bits == 8 ? ALFormat.Mono8 : ALFormat.Mono16;
-                case 2: return bits == 8 ? ALFormat.Stereo8 : ALFormat.Stereo16;
-                default: throw new Exception("Unknown format.");
-            }
+            Context.SoundManager.DestroyBuffer(this);
         }
 
         #endregion
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            // ReSharper disable once BaseObjectEqualsIsObjectEquals
+            if (!(obj is SoundFile soundFile)) return base.Equals(obj);
+
+            // If both are non-destroyed buffers, compare the pointers.
+            if (ALBuffer != -1 && soundFile.ALBuffer != -1) return ALBuffer == soundFile.ALBuffer;
+
+            // ReSharper disable once BaseObjectEqualsIsObjectEquals
+            return base.Equals(obj);
+        }
+        
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return ALBuffer;
+        }
     }
 }

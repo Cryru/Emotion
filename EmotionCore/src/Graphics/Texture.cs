@@ -54,7 +54,7 @@ namespace Emotion.Graphics
         /// <param name="data">The image read as bytes.</param>
         public Texture(byte[] data)
         {
-            Create(data);
+            CreateAsset(data);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Emotion.Graphics
         /// Uploads an array of bytes as a texture.
         /// </summary>
         /// <param name="data">The bytes to upload.</param>
-        internal override void Create(byte[] data)
+        internal override void CreateAsset(byte[] data)
         {
             FIBITMAP freeImageBitmap;
 
@@ -185,7 +185,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Destroy the texture, freeing memory.
         /// </summary>
-        internal override void Destroy()
+        internal override void DestroyAsset()
         {
             Delete();
         }

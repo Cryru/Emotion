@@ -3,9 +3,11 @@
 #region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
@@ -21,28 +23,33 @@ namespace Emotion.Sound
     /// <summary>
     /// Manages audio and interop with OpenAL.
     /// </summary>
-    public class SoundManager
+    public sealed class SoundManager
     {
-        private Dictionary<string, SoundLayer> _layers;
+        /// <summary>
+        /// List of active sound layers.
+        /// </summary>
+        public string[] Layers
+        {
+            get => _layers.Keys.ToArray();
+        }
+
+        private ConcurrentDictionary<string, SoundLayer> _layers;
         private ContextHandle _context;
         private IntPtr _device;
-        private bool _loopRunning = false;
-        private Thread _soundThread;
+        private bool _loopRunning;
+        private Task _soundThread;
+        private ConcurrentBag<SoundFile> _buffersToDestroy;
 
         /// <summary>
         /// Create a new sound manager.
         /// </summary>
         internal SoundManager()
         {
-            _layers = new Dictionary<string, SoundLayer>();
+            _layers = new ConcurrentDictionary<string, SoundLayer>();
+            _buffersToDestroy = new ConcurrentBag<SoundFile>();
 
-            _soundThread = new Thread(SoundThreadLoop);
+            _soundThread = new Task(SoundThreadLoop, TaskCreationOptions.LongRunning);
             _soundThread.Start();
-            while (!_soundThread.IsAlive)
-            {
-            }
-
-            InitDebug();
         }
 
         private void SoundThreadLoop()
@@ -88,9 +95,35 @@ namespace Emotion.Sound
                     // Run queued actions.
                     ALThread.Run();
 
+                    // Check for errors.
                     ALThread.CheckError("loop end");
 
-                    Task.Delay((int) Context.RawFrameTime).Wait();
+                    // Check if any of the buffers waiting to be disposed are ready to be.
+                    // Maximum of one buffer will be cleaned per loop.
+                    bool took = _buffersToDestroy.TryTake(out SoundFile soundFile);
+                    if (took)
+                    {
+                        // Check if any of the layers are using it.
+                        foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+                        {
+                            // If it is within the playlist, it is in use.
+                            SoundFile foundFile = layer.Value.PlayList.FirstOrDefault(x => x.ALBuffer == soundFile.ALBuffer);
+                            if (foundFile == null)
+                            {
+                                // If not in use, delete it.
+                                AL.DeleteBuffer(soundFile.ALBuffer);
+                                soundFile.ALBuffer = -1;
+                            }
+                            else
+                            {
+                                // Add back if still in use.
+                                _buffersToDestroy.Add(soundFile);
+                            }
+                        }
+                    }
+
+                    // Update in interval specified in flag.
+                    Task.Delay(Context.Flags.SoundThreadFrequency).Wait();
                 }
 
                 // Cleanup.
@@ -101,7 +134,7 @@ namespace Emotion.Sound
             }
             catch (Exception ex)
             {
-                if(_loopRunning) Context.Log.Error("Error in AL loop.", ex, MessageSource.SoundManager);
+                if(_loopRunning && !(ex is ThreadAbortException)) Context.Log.Error("Error in AL loop.", new Exception(ex.Message, ex), MessageSource.SoundManager);
             }
         }
 
@@ -116,14 +149,12 @@ namespace Emotion.Sound
         /// <param name="layer">The layer to play on.</param>
         /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public SoundLayer Play(SoundFile file, string layer)
+        public Task Play(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
 
-            playBackLayer.Play(file);
-
-            return playBackLayer;
+            return playBackLayer.Play(file);
         }
 
         /// <summary>
@@ -135,14 +166,12 @@ namespace Emotion.Sound
         /// <param name="layer">The layer to play on.</param>
         /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public SoundLayer PlayQueue(SoundFile file, string layer)
+        public Task PlayQueue(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
 
-            playBackLayer.QueuePlay(file);
-
-            return playBackLayer;
+            return playBackLayer.QueuePlay(file);
         }
 
         /// <summary>
@@ -152,13 +181,7 @@ namespace Emotion.Sound
         /// <returns>The layer with the specified name.</returns>
         public SoundLayer GetLayer(string layer)
         {
-            SoundLayer playBackLayer;
-
-            lock (_layers)
-            {
-                _layers.TryGetValue(layer, out playBackLayer);
-            }
-
+            _layers.TryGetValue(layer, out SoundLayer playBackLayer);
             return playBackLayer ?? CreateLayer(layer);
         }
 
@@ -168,31 +191,62 @@ namespace Emotion.Sound
         /// <param name="layer">The name of the layer to remove.</param>
         public void RemoveLayer(string layer)
         {
-            lock (_layers)
-            {
-                _layers.TryGetValue(layer, out SoundLayer playBackLayer);
-                _layers.Remove(layer);
-                playBackLayer?.Dispose();
-            }
+            _layers.TryRemove(layer, out SoundLayer playBackLayer);
+            playBackLayer?.Dispose();
         }
 
         #endregion
 
-        #region Debugging
+        #region Buffer API
 
-        [Conditional("DEBUG")]
-        private void InitDebug()
+        /// <summary>
+        /// Create a sound buffer.
+        /// </summary>
+        /// <param name="channels">The channels of the sound.</param>
+        /// <param name="bitsPerSample">The number of bits per sample.</param>
+        /// <param name="soundData">The sound itself as a byte array.</param>
+        /// <param name="sampleRate">The rate of samples</param>
+        /// <returns>A pointer to the internal buffer.</returns>
+        internal int CreateBuffer(int channels, int bitsPerSample, byte[] soundData, int sampleRate)
         {
-            Context.ScriptingEngine.Expose("debugAudio", (Action) (() =>
+            int pointer = -1;
+
+            ALThread.ExecuteALThread(() =>
             {
-                lock (_layers)
-                {
-                    foreach (KeyValuePair<string, SoundLayer> layer in _layers)
-                    {
-                        Context.Log.Info(layer.ToString(), MessageSource.SoundManager);
-                    }
-                }
-            }), "Dumps the status of the sound manager.");
+                pointer = AL.GenBuffer();
+                AL.BufferData(pointer, GetSoundFormat(channels, bitsPerSample), soundData, soundData.Length, sampleRate);
+            }).Wait();
+
+            return pointer;
+        }
+
+        /// <summary>
+        /// Add a buffer to be destroyed when it is no longer played.
+        /// </summary>
+        /// <param name="file">Pointer to the sound file holding the buffer to destroy.</param>
+        internal void DestroyBuffer(SoundFile file)
+        {
+            _buffersToDestroy.Add(file);
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Returns the type of sound format based on channels and bits.
+        /// </summary>
+        /// <param name="channels">The number of channels.</param>
+        /// <param name="bits">The number of bits.</param>
+        /// <returns>The OpenAL </returns>
+        private static ALFormat GetSoundFormat(int channels, int bits)
+        {
+            switch (channels)
+            {
+                case 1: return bits == 8 ? ALFormat.Mono8 : ALFormat.Mono16;
+                case 2: return bits == 8 ? ALFormat.Stereo8 : ALFormat.Stereo16;
+                default: throw new Exception("Unknown format.");
+            }
         }
 
         #endregion
@@ -205,12 +259,11 @@ namespace Emotion.Sound
         private SoundLayer CreateLayer(string layer)
         {
             SoundLayer playBackLayer = new SoundLayer(layer);
-
-            lock (_layers)
+            bool added = _layers.TryAdd(layer, playBackLayer);
+            if (!added)
             {
-                _layers.Add(layer, playBackLayer);
+                Context.Log.Error($"Couldn't add sound layer {layer}", MessageSource.SoundManager);
             }
-
             return playBackLayer;
         }
 
@@ -220,9 +273,10 @@ namespace Emotion.Sound
         public void Dispose()
         {
             _loopRunning = false;
-            while (_soundThread.IsAlive)
+            while (!_soundThread.IsCompleted)
             {
             }
+            _soundThread.Dispose();
         }
     }
 }

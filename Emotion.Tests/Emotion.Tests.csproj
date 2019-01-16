@@ -74,6 +74,7 @@
     <Compile Include="src\Scenes\ExternalScene.cs" />
     <Compile Include="src\Tests\AnimatingTexture.cs" />
     <Compile Include="src\Tests\Assets.cs" />
+    <Compile Include="src\Tests\Sound.cs" />
     <Compile Include="src\Tests\Drawing.cs" />
     <Compile Include="src\Tests\Scenography.cs" />
     <Compile Include="src\Scenes\SceneLoading.cs" />
@@ -91,6 +92,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Sounds\kids.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Sounds\noice.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Sounds\noiceStereo.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Sounds\sadMeme.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\Textures\16bmp.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

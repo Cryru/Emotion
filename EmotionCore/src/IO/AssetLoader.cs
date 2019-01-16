@@ -128,7 +128,7 @@ namespace Emotion.IO
             DebugMessageWrap("Creating", enginePath, typeof(T), MessageType.Trace);
             T temp = (T) Activator.CreateInstance(typeof(T));
             temp.Name = enginePath;
-            temp.Create(fileContents);
+            temp.CreateAsset(fileContents);
             DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Info);
 
             // Add it to the loaded assets.
@@ -155,7 +155,7 @@ namespace Emotion.IO
 
             // Dispose of asset.
             DebugMessageWrap("Destroying", enginePath, asset.GetType(), MessageType.Info);
-            asset.Destroy();
+            asset.DestroyAsset();
             DebugMessageWrap("Destroyed", enginePath, null, MessageType.Trace);
         }
 

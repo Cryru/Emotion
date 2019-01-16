@@ -10,12 +10,12 @@ namespace Emotion.IO
     {
         public byte[] Content { get; private set; }
 
-        internal override void Create(byte[] data)
+        internal override void CreateAsset(byte[] data)
         {
             Content = data;
         }
 
-        internal override void Destroy()
+        internal override void DestroyAsset()
         {
             Content = null;
         }

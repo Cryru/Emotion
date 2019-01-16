@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace Emotion.Engine
         /// <summary>
         /// The queue of actions to execute on the thread.
         /// </summary>
-        private Queue<Action> _queue = new Queue<Action>();
+        private ConcurrentQueue<Task> _queue = new ConcurrentQueue<Task>();
 
         /// <summary>
         /// Initiate a thread manager.
@@ -64,11 +65,12 @@ namespace Emotion.Engine
         public void Run()
         {
             // Check if on the managed thread.
-            if (!IsManagedThread()) throw new Exception("The managed thread has changed.");
+            if (!IsManagedThread()) throw new Exception($"The {ThreadName} thread has changed.");
 
-            lock (_queue)
+            while (!_queue.IsEmpty)
             {
-                while (_queue.Count > 0) _queue.Dequeue()();
+                bool dequeued = _queue.TryDequeue(out Task task);
+                if(dequeued) task.RunSynchronously();
             }
         }
 
@@ -87,29 +89,25 @@ namespace Emotion.Engine
         /// Execute the action on the managed thread. Will block the current thread until ready.
         /// </summary>
         /// <param name="action">The action to execute.</param>
-        public void ExecuteOnThread(Action action)
+        public Task ExecuteOnThread(Action action)
         {
+            // Wrap the action in a task.
+            Task completionTask = new Task(action);
+
             // Check if on the managed thread.
             if (IsManagedThread())
             {
-                action();
-                return;
+                completionTask.RunSynchronously();
+                return completionTask;
             }
 
-            // Wrap and add the action.
-            bool done = false;
-            lock (_queue)
-            {
-                _queue.Enqueue(() =>
-                {
-                    action();
-                    done = true;
-                });
-            }
+            // Add the action to the queue.
+            _queue.Enqueue(completionTask);
 
-            // Block until the action is executed.
-            if (!BlockOnExecution) return;
-            while (!done) Task.Delay(1).Wait();
+            // Block until the task is executed.
+            if (!BlockOnExecution) return completionTask;
+            completionTask.Wait();
+            return completionTask;
         }
 
         /// <summary>
@@ -117,7 +115,7 @@ namespace Emotion.Engine
         /// </summary>
         public void ForceThread()
         {
-            if (!IsManagedThread()) throw new Exception("Not currently executing on the managed thread.");
+            if (!IsManagedThread()) throw new Exception($"Not currently executing on the {ThreadName} thread.");
         }
 
         #endregion

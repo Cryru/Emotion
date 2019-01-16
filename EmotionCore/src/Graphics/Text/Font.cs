@@ -16,13 +16,13 @@ namespace Emotion.Graphics.Text
 
         #region Asset API
 
-        internal override void Create(byte[] data)
+        internal override void CreateAsset(byte[] data)
         {
             _fontBytes = data;
             _atlasCache = new Dictionary<uint, Atlas>();
         }
 
-        internal override void Destroy()
+        internal override void DestroyAsset()
         {
             // Destroy loaded atlases.
             foreach (KeyValuePair<uint, Atlas> atlas in _atlasCache)
