@@ -38,6 +38,7 @@ namespace Emotion.Sound
         private bool _loopRunning;
         private Task _soundThread;
         private ConcurrentBag<SoundFile> _buffersToDestroy;
+        private Task _oneLoopToken;
 
         /// <summary>
         /// Create a new sound manager.
@@ -85,32 +86,40 @@ namespace Emotion.Sound
                         }
                     }
 
-                    // Run queued actions.
-                    ALThread.Run();
+                    // Run ALThread and cleanup only if focused.
+                    if (Context.Host.Focused)
+                    {
+                        // Run queued actions.
+                        ALThread.Run();
 
-                    // Check for errors.
-                    ALThread.CheckError("loop end");
+                        // Check for errors.
+                        ALThread.CheckError("loop end");
 
-                    // Check if any of the buffers waiting to be disposed are ready to be.
-                    // Maximum of one buffer will be cleaned per loop.
-                    bool took = _buffersToDestroy.TryTake(out SoundFile soundFile);
-                    if (took)
-                        foreach (KeyValuePair<string, SoundLayer> layer in _layers)
-                        {
-                            // If it is within the playlist, it is in use.
-                            SoundFile foundFile = layer.Value.PlayList.FirstOrDefault(x => x.ALBuffer == soundFile.ALBuffer);
-                            if (foundFile == null)
+                        // Check if any of the buffers waiting to be disposed are ready to be.
+                        // Maximum of one buffer will be cleaned per loop.
+                        bool took = _buffersToDestroy.TryTake(out SoundFile soundFile);
+                        if (took)
+                            foreach (KeyValuePair<string, SoundLayer> layer in _layers)
                             {
-                                // If not in use, delete it.
-                                AL.DeleteBuffer(soundFile.ALBuffer);
-                                soundFile.ALBuffer = -1;
+                                // If it is within the playlist, it is in use.
+                                SoundFile foundFile = layer.Value.PlayList.FirstOrDefault(x => x.ALBuffer == soundFile.ALBuffer);
+                                if (foundFile == null)
+                                {
+                                    // If not in use, delete it.
+                                    AL.DeleteBuffer(soundFile.ALBuffer);
+                                    soundFile.ALBuffer = -1;
+                                }
+                                else
+                                {
+                                    // Add back if still in use.
+                                    _buffersToDestroy.Add(soundFile);
+                                }
                             }
-                            else
-                            {
-                                // Add back if still in use.
-                                _buffersToDestroy.Add(soundFile);
-                            }
-                        }
+                    }
+
+                    // Run the one loop token if any.
+                    _oneLoopToken?.RunSynchronously();
+                    _oneLoopToken = null;
 
                     // Update in interval specified in flag.
                     Task.Delay(Context.Flags.SoundThreadFrequency).Wait();
@@ -156,7 +165,7 @@ namespace Emotion.Sound
         /// <param name="layer">The layer to play on.</param>
         /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public Task PlayQueue(SoundFile file, string layer)
+        public Task QueuePlay(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
@@ -222,6 +231,12 @@ namespace Emotion.Sound
         #endregion
 
         #region Helpers
+
+        public Task GetOneLoopToken()
+        {
+            _oneLoopToken = new Task(() => {});
+            return _oneLoopToken;
+        }
 
         /// <summary>
         /// Returns the type of sound format based on channels and bits.

@@ -27,7 +27,7 @@ namespace Emotion.Graphics.Batching
         /// Moves the pointer to the specified quad index and maps the quad.
         /// </summary>
         /// <param name="index">The index of the vertex to map.</param>
-        /// <param name="pointOne">The location of the first point.</param>
+        /// <param name="pointOne">The position of the first point.</param>
         /// <param name="pointTwo">The size of the second point.</param>
         /// <param name="color">The color of the vertices.</param>
         /// <param name="thickness">How thick the line should be.</param>
@@ -44,7 +44,7 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Maps the current line and advances the pointer.
         /// </summary>
-        /// <param name="pointOne">The location of the first point.</param>
+        /// <param name="pointOne">The position of the first point.</param>
         /// <param name="pointTwo">The size of the second point.</param>
         /// <param name="color">The color of the vertices.</param>
         /// <param name="thickness">How thick the line should be.</param>
@@ -74,30 +74,30 @@ namespace Emotion.Graphics.Batching
         /// Moves the pointer to the specified quad index and maps the quad.
         /// </summary>
         /// <param name="index">The index of the quad to map.</param>
-        /// <param name="location">The location of the quad.</param>
+        /// <param name="position">The position of the quad.</param>
         /// <param name="size">The size of the quad.</param>
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad.</param>
         /// <param name="textureArea">The texture area (UV) of the quad.</param>
-        public void MapQuadAt(int index, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void MapQuadAt(int index, Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
 
             // Move the pointer and map.
             MovePointerToVertex(index * ObjectSize);
-            MapNextQuad(location, size, color, texture, textureArea);
+            MapNextQuad(position, size, color, texture, textureArea);
         }
 
         /// <summary>
         /// Maps the current quad and advances the current index by one quad.
         /// </summary>
-        /// <param name="location">The location of the quad.</param>
+        /// <param name="position">The position of the quad.</param>
         /// <param name="size">The size of the quad.</param>
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad.</param>
         /// <param name="textureArea">The texture area (UV) of the quad.</param>
-        public void MapNextQuad(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void MapNextQuad(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
@@ -109,15 +109,15 @@ namespace Emotion.Graphics.Batching
             // Calculate UV positions
             Vector2 nnUV = texture == null ? Vector2.Zero : Vector2.Transform(uv.Location, texture.TextureMatrix);
             Vector2 pnUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y), texture.TextureMatrix);
-            Vector2 npUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
             Vector2 ppUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), texture.TextureMatrix);
+            Vector2 npUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
 
             // Calculate vert positions.
-            Vector3 pnV = new Vector3(location.X + size.X, location.Y, location.Z);
-            Vector3 npV = new Vector3(location.X, location.Y + size.Y, location.Z);
-            Vector3 ppV = new Vector3(location.X + size.X, location.Y + size.Y, location.Z);
+            Vector3 pnV = new Vector3(position.X + size.X, position.Y, position.Z);
+            Vector3 npV = new Vector3(position.X, position.Y + size.Y, position.Z);
+            Vector3 ppV = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
 
-            UnsafeMapVertex(c, tid, nnUV, location);
+            UnsafeMapVertex(c, tid, nnUV, position);
             _dataPointer++;
 
             UnsafeMapVertex(c, tid, pnUV, pnV);

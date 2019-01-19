@@ -28,9 +28,9 @@ namespace Emotion.Sound
         public string Name { get; private set; }
 
         /// <summary>
-        /// The layer's volume from 0 to ???. Is 1 by default.
+        /// The layer's volume from 0 to ???. Is 100 by default.
         /// </summary>
-        public float Volume { get; set; } = 1f;
+        public float Volume { get; set; } = 100f;
 
         /// <summary>
         /// Whether the layer is playing, is paused, etc.
@@ -57,7 +57,8 @@ namespace Emotion.Sound
         /// </summary>
         public float TotalDuration
         {
-            get { return PlayList.ToArray().Sum(x => x?.Duration ?? 0); }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -65,24 +66,14 @@ namespace Emotion.Sound
         /// </summary>
         public SoundFile CurrentlyPlayingFile
         {
-            get
-            {
-                // Check if anything playing.
-                if (PlayList.Count == 0) return null;
-
-                // Calculate currently playing through the playback and the playlist.
-                SoundFile[] tempList = PlayList.ToArray();
-                for (int i = 0; i < tempList.Length; i++)
-                {
-                    if (PlaybackLocation <= tempList[i].Duration) return tempList[i];
-                }
-
-                // Unknown.
-                Context.Log.Warning("Unknown currently playing file.", MessageSource.SoundManager);
-
-                return tempList[tempList.Length - 1];
-            }
+            get;
+            private set;
         }
+
+        /// <summary>
+        /// The index of the currently playing file within the Playlist.
+        /// </summary>
+        public int CurrentlyPlayingFileIndex { get; private set; }
 
         /// <summary>
         /// The list of files queued.
@@ -108,7 +99,7 @@ namespace Emotion.Sound
         public bool SkipNaturalFadeOut { get; set; }
 
         /// <summary>
-        /// Whether to fade in only on the first loop.
+        /// Whether to fade in only on the first loop. False by default. Takes effect instantly, if layer is already playing it won't fade in subsequent loops.
         /// </summary>
         public bool FadeInFirstLoopOnly { get; set; }
 
@@ -127,6 +118,12 @@ namespace Emotion.Sound
         /// The OpenAL pointer to the ALSource.
         /// </summary>
         public int ALSource { get; private set; }
+
+        /// <summary>
+        /// The volume reported to OpenAL for this layer. This will be influenced by the global volume, fading, layer volume, and
+        /// other factors.
+        /// </summary>
+        public float ReportedVolume { get; private set; }
 
         /// <summary>
         /// Tracker for whether the currently playing track is the first.
@@ -164,11 +161,11 @@ namespace Emotion.Sound
         /// <summary>
         /// Resume playing if paused.
         /// </summary>
-        public void Resume()
+        public Task Resume()
         {
-            if (Status != SoundStatus.Paused) return;
+            if (Status != SoundStatus.Paused) return Task.CompletedTask;
             Context.Log.Trace($"Resumed {this}.", MessageSource.SoundManager);
-            ALThread.ExecuteALThread(() =>
+            return ALThread.ExecuteALThread(() =>
             {
                 AL.SourcePlay(ALSource);
                 Status = SoundStatus.Playing;
@@ -179,11 +176,11 @@ namespace Emotion.Sound
         /// <summary>
         /// Pause if playing.
         /// </summary>
-        public void Pause()
+        public Task Pause()
         {
-            if (Status != SoundStatus.Playing) return;
+            if (Status != SoundStatus.Playing) return Task.CompletedTask;
             Context.Log.Trace($"Paused {this}.", MessageSource.SoundManager);
-            ALThread.ExecuteALThread(() =>
+            return ALThread.ExecuteALThread(() =>
             {
                 AL.SourcePause(ALSource);
                 Status = SoundStatus.Paused;
@@ -268,6 +265,7 @@ namespace Emotion.Sound
                 AL.SourceQueueBuffer(ALSource, file.ALBuffer);
                 PlayList.Add(file);
                 ALThread.CheckError($"queuing single {file.ALBuffer} in source {ALSource}");
+
                 // Play it.
                 AL.SourcePlay(ALSource);
                 Status = SoundStatus.Playing;
@@ -360,6 +358,24 @@ namespace Emotion.Sound
             PlaybackLocation = 0;
         }
 
+        private int UpdateCurrentlyPlayingFile()
+        {
+            // Check if anything playing.
+            if (PlayList.Count == 0) return -1;
+
+            // Calculate currently playing through the playback and the playlist.
+            for (int i = 0; i < PlayList.Count; i++)
+            {
+                SoundFile sf = PlayList[i];
+                if (PlaybackLocation <= sf.Duration) return i;
+            }
+
+            // Unknown.
+            Context.Log.Warning("Unknown currently playing file.", MessageSource.SoundManager);
+
+            return PlayList.Count - 1;
+        }
+
         /// <summary>
         /// Update the layer. Is called on the ALThread by the sound manager.
         /// </summary>
@@ -370,12 +386,17 @@ namespace Emotion.Sound
 
             ALThread.CheckError($"start update of source {ALSource}");
 
-            // Update focused state.
+            // Update focused state. Manages pausing when focus is lost and resuming. The layer update should not proceed if paused.
             if (!UpdateFocusedState()) return;
-            ALThread.CheckError($"focus update of source {ALSource}");
 
-            // Remove played buffers.
+            // Remove played buffers. Standalone AL call.
             RemovePlayed();
+
+            // Update playback location. Standalone AL call.
+            UpdatePlaybackLocation();
+
+            // Update the currently playing file. This requires the playback location and a vetted playlist.
+            UpdateCurrentFile();
 
             // Update paused/playing state.
             UpdatePlayingState();
@@ -385,22 +406,18 @@ namespace Emotion.Sound
             bool last = queuedBuffers == 1;
             ALThread.CheckError($"buffer getting of source {ALSource}");
 
-            if (PlayList.Contains(null))
+            bool isLastRe = CurrentlyPlayingFileIndex == PlayList.Count - 1;
+
+            if (last != isLastRe)
             {
                 bool a = true;
             }
 
-            // Update volume.
-            UpdateVolume(last);
+            // Update volume. Requires an updated currently playing track.
+            UpdateVolume(isLastRe);
 
-            // Swap buffers which have played off the stack.
+            // Updates the looping state.
             UpdateLooping(last);
-
-            // Update current file.
-            UpdateCurrentFile();
-
-            // Update playback location.
-            UpdatePlaybackLocation();
 
             // Check whether force fade out ended.
             if (_forceFadeOut)
@@ -447,7 +464,7 @@ namespace Emotion.Sound
             ALThread.CheckError($"before updating of volume of source {ALSource}");
 
             float systemVolume = Context.Settings.SoundSettings.Sound ? Context.Settings.SoundSettings.Volume / 100f : 0f;
-            float scaled = MathExtension.Clamp(Volume * systemVolume, 0, 10);
+            float scaled = MathExtension.Clamp(Volume / 100f * systemVolume, 0, 10);
 
             // Perform fading if anything is playing and not muted.
             if (CurrentlyPlayingFile != null && scaled != 0f)
@@ -481,6 +498,7 @@ namespace Emotion.Sound
             // Clamp ultra low resulting values. These can break OpenAL.
             if (scaled < 0.000f) scaled = 0f;
 
+            ReportedVolume = scaled;
             AL.Source(ALSource, ALSourcef.Gain, scaled);
             ALThread.CheckError($"updating of volume of source {ALSource} to {scaled}");
         }
@@ -490,7 +508,7 @@ namespace Emotion.Sound
             if (LoopLastOnly)
                 if (last)
                 {
-                    RemovePlayed();
+                    RemovePlayed(); //?
                     AL.Source(ALSource, ALSourceb.Looping, Looping);
                 }
                 else
@@ -526,23 +544,12 @@ namespace Emotion.Sound
 
         private void UpdateCurrentFile()
         {
-            //AL.GetSource(ALSource, ALGetSourcei.Buffer, out int filePointer);
+            CurrentlyPlayingFileIndex = UpdateCurrentlyPlayingFile();
 
-            //// The currently playing file is considered to be the one at the front of the playlist which isn't a null.
-            //// This logic is enforced by the RemovePlayed() function in the layer Update loop.
-            ////CurrentlyPlayingFile = PlayList.FirstOrDefault(x => x != null);
-            //if (PlayList.Count == 0)
-            //{
-            //    CurrentlyPlayingFile = null;
-            //}
-            //else
-            //{
-            //    CurrentlyPlayingFile = PlayList[filePointer];
-            //}
+            if (CurrentlyPlayingFileIndex == -1 || CurrentlyPlayingFileIndex > PlayList.Count) CurrentlyPlayingFile = null;
+            else CurrentlyPlayingFile = PlayList[CurrentlyPlayingFileIndex];
 
-            //// The current buffer is always reported as 0 on Mac.
-            //if ((CurrentlyPlayingFile?.ALBuffer ?? 0) != filePointer && CurrentPlatform.OS != PlatformName.Mac)
-            //    Context.Log.Warning($"Currently playing file might be wrong for layer [{Name}].", MessageSource.SoundManager);
+            TotalDuration = PlayList.ToArray().Sum(x => x.Duration);
         }
 
         private void UpdatePlaybackLocation()
@@ -561,7 +568,7 @@ namespace Emotion.Sound
         /// <returns></returns>
         public override string ToString()
         {
-            return $"[Sound Layer] [ALPointer:[{ALSource}] Name:[{Name}] Playback:[{PlaybackLocation}/{TotalDuration}] Status:[{Status}]]";
+            return $"[SoundLayer {Name}] {{ State:{Status}, Playback:{PlaybackLocation}/{TotalDuration}, Pointer:{ALSource} }}";
         }
     }
 }

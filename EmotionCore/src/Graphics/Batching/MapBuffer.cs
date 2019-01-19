@@ -166,7 +166,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="ibo">The index buffer to use when drawing. If null the default triangle one will be used.</param>
         /// <param name="indicesPerObject">The number of indices per object.</param>
         /// <param name="drawType">The OpenGL primitive type to draw this buffer with.</param>
-        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3, BufferUsageHint.DynamicDraw)
+        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3, BufferUsageHint.StreamDraw)
         {
             ObjectSize = objectSize;
             _ibo = ibo ?? _defaultIbo;
@@ -381,7 +381,7 @@ namespace Emotion.Graphics.Batching
         /// Moves the pointer to the specified index and maps the vertex.
         /// </summary>
         /// <param name="index">The index of the vertex to map.</param>
-        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="vertex">The position of the vertex AKA the vertex itself.</param>
         /// <param name="color">The color of the vertex.</param>
         /// <param name="texture">The texture of the vertex, if any.</param>
         /// <param name="uv">The uv of the vertex's texture, if any.</param>
@@ -398,7 +398,7 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Maps the current vertex and advanced the current index by one.
         /// </summary>
-        /// <param name="vertex">The location of the vertex AKA the vertex itself.</param>
+        /// <param name="vertex">The position of the vertex AKA the vertex itself.</param>
         /// <param name="color">The color of the vertex.</param>
         /// <param name="texture">The texture of the vertex, if any.</param>
         /// <param name="uv">The uv of the vertex's texture, if any.</param>
