@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Libraries;
@@ -56,7 +55,7 @@ namespace Emotion.Sound
         /// Execute the action on the AL thread. Will block the current thread until ready.
         /// </summary>
         /// <param name="action">The action to execute.</param>
-        public static Task ExecuteALThread(Action action)
+        public static EmTask ExecuteALThread(Action action)
         {
             return _threadManager.ExecuteOnThread(action);
         }

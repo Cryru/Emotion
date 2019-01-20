@@ -3,10 +3,8 @@
 #region Using
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
 using OpenTK.Audio.OpenAL;
@@ -56,20 +54,12 @@ namespace Emotion.Sound
         /// <summary>
         /// The duration of all sounds queued on the layer in seconds.
         /// </summary>
-        public float TotalDuration
-        {
-            get;
-            private set;
-        }
+        public float TotalDuration { get; private set; }
 
         /// <summary>
         /// The file currently playing.
         /// </summary>
-        public SoundFile CurrentlyPlayingFile
-        {
-            get;
-            private set;
-        }
+        public SoundFile CurrentlyPlayingFile { get; private set; }
 
         /// <summary>
         /// The index of the currently playing file within the Playlist.
@@ -100,7 +90,8 @@ namespace Emotion.Sound
         public bool SkipNaturalFadeOut { get; set; }
 
         /// <summary>
-        /// Whether to fade in only on the first loop. False by default. Takes effect instantly, if layer is already playing it won't fade in subsequent loops.
+        /// Whether to fade in only on the first loop. False by default. Takes effect instantly, if layer is already playing it
+        /// won't fade in subsequent loops.
         /// </summary>
         public bool FadeInFirstLoopOnly { get; set; }
 
@@ -135,7 +126,7 @@ namespace Emotion.Sound
         private bool _forceFadeOut;
         private float _forceFadeOutStartDuration;
         private float _forceFadeOutLength;
-        private Task _forceFadeOutEndEvent;
+        private EmTask _forceFadeOutEndEvent;
 
         #endregion
 
@@ -162,9 +153,9 @@ namespace Emotion.Sound
         /// <summary>
         /// Resume playing if paused.
         /// </summary>
-        public Task Resume()
+        public EmTask Resume()
         {
-            if (Status != SoundStatus.Paused) return Task.CompletedTask;
+            if (Status != SoundStatus.Paused) return new EmTask(true);
             Context.Log.Trace($"Resuming {this}.", MessageSource.SoundManager);
             return ALThread.ExecuteALThread(() =>
             {
@@ -178,9 +169,9 @@ namespace Emotion.Sound
         /// <summary>
         /// Pause if playing.
         /// </summary>
-        public Task Pause()
+        public EmTask Pause()
         {
-            if (Status != SoundStatus.Playing) return Task.CompletedTask;
+            if (Status != SoundStatus.Playing) return new EmTask(true);
             Context.Log.Trace($"Pausing {this}.", MessageSource.SoundManager);
             return ALThread.ExecuteALThread(() =>
             {
@@ -195,9 +186,10 @@ namespace Emotion.Sound
         /// Stop playing any files.
         /// </summary>
         /// <param name="now">Whether to stop instantly or perform FadeOutOnChange if enabled.</param>
-        public Task StopPlayingAll(bool now = false)
+        public EmTask StopPlayingAll(bool now = false)
         {
             Context.Log.Trace($"Stopping {this}.", MessageSource.SoundManager);
+
             void StopPlayingAllInternal()
             {
                 Context.Log.Info($"Stopped {this}.", MessageSource.SoundManager);
@@ -222,9 +214,10 @@ namespace Emotion.Sound
         /// Queue a file to be played on the layer.
         /// </summary>
         /// <param name="file"></param>
-        public Task QueuePlay(SoundFile file)
+        public EmTask QueuePlay(SoundFile file)
         {
             Context.Log.Trace($"Queuing [{file.Name}] on {this}.", MessageSource.SoundManager);
+
             void QueuePlayInternal()
             {
                 // Check if mixing number of channels.
@@ -259,9 +252,10 @@ namespace Emotion.Sound
         /// Play a file on the layer. If any previous file is playing it will be stopped.
         /// </summary>
         /// <param name="file">The file to play.</param>
-        public Task Play(SoundFile file)
+        public EmTask Play(SoundFile file)
         {
             Context.Log.Trace($"Playing [{file.Name}] on {this}.", MessageSource.SoundManager);
+
             void PlayInternal()
             {
                 // Stop whatever was playing before.
@@ -310,10 +304,10 @@ namespace Emotion.Sound
         /// Setups a forced fading out.
         /// </summary>
         /// <param name="action">The action to execute once its over.</param>
-        private Task SetupForceFadeOut(Action action)
+        private EmTask SetupForceFadeOut(Action action)
         {
             // Check if there is anything currently playing to fade out at all.
-            if (CurrentlyPlayingFile == null || Status == SoundStatus.Stopped) 
+            if (CurrentlyPlayingFile == null || Status == SoundStatus.Stopped)
                 return ALThread.ExecuteALThread(action);
 
             // Check if a force fade out is already running.
@@ -324,12 +318,12 @@ namespace Emotion.Sound
                 _forceFadeOut = true;
                 _forceFadeOutStartDuration = PlaybackLocation;
                 _forceFadeOutLength = MathExtension.Clamp(FadeOutLength, FadeOutLength, timeLeft);
-                _forceFadeOutEndEvent = new Task(action);
+                _forceFadeOutEndEvent = new EmTask(action);
             }
             else
             {
                 // Chain action if a new one is added.
-                _forceFadeOutEndEvent.ContinueWith(_ => { action(); });
+                _forceFadeOutEndEvent.ContinueWith(action);
             }
 
             Context.Log.Info($"Performing smooth fade out on {this}.", MessageSource.SoundManager);
@@ -409,7 +403,7 @@ namespace Emotion.Sound
             UpdatePlayingState();
 
             // Check whether the current track is last.
-            bool last =  PlayList.Count != 0 && CurrentlyPlayingFileIndex == PlayList.Count - 1;
+            bool last = PlayList.Count != 0 && CurrentlyPlayingFileIndex == PlayList.Count - 1;
 
             // Update volume. Requires an updated currently playing track.
             UpdateVolume(last);
@@ -424,7 +418,7 @@ namespace Emotion.Sound
                 if (timeLeftForce > _forceFadeOutLength || Status == SoundStatus.Stopped || timeLeftForce < 0)
                 {
                     _forceFadeOut = false;
-                    _forceFadeOutEndEvent.RunSynchronously();
+                    _forceFadeOutEndEvent.Run();
                 }
             }
 

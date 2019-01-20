@@ -1,6 +1,6 @@
 # Sound Manager (Emotion.Sound.SoundManager)
 
-_Last Updated: Build 254_
+_Last Updated: Build 255_
 
 The sound manager is an Emotion context module accessible globally through `Context.SoundManager`. It provides you with the ability to play audio. Its classes can be found under the `Emotion.Sound` namespace.
 

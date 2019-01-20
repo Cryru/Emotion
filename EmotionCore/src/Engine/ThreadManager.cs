@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
 
 #endregion
 
@@ -38,7 +37,7 @@ namespace Emotion.Engine
         /// <summary>
         /// The queue of actions to execute on the thread.
         /// </summary>
-        private ConcurrentQueue<Task> _queue = new ConcurrentQueue<Task>();
+        private ConcurrentQueue<EmTask> _queue = new ConcurrentQueue<EmTask>();
 
         /// <summary>
         /// Initiate a thread manager.
@@ -68,8 +67,9 @@ namespace Emotion.Engine
 
             while (!_queue.IsEmpty)
             {
-                bool dequeued = _queue.TryDequeue(out Task task);
-                if (dequeued) task.RunSynchronously();
+                bool dequeued = _queue.TryDequeue(out EmTask task);
+                if (dequeued) task.Run();
+                else _queue.Enqueue(task);
             }
         }
 
@@ -88,15 +88,15 @@ namespace Emotion.Engine
         /// Execute the action on the managed thread. Will block the current thread until ready.
         /// </summary>
         /// <param name="action">The action to execute.</param>
-        public Task ExecuteOnThread(Action action)
+        public EmTask ExecuteOnThread(Action action)
         {
             // Wrap the action in a task.
-            Task completionTask = new Task(action);
+            EmTask completionTask = new EmTask(action);
 
             // Check if on the managed thread.
             if (IsManagedThread())
             {
-                completionTask.RunSynchronously();
+                completionTask.Run();
                 return completionTask;
             }
 

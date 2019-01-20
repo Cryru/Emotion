@@ -131,7 +131,7 @@
     <Compile Include="src\Engine\Configuration\RenderSettings.cs" />
     <Compile Include="src\Engine\Configuration\ScriptingSettings.cs" />
     <Compile Include="src\Engine\Configuration\WindowSettings.cs" />
-    <Compile Include="src\Engine\ContinuousAction.cs" />
+    <Compile Include="src\Engine\EmTask.cs" />
     <Compile Include="src\Engine\Helpers.cs" />
     <Compile Include="src\Engine\MathExtension.cs" />
     <Compile Include="src\Engine\Scenography\DefaultLoadingScene.cs" />

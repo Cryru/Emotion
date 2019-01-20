@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
+using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
@@ -38,7 +39,7 @@ namespace Emotion.Sound
         private bool _loopRunning;
         private Task _soundThread;
         private ConcurrentBag<SoundFile> _buffersToDestroy;
-        private Task _oneLoopToken;
+        private EmTask _oneLoopToken;
 
         /// <summary>
         /// Create a new sound manager.
@@ -50,6 +51,8 @@ namespace Emotion.Sound
 
             _soundThread = new Task(SoundThreadLoop, TaskCreationOptions.LongRunning);
             _soundThread.Start();
+
+            Context.Log.Trace("Sound thread ready.", MessageSource.SoundManager);
         }
 
         private void SoundThreadLoop()
@@ -69,6 +72,7 @@ namespace Emotion.Sound
 
                 // Bind thread manager.
                 ALThread.BindThread();
+                Context.Log.Trace("Bound AL thread.", MessageSource.SoundManager);
 
                 // Setup listener.
                 AL.Listener(ALListener3f.Position, 0, 0, 0);
@@ -84,7 +88,7 @@ namespace Emotion.Sound
                     }
 
                     // Run ALThread and cleanup only if focused.
-                    if (Context.Host.Focused)
+                    if (Context.Host.Focused || CurrentPlatform.OS != PlatformName.Windows && !Context.IsRunning)
                     {
                         // Run queued actions.
                         ALThread.Run();
@@ -107,8 +111,17 @@ namespace Emotion.Sound
 
                                     // If not in use, delete it.
                                     AL.DeleteBuffer(soundFile.ALBuffer);
-                                    ALThread.CheckError($"destroying buffer {soundFile.ALBuffer}");
-                                    soundFile.ALBuffer = -1;
+
+                                    try
+                                    {
+                                        ALThread.CheckError($"destroying buffer {soundFile.ALBuffer} - {soundFile.Name}");
+                                        soundFile.ALBuffer = -1;
+                                    }
+                                    catch (Exception)
+                                    {
+                                        // Wasn't destroyed due to unknown reasons. Add back.
+                                        _buffersToDestroy.Add(soundFile);
+                                    }
                                 }
                                 else
                                 {
@@ -119,7 +132,7 @@ namespace Emotion.Sound
                     }
 
                     // Run the one loop token if any.
-                    _oneLoopToken?.RunSynchronously();
+                    _oneLoopToken?.Run();
                     _oneLoopToken = null;
 
                     // Update in interval specified in flag.
@@ -149,7 +162,7 @@ namespace Emotion.Sound
         /// <param name="layer">The layer to play on.</param>
         /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public Task Play(SoundFile file, string layer)
+        public EmTask Play(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
@@ -166,7 +179,7 @@ namespace Emotion.Sound
         /// <param name="layer">The layer to play on.</param>
         /// <returns>The layer the sound is playing on.</returns>
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        public Task QueuePlay(SoundFile file, string layer)
+        public EmTask QueuePlay(SoundFile file, string layer)
         {
             // Check whether the layer exists, and create it if it doesn't.
             SoundLayer playBackLayer = GetLayer(layer) ?? CreateLayer(layer);
@@ -237,11 +250,11 @@ namespace Emotion.Sound
         /// Returns a token which allows you to wait for a single loop of the sound thread.
         /// </summary>
         /// <returns>A task token for chaining tasks to sound thread loops.</returns>
-        public Task GetOneLoopToken()
+        public EmTask GetOneLoopToken()
         {
             if (_oneLoopToken != null) return _oneLoopToken;
 
-            _oneLoopToken = new Task(() => {});
+            _oneLoopToken = new EmTask();
             return _oneLoopToken;
         }
 
