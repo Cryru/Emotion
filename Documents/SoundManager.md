@@ -40,6 +40,7 @@ You can apply fade in and fade out effects to the layer as well. By changing the
 
 Additional properties allow you to further customize your effect. The `FadeInFirstLoopOnly` property which is off by default makes the fade in effect apply only on the first loop. Both effects are only applied to the first/last track in a playlist and will not cause queued tracks to fade in/out as well, this conforms with the philosophy that a playlist of queued files should be treated as a single track.
 
+By setting the `FadeOutOnChange` property to true your tracks will fade out when a new one is played. This means your `Play` and `StopPlayingAll` commands will no longer take effect instantly but cause a fade out with the duration of `FadeOutLength` before applying. If you'd like to use `FadeOutOnChange` without the track fading out normally when its over (for instance because you're looping) you can set the `SkipNaturalFadeOut` property to true. Queuing will not cause fade outs.
 
 ## Monitoring
 
@@ -63,7 +64,7 @@ Through the `PlaybackLocation` and `TotalDuration` properties you can monitor th
 
 The `SoundManager` uses OpenAL in the background. All actions are executed on a specified thread where the audio context is created and is managed through the `ThreadManager` class - accessible by the global `ALThread` class. The AL loop's frequency is controlled by the `Context.Flags.SoundThreadFrequency` flag and is 200 milliseconds by default. **The ALThread does not run while the host is unfocused, but layers will still be updated.**
 
-AL errors are checked every tick and will cause the engine to crash. Additionally monitoring properties of the layer, such as `Status`, `PlaybackLocation`, `ReportedVolume` and the removal of playlist tracks are updated on the ALThread, which means the values you can access are cached copies. There are some exceptions to this as some functions (`Play`, `QueuePlay`, `Pause`, `StopPlayingAll`) will override the cache with a predicted value.
+AL errors are checked every tick and will cause the engine to crash. Additionally monitoring properties of the layer, such as `Status`, `PlaybackLocation`, `ReportedVolume`, `CurrentlyPlayingFile`, `TotalDuration`, and the removal of playlist tracks are updated on the ALThread, which means the values you can access are cached copies.
 
 The creation and cleanup of `SoundFile` assets is also managed by the `SoundManager`. When the `AssetLoader` destroys a `SoundFile` it unlinks it, but it is added to a list of tracks to be destroyed once they are no longer in use. This means that in an endlessly looping layer the track will **never** be cleaned up from memory.
 

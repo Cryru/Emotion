@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -164,12 +165,13 @@ namespace Emotion.Sound
         public Task Resume()
         {
             if (Status != SoundStatus.Paused) return Task.CompletedTask;
-            Context.Log.Trace($"Resumed {this}.", MessageSource.SoundManager);
+            Context.Log.Trace($"Resuming {this}.", MessageSource.SoundManager);
             return ALThread.ExecuteALThread(() =>
             {
+                Context.Log.Info($"Resumed {this}.", MessageSource.SoundManager);
                 AL.SourcePlay(ALSource);
-                Status = SoundStatus.Playing;
                 ALThread.CheckError("resuming");
+                UpdatePlayingState();
             });
         }
 
@@ -179,12 +181,13 @@ namespace Emotion.Sound
         public Task Pause()
         {
             if (Status != SoundStatus.Playing) return Task.CompletedTask;
-            Context.Log.Trace($"Paused {this}.", MessageSource.SoundManager);
+            Context.Log.Trace($"Pausing {this}.", MessageSource.SoundManager);
             return ALThread.ExecuteALThread(() =>
             {
+                Context.Log.Info($"Paused {this}.", MessageSource.SoundManager);
                 AL.SourcePause(ALSource);
-                Status = SoundStatus.Paused;
                 ALThread.CheckError("pausing");
+                UpdatePlayingState();
             });
         }
 
@@ -194,6 +197,7 @@ namespace Emotion.Sound
         /// <param name="now">Whether to stop instantly or perform FadeOutOnChange if enabled.</param>
         public Task StopPlayingAll(bool now = false)
         {
+            Context.Log.Trace($"Stopping {this}.", MessageSource.SoundManager);
             void StopPlayingAllInternal()
             {
                 Context.Log.Info($"Stopped {this}.", MessageSource.SoundManager);
@@ -201,10 +205,10 @@ namespace Emotion.Sound
                 // Stop playback, clear played buffer.
                 AL.Source(ALSource, ALSourceb.Looping, false);
                 AL.SourceStop(ALSource);
+                UpdatePlayingState();
 
                 // Remove played buffers.
                 RemovePlayed();
-                Status = SoundStatus.Stopped;
                 ALThread.CheckError("stopping");
 
                 // Reset tracker variables.
@@ -220,6 +224,7 @@ namespace Emotion.Sound
         /// <param name="file"></param>
         public Task QueuePlay(SoundFile file)
         {
+            Context.Log.Trace($"Queuing [{file.Name}] on {this}.", MessageSource.SoundManager);
             void QueuePlayInternal()
             {
                 // Check if mixing number of channels.
@@ -241,13 +246,13 @@ namespace Emotion.Sound
                 // Play if not playing.
                 if (Status != SoundStatus.Stopped) return;
                 AL.SourcePlay(ALSource);
-                Status = SoundStatus.Playing;
+                UpdatePlayingState();
                 ALThread.CheckError($"playing {file.ALBuffer} on source {ALSource}");
 
                 Context.Log.Info($"Started playing [{file.Name}] on {this}.", MessageSource.SoundManager);
             }
 
-            return FadeOutOnChange ? SetupForceFadeOut(QueuePlayInternal) : ALThread.ExecuteALThread(QueuePlayInternal);
+            return FadeOutOnChange && Status != SoundStatus.Playing ? SetupForceFadeOut(QueuePlayInternal) : ALThread.ExecuteALThread(QueuePlayInternal);
         }
 
         /// <summary>
@@ -256,10 +261,11 @@ namespace Emotion.Sound
         /// <param name="file">The file to play.</param>
         public Task Play(SoundFile file)
         {
+            Context.Log.Trace($"Playing [{file.Name}] on {this}.", MessageSource.SoundManager);
             void PlayInternal()
             {
                 // Stop whatever was playing before.
-                StopPlayingAll(true);
+                StopPlayingAll(true).Wait();
 
                 // Queue the file.
                 AL.SourceQueueBuffer(ALSource, file.ALBuffer);
@@ -268,7 +274,7 @@ namespace Emotion.Sound
 
                 // Play it.
                 AL.SourcePlay(ALSource);
-                Status = SoundStatus.Playing;
+                UpdatePlayingState();
                 ALThread.CheckError($"playing single {file.ALBuffer} in source {ALSource}");
 
                 Context.Log.Info($"Started playing [{file.Name}] on {this}.", MessageSource.SoundManager);
@@ -287,7 +293,7 @@ namespace Emotion.Sound
             {
                 Context.Log.Info($"Destroyed {this}.", MessageSource.SoundManager);
 
-                StopPlayingAll(true);
+                StopPlayingAll(true).Wait();
                 AL.DeleteSource(ALSource);
                 ALThread.CheckError($"cleanup of source {ALSource}");
 
@@ -307,7 +313,8 @@ namespace Emotion.Sound
         private Task SetupForceFadeOut(Action action)
         {
             // Check if there is anything currently playing to fade out at all.
-            if (CurrentlyPlayingFile == null || Status == SoundStatus.Stopped) return ALThread.ExecuteALThread(action);
+            if (CurrentlyPlayingFile == null || Status == SoundStatus.Stopped) 
+                return ALThread.ExecuteALThread(action);
 
             // Check if a force fade out is already running.
             if (!_forceFadeOut)

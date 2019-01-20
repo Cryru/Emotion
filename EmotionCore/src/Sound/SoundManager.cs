@@ -77,13 +77,10 @@ namespace Emotion.Sound
                 _loopRunning = true;
                 while (_loopRunning)
                 {
-                    // Update running playbacks.
-                    lock (_layers)
+                    // Update running layers.
+                    foreach (KeyValuePair<string, SoundLayer> layer in _layers)
                     {
-                        foreach (KeyValuePair<string, SoundLayer> layer in _layers)
-                        {
-                            layer.Value.Update();
-                        }
+                        layer.Value.Update();
                     }
 
                     // Run ALThread and cleanup only if focused.
@@ -232,8 +229,14 @@ namespace Emotion.Sound
 
         #region Helpers
 
+        /// <summary>
+        /// Returns a token which allows you to wait for a single loop of the sound thread.
+        /// </summary>
+        /// <returns>A task token for chaining tasks to sound thread loops.</returns>
         public Task GetOneLoopToken()
         {
+            if (_oneLoopToken != null) return _oneLoopToken;
+
             _oneLoopToken = new Task(() => {});
             return _oneLoopToken;
         }
@@ -254,8 +257,6 @@ namespace Emotion.Sound
             }
         }
 
-        #endregion
-
         /// <summary>
         /// Creates the sound layer.
         /// </summary>
@@ -268,6 +269,8 @@ namespace Emotion.Sound
             if (!added) Context.Log.Error($"Couldn't add sound layer {layer}", MessageSource.SoundManager);
             return playBackLayer;
         }
+
+        #endregion
 
         /// <summary>
         /// Destroy the audio context.

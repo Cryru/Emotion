@@ -210,7 +210,7 @@ namespace Emotion.Tests.Tests
             Assert.IsTrue(layer.PlaybackLocation < 1f);
 
             // Play a new track on the looping layer.
-            SoundFile newTrack = Context.AssetLoader.Get<SoundFile>("Sounds/sadMeme.wav");
+            SoundFile newTrack = Context.AssetLoader.Get<SoundFile>("Sounds/money.wav");
             // Wait for it to be queued.
             layer.Play(newTrack).Wait();
             WaitForSoundLoops(1);
@@ -235,7 +235,7 @@ namespace Emotion.Tests.Tests
             Assert.IsTrue(layer.PlaybackLocation < 1f);
             Assert.IsTrue(layer.Status == SoundStatus.Playing);
 
-            SoundFile queueTrack = Context.AssetLoader.Get<SoundFile>("Sounds/money.wav");
+            SoundFile queueTrack = Context.AssetLoader.Get<SoundFile>("Sounds/sadMeme.wav");
 
             // Queue new track, and wait for a loop.
             layer.QueuePlay(queueTrack).Wait();
@@ -746,42 +746,93 @@ namespace Emotion.Tests.Tests
             SoundTestStart(out SoundFile[] playingFiles, out SoundLayer layer, "Sounds/money.wav");
             layer.FadeOutLength = 2;
 
-            // Should start at 1f.
-            Assert.AreEqual(1f, layer.ReportedVolume);
+            //// Should start at 1f.
+            //Assert.AreEqual(1f, layer.ReportedVolume);
 
-            // Should fade out.
-            Task.Delay(3100).Wait();
-            float vol = layer.ReportedVolume;
-            Assert.IsTrue(vol < 1f);
+            //// Should fade out.
+            //Task.Delay(3100).Wait();
+            //float vol = layer.ReportedVolume;
+            //Assert.IsTrue(vol < 1f);
 
-            // Should be at full.
-            Task.Delay(1000).Wait();
-            Assert.IsTrue(layer.ReportedVolume < vol);
+            //// Should be at full.
+            //Task.Delay(1000).Wait();
+            //Assert.IsTrue(layer.ReportedVolume < vol);
 
-            // Loop layer.
-            layer.Looping = true;
-            // Wait for sound to loop.
-            Task.Delay(2000).Wait();
-            Assert.IsTrue(layer.PlaybackLocation - 1f < 1f);
-            Assert.AreEqual(1f, layer.ReportedVolume);
-            // Should fade out again.
-            Task.Delay(3000).Wait();
-            Assert.IsTrue(layer.PlaybackLocation - 4f < 1f);
-            Assert.IsTrue(layer.ReportedVolume < vol);
+            //// Loop layer.
+            //layer.Looping = true;
+            //// Wait for sound to loop.
+            //Task.Delay(2000).Wait();
+            //Assert.IsTrue(layer.PlaybackLocation - 1f < 1f);
+            //Assert.AreEqual(1f, layer.ReportedVolume);
+            //// Should fade out again.
+            //Task.Delay(3000).Wait();
+            //Assert.IsTrue(layer.PlaybackLocation - 4f < 1f);
+            //Assert.IsTrue(layer.ReportedVolume < vol);
 
-            // Reset. Queue two, should fade out on second only.
-            layer.StopPlayingAll();
+            //// Reset. Queue two, should fade out on second only.
+            //layer.StopPlayingAll();
+            //layer.Play(playingFiles[0]).Wait();
+            //layer.QueuePlay(playingFiles[0]).Wait();
+            //Task.Delay(100).Wait();
+            //Assert.IsTrue(layer.PlaybackLocation - 1f < 1f);
+            //Assert.AreEqual(1f, layer.ReportedVolume);
+            //Task.Delay(3000).Wait();
+            //Assert.AreEqual(1f, layer.ReportedVolume);
+            //// Wait for second one.
+            //Task.Delay(5000).Wait();
+            //Assert.IsTrue(layer.ReportedVolume < 1f);
+
+            SoundFile newFile = Context.AssetLoader.Get<SoundFile>("Sounds/sadMeme.wav");
+
+            // Reset. Setup fade out on change.
+            layer.StopPlayingAll().Wait();
+            layer.FadeOutOnChange = true;
             layer.Play(playingFiles[0]).Wait();
-            layer.QueuePlay(playingFiles[0]).Wait();
-            Task.Delay(100).Wait();
-            Assert.IsTrue(layer.PlaybackLocation - 1f < 1f);
-            Assert.AreEqual(1f, layer.ReportedVolume);
-            Task.Delay(3000).Wait();
-            Assert.AreEqual(1f, layer.ReportedVolume);
-            // Wait for second one.
-            Task.Delay(5000).Wait();
+            // Should now be playing.
+            WaitForSoundLoops(1);
+            Assert.AreEqual(SoundStatus.Playing, layer.Status);
+            Assert.AreEqual(1, layer.ReportedVolume);
+            // Now play another file.
+            layer.Play(newFile);
+            // Should still be playing first, but be fading out.
+            WaitForSoundLoops(1);
+            Assert.AreEqual(SoundStatus.Playing, layer.Status);
+            Assert.AreEqual(playingFiles[0], layer.CurrentlyPlayingFile);
             Assert.IsTrue(layer.ReportedVolume < 1f);
+            Task.Delay(2300).Wait();
+            WaitForSoundLoops(1);
+            Assert.AreEqual(newFile, layer.CurrentlyPlayingFile);
+            // Stop playing.
+            layer.StopPlayingAll();
+            WaitForSoundLoops(1);
+            Assert.AreEqual(SoundStatus.Playing, layer.Status);
+            Assert.IsTrue(layer.ReportedVolume < 1f);
+            Task.Delay(2300).Wait();
+            WaitForSoundLoops(1);
+            Assert.AreEqual(SoundStatus.Stopped, layer.Status);
 
+            // Play again. Try to queue something. This shouldn't cause a fade out.
+            layer.Play(newFile);
+            WaitForSoundLoops(2);
+            Assert.AreEqual(SoundStatus.Playing, layer.Status);
+            Assert.AreEqual(1f, layer.ReportedVolume);
+            layer.QueuePlay(playingFiles[0]);
+            Task.Delay(1000).Wait();
+            Assert.AreEqual(1f, layer.ReportedVolume);
+            Assert.AreEqual(newFile, layer.CurrentlyPlayingFile);
+            Task.Delay(TimeSpan.FromSeconds(newFile.Duration - 1f)).Wait();
+            Assert.AreEqual(1f, layer.ReportedVolume);
+            Task.Delay(100).Wait();
+            Assert.AreEqual(1f, layer.ReportedVolume);
+            Assert.AreEqual(playingFiles[0], layer.CurrentlyPlayingFile);
+            layer.SkipNaturalFadeOut = true;
+            Task.Delay(TimeSpan.FromSeconds(playingFiles[0].Duration - 1.5f)).Wait();
+            // Shouldn't be fading out as skip is true.
+            Assert.AreEqual(1f, layer.ReportedVolume);
+
+            layer.StopPlayingAll(true).Wait();
+            Context.AssetLoader.Destroy(newFile.Name);
+            WaitForSoundLoops(1);
             SoundTestCleanup(layer, playingFiles);
         }
 
