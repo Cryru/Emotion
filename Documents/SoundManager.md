@@ -1,6 +1,6 @@
 # Sound Manager (Emotion.Sound.SoundManager)
 
-_Last Updated: Build 260_
+_Last Updated: Build 252_
 
 The sound manager is an Emotion context module accessible globally through `Context.SoundManager`. It provides you with the ability to play audio. Its classes can be found under the `Emotion.Sound` namespace.
 
@@ -76,7 +76,8 @@ To allow seamless playing the audio buffers Emotion uses are all "streaming", wh
 - [Emotion.Sound Namespace](https://github.com/Cryru/Emotion/tree/master/EmotionCore/src/Sound)
 - [SoundManager.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundManager.cs)
 - [SoundLayer.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundLayer.cs)
-- [SoundFile.cs](<(https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundFile.cs)>)
+- [SoundFile.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundFile.cs)
 
+## Todo
 
-- add test for one file on multiple layers
+- Add test for one file on multiple layers
