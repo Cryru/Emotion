@@ -88,7 +88,7 @@ namespace Emotion.Sound
                     }
 
                     // Run ALThread and cleanup only if focused.
-                    if (Context.Host.Focused || CurrentPlatform.OS != PlatformName.Windows && !Context.IsRunning)
+                    if (Context.Host.Focused || !Context.IsRunning)
                     {
                         // Run queued actions.
                         ALThread.Run();
