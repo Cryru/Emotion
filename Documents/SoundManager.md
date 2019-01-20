@@ -1,6 +1,6 @@
 # Sound Manager (Emotion.Sound.SoundManager)
 
-_Last Updated: Build 252_
+_Last Updated: Build 254_
 
 The sound manager is an Emotion context module accessible globally through `Context.SoundManager`. It provides you with the ability to play audio. Its classes can be found under the `Emotion.Sound` namespace.
 
@@ -62,7 +62,7 @@ Through the `PlaybackLocation` and `TotalDuration` properties you can monitor th
 
 ## Deep Dive
 
-The `SoundManager` uses OpenAL in the background. All actions are executed on a specified thread where the audio context is created and is managed through the `ThreadManager` class - accessible by the global `ALThread` class. The AL loop's frequency is controlled by the `Context.Flags.SoundThreadFrequency` flag and is 200 milliseconds by default. **The ALThread does not run while the host is unfocused, but layers will still be updated.**
+The `SoundManager` uses OpenAL in the background. All actions are executed on a specified thread where the audio context is created and is managed through the `ThreadManager` class - accessible by the global `ALThread` class. The AL loop's frequency is controlled by the `Context.Flags.SoundThreadFrequency` flag and is 50 milliseconds by default. **The ALThread does not run while the host is unfocused, but layers will still be updated.**
 
 AL errors are checked every tick and will cause the engine to crash. Additionally monitoring properties of the layer, such as `Status`, `PlaybackLocation`, `ReportedVolume`, `CurrentlyPlayingFile`, `TotalDuration`, and the removal of playlist tracks are updated on the ALThread, which means the values you can access are cached copies.
 

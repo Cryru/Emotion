@@ -67,8 +67,7 @@ namespace Emotion.Libraries.Steamworks
             if (needToRestart)
             {
                 Context.Log.Warning("Game not started through Steam. Restarting...", MessageSource.Other);
-                Context.Log.Dispose();
-                Environment.Exit(0);
+                Context.Crash();
                 return;
             }
 
@@ -81,8 +80,7 @@ namespace Emotion.Libraries.Steamworks
             catch (Exception ex)
             {
                 Context.Log.Error("Failed on SteamAPI init.", ex, MessageSource.Other);
-                Context.Log.Dispose();
-                Environment.Exit(0);
+                Context.Crash();
                 return;
             }
 

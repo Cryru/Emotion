@@ -51,7 +51,7 @@ namespace Emotion.Engine.Configuration
         /// <summary>
         /// How often to update the sound thread in milliseconds. Takes effect immediately.
         /// </summary>
-        public int SoundThreadFrequency { get; set; } = 200;
+        public int SoundThreadFrequency { get; set; } = 50;
 
         /// <summary>
         /// Read only. The scaled width to fit host resolution. Takes margins into account and is calculated on resize.

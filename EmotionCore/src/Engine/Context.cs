@@ -308,6 +308,15 @@ namespace Emotion.Engine
             if (Flags.CloseEnvironmentOnQuit) Environment.Exit(0);
         }
 
+        /// <summary>
+        /// Crashes the engine. Tries to write logs.
+        /// </summary>
+        public static void Crash()
+        {
+            Log?.Dispose();
+            Environment.Exit(1);
+        }
+
         #endregion
 
         #region OS Specific Initialization

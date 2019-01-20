@@ -55,7 +55,7 @@ namespace Emotion.Debug.Logging
 
             if (System.Diagnostics.Debugger.IsAttached) throw ex;
 
-            Context.Quit();
+            Context.Crash();
         }
 
         /// <summary>

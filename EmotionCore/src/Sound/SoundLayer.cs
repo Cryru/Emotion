@@ -408,20 +408,11 @@ namespace Emotion.Sound
             // Update paused/playing state.
             UpdatePlayingState();
 
-            // Prepare variables in use by parts of the update.
-            AL.GetSource(ALSource, ALGetSourcei.BuffersQueued, out int queuedBuffers);
-            bool last = queuedBuffers == 1;
-            ALThread.CheckError($"buffer getting of source {ALSource}");
-
-            bool isLastRe = CurrentlyPlayingFileIndex == PlayList.Count - 1;
-
-            if (last != isLastRe)
-            {
-                bool a = true;
-            }
+            // Check whether the current track is last.
+            bool last =  PlayList.Count != 0 && CurrentlyPlayingFileIndex == PlayList.Count - 1;
 
             // Update volume. Requires an updated currently playing track.
-            UpdateVolume(isLastRe);
+            UpdateVolume(last);
 
             // Updates the looping state.
             UpdateLooping(last);

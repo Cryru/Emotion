@@ -102,8 +102,12 @@ namespace Emotion.Sound
                                 SoundFile foundFile = layer.Value.PlayList.FirstOrDefault(x => x.ALBuffer == soundFile.ALBuffer);
                                 if (foundFile == null)
                                 {
+                                    // Check if already destroyed.
+                                    if (soundFile.ALBuffer == -1) continue;
+
                                     // If not in use, delete it.
                                     AL.DeleteBuffer(soundFile.ALBuffer);
+                                    ALThread.CheckError($"destroying buffer {soundFile.ALBuffer}");
                                     soundFile.ALBuffer = -1;
                                 }
                                 else
