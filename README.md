@@ -111,8 +111,8 @@ The latest build is always tested on the configurations listed as `Primary`.
   - OpenGL MESA Driver (Despite it supporting only a lower version of OpenGL than required.)
 - Linux Mint 19.1 `(Last Test On: Build 248) Jan 12th`
   - Nvidia 1060
-- MacOS X High-Sierra x64 `(Last Test On: Build 255) Jan 21st`
-- MacOS X 18.5 Mountain Lion x64 `(Last Test On: Build 255) Jan 21st`
+- MacOS X High-Sierra x64 `(Last Test On: Build 256) Jan 21st`
+- MacOS X 18.5 Mountain Lion x64 `(Last Test On: Build 256) Jan 21st`
 
 ### Supported Platforms:
 
