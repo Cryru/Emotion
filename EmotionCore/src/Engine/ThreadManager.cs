@@ -27,6 +27,14 @@ namespace Emotion.Engine
         /// </summary>
         public bool BlockOnExecution { get; set; } = true;
 
+        /// <summary>
+        /// Whether the thread manager has any actions pending.
+        /// </summary>
+        public bool Empty
+        {
+            get => _queue.IsEmpty;
+        }
+
         #endregion
 
         /// <summary>

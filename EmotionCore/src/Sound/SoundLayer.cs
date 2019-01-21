@@ -364,15 +364,19 @@ namespace Emotion.Sound
             // Check if anything playing.
             if (PlayList.Count == 0) return -1;
 
+            // Accumulative playback tracker.
+            float playback = 0;
+
             // Calculate currently playing through the playback and the playlist.
             for (int i = 0; i < PlayList.Count; i++)
             {
                 SoundFile sf = PlayList[i];
-                if (PlaybackLocation <= sf.Duration) return i;
+                playback += sf.Duration;
+                if (PlaybackLocation <= playback) return i;
             }
 
             // Unknown.
-            Context.Log.Warning("Unknown currently playing file.", MessageSource.SoundManager);
+            Context.Log.Warning($"Unknown currently playing file. {PlaybackLocation} with playlist {string.Join(", ", PlayList.Select(x => x.Name + ">" + x.Duration))}", MessageSource.SoundManager);
 
             return PlayList.Count - 1;
         }

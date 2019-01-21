@@ -3,7 +3,7 @@
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Users\Vlad\Desktop\Emotion\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UpdatesManger/LastUpdateCheck/@EntryValue">01/20/2019 21:51:21</s:String>
+	<s:String x:Key="/Default/Environment/UpdatesManger/LastUpdateCheck/@EntryValue">01/21/2019 21:51:42</s:String>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4e9c0095_002De1c7_002D429e_002Da70f_002D701f78972e2d_0023ElectricSleep/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=555f39cf_002D5dce_002D4cb8_002D8a83_002D37549768ab92_0023HealerGame/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Scenography/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -3,7 +3,6 @@
 #region Using
 
 using System;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug.Logging.SoulLogging;
@@ -19,8 +18,9 @@ namespace Emotion.Debug.Logging
     public sealed class DefaultLogger : LoggingProvider
     {
         private ImmediateLoggingService _logger;
-        private ConcurrentQueue<Tuple<MessageType, MessageSource, string>> _loggingQueue;
-        private Thread _loggingThread;
+        private Task _loggingThread;
+        private ThreadManager _threadManager;
+        private bool _running;
 
         /// <summary>
         /// Create a default logger.
@@ -35,48 +35,61 @@ namespace Emotion.Debug.Logging
                 Stamp = "Emotion Engine Log"
             };
 
-            // Setup logging queue.
-            _loggingQueue = new ConcurrentQueue<Tuple<MessageType, MessageSource, string>>();
+            // Create the thread manager.
+            _threadManager = new ThreadManager("Logging Thread") {BlockOnExecution = false};
 
             // Start the logging thread.
-            _loggingThread = new Thread(LoggingThread) {Name = "Logging Thread"};
+            _running = true;
+            _loggingThread = new Task(LoggingThread, TaskCreationOptions.LongRunning);
             _loggingThread.Start();
-            while (!_loggingThread.IsAlive)
-            {
-            }
         }
 
         private void LoggingThread()
         {
+            // Bind logging thread.
+            _threadManager.BindThread();
+
             try
             {
-                while (!Environment.HasShutdownStarted)
+                while (_running)
                 {
-                    // Check for logs every 100 ms.
-                    Task.Delay(100).Wait();
-
-                    // Perform logging.
-                    while (!_loggingQueue.IsEmpty) LogThreadLoop();
+                    // Run logging.
+                    _threadManager.Run();
                 }
-
-                FlushRemainingLogs();
             }
             catch (Exception ex)
             {
                 if (Context.IsRunning && !(ex is ThreadAbortException)) Error("Logging thread has crashed.", new Exception(ex.Message, ex), MessageSource.Debugger);
             }
+            finally
+            {
+                // Flush remaining.
+                Dispose();
+            }
         }
 
-        private void LogThreadLoop()
+        /// <inheritdoc />
+        public override void Log(MessageType type, MessageSource source, string message)
         {
-            // Read from the logging queue.
-            bool readLine = _loggingQueue.TryDequeue(out Tuple<MessageType, MessageSource, string> nextLog);
-            if (!readLine) return;
+            string threadStamp = $"[{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}]";
+            _threadManager.ExecuteOnThread(() => { LogInternal(type, source, $"{threadStamp} {message}"); });
+        }
 
-            MessageType type = nextLog.Item1;
-            MessageSource source = nextLog.Item2;
-            string message = nextLog.Item3;
+        /// <inheritdoc />
+        public override void Dispose()
+        {
+            _running = false;
 
+            while (!_threadManager.Empty)
+            {
+                _threadManager.Run();
+            }
+        }
+
+        #region Helpers
+
+        private void LogInternal(MessageType type, MessageSource source, string message)
+        {
             // Change the color of the log depending on the type.
             switch (type)
             {
@@ -106,28 +119,6 @@ namespace Emotion.Debug.Logging
             Console.BackgroundColor = ConsoleColor.Black;
         }
 
-        private void FlushRemainingLogs()
-        {
-            // Flush logs.
-            while (!_loggingQueue.IsEmpty) LogThreadLoop();
-        }
-
-        /// <inheritdoc />
-        public override void Log(MessageType type, MessageSource source, string message)
-        {
-            _loggingQueue.Enqueue(new Tuple<MessageType, MessageSource, string>(type, source, $"[{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}"));
-        }
-
-        /// <inheritdoc />
-        public override void Dispose()
-        {
-            // Stop the logging thread.
-            _loggingThread.Abort();
-            while (_loggingThread.IsAlive)
-            {
-            }
-
-            FlushRemainingLogs();
-        }
+        #endregion
     }
 }

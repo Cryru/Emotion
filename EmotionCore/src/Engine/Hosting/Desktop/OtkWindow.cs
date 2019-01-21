@@ -79,6 +79,9 @@ namespace Emotion.Engine.Hosting.Desktop
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
             _inputManager = new OtkInputManager(this);
             Engine.Context.InputManager = _inputManager;
+
+            Visible = true;
+            OnLoad(EventArgs.Empty);
         }
 
         #region Host API
@@ -139,8 +142,6 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <inheritdoc />
         public new void Run()
         {
-            Visible = true;
-            OnLoad(EventArgs.Empty);
             OnResize(EventArgs.Empty);
 
             bool fixedStep = Engine.Context.Settings.RenderSettings.CapFPS > 0;

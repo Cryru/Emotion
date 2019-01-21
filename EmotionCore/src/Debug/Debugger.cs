@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Emotion.Engine;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
@@ -45,7 +46,7 @@ namespace Emotion.Debug
         /// <summary>
         /// The thread the console is awaiting input on.
         /// </summary>
-        private static Thread _consoleThread;
+        private static Task _consoleThread;
 
         /// <summary>
         /// Highlighted source.
@@ -67,12 +68,8 @@ namespace Emotion.Debug
             // Setup console command reading.
             _command = "";
 
-            // Start the console thread.
-            _consoleThread = new Thread(() => ConsoleThread()) {Name = "Console Thread"};
-            _consoleThread.Start();
-            while (!_consoleThread.IsAlive)
-            {
-            }
+            // Start input.
+            StartConsoleInput();
         }
 
         /// <summary>
@@ -96,20 +93,22 @@ namespace Emotion.Debug
         [Conditional("DEBUG")]
         internal static void Stop()
         {
-            _consoleThread.Abort();
-            while (_consoleThread.IsAlive)
-            {
-            }
+            _consoleThread.Dispose();
         }
 
         #endregion
 
         #region Console
+        [Conditional("DEBUG")]
+        private static void StartConsoleInput()
+        {
+            _consoleThread = new Task(ConsoleThread);
+            _consoleThread.Start();
+        }
 
         /// <summary>
         /// Processes console input without blocking the engine.
         /// </summary>
-        [Conditional("DEBUG")]
         private static void ConsoleThread()
         {
             // Check whether to expect console input.

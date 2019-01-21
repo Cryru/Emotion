@@ -296,14 +296,14 @@ namespace Emotion.Graphics.Batching
             // Check if going out of bounds.
             if (currentVertex > SizeInVertices)
             {
-                Context.Log.Error($"Exceeding total vertices ({SizeInVertices}) in map buffer {_pointer}.", MessageSource.GL);
+                Context.Log.Warning($"Exceeding total vertices ({SizeInVertices}) in map buffer {_pointer}.", MessageSource.GL);
                 return;
             }
 
             // Check if indices are going out of bounds.
             if (_ibo != null && currentVertex / ObjectSize > _ibo.Count / IndicesPerObject)
             {
-                Context.Log.Error($"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.", MessageSource.GL);
+                Context.Log.Warning($"Exceeding total indices ({_ibo.Count}) in map buffer {_pointer}.", MessageSource.GL);
                 return;
             }
 
