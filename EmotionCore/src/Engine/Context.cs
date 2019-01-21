@@ -314,7 +314,7 @@ namespace Emotion.Engine
         public static void Crash()
         {
             Log?.Dispose();
-            Environment.Exit(1);
+            Environment.Exit(0);
         }
 
         #endregion
