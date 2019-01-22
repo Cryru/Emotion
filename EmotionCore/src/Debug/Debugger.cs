@@ -127,7 +127,7 @@ namespace Emotion.Debug
             }
             catch (Exception ex)
             {
-                Context.Log.Error("Console thread has crashed.", ex, MessageSource.Debugger);
+                if (Context.IsRunning && !(ex is ThreadAbortException)) Context.Log.Error("Console thread has crashed.", ex, MessageSource.Debugger);
             }
         }
 

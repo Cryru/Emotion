@@ -283,21 +283,18 @@ namespace Emotion.Graphics
         /// <param name="color">The color to render in.</param>
         public void RenderString(Font font, uint textSize, string text, Vector3 position, Color color)
         {
-            // Add the string's model matrix.
-            PushToModelMatrix(Matrix4x4.CreateTranslation(position));
-
             // Queue letters.
             Rectangle[] uvs = new Rectangle[text.Length];
             Atlas atlas = font.GetFontAtlas(textSize);
 
-            float penX = 0;
-            float penY = 0;
+            float penX = position.X;
+            float penY = position.Y;
 
             for (int i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\n')
                 {
-                    penX = 0;
+                    penX = position.X;
                     penY += atlas.LineSpacing;
                     continue;
                 }
@@ -311,9 +308,6 @@ namespace Emotion.Graphics
                 Render(renderPos, uvs[i].Size, color, atlas.Texture, uvs[i]);
                 penX += g.Advance;
             }
-
-            // Remove the model matrix.
-            PopModelMatrix();
         }
 
         /// <summary>
