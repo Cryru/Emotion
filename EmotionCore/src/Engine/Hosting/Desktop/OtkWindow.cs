@@ -79,9 +79,6 @@ namespace Emotion.Engine.Hosting.Desktop
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
             _inputManager = new OtkInputManager(this);
             Engine.Context.InputManager = _inputManager;
-
-            Visible = true;
-            OnLoad(EventArgs.Empty);
         }
 
         #region Host API
@@ -93,6 +90,10 @@ namespace Emotion.Engine.Hosting.Desktop
             _drawHook = onDraw;
             _resizeHook = onResize;
             _closeHook = onClose;
+
+            Visible = true;
+            OnLoad(EventArgs.Empty);
+            ProcessEvents();
         }
 
         /// <inheritdoc />
@@ -107,36 +108,42 @@ namespace Emotion.Engine.Hosting.Desktop
 
         private void InternalApplySettings(HostSettings settings)
         {
-            Title = settings.Title;
-
-            // Apply window mode.
-            switch (settings.WindowMode)
+            lock (this)
             {
-                case WindowMode.Borderless:
-                    WindowBorder = WindowBorder.Hidden;
-                    WindowState = WindowState.Normal;
-                    Width = DisplayDevice.Default.Width;
-                    Height = DisplayDevice.Default.Height;
-                    if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
-                    X = 0;
-                    Y = 0;
-                    break;
-                case WindowMode.Fullscreen:
-                    WindowBorder = WindowBorder.Fixed;
-                    WindowState = WindowState.Fullscreen;
-                    break;
-                default:
-                    WindowBorder = WindowBorder.Fixed;
-                    WindowState = WindowState.Normal;
-                    Width = settings.Width;
-                    Height = settings.Height;
-                    if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
-                    X = DisplayDevice.Default.Width / 2 - settings.Width / 2;
-                    Y = DisplayDevice.Default.Height / 2 - settings.Height / 2;
-                    break;
-            }
+                Title = settings.Title;
 
-            _isFirstApplySettings = false;
+                // Apply window mode.
+                switch (settings.WindowMode)
+                {
+                    case WindowMode.Borderless:
+                        WindowBorder = WindowBorder.Hidden;
+                        WindowState = WindowState.Normal;
+                        Width = DisplayDevice.Default.Width;
+                        Height = DisplayDevice.Default.Height;
+                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
+                        X = 0;
+                        Y = 0;
+                        break;
+                    case WindowMode.Fullscreen:
+                        WindowBorder = WindowBorder.Fixed;
+                        WindowState = WindowState.Fullscreen;
+                        break;
+                    default:
+                        WindowBorder = WindowBorder.Fixed;
+                        WindowState = WindowState.Normal;
+                        Width = settings.Width;
+                        Height = settings.Height;
+                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
+                        X = DisplayDevice.Default.Width / 2 - settings.Width / 2;
+                        Y = DisplayDevice.Default.Height / 2 - settings.Height / 2;
+                        break;
+                }
+
+                _isFirstApplySettings = false;
+
+                // Process resulting events.
+                ProcessEvents();
+            }
         }
 
         /// <inheritdoc />

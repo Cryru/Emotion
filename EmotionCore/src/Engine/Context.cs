@@ -287,6 +287,9 @@ namespace Emotion.Engine
         /// </summary>
         public static void Quit()
         {
+            // Nothing to quit if not running.
+            if(!IsRunning) return;
+
             // Switch running to false.
             IsRunning = false;
 
@@ -297,12 +300,11 @@ namespace Emotion.Engine
             Renderer?.Destroy();
             SoundManager?.Dispose();
 
-            // Cleanup the host.
-            Host?.Dispose();
-            Log?.Dispose();
-
             // Close plugins.
             Steam?.Dispose();
+
+            // Dump log.
+            Log?.Dispose();
 
             // Close application.
             if (Flags.CloseEnvironmentOnQuit) Environment.Exit(0);
@@ -465,9 +467,6 @@ namespace Emotion.Engine
         /// <param name="frameTime">The time between this tick and the last.</param>
         private static void LoopUpdate(float frameTime)
         {
-            // Throttle so the whole CPU isn't used up by update cycles. Useful only when the Update loop runs on a separate thread.
-            //Task.Delay(1).Wait();
-
             // Get frame time and increment total time.
             FrameTime = frameTime;
             TotalTime += frameTime;

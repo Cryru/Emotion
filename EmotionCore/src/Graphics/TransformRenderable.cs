@@ -12,7 +12,7 @@ namespace Emotion.Graphics
     /// <summary>
     /// A transform which is renderable, and exposes a model matrix.
     /// </summary>
-    public abstract class TransformRenderable : Transform, IRenderable
+    public abstract class TransformRenderable : Transform, ITransformRenderable
     {
         /// <summary>
         /// The model matrix of the renderable transform. Is automatically applied when rendered by the renderer.
@@ -69,6 +69,9 @@ namespace Emotion.Graphics
             ModelMatrix = Matrix4x4.CreateTranslation(Position);
         }
 
+        /// <summary>
+        /// Render the renderable.
+        /// </summary>
         public abstract void Render();
     }
 }

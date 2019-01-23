@@ -263,14 +263,14 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a quad to the screen.
         /// </summary>
-        /// <param name="location">The location of the quad.</param>
+        /// <param name="position">The position of the quad.</param>
         /// <param name="size">The size of the quad.</param>
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad, if any.</param>
         /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
-        public void Render(Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void Render(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            _mainBuffer.MapNextQuad(location, size, color, texture, textureArea);
+            _mainBuffer.MapNextQuad(position, size, color, texture, textureArea);
         }
 
         /// <summary>
@@ -325,16 +325,16 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render a rectangle outline.
         /// </summary>
-        /// <param name="location">The location of the rectangle.</param>
+        /// <param name="position">The position of the rectangle.</param>
         /// <param name="size">The size of the rectangle.</param>
         /// <param name="color">The color of the lines.</param>
         /// <param name="thickness">How thick the line should be.</param>
-        public void RenderOutline(Vector3 location, Vector2 size, Color color, float thickness = 1)
+        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
         {
-            RenderLine(location, new Vector3(location.X + size.X, location.Y, location.Z), color, thickness);
-            RenderLine(new Vector3(location.X + size.X, location.Y, location.Z), new Vector3(location.X + size.X, location.Y + size.Y, location.Z), color, thickness);
-            RenderLine(new Vector3(location.X + size.X, location.Y + size.Y, location.Z), new Vector3(location.X, location.Y + size.Y, location.Z), color, thickness);
-            RenderLine(new Vector3(location.X, location.Y + size.Y, location.Z), location, color, thickness);
+            RenderLine(position, new Vector3(position.X + size.X, position.Y, position.Z), color, thickness);
+            RenderLine(new Vector3(position.X + size.X, position.Y, position.Z), new Vector3(position.X + size.X, position.Y + size.Y, position.Z), color, thickness);
+            RenderLine(new Vector3(position.X + size.X, position.Y + size.Y, position.Z), new Vector3(position.X, position.Y + size.Y, position.Z), color, thickness);
+            RenderLine(new Vector3(position.X, position.Y + size.Y, position.Z), position, color, thickness);
         }
 
         /// <summary>
@@ -553,7 +553,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>
         /// <param name="multiplyMatrix">Whether to multiply the new matrix by the previous matrix.</param>
-        public void Render(TransformRenderable renderable, bool multiplyMatrix = true)
+        public void Render(ITransformRenderable renderable, bool multiplyMatrix = true)
         {
             // Push the model matrix.
             PushToModelMatrix(renderable.ModelMatrix, multiplyMatrix);
