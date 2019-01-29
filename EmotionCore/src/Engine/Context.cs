@@ -17,6 +17,7 @@ using Emotion.Engine.Hosting.Desktop;
 using Emotion.Engine.Scenography;
 using Emotion.External;
 using Emotion.Graphics;
+using Emotion.Graphics.Base;
 using Emotion.Input;
 using Emotion.IO;
 using Emotion.Libraries;

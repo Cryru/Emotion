@@ -3,11 +3,10 @@
 #region Using
 
 using System.Numerics;
-using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Graphics
+namespace Emotion.Primitives
 {
     /// <summary>
     /// A transform which is renderable, and exposes a model matrix.

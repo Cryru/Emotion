@@ -7,7 +7,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Graphics.Batching
+namespace Emotion.Graphics
 {
     /// <inheritdoc />
     /// <summary>

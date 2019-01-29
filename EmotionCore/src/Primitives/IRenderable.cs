@@ -1,6 +1,6 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
-namespace Emotion.Graphics
+namespace Emotion.Primitives
 {
     /// <summary>
     /// A renderable object.

@@ -12,7 +12,7 @@ using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics.Batching
+namespace Emotion.Graphics.Base
 {
     /// <inheritdoc />
     public sealed unsafe class GLStreamBuffer : StreamBuffer
@@ -33,7 +33,7 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// The index to stop drawing at.
         /// </summary>
-        private uint? _endIndex = null;
+        private uint? _endIndex;
 
         /// <summary>
         /// The point where the data starts.
@@ -79,6 +79,9 @@ namespace Emotion.Graphics.Batching
         /// <inheritdoc />
         public override void UnsafeMapVertex(uint color, float tid, Vector2 uv, Vector3 vertex)
         {
+            // Check if mapping has started. If not start it.
+            if (!Mapping) StartMapping();
+
             uint currentVertex = GetVertexPointer();
 
             // Check if going out of bounds.
@@ -92,6 +95,7 @@ namespace Emotion.Graphics.Batching
             _dataPointer->Tid = tid;
             _dataPointer->UV = uv;
             _dataPointer->Vertex = vertex;
+            _dataPointer++;
 
             currentVertex++;
 
@@ -214,19 +218,12 @@ namespace Emotion.Graphics.Batching
         /// <inheritdoc />
         public override void MapNextVertex(Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
         {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
             UnsafeMapVertex(color.ToUint(), GetTextureOrAdd(texture), Verify2dUV(texture, uv), vertex);
-            UnsafeIncrementPointer(1);
         }
 
         /// <inheritdoc />
         public override void MapVertexAt(uint index, Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
         {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
             // Move the pointer and map the vertex.
             UnsafeMovePointerToVertex(index);
             MapNextVertex(vertex, color, texture, uv);
@@ -235,32 +232,19 @@ namespace Emotion.Graphics.Batching
         /// <inheritdoc />
         public override void MapNextLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1)
         {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
             uint c = color.ToUint();
             Vector2 normal = Vector2.Normalize(new Vector2(pointTwo.Y - pointOne.Y, -(pointTwo.X - pointOne.X))) * thickness;
             float z = Math.Max(pointOne.Z, pointTwo.Z);
 
             UnsafeMapVertex(c, -1, Vector2.Zero, new Vector3(pointOne.X + normal.X, pointOne.Y + normal.Y, z));
-            UnsafeIncrementPointer(1);
-
             UnsafeMapVertex(c, -1, Vector2.Zero, new Vector3(pointTwo.X + normal.X, pointTwo.Y + normal.Y, z));
-            UnsafeIncrementPointer(1);
-
             UnsafeMapVertex(c, -1, Vector2.Zero, new Vector3(pointTwo.X - normal.X, pointTwo.Y - normal.Y, z));
-            UnsafeIncrementPointer(1);
-
             UnsafeMapVertex(c, -1, Vector2.Zero, new Vector3(pointOne.X - normal.X, pointOne.Y - normal.Y, z));
-            UnsafeIncrementPointer(1);
         }
 
         /// <inheritdoc />
         public override void MapLineAt(uint index, Vector3 pointOne, Vector3 pointTwo, Color color, int thickness = 1)
         {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
             // Move the pointer and map.
             UnsafeMovePointerToVertex(index * ObjectSize);
             MapNextLine(pointOne, pointTwo, color, thickness);
@@ -269,9 +253,6 @@ namespace Emotion.Graphics.Batching
         /// <inheritdoc />
         public override void MapNextQuad(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
             Rectangle uv = VerifyRectUV(texture, textureArea);
             float tid = GetTextureOrAdd(texture);
             uint c = color.ToUint();
@@ -288,24 +269,14 @@ namespace Emotion.Graphics.Batching
             Vector3 ppV = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
 
             UnsafeMapVertex(c, tid, nnUV, position);
-            _dataPointer++;
-
             UnsafeMapVertex(c, tid, pnUV, pnV);
-            _dataPointer++;
-
             UnsafeMapVertex(c, tid, ppUV, ppV);
-            _dataPointer++;
-
             UnsafeMapVertex(c, tid, npUV, npV);
-            _dataPointer++;
         }
 
         /// <inheritdoc />
         public override void MapQuadAt(uint index, Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
-            // Check if mapping has started.
-            if (!Mapping) StartMapping();
-
             // Move the pointer and map.
             UnsafeMovePointerToVertex(index * ObjectSize);
             MapNextQuad(position, size, color, texture, textureArea);

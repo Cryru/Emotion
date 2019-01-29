@@ -1,8 +1,9 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
 using System.Numerics;
+using Emotion.Graphics;
 
-namespace Emotion.Graphics
+namespace Emotion.Primitives
 {
     /// <summary>
     /// A renderable object.

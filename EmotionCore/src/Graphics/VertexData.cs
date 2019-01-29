@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Graphics.Batching
+namespace Emotion.Graphics
 {
     /// <summary>
     /// Represents the data of a single vertex.

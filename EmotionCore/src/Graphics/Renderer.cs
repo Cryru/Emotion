@@ -9,7 +9,7 @@ using Emotion.Engine;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
-using Emotion.Graphics.Batching;
+using Emotion.Graphics.Base;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;

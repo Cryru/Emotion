@@ -7,14 +7,13 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Graphics.Batching;
 using Emotion.Graphics.Objects;
 using Emotion.Libraries;
 using OpenTK.Graphics.ES30;
 
 #endregion
 
-namespace Emotion.Graphics
+namespace Emotion.Graphics.Base
 {
     /// <summary>
     /// Manages OpenGL state and such.
@@ -500,6 +499,8 @@ namespace Emotion.Graphics
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.UvLocation, 2, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.TidLocation, 1, DataType.Float, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.ColorLocation, 4, DataType.UnsignedByte, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+                BindVertexArrayBuffer(0);
+                BindDataBuffer(0);
 
                 // Create a GL stream buffer.
                 streamBuffer = new GLStreamBuffer(vbo, vao, _defaultQuadIbo, 4, size * 4, 6, PrimitiveType.Triangles);

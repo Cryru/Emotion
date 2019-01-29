@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using Emotion.Engine;
 using Emotion.Graphics;
-using Emotion.Graphics.Batching;
+using Emotion.Graphics.Base;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 
