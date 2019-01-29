@@ -37,7 +37,15 @@ namespace Emotion.Graphics
 
         #region Render State
 
-        private static uint _boundBuffer;
+        private static uint _boundDataBuffer;
+        private static uint _boundVertexArrayBuffer;
+        private static uint _boundIndexBuffer;
+
+        #endregion
+
+        #region Cache
+
+        private static uint _defaultQuadIbo;
 
         #endregion
 
@@ -63,28 +71,20 @@ namespace Emotion.Graphics
             {
                 bool parsed = int.TryParse(version[0], out int majorVer);
                 if (!parsed)
-                {
                     Context.Log.Warning($"Couldn't parse OpenGL major version - {version[0]}", MessageSource.GL);
-                }
                 else
-                {
                     OpenGLMajorVersion = majorVer;
-                }
                 parsed = int.TryParse(version[1], out int minorVer);
                 if (!parsed)
-                {
                     Context.Log.Warning($"Couldn't parse OpenGL minor version - {version[1]}", MessageSource.GL);
-                }
                 else
-                {
                     OpenGLMinorVersion = minorVer;
-                }
             }
             else
             {
                 Context.Log.Warning("Couldn't parse OpenGL version.", MessageSource.GL);
             }
-        
+
             // Diagnostic dump.
             Context.Log.Info($"Creating GraphicsManager. Detected OGL is {OpenGLMajorVersion}.{OpenGLMinorVersion}", MessageSource.GL);
             Context.Log.Info($"GL: {GL.GetString(StringName.Version)} on {GL.GetString(StringName.Renderer)}", MessageSource.GL);
@@ -97,11 +97,29 @@ namespace Emotion.Graphics
             CreateDefaultShaders();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader)null, null);
             defaultProgram.Bind();
 
             // Check if the setup encountered any errors.
             GLThread.CheckError("graphics setup");
+
+            // Create default quad ibo.
+            ushort[] indices = new ushort[Renderer.MaxRenderable * 6];
+            uint offset = 0;
+            for (int i = 0; i < indices.Length; i += 6)
+            {
+                indices[i] = (ushort) (offset + 0);
+                indices[i + 1] = (ushort) (offset + 1);
+                indices[i + 2] = (ushort) (offset + 2);
+                indices[i + 3] = (ushort) (offset + 2);
+                indices[i + 4] = (ushort) (offset + 3);
+                indices[i + 5] = (ushort) (offset + 0);
+
+                offset += 4;
+            }
+            _defaultQuadIbo = CreateDataBuffer();
+            BindIndexBuffer(_defaultQuadIbo);
+            UploadToIndexBuffer(indices);
 
             // Set default state.
             ResetGLState();
@@ -212,7 +230,9 @@ namespace Emotion.Graphics
         public static void ResetState()
         {
             // Reset bound buffers.
-            _boundBuffer = 0;
+            _boundDataBuffer = 0;
+            _boundVertexArrayBuffer = 0;
+            _boundIndexBuffer = 0;
         }
 
         #region State API
@@ -226,13 +246,9 @@ namespace Emotion.Graphics
             GLThread.ExecuteGLThread(() =>
             {
                 if (enable)
-                {
                     GL.Enable(EnableCap.DepthTest);
-                }
                 else
-                {
                     GL.Disable(EnableCap.DepthTest);
-                }
 
                 GLThread.CheckError("setting depth test");
             });
@@ -245,27 +261,14 @@ namespace Emotion.Graphics
         /// <summary>
         /// Create a new data buffer.
         /// </summary>
-        /// <returns>The id of the created data buffer. Or 0 if creation failed.</returns>
-        public static uint CreateDataBuffer(uint size)
+        public static uint CreateDataBuffer()
         {
             uint newBufferId = 0;
 
             GLThread.ExecuteGLThread(() =>
             {
-                GLThread.CheckError("before data buffer creation");
-
-                // Store old bound.
-                uint oldBound = _boundBuffer;
-
                 // Create buffer.
                 GL.GenBuffers(1, out newBufferId);
-                // Bind.
-                BindDataBuffer(newBufferId);
-                // Upload empty data
-                GL.BufferData(BufferTarget.ArrayBuffer, (int) size, IntPtr.Zero, BufferUsageHint.StreamDraw);
-
-                // Restore bound.
-                BindDataBuffer(oldBound);
 
                 GLThread.CheckError("after data buffer creation");
             });
@@ -280,12 +283,12 @@ namespace Emotion.Graphics
         public static void BindDataBuffer(uint bufferId)
         {
             // Check if already bound.
-            if (_boundBuffer == bufferId) return;
+            if (_boundDataBuffer == bufferId) return;
 
-            _boundBuffer = bufferId;
             GLThread.ExecuteGLThread(() =>
             {
                 GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+                _boundDataBuffer = bufferId;
                 GLThread.CheckError("after binding data buffer");
             });
         }
@@ -297,6 +300,8 @@ namespace Emotion.Graphics
         /// <param name="data">The data to upload.</param>
         public static void UploadToDataBuffer<T>(T[] data) where T : struct
         {
+            if (_boundDataBuffer == 0) Context.Log.Warning("You are trying to upload data, but no data buffer is bound.", MessageSource.GL);
+
             int byteSize = Marshal.SizeOf(data[0]);
             GLThread.ExecuteGLThread(() =>
             {
@@ -312,9 +317,11 @@ namespace Emotion.Graphics
         /// <param name="size">The size of the data to upload.</param>
         public static void UploadToDataBuffer(IntPtr data, uint size)
         {
+            if (_boundDataBuffer == 0) Context.Log.Warning("You are trying to upload data, but no data buffer is bound.", MessageSource.GL);
+
             GLThread.ExecuteGLThread(() =>
             {
-                GL.BufferData(BufferTarget.ArrayBuffer, (int) size, data, BufferUsageHint.StreamDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, (int)size, data, BufferUsageHint.StreamDraw);
                 GLThread.CheckError("after uploading data buffer data from pointer");
             });
         }
@@ -331,16 +338,193 @@ namespace Emotion.Graphics
                 GLThread.CheckError("after deleting data buffer");
             });
             // Revert binding if deleted bound.
-            if (bufferId == _boundBuffer) _boundBuffer = 0;
+            if (bufferId == _boundDataBuffer) _boundDataBuffer = 0;
+        }
+
+        #endregion
+
+        #region Vertex Array buffer API
+
+        /// <summary>
+        /// Create a new vertex array buffer.
+        /// </summary>
+        /// <returns>The id of the created vertex array buffer. Or 0 if creation failed.</returns>
+        public static uint CreateVertexArrayBuffer()
+        {
+            uint newBufferId = 0;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                // Create buffer.
+                GL.GenVertexArrays(1, out newBufferId);
+               
+                GLThread.CheckError("after vertex array buffer creation");
+            });
+
+            return newBufferId;
+        }
+
+        /// <summary>
+        /// Bind a vertex array buffer.
+        /// </summary>
+        /// <param name="bufferId">The id of the vertex array buffer to bind.</param>
+        public static void BindVertexArrayBuffer(uint bufferId)
+        {
+            // Check if already bound.
+            if (_boundVertexArrayBuffer == bufferId) return;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.BindVertexArray(bufferId);
+                _boundVertexArrayBuffer = bufferId;
+                GLThread.CheckError("after binding vertex array buffer");
+            });
+        }
+
+        /// <summary>
+        /// Attach a data buffer to the vertex array data. Overwrites the currently bound data buffer and vertex array buffer.
+        /// </summary>
+        /// <param name="dataBufferId">The data buffer to attach to the vertex array.</param>
+        /// <param name="vertexArrayBufferId">The vertex array buffer to attach to.</param>
+        /// <param name="shaderIndex">The index of the buffer data for the shader.</param>
+        /// <param name="componentCount">The component count of the buffer. For instance Vector3 is three components of type float.</param>
+        /// <param name="dataType">The type of data within the buffer.</param>
+        /// <param name="normalized">Whether the value is normalized.</param>
+        /// <param name="stride">The byte offset between consecutive vertex attributes.</param>
+        /// <param name="offset">The offset of the first piece of data.</param>
+        public static void AttachDataBufferToVertexArray(uint dataBufferId, uint vertexArrayBufferId, uint shaderIndex, uint componentCount, DataType dataType, bool normalized, uint stride, uint offset)
+        {
+            GLThread.ExecuteGLThread(() =>
+            {
+                BindVertexArrayBuffer(vertexArrayBufferId);
+                BindDataBuffer(dataBufferId);
+                GL.EnableVertexAttribArray(shaderIndex);
+                GL.VertexAttribPointer(shaderIndex, (int) componentCount, EmotionToNativePointerType(dataType), normalized, (int) stride, (int) offset);
+
+                GLThread.CheckError("after binding vertex array buffer");
+            });
+        }
+
+        /// <summary>
+        /// Destroy a vertex array buffer.
+        /// </summary>
+        /// <param name="bufferId">The id of the vertex array buffer to destroy.</param>
+        public static void DestroyVertexArrayBuffer(uint bufferId)
+        {
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.DeleteVertexArray(bufferId);
+                GLThread.CheckError("after deleting vertex array buffer");
+            });
+            // Revert binding if deleted bound.
+            if (bufferId == _boundVertexArrayBuffer) _boundVertexArrayBuffer = 0;
+        }
+
+        #endregion
+
+        #region Index Buffer API
+
+        /// <summary>
+        /// Bind a data buffer as an index buffer.
+        /// </summary>
+        /// <param name="bufferId">The id of the data buffer to bind as an index buffer.</param>
+        public static void BindIndexBuffer(uint bufferId)
+        {
+            // Check if already bound.
+            if (_boundIndexBuffer == bufferId) return;
+
+            _boundIndexBuffer = bufferId;
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);
+                GLThread.CheckError("after binding index buffer");
+            });
+        }
+
+        /// <summary>
+        /// Upload data to the currently bound index buffer.
+        /// </summary>
+        /// <typeparam name="T">The type of data to upload.</typeparam>
+        /// <param name="data">The data to upload.</param>
+        public static void UploadToIndexBuffer<T>(T[] data) where T : struct
+        {
+            if (_boundIndexBuffer == 0) Context.Log.Warning("You are trying to upload data, but no index buffer is bound.", MessageSource.GL);
+
+            int byteSize = Marshal.SizeOf(data[0]);
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.BufferData(BufferTarget.ElementArrayBuffer, data.Length * byteSize, data, BufferUsageHint.StaticDraw);
+                GLThread.CheckError("after uploading index buffer data");
+            });
+        }
+
+        /// <summary>
+        /// Upload data to the currently bound index buffer.
+        /// </summary>
+        /// <param name="data">The data to upload.</param>
+        /// <param name="size">The size of the data to upload.</param>
+        public static void UploadToIndexBuffer(IntPtr data, uint size)
+        {
+            if (_boundIndexBuffer == 0) Context.Log.Warning("You are trying to upload data, but no index buffer is bound.", MessageSource.GL);
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (int)size, data, BufferUsageHint.StaticDraw);
+                GLThread.CheckError("after uploading index buffer data from pointer");
+            });
         }
 
         #endregion
 
         #region MapBuffer API
 
-        public static IStreamBuffer CreateQuadMapBuffer(uint size)
+        /// <summary>
+        /// Create a streaming buffer used for drawing 2d quads.
+        /// </summary>
+        /// <param name="size">The size of the buffer.</param>
+        /// <returns>A streaming buffer used for drawing 2d quads.</returns>
+        public static StreamBuffer CreateQuadMapBuffer(uint size)
         {
-            return null;
+            StreamBuffer streamBuffer = null;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                // First create the vbo.
+                uint vbo = CreateDataBuffer();
+                BindDataBuffer(vbo);
+                UploadToDataBuffer(IntPtr.Zero, (uint) (size * 4 * VertexData.SizeInBytes));
+
+                // Create the ibo.
+                uint vao = CreateVertexArrayBuffer();
+                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.VertexLocation, 3, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.UvLocation, 2, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.TidLocation, 1, DataType.Float, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
+                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.ColorLocation, 4, DataType.UnsignedByte, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+
+                // Create a GL stream buffer.
+                streamBuffer = new GLStreamBuffer(vbo, vao, _defaultQuadIbo, 4, size * 4, 6, PrimitiveType.Triangles);
+            });
+
+            return streamBuffer;
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Convert an Emotion engine data type to a native one.
+        /// </summary>
+        /// <returns></returns>
+        private static VertexAttribPointerType EmotionToNativePointerType(DataType emotionDataType)
+        {
+            bool parsed = Enum.TryParse(emotionDataType.ToString(), out VertexAttribPointerType nativeDataType);
+            if (!parsed)
+            {
+                Context.Log.Warning($"Couldn't parse data type - {emotionDataType}", MessageSource.GL);
+            }
+
+            return nativeDataType;
         }
 
         #endregion

@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Batching;
@@ -140,11 +141,12 @@ namespace Emotion.Tests.Tests
         [TestMethod]
         public void TextureDepthTest()
         {
+            Task.Delay(2000).Wait();
             // Get the host.
             TestHost host = TestInit.TestingHost;
 
             // Reference a map buffer to test drawing with that as well.
-            QuadMapBuffer buffer = null;
+            StreamBuffer buffer = null;
 
             // Create scene for this test.
             ExternalScene extScene = new ExternalScene
@@ -155,7 +157,7 @@ namespace Emotion.Tests.Tests
                     Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png");
 
                     // Also tests mapping and initializing of map buffers in another thread.
-                    buffer = new QuadMapBuffer(100);
+                    buffer = GraphicsManager.CreateQuadMapBuffer(100);
                     buffer.MapNextQuad(new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 150, 0), new Vector2(20, 20), Color.White);
                     buffer.MapNextQuad(new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 180, 0), new Vector2(20, 20), Color.White);
                     buffer.MapNextQuad(new Vector3(Context.Settings.RenderSettings.Width / 2 - 100, 210, 0), new Vector2(20, 20), Color.White);
@@ -334,10 +336,10 @@ void main() {
 }");
 
             // Reference map buffers to test with.
-            QuadMapBuffer quadBuffer = null;
-            QuadMapBuffer overflowVerts = null;
-            QuadMapBuffer overflowTextures = null;
-            QuadMapBuffer colorBarfBuffer = null;
+            StreamBuffer quadBuffer = null;
+            StreamBuffer overflowVerts = null;
+            StreamBuffer overflowTextures = null;
+            StreamBuffer colorBarfBuffer = null;
 
             bool exceptionRaised = false;
 
@@ -348,7 +350,7 @@ void main() {
                 ExtLoad = () =>
                 {
                     // Init quad buffer.
-                    quadBuffer = new QuadMapBuffer(20);
+                    quadBuffer = GraphicsManager.CreateQuadMapBuffer(20);
                     quadBuffer.MapNextQuad(new Vector3(5, 10, 0), new Vector2(20, 20), Color.White);
                     quadBuffer.MapNextQuad(new Vector3(5, 40, 0), new Vector2(20, 20), Color.White);
                     quadBuffer.MapNextQuad(new Vector3(5, 70, 0), new Vector2(20, 20), Color.White);
@@ -359,14 +361,14 @@ void main() {
 
                     // Init overflow buffer.
                     // The size is smaller than what we are mapping, the expected behavior is not to map the third one.
-                    overflowVerts = new QuadMapBuffer(2);
+                    overflowVerts = GraphicsManager.CreateQuadMapBuffer(2);
                     overflowVerts.MapNextQuad(new Vector3(5, 10, 0), new Vector2(20, 20), Color.White);
                     overflowVerts.MapNextQuad(new Vector3(5, 40, 0), new Vector2(20, 20), Color.White);
                     overflowVerts.MapNextQuad(new Vector3(5, 70, 0), new Vector2(20, 20), Color.White);
 
                     // Init a buffer which will overflow the texture limit.
                     Context.Flags.RenderFlags.TextureArrayLimit = 2;
-                    overflowTextures = new QuadMapBuffer(30);
+                    overflowTextures = GraphicsManager.CreateQuadMapBuffer(30);
                     overflowTextures.MapNextQuad(new Vector3(5, 10, 0), new Vector2(20, 20), Color.White, Context.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
                     overflowTextures.MapNextQuad(new Vector3(5, 40, 0), new Vector2(20, 20), Color.White, Context.AssetLoader.Get<Texture>("Textures/standardPng.png"));
 
@@ -383,7 +385,7 @@ void main() {
                     Assert.IsTrue(exceptionRaised);
 
                     // Map color barf.
-                    colorBarfBuffer = new QuadMapBuffer(100);
+                    colorBarfBuffer = GraphicsManager.CreateQuadMapBuffer(100);
                     int x = 0;
                     int y = 0;
                     const int size = 5;

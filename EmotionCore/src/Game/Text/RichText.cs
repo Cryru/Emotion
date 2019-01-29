@@ -75,7 +75,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The map buffer cache of the entire text.
         /// </summary>
-        protected QuadMapBuffer _renderCache { get; set; }
+        protected StreamBuffer _renderCache { get; set; }
 
         /// <summary>
         /// Whether the cache needs to be updated.
@@ -133,7 +133,7 @@ namespace Emotion.Game.Text
         {
             FontAtlas = fontAtlas;
 
-            GLThread.ExecuteGLThread(() => { _renderCache = new QuadMapBuffer(Renderer.MaxRenderable); });
+            GLThread.ExecuteGLThread(() => { _renderCache = GraphicsManager.CreateQuadMapBuffer(Renderer.MaxRenderable); });
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace Emotion.Graphics.Objects
     /// A Program Object represents fully processed executable code, in the OpenGL Shading Language, for one or more Shader
     /// stages.
     /// </summary>
-    public class ShaderProgram : IGLObject
+    public class ShaderProgram
     {
         #region Global
 
@@ -33,22 +33,22 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The location of vertices within the shader.
         /// </summary>
-        public static readonly int VertexLocation = 0;
+        public static readonly uint VertexLocation = 0;
 
         /// <summary>
         /// The location of the texture UV within the shader.
         /// </summary>
-        public static readonly int UvLocation = 1;
+        public static readonly uint UvLocation = 1;
 
         /// <summary>
         /// The location of the texture id within the shader.
         /// </summary>
-        public static readonly int TidLocation = 2;
+        public static readonly uint TidLocation = 2;
 
         /// <summary>
         /// The location of the colors within the shader.
         /// </summary>
-        public static readonly int ColorLocation = 3;
+        public static readonly uint ColorLocation = 3;
 
         #endregion
 

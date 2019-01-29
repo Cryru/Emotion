@@ -16,7 +16,7 @@ namespace Emotion.Graphics
     /// <summary>
     /// A drawable image.
     /// </summary>
-    public class Texture : Asset, IGLObject
+    public class Texture : Asset
     {
         #region Properties
 

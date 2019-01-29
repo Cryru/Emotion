@@ -14,7 +14,6 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
-using Buffer = Emotion.Graphics.Objects.Buffer;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
@@ -30,9 +29,9 @@ namespace Emotion.Graphics
         /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being
         /// ushort.
         /// </summary>
-        public static readonly int MaxRenderable = ushort.MaxValue;
+        public static readonly uint MaxRenderable = ushort.MaxValue;
 
-        #region Objects
+        #region Render State
 
         /// <summary>
         /// The renderer's camera.
@@ -47,10 +46,6 @@ namespace Emotion.Graphics
             }
         }
 
-        #endregion
-
-        #region Render State
-
         /// <summary>
         /// Private camera tracker.
         /// </summary>
@@ -59,7 +54,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The main drawing buffer.
         /// </summary>
-        private QuadMapBuffer _mainBuffer;
+        private StreamBuffer _mainBuffer;
 
         /// <summary>
         /// The model matrix stack.
@@ -80,7 +75,7 @@ namespace Emotion.Graphics
             _modelMatrix = new TransformationStack();
 
             // Setup main map buffer.
-            _mainBuffer = new QuadMapBuffer(MaxRenderable);
+            _mainBuffer = GraphicsManager.CreateQuadMapBuffer(MaxRenderable);
 
             // Setup debug.
             SetupDebug();
@@ -109,42 +104,42 @@ namespace Emotion.Graphics
         private void SetupDebug()
         {
             Context.ScriptingEngine.Expose("debugCamera",
-                (Func<string>) (() =>
-                {
-                    _debugCamera = _debugCamera == null
-                        ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
-                        {
-                            Zoom = Camera.Zoom / 2f
-                        }
-                        : null;
-                    _debugCameraDataText.Active = !_debugCameraDataText.Active;
+                (Func<string>)(() =>
+               {
+                   _debugCamera = _debugCamera == null
+                       ? new CameraBase(new Vector3(Camera.Center.X, Camera.Center.Y, 0), new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height))
+                       {
+                           Zoom = Camera.Zoom / 2f
+                       }
+                       : null;
+                   _debugCameraDataText.Active = !_debugCameraDataText.Active;
 
-                    return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
-                }),
+                   return "Debug camera " + (_debugCamera == null ? "disabled." : "enabled.");
+               }),
                 "Enables the debug camera. Move it with the arrow keys. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("fps",
-                (Func<string>) (() =>
-                {
-                    _fpsCounter = !_fpsCounter;
-                    _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
+                (Func<string>)(() =>
+               {
+                   _fpsCounter = !_fpsCounter;
+                   _debugFpsCounterDataText.Active = !_debugFpsCounterDataText.Active;
 
-                    return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
-                }),
+                   return "Fps counter " + (_fpsCounter ? "enabled." : "disabled.");
+               }),
                 "Enables the fps counter. Invoke again to cancel.");
 
             Context.ScriptingEngine.Expose("debugMouse",
-                (Func<string>) (() =>
-                {
-                    _drawMouse = !_drawMouse;
+                (Func<string>)(() =>
+               {
+                   _drawMouse = !_drawMouse;
 
-                    return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
-                }),
+                   return "Mouse square drawing is " + (_drawMouse ? "enabled." : "disabled.");
+               }),
                 "Enables drawing a square around the mouse cursor. Invoke again to cancel.");
 
             Font font = Context.AssetLoader.Get<Font>("debugFont.otf");
-            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
-            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) {Padding = new Rectangle(3, 3, 3, 3), Active = false};
+            _debugCameraDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
+            _debugFpsCounterDataText = new BasicTextBg(font, 10, "", Color.Yellow, new Color(0, 0, 0, 125), new Vector3(0, 0, 5)) { Padding = new Rectangle(3, 3, 3, 3), Active = false };
 
             Debugger.CornerAnchor.AddChild(_debugCameraDataText, AnchorLocation.BottomLeft);
             Debugger.CornerAnchor.AddChild(_debugFpsCounterDataText, AnchorLocation.TopLeft);
@@ -208,7 +203,6 @@ namespace Emotion.Graphics
         {
             // Restore bound state. Some drivers unbind objects when swapping buffers.
             ShaderProgram.Current.Bind();
-            IndexBuffer.BoundPointer = 0;
             GraphicsManager.ResetState();
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -361,9 +355,9 @@ namespace Emotion.Graphics
             // Generate points.
             for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
+                float angle = (float)(i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float)Math.Cos(angle) * radius;
+                float y = (float)Math.Sin(angle) * radius;
 
                 if (i == 0)
                 {
@@ -412,9 +406,9 @@ namespace Emotion.Graphics
             // Generate points.
             for (uint i = 0; i < Context.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float) (i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
+                float angle = (float)(i * 2 * Math.PI / Context.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float)Math.Cos(angle) * radius;
+                float y = (float)Math.Sin(angle) * radius;
 
                 _mainBuffer.MapNextVertex(new Vector3(radius + pX, radius + pY, 0), color);
                 _mainBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
@@ -447,14 +441,13 @@ namespace Emotion.Graphics
         /// </summary>
         public void Submit()
         {
+            GLThread.ForceGLThread();
+
             // Check if anything was mapped at all.
             if (!_mainBuffer.Mapping || !_mainBuffer.AnythingMapped) return;
 
-            GLThread.ExecuteGLThread(() =>
-            {
-                _mainBuffer.Render();
-                _mainBuffer.Reset();
-            });
+            _mainBuffer.Render();
+            _mainBuffer.Reset();
         }
 
         #endregion
@@ -467,23 +460,20 @@ namespace Emotion.Graphics
         /// <param name="shader">The shader to set.</param>
         public void SetShader(ShaderProgram shader = null)
         {
-            GLThread.ExecuteGLThread(() =>
-            {
-                // Check if setting to the same shader.
-                if (shader == ShaderProgram.Current) return;
+            // Check if setting to the same shader.
+            if (shader == ShaderProgram.Current) return;
 
-                // Flush the draw buffer.
-                Submit();
+            // Flush the draw buffer.
+            Submit();
 
-                // Default or provided switch.
-                if (shader == null)
-                    ShaderProgram.Default.Bind();
-                else
-                    shader.Bind();
+            // Default or provided switch.
+            if (shader == null)
+                ShaderProgram.Default.Bind();
+            else
+                shader.Bind();
 
-                // Sync shader uniforms.
-                SystemSyncCurrentShader();
-            });
+            // Sync shader uniforms.
+            SystemSyncCurrentShader();
         }
 
         /// <summary>
@@ -498,7 +488,7 @@ namespace Emotion.Graphics
 
             // Push into stack and update shader.
             _modelMatrix.Push(matrix, multiply);
-            GLThread.ExecuteGLThread(() => { ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix); });
+            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
         }
 
         /// <summary>
@@ -511,7 +501,7 @@ namespace Emotion.Graphics
 
             // Pop out of stack and update shader.
             _modelMatrix.Pop();
-            GLThread.ExecuteGLThread(() => { ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix); });
+            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
         }
 
         #endregion
@@ -528,7 +518,7 @@ namespace Emotion.Graphics
             Submit();
 
             // Render the renderable.
-            GLThread.ExecuteGLThread(renderable.Render);
+            renderable.Render();
         }
 
         /// <summary>
@@ -543,7 +533,7 @@ namespace Emotion.Graphics
             PushToModelMatrix(modelMatrix, multiplyMatrix);
 
             // Render the renderable.
-            GLThread.ExecuteGLThread(renderable.Render);
+            renderable.Render();
 
             // Pop model matrix.
             PopModelMatrix();
@@ -560,7 +550,7 @@ namespace Emotion.Graphics
             PushToModelMatrix(renderable.ModelMatrix, multiplyMatrix);
 
             // Render the renderable.
-            GLThread.ExecuteGLThread(renderable.Render);
+            renderable.Render();
 
             // Pop model matrix.
             PopModelMatrix();
@@ -580,7 +570,7 @@ namespace Emotion.Graphics
             Submit();
 
             // Upload to the shader.
-            GLThread.ExecuteGLThread(() => { ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix); });
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
         }
 
         /// <summary>
@@ -590,18 +580,15 @@ namespace Emotion.Graphics
         /// <param name="full">Whether to perform a full synchronization. Some properties are not expected to change often.</param>
         public void SystemSyncCurrentShader(bool full = true)
         {
-            GLThread.ExecuteGLThread(() =>
-            {
-                if (full)
-                    ShaderProgram.Current.SetUniformMatrix4("projectionMatrix",
-                        Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
+            if (full)
+                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix",
+                    Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
 
-                ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
-                ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
-                ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
+            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
+            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+            ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
 
-                GLThread.CheckError("Syncing shader");
-            });
+            GLThread.CheckError("Syncing shader");
         }
 
         #endregion
