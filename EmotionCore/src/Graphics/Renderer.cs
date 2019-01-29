@@ -208,8 +208,8 @@ namespace Emotion.Graphics
         {
             // Restore bound state. Some drivers unbind objects when swapping buffers.
             ShaderProgram.Current.Bind();
-            Buffer.BoundPointer = 0;
             IndexBuffer.BoundPointer = 0;
+            GraphicsManager.ResetState();
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GLThread.CheckError("clear");
@@ -219,6 +219,7 @@ namespace Emotion.Graphics
 
             // Sync the current shader.
             SystemSyncCurrentShader();
+            GLThread.CheckError("clear update");
         }
 
         /// <summary>

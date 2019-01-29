@@ -146,6 +146,7 @@
     <Compile Include="src\Game\UI\Layout\CornerAnchor.cs" />
     <Compile Include="src\Game\UI\BasicButton.cs" />
     <Compile Include="src\Game\UI\ParentControl.cs" />
+    <Compile Include="src\Graphics\Batching\IStreamBuffer.cs" />
     <Compile Include="src\Graphics\Batching\TriMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
     <Compile Include="src\Graphics\GLThread.cs" />
@@ -185,7 +186,7 @@
     <Compile Include="src\Game\Animation\AnimationLoopType.cs" />
     <Compile Include="src\Sound\SoundFile.cs" />
     <Compile Include="src\IO\TextFile.cs" />
-    <Compile Include="src\IO\Other.cs" />
+    <Compile Include="src\IO\OtherAsset.cs" />
     <Compile Include="src\Debug\MessageSource.cs" />
     <Compile Include="src\Debug\MessageType.cs" />
     <Compile Include="src\Engine\Hosting\Desktop\WindowMode.cs" />

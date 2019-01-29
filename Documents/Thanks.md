@@ -9,6 +9,8 @@ theDaftDev
 nnevatie
 vassvik
 Klems
+Deamon
+devsh
 
 Game Industry People:
 

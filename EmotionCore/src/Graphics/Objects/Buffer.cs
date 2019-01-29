@@ -4,7 +4,6 @@
 
 using System;
 using System.Numerics;
-using Emotion.Engine;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -14,7 +13,9 @@ namespace Emotion.Graphics.Objects
     /// <summary>
     /// A Vertex Buffer Object (VBO) is an OpenGL feature that provides methods for uploading vertex data (position, normal
     /// vector, color, etc.) to the video device for non-immediate-mode rendering.
+    /// Legacy object.
     /// </summary>
+    [Obsolete]
     public class Buffer : IGLObject
     {
         #region Properties
@@ -43,19 +44,17 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The pointer of the buffer within OpenGL.
         /// </summary>
-        protected int _pointer { get; private set; }
+        internal uint _pointer { get; private set; }
 
         /// <summary>
         /// Create a new buffer, and allocate empty space for it.
         /// </summary>
         /// <param name="size">The size of buffer to allocate.</param>
         /// <param name="componentCount">The number of components contained within the data.</param>
-        /// <param name="usageHint">What the buffer will be used for.</param>
-        public Buffer(int size, uint componentCount, BufferUsageHint usageHint = BufferUsageHint.StaticDraw)
+        public Buffer(int size, uint componentCount)
         {
             Size = size;
-            GLThread.ExecuteGLThread(() => _pointer = GL.GenBuffer());
-            Upload(size, componentCount, usageHint);
+            _pointer = GraphicsManager.CreateDataBuffer((uint) size);
         }
 
         #region API
@@ -65,9 +64,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Bind()
         {
-            if (BoundPointer == _pointer) return;
-            BoundPointer = _pointer;
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _pointer);
+            GraphicsManager.BindDataBuffer(_pointer);
         }
 
         /// <summary>
@@ -75,8 +72,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Unbind()
         {
-            BoundPointer = 0;
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GraphicsManager.BindDataBuffer(0);
         }
 
         /// <summary>
@@ -87,15 +83,9 @@ namespace Emotion.Graphics.Objects
         /// <param name="usageHint">What the buffer will be used for.</param>
         public void Upload(int size, uint componentCount, BufferUsageHint usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot allocate in a destroyed buffer.");
-
-            ComponentCount = componentCount;
-
-            GLThread.ExecuteGLThread(() =>
-            {
-                Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, size, IntPtr.Zero, usageHint);
-            });
+            byte[] empty = new byte[size];
+            Bind();
+            GraphicsManager.UploadToDataBuffer(empty);
         }
 
         /// <summary>
@@ -106,15 +96,8 @@ namespace Emotion.Graphics.Objects
         /// <param name="usageHint">What the buffer will be used for.</param>
         public void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
-
-            ComponentCount = componentCount;
-
-            GLThread.ExecuteGLThread(() =>
-            {
-                Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usageHint);
-            });
+            Bind();
+            GraphicsManager.UploadToDataBuffer(data);
         }
 
         /// <summary>
@@ -125,15 +108,8 @@ namespace Emotion.Graphics.Objects
         /// <param name="usageHint">What the buffer will be used for.</param>
         public void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
-
-            ComponentCount = componentCount;
-
-            GLThread.ExecuteGLThread(() =>
-            {
-                Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(uint), data, usageHint);
-            });
+            Bind();
+            GraphicsManager.UploadToDataBuffer(data);
         }
 
         /// <summary>
@@ -143,15 +119,8 @@ namespace Emotion.Graphics.Objects
         /// <param name="usageHint">What the buffer will be used for.</param>
         public void Upload(Vector3[] data, BufferUsageHint usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
-
-            ComponentCount = 3;
-
-            GLThread.ExecuteGLThread(() =>
-            {
-                Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Helpers.Vector3SizeInBytes, data, usageHint);
-            });
+            Bind();
+            GraphicsManager.UploadToDataBuffer(data);
         }
 
         /// <summary>
@@ -161,15 +130,8 @@ namespace Emotion.Graphics.Objects
         /// <param name="usageHint">What the buffer will be used for.</param>
         public void Upload(Vector2[] data, BufferUsageHint usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
-
-            ComponentCount = 2;
-
-            GLThread.ExecuteGLThread(() =>
-            {
-                Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Helpers.Vector2SizeInBytes, data, usageHint);
-            });
+            Bind();
+            GraphicsManager.UploadToDataBuffer(data);
         }
 
         /// <summary>
@@ -177,8 +139,8 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public void Delete()
         {
-            GLThread.ExecuteGLThread(() => GL.DeleteBuffer(_pointer));
-            _pointer = -1;
+            GraphicsManager.DestroyDataBuffer(_pointer);
+            _pointer = 0;
         }
 
         #endregion

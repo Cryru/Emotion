@@ -225,24 +225,24 @@ namespace Emotion.Engine
             // Start creating modules.
 
             // Scripting engine is first to provide the other modules the ability to expose functions.
-            Log.Trace("Creating scripting engine...", MessageSource.Engine);
+            Log.Info("Creating scripting engine...", MessageSource.Engine);
             ScriptingEngine = new ScriptingEngine();
 
             // Asset loader is next so other modules - especially the renderer, can access the file system.
-            Log.Trace("Creating asset loader...", MessageSource.Engine);
+            Log.Info("Creating asset loader...", MessageSource.Engine);
             AssetLoader = new AssetLoader(Flags.AssetRootDirectory, Flags.AdditionalAssetAssemblies);
 
             // The order of the next modules doesn't matter.
 
             Debugger.InitializeModule();
 
-            Log.Trace("Creating renderer...", MessageSource.Engine);
+            Log.Info("Creating renderer...", MessageSource.Engine);
             Renderer = new Renderer();
 
-            Log.Trace("Creating sound manager...", MessageSource.Engine);
+            Log.Info("Creating sound manager...", MessageSource.Engine);
             SoundManager = new SoundManager();
 
-            Log.Trace("Creating scene manager...", MessageSource.Engine);
+            Log.Info("Creating scene manager...", MessageSource.Engine);
             SceneManager = new SceneManager();
 #if !DEBUG
             }
@@ -258,6 +258,8 @@ namespace Emotion.Engine
         /// </summary>
         public static void Run()
         {
+            Log.Info("Context ran.", MessageSource.Engine);
+
 #if !DEBUG
             try
             {

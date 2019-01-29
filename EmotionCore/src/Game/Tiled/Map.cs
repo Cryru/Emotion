@@ -95,7 +95,7 @@ namespace Emotion.Game.Tiled
             if (mapPath == "") return;
 
             // Load the map from the data as a stream.
-            using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Get<Other>(mapPath).Content))
+            using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Get<OtherAsset>(mapPath).Content))
             {
                 TiledMap = new TmxMap(mapFileStream);
             }

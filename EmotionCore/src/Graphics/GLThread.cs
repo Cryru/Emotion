@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Diagnostics;
 using Emotion.Engine;
 using OpenTK.Graphics.ES30;
 
@@ -69,10 +70,14 @@ namespace Emotion.Graphics
         /// Check for an OpenGL error. Must be called on the GLThread.
         /// </summary>
         /// <param name="location">Where the error check is.</param>
+        [Conditional("DEBUG")]
         public static void CheckError(string location)
         {
             ErrorCode errorCheck = GL.GetError();
-            if (errorCheck != ErrorCode.NoError) throw new Exception("OpenGL error at " + location + ":\n" + errorCheck);
+            if (errorCheck != ErrorCode.NoError)
+            {
+                Context.Log.Error($"OpenGL error at {location}: {errorCheck}\n{Environment.StackTrace}", Debug.MessageSource.GL);
+            }
         }
     }
 }

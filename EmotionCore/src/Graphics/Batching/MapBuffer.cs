@@ -166,7 +166,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="ibo">The index buffer to use when drawing. If null the default triangle one will be used.</param>
         /// <param name="indicesPerObject">The number of indices per object.</param>
         /// <param name="drawType">The OpenGL primitive type to draw this buffer with.</param>
-        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3, BufferUsageHint.StreamDraw)
+        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3)
         {
             ObjectSize = objectSize;
             _ibo = ibo ?? _defaultIbo;
