@@ -118,7 +118,7 @@ namespace Emotion.Graphics.Base
         /// <inheritdoc />
         public override uint GetVertexPointer()
         {
-            return (uint)(_dataPointer - _startPointer);
+            return (uint) (_dataPointer - _startPointer);
         }
 
         /// <inheritdoc />
@@ -192,11 +192,11 @@ namespace Emotion.Graphics.Base
             GLThread.CheckError("map buffer - bind");
 
             // Convert offset amd length.
-            IntPtr indexToPointer = (IntPtr)(_startIndex * sizeof(ushort));
+            IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
             // If the ending index is null then the whole buffer is rendered.
             uint length = _endIndex / ObjectSize * IndicesPerObject ?? MappedObjects * IndicesPerObject;
 
-            GL.DrawElements(_drawType, (int)length, DrawElementsType.UnsignedShort, indexToPointer);
+            GL.DrawElements(_drawType, (int) length, DrawElementsType.UnsignedShort, indexToPointer);
             GLThread.CheckError("map buffer - draw");
 
             GraphicsManager.BindVertexArrayBuffer(0);
@@ -298,11 +298,8 @@ namespace Emotion.Graphics.Base
             {
                 GLThread.CheckError("map buffer - before start");
                 GraphicsManager.BindDataBuffer(Vbo);
-                _startPointer = (VertexData*)GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, (int)(Size * VertexData.SizeInBytes), BufferAccessMask.MapWriteBit);
-                if ((long)_startPointer == 0)
-                {
-                    Context.Log.Warning("Couldn't start mapping buffer. Expect a crash.", MessageSource.GL);
-                }
+                _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, (int) (Size * VertexData.SizeInBytes), BufferAccessMask.MapWriteBit);
+                if ((long) _startPointer == 0) Context.Log.Warning("Couldn't start mapping buffer. Expect a crash.", MessageSource.GL);
                 _dataPointer = _startPointer;
                 GLThread.CheckError("map buffer - start");
             });
@@ -358,7 +355,7 @@ namespace Emotion.Graphics.Base
             // Get the UV rectangle. If none specified then the whole texture area is chosen.
             if (uvRect == null)
                 return new Rectangle(0, 0, texture.Size.X, texture.Size.Y);
-            return (Rectangle)uvRect;
+            return (Rectangle) uvRect;
         }
 
         private int GetTextureOrAdd(Texture texture, bool addIfMissing = true)

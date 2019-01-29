@@ -99,6 +99,7 @@ namespace Emotion.Debug
         #endregion
 
         #region Console
+
         [Conditional("DEBUG")]
         private static void StartConsoleInput()
         {

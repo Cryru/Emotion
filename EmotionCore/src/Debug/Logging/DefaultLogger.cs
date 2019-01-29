@@ -52,10 +52,8 @@ namespace Emotion.Debug.Logging
             try
             {
                 while (_running)
-                {
                     // Run logging.
                     _threadManager.Run();
-                }
             }
             catch (Exception ex)
             {
@@ -80,10 +78,7 @@ namespace Emotion.Debug.Logging
         {
             _running = false;
 
-            while (!_threadManager.Empty)
-            {
-                _threadManager.Run();
-            }
+            while (!_threadManager.Empty) _threadManager.Run();
         }
 
         #region Helpers

@@ -1,7 +1,10 @@
 ﻿// Emotion - https://github.com/Cryru/Emotion
 
+#region Using
+
 using System.Numerics;
-using Emotion.Graphics;
+
+#endregion
 
 namespace Emotion.Primitives
 {

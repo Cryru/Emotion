@@ -96,7 +96,7 @@ namespace Emotion.Graphics.Base
             CreateDefaultShaders();
 
             // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader)null, null);
+            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
 
             // Check if the setup encountered any errors.
@@ -116,6 +116,7 @@ namespace Emotion.Graphics.Base
 
                 offset += 4;
             }
+
             _defaultQuadIbo = CreateDataBuffer();
             BindIndexBuffer(_defaultQuadIbo);
             UploadToIndexBuffer(indices);
@@ -320,7 +321,7 @@ namespace Emotion.Graphics.Base
 
             GLThread.ExecuteGLThread(() =>
             {
-                GL.BufferData(BufferTarget.ArrayBuffer, (int)size, data, BufferUsageHint.StreamDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, (int) size, data, BufferUsageHint.StreamDraw);
                 GLThread.CheckError("after uploading data buffer data from pointer");
             });
         }
@@ -356,7 +357,7 @@ namespace Emotion.Graphics.Base
             {
                 // Create buffer.
                 GL.GenVertexArrays(1, out newBufferId);
-               
+
                 GLThread.CheckError("after vertex array buffer creation");
             });
 
@@ -391,7 +392,8 @@ namespace Emotion.Graphics.Base
         /// <param name="normalized">Whether the value is normalized.</param>
         /// <param name="stride">The byte offset between consecutive vertex attributes.</param>
         /// <param name="offset">The offset of the first piece of data.</param>
-        public static void AttachDataBufferToVertexArray(uint dataBufferId, uint vertexArrayBufferId, uint shaderIndex, uint componentCount, DataType dataType, bool normalized, uint stride, uint offset)
+        public static void AttachDataBufferToVertexArray(uint dataBufferId, uint vertexArrayBufferId, uint shaderIndex, uint componentCount, DataType dataType, bool normalized, uint stride,
+            uint offset)
         {
             GLThread.ExecuteGLThread(() =>
             {
@@ -468,7 +470,7 @@ namespace Emotion.Graphics.Base
 
             GLThread.ExecuteGLThread(() =>
             {
-                GL.BufferData(BufferTarget.ElementArrayBuffer, (int)size, data, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (int) size, data, BufferUsageHint.StaticDraw);
                 GLThread.CheckError("after uploading index buffer data from pointer");
             });
         }
@@ -498,7 +500,8 @@ namespace Emotion.Graphics.Base
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.VertexLocation, 3, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.UvLocation, 2, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.TidLocation, 1, DataType.Float, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
-                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.ColorLocation, 4, DataType.UnsignedByte, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.ColorLocation, 4, DataType.UnsignedByte, true, (uint) VertexData.SizeInBytes,
+                    (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
                 BindVertexArrayBuffer(0);
                 BindDataBuffer(0);
 
@@ -520,10 +523,7 @@ namespace Emotion.Graphics.Base
         private static VertexAttribPointerType EmotionToNativePointerType(DataType emotionDataType)
         {
             bool parsed = Enum.TryParse(emotionDataType.ToString(), out VertexAttribPointerType nativeDataType);
-            if (!parsed)
-            {
-                Context.Log.Warning($"Couldn't parse data type - {emotionDataType}", MessageSource.GL);
-            }
+            if (!parsed) Context.Log.Warning($"Couldn't parse data type - {emotionDataType}", MessageSource.GL);
 
             return nativeDataType;
         }

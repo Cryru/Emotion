@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Libraries;
 using OpenTK;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;

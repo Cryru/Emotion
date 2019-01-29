@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Emotion.Debug;
 using Emotion.Engine;
 using OpenTK.Graphics.ES30;
 
@@ -74,10 +75,7 @@ namespace Emotion.Graphics
         public static void CheckError(string location)
         {
             ErrorCode errorCheck = GL.GetError();
-            if (errorCheck != ErrorCode.NoError)
-            {
-                Context.Log.Error($"OpenGL error at {location}: {errorCheck}\n{Environment.StackTrace}", Debug.MessageSource.GL);
-            }
+            if (errorCheck != ErrorCode.NoError) Context.Log.Error($"OpenGL error at {location}: {errorCheck}\n{Environment.StackTrace}", MessageSource.GL);
         }
     }
 }

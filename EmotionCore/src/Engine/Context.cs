@@ -291,7 +291,7 @@ namespace Emotion.Engine
         public static void Quit()
         {
             // Nothing to quit if not running.
-            if(!IsRunning) return;
+            if (!IsRunning) return;
 
             // Switch running to false.
             IsRunning = false;
