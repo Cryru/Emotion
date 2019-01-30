@@ -198,10 +198,6 @@ namespace Emotion.Graphics.Base
 
             GL.DrawElements(_drawType, (int) length, DrawElementsType.UnsignedShort, indexToPointer);
             GLThread.CheckError("map buffer - draw");
-
-            GraphicsManager.BindVertexArrayBuffer(0);
-            GraphicsManager.BindIndexBuffer(0);
-            GLThread.CheckError("map buffer - unbind");
         }
 
         /// <inheritdoc />
@@ -211,6 +207,9 @@ namespace Emotion.Graphics.Base
             Vbo = 0;
             GraphicsManager.DestroyVertexArrayBuffer(Vao);
             Vao = 0;
+
+            _textureList.Clear();
+            Ibo = 0;
         }
 
         #region Friendly Mapping

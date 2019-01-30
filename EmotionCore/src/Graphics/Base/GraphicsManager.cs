@@ -282,8 +282,17 @@ namespace Emotion.Graphics.Base
         /// <param name="bufferId">The id of the data buffer to bind.</param>
         public static void BindDataBuffer(uint bufferId)
         {
+#if DEBUG
+
+            uint actualBound = GetBoundDataBuffer();
+
+            if (_boundDataBuffer != 0 && _boundDataBuffer != actualBound)
+                Context.Log.Warning($"Bound data buffer was thought to be {_boundDataBuffer} but is actually {actualBound}.", MessageSource.GL);
+
+#endif
+
             // Check if already bound.
-            if (_boundDataBuffer == bufferId) return;
+            if (_boundDataBuffer != 0 && _boundDataBuffer == bufferId) return;
 
             GLThread.ExecuteGLThread(() =>
             {
@@ -370,13 +379,24 @@ namespace Emotion.Graphics.Base
         /// <param name="bufferId">The id of the vertex array buffer to bind.</param>
         public static void BindVertexArrayBuffer(uint bufferId)
         {
+#if DEBUG
+
+            uint actualBound = GetBoundVertexArrayBuffer();
+
+            if (_boundVertexArrayBuffer != 0 && _boundVertexArrayBuffer != actualBound)
+                Context.Log.Warning($"Bound vertex array buffer was thought to be {_boundVertexArrayBuffer} but is actually {actualBound}.", MessageSource.GL);
+
+#endif
+
             // Check if already bound.
-            if (_boundVertexArrayBuffer == bufferId) return;
+            if (_boundVertexArrayBuffer != 0 && _boundVertexArrayBuffer == bufferId) return;
 
             GLThread.ExecuteGLThread(() =>
             {
                 GL.BindVertexArray(bufferId);
                 _boundVertexArrayBuffer = bufferId;
+                _boundIndexBuffer = GetBoundIndexBuffer();
+                _boundDataBuffer = GetBoundDataBuffer();
                 GLThread.CheckError("after binding vertex array buffer");
             });
         }
@@ -431,13 +451,22 @@ namespace Emotion.Graphics.Base
         /// <param name="bufferId">The id of the data buffer to bind as an index buffer.</param>
         public static void BindIndexBuffer(uint bufferId)
         {
-            // Check if already bound.
-            if (_boundIndexBuffer == bufferId) return;
+#if DEBUG
 
-            _boundIndexBuffer = bufferId;
+            uint actualBound = GetBoundIndexBuffer();
+
+            if (_boundIndexBuffer != 0 && _boundIndexBuffer != actualBound)
+                Context.Log.Warning($"Bound index buffer was thought to be {_boundIndexBuffer} but is actually {actualBound}.", MessageSource.GL);
+
+#endif
+
+            // Check if already bound.
+            if (_boundIndexBuffer != 0 && _boundIndexBuffer == bufferId) return;
+
             GLThread.ExecuteGLThread(() =>
             {
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);
+                _boundIndexBuffer = bufferId;
                 GLThread.CheckError("after binding index buffer");
             });
         }
@@ -497,6 +526,7 @@ namespace Emotion.Graphics.Base
 
                 // Create the ibo.
                 uint vao = CreateVertexArrayBuffer();
+                BindVertexArrayBuffer(vao);
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.VertexLocation, 3, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.UvLocation, 2, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
                 AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.TidLocation, 1, DataType.Float, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
@@ -526,6 +556,36 @@ namespace Emotion.Graphics.Base
             if (!parsed) Context.Log.Warning($"Couldn't parse data type - {emotionDataType}", MessageSource.GL);
 
             return nativeDataType;
+        }
+
+        /// <summary>
+        /// Get actual currently bound index buffer. Skipping the cache.
+        /// </summary>
+        /// <returns>The id of the currently bound index buffer.</returns>
+        public static uint GetBoundIndexBuffer()
+        {
+            GL.GetInteger(GetPName.ElementArrayBufferBinding, out int id);
+            return (uint) id;
+        }
+
+        /// <summary>
+        /// Get actual currently bound data buffer. Skipping the cache.
+        /// </summary>
+        /// <returns>The id of the currently bound data buffer.</returns>
+        public static uint GetBoundDataBuffer()
+        {
+            GL.GetInteger(GetPName.ArrayBufferBinding, out int id);
+            return (uint) id;
+        }
+
+        /// <summary>
+        /// Get actual currently bound vertex array buffer. Skipping the cache.
+        /// </summary>
+        /// <returns>The id of the currently bound vertex array buffer.</returns>
+        public static uint GetBoundVertexArrayBuffer()
+        {
+            GL.GetInteger(GetPName.VertexArrayBinding, out int id);
+            return (uint) id;
         }
 
         #endregion
