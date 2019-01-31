@@ -15,8 +15,7 @@ out vec4 fragColor;
 
 void main() {
     // Check if a texture is in use.
-    if (Tid >= 0.0)
-    {
+    if (Tid >= 0.0) {
         // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
         fragColor = texture(textures[int(Tid)], UV) * vertColor;
     } else {

@@ -10,7 +10,6 @@ using Emotion.Game.Camera;
 using Emotion.Game.UI;
 using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Base;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
@@ -201,8 +200,7 @@ namespace Emotion.Graphics
         /// </summary>
         internal void Clear()
         {
-            // Restore bound state. Some drivers unbind objects when swapping buffers.
-            ShaderProgram.Current.Bind();
+            // Restore bound state. 
             GraphicsManager.ResetState();
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -460,17 +458,11 @@ namespace Emotion.Graphics
         /// <param name="shader">The shader to set.</param>
         public void SetShader(ShaderProgram shader = null)
         {
-            // Check if setting to the same shader.
-            if (shader == ShaderProgram.Current) return;
+            // If shade will be modified, submit.
+            if (shader != GraphicsManager.CurrentShader) Submit();
 
-            // Flush the draw buffer.
-            Submit();
-
-            // Default or provided switch.
-            if (shader == null)
-                ShaderProgram.Default.Bind();
-            else
-                shader.Bind();
+            // Bind the new shader.
+            GraphicsManager.BindShaderProgram(shader);
 
             // Sync shader uniforms.
             SystemSyncCurrentShader();
@@ -488,7 +480,7 @@ namespace Emotion.Graphics
 
             // Push into stack and update shader.
             _modelMatrix.Push(matrix, multiply);
-            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
+            GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
         }
 
         /// <summary>
@@ -501,7 +493,7 @@ namespace Emotion.Graphics
 
             // Pop out of stack and update shader.
             _modelMatrix.Pop();
-            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
+            GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
         }
 
         #endregion
@@ -570,7 +562,7 @@ namespace Emotion.Graphics
             Submit();
 
             // Upload to the shader.
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+            GraphicsManager.CurrentShader.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
         }
 
         /// <summary>
@@ -581,12 +573,12 @@ namespace Emotion.Graphics
         public void SystemSyncCurrentShader(bool full = true)
         {
             if (full)
-                ShaderProgram.Current.SetUniformMatrix4("projectionMatrix",
+                GraphicsManager.CurrentShader.SetUniformMatrix4("projectionMatrix",
                     Matrix4x4.CreateOrthographicOffCenter(0, Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height, 0, -100, 100));
 
-            ShaderProgram.Current.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
-            ShaderProgram.Current.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
-            ShaderProgram.Current.SetUniformFloat("time", Context.TotalTime);
+            GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
+            GraphicsManager.CurrentShader.SetUniformMatrix4("viewMatrix", (_debugCamera ?? Camera).ViewMatrix);
+            GraphicsManager.CurrentShader.SetUniformFloat("time", Context.TotalTime);
 
             GLThread.CheckError("Syncing shader");
         }

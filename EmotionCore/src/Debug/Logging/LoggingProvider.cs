@@ -53,9 +53,9 @@ namespace Emotion.Debug.Logging
         {
             Log(MessageType.Error, source, message + "\n" + ex);
 
-            if (System.Diagnostics.Debugger.IsAttached) throw ex;
+            if (System.Diagnostics.Debugger.IsAttached) System.Diagnostics.Debugger.Break();
 
-            Context.Crash();
+            if (Context.Flags.CrashOnError) Context.Crash();
         }
 
         /// <summary>

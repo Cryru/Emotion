@@ -147,14 +147,16 @@
     <Compile Include="src\Game\UI\BasicButton.cs" />
     <Compile Include="src\Game\UI\ParentControl.cs" />
     <Compile Include="src\Graphics\Base\GLStreamBuffer.cs" />
-    <Compile Include="src\Graphics\IStreamBuffer.cs" />
+    <Compile Include="src\Graphics\StreamBuffer.cs" />
     <Compile Include="src\Graphics\DataType.cs" />
     <Compile Include="src\Graphics\GLThread.cs" />
     <Compile Include="src\Graphics\Base\GraphicsManager.cs" />
+    <Compile Include="src\IO\ShaderAsset.cs" />
+    <Compile Include="src\IO\ShaderDescription.cs" />
+    <Compile Include="src\Graphics\ShaderProgram.cs" />
     <Compile Include="src\Primitives\ITransformRenderable.cs" />
     <Compile Include="src\Graphics\Texture.cs" />
-    <Compile Include="src\Graphics\Objects\Shader.cs" />
-    <Compile Include="src\Graphics\Objects\ShaderProgram.cs" />
+    <Compile Include="src\Graphics\Base\GLShaderProgram.cs" />
     <Compile Include="src\Primitives\TransformRenderable.cs" />
     <Compile Include="src\Primitives\IRenderable.cs" />
     <Compile Include="src\Graphics\Renderer.cs" />
@@ -214,6 +216,9 @@
     <Compile Include="src\Meta.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\Shaders\CompatFrag.glsl" />
+    <EmbeddedResource Include="Assets\Shaders\DefaultFrag.glsl" />
+    <EmbeddedResource Include="Assets\Shaders\DefaultVert.glsl" />
     <None Include="EmotionCore.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -257,8 +262,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Embedded\Shaders\DefaultFrag.glsl" />
-    <EmbeddedResource Include="Embedded\Shaders\DefaultVert.glsl" />
     <None Include="SharpFont.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -284,6 +287,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets\Shaders\CompatShader.xml">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\DefaultShader.xml">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <Content Include="Libraries\Steamworks\Steamworks.NET-Mono.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

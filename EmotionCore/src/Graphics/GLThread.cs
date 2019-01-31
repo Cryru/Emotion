@@ -12,8 +12,19 @@ using OpenTK.Graphics.ES30;
 
 namespace Emotion.Graphics
 {
+    /// <summary>
+    /// A global thread manager bound to the thread on which the OpenGL context was created.
+    /// </summary>
     public static class GLThread
     {
+        /// <summary>
+        /// Whether the thread is bound.
+        /// </summary>
+        public static bool IsBound
+        {
+            get => _threadManager.IsBound;
+        }
+
         private static ThreadManager _threadManager;
 
         static GLThread()

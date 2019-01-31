@@ -6,7 +6,6 @@ using System.Numerics;
 using Emotion.Engine;
 using Emotion.Engine.Scenography;
 using Emotion.Graphics;
-using Emotion.Graphics.Text;
 using Emotion.Primitives;
 
 #endregion
@@ -17,9 +16,7 @@ namespace Emotion.ExecTest
     {
         public static void Main(string[] args)
         {
-            Context.Setup(config =>
-            {
-            });
+            Context.Setup();
             Context.SceneManager.SetScene(new MainScene());
             Context.Run();
         }

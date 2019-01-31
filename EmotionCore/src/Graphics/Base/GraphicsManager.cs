@@ -3,11 +3,11 @@
 #region Using
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using Emotion.Debug;
 using Emotion.Engine;
-using Emotion.Graphics.Objects;
+using Emotion.IO;
 using Emotion.Libraries;
 using OpenTK.Graphics.ES30;
 
@@ -36,15 +36,58 @@ namespace Emotion.Graphics.Base
 
         #region Render State
 
-        private static uint _boundDataBuffer;
-        private static uint _boundVertexArrayBuffer;
-        private static uint _boundIndexBuffer;
+        /// <summary>
+        /// The currently bound data buffer.
+        /// </summary>
+        public static uint BoundDataBuffer { get; private set; }
+
+        /// <summary>
+        /// The currently bound vertex array buffer.
+        /// </summary>
+        public static uint BoundVertexArrayBuffer { get; private set; }
+
+        /// <summary>
+        /// The currently bound index buffer.
+        /// </summary>
+        public static uint BoundIndexBuffer { get; private set; }
+
+        /// <summary>
+        /// The shader currently bound.
+        /// </summary>
+        public static ShaderProgram CurrentShader { get; private set; }
+
+        #endregion
+
+        #region Shader State
+
+        /// <summary>
+        /// The location of vertices within the shader.
+        /// </summary>
+        public static readonly uint VertexLocation = 0;
+
+        /// <summary>
+        /// The location of the texture UV within the shader.
+        /// </summary>
+        public static readonly uint UvLocation = 1;
+
+        /// <summary>
+        /// The location of the texture id within the shader.
+        /// </summary>
+        public static readonly uint TidLocation = 2;
+
+        /// <summary>
+        /// The location of the colors within the shader.
+        /// </summary>
+        public static readonly uint ColorLocation = 3;
 
         #endregion
 
         #region Cache
 
         private static uint _defaultQuadIbo;
+        private static ShaderProgram _defaultProgram;
+        private static uint _defaultFragShader;
+        private static uint _defaultVertShader;
 
         #endregion
 
@@ -58,22 +101,20 @@ namespace Emotion.Graphics.Base
             if (_isSetup) return;
             _isSetup = true;
 
-            // Check for minimum version.
-            if (Context.Flags.RenderFlags.OpenGLMajorVersion < 3 || Context.Flags.RenderFlags.OpenGLMinorVersion < 3) Context.Log.Error("Minimum OpenGL version is 3.3", MessageSource.Renderer);
-
             // Bind this thread as the GL thread.
             GLThread.BindThread();
 
             // Get version.
-            string[] version = GL.GetString(StringName.Version).Split('.');
+            string versionString = GL.GetString(StringName.Version);
+            string[] version = versionString.Substring(0, versionString.IndexOf('-')).Split('.');
             if (version.Length > 0)
             {
-                bool parsed = int.TryParse(version[0], out int majorVer);
+                bool parsed = int.TryParse(version[0].Trim(), out int majorVer);
                 if (!parsed)
                     Context.Log.Warning($"Couldn't parse OpenGL major version - {version[0]}", MessageSource.GL);
                 else
                     OpenGLMajorVersion = majorVer;
-                parsed = int.TryParse(version[1], out int minorVer);
+                parsed = int.TryParse(version[1].Trim(), out int minorVer);
                 if (!parsed)
                     Context.Log.Warning($"Couldn't parse OpenGL minor version - {version[1]}", MessageSource.GL);
                 else
@@ -84,20 +125,21 @@ namespace Emotion.Graphics.Base
                 Context.Log.Warning("Couldn't parse OpenGL version.", MessageSource.GL);
             }
 
+            // Check for minimum version.
+            if (OpenGLMajorVersion < 3 || OpenGLMinorVersion < 3)
+                Context.Log.Warning("An OpenGL context lower than version 3.3 was created. This is not fully supported. Expect the unexpected.", MessageSource.Renderer);
+
             // Diagnostic dump.
             Context.Log.Info($"Creating GraphicsManager. Detected OGL is {OpenGLMajorVersion}.{OpenGLMinorVersion}", MessageSource.GL);
-            Context.Log.Info($"GL: {GL.GetString(StringName.Version)} on {GL.GetString(StringName.Renderer)}", MessageSource.GL);
+            Context.Log.Info($"GL: {versionString} on {GL.GetString(StringName.Renderer)}", MessageSource.GL);
             Context.Log.Info($"GLSL: {GL.GetString(StringName.ShadingLanguageVersion)}", MessageSource.GL);
 
             // Set execution flags, used for abstracting different GPU behavior.
             SetFlags();
 
-            // Create default shaders. This also sets some shader flags.
-            CreateDefaultShaders();
-
-            // Create a default program, and use it.
-            ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
-            defaultProgram.Bind();
+            // Create default shaders and use them.
+            _defaultProgram = Context.AssetLoader.Get<ShaderAsset>("Shaders/DefaultShader.xml").Shader;
+            BindShaderProgram(_defaultProgram);
 
             // Check if the setup encountered any errors.
             GLThread.CheckError("graphics setup");
@@ -122,7 +164,7 @@ namespace Emotion.Graphics.Base
             UploadToIndexBuffer(indices);
 
             // Set default state.
-            ResetGLState();
+            DefaultGLState();
             ResetState();
         }
 
@@ -136,9 +178,11 @@ namespace Emotion.Graphics.Base
             {
                 Context.Flags.RenderFlags.ShaderVersionOverride = "#version 330";
                 Context.Log.Warning("Shader version changed from '300 es' to '330' because Mac platform was detected.", MessageSource.GL);
+                return;
             }
 
             // Flag missing extensions.
+            // todo: This check might not be needed anymore.
             int extCount = GL.GetInteger(GetPName.NumExtensions);
             bool found = false;
             for (int i = 0; i < extCount; i++)
@@ -150,53 +194,17 @@ namespace Emotion.Graphics.Base
             }
 
             if (found) return;
-            Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found. Shader version changed from '300 es` to 400'.", MessageSource.GL);
-            Context.Flags.RenderFlags.ShaderVersionOverride = "#version 400";
-        }
-
-        /// <summary>
-        /// Creates the default shaders embedded into the binary.
-        /// </summary>
-        private static void CreateDefaultShaders()
-        {
-            string defaultVert = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultVert.glsl");
-            string defaultFrag = Helpers.ReadEmbeddedResource("Emotion.Embedded.Shaders.DefaultFrag.glsl");
-
-            try
+            if (OpenGLMajorVersion >= 4)
             {
-                ShaderProgram.DefaultVertShader = new Shader(ShaderType.VertexShader, defaultVert);
-                ShaderProgram.DefaultFragShader = new Shader(ShaderType.FragmentShader, defaultFrag);
+                Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found. Shader version changed from '300 es` to 400'.", MessageSource.GL);
+                Context.Flags.RenderFlags.ShaderVersionOverride = "#version 400";
             }
-            catch (Exception ex)
-            {
-                // Check if one of the expected exceptions.
-                if (new Regex("gl_arb_gpu_shader5").IsMatch(ex.ToString().ToLower()))
-                {
-                    // So the extension is not supported. Try to compile with shader version "400".
-                    Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was found, but is not supported. Shader version changed from '300 es` to 400'.", MessageSource.GL);
-                    Context.Flags.RenderFlags.ShaderVersionOverride = "#version 400";
-
-                    // Cleanup created ones if any.
-                    ShaderProgram.DefaultVertShader?.Destroy();
-                    ShaderProgram.DefaultFragShader?.Destroy();
-
-                    // Recreate shaders. If version 400 is not supported too, then minimum requirements aren't met.
-                    CreateDefaultShaders();
-                }
-                else
-                {
-                    // Some other error was found.
-                    throw;
-                }
-            }
-
-            GLThread.CheckError("making default shaders");
         }
 
         /// <summary>
         /// Reset the GL state to the default one.
         /// </summary>
-        public static void ResetGLState()
+        public static void DefaultGLState()
         {
             GLThread.CheckError("after setting default state");
 
@@ -229,10 +237,12 @@ namespace Emotion.Graphics.Base
         /// </summary>
         public static void ResetState()
         {
-            // Reset bound buffers.
-            _boundDataBuffer = 0;
-            _boundVertexArrayBuffer = 0;
-            _boundIndexBuffer = 0;
+            // Reset bound buffers. Some drivers unbind objects when swapping buffers.
+            BoundDataBuffer = 0;
+            BoundVertexArrayBuffer = 0;
+            BoundIndexBuffer = 0;
+            CurrentShader = null;
+            BindShaderProgram(_defaultProgram);
         }
 
         #region State API
@@ -280,26 +290,29 @@ namespace Emotion.Graphics.Base
         /// Bind a data buffer.
         /// </summary>
         /// <param name="bufferId">The id of the data buffer to bind.</param>
-        public static void BindDataBuffer(uint bufferId)
+        /// <returns>Whether the binding was changed.</returns>
+        public static bool BindDataBuffer(uint bufferId)
         {
 #if DEBUG
 
             uint actualBound = GetBoundDataBuffer();
 
-            if (_boundDataBuffer != 0 && _boundDataBuffer != actualBound)
-                Context.Log.Warning($"Bound data buffer was thought to be {_boundDataBuffer} but is actually {actualBound}.", MessageSource.GL);
+            if (BoundDataBuffer != 0 && BoundDataBuffer != actualBound)
+                Context.Log.Warning($"Bound data buffer was thought to be {BoundDataBuffer} but is actually {actualBound}.", MessageSource.GL);
 
 #endif
 
             // Check if already bound.
-            if (_boundDataBuffer != 0 && _boundDataBuffer == bufferId) return;
+            if (BoundDataBuffer != 0 && BoundDataBuffer == bufferId) return false;
 
             GLThread.ExecuteGLThread(() =>
             {
                 GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
-                _boundDataBuffer = bufferId;
+                BoundDataBuffer = bufferId;
                 GLThread.CheckError("after binding data buffer");
             });
+
+            return true;
         }
 
         /// <summary>
@@ -309,7 +322,7 @@ namespace Emotion.Graphics.Base
         /// <param name="data">The data to upload.</param>
         public static void UploadToDataBuffer<T>(T[] data) where T : struct
         {
-            if (_boundDataBuffer == 0) Context.Log.Warning("You are trying to upload data, but no data buffer is bound.", MessageSource.GL);
+            if (BoundDataBuffer == 0) Context.Log.Warning("You are trying to upload data, but no data buffer is bound.", MessageSource.GL);
 
             int byteSize = Marshal.SizeOf(data[0]);
             GLThread.ExecuteGLThread(() =>
@@ -326,7 +339,7 @@ namespace Emotion.Graphics.Base
         /// <param name="size">The size of the data to upload.</param>
         public static void UploadToDataBuffer(IntPtr data, uint size)
         {
-            if (_boundDataBuffer == 0) Context.Log.Warning("You are trying to upload data, but no data buffer is bound.", MessageSource.GL);
+            if (BoundDataBuffer == 0) Context.Log.Warning("You are trying to upload data, but no data buffer is bound.", MessageSource.GL);
 
             GLThread.ExecuteGLThread(() =>
             {
@@ -347,7 +360,7 @@ namespace Emotion.Graphics.Base
                 GLThread.CheckError("after deleting data buffer");
             });
             // Revert binding if deleted bound.
-            if (bufferId == _boundDataBuffer) _boundDataBuffer = 0;
+            if (bufferId == BoundDataBuffer) BoundDataBuffer = 0;
         }
 
         #endregion
@@ -377,28 +390,31 @@ namespace Emotion.Graphics.Base
         /// Bind a vertex array buffer.
         /// </summary>
         /// <param name="bufferId">The id of the vertex array buffer to bind.</param>
-        public static void BindVertexArrayBuffer(uint bufferId)
+        /// <returns>Whether the binding was changed.</returns>
+        public static bool BindVertexArrayBuffer(uint bufferId)
         {
 #if DEBUG
 
             uint actualBound = GetBoundVertexArrayBuffer();
 
-            if (_boundVertexArrayBuffer != 0 && _boundVertexArrayBuffer != actualBound)
-                Context.Log.Warning($"Bound vertex array buffer was thought to be {_boundVertexArrayBuffer} but is actually {actualBound}.", MessageSource.GL);
+            if (BoundVertexArrayBuffer != 0 && BoundVertexArrayBuffer != actualBound)
+                Context.Log.Warning($"Bound vertex array buffer was thought to be {BoundVertexArrayBuffer} but is actually {actualBound}.", MessageSource.GL);
 
 #endif
 
             // Check if already bound.
-            if (_boundVertexArrayBuffer != 0 && _boundVertexArrayBuffer == bufferId) return;
+            if (BoundVertexArrayBuffer != 0 && BoundVertexArrayBuffer == bufferId) return false;
 
             GLThread.ExecuteGLThread(() =>
             {
                 GL.BindVertexArray(bufferId);
-                _boundVertexArrayBuffer = bufferId;
-                _boundIndexBuffer = GetBoundIndexBuffer();
-                _boundDataBuffer = GetBoundDataBuffer();
+                BoundVertexArrayBuffer = bufferId;
+                BoundIndexBuffer = GetBoundIndexBuffer();
+                BoundDataBuffer = GetBoundDataBuffer();
                 GLThread.CheckError("after binding vertex array buffer");
             });
+
+            return true;
         }
 
         /// <summary>
@@ -438,7 +454,7 @@ namespace Emotion.Graphics.Base
                 GLThread.CheckError("after deleting vertex array buffer");
             });
             // Revert binding if deleted bound.
-            if (bufferId == _boundVertexArrayBuffer) _boundVertexArrayBuffer = 0;
+            if (bufferId == BoundVertexArrayBuffer) BoundVertexArrayBuffer = 0;
         }
 
         #endregion
@@ -449,26 +465,29 @@ namespace Emotion.Graphics.Base
         /// Bind a data buffer as an index buffer.
         /// </summary>
         /// <param name="bufferId">The id of the data buffer to bind as an index buffer.</param>
-        public static void BindIndexBuffer(uint bufferId)
+        /// <returns>Whether the binding was changed.</returns>
+        public static bool BindIndexBuffer(uint bufferId)
         {
 #if DEBUG
 
             uint actualBound = GetBoundIndexBuffer();
 
-            if (_boundIndexBuffer != 0 && _boundIndexBuffer != actualBound)
-                Context.Log.Warning($"Bound index buffer was thought to be {_boundIndexBuffer} but is actually {actualBound}.", MessageSource.GL);
+            if (BoundIndexBuffer != 0 && BoundIndexBuffer != actualBound)
+                Context.Log.Warning($"Bound index buffer was thought to be {BoundIndexBuffer} but is actually {actualBound}.", MessageSource.GL);
 
 #endif
 
             // Check if already bound.
-            if (_boundIndexBuffer != 0 && _boundIndexBuffer == bufferId) return;
+            if (BoundIndexBuffer != 0 && BoundIndexBuffer == bufferId) return false;
 
             GLThread.ExecuteGLThread(() =>
             {
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);
-                _boundIndexBuffer = bufferId;
+                BoundIndexBuffer = bufferId;
                 GLThread.CheckError("after binding index buffer");
             });
+
+            return true;
         }
 
         /// <summary>
@@ -478,7 +497,7 @@ namespace Emotion.Graphics.Base
         /// <param name="data">The data to upload.</param>
         public static void UploadToIndexBuffer<T>(T[] data) where T : struct
         {
-            if (_boundIndexBuffer == 0) Context.Log.Warning("You are trying to upload data, but no index buffer is bound.", MessageSource.GL);
+            if (BoundIndexBuffer == 0) Context.Log.Warning("You are trying to upload data, but no index buffer is bound.", MessageSource.GL);
 
             int byteSize = Marshal.SizeOf(data[0]);
             GLThread.ExecuteGLThread(() =>
@@ -495,7 +514,7 @@ namespace Emotion.Graphics.Base
         /// <param name="size">The size of the data to upload.</param>
         public static void UploadToIndexBuffer(IntPtr data, uint size)
         {
-            if (_boundIndexBuffer == 0) Context.Log.Warning("You are trying to upload data, but no index buffer is bound.", MessageSource.GL);
+            if (BoundIndexBuffer == 0) Context.Log.Warning("You are trying to upload data, but no index buffer is bound.", MessageSource.GL);
 
             GLThread.ExecuteGLThread(() =>
             {
@@ -527,10 +546,10 @@ namespace Emotion.Graphics.Base
                 // Create the ibo.
                 uint vao = CreateVertexArrayBuffer();
                 BindVertexArrayBuffer(vao);
-                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.VertexLocation, 3, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
-                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.UvLocation, 2, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
-                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.TidLocation, 1, DataType.Float, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
-                AttachDataBufferToVertexArray(vbo, vao, ShaderProgram.ColorLocation, 4, DataType.UnsignedByte, true, (uint) VertexData.SizeInBytes,
+                AttachDataBufferToVertexArray(vbo, vao, VertexLocation, 3, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+                AttachDataBufferToVertexArray(vbo, vao, UvLocation, 2, DataType.Float, false, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+                AttachDataBufferToVertexArray(vbo, vao, TidLocation, 1, DataType.Float, true, (uint) VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
+                AttachDataBufferToVertexArray(vbo, vao, ColorLocation, 4, DataType.UnsignedByte, true, (uint) VertexData.SizeInBytes,
                     (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
                 BindVertexArrayBuffer(0);
                 BindDataBuffer(0);
@@ -540,6 +559,103 @@ namespace Emotion.Graphics.Base
             });
 
             return streamBuffer;
+        }
+
+        #endregion
+
+        #region Shader API
+
+        /// <summary>
+        /// Compile a vertex shader and fragment shader into a shader program.
+        /// </summary>
+        /// <param name="vert">The vertex shader source to compile. If empty or null the default one will be used.</param>
+        /// <param name="frag">The fragment shader source to compile. If empty or null the default one will be used.</param>
+        /// <returns>A shader program implementation.</returns>
+        public static ShaderProgram CreateShaderProgram(string vert, string frag)
+        {
+            uint vertId;
+            uint fragId;
+            ShaderProgram newProgram = null;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                if (string.IsNullOrEmpty(vert))
+                {
+                    vertId = _defaultVertShader;
+                }
+                else
+                {
+                    vertId = CompileShader(ShaderType.VertexShader, vert);
+                    if (vertId == 0)
+                    {
+                        newProgram = null;
+                        return;
+                    }
+
+                    ;
+                }
+
+                if (string.IsNullOrEmpty(frag))
+                {
+                    fragId = _defaultFragShader;
+                }
+                else
+                {
+                    fragId = CompileShader(ShaderType.FragmentShader, frag);
+                    if (fragId == 0)
+                    {
+                        newProgram = null;
+                        return;
+                    }
+
+                    ;
+                }
+
+                // Save current as not to creation to override the shader.
+                ShaderProgram current = CurrentShader;
+
+                newProgram = new GLShaderProgram(vertId, fragId);
+
+                // Set defaults if missing.
+                if (_defaultFragShader == 0)
+                    _defaultFragShader = fragId;
+                else
+                    GL.DeleteShader(fragId);
+
+                if (_defaultVertShader == 0)
+                    _defaultVertShader = vertId;
+                else
+                    GL.DeleteShader(vertId);
+
+                // Set default uniform.
+                newProgram.SetUniformIntArray("textures", Enumerable.Range(0, 15).ToArray());
+
+                // Restore bound.
+                BindShaderProgram(current);
+            });
+
+            return newProgram;
+        }
+
+        /// <summary>
+        /// Bind a shader as the current shader.
+        /// </summary>
+        /// <param name="shaderProgram">The shader to bind, or null to bind the default one.</param>
+        /// <returns>Whether the binding was changed.</returns>
+        public static bool BindShaderProgram(ShaderProgram shaderProgram)
+        {
+            // Check if restoring default.
+            if (shaderProgram == null) shaderProgram = _defaultProgram;
+
+            if (CurrentShader == shaderProgram) return false;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.UseProgram(shaderProgram?.Id ?? 0);
+                CurrentShader = shaderProgram;
+            });
+
+            return true;
         }
 
         #endregion
@@ -564,7 +680,8 @@ namespace Emotion.Graphics.Base
         /// <returns>The id of the currently bound index buffer.</returns>
         public static uint GetBoundIndexBuffer()
         {
-            GL.GetInteger(GetPName.ElementArrayBufferBinding, out int id);
+            int id = 0;
+            GLThread.ExecuteGLThread(() => GL.GetInteger(GetPName.ElementArrayBufferBinding, out id));
             return (uint) id;
         }
 
@@ -574,7 +691,8 @@ namespace Emotion.Graphics.Base
         /// <returns>The id of the currently bound data buffer.</returns>
         public static uint GetBoundDataBuffer()
         {
-            GL.GetInteger(GetPName.ArrayBufferBinding, out int id);
+            int id = 0;
+            GLThread.ExecuteGLThread(() => GL.GetInteger(GetPName.ArrayBufferBinding, out id));
             return (uint) id;
         }
 
@@ -584,8 +702,34 @@ namespace Emotion.Graphics.Base
         /// <returns>The id of the currently bound vertex array buffer.</returns>
         public static uint GetBoundVertexArrayBuffer()
         {
-            GL.GetInteger(GetPName.VertexArrayBinding, out int id);
+            int id = 0;
+            GLThread.ExecuteGLThread(() => GL.GetInteger(GetPName.VertexArrayBinding, out id));
             return (uint) id;
+        }
+
+        /// <summary>
+        /// Compiles a shader.
+        /// </summary>
+        /// <param name="type">The type of shader to compile.</param>
+        /// <param name="source">The shader source.</param>
+        /// <returns>The id of the compiled shader.</returns>
+        private static uint CompileShader(ShaderType type, string source)
+        {
+            // Check if a version override is set.
+            if (!string.IsNullOrEmpty(Context.Flags.RenderFlags.ShaderVersionOverride)) source = source.Replace("#version 300 es", Context.Flags.RenderFlags.ShaderVersionOverride);
+
+            // Create and compile the shader.
+            uint shaderPointer = (uint) GL.CreateShader(type);
+            GL.ShaderSource((int) shaderPointer, source);
+            GL.CompileShader(shaderPointer);
+
+            GLThread.CheckError($"shader compilation\n{source}");
+
+            // Check compilation status.
+            string compileStatus = GL.GetShaderInfoLog((int) shaderPointer);
+            if (compileStatus == "") return shaderPointer;
+            Context.Log.Warning($"Failed to compile shader of type {type} with error {compileStatus}.\nSource:{source}", MessageSource.GL);
+            return 0;
         }
 
         #endregion

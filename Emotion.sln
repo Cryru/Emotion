@@ -24,8 +24,8 @@ Global
 		{35D0FDAC-885A-4F6C-A976-B5165007946C}.Release-GLES|Any CPU.Build.0 = Release-GLES|Any CPU
 		{00F99B68-7274-421C-BBE7-A24B92AFAD48}.Debug-GLES|Any CPU.ActiveCfg = Debug-GLES|Any CPU
 		{00F99B68-7274-421C-BBE7-A24B92AFAD48}.Debug-GLES|Any CPU.Build.0 = Debug-GLES|Any CPU
-		{00F99B68-7274-421C-BBE7-A24B92AFAD48}.Release-GLES|Any CPU.ActiveCfg = Debug-GLES|Any CPU
-		{00F99B68-7274-421C-BBE7-A24B92AFAD48}.Release-GLES|Any CPU.Build.0 = Debug-GLES|Any CPU
+		{00F99B68-7274-421C-BBE7-A24B92AFAD48}.Release-GLES|Any CPU.ActiveCfg = Release-GLES|Any CPU
+		{00F99B68-7274-421C-BBE7-A24B92AFAD48}.Release-GLES|Any CPU.Build.0 = Release-GLES|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

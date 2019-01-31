@@ -34,8 +34,8 @@ namespace Emotion.Tests.Tests
 
             // Assert the file is as expected.
             Assert.IsTrue(Context.AssetLoader.Exists("Embedded/embedText.txt"));
-            Assert.AreEqual(1, textFile.Content.Length);
-            Assert.AreEqual("Hello, I am an embedded file ^^", textFile.Content[0]);
+            Assert.AreEqual(31, textFile.Content.Length);
+            Assert.AreEqual("Hello, I am an embedded file ^^", textFile.Content);
 
             // The asset should be considered loaded.
             Assert.IsTrue(Context.AssetLoader.LoadedAssets.Select(x => x.Name).Contains("Embedded/embedText.txt"));
@@ -78,8 +78,8 @@ namespace Emotion.Tests.Tests
             TextFile loremIpsum = customLoader.Get<TextFile>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
-            Assert.AreEqual(1, loremIpsum.Content.Length);
-            Assert.AreEqual("Lorem ipsum", loremIpsum.Content[0]);
+            Assert.AreEqual(11, loremIpsum.Content.Length);
+            Assert.AreEqual("Lorem ipsum", loremIpsum.Content);
 
             // Shouldn't exist in the other asset loader.
             Assert.IsFalse(Context.AssetLoader.Exists("LoremIpsum.txt"));
@@ -90,22 +90,22 @@ namespace Emotion.Tests.Tests
             loremIpsum = conflictLoader.Get<TextFile>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
-            Assert.AreEqual(1, loremIpsum.Content.Length);
-            Assert.AreEqual("Lorem ipsum", loremIpsum.Content[0]);
+            Assert.AreEqual(11, loremIpsum.Content.Length);
+            Assert.AreEqual("Lorem ipsum", loremIpsum.Content);
 
             // Modify the file, and reload.
             File.WriteAllText("OtherAssets\\LoremIpsum.txt", "Lorem Edited");
             loremIpsum = conflictLoader.Get<TextFile>("LoremIpsum.txt");
 
             // The file shouldn't have changed, as it is cached.
-            Assert.AreEqual(1, loremIpsum.Content.Length);
-            Assert.AreEqual("Lorem ipsum", loremIpsum.Content[0]);
+            Assert.AreEqual(11, loremIpsum.Content.Length);
+            Assert.AreEqual("Lorem ipsum", loremIpsum.Content);
 
             // Delete. Reload, and check for change.
             conflictLoader.Destroy("LoremIpsum.txt");
             loremIpsum = conflictLoader.Get<TextFile>("LoremIpsum.txt");
-            Assert.AreEqual(1, loremIpsum.Content.Length);
-            Assert.AreEqual("Lorem Edited", loremIpsum.Content[0]);
+            Assert.AreEqual(12, loremIpsum.Content.Length);
+            Assert.AreEqual("Lorem Edited", loremIpsum.Content);
 
             // Only one file should exists.
             Assert.AreEqual(1, conflictLoader.AllAssets.Length);

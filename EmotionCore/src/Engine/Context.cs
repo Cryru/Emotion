@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,7 +16,6 @@ using Emotion.Engine.Configuration;
 using Emotion.Engine.Hosting;
 using Emotion.Engine.Hosting.Desktop;
 using Emotion.Engine.Scenography;
-using Emotion.External;
 using Emotion.Graphics;
 using Emotion.Graphics.Base;
 using Emotion.Input;
@@ -187,6 +187,11 @@ namespace Emotion.Engine
             Log.Info("-------------------------------", MessageSource.Engine);
             Log.Info("Bootstrap complete.", MessageSource.Engine);
 
+            // Asset loader is loaded first so we can access the IO. It doesn't depend on anything.
+            Log.Info($"Loading IO. Root directory is {Flags.AssetRootDirectory} and additional asset assemblies are [{string.Join(", ", Flags.AdditionalAssetAssemblies.Select(x => x.ToString()))}].",
+                MessageSource.Engine);
+            AssetLoader = new AssetLoader(Flags.AssetRootDirectory, Flags.AdditionalAssetAssemblies);
+
             // Apply settings and run initial setup function.
             Settings initial = new Settings();
             config?.Invoke(initial);
@@ -196,7 +201,7 @@ namespace Emotion.Engine
             if (Host == null)
                 try
                 {
-                    Log.Trace("Creating host...", MessageSource.Engine);
+                    Log.Info("Creating host...", MessageSource.Engine);
                     if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
                     {
                         Host = new OtkWindow();
@@ -228,10 +233,6 @@ namespace Emotion.Engine
             // Scripting engine is first to provide the other modules the ability to expose functions.
             Log.Info("Creating scripting engine...", MessageSource.Engine);
             ScriptingEngine = new ScriptingEngine();
-
-            // Asset loader is next so other modules - especially the renderer, can access the file system.
-            Log.Info("Creating asset loader...", MessageSource.Engine);
-            AssetLoader = new AssetLoader(Flags.AssetRootDirectory, Flags.AdditionalAssetAssemblies);
 
             // The order of the next modules doesn't matter.
 

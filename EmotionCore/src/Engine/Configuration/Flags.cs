@@ -54,6 +54,11 @@ namespace Emotion.Engine.Configuration
         public int SoundThreadFrequency { get; set; } = 50;
 
         /// <summary>
+        /// Whether to crash when an error is encountered. If a debugger is attached it will break at the specified location.
+        /// </summary>
+        public bool CrashOnError { get; set; } = true;
+
+        /// <summary>
         /// Read only. The scaled width to fit host resolution. Takes margins into account and is calculated on resize.
         /// </summary>
         public float ScaleResX = 0;

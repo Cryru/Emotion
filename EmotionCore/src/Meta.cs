@@ -2,6 +2,9 @@
 
 namespace Emotion
 {
+    /// <summary>
+    /// Meta information about the engine.
+    /// </summary>
     public static class Meta
     {
         /// <summary>

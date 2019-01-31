@@ -8,13 +8,19 @@ using System.Text;
 
 namespace Emotion.IO
 {
-    public sealed class TextFile : Asset
+    /// <summary>
+    /// A text file asset.
+    /// </summary>
+    public class TextFile : Asset
     {
-        public string[] Content { get; private set; }
+        /// <summary>
+        /// The context of the text file.
+        /// </summary>
+        public string Content { get; private set; }
 
         internal override void CreateAsset(byte[] data)
         {
-            Content = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "").Split('\n');
+            Content = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
         }
 
         internal override void DestroyAsset()

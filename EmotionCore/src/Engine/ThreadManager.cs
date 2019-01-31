@@ -18,6 +18,11 @@ namespace Emotion.Engine
         #region Properties
 
         /// <summary>
+        /// Whether the manager has been bound to a thread.
+        /// </summary>
+        public bool IsBound { get; private set; }
+
+        /// <summary>
         /// The name of the thread being managed.
         /// </summary>
         public string ThreadName { get; private set; }
@@ -63,6 +68,7 @@ namespace Emotion.Engine
         {
             _threadId = Thread.CurrentThread.ManagedThreadId;
             if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = ThreadName;
+            IsBound = true;
         }
 
         /// <summary>

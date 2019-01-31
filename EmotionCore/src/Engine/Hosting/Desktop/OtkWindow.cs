@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Debug;
 using Emotion.Engine.Configuration;
 using Emotion.Graphics;
 using Emotion.Libraries;
@@ -59,6 +60,9 @@ namespace Emotion.Engine.Hosting.Desktop
         private static long _prevTick;
         private static TimeSpan _maxDelta = TimeSpan.FromMilliseconds(100);
 
+        private static int _openGLMajorVersion = 1;
+        private static int _openGLMinorVersion;
+
         #endregion
 
         /// <inheritdoc />
@@ -67,6 +71,22 @@ namespace Emotion.Engine.Hosting.Desktop
 #if DEBUG
             // Debug context breaks on Macs.
             if (CurrentPlatform.OS != PlatformName.Mac) _contextMode = GraphicsContextFlags.Debug;
+
+            // Check if the RenderDoc debugger is attached. In this case we need to create a specific context version otherwise it won't work.
+            if (CurrentPlatform.OS == PlatformName.Windows)
+                if (Windows.GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
+                {
+                    Engine.Context.Log.Warning("Detected render doc. Changing OpenGL version to 3.3 rather than auto detect.", MessageSource.Engine);
+                    _openGLMajorVersion = 3;
+                    _openGLMinorVersion = 3;
+                }
+
+            // Mac doesn't create highest possible context when passing 1.0 :(
+            if (CurrentPlatform.OS == PlatformName.Mac)
+            {
+                _openGLMajorVersion = 3;
+                _openGLMinorVersion = 3;
+            }
 #endif
         }
 
@@ -74,7 +94,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// An OpenTK window host. Is created automatically.
         /// </summary>
         public OtkWindow() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
-            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, _contextMode, null, true)
+            GameWindowFlags.Default, DisplayDevice.Default, _openGLMajorVersion, _openGLMinorVersion, _contextMode, null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
             _inputManager = new OtkInputManager(this);
@@ -100,7 +120,7 @@ namespace Emotion.Engine.Hosting.Desktop
         public void ApplySettings(HostSettings settings)
         {
             // OSX and Linux error if settings are updated on another thread.
-            if (!_isFirstApplySettings && (!GLThread.IsGLThread() || CurrentPlatform.OS != PlatformName.Windows))
+            if (!_isFirstApplySettings && !GLThread.IsGLThread())
                 Task.Run(() => GLThread.ExecuteGLThread(() => InternalApplySettings(settings)));
             else
                 InternalApplySettings(settings);
@@ -120,7 +140,12 @@ namespace Emotion.Engine.Hosting.Desktop
                         WindowState = WindowState.Normal;
                         Width = DisplayDevice.Default.Width;
                         Height = DisplayDevice.Default.Height;
-                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
+                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings)
+                        {
+                            _isFirstApplySettings = false;
+                            return;
+                        }
+
                         X = 0;
                         Y = 0;
                         break;
@@ -133,7 +158,12 @@ namespace Emotion.Engine.Hosting.Desktop
                         WindowState = WindowState.Normal;
                         Width = settings.Width;
                         Height = settings.Height;
-                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings) return;
+                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings)
+                        {
+                            _isFirstApplySettings = false;
+                            return;
+                        }
+
                         X = DisplayDevice.Default.Width / 2 - settings.Width / 2;
                         Y = DisplayDevice.Default.Height / 2 - settings.Height / 2;
                         break;

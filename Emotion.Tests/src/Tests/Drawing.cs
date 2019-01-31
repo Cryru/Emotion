@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Emotion.Engine;
 using Emotion.Graphics;
 using Emotion.Graphics.Base;
-using Emotion.Graphics.Objects;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Tests.Interoperability;
@@ -302,7 +301,7 @@ namespace Emotion.Tests.Tests
             TestHost host = TestInit.TestingHost;
 
             // Shader to test shader drawing.
-            ShaderProgram testShader = new ShaderProgram(null, @"#version 300 es
+            ShaderProgram testShader = GraphicsManager.CreateShaderProgram(null, @"#version 300 es
 
 #ifdef GL_ES
 precision highp float;

@@ -63,7 +63,7 @@ namespace Emotion.Tests.Interoperability
 
         /// <inheritdoc />
         internal TestHost() : base(960, 540, GraphicsMode.Default, "Emotion Desktop Host",
-            GameWindowFlags.Default, DisplayDevice.Default, Engine.Context.Flags.RenderFlags.OpenGLMajorVersion, Engine.Context.Flags.RenderFlags.OpenGLMinorVersion, GraphicsContextFlags.Offscreen,
+            GameWindowFlags.Default, DisplayDevice.Default, 1, 0, GraphicsContextFlags.Debug,
             null, true)
         {
             OnUpdateThreadStarted += (a, b) => Thread.CurrentThread.Name = "Update Thread";
