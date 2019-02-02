@@ -88,6 +88,11 @@ namespace Emotion.Engine.Hosting.Desktop
                 _openGLMajorVersion = 3;
                 _openGLMinorVersion = 3;
             }
+
+            Toolkit.Init(new ToolkitOptions()
+            {
+                Backend = PlatformBackend.PreferNative
+            });
         }
 
         /// <summary>

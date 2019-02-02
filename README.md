@@ -105,12 +105,12 @@ The latest build is always tested on the configurations listed as `Primary`.
   - Nvidia 940MX `(Primary)`
   - AMD R9 200
   - 970M
-- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 262) Feb 1st`
+- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 267) Feb 2nd`
   - OpenGL MESA Driver
-- Linux Mint 19.1 `(Last Test On: Build 262) Feb 1st`
+- Linux Mint 19.1 `(Last Test On: Build 267) Feb 2nd`
   - Nvidia 1060
-- MacOS X High-Sierra x64 `(Last Test On: Build 263) Feb 2nd`
-- MacOS X 18.5 Mountain Lion x64 `(Last Test On: Build 263) Feb 2nd`
+- MacOS X High-Sierra x64 `(Last Test On: Build 267) Feb 2nd`
+- MacOS X 18.5 Mountain Lion x64 `(Last Test On: Build 267) Feb 2nd`
 
 ### Theoretical Platforms:
 
