@@ -12,7 +12,6 @@ using Emotion.Game.UI.Layout;
 using Emotion.Graphics.Base;
 using Emotion.Graphics.Text;
 using Emotion.Primitives;
-using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
@@ -200,11 +199,9 @@ namespace Emotion.Graphics
         /// </summary>
         internal void Clear()
         {
-            // Restore bound state. 
+            // Restore states. 
             GraphicsManager.ResetState();
-
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GLThread.CheckError("clear");
+            GraphicsManager.ClearScreen();
 
             // Update the current camera.
             Camera.Update();

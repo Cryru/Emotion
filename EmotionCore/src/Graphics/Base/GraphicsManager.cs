@@ -182,7 +182,6 @@ namespace Emotion.Graphics.Base
             }
 
             // Flag missing extensions.
-            // todo: This check might not be needed anymore.
             int extCount = GL.GetInteger(GetPName.NumExtensions);
             bool found = false;
             for (int i = 0; i < extCount; i++)
@@ -194,6 +193,7 @@ namespace Emotion.Graphics.Base
             }
 
             if (found) return;
+            // If shader version 400 is supported enable it. It should replace the need for that extension.
             if (OpenGLMajorVersion >= 4)
             {
                 Context.Log.Warning("The extension GL_ARB_GPU_SHADER5 was not found. Shader version changed from '300 es` to 400'.", MessageSource.GL);
@@ -262,6 +262,31 @@ namespace Emotion.Graphics.Base
 
                 GLThread.CheckError("setting depth test");
             });
+        }
+
+        /// <summary>
+        /// Set the viewport within the window.
+        /// </summary>
+        /// <param name="x">X position of the viewport.</param>
+        /// <param name="y">Y position of the viewport.</param>
+        /// <param name="width">Width of the viewport.</param>
+        /// <param name="height">Height of the viewport.</param>
+        public static void SetViewport(int x, int y, int width, int height)
+        {
+            GLThread.ExecuteGLThread(() =>
+            {
+                GL.Viewport(x, y, width, height);
+                GL.Scissor(x, y, width, height);
+            });
+        }
+
+        /// <summary>
+        /// Clears the framebuffer. Must be run on the GL thread.
+        /// </summary>
+        public static void ClearScreen()
+        {
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GLThread.CheckError("clear");
         }
 
         #endregion

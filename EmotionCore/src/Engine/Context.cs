@@ -23,7 +23,6 @@ using Emotion.IO;
 using Emotion.Libraries;
 using Emotion.Libraries.Steamworks;
 using Emotion.Sound;
-using OpenTK.Graphics.ES30;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
@@ -548,8 +547,7 @@ namespace Emotion.Engine
             int vpY = (int) (Host.Size.Y / 2 - height / 2);
 
             // Set viewport.
-            GL.Viewport(vpX, vpY, (int) width, (int) height);
-            GL.Scissor(vpX, vpY, (int) width, (int) height);
+            GraphicsManager.SetViewport(vpX, vpY, (int) width, (int) height);
 
             // Cache calculations in case someone needs to use them.
             Flags.ScaleResX = width;
