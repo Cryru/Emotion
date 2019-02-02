@@ -120,11 +120,7 @@ namespace Emotion.Engine.Hosting.Desktop
             // Check for fullscreen toggling key combo.
             if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
             {
-                // Borderless breaks on Mac and Linux for some reason.
-                if (CurrentPlatform.OS != PlatformName.Windows)
-                    Context.Settings.HostSettings.WindowMode = Context.Settings.HostSettings.WindowMode == WindowMode.Fullscreen ? WindowMode.Windowed : WindowMode.Fullscreen;
-                else
-                    Context.Settings.HostSettings.WindowMode = Context.Settings.HostSettings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
+                Context.Settings.HostSettings.WindowMode = Context.Settings.HostSettings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
 
                 Context.Host.ApplySettings(Context.Settings.HostSettings);
             }
