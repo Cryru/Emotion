@@ -19,7 +19,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
   - 3.3 Core on MacOS
 - GLSL Support Options
   - 300 es support on Windows or Linux
-  - 300 support on MacOS
+  - 330 support on MacOS
 
 ## Features So Far
 
@@ -168,6 +168,8 @@ System.Numerics : Vector and matrix math.
     - libsteam_api.so x64
     - steam_api.dll x86
     - steam_api64.dll x64
+	
+[SeriLog](https://serilog.net/) : Logging
 
 ## Inspired By
 

@@ -55,6 +55,18 @@
     <Reference Include="OpenTK, Version=3.0.1.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTK.3.0.1\lib\net20\OpenTK.dll</HintPath>
     </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.8.0\lib\net46\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.Async, Version=1.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.Async.1.3.0\lib\net45\Serilog.Sinks.Async.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.Console, Version=3.1.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.Console.3.1.1\lib\net45\Serilog.Sinks.Console.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.File, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.File.4.0.0\lib\net45\Serilog.Sinks.File.dll</HintPath>
+    </Reference>
     <Reference Include="SharpFont, Version=4.0.1.200, Culture=neutral, PublicKeyToken=48add4c483071cdf, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
@@ -117,6 +129,7 @@
     <Compile Include="Libraries\TiledSharp\zlib\ZlibStream.cs" />
     <Compile Include="Libraries\Unix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Debug\Logging\LegacyLogger.cs" />
     <Compile Include="src\Debug\Logging\NetworkLogger.cs" />
     <Compile Include="src\Debug\Logging\DefaultLogger.cs" />
     <Compile Include="src\Debug\Logging\LoggingProvider.cs" />
