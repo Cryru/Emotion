@@ -106,7 +106,8 @@ namespace Emotion.Graphics.Base
 
             // Get version.
             string versionString = GL.GetString(StringName.Version);
-            string[] version = versionString.Substring(0, versionString.IndexOf('-')).Split('.');
+            Context.Log.Info($"GL: {versionString} on {GL.GetString(StringName.Renderer)}", MessageSource.GL);
+            string[] version = versionString.Substring(0, versionString.IndexOf(' ')).Split('.');
             if (version.Length > 0)
             {
                 bool parsed = int.TryParse(version[0].Trim(), out int majorVer);
@@ -131,7 +132,6 @@ namespace Emotion.Graphics.Base
 
             // Diagnostic dump.
             Context.Log.Info($"Creating GraphicsManager. Detected OGL is {OpenGLMajorVersion}.{OpenGLMinorVersion}", MessageSource.GL);
-            Context.Log.Info($"GL: {versionString} on {GL.GetString(StringName.Renderer)}", MessageSource.GL);
             Context.Log.Info($"GLSL: {GL.GetString(StringName.ShadingLanguageVersion)}", MessageSource.GL);
 
             // Set execution flags, used for abstracting different GPU behavior.
