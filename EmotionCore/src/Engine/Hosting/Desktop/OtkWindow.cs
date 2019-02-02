@@ -225,14 +225,14 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <inheritdoc />
         protected override void OnResize(EventArgs e)
         {
-            _resizeHook();
+            _resizeHook?.Invoke();
         }
 
         /// <inheritdoc />
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
-            _closeHook();
+            _closeHook?.Invoke();
         }
 
         #endregion
