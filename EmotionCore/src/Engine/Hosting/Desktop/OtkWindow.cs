@@ -160,7 +160,7 @@ namespace Emotion.Engine.Hosting.Desktop
                         WindowState = WindowState.Fullscreen;
                         break;
                     default:
-                        WindowBorder = WindowBorder.Fixed;
+                        WindowBorder = WindowBorder.Resizable;
                         WindowState = WindowState.Normal;
                         Width = settings.Width;
                         Height = settings.Height;
