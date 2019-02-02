@@ -15,14 +15,11 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 
 - At least .Net Framework 4.6.2 or the equivalent Mono runtime.
 - OpenGL Support
-  - OpenGL ES 3
-  - 3.3 Core on MacOS, Windows and Linux (This means it won't run on Linux VMs)
+  - At least 3.0 on Windows and Linux, but it has shown to work on older versions.
+  - 3.3 Core on MacOS
 - GLSL Support Options
   - 300 es support on Windows or Linux
   - 300 support on MacOS
-- Dynamically Uniform Expression Support Options
-  - The "GL_ARB_gpu_shader5" extension
-  - GLSL 400 on Windows or Linux
 
 ## Features So Far
 
@@ -52,6 +49,7 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
     - Includes advanced font drawing with control over each individual glyph.
     - Extensible Richtext class featuring auto wrapping, alignment, markup, and more.
   - Draw arbitrary vertices, the wrapper gives you control over your own model matrix and buffers.
+  - Easy shader creation with fallbacks and helper uniforms.
 - Sound engine with fading effects.
   - Play on multiple layers with individual control over them.
   - Queue sounds one after another.
@@ -107,16 +105,16 @@ The latest build is always tested on the configurations listed as `Primary`.
   - Nvidia 940MX `(Primary)`
   - AMD R9 200
   - 970M
-- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 248) Jan 12th`
-  - OpenGL MESA Driver (Despite it supporting only a lower version of OpenGL than required.)
-- Linux Mint 19.1 `(Last Test On: Build 248) Jan 12th`
+- Ubuntu Xenial-Xerus x64 `(Last Test On: Build 262) Feb 1st`
+  - OpenGL MESA Driver
+- Linux Mint 19.1 `(Last Test On: Build 262) Feb 1st`
   - Nvidia 1060
-- MacOS X High-Sierra x64 `(Last Test On: Build 256) Jan 21st`
-- MacOS X 18.5 Mountain Lion x64 `(Last Test On: Build 256) Jan 21st`
+- MacOS X High-Sierra x64 `(Last Test On: Build 262) Feb 1st`
+- MacOS X 18.5 Mountain Lion x64 `(Last Test On: Build 262) Feb 1st`
 
-### Supported Platforms:
+### Theoretical Platforms:
 
-Due to lack of developers or testers, these platforms are considered technically supported.
+It should run on these platforms as well, but they are only technically supported due to lack of testing.
 
 - Windows Vista/7/8/8.1 x64/x86
 - Debian 9+ x64
