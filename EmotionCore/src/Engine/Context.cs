@@ -154,7 +154,7 @@ namespace Emotion.Engine
             // Initialize debugger.
             Debugger.Initialize();
 
-            Log.Info($"Starting Emotion v{Meta.Version}", MessageSource.Engine);
+            Log.Info($"Starting Emotion v{Meta.FullVersion}", MessageSource.Engine);
 
 #if !DEBUG
             try
