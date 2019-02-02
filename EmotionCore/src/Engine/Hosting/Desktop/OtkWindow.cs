@@ -80,6 +80,7 @@ namespace Emotion.Engine.Hosting.Desktop
                     _openGLMajorVersion = 3;
                     _openGLMinorVersion = 3;
                 }
+#endif
 
             // Mac doesn't create highest possible context when passing 1.0 :(
             if (CurrentPlatform.OS == PlatformName.Mac)
@@ -87,7 +88,6 @@ namespace Emotion.Engine.Hosting.Desktop
                 _openGLMajorVersion = 3;
                 _openGLMinorVersion = 3;
             }
-#endif
         }
 
         /// <summary>
