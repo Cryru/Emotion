@@ -86,7 +86,7 @@ namespace Emotion.Game.Camera
                 ViewMatrix = Matrix4x4.Identity;
             else
                 ViewMatrix = Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4x4.CreateScale(Zoom) * Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z) *
-                             Matrix4x4.CreateTranslation(-(int) X, -(int) Y, Z);
+                             Matrix4x4.CreateTranslation(-X, -Y, Z);
 
             Context.Renderer?.UpdateCameraMatrix();
         }
