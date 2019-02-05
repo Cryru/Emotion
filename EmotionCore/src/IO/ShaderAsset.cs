@@ -74,7 +74,7 @@ namespace Emotion.IO
 
         internal override void DestroyAsset()
         {
-            if (!IsFallback) Shader.Delete();
+            if (!IsFallback) Shader?.Delete();
         }
     }
 }

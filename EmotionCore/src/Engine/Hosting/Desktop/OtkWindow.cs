@@ -89,7 +89,7 @@ namespace Emotion.Engine.Hosting.Desktop
                 _openGLMinorVersion = 3;
             }
 
-            Toolkit.Init(new ToolkitOptions()
+            Toolkit.Init(new ToolkitOptions
             {
                 Backend = PlatformBackend.PreferNative
             });
@@ -118,7 +118,6 @@ namespace Emotion.Engine.Hosting.Desktop
 
             Visible = true;
             OnLoad(EventArgs.Empty);
-            ProcessEvents();
         }
 
         /// <inheritdoc />
@@ -126,7 +125,7 @@ namespace Emotion.Engine.Hosting.Desktop
         {
             // OSX and Linux error if settings are updated on another thread.
             if (!_isFirstApplySettings && !GLThread.IsGLThread())
-                Task.Run(() => GLThread.ExecuteGLThread(() => InternalApplySettings(settings)));
+                Task.Run(() => GLThread.ExecuteGLThread(() => InternalApplySettings(settings))).Wait();
             else
                 InternalApplySettings(settings);
         }
@@ -137,14 +136,13 @@ namespace Emotion.Engine.Hosting.Desktop
             {
                 Title = settings.Title;
 
+                WindowMode windowMode = settings.WindowMode;
+
                 // Borderless breaks on Linux for some reason.
-                if (CurrentPlatform.OS == PlatformName.Linux && settings.WindowMode == WindowMode.Borderless)
-                {
-                    settings.WindowMode = WindowMode.Fullscreen;
-                }
+                if (CurrentPlatform.OS == PlatformName.Linux && windowMode == WindowMode.Borderless) windowMode = WindowMode.Fullscreen;
 
                 // Apply window mode.
-                switch (settings.WindowMode)
+                switch (windowMode)
                 {
                     case WindowMode.Borderless:
                         WindowBorder = WindowBorder.Hidden;
@@ -161,7 +159,6 @@ namespace Emotion.Engine.Hosting.Desktop
                         Y = 0;
                         break;
                     case WindowMode.Fullscreen:
-                        WindowBorder = WindowBorder.Fixed;
                         WindowState = WindowState.Fullscreen;
                         break;
                     default:
@@ -181,10 +178,9 @@ namespace Emotion.Engine.Hosting.Desktop
                 }
 
                 _isFirstApplySettings = false;
-
-                // Process resulting events.
-                ProcessEvents();
             }
+
+            _resizeHook?.Invoke();
         }
 
         /// <inheritdoc />
@@ -236,6 +232,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <inheritdoc />
         protected override void OnClosing(CancelEventArgs e)
         {
+            Visible = false;
             base.OnClosing(e);
             _closeHook?.Invoke();
         }

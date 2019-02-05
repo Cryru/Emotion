@@ -52,7 +52,7 @@ namespace Emotion.Graphics.Base
         /// <inheritdoc />
         public override void Delete()
         {
-            GL.DeleteProgram(Id);
+            GLThread.ExecuteGLThread(() => { GL.DeleteProgram(Id); });
         }
 
         /// <inheritdoc />
