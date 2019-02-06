@@ -262,11 +262,12 @@ namespace Emotion.Graphics.Base
             Vector2 ppUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), texture.TextureMatrix);
             Vector2 npUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
 
-            float a = 0.00001f;
-            nnUV = new Vector2(nnUV.X + a, nnUV.Y + a);
-            pnUV = new Vector2(pnUV.X - a, pnUV.Y - a);
-            ppUV = new Vector2(ppUV.X - a, ppUV.Y - a);
-            npUV = new Vector2(npUV.X + a, npUV.Y + a);
+            // Add a small epsilon to prevent the wrong UVs from being sampled.
+            float epsilon = 0.0000001f;
+            nnUV = new Vector2(nnUV.X + epsilon, nnUV.Y + epsilon);
+            pnUV = new Vector2(pnUV.X - epsilon, pnUV.Y - epsilon);
+            ppUV = new Vector2(ppUV.X - epsilon, ppUV.Y - epsilon);
+            npUV = new Vector2(npUV.X + epsilon, npUV.Y + epsilon);
 
             // Calculate vert positions.
             Vector3 pnV = new Vector3(position.X + size.X, position.Y, position.Z);

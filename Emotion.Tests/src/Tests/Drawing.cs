@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Engine;
+using Emotion.Game.Tiled;
 using Emotion.Graphics;
 using Emotion.Graphics.Base;
 using Emotion.Graphics.Text;
@@ -44,7 +45,7 @@ namespace Emotion.Tests.Tests
             // Create scene for this test.
             ExternalScene extScene = new ExternalScene
             {
-                // This will test loading testing in another thread.
+                // This will test loading textures in another thread as well.
                 ExtLoad = () =>
                 {
                     foreach (string t in textures)
@@ -123,7 +124,7 @@ namespace Emotion.Tests.Tests
             Helpers.LoadScene(extScene);
 
             // Check if what is currently on screen is what is expected.
-            Assert.AreEqual("/0r3NzR0HB+t6UfGxLiIWhAdghVnnlb0F8hTbmFutQU=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("WhIPfrDL9G7FutgfbdLwkvErNZ3nIhKTmii4MyFPxjs=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();
@@ -282,7 +283,7 @@ namespace Emotion.Tests.Tests
             // Check if what is currently on screen is what is expected.
             // This render is not 100% correct though, the hearts on the right for instance shouldn't be smooth as it is an alternating 0-1 chain.
             // This has to do with the DepthFunc being set to GL_Always.
-            Assert.AreEqual("J0m0+IMHE2dtLnk1OLyKCS/YDqka8q79YmJ66P0Fzjw=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("gi8TRT7aq17XF5WTazmGxbVK9FBF/assEXjltKZ6PXI=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();
@@ -449,9 +450,8 @@ void main() {
 
             // Load scene.
             Helpers.LoadScene(extScene);
-
             // Check if what is currently on screen is what is expected.
-            Assert.AreEqual("SfWiHfUEc5BBSpivGu4jLUCwxO6GsXEGD+mr4IC1CFs=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("G2uCdtFoRuVtLMC60tkguhP8lk9ej31oChJ5140X/9g=", host.TakeScreenshot().Hash());
 
             // Remap the first square and the tenth in the color barf buffer to test arbitrary remapping.
             colorBarfBuffer.MapQuadAt(0, new Vector3(0, 0, 1), new Vector2(5, 5), new Color(255, 255, 255));
@@ -460,13 +460,13 @@ void main() {
             // Run a cycle (two for double buffering) to draw the changed map.
             host.RunCycle();
             host.RunCycle();
-            Assert.AreEqual("R/Avj2tjahUl4v4ans2vk5feOWUM+QJ2ec41i9Go6sI=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("+prYw3jrK5WBli9tGqguFnbuSNRVEJ5dBk9Dq+ERGiM=", host.TakeScreenshot().Hash());
 
             // Set render range, and test rendering with that.
             colorBarfBuffer.SetRenderRange(0, 10);
             host.RunCycle();
             host.RunCycle();
-            Assert.AreEqual("Ew/b2KiGeLLzJuUvKW674tk2wvwy3UxYHjeBgMednqk=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("+RRFbZmz6x26rvS/ObzmBSE2tmCfwp2IA0mzb58qXIs=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();
@@ -475,6 +475,63 @@ void main() {
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/logoAlpha.png"));
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/standardPng.png"));
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/standardGif.gif"));
+        }
+
+        
+        /// <summary>
+        /// Test whether the scaling of the window compared to the render resolution works as excepted, and whether UV sampling is correct on certain scaled when rending a tilemap with borders.
+        /// This test exists and verifies whether a specific issue was fixed and has not appeared again.
+        /// </summary>
+        [TestMethod]
+        public void WeirdTileMapScalingTest()
+        {
+            // Get the host.
+            TestHost host = TestInit.TestingHost;
+
+            Map tileMap = null;
+
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
+            {
+                // Create a tilemap with a tileset which has 1px white borders on all sides of each tile.
+                ExtLoad = () =>
+                {
+                    // Change the resolution to one in which the scaling issue appears.
+                    Context.Settings.HostSettings.Width = 1008;
+                    Context.Settings.HostSettings.Height = 594;
+                    host.ApplySettings(Context.Settings.HostSettings);
+
+                    tileMap = new Map(Vector3.Zero, Vector2.Zero, Context.AssetLoader, "Tilemap/DeepForest.tmx", "Tilemap/") {Size = new Vector2(600, 400)};
+                },
+                // Unload the map.
+                ExtUnload = () =>
+                {
+                    // Restore the resolution.
+                    Context.Settings.HostSettings.Width = 960;
+                    Context.Settings.HostSettings.Height = 540;
+                    host.ApplySettings(Context.Settings.HostSettings);
+
+                    tileMap.Reset("", "");
+                },
+                // Draw the map.
+                ExtDraw = () =>
+                {
+                    Context.Renderer.Render(tileMap);
+                }
+            };
+
+            // Load scene.
+            Helpers.LoadScene(extScene);
+
+            host.RunCycle(16);
+            // Check if what is currently on screen is what is expected.
+            Assert.AreEqual("zk5rIHsqC/0b6HokJoyDA/VeQP+QPvJviaTGCpvRQMY=", host.TakeScreenshot().Hash());
+
+            // Cleanup.
+            Helpers.UnloadScene();
+
+            // Ensure the tilemap was unloaded.
+            Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Tilemap/forest.png"));
         }
     }
 }

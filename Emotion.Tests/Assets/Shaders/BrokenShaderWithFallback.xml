@@ -1,0 +1,5 @@
+﻿<ShaderDescription>
+  <Vert>Shaders/NotAnActualShader.glsl</Vert>
+  <Frag>Shaders/NotAnActualShader.glsl</Frag>
+  <Fallback>Shaders/TestShader.xml</Fallback>
+</ShaderDescription>
