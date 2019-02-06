@@ -150,6 +150,8 @@ namespace Emotion.Game.Tiled
             // ti - The tile image, within the [ts] which represents the image of [tsOffset].
             //      tiUv - The rectangle where the [ti] is located within the [ts] texture.
 
+            Context.Renderer.Render(new Vector3(10, 10, 0), new Vector2(10, 10), new Color(255, 255, 255, 255), Tilesets[0]);
+
             // Go through all map layers.
             foreach (TmxLayer layer in TiledMap.Layers)
             {
@@ -179,8 +181,8 @@ namespace Emotion.Game.Tiled
                     // Modify for map size.
                     float ratioDifferenceX = Width / (TiledMap.TileWidth * TiledMap.Width);
                     float ratioDifferenceY = Height / (TiledMap.TileHeight * TiledMap.Height);
-                    tRect.Width *= ratioDifferenceX;
-                    tRect.Height *= ratioDifferenceY;
+                    tRect.Width *= ratioDifferenceX ;
+                    tRect.Height *= ratioDifferenceY ;
                     tRect.X *= ratioDifferenceX;
                     tRect.Y *= ratioDifferenceY;
 

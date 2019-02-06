@@ -534,13 +534,13 @@ namespace Emotion.Engine
             float targetAspectRatio = Settings.RenderSettings.Width / Settings.RenderSettings.Height;
 
             float width = Host.Size.X;
-            float height = (int) (width / targetAspectRatio + 0.5f);
+            float height = (int) (width / targetAspectRatio);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > Host.Size.Y)
             {
                 height = Host.Size.Y;
-                width = (int) (height * targetAspectRatio + 0.5f);
+                width = (int) (height * targetAspectRatio);
             }
 
             int vpX = (int) (Host.Size.X / 2 - width / 2);

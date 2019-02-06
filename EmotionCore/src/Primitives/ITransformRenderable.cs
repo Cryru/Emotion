@@ -17,10 +17,5 @@ namespace Emotion.Primitives
         /// The model matrix of the renderable.
         /// </summary>
         Matrix4x4 ModelMatrix { get; }
-
-        /// <summary>
-        /// The function which performs the rendering.
-        /// </summary>
-        void Render();
     }
 }

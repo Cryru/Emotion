@@ -262,6 +262,12 @@ namespace Emotion.Graphics.Base
             Vector2 ppUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), texture.TextureMatrix);
             Vector2 npUV = texture == null ? Vector2.Zero : Vector2.Transform(new Vector2(uv.X, uv.Y + uv.Height), texture.TextureMatrix);
 
+            float a = 0.00001f;
+            nnUV = new Vector2(nnUV.X + a, nnUV.Y + a);
+            pnUV = new Vector2(pnUV.X - a, pnUV.Y - a);
+            ppUV = new Vector2(ppUV.X - a, ppUV.Y - a);
+            npUV = new Vector2(npUV.X + a, npUV.Y + a);
+
             // Calculate vert positions.
             Vector3 pnV = new Vector3(position.X + size.X, position.Y, position.Z);
             Vector3 npV = new Vector3(position.X, position.Y + size.Y, position.Z);
