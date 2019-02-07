@@ -1,8 +1,8 @@
 ﻿# Get files in the folder.
-Set-Variable -Name files -Value (Get-ChildItem -Path ./bin/Debug-GLES -Recurse -File -Exclude "EmotionCore.dll")
+Set-Variable -Name files -Value (Get-ChildItem -Path ./bin/Debug-GLES -Recurse -File)
 
 [string[]] $result = @()
-[string[]] $exceptions = @("System.Numerics.Vectors.dll", "System.Numerics.Vectors.xml", "OpenTK.xml")
+[string[]] $exceptions = @("System.Numerics.Vectors.dll", "System.Numerics.Vectors.xml", "OpenTK.xml, "EmotionCore.dll")
 
 # Add header.
 $result += "<?xml version=`"1.0`" encoding=`"utf-8`"?>"

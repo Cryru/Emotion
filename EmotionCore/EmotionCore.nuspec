@@ -23,7 +23,7 @@
   <files>
 	<file src="bin\Debug-GLES\EmotionCore.dll" target="lib\net462" />
 	<file src="bin\Debug-GLES\EmotionCore.xml" target="lib\net462" />
-	<file src="bin\Debug-GLES\**" target="Build" />
+	<file src="bin\Debug-GLES\EmotionCore.pdb" target="lib\net462" />
 	<file src="Emotion.targets" target="Build" />
   </files>
 </package>
