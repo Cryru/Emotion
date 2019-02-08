@@ -20,6 +20,9 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 - GLSL Support Options
   - 300 es support on Windows or Linux
   - 330 support on MacOS
+- Visual C++ Redist 2010
+  - [x64](https://www.microsoft.com/es-es/download/details.aspx?id=14632)
+  - [x86](https://www.microsoft.com/en-us/download/details.aspx?id=5555)
 
 ## Features So Far
 

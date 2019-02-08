@@ -107,7 +107,9 @@ namespace Emotion.Graphics.Base
             // Get version.
             string versionString = GL.GetString(StringName.Version);
             Context.Log.Info($"GL: {versionString} on {GL.GetString(StringName.Renderer)}", MessageSource.GL);
-            string[] version = versionString.Substring(0, versionString.IndexOf(' ')).Split('.');
+            int spaceIndex = versionString.IndexOf(' ');
+            string[] version = new string[0];
+            if(spaceIndex != -1 ) version = versionString.Substring(0, spaceIndex).Split('.');
             if (version.Length > 0)
             {
                 bool parsed = int.TryParse(version[0].Trim(), out int majorVer);
