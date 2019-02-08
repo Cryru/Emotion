@@ -1,13 +1,14 @@
 ﻿# Get files in the folder.
 Set-Variable -Name files -Value (Get-ChildItem -Path ./bin/Debug-GLES -Recurse -File)
 
-[string[]] $result = @()
-[string[]] $exceptions = @("System.Numerics.Vectors.dll", "System.Numerics.Vectors.xml", "OpenTK.xml", "EmotionCore.dll")
+[string[]] $targetsPatch = @()
+[string[]] $exceptions = @("System.Numerics.Vectors.dll", "System.Numerics.Vectors.xml", "OpenTK.xml", "EmotionCore.dll", "EmotionCore.xml", "EmotionCore.pdb")
+[string[]] $nuSpecPatch = @()
 
 # Add header.
-$result += "<?xml version=`"1.0`" encoding=`"utf-8`"?>"
-$result += "<Project ToolsVersion=`"4.0`" xmlns=`"http://schemas.microsoft.com/developer/msbuild/2003`">"
-$result += "	<ItemGroup>"
+$targetsPatch += "<?xml version=`"1.0`" encoding=`"utf-8`"?>"
+$targetsPatch += "<Project ToolsVersion=`"4.0`" xmlns=`"http://schemas.microsoft.com/developer/msbuild/2003`">"
+$targetsPatch += "	<ItemGroup>"
 
 # Go through all files.
 Foreach ($file in $files) {
@@ -21,14 +22,17 @@ Foreach ($file in $files) {
 			<Link>" + $currentFilePath + "</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>";
-    $result += $targetsItem
+    $targetsPatch += $targetsItem
+
+    $nuSpecPatch += "<file src=`"bin\Debug-GLES\" + $currentFilePath + "`" target=`"Build`" />";
 }
 
-$result += "	</ItemGroup>"
-$result += "</Project>"
+$targetsPatch += "	</ItemGroup>"
+$targetsPatch += "</Project>"
 
-echo $result
+echo $targetsPatch
 
-$result | Out-File -FilePath "Emotion.targets"
+$targetsPatch | Out-File -FilePath "Emotion.targets"
+(Get-Content "EmotionCore.nuspec") -replace '<NugetPack.ps1 />', $nuSpecPatch | Set-Content "EmotionCore.nuspec"
 
 nuget pack .\EmotionCore.nuspec -Version $($env:APPVEYOR_BUILD_VERSION)
