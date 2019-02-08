@@ -86,8 +86,8 @@ namespace Emotion.Graphics.Base
 
         private static uint _defaultQuadIbo;
         private static ShaderProgram _defaultProgram;
-        private static uint _defaultFragShader;
-        private static uint _defaultVertShader;
+        private static string _defaultFragShader;
+        private static string _defaultVertShader;
 
         #endregion
 
@@ -598,6 +598,12 @@ namespace Emotion.Graphics.Base
         /// <returns>A shader program implementation.</returns>
         public static ShaderProgram CreateShaderProgram(string vert, string frag)
         {
+            // Set defaults if missing.
+            if (_defaultFragShader == null)
+                _defaultFragShader = frag;
+            if (_defaultVertShader == null)
+                _defaultVertShader = vert;
+
             uint vertId;
             uint fragId;
             ShaderProgram newProgram = null;
@@ -606,54 +612,41 @@ namespace Emotion.Graphics.Base
             {
                 if (string.IsNullOrEmpty(vert))
                 {
-                    vertId = _defaultVertShader;
+                    vert = _defaultVertShader;
                 }
-                else
-                {
-                    vertId = CompileShader(ShaderType.VertexShader, vert);
-                    if (vertId == 0)
-                    {
-                        newProgram = null;
-                        return;
-                    }
 
-                    ;
+                vertId = CompileShader(ShaderType.VertexShader, vert);
+                if (vertId == 0)
+                {
+                    newProgram = null;
+                    return;
                 }
 
                 if (string.IsNullOrEmpty(frag))
                 {
-                    fragId = _defaultFragShader;
+                    frag = _defaultFragShader;
                 }
-                else
-                {
-                    fragId = CompileShader(ShaderType.FragmentShader, frag);
-                    if (fragId == 0)
-                    {
-                        newProgram = null;
-                        return;
-                    }
 
-                    ;
+                fragId = CompileShader(ShaderType.FragmentShader, frag);
+                if (fragId == 0)
+                {
+                    newProgram = null;
+                    return;
                 }
+
+                newProgram = new GLShaderProgram(vertId, fragId);
+                
+                // Delete shaders.
+                GL.DeleteShader(fragId);
+                GL.DeleteShader(vertId);
 
                 // Save current as not to creation to override the shader.
                 ShaderProgram current = CurrentShader;
 
-                newProgram = new GLShaderProgram(vertId, fragId);
-
-                // Set defaults if missing.
-                if (_defaultFragShader == 0)
-                    _defaultFragShader = fragId;
-                else
-                    GL.DeleteShader(fragId);
-
-                if (_defaultVertShader == 0)
-                    _defaultVertShader = vertId;
-                else
-                    GL.DeleteShader(vertId);
-
                 // Set default uniform.
+                BindShaderProgram(newProgram);
                 newProgram.SetUniformIntArray("textures", Enumerable.Range(0, 15).ToArray());
+                newProgram.SetUniformFloat("time", 0);
 
                 // Restore bound.
                 BindShaderProgram(current);

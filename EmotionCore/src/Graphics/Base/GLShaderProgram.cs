@@ -38,10 +38,10 @@ namespace Emotion.Graphics.Base
             // Check linking status.
             string programStatus = GL.GetProgramInfoLog((int) Id);
             if (programStatus != "") Context.Log.Warning($"Failed to link shader program {Id} with shaders. Error is {programStatus}", MessageSource.GL);
-
-            GraphicsManager.BindShaderProgram(this);
+    
             GL.DetachShader((int) Id, (int) vertPointer);
             GL.DetachShader((int) Id, (int) fragPointer);
+
             GL.ValidateProgram(Id);
 
             GLThread.CheckError("making program and shaders");
@@ -63,6 +63,13 @@ namespace Emotion.Graphics.Base
 
             // If not, request it from OpenGL and cache it.
             uint location = (uint) GL.GetUniformLocation(Id, name);
+            GLThread.CheckError("getting uniform location");
+
+            if (location == uint.MaxValue)
+            {
+                Context.Log.Trace($"Incorrect shader uniform location {name} for shader {Id}.", MessageSource.GL);
+                return location;
+            }
             _uniformLocationsMap.Add(name, location);
 
             return location;
@@ -74,6 +81,7 @@ namespace Emotion.Graphics.Base
         public override void SetUniformMatrix4(string name, Matrix4x4 matrix4)
         {
             uint id = GetUniformLocation(name);
+            if (id == uint.MaxValue) return;
             unsafe
             {
                 float* matrixPtr = &matrix4.M11;
@@ -87,6 +95,7 @@ namespace Emotion.Graphics.Base
         public override void SetUniformInt(string name, int data)
         {
             uint id = GetUniformLocation(name);
+            if (id == uint.MaxValue) return;
             GL.Uniform1((int) id, data);
             GLThread.CheckError("setting int uniform");
         }
@@ -95,6 +104,7 @@ namespace Emotion.Graphics.Base
         public override void SetUniformFloat(string name, float data)
         {
             uint id = GetUniformLocation(name);
+            if (id == uint.MaxValue) return;
             GL.Uniform1((int) id, data);
             GLThread.CheckError("setting float uniform");
         }
@@ -103,6 +113,7 @@ namespace Emotion.Graphics.Base
         public override void SetUniformColor(string name, Color data)
         {
             uint id = GetUniformLocation(name);
+            if (id == uint.MaxValue) return;
             GL.Uniform4((int) id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f);
             GLThread.CheckError("setting color uniform");
         }
@@ -111,6 +122,7 @@ namespace Emotion.Graphics.Base
         public override void SetUniformIntArray(string name, int[] data)
         {
             uint id = GetUniformLocation(name);
+            if (id == uint.MaxValue) return;
             GL.Uniform1((int) id, data.Length, data);
             GLThread.CheckError("setting int array uniform");
         }

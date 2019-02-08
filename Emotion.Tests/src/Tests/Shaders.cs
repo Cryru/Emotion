@@ -85,7 +85,6 @@ namespace Emotion.Tests.Tests
             host.RunCycle(16);
 
             // Check if what is currently on screen is what is expected.
-            string o = host.TakeScreenshot().Hash();
             Assert.AreEqual("ARc+sjeja/e/8OH0dMxFgw6BdoVpZTOshst5wRTK6XA=", host.TakeScreenshot().Hash());
 
             // Change to phase 1. This is drawing with the test shader.
@@ -104,10 +103,12 @@ namespace Emotion.Tests.Tests
             shaderTest = 3;
             host.RunCycle(16);
             host.RunCycle(16);
-            Assert.AreEqual("ARc+sjeja/e/8OH0dMxFgw6BdoVpZTOshst5wRTK6XA=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("Ey0RkTMZYqJVJJIA4gU+8i80y8dhECqzCWKLksIjBpI=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();
+
+            Context.Renderer.SetShader();
 
             // Ensure the shaders are unloaded.
             Assert.AreEqual(shaders.Count, shaders.Select(x => x.Name).Except(Context.AssetLoader.LoadedAssets.Select(x => x.Name)).Count());

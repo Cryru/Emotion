@@ -21,6 +21,9 @@ void main() {
     vertColor = color;
     Tid = tid;
 
+    // Prevent culling of time uniform.
+    float t = time;
+
     // Multiply by projection.
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertPos, 1.0);
 }

@@ -21,6 +21,9 @@ void main() {
     vertColor = color;
     Tid = tid;
 
+    // Prevent culling of time uniform.
+    float t = time;
+
     vec3 vertTest = vertPos;
     vertTest.x += 30.0;
 

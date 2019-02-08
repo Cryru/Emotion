@@ -45,7 +45,7 @@ namespace Emotion.IO
                 Description = (ShaderDescription) Serializer.Deserialize(stream);
             }
 
-            TextFile vertShader = !string.IsNullOrEmpty(Description.Frag) ? Context.AssetLoader.Get<TextFile>(Description.Vert) : null;
+            TextFile vertShader = !string.IsNullOrEmpty(Description.Vert) ? Context.AssetLoader.Get<TextFile>(Description.Vert) : null;
             TextFile fragShader = !string.IsNullOrEmpty(Description.Frag) ? Context.AssetLoader.Get<TextFile>(Description.Frag) : null;
 
             Shader = GraphicsManager.CreateShaderProgram(vertShader?.Content, fragShader?.Content);
