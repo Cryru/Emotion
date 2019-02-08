@@ -24,7 +24,13 @@ Foreach ($file in $files) {
 		</None>";
     $targetsPatch += $targetsItem
 
-    $nuSpecPatch += "<file src=`"bin\Debug-GLES\" + $currentFilePath + "`" target=`"Build`" />";
+    $index = $currentFilePath.LastIndexOf("\");
+    $rootFolder = "";
+    if ($index -ne -1) {
+        $rootFolder = "\" + $currentFilePath.Substring(0, $currentFilePath.LastIndexOf("\"));
+    }
+
+    $nuSpecPatch += "<file src=`"bin\Debug-GLES\" + $currentFilePath + "`" target=`"Build" + $rootFolder + "`" />";
 }
 
 $targetsPatch += "	</ItemGroup>"
