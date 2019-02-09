@@ -525,7 +525,7 @@ void main() {
 
             host.RunCycle(16);
             // Check if what is currently on screen is what is expected.
-            Assert.AreEqual("zk5rIHsqC/0b6HokJoyDA/VeQP+QPvJviaTGCpvRQMY=", host.TakeScreenshot().Hash());
+            Assert.AreEqual("uLAbISpG/4uQd2O0wChRVBp3z7qlV+mTNyOGLVwGewc=", host.TakeScreenshot().Hash());
 
             // Cleanup.
             Helpers.UnloadScene();

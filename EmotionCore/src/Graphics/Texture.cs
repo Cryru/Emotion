@@ -48,6 +48,18 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Create a texture object from an already created OpenGL pointer.
+        /// </summary>
+        /// <param name="pointer"></param>
+        public Texture(uint pointer, Vector2 size)
+        {
+            Name = $"OpenGL Texture {pointer}";
+            Pointer = (int) pointer;
+            Size = size;
+            TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
+        }
+
+        /// <summary>
         /// Creates a texture from an image read as bytes using FreeImage.
         /// </summary>
         /// <param name="data">The image read as bytes.</param>
@@ -246,7 +258,6 @@ namespace Emotion.Graphics
         }
 
         #endregion
-
 
         #region Other
 

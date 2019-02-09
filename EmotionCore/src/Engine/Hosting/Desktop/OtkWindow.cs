@@ -139,7 +139,7 @@ namespace Emotion.Engine.Hosting.Desktop
                 WindowMode windowMode = settings.WindowMode;
 
                 // Borderless breaks on Linux for some reason.
-                if (CurrentPlatform.OS == PlatformName.Linux && windowMode == WindowMode.Borderless) windowMode = WindowMode.Fullscreen;
+                if ((CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac) && windowMode == WindowMode.Borderless) windowMode = WindowMode.Fullscreen;
 
                 // Apply window mode.
                 switch (windowMode)

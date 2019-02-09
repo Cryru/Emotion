@@ -4,11 +4,13 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.IO;
 using Emotion.Libraries;
+using Emotion.Primitives;
 using OpenTK.Graphics.ES30;
 
 #endregion
@@ -88,6 +90,9 @@ namespace Emotion.Graphics.Base
         private static ShaderProgram _defaultProgram;
         private static string _defaultFragShader;
         private static string _defaultVertShader;
+        private static uint _renderFBO;
+        private static Texture _renderFBOTexture;
+        private static Rectangle actualViewport = new Rectangle();
 
         #endregion
 
@@ -164,6 +169,42 @@ namespace Emotion.Graphics.Base
             _defaultQuadIbo = CreateDataBuffer();
             BindIndexBuffer(_defaultQuadIbo);
             UploadToIndexBuffer(indices);
+
+            // Create the FBO which rendering will be done to.
+            GL.GenFramebuffers(1, out _renderFBO);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderFBO);
+
+            // Create the texture.
+            GL.GenTextures(1, out uint renderTexture);
+            GL.BindTexture(TextureTarget.Texture2D, renderTexture);
+            GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgb, (int) Context.Settings.RenderSettings.Width, (int) Context.Settings.RenderSettings.Height, 0, PixelFormat.Rgb,
+                PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+
+            // Attach the texture to the frame buffer.
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, renderTexture, 0);
+
+            // Attach color components.
+            DrawBufferMode[] modes = {DrawBufferMode.ColorAttachment0};
+            GL.DrawBuffers(1, modes);
+
+            // Create depth buffer.
+            GL.GenRenderbuffers(1, out uint depthBuffer);
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferInternalFormat.DepthComponent16, (int)Context.Settings.RenderSettings.Width,
+                (int)Context.Settings.RenderSettings.Height);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
+
+            // Check status.
+            FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            if (status != FramebufferErrorCode.FramebufferComplete)
+            {
+                Context.Log.Warning($"Framebuffer creation failed. Error code {status}.", MessageSource.GL);
+            }
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            _renderFBOTexture = new Texture(renderTexture, new Vector2(Context.Settings.RenderSettings.Width, Context.Settings.RenderSettings.Height));
 
             // Set default state.
             DefaultGLState();
@@ -275,6 +316,8 @@ namespace Emotion.Graphics.Base
         /// <param name="height">Height of the viewport.</param>
         public static void SetViewport(int x, int y, int width, int height)
         {
+            actualViewport = new Rectangle(x, y, width, height);
+
             GLThread.ExecuteGLThread(() =>
             {
                 GL.Viewport(x, y, width, height);
@@ -289,6 +332,30 @@ namespace Emotion.Graphics.Base
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GLThread.CheckError("clear");
+
+            // Start rendering to the custom framebuffer.
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderFBO);
+            GL.Viewport(0, 0, (int) Context.Settings.RenderSettings.Width, (int) Context.Settings.RenderSettings.Height);
+            GL.Scissor(0, 0, (int) Context.Settings.RenderSettings.Width, (int) Context.Settings.RenderSettings.Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GLThread.CheckError("setting framebuffer");
+        }
+
+        /// <summary>
+        /// Flushes the internal FBO to the main FBO.
+        /// </summary>
+        public static void FlushBackbuffer()
+        {
+            // Restore the actual frame buffer.
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Viewport((int) actualViewport.X, (int) actualViewport.Y, (int) actualViewport.Width, (int) actualViewport.Height);
+            GL.Viewport((int) actualViewport.X, (int) actualViewport.Y, (int) actualViewport.Width, (int) actualViewport.Height);
+
+            // Render the internal fbo.
+            Context.Renderer.Render(Vector3.Zero, _renderFBOTexture.Size, Color.White, _renderFBOTexture);
+            Context.Renderer.Submit();
+
+            GLThread.CheckError("flushing framebuffer");
         }
 
         #endregion

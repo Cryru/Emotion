@@ -221,6 +221,9 @@ namespace Emotion.Graphics
 
             // Submit remaining rendered.
             Submit();
+
+            // Flush the internal FBO to the host.
+            GraphicsManager.FlushBackbuffer();
         }
 
         /// <summary>
