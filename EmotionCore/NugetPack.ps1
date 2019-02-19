@@ -41,4 +41,4 @@ echo $targetsPatch
 $targetsPatch | Out-File -FilePath "Emotion.targets"
 (Get-Content "EmotionCore.nuspec") -replace '<NugetPack.ps1 />', $nuSpecPatch | Set-Content "EmotionCore.nuspec"
 
-nuget pack .\EmotionCore.nuspec -Version $($env:APPVEYOR_BUILD_VERSION)
+nuget pack .\EmotionCore.nuspec -Version $($env:APPVEYOR_BUILD_VERSION) -Symbols -SymbolPackageFormat snupkg

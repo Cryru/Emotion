@@ -435,6 +435,31 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Draw an array of vertices and colors. The number of vertices must be divisible by 4, the number of colors must be equal to the vertices or 1.
+        /// </summary>
+        /// <param name="vertices">The array of vertices. They must form quads and therefore be a number divisible by 4. If providing triangles duplicate the first or last vertex.</param>
+        /// <param name="colors">An array of colors corresponding to the vertices. If only one color is provided it will be applied to all vertices.</param>
+        public void RenderVertices(Vector3[] vertices, params Color[] colors)
+        {
+            if (vertices.Length != colors.Length && colors.Length != 1)
+            {
+                Context.Log.Warning("Tried to render vertices but the number of vertices and colors don't match, and the colors are not one.", Debug.MessageSource.Renderer);
+                return;
+            }
+
+            if (vertices.Length % 4 != 0)
+            {
+                Context.Log.Warning("Tried to render vertices but the number of vertices is not divisible by 4. Emotion is optimized to draw quads.", Debug.MessageSource.Renderer);
+                return;
+            }
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                _mainBuffer.MapNextVertex(vertices[i], colors.Length == 1 ? colors[0] : colors[i]);
+            }
+        }
+
+        /// <summary>
         /// Submit all render commands so far.
         /// </summary>
         public void Submit()

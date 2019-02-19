@@ -477,7 +477,6 @@ void main() {
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/standardGif.gif"));
         }
 
-        
         /// <summary>
         /// Test whether the scaling of the window compared to the render resolution works as excepted, and whether UV sampling is correct on certain scaled when rending a tilemap with borders.
         /// This test exists and verifies whether a specific issue was fixed and has not appeared again.
@@ -532,6 +531,95 @@ void main() {
 
             // Ensure the tilemap was unloaded.
             Assert.AreEqual(null, Context.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Tilemap/forest.png"));
+        }
+
+        /// <summary>
+        /// Test whether drawing of arbitrary vertices works.
+        /// </summary>
+        [TestMethod]
+        public void DrawVertices()
+        {
+            // Get the host.
+            TestHost host = TestInit.TestingHost;
+
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
+            {
+                // Draw arbitrary vertices.
+                ExtDraw = () =>
+                {
+                    Vector3[] verts = new Vector3[]
+                    {
+                        new Vector3(0, 0, 0),
+                        new Vector3(0, 10, 0),
+                        new Vector3(10, 10, 0),
+                        new Vector3(10, 0, 0)
+                    };
+                    Color[] colors = new Color[]
+                    {
+                        Color.Red,
+                        Color.Green,
+                        Color.Blue,
+                        Color.Yellow
+                    };
+
+                    Context.Renderer.RenderVertices(verts, colors);
+
+                    Context.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(100, 100, 0));
+                    Context.Renderer.RenderVertices(verts, Color.White);
+                    Context.Renderer.PopModelMatrix();
+                }
+            };
+
+            // Load scene.
+            Helpers.LoadScene(extScene);
+
+            // Check if what is currently on screen is what is expected.
+            Assert.AreEqual("z+UiEr/opEzp5udxia9PXJLs9xxZADBATTrktrddxeA=", host.TakeScreenshot().Hash());
+
+            // Cleanup.
+            Helpers.UnloadScene();
+        }
+
+        /// <summary>
+        /// Test whether moving the default camera works.
+        /// </summary>
+        [TestMethod]
+        public void Camera()
+        {
+            // Get the host.
+            TestHost host = TestInit.TestingHost;
+
+            // Create scene for this test.
+            ExternalScene extScene = new ExternalScene
+            {
+                // Draw a random rectangle.
+                ExtDraw = () => { Context.Renderer.Render(new Vector3(100, 100, 0), new Vector2(10, 10), Color.White); }
+            };
+
+            // Load scene.
+            Helpers.LoadScene(extScene);
+
+            // Check if what is currently on screen is what is expected.
+            Assert.AreEqual("4aeGAioH1mnHXd/h0KdzEPYd7iXqiTUYMWHZfJ7Xd2w=", host.TakeScreenshot().Hash());
+
+            // Move the camera.
+            Context.Renderer.Camera.X += 50;
+            Context.Renderer.Camera.Y += 50;
+
+            // Wait for rerender.
+            host.RunCycle(16);
+            host.RunCycle(16);
+
+            // Check if updated as expected.
+            Assert.AreEqual("F0hGXWEiCQy1y1BsCtUgMXSJGy6+I5tl6sSd2qLBktc=", host.TakeScreenshot().Hash());
+
+            // Restore the camera.
+            Context.Renderer.Camera.X -= 50;
+            Context.Renderer.Camera.Y -= 50;
+
+            // Cleanup.
+            Helpers.UnloadScene();
         }
     }
 }

@@ -352,6 +352,8 @@ namespace Emotion.Graphics.Base
             GL.Viewport((int) actualViewport.X, (int) actualViewport.Y, (int) actualViewport.Width, (int) actualViewport.Height);
 
             // Render the internal fbo.
+            CurrentShader.SetUniformMatrix4("modelMatrix", Matrix4x4.Identity);
+            CurrentShader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
             Context.Renderer.Render(Vector3.Zero, _renderFBOTexture.Size, Color.White, _renderFBOTexture);
             Context.Renderer.Submit();
 

@@ -19,7 +19,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The location of the transform on the X-axis.
         /// </summary>
-        public float X
+        public virtual float X
         {
             get => _x;
             set
@@ -34,7 +34,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The location of the transform on the Y-axis.
         /// </summary>
-        public float Y
+        public virtual float Y
         {
             get => _y;
             set
@@ -49,7 +49,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The location of the transform on the Z-axis.
         /// </summary>
-        public float Z
+        public virtual float Z
         {
             get => _z;
             set
@@ -64,7 +64,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The width of the transform.
         /// </summary>
-        public float Width
+        public virtual float Width
         {
             get => _width;
             set
@@ -79,7 +79,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The height of the transform.
         /// </summary>
-        public float Height
+        public virtual float Height
         {
             get => _height;
             set
@@ -100,14 +100,14 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector3 Position
         {
-            get => new Vector3(_x, _y, _z);
+            get => new Vector3(X, Y, Z);
             set
             {
-                if (_x == value.X && _y == value.Y && _z == value.Z) return;
+                if (X == value.X && Y == value.Y && Z == value.Z) return;
 
-                _x = value.X;
-                _y = value.Y;
-                _z = value.Z;
+                X = value.X;
+                Y = value.Y;
+                Z = value.Z;
 
                 OnMove?.Invoke(this, EventArgs.Empty);
             }
@@ -118,13 +118,13 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 Size
         {
-            get => new Vector2(_width, _height);
+            get => new Vector2(Width, Height);
             set
             {
-                if (_width == value.X && _height == value.Y) return;
+                if (Width == value.X && Height == value.Y) return;
 
-                _width = value.X;
-                _height = value.Y;
+                Width = value.X;
+                Height = value.Y;
 
                 OnResize?.Invoke(this, EventArgs.Empty);
             }
@@ -135,7 +135,7 @@ namespace Emotion.Primitives
         /// </summary>
         public float RightSide
         {
-            get => _x + _width;
+            get => X + Width;
             set => X = value - Width;
         }
 
@@ -144,7 +144,7 @@ namespace Emotion.Primitives
         /// </summary>
         public float BottomSide
         {
-            get => _y + _height;
+            get => Y + Height;
             set => Y = value - Height;
         }
 
@@ -153,11 +153,11 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 Center
         {
-            get => new Vector2(_x + _width / 2, _y + _height / 2);
+            get => new Vector2(X + Width / 2, Y + Height / 2);
             set
             {
-                _x = (int) value.X - _width / 2;
-                _y = (int) value.Y - _height / 2;
+                X = (int) value.X - Width / 2;
+                Y = (int) value.Y - Height / 2;
 
                 OnMove?.Invoke(this, EventArgs.Empty);
             }
@@ -168,7 +168,7 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector2 CenterRelative
         {
-            get => new Vector2(_width / 2, _height / 2);
+            get => new Vector2(Width / 2, Height / 2);
         }
 
         #endregion
@@ -242,7 +242,7 @@ namespace Emotion.Primitives
         /// <returns>A rectangle which represents the transform.</returns>
         public Rectangle ToRectangle()
         {
-            return new Rectangle(_x, _y, _width, _height);
+            return new Rectangle(X, Y, Width, Height);
         }
 
         /// <summary>
