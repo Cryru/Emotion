@@ -81,21 +81,21 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 - Lots of configuration through settings and flags.
 - Steam integration.
 
-## How to develop for it?
+## Documentation
 
-1. Go on Nuget and add the "Emotion" package to your project.
-2. Write a game.
-3. Before releasing, download the release packet and use that instead of the nuget package.
+The documentation is still a work in progress.
 
-If interested you can use the visual debugger found here - [Rationale](https://github.com/Cryru/Rationale)
+* [Getting Started](./Documents/Start)
+* Modules
+  * [AssetLoader](./Documents/AssetLoader)
+    * [Shaders](./Documents/Shaders)
+  * [SoundManager](./Documents/SoundManager)
+* [Configuration](./Documents/Configuration)
+* [Special Thanks](./Documents/Thanks)
 
-### Resources
+For more information you can refer to the automated tests here - [Emotion.Tests](Emotion.Tests) or check the playground of examples here - [EmotionSandbox](https://github.com/Cryru/EmotionSandbox).
 
-You can refer to the unit tests for specific information here - [Emotion.Tests](Emotion.Tests).
-
-For a playground of examples go here - [EmotionSandbox](https://github.com/Cryru/EmotionSandbox).
-
-Detailed documentation is a work in progress [here](Documents).
+If interested you can use the visual debugger found here - [Rationale](https://github.com/Cryru/Rationale). Take note that it might not be up to date/work.
 
 ## Platforms
 

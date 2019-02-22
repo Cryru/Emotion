@@ -2,13 +2,9 @@
 
 #region Using
 
-using System.Numerics;
-using System.Threading.Tasks;
 using Emotion.Engine;
-using Emotion.Engine.Hosting.Desktop;
 using Emotion.Engine.Scenography;
 using Emotion.Graphics;
-using Emotion.Primitives;
 
 #endregion
 
@@ -29,12 +25,10 @@ namespace Emotion.ExecTest
 
         public override void Update(float frameTime)
         {
-          
         }
 
         public override void Draw(Renderer renderer)
         {
-
         }
 
         public override void Unload()

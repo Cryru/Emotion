@@ -24,3 +24,9 @@ Peter Jordanov
 Dimitar Ivanov
 Aleksandar Apostolov
 Simeon Andreev
+
+My Game Dev Team:
+
+Matthew Weekes - Thanks for believing in me <3
+Jack Sanderson
+Michael Becze

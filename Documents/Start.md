@@ -1,25 +1,16 @@
 # Getting Started
 
-Download the release or debug packages and include the `EmotionCore.dll` in your project. The other dlls and the library folder must be set to copy to the output directory.
-Include `Context.Setup()` in your main method. This prepares the engine and allows you to make sure of its APIs.
+First you have to add Emotion to your project. You can do this either by looking up "Emotion" on Nuget, or by downloading the debug/release packages from the ReadMe. If you opt for the second option you need to include the `EmotionCore.dll` in your project, and set all other files to copy to the output directory.
 
-## Engine Structure
+Once that's done invoke the `Context.Setup()` _(Emotion.Engine.Context)_ function. This loads libraries and performs platform dependent bootstrapping. 90% of the time this should be the first Emotion related function you invoke. After the setup you can now use Emotion APIs and modules, most of which are found as members of the Context class. 
 
-Game engines run on loops, usually there is an update and a draw loop which on some engines can either be one loop or run on different threads. These loops update the world state and perform rendering respectively. Some engines have additional loops like a physics simulation loop and so on.
+You can also pass a function which takes in a `Settings` _(Emotion.Engine.Configuration.Settings)_ class to the Setup to configure some user related properties. Another way to configure the engine is to use the `Context.Flags` property which will be loaded and available from the start. It includes some lower level settings and is much more volatile. For more information refer to the [Configuration](./Configuration.md) documentation.
 
-In Emotion there are the following loops:
+## Scenography
 
-- Logging (Constant) (LoggingThread)
-- Console Thread (Debug Only) (ConsoleThread)
-- Update (Run Every Tick) (GLThread)
-- Draw (Run Every Frame) (GLThread)
-- Audio (Constant) (ALThread)
+Your game code should be organized in objects called scenes. These objects have a load function which is ran at the start once, on another thread, and an update and draw function which will be executed as part of the draw loop. To create a scene you need to inherit the `Scene` _(Emotion.Engine.Scenography.Scene)_ class. Once you have created your scene all that is required for it to be loaded is invoking `Context.SceneManager.SetScene(new MainScene())`.
 
-## Layering
-
-In order to execute code on the update and draw loops you need to have a layer class. Each layer is a part of the user section of the loops, and they are run one after another based on their `Priority` property. Creating your own layer is as simple as inheriting the layer class.
-
-[Layer Class]("https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Game/Layering/Layer.cs")
+For more information refer to the [Scenography](./Scenography.md) documentation.
 
 ---
 Code Example:
@@ -28,43 +19,62 @@ Code Example:
 #region Using
 
 using Emotion.Engine;
-using Emotion.Game.Layering;
+using Emotion.Engine.Scenography;
 using Emotion.Graphics;
 
 #endregion
 
-namespace MyEmotionProject
+namespace MyGame
 {
-    internal class Program
-    {
-        public static void Main()
-        {
-            Context.Setup();
-        }
-    }
-
-    internal class MyLayer : Layer
+    public class MainScene : Scene
     {
         public override void Load()
         {
-        }
-
-        public override void Draw(Renderer renderer)
-        {
+            // Run on another thread, once. Loading assets and other resources should happen here.
         }
 
         public override void Update(float frameTime)
         {
+            // If run on the game loop according to the timestep. Update your game's step here - physics etc.
+            // The frametime argument passed is `Context.FrameTime`.
+        }
+
+        public override void Draw(Renderer renderer)
+        {
+            // Perform drawing here.
+            // The renderer argument passed is `Context.Renderer`.
         }
 
         public override void Unload()
         {
+            // Perform cleanup of assets and resources here.
+            // Is ran on another thread when another scene is loaded, before the new scene's *load* function is called.
         }
     }
 }
 ```
 ---
 
-### Load
+## The Game Loop
 
-The load function is called when the layer is loaded and is run on another "Layer Loading" thread. This means that others layers can render and update while yours is loading, this allows for a "loading screen" layer and for your code to be responsive. In this function you should load assets and initiate objects, but remember that some operations can only be performed on the GL Thread and will interrupt the other layers' execution.
+Once you have setup your scene you can start the game loop by invoking `Context.Run()`, this function is expected to be blocking. Your *scene's update function* will be called in a semi fixed step according to the `Settings.RenderSettings.CapFPS` setting. If the settings is set to 0, it will be executed as many times as possible. The *draw function* on the other hand will be called much more often. It is advised not to perform any state updating in the draw function,
+and to use `Context.FrameTime` for time tracking. When the host is unfocused neither function will be run.
+
+Note: The game loop is handled by the IHost instance. The above description is for the default host.
+
+## You're Done Now
+
+This is all that is required to start using the engine.
+
+---
+Your main function will look something like this now:
+
+```
+    public static void Main(string[] args)
+    {
+        Context.Setup();
+        Context.SceneManager.SetScene(new MainScene());
+        Context.Run();
+    }
+```
+---
