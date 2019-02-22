@@ -4,29 +4,43 @@ directly or indirectly helped make this library what it is with their advice, id
 Graphics Programming Discord:
 
 dethraid
+
 Nicolas
+
 theDaftDev
+
 nnevatie
+
 vassvik
+
 Klems
+
 Deamon
+
 devsh
 
 Game Industry People:
 
 Jack "Mailman"
+
 Yan Chernikov
+
 Daniel Shiffman
 
 Others:
 
 Peter Jordanov
+
 Dimitar Ivanov
+
 Aleksandar Apostolov
+
 Simeon Andreev
 
 My Game Dev Team:
 
 Matthew Weekes - Thanks for believing in me <3
+
 Jack Sanderson
+
 Michael Becze

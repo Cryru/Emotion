@@ -45,7 +45,7 @@ To add embedded assets, add the files to the project and select `EmbeddedResourc
 
 ## References
 
-- [Sound Tests](https://github.com/Cryru/Emotion/blob/master/Emotion.Tests/src/Tests/Assets.cs)
+- [Asset Tests](https://github.com/Cryru/Emotion/blob/master/Emotion.Tests/src/Tests/Assets.cs)
 - [Emotion.IO Namespace](https://github.com/Cryru/Emotion/tree/master/EmotionCore/src/IO)
 - [AssetLoader.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/IO/AssetLoader.cs)
 - [Asset.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/IO/Asset.cs)
