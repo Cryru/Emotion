@@ -95,8 +95,6 @@ The documentation is still a work in progress.
 
 For more information you can refer to the automated tests here - [Emotion.Tests](Emotion.Tests) or check the playground of examples here - [EmotionSandbox](https://github.com/Cryru/EmotionSandbox).
 
-If interested you can use the visual debugger found here - [Rationale](https://github.com/Cryru/Rationale). Take note that it might not be up to date/work.
-
 ## Platforms
 
 ### Platforms Tested On:

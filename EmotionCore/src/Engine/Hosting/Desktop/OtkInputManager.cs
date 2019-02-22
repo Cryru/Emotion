@@ -3,11 +3,12 @@
 #region Using
 
 using System;
-using System.Numerics;
 using Emotion.Debug;
 using Emotion.Input;
 using Emotion.Libraries;
+using OpenTK;
 using OpenTK.Input;
+using Vector2 = System.Numerics.Vector2;
 
 #endregion
 
@@ -58,7 +59,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// <summary>
         /// The Otk host.
         /// </summary>
-        private OtkWindow _host;
+        private GameWindow _host;
 
         #endregion
 
@@ -72,7 +73,7 @@ namespace Emotion.Engine.Hosting.Desktop
         /// Create a new OtkInputManager.
         /// </summary>
         /// <param name="host">The OpenTK window host of this input manager.</param>
-        public OtkInputManager(OtkWindow host)
+        public OtkInputManager(GameWindow host)
         {
             _host = host;
 
@@ -81,7 +82,7 @@ namespace Emotion.Engine.Hosting.Desktop
             host.MouseMove += (sender, e) => { _mouseLocation = new Vector2(e.X, e.Y); };
         }
 
-        internal void Update()
+        public void Update()
         {
             // Set input focus to false if host focus is lost.
             if (!_host.Focused)
