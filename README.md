@@ -85,13 +85,13 @@ Emotion is a cross-platform game engine written in C#, with the intent of removi
 
 The documentation is still a work in progress.
 
-* [Getting Started](./Documents/Start)
+* [Getting Started](./Documents/Start.md)
 * Modules
-  * [AssetLoader](./Documents/AssetLoader)
-    * [Shaders](./Documents/Shaders)
-  * [SoundManager](./Documents/SoundManager)
-* [Configuration](./Documents/Configuration)
-* [Special Thanks](./Documents/Thanks)
+  * [AssetLoader](./Documents/AssetLoader.md)
+    * [Shaders](./Documents/Shaders.md)
+  * [SoundManager](./Documents/SoundManager.md)
+* [Configuration](./Documents/Configuration.md)
+* [Special Thanks](./Documents/Thanks.md)
 
 For more information you can refer to the automated tests here - [Emotion.Tests](Emotion.Tests) or check the playground of examples here - [EmotionSandbox](https://github.com/Cryru/EmotionSandbox).
 
