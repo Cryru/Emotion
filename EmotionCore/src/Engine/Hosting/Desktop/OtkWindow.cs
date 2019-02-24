@@ -91,7 +91,8 @@ namespace Emotion.Engine.Hosting.Desktop
 
             Toolkit.Init(new ToolkitOptions
             {
-                Backend = PlatformBackend.PreferNative
+                Backend = PlatformBackend.PreferNative,
+                EnableHighResolution = false
             });
         }
 
@@ -144,20 +145,21 @@ namespace Emotion.Engine.Hosting.Desktop
                 // Apply window mode.
                 switch (windowMode)
                 {
-                    case WindowMode.Borderless:
-                        WindowBorder = WindowBorder.Hidden;
-                        WindowState = WindowState.Normal;
-                        Width = DisplayDevice.Default.Width;
-                        Height = DisplayDevice.Default.Height;
-                        if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings)
-                        {
-                            _isFirstApplySettings = false;
-                            return;
-                        }
+                    //case WindowMode.Borderless:
+                    //    WindowBorder = WindowBorder.Hidden;
+                    //    WindowState = WindowState.Normal;
+                    //    Width = DisplayDevice.Default.Width;
+                    //    Height = DisplayDevice.Default.Height;
+                    //    if (CurrentPlatform.OS == PlatformName.Linux && _isFirstApplySettings)
+                    //    {
+                    //        _isFirstApplySettings = false;
+                    //        return;
+                    //    }
 
-                        X = 0;
-                        Y = 0;
-                        break;
+                    //    X = 0;
+                    //    Y = 0;
+                    //    break;
+                    case WindowMode.Borderless:
                     case WindowMode.Fullscreen:
                         WindowState = WindowState.Fullscreen;
                         break;
