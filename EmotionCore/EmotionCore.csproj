@@ -229,9 +229,10 @@
     <Compile Include="src\Meta.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Assets\Shaders\CompatFrag.glsl" />
-    <EmbeddedResource Include="Assets\Shaders\DefaultFrag.glsl" />
-    <EmbeddedResource Include="Assets\Shaders\DefaultVert.glsl" />
+    <EmbeddedResource Include="Assets\Shaders\CompatFrag.frag" />
+    <EmbeddedResource Include="Assets\Shaders\DefaultFrag.frag" />
+    <EmbeddedResource Include="Assets\Shaders\DefaultVert.vert" />
+    <EmbeddedResource Include="Assets\Shaders\CompatVert.vert" />
     <None Include="EmotionCore.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

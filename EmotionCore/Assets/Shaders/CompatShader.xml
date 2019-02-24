@@ -1,4 +1,4 @@
 <ShaderDescription>
-  <Frag>Shaders/CompatFrag.glsl</Frag>
-  <Vert>Shaders/DefaultVert.glsl</Vert>
+  <Frag>Shaders/CompatFrag.frag</Frag>
+  <Vert>Shaders/CompatVert.vert</Vert>
 </ShaderDescription>

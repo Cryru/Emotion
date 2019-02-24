@@ -1,8 +1,4 @@
-#version 300 es
-
-#ifdef GL_ES
-precision highp float;
-#endif
+#version 330
 
 uniform sampler2D textures[16];
 

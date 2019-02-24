@@ -134,7 +134,7 @@ namespace Emotion.Graphics.Base
             }
 
             // Check for minimum version.
-            if (OpenGLMajorVersion < 3 || OpenGLMinorVersion < 3)
+            if (OpenGLMajorVersion < 3 && OpenGLMinorVersion < 3)
                 Context.Log.Warning("An OpenGL context lower than version 3.3 was created. This is not fully supported. Expect the unexpected.", MessageSource.Renderer);
 
             // Diagnostic dump.
