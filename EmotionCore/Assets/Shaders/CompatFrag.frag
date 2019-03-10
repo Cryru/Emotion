@@ -10,6 +10,7 @@ in float Tid;
 out vec4 fragColor;
 
 void main() {
+  fragColor = vec4(0.0, 0.0, 0.0, 0.0);
 
   // Check if a texture is in use.
   if (Tid >= 0.0) {
