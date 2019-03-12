@@ -814,9 +814,15 @@ namespace Emotion.Graphics.Base
 
             GLThread.CheckError($"shader compilation\n{source}");
 
+            // Check if the shader compiled successfully.
+            GL.GetShader(shaderPointer, ShaderParameter.CompileStatus, out int status);
+            if (status == 1)
+            {
+                return shaderPointer;
+            }
+
             // Check compilation status.
             string compileStatus = GL.GetShaderInfoLog((int) shaderPointer);
-            if (compileStatus == "") return shaderPointer;
             Context.Log.Warning($"Failed to compile shader of type {type} with error {compileStatus}.\nSource:{source}", MessageSource.GL);
             return 0;
         }
