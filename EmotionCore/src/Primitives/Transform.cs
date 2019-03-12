@@ -204,7 +204,7 @@ namespace Emotion.Primitives
         /// </summary>
         /// <param name="position">The position of the transform.</param>
         /// <param name="size">The size of the transform.</param>
-        protected Transform(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
+        public Transform(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
         {
         }
 
@@ -213,7 +213,7 @@ namespace Emotion.Primitives
         /// <param name="z">The position of the transform ont he Z axis.</param>
         /// <param name="width">The width of the transform.</param>
         /// <param name="height">The height of the transform.</param>
-        protected Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
+        public Transform(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f)
         {
             _x = x;
             _y = y;
