@@ -37,7 +37,7 @@ namespace Emotion.Graphics.Base
 
             // Check linking status.
             string programStatus = GL.GetProgramInfoLog((int) Id);
-            if (programStatus != "") Context.Log.Warning($"Failed to link shader program {Id} with shaders. Error is {programStatus}", MessageSource.GL);
+            if (programStatus != "") Context.Log.Warning($"Log for linking shader {Id} is {programStatus}", MessageSource.GL);
     
             GL.DetachShader((int) Id, (int) vertPointer);
             GL.DetachShader((int) Id, (int) fragPointer);

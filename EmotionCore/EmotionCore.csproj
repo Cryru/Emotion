@@ -233,6 +233,8 @@
     <EmbeddedResource Include="Assets\Shaders\DefaultFrag.frag" />
     <EmbeddedResource Include="Assets\Shaders\DefaultVert.vert" />
     <EmbeddedResource Include="Assets\Shaders\CompatVert.vert" />
+    <EmbeddedResource Include="Assets\Shaders\HighCompatFrag.frag" />
+    <EmbeddedResource Include="Assets\Shaders\HighCompatVert.vert" />
     <None Include="EmotionCore.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -307,6 +309,7 @@
     <EmbeddedResource Include="Assets\Shaders\DefaultShader.xml">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\HighCompat.xml" />
     <Content Include="Libraries\Steamworks\Steamworks.NET-Mono.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

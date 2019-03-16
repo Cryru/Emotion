@@ -1,0 +1,4 @@
+<ShaderDescription>
+  <Frag>Shaders/HighCompatFrag.frag</Frag>
+  <Vert>Shaders/HighCompatVert.vert</Vert>
+</ShaderDescription>
