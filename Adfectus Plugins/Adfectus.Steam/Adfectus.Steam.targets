@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+   <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)steam_api.so">
+         <Link>steam_api.so</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)steam_api.dylib">
+         <Link>steam_api.dylib</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)win64\steam_api.dll">
+         <Link>win64\steam_api.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+     <None Include="$(MSBuildThisFileDirectory)win86\steam_api.dll">
+       <Link>win86\steam_api.dll</Link>
+       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+     </None>
+   </ItemGroup>
+</Project>

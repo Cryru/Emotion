@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\debugFont.otf" />
+    <None Remove="Assets\SourceSans.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\debugFont.otf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\SourceSans.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Adfectus" Version="0.0.6" />
+    <PackageReference Include="Adfectus.ImGuiNet" Version="1.0.2" />
+    <PackageReference Include="ImGui.NET" Version="1.68.0" />
+  </ItemGroup>
+
+</Project>

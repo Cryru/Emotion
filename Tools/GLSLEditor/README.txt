@@ -1,0 +1,1 @@
+This tool is a fork of https://github.com/patriciogonzalezvivo/glslEditor

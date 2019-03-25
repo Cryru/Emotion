@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Adfectus</id>
+    <version>0.0.8</version>
+    <title>Adfectus Engine</title>
+    <authors>Vlad 'Cryru' Abadzhiev</authors>
+    <owners>Vlad 'Cryru' Abadzhiev</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
+    <iconUrl>https://github.com/Cryru/Emotion/blob/master/EmotionLogo.png?raw=true</iconUrl>
+    <description>Adfectus is a cross-platform game engine written in C# using .NetCore, with the intent of abstracting the lower levels of game programming, without taking away control from the developer. The core principle is that making games as a programmer should be about coding, and not about drag and drop interfaces, or wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.</description>
+    <summary>A 2D oriented game engine.</summary>
+    <copyright>Copyright 2019</copyright>
+    <language>en-US</language>
+    <tags>game-engine game engine emotion opengl gles opegles cross-platform game-development linux macos freeimage freetype openal adfectus</tags>
+    <dependencies>
+      <group targetFramework=".NETCoreApp3.0">
+        <dependency id="Adfectus.FreeImage" version="1.0.0" exclude="Build,Analyzers" />
+        <dependency id="Adfectus.Glfw" version="1.0.0" exclude="Build,Analyzers" />
+        <dependency id="Adfectus.OpenAL" version="1.0.0" exclude="Build,Analyzers" />
+        <dependency id="Adfectus.OpenGLNet" version="1.0.1" exclude="Build,Analyzers" />
+        <dependency id="Adfectus.SharpFont" version="1.0.0" exclude="Build,Analyzers" />
+        <dependency id="Jint" version="2.11.58" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.NETCore.Platforms" version="3.0.0-preview.19073.11" exclude="Build,Analyzers" />
+        <dependency id="Serilog" version="2.8.0" exclude="Build,Analyzers" />
+        <dependency id="Serilog.Sinks.Async" version="1.3.0" exclude="Build,Analyzers" />
+        <dependency id="Serilog.Sinks.Console" version="3.1.1" exclude="Build,Analyzers" />
+        <dependency id="Serilog.Sinks.File" version="4.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.InteropServices" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="TiledSharp" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Libraries\linux\FreeImage.so" target="Build\Libraries\linux\FreeImage.so" />
+    <file src="Libraries\linux\freetype6.so" target="Build\Libraries\linux\freetype6.so" />
+    <file src="Libraries\linux\glfw3.so" target="Build\Libraries\linux\glfw3.so" />
+    <file src="Libraries\linux\libsndio.so.6.1" target="Build\Libraries\linux\libsndio.so.6.1" />
+    <file src="Libraries\linux\openal32.so" target="Build\Libraries\linux\openal32.so" />
+    <file src="Libraries\macOS\FreeImage.dylib" target="Build\Libraries\macOS\FreeImage.dylib" />
+    <file src="Libraries\macOS\freetype6.dylib" target="Build\Libraries\macOS\freetype6.dylib" />
+    <file src="Libraries\macOS\glfw3.dylib" target="Build\Libraries\macOS\glfw3.dylib" />
+    <file src="Libraries\macOS\libpng14.14.dylib" target="Build\Libraries\macOS\libpng14.14.dylib" />
+    <file src="Libraries\macOS\openal32.dylib" target="Build\Libraries\macOS\openal32.dylib" />
+    <file src="Libraries\win32\FreeImage.dll" target="Build\Libraries\win32\FreeImage.dll" />
+    <file src="Libraries\win32\freetype6.dll" target="Build\Libraries\win32\freetype6.dll" />
+    <file src="Libraries\win32\glfw3.dll" target="Build\Libraries\win32\glfw3.dll" />
+    <file src="Libraries\win32\msvcr100.dll" target="Build\Libraries\win32\msvcr100.dll" />
+    <file src="Libraries\win32\openal32.dll" target="Build\Libraries\win32\openal32.dll" />
+    <file src="Libraries\win64\FreeImage.dll" target="Build\Libraries\win64\FreeImage.dll" />
+    <file src="Libraries\win64\freetype6.dll" target="Build\Libraries\win64\freetype6.dll" />
+    <file src="Libraries\win64\glfw3.dll" target="Build\Libraries\win64\glfw3.dll" />
+    <file src="Libraries\win64\msvcr100.dll" target="Build\Libraries\win64\msvcr100.dll" />
+    <file src="Libraries\win64\openal32.dll" target="Build\Libraries\win64\openal32.dll" />
+    <file src="Libraries\win64\vcomp120.dll" target="Build\Libraries\win64\vcomp120.dll" />
+    <file src="Libraries\win64\vcruntime140.dll" target="Build\Libraries\win64\vcruntime140.dll" />
+    <file src="Adfectus.targets" target="Build\Adfectus.targets" />
+    <file src="bin\Release\netcoreapp3.0\Adfectus.dll" target="lib\netcoreapp3.0\Adfectus.dll" />
+    <file src="bin\Release\netcoreapp3.0\Adfectus.pdb" target="lib\netcoreapp3.0\Adfectus.pdb" />
+    <file src="bin\Release\netcoreapp3.0\Adfectus.xml" target="lib\netcoreapp3.0\Adfectus.xml" />
+  </files>
+</package>

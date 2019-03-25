@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Adfectus.Steam</id>
+    <version>1.0.4</version>
+    <title>Adfectus.Steam</title>
+    <authors>Vlad 'Cryru' Abadzhiev</authors>
+    <owners>Vlad 'Cryru' Abadzhiev</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
+    <description>Steam integration for the Adfectus engine.</description>
+    <summary>Steam integration for the Adfectus engine.</summary>
+    <copyright>Copyright 2019</copyright>
+    <language>en-US</language>
+    <tags>adfectus imgui cimgui imguinet</tags>
+    <dependencies>
+      <group targetFramework=".NETCoreApp3.0">
+        <dependency id="Adfectus" version="0.0" exclude="Build,Analyzers" />
+        <dependency id="SteamworksSharp" version="1.0.8" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.NETCore.Platforms" version="3.0.0-preview.19073.11" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Adfectus.Steam.targets" target="Build" />
+    <file src="bin\Release\netcoreapp3.0\Adfectus.Steam.dll" target="lib\netcoreapp3.0" />
+    <file src="bin\Release\netcoreapp3.0\Adfectus.Steam.pdb" target="lib\netcoreapp3.0" />
+
+    <file src="steam_api.so" target="Build\steam_api.so" />
+    <file src="steam_api.dylib" target="Build\steam_api.dylib" />
+    <file src="win64\steam_api.dll" target="Build\win64\steam_api.dll" />
+    <file src="win86\steam_api.dll" target="Build\win86\steam_api.dll" />
+  </files>
+</package>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+   <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\linux\FreeImage.so">
+         <Link>Libraries\linux\FreeImage.so</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\linux\freetype6.so">
+         <Link>Libraries\linux\freetype6.so</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\linux\glfw3.so">
+         <Link>Libraries\linux\glfw3.so</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\linux\openal32.so">
+         <Link>Libraries\linux\openal32.so</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\linux\libsndio.so.6.1">
+         <Link>Libraries\linux\libsndio.so.6.1</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+   </ItemGroup>
+   <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\macOS\FreeImage.dylib">
+         <Link>Libraries\macOS\FreeImage.dylib</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\macOS\freetype6.dylib">
+         <Link>Libraries\macOS\freetype6.dylib</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\macOS\glfw3.dylib">
+         <Link>Libraries\macOS\glfw3.dylib</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\macOS\openal32.dylib">
+         <Link>Libraries\macOS\openal32.dylib</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\macOS\libpng14.14.dylib">
+         <Link>Libraries\macOS\libpng14.14.dylib</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+   </ItemGroup>
+   <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\FreeImage.dll">
+         <Link>Libraries\win64\FreeImage.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\freetype6.dll">
+         <Link>Libraries\win64\freetype6.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\glfw3.dll">
+         <Link>Libraries\win64\glfw3.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\openal32.dll">
+         <Link>Libraries\win64\openal32.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\msvcr100.dll">
+         <Link>Libraries\win64\msvcr100.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\vcomp120.dll">
+         <Link>Libraries\win64\vcomp120.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win64\vcruntime140.dll">
+         <Link>Libraries\win64\vcruntime140.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+   </ItemGroup>
+   <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win32\FreeImage.dll">
+         <Link>Libraries\win32\FreeImage.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win32\freetype6.dll">
+         <Link>Libraries\win32\freetype6.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win32\glfw3.dll">
+         <Link>Libraries\win32\glfw3.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win32\openal32.dll">
+         <Link>Libraries\win32\openal32.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="$(MSBuildThisFileDirectory)Libraries\win32\msvcr100.dll">
+         <Link>Libraries\win32\msvcr100.dll</Link>
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+   </ItemGroup>
+</Project>
