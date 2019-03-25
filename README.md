@@ -20,7 +20,7 @@ Supported platforms are:
     - Ubuntu 17.10 +
   - Windows 7 x64/x86 +
 
-For additional supported platforms, lookup .NetCore 3.0 supported versions.
+For additional supported platforms, lookup .NetCore 3.0 support.
 
 ### Requirements:
 
