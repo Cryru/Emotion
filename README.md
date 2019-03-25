@@ -2,6 +2,8 @@
 <img src="EmotionLogo.png" width="128px" />
 
 [![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff/branch/master?svg=true)](https://ci.appveyor.com/project/Cryru/emotion/branch/master)
+Debug Package: [![nuget debug](https://img.shields.io/nuget/v/AdfectusDebug.svg)](https://www.nuget.org/packages/AdfectusDebug)
+Release Package: [![nuget release](https://img.shields.io/nuget/v/Adfectus.svg)](https://www.nuget.org/packages/Adfectus)
 
 ## What is it?
 
@@ -170,13 +172,10 @@ Serilog
  - Used for logging.
  - [Website](https://serilog.net/)
 
-[Steamworks.Net](https://github.com/rlabrecque/Steamworks.NET) : Steam integration support.
-- Steamworks.Net.dll incldued. x86
-- Steamworks.Net-Mono.cll included. Mac/Linux x86
-    - libsteam_api.dylib x64
-    - libsteam_api.so x64
-    - steam_api.dll x86
-    - steam_api64.dll x64
+## Plugins
+
+- https://www.nuget.org/packages/Adfectus.ImGuiNet/
+- https://www.nuget.org/packages/Adfectus.Steam/
 
 ## Inspired By
 
