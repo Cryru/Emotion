@@ -20,12 +20,7 @@ Supported platforms are:
     - Ubuntu 17.10 +
   - Windows 7 x64/x86 +
 
-For additional supported platforms, lookup .NetCore supported versions.
-
-You can support Adfectus and help widen support by testing it on your machine. Please download and run the below package. It will run all automatic tests and report the logs to the network logger. This will allow me to detect any issues that might araise on platforms I don't have access to test on.
-- Windows Test Package
-- Linux Test Package
-- MacOS Test Package
+For additional supported platforms, lookup .NetCore 3.0 supported versions.
 
 ### Requirements:
 
