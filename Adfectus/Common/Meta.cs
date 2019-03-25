@@ -6,19 +6,14 @@
     public static class Meta
     {
         /// <summary>
-        /// The version of Emotion.
+        /// The version of Adfectus.
         /// </summary>
         public const string MajorVersion = "1";
 
         /// <summary>
-        /// The build version of Emotion.
-        /// </summary>
-        public const string BuildVersion = "000";
-
-        /// <summary>
         /// The commit hash for this version.
         /// </summary>
-        public const string CommitHash = "><";
+        public const string CommitHash = "0000";
 
         /// <summary>
         /// The message of the built commit.
@@ -32,7 +27,7 @@
         {
             get
             {
-                string version = $"{MajorVersion} - {BuildVersion} : {CommitHash}({CommitMessage})";
+                string version = $"{MajorVersion} - {CommitHash}({CommitMessage})";
 
 #if DEBUG
 

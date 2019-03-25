@@ -43,7 +43,8 @@ namespace Adfectus.Tests
              */
 
             if (RunOnAnotherThread)
-                Task.Run(StartEngine);
+                // ReSharper disable once RedundantCast
+                Task.Run((Action) StartEngine);
             else
                 StartEngine();
 
