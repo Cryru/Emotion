@@ -82,7 +82,7 @@ namespace Adfectus.Sound
 
             // Check if anything.
             if (errorCheck == Al.NoError) return;
-            ErrorHandler.SubmitError(new Exception($"OpenAL error at {location}:\n{errorCheck}"));
+            throw new Exception($"OpenAL error at {location}:\n{errorCheck}");
         }
     }
 }

@@ -351,12 +351,8 @@ namespace Adfectus.Common
                 // Snap delta.
                 if (Math.Abs(targetTime - deltaTime) <= 0.001) deltaTime = targetTime;
 
-                // Assign frame time trackers.
+                // Add to the accumulator and write off as raw frame time.
                 RawFrameTime = deltaTime * 1000f;
-                FrameTime = (float) (targetTime * 1000f);
-                TotalTime += FrameTime;
-
-                // Add to the accumulator.
                 accumulator += deltaTime;
 
                 // Check if reached max delta.
@@ -365,6 +361,10 @@ namespace Adfectus.Common
                 bool updated = false;
                 while (accumulator >= targetTime)
                 {
+                    // Assign frame time trackers.
+                    FrameTime = (float) (targetTime * 1000f);
+                    TotalTime += FrameTime;
+
                     updated = true;
                     Update();
                     accumulator -= targetTime;
