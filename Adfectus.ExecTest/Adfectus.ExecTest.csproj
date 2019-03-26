@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Adfectus.Tests\Adfectus.Tests.csproj" />
     <ProjectReference Include="..\Adfectus\Adfectus.csproj" />
   </ItemGroup>
