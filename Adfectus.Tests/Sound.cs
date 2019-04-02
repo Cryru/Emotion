@@ -602,7 +602,7 @@ namespace Adfectus.Tests
             layer.QueuePlay(playingFiles[0]);
             Assert.True(layer.PlaybackLocation - 1f < 1f);
             Assert.Equal(SoundStatus.FocusLossPause, layer.Status);
-            Assert.Single( layer.PlayList);
+            Assert.Single(layer.PlayList);
 
             // Resume. All the things should run now.
             Engine.ForceUnfocus(false);

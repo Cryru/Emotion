@@ -453,7 +453,7 @@ void main() {
             Assert.Null(Engine.AssetLoader.LoadedAssets.FirstOrDefault(x => x.Name == "Textures/standardGif.gif"));
         }
 
-        
+
         /// <summary>
         /// Tests stream buffer range drawing.
         /// </summary>

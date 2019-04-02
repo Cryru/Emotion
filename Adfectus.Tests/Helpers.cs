@@ -40,9 +40,10 @@ namespace Adfectus.Tests
             {"Q9SEFh9vZPGjkr1PAU4CQaLpr6Mw1TzqfkfwEShj4M0=", "8aivucpanUVd+Ji0bDXfgk6H4N50z+MeNwlkzUhQGas="}, // alpha drawing
             {"eyG5KLwoB+n7zb3YBlDHKUx88J2Nei0a5tYU1q6uJyk=", "YnuPlWmWruXr2t3NIVrCDj4b+fEVf6/DGH/us3q6TvQ="}, // Lots of pixels shifted on this one. Depth test
             {"ZMMGuCf1hB9/M5nSpzskBKSPntp43gD/pdpB0R+/WcI=", "eJmRj5eeyngfsGEkmMJDYBVqK9pzZpOCK6GNctWpVUg="}, // Stream buffer test. A couple of pixels on the heart logo.
-            {"gjRM42NnqSthaDCODi8la+7jklcrik52G18woKYa1s0=", "MZqlv1R57P1ofwNJzE4XOmyO2Bp2ZLuWaYwzgAgcBcY="}, // Weird tilemap drawing. The differences in this test really show the sampler differences.
-            {"4Z0J5whko6/LROZxJNklqov6Y/YlZckSgfbnR6Iy9CQ=", "l5ymQ0MWYBzsM7iFYqKsiKMjRqA2UWQmqOsWW19K7Iw=" } // Arbitrary vertices draw. Differences in color.
-
+            {
+                "gjRM42NnqSthaDCODi8la+7jklcrik52G18woKYa1s0=", "MZqlv1R57P1ofwNJzE4XOmyO2Bp2ZLuWaYwzgAgcBcY="
+            }, // Weird tilemap drawing. The differences in this test really show the sampler differences.
+            {"4Z0J5whko6/LROZxJNklqov6Y/YlZckSgfbnR6Iy9CQ=", "l5ymQ0MWYBzsM7iFYqKsiKMjRqA2UWQmqOsWW19K7Iw="} // Arbitrary vertices draw. Differences in color.
         };
 
         /// <summary>

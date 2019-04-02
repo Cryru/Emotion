@@ -362,7 +362,7 @@ namespace Adfectus.Common
                 while (accumulator >= targetTime)
                 {
                     // Assign frame time trackers.
-                    FrameTime = (float) (targetTime * 1000f);
+                    FrameTime = (float) (fixedStep ? (targetTime * 1000f) : RawFrameTime);
                     TotalTime += FrameTime;
 
                     updated = true;

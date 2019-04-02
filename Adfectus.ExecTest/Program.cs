@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Adfectus.Common;
 using Adfectus.Game;
 using Adfectus.Game.Time;
+using Adfectus.Game.Time.Routines;
 using Adfectus.Graphics.Text;
 using Adfectus.Input;
 using Adfectus.Logging;
@@ -65,6 +67,7 @@ namespace Adfectus.ExecTest
             Adfectus.Game.Time.Timer a = new Adfectus.Game.Time.Timer();
             a.Tween(1000, first, second, TweenType.In, TweenMethod.Cubic);
             a.AdvanceTime(100);
+
             Engine.Run();
 
             bool aaaaa = true;
@@ -139,10 +142,12 @@ namespace Adfectus.ExecTest
         }
 
         private Adfectus.Game.Text.RichText test;
+        private CoroutineManager _coroutineManager;
 
         public override void Load()
         {
             test = new Game.Text.RichText(new Vector3(10, 10, 0), new Vector2(200, 200), Engine.AssetLoader.Get<Font>("debugFont.otf").GetFontAtlas(20));
+            _coroutineManager = new CoroutineManager();
         }
 
         private float loc = 0;
@@ -168,11 +173,6 @@ namespace Adfectus.ExecTest
             if (Engine.InputManager.IsKeyHeld("A")) Engine.Renderer.Camera.X -= 5;
 
             if (Engine.InputManager.IsKeyHeld("D")) Engine.Renderer.Camera.X += 5;
-
-            if (Engine.InputManager.IsKeyDown("Space"))
-            {
-
-            }
         }
 
         private Vector3 loce = new Vector3(0, 0, 0);
