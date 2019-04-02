@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Adfectus.Logging;
 using Jint.Parser;
 
@@ -23,7 +24,7 @@ namespace Adfectus.Common
         /// <summary>
         /// An instance of a JS interpreter.
         /// </summary>
-        private Jint.Engine _interpreter;
+        public Jint.Engine Interpreter;
 
         /// <summary>
         /// Exposed properties.
@@ -38,7 +39,7 @@ namespace Adfectus.Common
         internal ScriptingEngine(TimeSpan timeout)
         {
             // Define the Jint engine.
-            _interpreter = new Jint.Engine(opts =>
+            Interpreter = new Jint.Engine(opts =>
             {
                 // Set scripting timeout.
                 opts.TimeoutInterval(timeout);
@@ -50,6 +51,7 @@ namespace Adfectus.Common
             });
 
             Expose("help", (Func<string>) (() => "\n---Exposed Functions---\n" + string.Join("\n", _exposedProperties)), "Prints all exposed properties and their descriptions.");
+            Expose("print", (Action<string>) (x => Engine.Log.Info(x, MessageSource.ScriptingEngine)));
         }
 
         #region Functions
@@ -62,7 +64,7 @@ namespace Adfectus.Common
         /// <param name="description">Optional description of what you are exposing.</param>
         public void Expose(string name, object exposedData, string description = "")
         {
-            _interpreter.SetValue(name, exposedData);
+            Interpreter.SetValue(name, exposedData);
             _exposedProperties.Add(name + " - " + description);
         }
 
@@ -72,37 +74,38 @@ namespace Adfectus.Common
         /// <param name="script">The script to execute.</param>
         /// <param name="safe">Whether to run the script safely.</param>
         /// <returns></returns>
-        public object RunScript(string script, bool safe = true)
+        public Task<object> RunScript(string script, bool safe = true)
         {
             if (safe) script = "(function () { " + script + " })()";
 
-            try
+            // Run the script and get the response.
+            ParserOptions parser = new ParserOptions
             {
-                // Run the script and get the response.
-                ParserOptions parser = new ParserOptions
+                Source = script
+            };
+
+            return Task.Run(() =>
+            {
+                try
                 {
-                    Source = script
-                };
+                    object scriptResponse = Interpreter.Execute(script, parser).GetCompletionValue();
+                    // If it isn't empty log it.
+                    if (scriptResponse != null)
+                        Engine.Log.Trace($"Script executed, result: ${scriptResponse}", MessageSource.ScriptingEngine);
 
-                object scriptResponse = _interpreter.Execute(script, parser).GetCompletionValue();
+                    return scriptResponse;
+                }
+                catch (Exception ex)
+                {
+                    // Check if timeout, and if not throw an exception.
+                    if (ex.Message != "The operation has timed out." && Engine.Flags.StrictScripts)
+                        ErrorHandler.SubmitError(new Exception($"Scripting error in script: [{script}]", ex));
+                    else
+                        Engine.Log.Warning($"Scripting error in script: [{script}]\n{ex}", MessageSource.ScriptingEngine);
 
-                // If it isn't empty log it.
-                if (scriptResponse != null)
-                    Engine.Log.Trace($"Script executed, result: ${scriptResponse}", MessageSource.ScriptingEngine);
-
-                // Return the response.
-                return scriptResponse;
-            }
-            catch (Exception ex)
-            {
-                // Check if timeout, and if not throw an exception.
-                if (ex.Message != "The operation has timed out." && Engine.Flags.StrictScripts)
-                    ErrorHandler.SubmitError(new Exception($"Scripting error in script: [{script}]", ex));
-                else
-                    Engine.Log.Warning($"Scripting error in script: [{script}]\n{ex}", MessageSource.ScriptingEngine);
-
-                return null;
-            }
+                    return null;
+                }
+            });
         }
 
         #endregion

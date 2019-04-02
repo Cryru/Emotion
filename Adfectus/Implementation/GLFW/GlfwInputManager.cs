@@ -30,6 +30,7 @@ namespace Adfectus.Implementation.GLFW
 
         private float _mouseScroll;
         private float _mouseScrollThisFrame;
+        private float _mouseScrollAccum;
 
         private Vector2 _mousePosition;
 
@@ -82,7 +83,7 @@ namespace Adfectus.Implementation.GLFW
 
         private void ScrollCallback(IntPtr _, double scrollX, double scrollY)
         {
-            _mouseScroll += (float) scrollY;
+            _mouseScrollAccum += (float) scrollY * -1;
         }
 
         #endregion
@@ -97,6 +98,7 @@ namespace Adfectus.Implementation.GLFW
 
             // Reset mouse scroll.
             _mouseScrollThisFrame = _mouseScroll;
+            _mouseScroll = _mouseScrollAccum;
 
             // Calculate mouse status.
             foreach (MouseKey key in _mouseKeys)

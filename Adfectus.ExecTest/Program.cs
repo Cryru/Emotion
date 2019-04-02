@@ -173,6 +173,18 @@ namespace Adfectus.ExecTest
             if (Engine.InputManager.IsKeyHeld("A")) Engine.Renderer.Camera.X -= 5;
 
             if (Engine.InputManager.IsKeyHeld("D")) Engine.Renderer.Camera.X += 5;
+
+            if (Engine.InputManager.IsKeyDown("Space"))
+            {
+                Engine.ScriptingEngine.RunScript(@"function printTest(str) {
+    help();
+    print(str);
+}
+
+for(let i = 0; i < 10; i++) {
+  printTest(i);
+}");
+            }
         }
 
         private Vector3 loce = new Vector3(0, 0, 0);

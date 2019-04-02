@@ -254,7 +254,7 @@ namespace Adfectus.Common
 
             // Apply host settings.
             Log.Info($"Created host of type {hostType}.", MessageSource.Engine);
-            Host.Size = renderSize;
+
             // Wait for host to focus.
             while(!Host.Open || !Host.Focused) Host.Update();
 

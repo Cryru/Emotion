@@ -52,7 +52,7 @@ namespace Adfectus.Sound
         /// </summary>
         /// <param name="initialSound">The initial sound enable.</param>
         /// <param name="initialVolume">The initial volume.</param>
-        internal SoundManager(bool initialSound = false, float initialVolume = 100)
+        internal SoundManager(bool initialSound = true, float initialVolume = 100)
         {
             Volume = initialVolume;
             Sound = initialSound;

@@ -39,9 +39,6 @@ namespace Adfectus.ImGuiNet
 
         public override unsafe void Initialize()
         {
-            // Load the imgui native library.
-            //Bootstrapper.LoadAdditionalLibrary("cimgui", "cimgui");
-
             // Create the imgui context.
             _imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(_imguiContext);

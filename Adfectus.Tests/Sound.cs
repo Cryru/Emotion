@@ -906,7 +906,7 @@ namespace Adfectus.Tests
             Assert.Equal("testLayer", layer.Name);
 
             // Wait for two loops.
-            WaitForSoundLoops(4);
+            WaitForSoundLoops(2);
 
             // Assign loaded files.
             playingFiles = files.ToArray();

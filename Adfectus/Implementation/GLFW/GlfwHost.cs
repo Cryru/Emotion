@@ -245,7 +245,6 @@ namespace Adfectus.Implementation.GLFW
 
             // Make the OpenGL context run on this thread.
             Glfw.MakeContextCurrent(_win);
-            //Khronos.KhronosApi.SetLoadFunction();
 
             // Set window mode. For borderless this is set during creation and cannot be changed.
             WindowMode = builder.HostWindowMode;
