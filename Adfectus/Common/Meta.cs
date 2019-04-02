@@ -8,17 +8,17 @@
         /// <summary>
         /// The version of Adfectus.
         /// </summary>
-        public const string MajorVersion = "0.0.9";
+        public const string MajorVersion = "0.0.10";
 
         /// <summary>
         /// The commit hash for this version.
         /// </summary>
-        public const string CommitHash = "7befafe95102cbe4f5948214d46409aa1f08612d";
+        public const string CommitHash = "7334a02faf201c9f6d2abaeb4d446aec1c65e905";
 
         /// <summary>
         /// The message of the built commit.
         /// </summary>
-        public const string CommitMessage = "Fixed AL error causing crashes (as some as expected) and frame time being wrong.";
+        public const string CommitMessage = "Added Coroutines and fixed frametime during non-fixed timesteps.";
 
         /// <summary>
         /// The full version string.

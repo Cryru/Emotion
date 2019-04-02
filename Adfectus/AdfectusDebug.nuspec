@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>AdfectusDebug</id>
-    <version>0.0.9</version>
+    <version>0.0.10</version>
     <title>Adfectus Engine - Debug Mode</title>
     <authors>Vlad 'Cryru' Abadzhiev</authors>
     <owners>Vlad 'Cryru' Abadzhiev</owners>
@@ -56,7 +56,7 @@
     <file src="Libraries\win64\openal32.dll" target="Build\Libraries\win64\openal32.dll" />
     <file src="Libraries\win64\vcomp120.dll" target="Build\Libraries\win64\vcomp120.dll" />
     <file src="Libraries\win64\vcruntime140.dll" target="Build\Libraries\win64\vcruntime140.dll" />
-    <file src="Adfectus.targets" target="Build\Adfectus.targets" />
+    <file src="AdfectusDebug.targets" target="Build\AdfectusDebug.targets" />
     <file src="bin\Debug\netcoreapp3.0\Adfectus.dll" target="lib\netcoreapp3.0\Adfectus.dll" />
     <file src="bin\Debug\netcoreapp3.0\Adfectus.pdb" target="lib\netcoreapp3.0\Adfectus.pdb" />
     <file src="bin\Adfectus.xml" target="lib\netcoreapp3.0\Adfectus.xml" />
