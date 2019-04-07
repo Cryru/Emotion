@@ -8,17 +8,17 @@
         /// <summary>
         /// The version of Adfectus.
         /// </summary>
-        public const string MajorVersion = "0.0.11";
+        public const string MajorVersion = "0.0.12";
 
         /// <summary>
         /// The commit hash for this version.
         /// </summary>
-        public const string CommitHash = "0af3db8fc00a6c8cead87c433e1f6dd4054cf6e5";
+        public const string CommitHash = "99a447e06344aa5a768b00bfce2eb176e842f059";
 
         /// <summary>
         /// The message of the built commit.
         /// </summary>
-        public const string CommitMessage = "Fixed the render size changing the host size. Scripting improvements.";
+        public const string CommitMessage = "Native library improvements.";
 
         /// <summary>
         /// The full version string.
