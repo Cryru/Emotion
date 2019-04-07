@@ -54,6 +54,12 @@ namespace Adfectus.Game
         /// </summary>
         public void Save()
         {
+            // If an old save file exists, back it up.
+            if (File.Exists(_path))
+            {
+                File.Copy(_path, _path + ".backup", true);
+            }
+
             using (StreamWriter stream = new StreamWriter(_path))
             {
                 _serializer.Serialize(stream, Content);
