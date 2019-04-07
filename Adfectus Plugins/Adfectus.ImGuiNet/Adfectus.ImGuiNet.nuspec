@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Adfectus.ImGuiNet</id>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <title>Adfectus.ImGuiNet</title>
     <authors>Vlad 'Cryru' Abadzhiev</authors>
     <owners>Vlad 'Cryru' Abadzhiev</owners>
@@ -16,7 +16,7 @@
     <tags>adfectus imgui cimgui imguinet</tags>
     <dependencies>
       <group targetFramework=".NETCoreApp3.0">
-        <dependency id="Adfectus" version="0.0" exclude="Build,Analyzers" />
+        <dependency id="Adfectus" version="0.0.13" exclude="Build,Analyzers" />
         <dependency id="ImGui.NET" version="1.68.0" exclude="Build,Analyzers" />
         <dependency id="Microsoft.NETCore.Platforms" version="3.0.0-preview.19073.11" exclude="Build,Analyzers" />
         <dependency id="System.Runtime.CompilerServices.Unsafe" version="4.5.2" exclude="Build,Analyzers" />
@@ -27,6 +27,7 @@
     <file src="Adfectus.ImGuiNet.targets" target="Build" />
     <file src="bin\Release\netcoreapp3.0\Adfectus.ImGuiNet.dll" target="lib\netcoreapp3.0" />
     <file src="bin\Release\netcoreapp3.0\Adfectus.ImGuiNet.pdb" target="lib\netcoreapp3.0" />
+    <file src="bin\Release\netcoreapp3.0\Adfectus.ImGuiNet.xml" target="lib\netcoreapp3.0" />
 
     <file src="cimgui.so" target="Build\cimgui.so" />
     <file src="cimgui.dylib" target="Build\cimgui.dylib" />

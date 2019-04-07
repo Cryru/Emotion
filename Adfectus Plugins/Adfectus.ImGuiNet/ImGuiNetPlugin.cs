@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -8,6 +9,7 @@ using Adfectus.Common;
 using Adfectus.Graphics;
 using Adfectus.Input;
 using Adfectus.IO;
+using Adfectus.Logging;
 using ImGuiNET;
 
 #endregion
@@ -19,23 +21,22 @@ namespace Adfectus.ImGuiNet
     /// </summary>
     public sealed class ImGuiNetPlugin : Plugin
     {
-        private IntPtr _imguiContext;
-        private string _fontPath;
-        private int _fontSize;
-        private float _pixelSize;
+        #region Properties
 
         /// <summary>
-        /// Create the ImGuiNetPlugin to interface with Adfectus.
+        /// Whether any widget is focused and requires input.
         /// </summary>
-        /// <param name="ttfFontPath">The path which will be provided to the Assetloader to load the ttf font.</param>
-        /// <param name="fontSize">The size of font to use.</param>
-        /// <param name="pixelSize">The size in pixels to use.</param>
-        public ImGuiNetPlugin(string ttfFontPath = null, int fontSize = 10, float pixelSize = 10)
-        {
-            _fontPath = ttfFontPath;
-            _fontSize = fontSize;
-            _pixelSize = pixelSize;
-        }
+        public bool Focused { get; private set; }
+
+        #endregion
+
+        #region Privates
+
+        private ConcurrentQueue<Action> _beforeStartOperations = new ConcurrentQueue<Action>();
+        private IntPtr _imguiContext;
+        private Dictionary<string, ImFontPtr> _loadedFonts = new Dictionary<string, ImFontPtr>();
+
+        #endregion
 
         public override unsafe void Initialize()
         {
@@ -45,23 +46,8 @@ namespace Adfectus.ImGuiNet
 
             ImGuiIOPtr io = ImGui.GetIO();
 
-            // Setup the font.
-            if (_fontPath == null)
-            {
-                io.Fonts.AddFontDefault();
-            }
-            else
-            {
-                OtherAsset font = Engine.AssetLoader.Get<OtherAsset>(_fontPath);
-                fixed (void* fontData = &font.Content[0])
-                {
-                    io.Fonts.AddFontFromMemoryTTF((IntPtr) fontData, _fontSize, _pixelSize);
-                }
-
-                // Clear the file.
-                Engine.AssetLoader.Destroy(_fontPath);
-            }
-
+            // Setup the font and display parameters.
+            io.Fonts.AddFontDefault();
             io.DisplaySize = Engine.GraphicsManager.RenderSize;
             io.DisplayFramebufferScale = new Vector2(1f, 1f);
             io.NativePtr->IniFilename = null;
@@ -127,20 +113,33 @@ namespace Adfectus.ImGuiNet
 
         public override void Update()
         {
+            // Invoke before start operations actions.
+            while (!_beforeStartOperations.IsEmpty)
+            {
+                _beforeStartOperations.TryDequeue(out Action act);
+                act.Invoke();
+            }
+
             ImGuiIOPtr io = ImGui.GetIO();
             io.DeltaTime = Engine.FrameTime / 1000;
 
+            // Check focus.
+            if (io.WantCaptureKeyboard || io.WantCaptureMouse)
+                Focused = true;
+            else
+                Focused = false;
+
             // Update input.
             io.MousePos = Engine.InputManager.GetMousePosition();
-            io.MouseDown[0] = Engine.InputManager.IsMouseKeyHeld(MouseKey.Left);
-            io.MouseDown[1] = Engine.InputManager.IsMouseKeyHeld(MouseKey.Right);
-            io.MouseDown[2] = Engine.InputManager.IsMouseKeyHeld(MouseKey.Middle);
+            io.MouseDown[0] = Engine.InputManager.IsMouseKeyDown(MouseKey.Left) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Left);
+            io.MouseDown[1] = Engine.InputManager.IsMouseKeyDown(MouseKey.Right) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Right);
+            io.MouseDown[2] = Engine.InputManager.IsMouseKeyDown(MouseKey.Middle) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Middle);
             io.MouseWheel = Engine.InputManager.GetMouseScrollRelative();
 
-            io.KeyCtrl = Engine.InputManager.IsKeyHeld(KeyCode.LeftControl) || Engine.InputManager.IsKeyHeld(KeyCode.RightControl);
-            io.KeyAlt = Engine.InputManager.IsKeyHeld(KeyCode.LeftAlt) || Engine.InputManager.IsKeyHeld(KeyCode.RightAlt);
-            io.KeyShift = Engine.InputManager.IsKeyHeld(KeyCode.LeftShift) || Engine.InputManager.IsKeyHeld(KeyCode.RightShift);
-            io.KeySuper = Engine.InputManager.IsKeyHeld(KeyCode.LeftSuper) || Engine.InputManager.IsKeyHeld(KeyCode.RightSuper);
+            io.KeyCtrl = KeyDownOrHeld(KeyCode.LeftControl) || KeyDownOrHeld(KeyCode.RightControl);
+            io.KeyAlt = KeyDownOrHeld(KeyCode.LeftAlt) || KeyDownOrHeld(KeyCode.RightAlt);
+            io.KeyShift = KeyDownOrHeld(KeyCode.LeftShift) || KeyDownOrHeld(KeyCode.RightShift);
+            io.KeySuper = KeyDownOrHeld(KeyCode.LeftSuper) || KeyDownOrHeld(KeyCode.RightSuper);
 
             char nextTInput = Engine.InputManager.GetNextTextInput();
 
@@ -169,6 +168,89 @@ namespace Adfectus.ImGuiNet
         {
             ImGui.DestroyContext(_imguiContext);
         }
+
+        #region Helpers
+
+        /// <summary>
+        /// Whether the key is down or held.
+        /// </summary>
+        /// <param name="key">The keyboard key to check.</param>
+        /// <returns>Whether the key is down or held.</returns>
+        private bool KeyDownOrHeld(KeyCode key)
+        {
+            return Engine.InputManager.IsKeyDown(key) || Engine.InputManager.IsKeyHeld(key);
+        }
+
+        #endregion
+
+        #region Font
+
+        /// <summary>
+        /// Load a font.
+        /// </summary>
+        /// <param name="ttfFontPath">An Adfectus asset path to the font to load. Only ttf format is supported.</param>
+        /// <param name="fontSize">The font size to load.</param>
+        /// <param name="pixelSize">The font's pixel size to load.</param>
+        public unsafe void LoadFont(string ttfFontPath, int fontSize, int pixelSize)
+        {
+            _beforeStartOperations.Enqueue(() =>
+            {
+                ImGuiIOPtr io = ImGui.GetIO();
+                OtherAsset font = Engine.AssetLoader.Get<OtherAsset>(ttfFontPath);
+                fixed (void* fontData = &font.Content[0])
+                {
+                    _loadedFonts.Add(ttfFontPath, io.Fonts.AddFontFromMemoryTTF((IntPtr) fontData, fontSize, pixelSize));
+                }
+
+                // Clear the file.
+                Engine.AssetLoader.Destroy(ttfFontPath);
+
+                // Upload the font.
+                uint newFontTexture = Engine.GraphicsManager.CreateTexture();
+
+                // Get font texture from ImGui
+                io.Fonts.GetTexDataAsRGBA32(out byte* pixelData, out int width, out int height, out int bytesPerPixel);
+
+                // Copy the data to a managed array
+                byte[] pixels = new byte[width * height * bytesPerPixel];
+                Marshal.Copy(new IntPtr(pixelData), pixels, 0, pixels.Length);
+
+                // Create and register the texture.
+                Engine.GraphicsManager.BindTexture(newFontTexture);
+                Engine.GraphicsManager.UploadToTexture(pixels, new Vector2(width, height), TextureInternalFormat.Rgba, TexturePixelFormat.Rgba);
+
+                // Let ImGui know where to find the texture.
+                io.Fonts.SetTexID(new IntPtr(newFontTexture));
+                io.Fonts.ClearTexData();
+            });
+        }
+
+        /// <summary>
+        /// Use a font, or return to the default one.
+        /// Fonts must be loaded using the "LoadFont" function first.
+        /// </summary>
+        /// <param name="fontPath">An Adfectus asset path to the loaded font to use, or null to use the default one.</param>
+        public void UseFont(string fontPath)
+        {
+            // Check if resetting to default font.
+            if (fontPath == null)
+            {
+                ImGui.PopFont();
+                return;
+            }
+
+            // Try to get the loaded font.
+            bool gotten = _loadedFonts.TryGetValue(fontPath, out ImFontPtr font);
+            if (!gotten)
+            {
+                Engine.Log.Info($"ImGuiPlugin: Tried to use font {fontPath} which isn't loaded.", MessageSource.Other);
+                return;
+            }
+
+            ImGui.PushFont(font);
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -176,15 +258,19 @@ namespace Adfectus.ImGuiNet
     /// </summary>
     public static unsafe class ImGuiNetController
     {
-        /// <summary>
-        /// The texture of the imgui font.
-        /// </summary>
-        public static uint ImGuiFontTexture;
+        #region Publics
 
         /// <summary>
         /// The gui buffer which will be used to render imgui.
         /// </summary>
         public static StreamBuffer GuiBuffer;
+
+        /// <summary>
+        /// The texture of the imgui font.
+        /// </summary>
+        public static uint ImGuiFontTexture;
+
+        #endregion
 
         /// <summary>
         /// Render the imgui calls.
@@ -236,7 +322,6 @@ namespace Adfectus.ImGuiNet
             GuiBuffer.Reset();
             GuiBuffer.UnsafeSetMappedVertices(idxOffset / sizeof(ushort)); // The only reason for this is so the MappedVertices doesn't error.
             drawPointer.ScaleClipRects(io.DisplayFramebufferScale);
-            Engine.GraphicsManager.BindTexture(ImGuiFontTexture);
 
             // Go through command lists and render.
             uint offset = 0;
@@ -249,6 +334,8 @@ namespace Adfectus.ImGuiNet
                 for (int cmdList = 0; cmdList < drawList.CmdBuffer.Size; cmdList++)
                 {
                     ImDrawCmdPtr currentCommandList = drawList.CmdBuffer[cmdList];
+
+                    Engine.GraphicsManager.BindTexture((uint) currentCommandList.TextureId);
 
                     // Set the clip rect.
                     Engine.GraphicsManager.SetClipRect(
