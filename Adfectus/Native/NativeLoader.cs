@@ -26,6 +26,9 @@ namespace Adfectus.Native
         /// </summary>
         public static bool Ready { get; private set; }
 
+        /// <summary>
+        /// Default libraries to load on Windows.
+        /// </summary>
         public static Dictionary<string, string> LibrariesWindows = new Dictionary<string, string>
         {
             {"vcruntime140.dll - glfw dependency", "vcruntime140.dll"},
@@ -37,6 +40,9 @@ namespace Adfectus.Native
             {"openal", "openal32.dll"}
         };
 
+        /// <summary>
+        /// Default libraries to load on Linux systems.
+        /// </summary>
         public static Dictionary<string, string> LibrariesLinux = new Dictionary<string, string>
         {
             {"libsndio - openal dependency", "libsndio.so.6.1"}, // maybe the NativeLibrary class can be made to load this from the folder without me loading it?
@@ -46,6 +52,9 @@ namespace Adfectus.Native
             {"openal", "openal32.so"}
         };
 
+        /// <summary>
+        /// Default libraries to load on MacOS.
+        /// </summary>
         public static Dictionary<string, string> LibrariesMacOs = new Dictionary<string, string>
         {
             {"libpng - freeimage dependency", "libpng14.14.dylib"}, // maybe the NativeLibrary class can be made to load this from the folder without me loading it?
@@ -55,6 +64,9 @@ namespace Adfectus.Native
             {"openal", "openal32.dylib"}
         };
 
+        /// <summary>
+        /// Dictionary of loaded native libraries and pointers to them.
+        /// </summary>
         public static Dictionary<string, IntPtr> LoadedLibraries;
 
         /// <summary>
@@ -90,12 +102,26 @@ namespace Adfectus.Native
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
+                // Check for capitalized folder. Yes, really.
+                if (Directory.Exists($"{Environment.CurrentDirectory}/Libraries/MacOS/"))
+                {
+                    LibFolder = $"{Environment.CurrentDirectory}/Libraries/MacOS/";
+                }
+
                 LibFolder = $"{Environment.CurrentDirectory}/Libraries/macOS/";
+
                 libs = LibrariesMacOs;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                LibFolder = LinuxSetup();
+                // Check for capitalized folder. Yes, really.
+                if (Directory.Exists($"{Environment.CurrentDirectory}/Libraries/Linux/"))
+                {
+                    LibFolder = $"{Environment.CurrentDirectory}/Libraries/Linux/";
+                }
+
+                LibFolder = $"{Environment.CurrentDirectory}/Libraries/linux/";
+
                 libs = LibrariesLinux;
             }
 
@@ -183,40 +209,6 @@ namespace Adfectus.Native
                 LoadedLibraries.Add(name, libAddr);
                 Engine.Log.Trace($"Loaded additional library at address {libAddr}.", MessageSource.Bootstrap);
             }
-        }
-
-        /// <summary>
-        /// Bootstrap for Linux platforms.
-        /// </summary>
-        public static string LinuxSetup()
-        {
-            // Get the path of the process AKA where the engine was launched from.
-            string processPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-            if (processPath == null) throw new Exception("Failed to get the process path.");
-
-            // Check if the process path is the current path.
-            if (processPath != Environment.CurrentDirectory)
-            {
-                // todo: Test this.
-
-                // Set the current path to the process path.
-                Directory.SetCurrentDirectory(processPath);
-                UnixNative.chdir(processPath);
-
-                string processName = Process.GetCurrentProcess().ProcessName;
-                string executableName = processName.Replace(processPath + "/", "");
-
-                Engine.Log.Warning("It seems the process directory is not the executable directory. Will restart from correct directory.", MessageSource.Engine);
-                Engine.Log.Warning($"Proper directory is: {processPath}", MessageSource.Engine);
-                Engine.Log.Warning($"Executable is: {executableName}", MessageSource.Engine);
-
-                // Restart the process.
-                Process.Start(executableName)?.WaitForExit();
-                Environment.Exit(0);
-                return null;
-            }
-
-            return $"{Environment.CurrentDirectory}/Libraries/linux/";
         }
     }
 }

@@ -180,7 +180,7 @@ namespace Adfectus.Implementation.GLFW
                 Glfw.WindowHint(Glfw.OpenglProfile, currentConfig.Profile);
                 Glfw.WindowHint(Glfw.OpenglForwardCompat, currentConfig.ForwardCompat ? 1 : 0);
 
-                _win = Glfw.CreateWindow((int) _sizeCache.X, (int) _sizeCache.Y, builder.HostTitle, IntPtr.Zero, _win);
+                _win = Glfw.CreateWindow((int) _sizeCache.X, (int) _sizeCache.Y, builder.HostTitle, IntPtr.Zero, IntPtr.Zero);
 
                 // Check if created.
                 if (_win == IntPtr.Zero)
@@ -198,7 +198,7 @@ namespace Adfectus.Implementation.GLFW
                         Engine.Flags.RenderFlags.TextureLoadStandard = false;
                     }
 
-                    Engine.Log.Trace($"Created GLFW window using config - {currentConfig}.", MessageSource.Host);
+                    Engine.Log.Info($"Created GLFW window using config - {currentConfig}.", MessageSource.Host);
                     break;
                 }
             }
@@ -252,22 +252,18 @@ namespace Adfectus.Implementation.GLFW
         {
             lock (this)
             {
+                Engine.Log.Trace($"Changing window mode from {_windowMode} to {wm}.", MessageSource.Host);
+
                 switch (wm)
                 {
                     case WindowMode.Windowed:
                     {
-                        // Check if in fullscreen, in which case go back to windowed.
-                        IntPtr monitor = Glfw.GetWindowMonitor(_win);
-                        if (monitor != IntPtr.Zero)
-                        {
-                            Glfw.VidMode videoMode = Glfw.GetVideoMode(Glfw.GetPrimaryMonitor());
-                            Glfw.SetWindowMonitor(_win, IntPtr.Zero, 0, 0, videoMode.Width, videoMode.Height, videoMode.RefreshRate);
-                        }
+                        // Setting window monitor no none - and size to the size cache.
+                        Glfw.SetWindowMonitor(_win, IntPtr.Zero, 0, 0, (int) _sizeCache.X, (int) _sizeCache.Y, Glfw.DontCare);
 
-                        Glfw.SetWindowSize(_win, (int) _sizeCache.X, (int) _sizeCache.Y);
+                        // Center the window.
                         Vector2 center = GetCenterPos((int) _sizeCache.X, (int) _sizeCache.Y);
                         Glfw.SetWindowPos(_win, (int) center.X, (int) center.Y);
-
                         _windowMode = WindowMode.Windowed;
                         break;
                     }
@@ -279,7 +275,7 @@ namespace Adfectus.Implementation.GLFW
 
                         // Change to fullscreen.
                         Glfw.VidMode videoMode = Glfw.GetVideoMode(Glfw.GetPrimaryMonitor());
-                        Glfw.SetWindowMonitor(_win, Glfw.GetPrimaryMonitor(), 0, 0, videoMode.Width, videoMode.Height, Glfw.DontCare);
+                        Glfw.SetWindowMonitor(_win, Glfw.GetPrimaryMonitor(), 0, 0, videoMode.Width, videoMode.Height, videoMode.RefreshRate);
 
                         _windowMode = WindowMode.Fullscreen;
                         break;
@@ -310,10 +306,11 @@ namespace Adfectus.Implementation.GLFW
             Glfw.PollEvents();
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             // Go out of fullscreen - if the closing hangs and the window is in fullscreen mode you're going to have a bad time.
-            Glfw.SetWindowMonitor(_win, IntPtr.Zero, 0, 0, 1, 1, Glfw.DontCare);
+            Glfw.SetWindowMonitor(_win, IntPtr.Zero, 0, 0, 100, 100, Glfw.DontCare);
 
             // Make window close.
             Glfw.SetWindowShouldClose(_win, 1);

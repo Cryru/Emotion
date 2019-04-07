@@ -13,14 +13,6 @@ namespace Adfectus.Native
     public static class UnixNative
     {
         /// <summary>
-        /// Changes the current directory. Used for dynamic library mapping.
-        /// </summary>
-        /// <param name="path">Path to the new directory.</param>
-        /// <returns>?</returns>
-        [DllImport("libc", SetLastError = true)]
-        public static extern int chdir(string path);
-
-        /// <summary>
         /// Execute a bash command on Unix systems.
         /// </summary>
         /// <param name="command">The command to execute.</param>
