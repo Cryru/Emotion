@@ -74,7 +74,7 @@ namespace Adfectus.Common
         /// <param name="script">The script to execute.</param>
         /// <param name="safe">Whether to run the script safely.</param>
         /// <returns></returns>
-        public Task<object> RunScript(string script, bool safe = true)
+        public object RunScript(string script, bool safe = true)
         {
             if (safe) script = "(function () { " + script + " })()";
 
@@ -84,28 +84,36 @@ namespace Adfectus.Common
                 Source = script
             };
 
-            return Task.Run(() =>
+            try
             {
-                try
-                {
-                    object scriptResponse = Interpreter.Execute(script, parser).GetCompletionValue();
-                    // If it isn't empty log it.
-                    if (scriptResponse != null)
-                        Engine.Log.Trace($"Script executed, result: ${scriptResponse}", MessageSource.ScriptingEngine);
+                object scriptResponse = Interpreter.Execute(script, parser).GetCompletionValue();
+                // If it isn't empty log it.
+                if (scriptResponse != null)
+                    Engine.Log.Trace($"Script executed, result: ${scriptResponse}", MessageSource.ScriptingEngine);
 
-                    return scriptResponse;
-                }
-                catch (Exception ex)
-                {
-                    // Check if timeout, and if not throw an exception.
-                    if (ex.Message != "The operation has timed out." && Engine.Flags.StrictScripts)
-                        ErrorHandler.SubmitError(new Exception($"Scripting error in script: [{script}]", ex));
-                    else
-                        Engine.Log.Warning($"Scripting error in script: [{script}]\n{ex}", MessageSource.ScriptingEngine);
+                return scriptResponse;
+            }
+            catch (Exception ex)
+            {
+                // Check if timeout, and if not throw an exception.
+                if (ex.Message != "The operation has timed out." && Engine.Flags.StrictScripts)
+                    ErrorHandler.SubmitError(new Exception($"Scripting error in script: [{script}]", ex));
+                else
+                    Engine.Log.Warning($"Scripting error in script: [{script}]\n{ex}", MessageSource.ScriptingEngine);
 
-                    return null;
-                }
-            });
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Executes the provided string on the Javascript engine.
+        /// </summary>
+        /// <param name="script">The script to execute.</param>
+        /// <param name="safe">Whether to run the script safely.</param>
+        /// <returns></returns>
+        public Task<object> RunScriptAsync(string script, bool safe = true)
+        {
+            return Task.Run(() => RunScript(script, safe));
         }
 
         #endregion
