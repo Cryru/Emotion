@@ -12,7 +12,9 @@ using Adfectus.Common;
 using Adfectus.Game;
 using Adfectus.Game.Time;
 using Adfectus.Game.Time.Routines;
+using Adfectus.Graphics;
 using Adfectus.Graphics.Text;
+//using Adfectus.ImGuiNet;
 using Adfectus.Input;
 using Adfectus.Logging;
 using Adfectus.Primitives;
@@ -58,7 +60,9 @@ namespace Adfectus.ExecTest
             //Engine.Settings.RenderSettings.TargetTPS = 0;
             //_pl = new SteamPlugin();
             //new EngineBuilder().AddGenericPlugin(_pl
-            Engine.Setup(); //.AddGenericPlugin(new ImGuiNetPlugin());
+            ////ImGuiPlugin = new ImGuiNetPlugin();
+           // ImGuiPlugin.LoadFont("calibri.ttf", 15, 15);
+            Engine.Setup();//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
             Engine.SceneManager.SetScene(new TestScene());
             
             Vector2 first = new Vector2(10, 0);
@@ -72,6 +76,8 @@ namespace Adfectus.ExecTest
 
             bool aaaaa = true;
         }
+
+       // private static ImGuiNetPlugin ImGuiPlugin;
 
         /// <summary>
         /// Run the tests.
@@ -147,6 +153,7 @@ namespace Adfectus.ExecTest
         public override void Load()
         {
             test = new Game.Text.RichText(new Vector3(10, 10, 0), new Vector2(200, 200), Engine.AssetLoader.Get<Font>("debugFont.otf").GetFontAtlas(20));
+            test.SetText("sdadasdas");
             _coroutineManager = new CoroutineManager();
         }
 
@@ -195,7 +202,7 @@ for(let i = 0; i < 10; i++) {
             Engine.Renderer.Render(Vector3.Zero, Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
             loce.X += (0.3f * Engine.FrameTime) * (reverse ? -1 : 1);
             Engine.Renderer.Render(new Vector3(loce.X, 0, 0), new Vector2(50, Engine.GraphicsManager.RenderSize.Y), Color.White);
-            Engine.Renderer.RenderCircle(new Vector3(0, 0, 0), 40, Color.Red);
+            Engine.Renderer.RenderCircle(new Vector3(0, 0, 0), 40,Color.Red/* ImGuiPlugin.Focused ? Color.Red : Color.Blue*/);
             Engine.Renderer.Render(new Vector3(loce.X + 50, 0, 0), new Vector2(50,  Engine.GraphicsManager.RenderSize.Y), Color.Black);
             if (loce.X >=  Engine.GraphicsManager.RenderSize.X - 100)
             {
@@ -222,9 +229,13 @@ for(let i = 0; i < 10; i++) {
 
             //ImGui.NewFrame();
             //ImGui.NewLine();
+            //ImGuiPlugin.UseFont("calibri.ttf");
             //ImGui.Text("dasdsad");
-            //ImGui.SliderFloat("float", ref f, 0.0f, 1.0f, string.Empty, 1f);
-            //ImGui.InputText("gusther", ref _testStringInput, 1000);
+            //ImGuiPlugin.UseFont(null);
+            //ImGui.Text("dasdsad");
+            //Texture tt = Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png");
+            //Engine.Renderer.Render(new Vector3(200, 200, 10), new Vector2(100, 100), Color.White, tt);
+            //ImGui.Image(new IntPtr(tt.Pointer), new Vector2(100, 100));
             //Engine.Renderer.RenderGui();
         }
 

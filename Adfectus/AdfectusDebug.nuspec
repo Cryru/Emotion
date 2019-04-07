@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>AdfectusDebug</id>
-    <version>0.0.12</version>
+    <version>0.0.13</version>
     <title>Adfectus Engine - Debug Mode</title>
     <authors>Vlad 'Cryru' Abadzhiev</authors>
     <owners>Vlad 'Cryru' Abadzhiev</owners>

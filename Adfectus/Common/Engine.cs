@@ -250,8 +250,13 @@ namespace Adfectus.Common
                 return;
             }
 
-            // Calculate the render size.
-            Vector2 renderSize = CalculateRenderSize(builder);
+            // Scale the render and host sizes if requested.
+            Vector2 renderSize = !builder.RescaleAutomatic ? builder.RenderSize : ScaleRenderSize(builder.RenderSize);
+            if (builder.RescaleAutomatic)
+            {
+                Vector2 scaledHostSize = ScaleRenderSize(builder.HostSize);
+                Host.Size = scaledHostSize;
+            }
 
             // Apply host settings.
             Log.Info($"Created host of type {hostType}.", MessageSource.Engine);
@@ -486,27 +491,24 @@ namespace Adfectus.Common
 #endif
 
         /// <summary>
-        /// Calculate the render size.
+        /// Scale the render size based on the host's aspect ratio.
         /// </summary>
-        /// <param name="builder">The engine builder.</param>
-        /// <returns>The render size calculated from the settings in the engine builder.</returns>
-        private static Vector2 CalculateRenderSize(EngineBuilder builder)
+        /// <param name="size">The set render size.</param>
+        /// <returns>The scaled size to the aspect ratio of the host.</returns>
+        private static Vector2 ScaleRenderSize(Vector2 size)
         {
-            // Check whether to automatically rescale.
-            if (!builder.RescaleAutomatic) return builder.RenderSize;
-
-            string aspectRatio = Helpers.GetAspectRatio(builder.RenderSize.X, builder.RenderSize.Y);
+            string aspectRatio = Helpers.GetAspectRatio(size.X, size.Y);
             Vector2 screenSize = Host.GetScreenSize();
             string screenAspectRatio = Helpers.GetAspectRatio(screenSize.X, screenSize.Y);
 
-            if (aspectRatio == screenAspectRatio) return builder.RenderSize;
+            if (aspectRatio == screenAspectRatio) return size;
 
             string[] aspectParams = screenAspectRatio.Split(':');
             float.TryParse(aspectParams[0], out float screenWidth);
             float.TryParse(aspectParams[1], out float screenHeight);
 
-            float majorValue = Math.Max(builder.RenderSize.X, builder.RenderSize.Y);
-            bool majorIsWidth = majorValue == builder.RenderSize.X;
+            float majorValue = Math.Max(size.X, size.Y);
+            bool majorIsWidth = majorValue == size.X;
 
             float w;
             float h;
@@ -514,13 +516,13 @@ namespace Adfectus.Common
             // Calculate the appropriate aspect's render size.
             if (majorIsWidth)
             {
-                w = builder.RenderSize.X;
-                h = screenHeight * builder.RenderSize.X / screenWidth;
+                w = size.X;
+                h = screenHeight * size.X / screenWidth;
             }
             else
             {
-                w = screenWidth * builder.RenderSize.Y / screenHeight;
-                h = builder.RenderSize.Y;
+                w = screenWidth * size.Y / screenHeight;
+                h = size.Y;
             }
 
             return new Vector2(w, h);
