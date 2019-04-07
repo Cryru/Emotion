@@ -21,22 +21,23 @@ namespace Adfectus.Graphics
         /// <summary>
         /// The vertex itself.
         /// </summary>
-        public Vector3 Vertex;
+        [VertexAttribute(3, false)] public Vector3 Vertex;
 
         /// <summary>
         /// The UV of the vertex's texture.
         /// </summary>
-        public Vector2 UV;
+        [VertexAttribute(2, false)] public Vector2 UV;
 
         /// <summary>
         /// The texture's id within the loaded textures.
         /// </summary>
-        public float Tid;
+        [VertexAttribute(1, true)] public float Tid;
         // todo: this should be an int.
 
         /// <summary>
         /// The packed color of the vertex.
         /// </summary>
+        [VertexAttribute(4, true, typeof(byte))]
         public uint Color;
     }
 }

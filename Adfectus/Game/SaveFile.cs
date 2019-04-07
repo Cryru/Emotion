@@ -1,8 +1,11 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.IO;
 using System.Xml.Serialization;
 using Adfectus.Common;
 
+#endregion
 
 namespace Adfectus.Game
 {
@@ -51,11 +54,10 @@ namespace Adfectus.Game
         /// </summary>
         public void Save()
         {
-           using(StreamWriter stream = new StreamWriter(_path))
-           {
-               _serializer.Serialize(stream, Content);
-           }
+            using (StreamWriter stream = new StreamWriter(_path))
+            {
+                _serializer.Serialize(stream, Content);
+            }
         }
-
     }
 }

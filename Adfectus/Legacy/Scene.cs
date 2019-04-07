@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Adfectus.Common;
+﻿#region Using
+
 using Adfectus.Graphics;
-using Adfectus.Scenography;
+
+#endregion
 
 namespace Emotion.Engine.Scenography
 {

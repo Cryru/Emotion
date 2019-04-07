@@ -61,9 +61,9 @@ namespace Adfectus.Common
         public List<Plugin> Plugins { get; private set; } = new List<Plugin>();
 
         /// <summary>
-        /// Whether to perform platform specific bootstrapping on startup. On by default.
+        /// Whether to perform platform specific native library loading. True by default, is required to run the engine.
         /// </summary>
-        public bool PerformBootstrap { get; private set; } = true;
+        public bool LoadNativeLibraries { get; private set; } = true;
 
         /// <summary>
         /// The resolution to render at.
@@ -76,7 +76,7 @@ namespace Adfectus.Common
         public bool RescaleAutomatic { get; private set; } = true;
 
         /// <summary>
-        ///  The target ticks per second.
+        /// The target ticks per second.
         /// </summary>
         public int TargetTPS { get; private set; } = 60;
 
@@ -120,7 +120,7 @@ namespace Adfectus.Common
         {
             HostTitle = title;
             HostWindowMode = winMode;
-            if (winSize != null) HostSize = (Vector2)winSize;
+            if (winSize != null) HostSize = (Vector2) winSize;
 
             return this;
         }
@@ -166,7 +166,7 @@ namespace Adfectus.Common
         {
             RenderSize = renderSize;
             RescaleAutomatic = rescaleAutomatic;
-            PerformBootstrap = performBootstrap;
+            LoadNativeLibraries = performBootstrap;
             TargetTPS = targetTPS;
 
             return this;

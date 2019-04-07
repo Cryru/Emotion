@@ -120,10 +120,7 @@ namespace Adfectus.Implementation.GLFW
             }
 
             // Check for fullscreen toggling key combo.
-            if (IsKeyHeld("LeftAlt") && IsKeyDown("Enter"))
-            {
-                Engine.Host.WindowMode = Engine.Host.WindowMode == WindowMode.Fullscreen ? WindowMode.Windowed : WindowMode.Fullscreen;
-            }
+            if (IsKeyHeld("LeftAlt") && IsKeyDown("Enter")) Engine.Host.WindowMode = Engine.Host.WindowMode == WindowMode.Fullscreen ? WindowMode.Windowed : WindowMode.Fullscreen;
 
             // Check for closing combo.
             if (IsKeyDown("Escape")) Engine.Quit();

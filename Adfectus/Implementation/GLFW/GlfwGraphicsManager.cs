@@ -62,7 +62,8 @@ namespace Adfectus.Implementation.GLFW
             DefaultGLState();
             ResetState();
 
-            Gl.ClearColor(Engine.Flags.RenderFlags.ClearColor.R / 255f, Engine.Flags.RenderFlags.ClearColor.G / 255f, Engine.Flags.RenderFlags.ClearColor.B / 255f, Engine.Flags.RenderFlags.ClearColor.A / 255f);
+            Gl.ClearColor(Engine.Flags.RenderFlags.ClearColor.R / 255f, Engine.Flags.RenderFlags.ClearColor.G / 255f, Engine.Flags.RenderFlags.ClearColor.B / 255f,
+                Engine.Flags.RenderFlags.ClearColor.A / 255f);
 
             Engine.Log.Info("GraphicsManager ready.", MessageSource.GL);
         }

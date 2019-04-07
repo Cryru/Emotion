@@ -164,7 +164,7 @@ namespace Adfectus.Implementation.GLFW
                 _startIndex = 0;
             }
 
-            if (_endIndex > (Size / ObjectSize) * IndicesPerObject)
+            if (_endIndex > Size / ObjectSize * IndicesPerObject)
             {
                 Engine.Log.Warning($"Stream buffer indices end {_endIndex} is beyond mapped objects - {Size}.", MessageSource.GL);
                 _endIndex = MappedObjects * IndicesPerObject;
@@ -199,7 +199,7 @@ namespace Adfectus.Implementation.GLFW
             BindTextures();
 
             Engine.GraphicsManager.BindVertexArrayBuffer(Vao);
-            if(!Engine.Flags.RenderFlags.UseVao) Engine.GraphicsManager.BindDataBuffer(Vbo);
+            if (!Engine.Flags.RenderFlags.UseVao) Engine.GraphicsManager.BindDataBuffer(Vbo);
             Engine.GraphicsManager.BindIndexBuffer(Ibo);
             Engine.GraphicsManager.CheckError("map buffer - bind");
 
@@ -207,7 +207,7 @@ namespace Adfectus.Implementation.GLFW
             uint startIndex = _startIndex;
             IntPtr indexToPointer = (IntPtr) (startIndex * sizeof(ushort));
             // If the ending index is null then the whole buffer is rendered.
-            uint length = (_endIndex - _startIndex) ?? (MappedObjects * IndicesPerObject) - _startIndex;
+            uint length = _endIndex - _startIndex ?? MappedObjects * IndicesPerObject - _startIndex;
 
             if (_baseVertex != 0)
                 Gl.DrawElementsBaseVertex(_drawType, (int) length, DrawElementsType.UnsignedShort, indexToPointer, (int) _baseVertex);

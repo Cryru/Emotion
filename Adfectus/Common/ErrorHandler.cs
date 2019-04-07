@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Adfectus.Logging;
+using Adfectus.Native;
 
 #endregion
 
@@ -31,14 +32,14 @@ namespace Adfectus.Common
         /// <param name="ex">The exception connected with the error occured.</param>
         public static void SubmitError(Exception ex)
         {
+            // Log the error.
+            Engine.Log.Error(ex);
+
             // Check if suppressing errors.
             if (SuppressErrors) return;
 
             // If the debugger is attached, break so the error can be inspected.
             if (Debugger.IsAttached) Debugger.Break();
-
-            // Log the error.
-            Engine.Log.Error(ex);
 
             // Display the message box.
             ShowErrorBox($"Fatal error occured!\n{ex}");
@@ -58,41 +59,23 @@ namespace Adfectus.Common
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     WindowsNative.MessageBox(IntPtr.Zero, message, "Something went wrong!", (uint) (0x00000000L | 0x00000010L));
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    ExecuteBashCommand($"osascript -e 'tell app \"System Events\" to display dialog \"{message}\" buttons {{\"OK\"}} with icon caution'");
-                }
+                    UnixNative.ExecuteBashCommand($"osascript -e 'tell app \"System Events\" to display dialog \"{message}\" buttons {{\"OK\"}} with icon caution'");
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
                     try
                     {
                         // Display a message box using Zenity.
-                        ExecuteBashCommand($"zenity --error --text=\"{message}\" --title=\"Something went wrong!\" 2>/dev/null");
+                        UnixNative.ExecuteBashCommand($"zenity --error --text=\"{message}\" --title=\"Something went wrong!\" 2>/dev/null");
                     }
                     catch (Exception)
                     {
                         // Fallback to xmessage.
-                        ExecuteBashCommand($"xmessage \"{message}\"");
+                        UnixNative.ExecuteBashCommand($"xmessage \"{message}\"");
                     }
-                }
             }
             catch (Exception e)
             {
                 Engine.Log.Warning($"Couldn't display error message box - {message}. {e}", MessageSource.Other);
             }
-        }
-
-        /// <summary>
-        /// Execute a bash command on Unix systems.
-        /// </summary>
-        /// <param name="command">The command to execute.</param>
-        private static void ExecuteBashCommand(string command)
-        {
-            Process msgBox = new Process();
-            msgBox.StartInfo.FileName = "/bin/bash";
-            msgBox.StartInfo.Arguments = $"-c \"{command.Replace("\"", "\\\"")}\"";
-            msgBox.StartInfo.UseShellExecute = false;
-            msgBox.StartInfo.CreateNoWindow = true;
-            msgBox.Start();
         }
     }
 }

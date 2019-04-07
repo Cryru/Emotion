@@ -11,6 +11,7 @@ using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
 using Adfectus.Input;
 using Adfectus.Logging;
+using Adfectus.Native;
 
 #endregion
 
@@ -99,7 +100,7 @@ namespace Adfectus.Implementation.GLFW
             _sizeCache = builder.HostSize;
 
             // Init glfw.
-            int initSuccess = Glfw.Init(Bootstrapper.LoadedLibraries["glfw"]);
+            int initSuccess = Glfw.Init(NativeLoader.LoadedLibraries["glfw"]);
             if (initSuccess != 1)
             {
                 ErrorHandler.SubmitError(new Exception("GLFW couldn't initialize."));
@@ -166,10 +167,7 @@ namespace Adfectus.Implementation.GLFW
             Glfw.WindowHint(Glfw.Visible, 0);
 
             // Check if creating a borderless fullscreen window.
-            if (builder.HostWindowMode == WindowMode.Borderless)
-            {
-                Glfw.WindowHint(Glfw.Decorated, 0);
-            }
+            if (builder.HostWindowMode == WindowMode.Borderless) Glfw.WindowHint(Glfw.Decorated, 0);
 
             // Try to create a window using all available configurations.
             foreach (WindowConfig currentConfig in windowConfigurations)
@@ -222,7 +220,7 @@ namespace Adfectus.Implementation.GLFW
             // Create host modules.
             _graphicsManager = new GlfwGraphicsManager();
             _inputManager = new GlfwInputManager(_win);
-           
+
             // Check if creating a borderless fullscreen window.
             if (builder.HostWindowMode == WindowMode.Borderless)
             {

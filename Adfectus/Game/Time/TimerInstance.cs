@@ -1,8 +1,4 @@
-﻿#region Using
-
-#endregion
-
-namespace Adfectus.Game.Time
+﻿namespace Adfectus.Game.Time
 {
     internal abstract class TimerInstance
     {

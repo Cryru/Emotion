@@ -43,11 +43,6 @@ namespace Adfectus.Graphics.Text
 
         #endregion
 
-        static Atlas()
-        {
-            FT.Init(Bootstrapper.LoadedLibraries["freetype"]);
-        }
-
         /// <summary>
         /// Create a new font atlas.
         /// </summary>

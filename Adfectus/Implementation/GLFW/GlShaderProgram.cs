@@ -103,7 +103,7 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
             unsafe
             {
@@ -119,7 +119,7 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
             Gl.Uniform1((int) id, data);
             Engine.GraphicsManager.CheckError("setting int uniform");
@@ -130,7 +130,7 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
             Gl.Uniform1((int) id, data);
             Engine.GraphicsManager.CheckError("setting float uniform");
@@ -141,7 +141,7 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
             Gl.Uniform4((int) id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f);
             Engine.GraphicsManager.CheckError("setting color uniform");
@@ -152,7 +152,7 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
             Gl.Uniform1((int) id, data);
             Engine.GraphicsManager.CheckError("setting int array uniform");
@@ -163,9 +163,9 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
-            Gl.Uniform3f<Vector3>((int) id, 1, data);
+            Gl.Uniform3f((int) id, 1, data);
 
             Engine.GraphicsManager.CheckError("setting vec3 uniform");
         }
@@ -175,9 +175,9 @@ namespace Adfectus.Implementation.GLFW
         {
             uint id = GetUniformLocation(name);
             // Check if the id exists.
-            if(id == uint.MaxValue) return;
+            if (id == uint.MaxValue) return;
 
-            Gl.Uniform4f<Vector4>((int) id, 1, data);
+            Gl.Uniform4f((int) id, 1, data);
 
             Engine.GraphicsManager.CheckError("setting vec4 uniform");
         }

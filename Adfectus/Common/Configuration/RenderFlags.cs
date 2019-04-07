@@ -1,4 +1,8 @@
-﻿using Adfectus.Primitives;
+﻿#region Using
+
+using Adfectus.Primitives;
+
+#endregion
 
 namespace Adfectus.Common.Configuration
 {
@@ -30,13 +34,14 @@ namespace Adfectus.Common.Configuration
         public bool SetVertexAttribLocations { get; set; }
 
         /// <summary>
-        /// Whether the use an internal framebuffer when rendering before flushing to the window's framebuffer. This makes scaling better on different displays.
+        /// Whether the use an internal framebuffer when rendering before flushing to the window's framebuffer. This makes scaling
+        /// better on different displays.
         /// True by default.
         /// </summary>
         public bool UseFramebuffer { get; set; } = true;
 
         /// <summary>
-        /// Whether to use Vertex Array Objects. True by default. 
+        /// Whether to use Vertex Array Objects. True by default.
         /// </summary>
         public bool UseVao { get; set; } = true;
 

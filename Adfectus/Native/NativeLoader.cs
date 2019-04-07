@@ -6,17 +6,26 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Adfectus.Common;
 using Adfectus.Logging;
+using Adfectus.OpenAL;
+using FreeImageAPI;
+using SharpFont;
 
 #endregion
 
-namespace Adfectus.Common
+namespace Adfectus.Native
 {
     /// <summary>
-    /// Loads and configures OS specific stuff.
+    /// Loads native libraries.
     /// </summary>
-    public static class Bootstrapper
+    public static class NativeLoader
     {
+        /// <summary>
+        /// Whether the native loader is ready.
+        /// </summary>
+        public static bool Ready { get; private set; }
+
         public static Dictionary<string, string> LibrariesWindows = new Dictionary<string, string>
         {
             {"vcruntime140.dll - glfw dependency", "vcruntime140.dll"},
@@ -56,9 +65,15 @@ namespace Adfectus.Common
         /// <summary>
         /// Perform needed configuration.
         /// </summary>
-        public static void Strap()
+        public static void Setup()
         {
-            Engine.Log.Info("Adfectus Bootstrap", MessageSource.Bootstrap);
+            if (Ready)
+            {
+                Engine.Log.Warning("Native libraries are already setup.", MessageSource.Bootstrap);
+                return;
+            }
+
+            Engine.Log.Info("Adfectus Native Loader", MessageSource.Bootstrap);
             Engine.Log.Info("-----------", MessageSource.Bootstrap);
             Engine.Log.Info($"OS: {RuntimeInformation.OSDescription}", MessageSource.Bootstrap);
             Engine.Log.Info($"64Bit: {Environment.Is64BitProcess}", MessageSource.Bootstrap);
@@ -85,7 +100,19 @@ namespace Adfectus.Common
             }
 
             // If no lib folder or libs - exit.
-            if (LibFolder == null || libs == null) return;
+            if (LibFolder == null || libs == null)
+            {
+                ErrorHandler.SubmitError(new Exception("Cannot identify library folder or libraries to load."));
+                return;
+            }
+
+            // Check if the folder exists.
+            if (!Directory.Exists(LibFolder))
+            {
+                ErrorHandler.SubmitError(new Exception($"Library folder {LibFolder} not found."));
+                return;
+            }
+
             Engine.Log.Info($"Library Folder: {LibFolder}", MessageSource.Bootstrap);
 
             // Load libraries.
@@ -119,6 +146,13 @@ namespace Adfectus.Common
                 }
             }
 
+            // Init libraries.
+            FreeImage.Init(LoadedLibraries["freeimage"]);
+            FT.Init(LoadedLibraries["freetype"]);
+            Al.Init(LoadedLibraries["openal"]);
+            Alc.Init(LoadedLibraries["openal"]);
+
+            Ready = true;
             Engine.Log.Info("Bootstrap complete!", MessageSource.Bootstrap);
         }
 
@@ -133,7 +167,8 @@ namespace Adfectus.Common
                 fileName += ".dll";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 fileName += ".dylib";
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) fileName += ".so";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                fileName += ".so";
 
             // Load the library.
             Engine.Log.Trace($"Loading library {fileName}...", MessageSource.Bootstrap);
@@ -162,6 +197,8 @@ namespace Adfectus.Common
             // Check if the process path is the current path.
             if (processPath != Environment.CurrentDirectory)
             {
+                // todo: Test this.
+
                 // Set the current path to the process path.
                 Directory.SetCurrentDirectory(processPath);
                 UnixNative.chdir(processPath);

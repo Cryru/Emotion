@@ -36,11 +36,6 @@ namespace Adfectus.Graphics
 
         #region Initialization
 
-        static Texture()
-        {
-            FreeImage.Init(Bootstrapper.LoadedLibraries["freeimage"]);
-        }
-
         /// <summary>
         /// Creates an empty texture.
         /// </summary>

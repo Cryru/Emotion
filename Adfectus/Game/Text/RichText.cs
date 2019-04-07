@@ -130,7 +130,7 @@ namespace Adfectus.Game.Text
         {
             FontAtlas = fontAtlas;
 
-            _renderCache = Engine.GraphicsManager.CreateQuadStreamBuffer(Engine.Flags.RenderFlags.MaxRenderable); 
+            _renderCache = Engine.GraphicsManager.CreateQuadStreamBuffer(Engine.Flags.RenderFlags.MaxRenderable);
         }
 
         /// <summary>
@@ -416,7 +416,6 @@ namespace Adfectus.Game.Text
         /// </summary>
         public override void Render()
         {
-            return;
             if (_updateRenderCache)
             {
                 MapBuffer();

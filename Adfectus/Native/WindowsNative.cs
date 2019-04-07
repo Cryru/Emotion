@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Adfectus.Common
+namespace Adfectus.Native
 {
     /// <summary>
     /// Functions relating to the Window OS api.

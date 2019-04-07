@@ -59,10 +59,6 @@ namespace Adfectus.Sound
 
             _layers = new ConcurrentDictionary<string, SoundLayer>();
             _buffersToDestroy = new ConcurrentQueue<SoundFile>();
-
-            // Load the native library functions.
-            Al.Init(Bootstrapper.LoadedLibraries["openal"]);
-            Alc.Init(Bootstrapper.LoadedLibraries["openal"]);
         }
 
         /// <summary>

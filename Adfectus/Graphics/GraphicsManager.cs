@@ -448,7 +448,7 @@ namespace Adfectus.Graphics
         /// <param name="indicesPerObject">The indices per object.</param>
         /// <returns>A streaming buffer used for drawing vertices.</returns>
         public abstract StreamBuffer CreateStreamBuffer(uint vbo, uint vao, uint ibo, uint objectSize, uint size, uint indicesPerObject);
-        
+
         /// <summary>
         /// Create a streaming buffer used for drawing any vertices.
         /// </summary>
@@ -523,7 +523,7 @@ namespace Adfectus.Graphics
         /// </summary>
         /// <returns>The id of the currently bound vertex array buffer.</returns>
         public abstract uint GetBoundVertexArrayBuffer();
-        
+
         /// <summary>
         /// Generates the default VAO.
         /// </summary>

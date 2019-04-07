@@ -15,6 +15,7 @@ using Adfectus.Implementation.GLFW;
 using Adfectus.Input;
 using Adfectus.IO;
 using Adfectus.Logging;
+using Adfectus.Native;
 using Adfectus.Scenography;
 using Adfectus.Sound;
 
@@ -186,7 +187,7 @@ namespace Adfectus.Common
             ErrorHandler.Setup();
 
             // Perform platform bootstrap if needed.
-            if (builder.PerformBootstrap) Bootstrapper.Strap();
+            if (builder.LoadNativeLibraries) NativeLoader.Setup();
 
             // ReSharper disable once RedundantAssignment
             bool wasCompiledDebug = false;
@@ -256,7 +257,7 @@ namespace Adfectus.Common
             Log.Info($"Created host of type {hostType}.", MessageSource.Engine);
 
             // Wait for host to focus.
-            while(!Host.Open || !Host.Focused) Host.Update();
+            while (!Host.Open || !Host.Focused) Host.Update();
 
             // Check if host setup error-ed.
             if (Host.GraphicsManager == null)
@@ -362,7 +363,7 @@ namespace Adfectus.Common
                 while (accumulator >= targetTime)
                 {
                     // Assign frame time trackers.
-                    FrameTime = (float) (fixedStep ? (targetTime * 1000f) : RawFrameTime);
+                    FrameTime = (float) (fixedStep ? targetTime * 1000f : RawFrameTime);
                     TotalTime += FrameTime;
 
                     updated = true;

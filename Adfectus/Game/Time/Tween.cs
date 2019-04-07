@@ -59,7 +59,7 @@ namespace Adfectus.Game.Time
                 Type tweenMemberType = TypeOfMember(tweenMember);
 
                 // Filter not double convertible types.
-                if(tweenMemberType != typeof(float) && tweenMemberType != typeof(double) && tweenMemberType != typeof(decimal)) continue;
+                if (tweenMemberType != typeof(float) && tweenMemberType != typeof(double) && tweenMemberType != typeof(decimal)) continue;
 
                 // Check if name and type match. Add it and calculate the delta.
                 if ((from targetMember in targetMembers where tweenMember.Name == targetMember.Name select TypeOfMember(targetMember)).Any(targetMemberType => tweenMemberType == targetMemberType))

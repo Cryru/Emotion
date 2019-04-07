@@ -111,7 +111,7 @@ namespace Adfectus.Game.UI
         {
             // Disable view matrix.
             bool viewMatrixEnabled = Engine.GraphicsManager.ViewMatrixEnabled;
-            if(viewMatrixEnabled) Engine.GraphicsManager.ViewMatrixEnabled = false;
+            if (viewMatrixEnabled) Engine.GraphicsManager.ViewMatrixEnabled = false;
 
             Engine.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(0, 0, UIPriority));
 
