@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -95,9 +94,16 @@ namespace Adfectus.Native
             // Get lib folder and libs depending on platform.
             Dictionary<string, string> libs = null;
 
+            // Check if a 64 bit system.
+            if (RuntimeInformation.OSArchitecture != Architecture.X64)
+            {
+                ErrorHandler.SubmitError(new Exception("Only 64bit OSes are supported."));
+                return;
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                LibFolder = $"{Environment.CurrentDirectory}\\Libraries\\{(Environment.Is64BitProcess ? "win64" : "win32")}\\";
+                LibFolder = $"{Environment.CurrentDirectory}\\Libraries\\win\\";
                 libs = LibrariesWindows;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))

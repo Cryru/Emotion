@@ -9,13 +9,9 @@
          <Link>steam_api.dylib</Link>
          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Include="$(MSBuildThisFileDirectory)win64\steam_api.dll">
-         <Link>win64\steam_api.dll</Link>
+      <None Include="$(MSBuildThisFileDirectory)steam_api.dll">
+         <Link>steam_api.dll</Link>
          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-     <None Include="$(MSBuildThisFileDirectory)win86\steam_api.dll">
-       <Link>win86\steam_api.dll</Link>
-       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-     </None>
    </ItemGroup>
 </Project>

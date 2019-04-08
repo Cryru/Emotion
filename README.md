@@ -18,7 +18,7 @@ Supported platforms are:
   - Debian 9+ x64 +
     - Linux Mint 18 +
     - Ubuntu 17.10 +
-  - Windows 7 x64/x86 +
+  - Windows 7 x64 +
 
 For additional supported platforms, lookup .NetCore 3.0 support.
 

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Adfectus.Steam</id>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <title>Adfectus.Steam</title>
     <authors>Vlad 'Cryru' Abadzhiev</authors>
     <owners>Vlad 'Cryru' Abadzhiev</owners>
@@ -29,7 +29,6 @@
 
     <file src="steam_api.so" target="Build\steam_api.so" />
     <file src="steam_api.dylib" target="Build\steam_api.dylib" />
-    <file src="win64\steam_api.dll" target="Build\win64\steam_api.dll" />
-    <file src="win86\steam_api.dll" target="Build\win86\steam_api.dll" />
+    <file src="steam_api.dll" target="Build\steam_api.dll" />
   </files>
 </package>

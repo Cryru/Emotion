@@ -10,10 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="win64\steam_api.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="win86\steam_api.dll">
+    <None Update="steam_api.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="steam_api.dylib">

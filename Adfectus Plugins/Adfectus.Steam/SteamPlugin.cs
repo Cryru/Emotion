@@ -34,17 +34,6 @@ namespace Adfectus.Steam
         public SteamPlugin(uint addId)
         {
             Appid = addId;
-
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
-            switch (RuntimeInformation.ProcessArchitecture)
-            {
-                case Architecture.X64:
-                    System.IO.File.Copy("win64\\steam_api.dll", "steam_api.dll", true);
-                    break;
-                case Architecture.X86:
-                    System.IO.File.Copy("win86\\steam_api.dll", "steam_api.dll", true);
-                    break;
-            }
         }
 
         public override void Initialize()
@@ -58,7 +47,7 @@ namespace Adfectus.Steam
             // If not started through Steam, close the app. Steam will start it.
             if (!steamOpen)
             {
-                Engine.Log.Warning("Steam is not open.", MessageSource.Other);
+                ErrorHandler.SubmitError(new Exception("Steam is not open."));
                 Engine.Quit();
                 return;
             }
