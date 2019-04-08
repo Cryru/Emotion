@@ -45,18 +45,13 @@
     <file src="Libraries\macOS\glfw3.dylib" target="Build\Libraries\macOS\glfw3.dylib" />
     <file src="Libraries\macOS\libpng14.14.dylib" target="Build\Libraries\macOS\libpng14.14.dylib" />
     <file src="Libraries\macOS\openal32.dylib" target="Build\Libraries\macOS\openal32.dylib" />
-    <file src="Libraries\win32\FreeImage.dll" target="Build\Libraries\win32\FreeImage.dll" />
-    <file src="Libraries\win32\freetype6.dll" target="Build\Libraries\win32\freetype6.dll" />
-    <file src="Libraries\win32\glfw3.dll" target="Build\Libraries\win32\glfw3.dll" />
-    <file src="Libraries\win32\msvcr100.dll" target="Build\Libraries\win32\msvcr100.dll" />
-    <file src="Libraries\win32\openal32.dll" target="Build\Libraries\win32\openal32.dll" />
-    <file src="Libraries\win64\FreeImage.dll" target="Build\Libraries\win64\FreeImage.dll" />
-    <file src="Libraries\win64\freetype6.dll" target="Build\Libraries\win64\freetype6.dll" />
-    <file src="Libraries\win64\glfw3.dll" target="Build\Libraries\win64\glfw3.dll" />
-    <file src="Libraries\win64\msvcr100.dll" target="Build\Libraries\win64\msvcr100.dll" />
-    <file src="Libraries\win64\openal32.dll" target="Build\Libraries\win64\openal32.dll" />
-    <file src="Libraries\win64\vcomp120.dll" target="Build\Libraries\win64\vcomp120.dll" />
-    <file src="Libraries\win64\vcruntime140.dll" target="Build\Libraries\win64\vcruntime140.dll" />
+    <file src="Libraries\win\FreeImage.dll" target="Build\Libraries\win\FreeImage.dll" />
+    <file src="Libraries\win\freetype6.dll" target="Build\Libraries\win\freetype6.dll" />
+    <file src="Libraries\win\glfw3.dll" target="Build\Libraries\win\glfw3.dll" />
+    <file src="Libraries\win\msvcr100.dll" target="Build\Libraries\win\msvcr100.dll" />
+    <file src="Libraries\win\openal32.dll" target="Build\Libraries\win\openal32.dll" />
+    <file src="Libraries\win\vcomp120.dll" target="Build\Libraries\win\vcomp120.dll" />
+    <file src="Libraries\win\vcruntime140.dll" target="Build\Libraries\win\vcruntime140.dll" />
     <file src="AdfectusDebug.targets" target="Build\AdfectusDebug.targets" />
     <file src="bin\Debug\netcoreapp3.0\Adfectus.dll" target="lib\netcoreapp3.0\Adfectus.dll" />
     <file src="bin\Debug\netcoreapp3.0\Adfectus.pdb" target="lib\netcoreapp3.0\Adfectus.pdb" />
