@@ -227,6 +227,9 @@ for(let i = 0; i < 10; i++) {
 
             Engine.Renderer.Render(test);
 
+            Texture tt = Engine.AssetLoader.Get<Texture>("Textures/16bmp.bmp");
+            Engine.Renderer.Render(new Vector3(200, 200, 10), new Vector2(100, 100), Color.White, tt);
+
             //ImGui.NewFrame();
             //ImGui.NewLine();
             //ImGuiPlugin.UseFont("calibri.ttf");

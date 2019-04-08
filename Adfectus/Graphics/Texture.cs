@@ -98,7 +98,7 @@ namespace Adfectus.Graphics
             freeImageBitmap = FreeImage.Rotate(preRotation, 180);
             FreeImage.Unload(preRotation);
            
-            TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4x4.CreateScale(1, -1, 1);
+            TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1) * Matrix4x4.CreateScale(-1, -1, 1);
 
             // Even though all of the calls in the graphics manager call for execution on the GL Thread, wrapping them together like this ensures they'll be called within one loop.
             GLThread.ExecuteGLThread(() =>

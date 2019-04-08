@@ -97,7 +97,7 @@ namespace Adfectus.Native
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                LibFolder = $"{Environment.CurrentDirectory}\\Libraries\\{(Environment.Is64BitProcess ? "win64" : "win86")}\\";
+                LibFolder = $"{Environment.CurrentDirectory}\\Libraries\\{(Environment.Is64BitProcess ? "win64" : "win32")}\\";
                 libs = LibrariesWindows;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
