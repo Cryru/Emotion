@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using Adfectus.Common;
 using Adfectus.Logging;
@@ -39,6 +40,18 @@ namespace Adfectus.Steam
         public override void Initialize()
         {
             Engine.Log.Info("Loading Steam...", MessageSource.Other);
+
+            bool debug = Meta.FullVersion.Contains("[DEBUG]");
+            if (debug)
+            {
+                // If in debug mode, create app id file if missing.
+                if (!File.Exists("steam_appid.txt")) File.WriteAllText("steam_appid.txt", Appid.ToString());
+            }
+            else
+            {
+                // If not in debug mode, delete app id file.
+                if (File.Exists("steam_appid.txt")) File.Delete("steam_appid.txt");
+            }
 
             SteamApi.RestartAppIfNecessary(Appid);
 
