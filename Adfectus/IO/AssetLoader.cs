@@ -12,9 +12,20 @@ namespace Adfectus.IO
     /// </summary>
     public abstract class AssetLoader
     {
-        public string[] LoadedAssets
+        /// <summary>
+        /// List of all assets in all sources.
+        /// </summary>
+        public string[] AllAssets
         {
-            get => _loadedAssets.Keys.ToArray();
+            get => _manifest.Keys.ToArray();
+        }
+
+        /// <summary>
+        /// List of all loaded assets from all sources.
+        /// </summary>
+        public Asset[] LoadedAssets
+        {
+            get => _loadedAssets.Values.ToArray();
         }
 
         protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();

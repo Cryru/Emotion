@@ -17,6 +17,7 @@ using Adfectus.Graphics.Text;
 //using Adfectus.ImGuiNet;
 using Adfectus.Input;
 using Adfectus.Logging;
+using Adfectus.Platform.DesktopGL;
 using Adfectus.Primitives;
 using Adfectus.Scenography;
 //using Adfectus.Steam;

@@ -1,20 +1,25 @@
-﻿using Adfectus.Common;
+﻿#region Using
+
+using Adfectus.Common;
 using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
 using Adfectus.Implementation;
 using Adfectus.Implementation.GLFW;
 using Adfectus.Input;
 using Adfectus.IO;
+using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Sound;
-using Emotion.Platform.DesktopGL.Assets;
+using Emotion.Platform.DesktopGL;
 using Emotion.Platform.DesktopGL.Native;
 using Emotion.Platform.DesktopGL.Sound;
 
-namespace Emotion.Platform.DesktopGL
+#endregion
+
+namespace Adfectus.Platform.DesktopGL
 {
     public sealed class DesktopPlatform : IPlatform
     {
-        private AssetLoaderDesktop _assetLoader { get; set; }
+        private DesktopAssetLoader _desktopAssetLoader { get; set; }
         private GlfwHost _host { get; set; }
         private GlfwInputManager _inputManager { get; set; }
         private GlfwGraphicsManager _graphicsManager { get; set; }
@@ -27,27 +32,27 @@ namespace Emotion.Platform.DesktopGL
 
         public AssetLoader CreateAssetLoader(EngineBuilder builder)
         {
-            return _assetLoader ?? (_assetLoader = new AssetLoaderDesktop(builder));
+            return _desktopAssetLoader ??= new DesktopAssetLoader(builder);
         }
 
         public IHost CreateHost(EngineBuilder builder)
         {
-            return _host ?? (_host = new GlfwHost(builder));
+            return _host ??= new GlfwHost(builder);
         }
 
         public IInputManager CreateInputManager(EngineBuilder builder)
         {
-            return _inputManager ?? (_inputManager = new GlfwInputManager(_host._win));
+            return _inputManager ??= new GlfwInputManager(_host._win);
         }
 
         public GraphicsManager CreateGraphicsManager(EngineBuilder builder)
         {
-            return _graphicsManager ?? (_graphicsManager = new GlfwGraphicsManager());
+            return _graphicsManager ??= new GlfwGraphicsManager();
         }
 
         public SoundManager CreateSoundManager(EngineBuilder builder)
         {
-            return _soundManager ?? (_soundManager = new ALSoundManager(builder));
+            return _soundManager ??= new ALSoundManager(builder);
         }
 
         public void Dispose()

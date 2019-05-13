@@ -198,16 +198,16 @@ namespace Adfectus.Common
 #if DEBUG
             wasCompiledDebug = true;
 
-            // Check for Rationale debugger.
-            if (File.Exists("Rationale.dll"))
-            {
-                // Invoke the debugger's entry point.
-                Assembly rationaleAssembly = Assembly.LoadFrom("Rationale.dll");
-                MethodInfo entryPoint = rationaleAssembly.GetType("Rationale.Boot").GetMethod("Main");
+            //// Check for Rationale debugger.
+            //if (File.Exists("Rationale.dll"))
+            //{
+            //    // Invoke the debugger's entry point.
+            //    Assembly rationaleAssembly = Assembly.LoadFrom("Rationale.dll");
+            //    MethodInfo entryPoint = rationaleAssembly.GetType("Rationale.Boot").GetMethod("Main");
 
-                // Pass the builder and entry assembly to the debugger. It can add plugins and do assembly reflection stuff.
-                _rationaleDrawHook = (Action)entryPoint.Invoke(null, new object[] { builder, Assembly.GetEntryAssembly() });
-            }
+            //    // Pass the builder and entry assembly to the debugger. It can add plugins and do assembly reflection stuff.
+            //    _rationaleDrawHook = (Action)entryPoint.Invoke(null, new object[] { builder, Assembly.GetEntryAssembly() });
+            //}
 #endif
 
             Log.Info($"Starting Adfectus v{Meta.FullVersion}", MessageSource.Engine);
@@ -295,12 +295,12 @@ namespace Adfectus.Common
 
             // Load plugins.
             Log.Info("Loading plugins...", MessageSource.Engine);
-            //_plugins = builder.Plugins;
-            //foreach (Plugin plugin in _plugins)
-            //{
-            //    plugin.Initialize();
-            //    Log.Trace($"Loading plugin {plugin}.", MessageSource.Engine);
-            //}
+            _plugins = builder.Plugins;
+            foreach (Plugin plugin in _plugins)
+            {
+                plugin.Initialize();
+                Log.Trace($"Loading plugin {plugin}.", MessageSource.Engine);
+            }
 
             Log.Info($"{builder.Plugins.Count} plugins loaded.", MessageSource.Engine);
 
@@ -450,11 +450,11 @@ namespace Adfectus.Common
             // Update user code.
             SceneManager.Update();
 
-            //// Update plugins.
-            //foreach (Plugin plugin in _plugins)
-            //{
-            //    plugin.Update();
-            //}
+            // Update plugins.
+            foreach (Plugin plugin in _plugins)
+            {
+                plugin.Update();
+            }
         }
 
         private static void Draw()
