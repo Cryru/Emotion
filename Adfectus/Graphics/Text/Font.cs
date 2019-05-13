@@ -7,33 +7,40 @@ using Adfectus.IO;
 
 namespace Adfectus.Graphics.Text
 {
-    public sealed class Font : Asset
+    /// <inheritdoc />
+    public class Font : Asset
     {
         private byte[] _fontBytes;
-        private Dictionary<uint, Atlas> _atlasCache;
+        private Dictionary<uint, Atlas> _atlasCache = new Dictionary<uint, Atlas>();
 
         #region Asset API
 
-        internal override void CreateAsset(byte[] data)
+        /// <summary>
+        /// Default constructor. Used by the Asset Loader.
+        /// </summary>
+        // ReSharper disable once PublicConstructorInAbstractClass
+        public Font()
         {
-            _fontBytes = data;
-            _atlasCache = new Dictionary<uint, Atlas>();
+
         }
 
-        internal override void DestroyAsset()
+        protected override void CreateInternal(byte[] data)
+        {
+            _fontBytes = data;
+        }
+
+        protected override void DisposeInternal()
         {
             // Destroy loaded atlases.
             foreach (KeyValuePair<uint, Atlas> atlas in _atlasCache)
             {
-                atlas.Value.Destroy();
+                atlas.Value.Dispose();
             }
 
             _atlasCache.Clear();
         }
 
         #endregion
-
-        #region Font API
 
         /// <summary>
         /// Returns a font atlas of the specified size and which the specified glyphs loaded. Loaded atlases won't be reloaded.
@@ -44,11 +51,15 @@ namespace Adfectus.Graphics.Text
         public Atlas GetFontAtlas(uint fontSize, int glyphs = 128)
         {
             // Cache the atlas if it isn't cached.
-            if (!_atlasCache.ContainsKey(fontSize)) _atlasCache[fontSize] = new Atlas(_fontBytes, fontSize, glyphs);
+            if (!_atlasCache.ContainsKey(fontSize)) _atlasCache[fontSize] = CreateAtlas(_fontBytes, fontSize, glyphs);
 
             return _atlasCache[fontSize];
         }
 
-        #endregion
+        protected virtual Atlas CreateAtlas(byte[] fontBytes, uint fontSize, int glyphs)
+        {
+            // no-op
+            return null;
+        }
     }
 }

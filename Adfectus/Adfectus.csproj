@@ -21,9 +21,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Libraries\linux\FreeImage.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    <Compile Remove="Implementation\StandardGlRenderer.cs" />
+    <Compile Remove="IO\aloader_old.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Implementation\StandardGlRenderer.cs" />
+    <None Include="IO\aloader_old.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,11 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Adfectus.FreeImage" Version="1.0.0" />
-    <PackageReference Include="Adfectus.Glfw" Version="1.0.0" />
-    <PackageReference Include="Adfectus.OpenAL" Version="1.0.0" />
-    <PackageReference Include="Adfectus.OpenGLNet" Version="1.0.1" />
-    <PackageReference Include="Adfectus.SharpFont" Version="1.0.0" />
     <PackageReference Include="Jint" Version="2.11.58" />
     <PackageReference Include="Serilog" Version="2.8.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="1.3.0" />
@@ -51,67 +50,6 @@
     <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="TiledSharp" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Libraries\linux\freetype6.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>Libraries\linux\freetype6.so</Link>
-    </None>
-    <None Update="Libraries\linux\glfw3.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\linux\libsndio.so.6.1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\linux\steam_api.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\linux\openal32.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\macOS\FreeImage.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\macOS\glfw3.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\macOS\freetype6.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\macOS\openal32.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\macOS\libpng14.14.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\macOS\steam_api.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\FreeImage.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\freetype6.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\glfw3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\msvcr100.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\openal32.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\steam_api64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\vcomp120.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Libraries\win\vcruntime140.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

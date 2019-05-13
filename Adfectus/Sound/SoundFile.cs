@@ -9,10 +9,11 @@ using Adfectus.IO;
 
 namespace Adfectus.Sound
 {
+    /// <inheritdoc />
     /// <summary>
     /// A sound file asset. Supports WAV.
     /// </summary>
-    public sealed class SoundFile : Asset
+    public class SoundFile : Asset
     {
         #region Properties
 
@@ -20,11 +21,6 @@ namespace Adfectus.Sound
         /// The duration of the sound file.
         /// </summary>
         public float Duration { get; private set; }
-
-        /// <summary>
-        /// Sound file pointer to the internal system.
-        /// </summary>
-        public uint ALBuffer { get; internal set; }
 
         /// <summary>
         /// The number of channels the file has.
@@ -36,11 +32,19 @@ namespace Adfectus.Sound
         /// </summary>
         public int SampleRate { get; private set; }
 
+        /// <summary>
+        /// The bits per sample.
+        /// </summary>
+        public int BitsPerSample { get; private set; }
+
+        /// <summary>
+        /// The data of the sound file.
+        /// </summary>
+        public byte[] SoundData { get; private set; }
+
         #endregion
 
-        #region Asset API
-
-        internal override void CreateAsset(byte[] data)
+        protected override void CreateInternal(byte[] data)
         {
             using (MemoryStream stream = new MemoryStream(data))
             {
@@ -78,7 +82,7 @@ namespace Adfectus.Sound
                     reader.ReadInt32();
                     // Block align.
                     reader.ReadInt16();
-                    int bitsPerSample = reader.ReadInt16();
+                    BitsPerSample = reader.ReadInt16();
 
                     // Finish the rest of the chunk.
                     reader.ReadBytes(chunkSize - 16);
@@ -100,42 +104,18 @@ namespace Adfectus.Sound
                     // Read the data.
                     byte[] soundData = reader.ReadBytes(dataLength);
 
-                    // Create a sound buffer and load it.
-                    ALBuffer = Engine.SoundManager.CreateBuffer(Channels, bitsPerSample, soundData, SampleRate);
-
                     // Calculate duration.
-                    Duration = soundData.Length / (SampleRate * Channels * bitsPerSample / 8f);
+                    Duration = soundData.Length / (SampleRate * Channels * BitsPerSample / 8f);
+
+                    // Set the sound data.
+                    SoundData = soundData;
                 }
             }
         }
 
-        /// <summary>
-        /// Queue the sound file to be destroyed when it is no longer in use.
-        /// </summary>
-        internal override void DestroyAsset()
+        protected override void DisposeInternal()
         {
-            Engine.SoundManager.DestroyBuffer(this);
-        }
-
-        #endregion
-
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            // ReSharper disable once BaseObjectEqualsIsObjectEquals
-            if (!(obj is SoundFile soundFile)) return base.Equals(obj);
-
-            // If both are non-destroyed buffers, compare the pointers.
-            if (ALBuffer != 0 && soundFile.ALBuffer != 0) return ALBuffer == soundFile.ALBuffer;
-
-            // ReSharper disable once BaseObjectEqualsIsObjectEquals
-            return base.Equals(obj);
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return (int) ALBuffer;
+            SoundData = null;
         }
     }
 }

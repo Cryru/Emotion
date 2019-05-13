@@ -36,14 +36,10 @@ namespace Adfectus.Common.Hosting
         bool Open { get; }
 
         /// <summary>
-        /// The graphics manager of the host.
+        /// Display an error message through the host.
         /// </summary>
-        GraphicsManager GraphicsManager { get; }
-
-        /// <summary>
-        /// The input manager of the host.
-        /// </summary>
-        IInputManager InputManager { get; }
+        /// <param name="message">The message to display.</param>
+        void DisplayErrorMessage(string message);
 
         /// <summary>
         /// Updates the host and its events.

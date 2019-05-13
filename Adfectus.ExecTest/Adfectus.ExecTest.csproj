@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Adfectus.Tests\Adfectus.Tests.csproj" />
     <ProjectReference Include="..\Adfectus\Adfectus.csproj" />
+    <ProjectReference Include="..\Emotion.Platform.DesktopGL\Emotion.Platform.DesktopGL.csproj" />
   </ItemGroup>
 
 </Project>

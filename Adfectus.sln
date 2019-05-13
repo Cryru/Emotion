@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Adfectus.ExecTest", "Adfect
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Adfectus.Tests", "Adfectus.Tests\Adfectus.Tests.csproj", "{F982DD1D-F57B-4C6F-ADB5-694B37CE6D13}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emotion.Platform.DesktopGL", "Emotion.Platform.DesktopGL\Emotion.Platform.DesktopGL.csproj", "{5DB11BBC-C0E9-427E-8451-506443575E15}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,8 +25,11 @@ Global
 		{C95AF97D-62B3-4AAB-AD51-D539E87B6514}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C95AF97D-62B3-4AAB-AD51-D539E87B6514}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F982DD1D-F57B-4C6F-ADB5-694B37CE6D13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F982DD1D-F57B-4C6F-ADB5-694B37CE6D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F982DD1D-F57B-4C6F-ADB5-694B37CE6D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DB11BBC-C0E9-427E-8451-506443575E15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DB11BBC-C0E9-427E-8451-506443575E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DB11BBC-C0E9-427E-8451-506443575E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DB11BBC-C0E9-427E-8451-506443575E15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
