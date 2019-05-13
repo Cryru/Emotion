@@ -30,7 +30,7 @@ namespace Adfectus.Graphics
         /// <summary>
         /// Binds the current thread as the GL thread.
         /// </summary>
-        internal static void BindThread()
+        public static void BindThread()
         {
             _threadManager.BindThread();
         }
@@ -38,7 +38,7 @@ namespace Adfectus.Graphics
         /// <summary>
         /// Performs queued tasks on the GL thread.
         /// </summary>
-        internal static void Run()
+        public static void Run()
         {
             _threadManager.Run();
         }

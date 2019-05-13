@@ -253,10 +253,7 @@ namespace Adfectus.Graphics
         /// <param name="texture">The texture object to bind.</param>
         /// <param name="slot">The slot to bind it to.</param>
         /// <returns>Whether the binding was performed.</returns>
-        public virtual bool BindTexture(Texture texture, uint slot = 0)
-        {
-            return BindTexture(texture.Pointer, slot);
-        }
+        public abstract bool BindTexture(Texture texture, uint slot = 0);
 
         /// <summary>
         /// Binds a texture object.

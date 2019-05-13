@@ -16,12 +16,12 @@ namespace Adfectus.IO
         /// </summary>
         public string Content { get; private set; }
 
-        internal override void CreateAsset(byte[] data)
+        protected override void CreateInternal(byte[] data)
         {
             Content = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
         }
 
-        internal override void DestroyAsset()
+        protected override void DisposeInternal()
         {
             Content = null;
         }

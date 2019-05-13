@@ -11,11 +11,10 @@ using System.Runtime.InteropServices;
 using Adfectus.Common.Configuration;
 using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
-using Adfectus.Implementation.GLFW;
+using Adfectus.Implementation;
 using Adfectus.Input;
 using Adfectus.IO;
 using Adfectus.Logging;
-using Adfectus.Native;
 using Adfectus.Scenography;
 using Adfectus.Sound;
 
@@ -26,6 +25,8 @@ namespace Adfectus.Common
     public static class Engine
     {
         #region Modules
+
+        public static IPlatform Platform { get; private set; }
 
         /// <summary>
         /// The logger instance. Is initiated first when Setup is called.
@@ -160,19 +161,19 @@ namespace Adfectus.Common
         /// Perform bootstrap and setup. Starts modules.
         /// </summary>
         /// <param name="builder">The engine builder to use. If none provided uses the default one.</param>
-        public static void Setup(EngineBuilder builder = null)
+        public static void Setup<T>(EngineBuilder builder = null) where T : IPlatform, new()
         {
             // Check if already built and/or running.
             if (IsRunning)
             {
-                Log.Warning("Adfectus Engine has already been built, and is running.", MessageSource.Engine);
+                Log.Info("Adfectus Engine has already been built, and is running.", MessageSource.Engine);
                 return;
             }
 
             // Check if was quit.
             if (_quit)
             {
-                Log.Warning("Adfectus Engine was stopped - it cannot be setup again.", MessageSource.Engine);
+                Log.Info("Adfectus Engine was stopped - it cannot be setup again.", MessageSource.Engine);
                 return;
             }
 
@@ -181,13 +182,15 @@ namespace Adfectus.Common
             _targetTPS = builder.TargetTPS;
 
             // Setup logger first so stuff can get traced in the logs.
-            Log = (LoggingProvider) Activator.CreateInstance(builder.Logger ?? typeof(DefaultLogger));
+            Log = (LoggingProvider)Activator.CreateInstance(builder.Logger ?? typeof(DefaultLogger));
 
             // Setup error handler because anything from this point onward can error.
             ErrorHandler.Setup();
 
-            // Perform platform bootstrap if needed.
-            if (builder.LoadNativeLibraries) NativeLoader.Setup();
+            // Create platform.
+            Log.Info($"Creating platform of type: {typeof(T)}", MessageSource.Engine);
+            Platform = new T();
+            Platform.Initialize();
 
             // ReSharper disable once RedundantAssignment
             bool wasCompiledDebug = false;
@@ -203,13 +206,11 @@ namespace Adfectus.Common
                 MethodInfo entryPoint = rationaleAssembly.GetType("Rationale.Boot").GetMethod("Main");
 
                 // Pass the builder and entry assembly to the debugger. It can add plugins and do assembly reflection stuff.
-                _rationaleDrawHook = (Action) entryPoint.Invoke(null, new object[] {builder, Assembly.GetEntryAssembly()});
+                _rationaleDrawHook = (Action)entryPoint.Invoke(null, new object[] { builder, Assembly.GetEntryAssembly() });
             }
 #endif
 
             Log.Info($"Starting Adfectus v{Meta.FullVersion}", MessageSource.Engine);
-            Log.Info("-----------", MessageSource.Engine);
-            Log.Info("Info Dump", MessageSource.Engine);
             Log.Info("-----------", MessageSource.Engine);
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             Log.Info($"Debug Mode / Debugger Attached: {wasCompiledDebug} / {Debugger.IsAttached}", MessageSource.Engine);
@@ -217,7 +218,7 @@ namespace Adfectus.Common
             Log.Info($"SIMD Vectors: {Vector.IsHardwareAccelerated}", MessageSource.Engine);
             Log.Info("-----------", MessageSource.Engine);
 
-            // Ensure log dispose is called when app domain closes.
+            // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
 
             // From this point onward the environment is ready and engine setup begins.
@@ -225,30 +226,38 @@ namespace Adfectus.Common
 
             Log.Info("Starting module setup.", MessageSource.Engine);
 
-            // Setup non-dependent modules first. This is done before the host to provide it with a working environment.
             ScriptingEngine = new ScriptingEngine(builder.ScriptTimeout);
             Log.Info("Created module - ScriptingEngine.", MessageSource.Engine);
 
             SceneManager = new SceneManager();
             Log.Info("Created module - SceneManager.", MessageSource.Engine);
 
-            AssetLoader = BuildDefaultAssetLoader(builder.AssetFolder, builder.AdditionalAssetSources);
-            Log.Info($"Created module - AssetLoader (Folder: {builder.AssetFolder}).", MessageSource.Engine);
+            // Get modules from the platform.
 
-            SoundManager = new SoundManager();
-            Log.Info("Created module - SoundManager.", MessageSource.Engine);
-
-            // Create the host.
-            Type hostType = builder.HostType ?? typeof(GlfwHost);
-            Host = (IHost) Activator.CreateInstance(hostType, builder);
-
-            // Check if the host was created.
-            if (Host == null)
+            AssetLoader = Platform.CreateAssetLoader(builder);
+            if (AssetLoader == null)
             {
-                ErrorHandler.SubmitError(new Exception("Could not setup host."));
-                Quit();
+                ErrorHandler.SubmitError(new Exception("Could not create AssetLoader"));
                 return;
             }
+            AddDefaultAssetAssemblies(AssetLoader, builder.AssetFolder, builder.AdditionalAssetSources);
+            Log.Info($"Created module - AssetLoader (Folder: {builder.AssetFolder}).", MessageSource.Engine);
+
+            SoundManager = Platform.CreateSoundManager(builder);
+            if (SoundManager == null)
+            {
+                ErrorHandler.SubmitError(new Exception("Could not create SoundManager"));
+                return;
+            }
+            Log.Info("Created module - SoundManager.", MessageSource.Engine);
+
+            Host = Platform.CreateHost(builder);
+            if (Host == null)
+            {
+                ErrorHandler.SubmitError(new Exception("Could not create Host"));
+                return;
+            }
+            Log.Info("Created module - Host.", MessageSource.Engine);
 
             // Scale the render and host sizes if requested.
             Vector2 renderSize = !builder.RescaleAutomatic ? builder.RenderSize : ScaleRenderSize(builder.RenderSize);
@@ -257,45 +266,47 @@ namespace Adfectus.Common
                 Vector2 scaledHostSize = ScaleRenderSize(builder.HostSize);
                 Host.Size = scaledHostSize;
             }
-
-            // Apply host settings.
-            Log.Info($"Created host of type {hostType}.", MessageSource.Engine);
-
             // Wait for host to focus.
             while (!Host.Open || !Host.Focused) Host.Update();
 
-            // Check if host setup error-ed.
-            if (Host.GraphicsManager == null)
+            // Get implementation modules from the host.
+            InputManager = Platform.CreateInputManager(builder);
+            if (InputManager == null)
             {
-                ErrorHandler.SubmitError(new Exception("Could not setup GraphicsManager."));
-                InternalQuit();
+                ErrorHandler.SubmitError(new Exception("Could not create InputManager"));
                 return;
             }
-
-            // Get implementation modules from the host.
-            InputManager = Host.InputManager;
             Log.Info("Created module - InputManager.", MessageSource.Engine);
-            GraphicsManager = Host.GraphicsManager;
-            GraphicsManager.Setup(renderSize);
-            Log.Info("Created module - GraphicsManager.", MessageSource.Engine);
 
-            // Create the renderer. It depends on the graphics manager.
+            GraphicsManager = Platform.CreateGraphicsManager(builder);
+            if (GraphicsManager == null)
+            {
+                ErrorHandler.SubmitError(new Exception("Could not create GraphicsManager"));
+                return;
+            }
+            Log.Info("Created module - GraphicsManager.", MessageSource.Engine);
+            GraphicsManager.Setup(renderSize);
+
+            // Create modules dependent on platform modules.
+
             Renderer = new Renderer();
             Log.Info("Created module - Renderer.", MessageSource.Engine);
             Renderer.HostResized();
 
             // Load plugins.
             Log.Info("Loading plugins...", MessageSource.Engine);
-            _plugins = builder.Plugins;
-            foreach (Plugin plugin in _plugins)
-            {
-                plugin.Initialize();
-                Log.Trace($"Loading plugin {plugin}.", MessageSource.Engine);
-            }
+            //_plugins = builder.Plugins;
+            //foreach (Plugin plugin in _plugins)
+            //{
+            //    plugin.Initialize();
+            //    Log.Trace($"Loading plugin {plugin}.", MessageSource.Engine);
+            //}
 
             Log.Info($"{builder.Plugins.Count} plugins loaded.", MessageSource.Engine);
 
             IsSetup = true;
+
+            Log.Info("Engine ready!", MessageSource.Engine);
         }
 
         /// <summary>
@@ -306,15 +317,16 @@ namespace Adfectus.Common
         public static void Run(Action userInit = null)
         {
             // Check if setup was called.
-            if (!IsSetup) Setup();
+            if (!IsSetup)
+            {
+                Log.Warning("You need to setup the engine before running it.", MessageSource.Engine);
+                return;
+            }
 
             Log.Info("Running engine...", MessageSource.Engine);
 
             // Set engine as running.
             IsRunning = true;
-
-            // Start the sound manager.
-            SoundManager.Run();
 
             // Execute user init - if any.
             Log.Trace("Executing user init (if any)...", MessageSource.Engine);
@@ -368,7 +380,7 @@ namespace Adfectus.Common
                 while (accumulator >= targetTime)
                 {
                     // Assign frame time trackers.
-                    FrameTime = (float) (fixedStep ? targetTime * 1000f : RawFrameTime);
+                    FrameTime = (float)(fixedStep ? targetTime * 1000f : RawFrameTime);
                     TotalTime += FrameTime;
 
                     updated = true;
@@ -438,11 +450,11 @@ namespace Adfectus.Common
             // Update user code.
             SceneManager.Update();
 
-            // Update plugins.
-            foreach (Plugin plugin in _plugins)
-            {
-                plugin.Update();
-            }
+            //// Update plugins.
+            //foreach (Plugin plugin in _plugins)
+            //{
+            //    plugin.Update();
+            //}
         }
 
         private static void Draw()
@@ -461,7 +473,7 @@ namespace Adfectus.Common
 #if DEBUG
 
             // Draw debug.
-            _rationaleDrawHook?.Invoke();
+            //_rationaleDrawHook?.Invoke();
 
 #endif
 
@@ -531,13 +543,12 @@ namespace Adfectus.Common
         /// <summary>
         /// Build the default configuration of an asset loader.
         /// </summary>
+        /// <param name="loader">The asset loader to load into.</param>
         /// <param name="assetsFolder">The folder in which assets will be located.</param>
         /// <param name="additionalSources">Additional asset sources.</param>
         /// <returns>A built asset loader.</returns>
-        private static AssetLoader BuildDefaultAssetLoader(string assetsFolder, IEnumerable<AssetSource> additionalSources)
+        private static void AddDefaultAssetAssemblies(AssetLoader loader, string assetsFolder, IEnumerable<AssetSource> additionalSources)
         {
-            List<AssetSource> sources = new List<AssetSource> {new FileAssetSource(assetsFolder)};
-
             // Add default embedded sources.
             List<Assembly> sourceAssemblies = new List<Assembly>
             {
@@ -552,20 +563,16 @@ namespace Adfectus.Common
             // Create sources.
             foreach (Assembly assembly in sourceAssemblies)
             {
-                sources.Add(new EmbeddedAssetSource(assembly, assetsFolder));
+                loader.AddSource(new EmbeddedAssetSource(assembly, assetsFolder));
             }
 
-            AssetLoader loader = new AssetLoader(sources);
-
             // Add additional sources.
-            if (additionalSources == null) return loader;
+            if (additionalSources == null) return;
             foreach (AssetSource source in additionalSources)
             {
                 loader.AddSource(source);
-                Log.Trace($"Added additional source {source} to default AssetLoader.", MessageSource.Engine);
+                Log.Info($"Added additional source {source} to default AssetLoader.", MessageSource.Engine);
             }
-
-            return loader;
         }
 
         #endregion

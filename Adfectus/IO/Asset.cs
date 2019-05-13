@@ -11,15 +11,41 @@
         public string Name { get; set; } = "Unknown";
 
         /// <summary>
-        /// Create the asset from a byte array.
+        /// Whether the asset is created.
         /// </summary>
-        /// <param name="data">The byte array to create an asset from.</param>
-        internal abstract void CreateAsset(byte[] data);
+        public bool Created { get; protected set; }
 
         /// <summary>
-        /// Dispose of the asset and its used resources.
+        /// Whether the asset is disposed.
         /// </summary>
-        internal abstract void DestroyAsset();
+        public bool Disposed { get; protected set; }
+
+        /// <summary>
+        /// Create an asset from bytes.
+        /// </summary>
+        /// <param name="data">The bytes to create an asset from.</param>
+        public void Create(byte[] data)
+        {
+            if (Created) return;
+
+            CreateInternal(data);
+            Created = true;
+        }
+
+        protected abstract void CreateInternal(byte[] data);
+
+        /// <summary>
+        /// Dispose of the asset clearing any resources it used.
+        /// </summary>
+        public void Dispose()
+        {
+            if (Disposed) return;
+
+            DisposeInternal();
+            Disposed = true;
+        }
+
+        protected abstract void DisposeInternal();
 
         /// <summary>
         /// The hashcode of the asset. Derived from the name.

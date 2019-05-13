@@ -81,7 +81,7 @@ namespace Adfectus.Game.Tiled
             if (Tilesets.Count > 0)
                 foreach (Texture tileset in Tilesets)
                 {
-                    _assetLoader.Destroy(tileset.Name);
+                    tileset.Dispose();
                 }
 
             // Reset holders.

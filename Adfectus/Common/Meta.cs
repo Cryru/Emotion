@@ -8,17 +8,17 @@
         /// <summary>
         /// The version of Adfectus.
         /// </summary>
-        public const string MajorVersion = "0.0.15";
+        public const string MajorVersion = "0.0.16";
 
         /// <summary>
         /// The commit hash for this version.
         /// </summary>
-        public const string CommitHash = "a5badba8e676055502526da4133a6a7a7a67df85";
+        public const string CommitHash = "NONE";
 
         /// <summary>
         /// The message of the built commit.
         /// </summary>
-        public const string CommitMessage = "Removed win32 support. Improved Steam Plugin";
+        public const string CommitMessage = "Introduced Platforms";
 
         /// <summary>
         /// The full version string.

@@ -21,6 +21,7 @@ using Adfectus.Primitives;
 using Adfectus.Scenography;
 //using Adfectus.Steam;
 using Adfectus.Tests;
+using Emotion.Platform.DesktopGL;
 using Xunit;
 
 #endregion
@@ -62,7 +63,7 @@ namespace Adfectus.ExecTest
             //new EngineBuilder().AddGenericPlugin(_pl
             ////ImGuiPlugin = new ImGuiNetPlugin();
            // ImGuiPlugin.LoadFont("calibri.ttf", 15, 15);
-            Engine.Setup();//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
+            Engine.Setup<DesktopPlatform>();//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
             Engine.SceneManager.SetScene(new TestScene());
             
             Vector2 first = new Vector2(10, 0);
