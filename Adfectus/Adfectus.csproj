@@ -21,12 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Implementation\StandardGlRenderer.cs" />
     <Compile Remove="IO\aloader_old.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Implementation\StandardGlRenderer.cs" />
     <None Include="IO\aloader_old.cs" />
   </ItemGroup>
 

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\debugFont.otf" />
+    <None Remove="Assets\SourceSans.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\debugFont.otf" />
+    <EmbeddedResource Include="Assets\SourceSans.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Adfectus.ImGuiNet\Adfectus.ImGuiNet.csproj" />
+    <ProjectReference Include="..\Adfectus\Adfectus.csproj" />
+    <ProjectReference Include="..\Emotion.Platform.DesktopGL\Adfectus.Platform.DesktopGL.csproj" />
+  </ItemGroup>
+
+</Project>

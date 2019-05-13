@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.IO;
 using System.Linq;
 using Adfectus.Common;
@@ -9,7 +8,7 @@ using Adfectus.Logging;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL.Assets
+namespace Adfectus.Platform.DesktopGL.Assets
 {
     /// <inheritdoc />
     public sealed class FileAssetSource : AssetSource

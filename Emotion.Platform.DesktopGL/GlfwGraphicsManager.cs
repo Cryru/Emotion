@@ -3,20 +3,22 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Adfectus.Common;
 using Adfectus.Graphics;
+using Adfectus.Implementation.GLFW;
 using Adfectus.Logging;
+using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Primitives;
-using Emotion.Platform.DesktopGL;
 using Emotion.Platform.DesktopGL.Assets;
 using OpenGL;
 using DataType = Adfectus.Graphics.DataType;
 
 #endregion
 
-namespace Adfectus.Implementation.GLFW
+namespace Adfectus.Platform.DesktopGL
 {
     /// <summary>
     /// A glfw graphics manager using OpenGL.Net
@@ -113,7 +115,7 @@ namespace Adfectus.Implementation.GLFW
             if (status != FramebufferStatus.FramebufferComplete) Engine.Log.Warning($"Framebuffer creation failed. Error code {status}.", MessageSource.GL);
 
             Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            _renderFboTexture = new TextureGL(renderTexture, new Vector2(RenderSize.X, RenderSize.Y), "FBO Texture");
+            _renderFboTexture = new GLTexture(renderTexture, new Vector2(RenderSize.X, RenderSize.Y), "FBO Texture");
 
             CheckError("creating scale fbo");
         }
@@ -259,7 +261,7 @@ namespace Adfectus.Implementation.GLFW
 
         public override bool BindTexture(Texture texture, uint slot = 0)
         {
-            return BindTexture(((TextureGL) texture).Pointer, 0);
+            return BindTexture(((GLTexture) texture).Pointer, 0);
         }
 
         /// <inheritdoc />
@@ -408,6 +410,72 @@ namespace Adfectus.Implementation.GLFW
         #endregion
 
         #region Vertex Array buffer API
+
+        /// <summary>
+        /// Create a vao and bind it to a vbo.
+        /// </summary>
+        /// <param name="vbo">The VBO to bind to the vao.</param>
+        /// <typeparam name="T">The structure which describes the vao format.</typeparam>
+        /// <returns>The id of the created vao.</returns>
+        private uint CreateVao<T>(uint vbo)
+        {
+            uint vaoId = Gl.GenVertexArray();
+            Gl.BindVertexArray(vaoId);
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+
+            Type structFormat = typeof(T);
+
+            FieldInfo[] fields = structFormat.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            int size = Marshal.SizeOf(Activator.CreateInstance(structFormat));
+
+            for (uint i = 0; i < fields.Length; i++)
+            {
+                Attribute[] fieldAttributes = fields[i].GetCustomAttributes().ToArray();
+                VertexAttributeAttribute vertexAttributeData = null;
+
+                // Go through all attributes and find the VertexAttributeAttribute.
+                foreach (Attribute attribute in fieldAttributes)
+                {
+                    if (!(attribute is VertexAttributeAttribute data)) continue;
+                    vertexAttributeData = data;
+                    break;
+                }
+
+                // If the vertex attribute data not found, stop searching.
+                if (vertexAttributeData == null) continue;
+
+                IntPtr offset = Marshal.OffsetOf(structFormat, fields[i].Name);
+                Type fieldType = vertexAttributeData.TypeOverride ?? fields[i].FieldType;
+
+                Gl.EnableVertexAttribArray(i);
+                Gl.VertexAttribPointer(i, vertexAttributeData.ComponentCount, GetAttribTypeFromManagedType(fieldType), vertexAttributeData.Normalized, size, offset);
+            }
+
+            return vaoId;
+        }
+
+        
+        /// <summary>
+        /// Convert a managed C# type to a GL vertex attribute type.
+        /// </summary>
+        /// <param name="type">The managed type to convert.</param>
+        /// <returns>The vertex attribute type corresponding to the provided managed type.</returns>
+        public static VertexAttribType GetAttribTypeFromManagedType(MemberInfo type)
+        {
+            switch (type.Name)
+            {
+                default:
+                    return VertexAttribType.Float;
+                case "Int32":
+                    return VertexAttribType.Int;
+                case "UInt32":
+                    return VertexAttribType.UnsignedInt;
+                case "SByte":
+                    return VertexAttribType.Byte;
+                case "Byte":
+                    return VertexAttribType.UnsignedByte;
+            }
+        }
 
         /// <inheritdoc />
         public override uint CreateVertexArrayBuffer()
@@ -760,6 +828,22 @@ namespace Adfectus.Implementation.GLFW
             Gl.GetShader(shaderPointer, ShaderParameterName.CompileStatus, out int status);
             return status == 1 ? shaderPointer : 0;
         }
+
+        /// <summary>
+        /// Get debugging information about the gl state.
+        /// </summary>
+        /// <returns>A string of all currently bound gl objects</returns>
+        public string GetBoundDebugInfo()
+        {
+            Gl.Get(GetPName.ElementArrayBufferBinding, out int boundIbo);
+            Gl.Get(GetPName.ArrayBufferBinding, out int boundVbo);
+            Gl.Get(GetPName.VertexArrayBinding, out int boundVao);
+            Gl.Get(GetPName.CurrentProgram, out int boundShader);
+            Gl.GetBufferParameter(BufferTarget.ArrayBuffer, Gl.BUFFER_SIZE, out int boundVboSize);
+
+            return $"IBO: {boundIbo}\r\nVBO: {boundVbo} [size:{boundVboSize}]\r\nVAO: {boundVao}\r\nShader: {boundShader}";
+        }
+
 
         #endregion
     }

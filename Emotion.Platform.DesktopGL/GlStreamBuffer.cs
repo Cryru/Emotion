@@ -6,13 +6,14 @@ using System.Numerics;
 using Adfectus.Common;
 using Adfectus.Graphics;
 using Adfectus.Logging;
+using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Primitives;
 using Emotion.Platform.DesktopGL.Assets;
 using OpenGL;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL
+namespace Adfectus.Platform.DesktopGL
 {
     /// <inheritdoc />
     public sealed unsafe class GlStreamBuffer : StreamBuffer
@@ -48,7 +49,7 @@ namespace Emotion.Platform.DesktopGL
         /// <summary>
         /// The list of textures the buffer TIDs (Texture IDs) require, in the correct order.
         /// </summary>
-        private List<TextureGL> _textureList = new List<TextureGL>();
+        private List<GLTexture> _textureList = new List<GLTexture>();
 
         /// <summary>
         /// The primitive type to draw with.
@@ -76,7 +77,7 @@ namespace Emotion.Platform.DesktopGL
         /// <inheritdoc />
         public override int GetTid(Texture texture)
         {
-            return GetTextureOrAdd((TextureGL) texture, false);
+            return GetTextureOrAdd((GLTexture) texture, false);
         }
 
         /// <inheritdoc />
@@ -233,7 +234,7 @@ namespace Emotion.Platform.DesktopGL
         /// <inheritdoc />
         public override void MapNextVertex(Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
         {
-            UnsafeMapVertex(color.ToUint(), GetTextureOrAdd((TextureGL) texture), Verify2dUV(texture, uv), vertex);
+            UnsafeMapVertex(color.ToUint(), GetTextureOrAdd((GLTexture) texture), Verify2dUV(texture, uv), vertex);
         }
 
         /// <inheritdoc />
@@ -269,7 +270,7 @@ namespace Emotion.Platform.DesktopGL
         public override void MapNextQuad(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             Rectangle uv = VerifyRectUV(texture, textureArea);
-            float tid = GetTextureOrAdd((TextureGL) texture);
+            float tid = GetTextureOrAdd((GLTexture) texture);
             uint c = color.ToUint();
 
             // Calculate UV positions
@@ -281,7 +282,7 @@ namespace Emotion.Platform.DesktopGL
             if (texture != null)
             {
                 // Get texture matrix.
-                Matrix4x4 matrix = ((TextureGL) texture).TextureMatrix;
+                Matrix4x4 matrix = ((GLTexture) texture).TextureMatrix;
                 nnUV = Vector2.Transform(uv.Location, matrix);
                 pnUV = Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y), matrix);
                 ppUV = Vector2.Transform(new Vector2(uv.X + uv.Width, uv.Y + uv.Height), matrix);
@@ -390,7 +391,7 @@ namespace Emotion.Platform.DesktopGL
             return (Rectangle) uvRect;
         }
 
-        private int GetTextureOrAdd(TextureGL texture, bool addIfMissing = true)
+        private int GetTextureOrAdd(GLTexture texture, bool addIfMissing = true)
         {
             // If no texture.
             if (texture == null) return -1;
