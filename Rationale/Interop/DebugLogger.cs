@@ -38,6 +38,7 @@ namespace Rationale.Interop
             {
                 _comm.SendMessage(new DebugMessage {Type = MessageType.MessageLogged, Data = logMsg});
             }
+
             InternalLog.Clear();
         }
     }

@@ -12,7 +12,7 @@ using OpenGL;
 
 #endregion
 
-namespace Adfectus.Implementation.GLFW
+namespace Adfectus.Platform.DesktopGL
 {
     /// <summary>
     /// A GL shader program.

@@ -1,8 +1,11 @@
-﻿using System.Numerics;
+﻿#region Using
+
+using System.Numerics;
 using Adfectus.IO;
 using ImGuiNET;
-using Rationale.Interop;
 using Rationale.Utility;
+
+#endregion
 
 namespace Rationale.Windows
 {

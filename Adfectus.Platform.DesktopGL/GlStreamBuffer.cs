@@ -8,7 +8,6 @@ using Adfectus.Graphics;
 using Adfectus.Logging;
 using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Primitives;
-using Emotion.Platform.DesktopGL.Assets;
 using OpenGL;
 
 #endregion

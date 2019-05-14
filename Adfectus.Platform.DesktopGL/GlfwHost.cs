@@ -5,16 +5,15 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Adfectus;
 using Adfectus.Common;
 using Adfectus.Common.Configuration;
 using Adfectus.Graphics;
 using Adfectus.Logging;
-using Emotion.Platform.DesktopGL.Native;
+using Adfectus.Platform.DesktopGL.Native;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL
+namespace Adfectus.Platform.DesktopGL
 {
     /// <inheritdoc />
     public sealed class GlfwHost : IHost

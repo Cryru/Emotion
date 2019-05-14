@@ -1,8 +1,10 @@
-﻿using System;
+﻿#region Using
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Rationale.Windows;
+
+#endregion
 
 namespace Rationale.Interop
 {
@@ -12,7 +14,7 @@ namespace Rationale.Interop
 
         public static void AddWindow(Window window)
         {
-            if(_windows.Any(x => x.Title == window.Title)) return;
+            if (_windows.Any(x => x.Title == window.Title)) return;
 
             _windows.Add(window);
         }

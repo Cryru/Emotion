@@ -10,12 +10,12 @@ using Adfectus.Common;
 using Adfectus.Common.Threading;
 using Adfectus.Logging;
 using Adfectus.OpenAL;
+using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Sound;
-using Emotion.Platform.DesktopGL.Assets;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL.Sound
+namespace Adfectus.Platform.DesktopGL.Sound
 {
     /// <summary>
     /// Manages audio and interop with OpenAl.

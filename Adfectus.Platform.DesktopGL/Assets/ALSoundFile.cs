@@ -1,10 +1,10 @@
 ﻿using System;
 using Adfectus.Common;
 using Adfectus.OpenAL;
+using Adfectus.Platform.DesktopGL.Sound;
 using Adfectus.Sound;
-using Emotion.Platform.DesktopGL.Sound;
 
-namespace Emotion.Platform.DesktopGL.Assets
+namespace Adfectus.Platform.DesktopGL.Assets
 {
     public sealed class ALSoundFile : SoundFile
     {

@@ -5,7 +5,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Adfectus.Common;
 using Adfectus.Logging;
-using Emotion.Engine;
 using SteamworksSharp;
 
 #endregion

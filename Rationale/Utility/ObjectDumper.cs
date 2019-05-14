@@ -51,8 +51,7 @@ namespace Rationale.Utility
                     _level++;
                 }
 
-                IEnumerable enumerableElement = element as IEnumerable;
-                if (enumerableElement != null)
+                if (element is IEnumerable enumerableElement)
                 {
                     foreach (object item in enumerableElement)
                     {

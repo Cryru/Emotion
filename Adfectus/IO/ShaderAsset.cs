@@ -95,8 +95,8 @@ namespace Adfectus.IO
             }
 
             // Shader text files are no longer needed.
-            vertShader?.Dispose();
-            fragShader?.Dispose();
+            Engine.AssetLoader.Destroy(Description.Vert);
+            Engine.AssetLoader.Destroy(Description.Frag);
         }
 
         protected override void DisposeInternal()

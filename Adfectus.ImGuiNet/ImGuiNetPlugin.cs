@@ -204,7 +204,7 @@ namespace Adfectus.ImGuiNet
                 }
 
                 // Clear the file.
-                font.Dispose();
+                Engine.AssetLoader.Destroy(ttfFontPath);
 
                 // Upload the font.
                 uint newFontTexture = Engine.GraphicsManager.CreateTexture();

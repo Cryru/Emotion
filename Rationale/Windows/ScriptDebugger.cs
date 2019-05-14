@@ -1,10 +1,15 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Numerics;
 using Adfectus.Common;
 using Adfectus.Graphics;
+using Adfectus.Logging;
 using ImGuiNET;
 using Jint.Runtime.Debugger;
 using Rationale.Windows;
+
+#endregion
 
 namespace Rationale.Interop
 {
@@ -24,12 +29,12 @@ namespace Rationale.Interop
             Engine.ScriptingEngine.Interpreter.Break += Interpreter_Break;
         }
 
-        private Jint.Runtime.Debugger.StepMode Interpreter_Break(object sender, Jint.Runtime.Debugger.DebugInformation e)
+        private StepMode Interpreter_Break(object sender, DebugInformation e)
         {
-            return Jint.Runtime.Debugger.StepMode.Into;
+            return StepMode.Into;
         }
 
-        private Jint.Runtime.Debugger.StepMode Interpreter_Step(object sender, Jint.Runtime.Debugger.DebugInformation e)
+        private StepMode Interpreter_Step(object sender, DebugInformation e)
         {
             // Check if on GL Thread - we don't want to block it.
             if (GLThread.IsGLThread())
@@ -77,7 +82,7 @@ namespace Rationale.Interop
             }
             catch (Exception ex)
             {
-                Engine.Log.Warning($"Rationale script debugger encountered an error: {ex}", Adfectus.Logging.MessageSource.Other);
+                Engine.Log.Warning($"Rationale script debugger encountered an error: {ex}", MessageSource.Other);
                 return StepMode.Into;
             }
         }
@@ -95,29 +100,21 @@ namespace Rationale.Interop
             {
                 bool step = ImGui.Button("Step Into");
                 showCurrentStatement = showCurrentStatement || ImGui.IsItemHovered();
-                if (step)
-                {
-                    _stepFunction(StepMode.Into);
-                }
+                if (step) _stepFunction(StepMode.Into);
             }
 
             if (_canStepOut)
             {
                 bool step = ImGui.Button("Step Out");
                 showCurrentStatement = showCurrentStatement || ImGui.IsItemHovered();
-                if (step)
-                {
-                    _stepFunction(StepMode.Out);
-                }
+                if (step) _stepFunction(StepMode.Out);
             }
 
             if (showCurrentStatement)
             {
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.TextColored(new Vector4(1, 0, 0, 1), _currentStatement);
-                    ImGui.EndTooltip();
-                }
+                ImGui.BeginTooltip();
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), _currentStatement);
+                ImGui.EndTooltip();
             }
         }
 
