@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Adfectus;
 using Adfectus.Common;
 using Adfectus.Common.Configuration;
-using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
 using Adfectus.Logging;
 using Emotion.Platform.DesktopGL.Native;

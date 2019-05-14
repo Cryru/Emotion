@@ -3,12 +3,10 @@
 using System;
 using System.Numerics;
 using Adfectus.Common.Configuration;
-using Adfectus.Graphics;
-using Adfectus.Input;
 
 #endregion
 
-namespace Adfectus.Common.Hosting
+namespace Adfectus.Common
 {
     /// <summary>
     /// Provides the GraphicsManager, InputManager, and window.
