@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Adfectus.Common.Configuration;
-using Adfectus.Common.Hosting;
 using Adfectus.IO;
 using Adfectus.Logging;
 
@@ -26,9 +25,9 @@ namespace Adfectus.Common
         public Type Logger { get; private set; }
 
         /// <summary>
-        /// The type of host.
+        /// Whether the engine is in debug mode.
         /// </summary>
-        public Type HostType { get; private set; }
+        public bool DebugMode { get; private set; }
 
         /// <summary>
         /// The title label of the host.
@@ -126,21 +125,6 @@ namespace Adfectus.Common
         }
 
         /// <summary>
-        /// Setup the host.
-        /// </summary>
-        /// <typeparam name="T">The host type.</typeparam>
-        /// <param name="title">The title label of the host.</param>
-        /// <param name="winMode">The initial window mode of the host.</param>
-        /// <param name="winSize">The initial window size of the host.</param>
-        /// <returns>This builder, for chaining</returns>
-        public EngineBuilder SetupHost<T>(string title = "Untitled", WindowMode winMode = WindowMode.Windowed, Vector2? winSize = null) where T : IHost
-        {
-            HostType = typeof(T);
-
-            return SetupHost(title, winMode, winSize);
-        }
-
-        /// <summary>
         /// Setup AssetLoader concerning properties.
         /// </summary>
         /// <param name="defaultFolder">The default assets folder.</param>
@@ -161,13 +145,15 @@ namespace Adfectus.Common
         /// <param name="rescaleAutomatic">Whether to automatically rescale the render size on 16:10 screens.</param>
         /// <param name="performBootstrap">Whether to perform loading of native libraries.</param>
         /// <param name="targetTPS">The target ticks per second.</param>
+        /// <param name="debugMode">Whether the engine is in debug mode.</param>
         /// <returns>This builder, for chaining</returns>
-        public EngineBuilder SetupFlags(Vector2 renderSize, bool rescaleAutomatic = true, bool performBootstrap = true, int targetTPS = 60)
+        public EngineBuilder SetupFlags(Vector2 renderSize, bool rescaleAutomatic = true, bool performBootstrap = true, int targetTPS = 60, bool debugMode = false)
         {
             RenderSize = renderSize;
             RescaleAutomatic = rescaleAutomatic;
             LoadNativeLibraries = performBootstrap;
             TargetTPS = targetTPS;
+            DebugMode = debugMode;
 
             return this;
         }

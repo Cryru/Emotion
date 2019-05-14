@@ -4,6 +4,7 @@ using Adfectus.Common;
 using Adfectus.Graphics;
 using ImGuiNET;
 using Jint.Runtime.Debugger;
+using Rationale.Windows;
 
 namespace Rationale.Interop
 {
@@ -85,7 +86,6 @@ namespace Rationale.Interop
         {
             Vector2 windowSize = ImGui.GetWindowSize();
             bool showCurrentStatement = false;
-
 
             ImGui.PushItemWidth(-10);
             ImGui.InputTextMultiline("", ref _currentScriptExec, 1000 * 10, new Vector2(windowSize.X - 30, windowSize.Y - 100), ImGuiInputTextFlags.ReadOnly);

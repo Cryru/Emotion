@@ -9,7 +9,6 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Adfectus.Common.Configuration;
-using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
 using Adfectus.Implementation;
 using Adfectus.Input;
@@ -181,6 +180,40 @@ namespace Adfectus.Common
             if (builder == null) builder = new EngineBuilder();
             _targetTPS = builder.TargetTPS;
 
+            // Check for Rationale debugger.
+            // This needs to happen before the logger is setup.
+            if (File.Exists("Rationale.dll") && builder.DebugMode)
+            {
+                // Invoke the debugger entry point.
+                Assembly rationaleAssembly = Assembly.LoadFrom("Rationale.dll");
+                MethodInfo[] entryPoints = rationaleAssembly.GetType("Rationale.Boot").GetMethods();
+                MethodInfo entryPoint = null;
+                foreach (MethodInfo func in entryPoints)
+                {
+                    if (func.Name == "Inject")
+                    {
+                        entryPoint = func;
+                    }
+                }
+
+                if (entryPoint == null)
+                {
+                    Log.Error($"Couldn't find Rationale entry point.", MessageSource.Debugger);
+                }
+                else
+                {
+                    try
+                    {
+                        // Pass the builder and entry assembly to the debugger. It can add plugins and do assembly reflection stuff.
+                        _rationaleDrawHook = (Action)entryPoint.Invoke(null, new object[] { builder });
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Couldn't attach Rationale debugger. {ex}", MessageSource.Debugger);
+                    }
+                }
+            }
+
             // Setup logger first so stuff can get traced in the logs.
             Log = (LoggingProvider)Activator.CreateInstance(builder.Logger ?? typeof(DefaultLogger));
 
@@ -192,28 +225,10 @@ namespace Adfectus.Common
             Platform = new T();
             Platform.Initialize();
 
-            // ReSharper disable once RedundantAssignment
-            bool wasCompiledDebug = false;
-
-#if DEBUG
-            wasCompiledDebug = true;
-
-            //// Check for Rationale debugger.
-            //if (File.Exists("Rationale.dll"))
-            //{
-            //    // Invoke the debugger's entry point.
-            //    Assembly rationaleAssembly = Assembly.LoadFrom("Rationale.dll");
-            //    MethodInfo entryPoint = rationaleAssembly.GetType("Rationale.Boot").GetMethod("Main");
-
-            //    // Pass the builder and entry assembly to the debugger. It can add plugins and do assembly reflection stuff.
-            //    _rationaleDrawHook = (Action)entryPoint.Invoke(null, new object[] { builder, Assembly.GetEntryAssembly() });
-            //}
-#endif
-
             Log.Info($"Starting Adfectus v{Meta.FullVersion}", MessageSource.Engine);
             Log.Info("-----------", MessageSource.Engine);
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            Log.Info($"Debug Mode / Debugger Attached: {wasCompiledDebug} / {Debugger.IsAttached}", MessageSource.Engine);
+            Log.Info($"Debug Mode / Debugger Attached: {builder.DebugMode} / {Debugger.IsAttached}", MessageSource.Engine);
             Log.Info($"Framework: {RuntimeInformation.FrameworkDescription}", MessageSource.Engine);
             Log.Info($"SIMD Vectors: {Vector.IsHardwareAccelerated}", MessageSource.Engine);
             Log.Info("-----------", MessageSource.Engine);
@@ -423,6 +438,10 @@ namespace Adfectus.Common
         {
             Log?.Info("Engine was stopped. Performing cleanup.", MessageSource.Engine);
 
+            // Unload the current scene.
+            SceneManager.Current.Unload();
+
+            // Dispose of the sound manager.
             SoundManager?.Dispose();
 
             // If the host still exists, it should be closed after cleanup.
@@ -470,12 +489,8 @@ namespace Adfectus.Common
             SceneManager.Draw();
             GraphicsManager.CheckError("scene draw");
 
-#if DEBUG
-
-            // Draw debug.
-            //_rationaleDrawHook?.Invoke();
-
-#endif
+            // The rationale debugger draw-hook.
+            _rationaleDrawHook?.Invoke();
 
             // Finish rendering.
             Renderer.End();

@@ -30,13 +30,13 @@ namespace Adfectus.IO
 
         protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
         protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
-        protected List<AssetSource> _sources = new List<AssetSource>();
         protected Dictionary<Type, Func<Asset>> _customLoaders = new Dictionary<Type, Func<Asset>>();
 
         #region Sources
 
         /// <summary>
         /// Add a source to the asset loader.
+        /// Conflicting asset names are overwritten by whichever was added last.
         /// </summary>
         /// <param name="source">A new source to load assets from.</param>
         public void AddSource(AssetSource source)
@@ -44,30 +44,40 @@ namespace Adfectus.IO
             string[] sourceManifest = source.GetManifest();
             foreach (string asset in sourceManifest)
             {
-                bool added = _manifest.TryAdd(NameToEngineName(asset), source);
-                if (!added)
-                {
-                    Engine.Log.Error($"Couldn't add asset {asset} to the manifest.", Logging.MessageSource.AssetLoader);
-                }
+                _manifest.AddOrUpdate(NameToEngineName(asset), source, (_,__) => source);
             }
-
-            _sources.Add(source);
         }
 
         #endregion
 
         #region Assets
 
+        /// <summary>
+        /// Whether an asset with the provided name exists in any source.
+        /// </summary>
+        /// <param name="name">The name of the asset to check.</param>
+        /// <returns>Whether an asset with the provided name exists in any source.</returns>
         public bool AssetExists(string name)
         {
             return _manifest.ContainsKey(name);
         }
 
+        /// <summary>
+        /// Whether an asset with the provided name is loaded.
+        /// </summary>
+        /// <param name="name">The name of the asset to check.</param>
+        /// <returns>Whether an asset with a provided name is loaded.</returns>
         public bool AssetLoaded(string name)
         {
             return _loadedAssets.ContainsKey(name);
         }
 
+        /// <summary>
+        /// Get a loaded asset by its name or load it.
+        /// </summary>
+        /// <typeparam name="T">The type of asset.</typeparam>
+        /// <param name="name">The name of the asset within any loaded source.</param>
+        /// <returns>The loaded or cached asset.</returns>
         public T Get<T>(string name) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name)) return default;
@@ -101,6 +111,31 @@ namespace Adfectus.IO
             return (T) asset;
         }
 
+        /// <summary>
+        /// Destroy an asset, freeing memory.
+        /// </summary>
+        /// <param name="name">The name of the asset.</param>
+        public void Destroy(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return;
+
+            // Convert to engine name.
+            name = NameToEngineName(name);
+
+            // Check if the asset is already loaded, if not do nothing. Also remove it from the list.
+            bool loaded = _loadedAssets.TryRemove(name, out Asset asset);
+            if (!loaded) return;
+
+            // Dispose of asset.
+            asset.Dispose();
+        }
+
+        /// <summary>
+        /// Load an asset from bytes.
+        /// </summary>
+        /// <typeparam name="T">The type of asset to load.</typeparam>
+        /// <param name="data">A byte array to load the asset from.</param>
+        /// <returns>A loaded asset from the byte array.</returns>
         public T Load<T>(byte[] data) where T : Asset, new()
         {
             // Check if a custom loader exists for this type.

@@ -1,6 +1,5 @@
 ﻿using System;
 using Adfectus.Common;
-using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
 using Adfectus.Input;
 using Adfectus.IO;

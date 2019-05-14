@@ -5,7 +5,7 @@ using ImGuiNET;
 
 #endregion
 
-namespace Rationale.Interop
+namespace Rationale.Windows
 {
     public abstract class Window
     {
@@ -19,7 +19,7 @@ namespace Rationale.Interop
         private bool _open = true;
         private bool _setStartingSize;
         private Vector2? _startingSize;
-        private ImGuiWindowFlags _flags = ImGuiWindowFlags.None;
+        private ImGuiWindowFlags _flags;
 
         protected Window(string title, Vector2? startingSize = null, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
         {
@@ -44,8 +44,14 @@ namespace Rationale.Interop
 
         protected abstract void DrawContent();
 
+        public void Reopen()
+        {
+            _open = true;
+        }
+
         public virtual void Close()
         {
+            _open = false;
         }
     }
 }

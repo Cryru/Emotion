@@ -1,15 +1,16 @@
 ﻿using System.Numerics;
 using Adfectus.IO;
 using ImGuiNET;
+using Rationale.Interop;
 using Rationale.Utility;
 
-namespace Rationale.Interop
+namespace Rationale.Windows
 {
     public sealed class AssetDataWindow : Window
     {
         public Asset Asset { get; private set; }
 
-        public AssetDataWindow(Asset asset) : base($"Asset Data [{asset.Name}]", new Vector2(100, 150))
+        public AssetDataWindow(Asset asset) : base($"Asset Data [{asset.Name}]", new Vector2(300, 150))
         {
             Asset = asset;
         }

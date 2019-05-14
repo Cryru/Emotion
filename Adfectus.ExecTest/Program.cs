@@ -64,7 +64,7 @@ namespace Adfectus.ExecTest
             //new EngineBuilder().AddGenericPlugin(_pl
             ////ImGuiPlugin = new ImGuiNetPlugin();
            // ImGuiPlugin.LoadFont("calibri.ttf", 15, 15);
-            Engine.Setup<DesktopPlatform>();//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
+            Engine.Setup<DesktopPlatform>(new EngineBuilder().SetupFlags(new Vector2(960, 540), debugMode: true));//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
             Engine.SceneManager.SetScene(new TestScene());
             
             Vector2 first = new Vector2(10, 0);

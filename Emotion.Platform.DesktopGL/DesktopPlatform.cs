@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using Adfectus.Common;
-using Adfectus.Common.Hosting;
 using Adfectus.Graphics;
 using Adfectus.Implementation;
 using Adfectus.Implementation.GLFW;
