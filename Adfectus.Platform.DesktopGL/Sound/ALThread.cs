@@ -8,7 +8,7 @@ using Adfectus.OpenAL;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL.Sound
+namespace Adfectus.Platform.DesktopGL.Sound
 {
     /// <summary>
     /// The thread the AL context was created on.

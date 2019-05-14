@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL.Native
+namespace Adfectus.Platform.DesktopGL.Native
 {
     /// <summary>
     /// Functions relating to the Window OS api.

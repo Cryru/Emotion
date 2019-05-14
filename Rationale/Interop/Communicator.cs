@@ -1,10 +1,14 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Adfectus.Common;
 using Adfectus.Logging;
+
+#endregion
 
 namespace Rationale.Interop
 {
@@ -19,7 +23,6 @@ namespace Rationale.Interop
         /// </summary>
         public Communicator()
         {
-
         }
 
         /// <summary>
@@ -43,7 +46,7 @@ namespace Rationale.Interop
             if (_proc == null)
             {
                 // Send a message requesting the proc id of any listeners.
-                InternalSend(new DebugMessage { Type = MessageType.GetListener });
+                InternalSend(new DebugMessage {Type = MessageType.GetListener});
                 string response = Console.ReadLine();
                 _proc = Process.GetProcessById(int.Parse(response));
                 Task.Run(InternalReceiveSecondary);
@@ -58,14 +61,11 @@ namespace Rationale.Interop
             {
                 using (StringReader reader = new StringReader(msg))
                 {
-                    DebugMessage parsedMsg = (DebugMessage)_serializer.Deserialize(reader);
+                    DebugMessage parsedMsg = (DebugMessage) _serializer.Deserialize(reader);
                     Engine.Log.Info($"Received debug message of type {parsedMsg.Type}", MessageSource.Debugger);
 
                     // Handle a GetListener message.
-                    if (parsedMsg.Type == MessageType.GetListener)
-                    {
-                        _proc.StandardInput.WriteLine(Process.GetCurrentProcess().Id);
-                    }
+                    if (parsedMsg.Type == MessageType.GetListener) _proc.StandardInput.WriteLine(Process.GetCurrentProcess().Id);
 
                     MessageReceiveCallback?.Invoke(parsedMsg);
                 }
@@ -82,16 +82,16 @@ namespace Rationale.Interop
             {
                 string input = Console.ReadLine();
                 InternalReceive(input);
+
+                if (Engine.IsSetup && !Engine.IsRunning) break;
             }
         }
 
         private void InternalSend(DebugMessage msg)
         {
-            using (StringWriter reader = new StringWriter())
-            {
-                _serializer.Serialize(reader, msg);
-                Console.WriteLine(reader.ToString().Replace(Environment.NewLine, ""));
-            }
+            using StringWriter reader = new StringWriter();
+            _serializer.Serialize(reader, msg);
+            Console.WriteLine(reader.ToString().Replace(Environment.NewLine, ""));
         }
 
         /// <summary>

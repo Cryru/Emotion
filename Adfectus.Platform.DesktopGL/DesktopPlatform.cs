@@ -3,14 +3,13 @@
 using Adfectus.Common;
 using Adfectus.Graphics;
 using Adfectus.Implementation;
-using Adfectus.Implementation.GLFW;
 using Adfectus.Input;
 using Adfectus.IO;
 using Adfectus.Platform.DesktopGL.Assets;
+using Adfectus.Platform.DesktopGL.Native;
+using Adfectus.Platform.DesktopGL.Sound;
 using Adfectus.Sound;
 using Emotion.Platform.DesktopGL;
-using Emotion.Platform.DesktopGL.Native;
-using Emotion.Platform.DesktopGL.Sound;
 
 #endregion
 

@@ -13,7 +13,7 @@ using SharpFont;
 
 #endregion
 
-namespace Emotion.Platform.DesktopGL.Native
+namespace Adfectus.Platform.DesktopGL.Native
 {
     /// <summary>
     /// Loads native libraries.

@@ -2,7 +2,6 @@
 using Adfectus.Graphics;
 using Adfectus.Graphics.Text;
 using Adfectus.IO;
-using Emotion.Platform.DesktopGL.Assets;
 
 namespace Adfectus.Platform.DesktopGL.Assets
 {

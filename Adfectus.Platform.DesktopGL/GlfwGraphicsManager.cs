@@ -8,11 +8,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Adfectus.Common;
 using Adfectus.Graphics;
-using Adfectus.Implementation.GLFW;
 using Adfectus.Logging;
 using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Primitives;
-using Emotion.Platform.DesktopGL.Assets;
 using OpenGL;
 using DataType = Adfectus.Graphics.DataType;
 

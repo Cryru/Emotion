@@ -5,7 +5,6 @@ using System.Numerics;
 using Adfectus.Common;
 using Adfectus.Graphics;
 using Adfectus.Graphics.Text;
-using Emotion.Platform.DesktopGL.Assets;
 using SharpFont;
 using Glyph = Adfectus.Graphics.Text.Glyph;
 

@@ -11,7 +11,7 @@ using Adfectus.Logging;
 
 #endregion
 
-namespace Adfectus.Implementation.GLFW
+namespace Adfectus.Platform.DesktopGL
 {
     /// <inheritdoc />
     public class GlfwInputManager : IInputManager
