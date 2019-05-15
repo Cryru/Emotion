@@ -9,7 +9,6 @@ using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Platform.DesktopGL.Native;
 using Adfectus.Platform.DesktopGL.Sound;
 using Adfectus.Sound;
-using Emotion.Platform.DesktopGL;
 
 #endregion
 

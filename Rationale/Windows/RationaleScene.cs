@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Adfectus.Common;
 using Adfectus.ImGuiNet;
+using Adfectus.IO;
 using Adfectus.Primitives;
 using Adfectus.Scenography;
 using ImGuiNET;
@@ -108,7 +109,12 @@ namespace Rationale.Windows
 
             // Debugging tools.
             if (_debugCommunication == null && ImGui.Button("Load")) WindowManager.AddWindow(new LoadExecutableWindow(this));
-            if (_debugCommunication != null && ImGui.Button("Asset Debug")) WindowManager.AddWindow(new AssetDebugger());
+            if (_debugCommunication != null && ImGui.Button("Asset Debug"))
+            {
+                _debugCommunication.SendMessage(new DebugMessage { Type = MessageType.RequestAssetData });
+                WindowManager.AddWindow(new AssetDebugger());
+            }
+
             if (_debugCommunication != null && ImGui.Button("Script Debug")) WindowManager.AddWindow(new ScriptDebugger());
             if (_debugCommunication != null && ImGui.Button("Log Viewer"))
             {
@@ -132,7 +138,7 @@ namespace Rationale.Windows
 
         public override void Unload()
         {
-            if (_proc == null) return;
+            if (_proc == null || _proc.HasExited) return;
             _proc.Kill();
             _proc.WaitForExit();
         }
@@ -149,13 +155,19 @@ namespace Rationale.Windows
             switch (msg.Type)
             {
                 case MessageType.CurrentFPS:
-                    _curFps = (float) msg.Data;
+                    _curFps = (float)msg.Data;
                     break;
                 case MessageType.CurrentTPS:
-                    MainWindowTPSDisplay((float) msg.Data);
+                    MainWindowTPSDisplay((float)msg.Data);
                     break;
                 case MessageType.MessageLogged:
-                    _logViewer.AddLogMessage((string) msg.Data);
+                    _logViewer.AddLogMessage((string)msg.Data);
+                    break;
+                case MessageType.AssetData:
+                    AssetDebugger.AllAssetsCache = (string[])msg.StringArrayData;
+                    break;
+                case MessageType.LoadedAssetData:
+                    AssetDebugger.LoadedAssetsCache = (string[])msg.StringArrayData;
                     break;
             }
         }

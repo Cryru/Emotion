@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Linq;
 using Adfectus.Common;
 
 #endregion
@@ -17,12 +18,15 @@ namespace Rationale.Interop
         private int _tickTracker;
         private float _curTps;
 
-        private Communicator _debugCommunicator = new Communicator();
+        private Communicator _debugCommunicator;
 
         public override void Initialize()
         {
+            _debugCommunicator = new Communicator();
+
             DebugLogger logger = (DebugLogger) Engine.Log;
             logger.AttachCommunicator(_debugCommunicator);
+            _debugCommunicator.MessageReceiveCallback = MessageBus;
         }
 
         public override void Update()
@@ -48,6 +52,7 @@ namespace Rationale.Interop
                 _lastSec = DateTime.Now;
                 _curFps = _frameCounter;
                 _frameCounter = 0;
+
                 _debugCommunicator.SendMessage(new DebugMessage {Type = MessageType.CurrentFPS, Data = _curFps});
             }
 
@@ -56,6 +61,18 @@ namespace Rationale.Interop
 
         public override void Dispose()
         {
+        }
+
+        private void MessageBus(DebugMessage msg)
+        {
+            switch (msg.Type)
+            {
+                case MessageType.RequestAssetData:
+                    _debugCommunicator.SendMessage(new DebugMessage {Type = MessageType.AssetData, StringArrayData = Engine.AssetLoader.AllAssets});
+                    _debugCommunicator.SendMessage(new DebugMessage
+                        {Type = MessageType.LoadedAssetData, StringArrayData = Engine.AssetLoader.LoadedAssets.Select(x => (x.Disposed ? "X" : "") + $"[{x.GetType()}] {x.Name}").ToArray()});
+                    break;
+            }
         }
     }
 }

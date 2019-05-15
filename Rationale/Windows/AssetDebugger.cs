@@ -2,7 +2,6 @@
 
 using System.Linq;
 using System.Numerics;
-using Adfectus.Common;
 using Adfectus.IO;
 using ImGuiNET;
 using Rationale.Interop;
@@ -13,6 +12,9 @@ namespace Rationale.Windows
 {
     public sealed class AssetDebugger : Window
     {
+        public static string[] LoadedAssetsCache = new string[0];
+        public static string[] AllAssetsCache = new string[0];
+
         public AssetDebugger() : base("Asset Debugger", new Vector2(200, 250))
         {
         }
@@ -22,14 +24,11 @@ namespace Rationale.Windows
             if (ImGui.TreeNode("Loaded Assets"))
             {
                 ImGui.Indent();
-                foreach (Asset asset in Engine.AssetLoader.LoadedAssets)
+                foreach (string asset in LoadedAssetsCache)
                 {
-                    if (asset.Disposed)
-                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"[{asset.GetType()}] {asset.Name}");
-                    else
-                        ImGui.Text($"[{asset.GetType()}] {asset.Name}");
+                    ImGui.Text(asset);
 
-                    if (ImGui.IsItemClicked()) WindowManager.AddWindow(new AssetDataWindow(asset));
+                    //if (ImGui.IsItemClicked()) WindowManager.AddWindow(new AssetDataWindow(asset));
                 }
 
                 ImGui.Unindent();
@@ -39,10 +38,10 @@ namespace Rationale.Windows
             if (!ImGui.TreeNode("All Assets")) return;
 
             ImGui.Indent();
-            Asset[] loadedAssets = Engine.AssetLoader.LoadedAssets;
-            foreach (string asset in Engine.AssetLoader.AllAssets)
+            string[] loadedAssets = LoadedAssetsCache;
+            foreach (string asset in AllAssetsCache)
             {
-                if (loadedAssets.Select(x => x.Name).Contains(asset))
+                if (loadedAssets.Contains(asset))
                     ImGui.TextColored(new Vector4(0, 1, 0, 1), asset);
                 else
                     ImGui.Text(asset);

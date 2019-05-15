@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adfectus.Platform.DesktopGL\Adfectus.Platform.DesktopGL.csproj" />
     <ProjectReference Include="..\Adfectus.Tests\Adfectus.Tests.csproj" />
     <ProjectReference Include="..\Adfectus\Adfectus.csproj" />
-    <ProjectReference Include="..\Emotion.Platform.DesktopGL\Adfectus.Platform.DesktopGL.csproj" />
   </ItemGroup>
 
 </Project>

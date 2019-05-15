@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Adfectus.Logging;
@@ -15,13 +16,14 @@ namespace Rationale.Interop
 
         public override void Log(Adfectus.Logging.MessageType type, MessageSource source, string message)
         {
-            string fullMessage = $"[{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}";
+            string fullMessage = $">> [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}";
+            Console.WriteLine(fullMessage);
 
             // Send either through the comms - if any, or store in an internal log.
-            if (_comm != null)
-                _comm.SendMessage(new DebugMessage {Type = MessageType.MessageLogged, Data = fullMessage});
-            else
-                InternalLog.Add(fullMessage);
+            //if (_comm != null)
+            //    _comm.SendMessage(new DebugMessage {Type = MessageType.MessageLogged, Data = fullMessage});
+            //else
+            //    InternalLog.Add(fullMessage);
         }
 
         public override void Dispose()

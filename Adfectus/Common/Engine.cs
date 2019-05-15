@@ -88,6 +88,11 @@ namespace Adfectus.Common
         public static bool IsRunning { get; private set; }
 
         /// <summary>
+        /// Whether the loop was started once.
+        /// </summary>
+        public static bool WasStarted { get; private set; }
+
+        /// <summary>
         /// Whether the host is unfocused.
         /// </summary>
         public static bool IsUnfocused
@@ -134,14 +139,10 @@ namespace Adfectus.Common
         /// </summary>
         private static IEnumerable<Plugin> _plugins;
 
-#if DEBUG
-
         /// <summary>
         /// The draw hook of the Rationale debugger.
         /// </summary>
         private static Action _rationaleDrawHook;
-
-#endif
 
         #endregion
 
@@ -341,6 +342,7 @@ namespace Adfectus.Common
             Log.Info("Running engine...", MessageSource.Engine);
 
             // Set engine as running.
+            WasStarted = true;
             IsRunning = true;
 
             // Execute user init - if any.
