@@ -106,6 +106,7 @@ namespace Adfectus.IO
 
             // Load and cache the asset.
             asset = Load<T>(data);
+            asset.Name = name;
             _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
             return (T) asset;

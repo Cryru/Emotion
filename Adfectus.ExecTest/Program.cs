@@ -22,7 +22,6 @@ using Adfectus.Primitives;
 using Adfectus.Scenography;
 //using Adfectus.Steam;
 using Adfectus.Tests;
-using Emotion.Platform.DesktopGL;
 using Xunit;
 
 #endregion

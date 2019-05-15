@@ -22,7 +22,6 @@ namespace Rationale
             ImGuiNetPlugin imGuiPlugin = new ImGuiNetPlugin();
             builder.AddGenericPlugin(imGuiPlugin);
             Engine.Flags.PauseOnFocusLoss = false;
-            builder.SetLogger<DebugLogger>();
 
             Engine.Setup<DesktopPlatform>(builder);
             Engine.SceneManager.SetScene(new RationaleScene(imGuiPlugin));

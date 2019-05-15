@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -28,10 +29,21 @@ namespace Rationale.Windows
             {
                 if (File.Exists(_loadPath))
                 {
-                    File.Copy("Rationale.dll", Path.Combine(Path.GetDirectoryName(_loadPath), "Rationale.dll"), true);
-                    ProcessStartInfo info = new ProcessStartInfo {RedirectStandardOutput = true, RedirectStandardInput = true, FileName = _loadPath};
-                    Process _proc = Process.Start(info);
-                    _scene.AttachedToProcess(_proc, new Communicator(_proc));
+                    try
+                    {
+                        File.Copy("Rationale.dll", Path.Combine(Path.GetDirectoryName(_loadPath), "Rationale.dll"), true);
+                    }
+                    catch (Exception)
+                    {
+                        // no-op
+                    }
+
+                    ProcessStartInfo info = new ProcessStartInfo {FileName = _loadPath};
+                    Communicator coms = new Communicator(9991);
+                    Process proc = Process.Start(info);
+
+                    // Signal the scene that we connected.
+                    _scene.AttachedToProcess(proc, coms);
                     Close();
                 }
                 else

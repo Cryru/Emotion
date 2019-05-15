@@ -2,9 +2,23 @@
 {
     public enum MessageType
     {
+        // System
+        GetListener,
+        MessageLogged,
+
+        // Monitoring
         CurrentFPS,
         CurrentTPS,
-        MessageLogged,
-        GetListener
+
+        // Asset debugger
+        RequestAssetData,
+        LoadedAssetData,
+        AssetData,
+
+        // Script debugging
+        ScriptHook,
+        ScriptInto,
+        ScriptOut,
+        ScriptUnhook
     }
 }
