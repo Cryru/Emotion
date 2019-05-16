@@ -3,8 +3,6 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/qur90gc2wdhmd5ff/branch/master?svg=true)](https://ci.appveyor.com/project/Cryru/emotion/branch/master)
 
-Debug Package: [![nuget debug](https://img.shields.io/nuget/v/AdfectusDebug.svg)](https://www.nuget.org/packages/AdfectusDebug)
-
 Release Package: [![nuget release](https://img.shields.io/nuget/v/Adfectus.svg)](https://www.nuget.org/packages/Adfectus)
 
 ## What is it?
