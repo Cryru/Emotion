@@ -30,7 +30,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
             get => _layers.Keys.ToArray();
         }
 
-        private ConcurrentDictionary<string, SoundLayer> _layers = new ConcurrentDictionary<string, SoundLayer>();
+        private ConcurrentDictionary<string, ALSoundLayer> _layers = new ConcurrentDictionary<string, ALSoundLayer>();
         private IntPtr _context;
         private IntPtr _device;
         private bool _loopRunning;
@@ -69,7 +69,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
                 while (_loopRunning)
                 {
                     // Update running layers.
-                    foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+                    foreach (KeyValuePair<string, ALSoundLayer> layer in _layers)
                     {
                         layer.Value.Update();
                     }
@@ -87,10 +87,10 @@ namespace Adfectus.Platform.DesktopGL.Sound
                         // Maximum of one buffer will be cleaned per loop.
                         bool took = _buffersToDestroy.TryDequeue(out ALSoundFile soundFile);
                         if (took)
-                            foreach (KeyValuePair<string, SoundLayer> layer in _layers)
+                            foreach (KeyValuePair<string, ALSoundLayer> layer in _layers)
                             {
                                 // If it is within the playlist, it is in use.
-                                ALSoundFile foundFile = layer.Value.PlayList.FirstOrDefault(x => x.ALBuffer == soundFile.ALBuffer);
+                                ALSoundFile foundFile = layer.Value.ALPlayList.FirstOrDefault(x => x.ALBuffer == soundFile.ALBuffer);
                                 if (foundFile == null)
                                 {
                                     // Check if already destroyed.
@@ -133,11 +133,22 @@ namespace Adfectus.Platform.DesktopGL.Sound
             Alc.CloseDevice(_device);
         }
 
-        public override Task PlayOnLayer(string layerName, SoundFile file)
+        public override Task Play(SoundFile file, string layerName)
         {
             if (string.IsNullOrEmpty(layerName)) return Task.CompletedTask;
-            SoundLayer layer = EnsureLayer(layerName);
+            ALSoundLayer layer = EnsureLayer(layerName);
             AwAction act = layer.Play(file);
+            // Todo: Change with tasks all the way.
+            Task t = new Task(() => { });
+            act.ContinueWith(() => t.Start());
+            return t;
+        }
+
+        public override Task Pause(string layerName)
+        {
+            if (string.IsNullOrEmpty(layerName)) return Task.CompletedTask;
+            ALSoundLayer layer = EnsureLayer(layerName);
+            AwAction act = layer.Pause();
 
             // Todo: Change with tasks all the way.
             Task t = new Task(() => { });
@@ -145,10 +156,21 @@ namespace Adfectus.Platform.DesktopGL.Sound
             return t;
         }
 
-        public override Task QueueOnLayer(string layerName, SoundFile file)
+        public override Task Resume(string layerName)
         {
             if (string.IsNullOrEmpty(layerName)) return Task.CompletedTask;
-            SoundLayer layer = EnsureLayer(layerName);
+            ALSoundLayer layer = EnsureLayer(layerName);
+            AwAction act = layer.Resume();
+            // Todo: Change with tasks all the way.
+            Task t = new Task(() => { });
+            act.ContinueWith(() => t.Start());
+            return t;
+        }
+
+        public override Task QueuePlay(SoundFile file, string layerName)
+        {
+            if (string.IsNullOrEmpty(layerName)) return Task.CompletedTask;
+            ALSoundLayer layer = EnsureLayer(layerName);
             AwAction act = layer.QueuePlay(file);
 
             // Todo: Change with tasks all the way.
@@ -157,16 +179,27 @@ namespace Adfectus.Platform.DesktopGL.Sound
             return t;
         }
 
-        public override Task StopLayer(string layerName)
+        public override Task StopLayer(string layerName, bool now = false)
         {
             if (string.IsNullOrEmpty(layerName)) return Task.CompletedTask;
-            SoundLayer layer = EnsureLayer(layerName);
-            AwAction act = layer.StopPlayingAll();
+            ALSoundLayer layer = EnsureLayer(layerName);
+            AwAction act = layer.StopPlayingAll(now);
 
             // Todo: Change with tasks all the way.
             Task t = new Task(() => { });
             act.ContinueWith(() => t.Start());
             return t;
+        }
+
+        public override SoundLayer GetLayer(string layerName)
+        {
+            return string.IsNullOrEmpty(layerName) ? null : EnsureLayer(layerName);
+        }
+
+        public override void RemoveLayer(string layerName)
+        {
+            _layers.TryRemove(layerName, out ALSoundLayer playBackLayer);
+            playBackLayer?.Dispose();
         }
 
         #region Helpers
@@ -176,13 +209,13 @@ namespace Adfectus.Platform.DesktopGL.Sound
         /// </summary>
         /// <param name="layerName">The layer to ensure the existence of.</param>
         /// <returns>The layer.</returns>
-        private SoundLayer EnsureLayer(string layerName)
+        private ALSoundLayer EnsureLayer(string layerName)
         {
             string nameNormalized = layerName.ToLower();
-            bool layerExists = _layers.TryGetValue(nameNormalized, out SoundLayer layer);
+            bool layerExists = _layers.TryGetValue(nameNormalized, out ALSoundLayer layer);
             if (layerExists) return layer;
 
-            layer = new SoundLayer(nameNormalized);
+            layer = new ALSoundLayer(nameNormalized);
             bool added = _layers.TryAdd(nameNormalized, layer);
             if (!added) Engine.Log.Error($"Couldn't add layer {layerName}", MessageSource.SoundManager);
 

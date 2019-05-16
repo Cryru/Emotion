@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Adfectus.Common;
 using Adfectus.IO;
+using Adfectus.Platform.DesktopGL;
 using Xunit;
 
 #endregion
@@ -56,7 +57,7 @@ namespace Adfectus.Tests
             Engine.Flags.PauseOnFocusLoss = false;
             EngineBuilder builder = new EngineBuilder().SetupAssets(additionalAssetSources: new AssetSource[] {new EmbeddedAssetSource(typeof(HarnessActual).Assembly, "Assets")})
                 .SetupFlags(new Vector2(960, 540), false, targetTPS: 0);
-            Engine.Setup(builder);
+            Engine.Setup<DesktopPlatform>(builder);
             Directory.CreateDirectory("ReferenceImages");
             RunEvent.Set();
             Engine.Run();

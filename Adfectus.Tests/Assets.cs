@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Adfectus.Common;
 using Adfectus.IO;
+using Adfectus.Platform.DesktopGL.Assets;
 using Xunit;
 
 #endregion
@@ -74,7 +75,7 @@ namespace Adfectus.Tests
             // Refresh the file which the tests edit.
             File.WriteAllText($"OtherAssets{Path.DirectorySeparatorChar}LoremIpsum.txt", "Lorem ipsum");
 
-            AssetLoader customLoader = new AssetLoader(new AssetSource[] {new FileAssetSource("OtherAssets")});
+            AssetLoader customLoader = new DesktopAssetLoader(new AssetSource[] {new FileAssetSource("OtherAssets")});
             TextFile loremIpsum = customLoader.Get<TextFile>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
@@ -86,7 +87,7 @@ namespace Adfectus.Tests
 
             // Loading a file which exists both embedded and file.
             // In this case the file loader will load the file, and the embedded file won't be considered a part of the main manifest.
-            AssetLoader conflictLoader = new AssetLoader(new AssetSource[] {new FileAssetSource("OtherAssets"), new EmbeddedAssetSource(typeof(Assets).Assembly, "OtherAssets")});
+            AssetLoader conflictLoader = new DesktopAssetLoader(new AssetSource[] {new FileAssetSource("OtherAssets"), new EmbeddedAssetSource(typeof(Assets).Assembly, "OtherAssets")});
             loremIpsum = conflictLoader.Get<TextFile>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
@@ -113,7 +114,7 @@ namespace Adfectus.Tests
             // Creating an asset loader with a non existent root directory should create that directory.
             if (Directory.Exists("NewDir")) Directory.Delete("NewDir");
             Assert.False(Directory.Exists("NewDir"));
-            AssetLoader noDirectory = new AssetLoader(new AssetSource[] {new FileAssetSource("NewDir")});
+            AssetLoader noDirectory = new DesktopAssetLoader(new AssetSource[] {new FileAssetSource("NewDir")});
             Assert.True(Directory.Exists("NewDir"));
         }
     }

@@ -19,6 +19,11 @@ namespace Adfectus.Platform.DesktopGL.Assets
             _customLoaders.Add(typeof(Font), LoadFont);
         }
 
+        public DesktopAssetLoader(AssetSource[] sources) : base(sources)
+        {
+
+        }
+
         #region Loaders
 
         private Asset LoadTexture()
