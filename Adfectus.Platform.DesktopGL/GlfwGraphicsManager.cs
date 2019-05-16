@@ -113,7 +113,7 @@ namespace Adfectus.Platform.DesktopGL
             if (status != FramebufferStatus.FramebufferComplete) Engine.Log.Warning($"Framebuffer creation failed. Error code {status}.", MessageSource.GL);
 
             Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            _renderFboTexture = new GLTexture(renderTexture, new Vector2(RenderSize.X, RenderSize.Y), "FBO Texture");
+            _renderFboTexture = new GLTexture(renderTexture, new Vector2(RenderSize.X, RenderSize.Y), null, "FBO Texture");
 
             CheckError("creating scale fbo");
         }

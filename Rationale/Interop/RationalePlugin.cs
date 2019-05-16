@@ -22,11 +22,18 @@ namespace Rationale.Interop
 
         public override void Initialize()
         {
-            _debugCommunicator = new Communicator();
+            try
+            {
+                _debugCommunicator = new Communicator();
 
-            DebugLogger logger = (DebugLogger) Engine.Log;
-            logger.AttachCommunicator(_debugCommunicator);
-            _debugCommunicator.MessageReceiveCallback = MessageBus;
+                DebugLogger logger = (DebugLogger) Engine.Log;
+                logger.AttachCommunicator(_debugCommunicator);
+                _debugCommunicator.MessageReceiveCallback = MessageBus;
+            }
+            catch (Exception ex)
+            {
+                Engine.Log.Warning($"Couldn't connect to the Rationale debugger. {ex}", Adfectus.Logging.MessageSource.Debugger);
+            }
         }
 
         public override void Update()

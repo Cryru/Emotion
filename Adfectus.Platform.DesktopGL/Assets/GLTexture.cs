@@ -34,31 +34,17 @@ namespace Adfectus.Platform.DesktopGL.Assets
         /// </summary>
         /// <param name="pointer">Pointer to the created OpenGL texture.</param>
         /// <param name="size">The size of the texture.</param>
+        /// <param name="mulMatrix">An additional matrix to be multiplied to the texture matrix.</param>
         /// <param name="name">The name of the texture.</param>
-        public GLTexture(uint pointer, Vector2 size, string name = null)
+        public GLTexture(uint pointer, Vector2 size, Matrix4x4? mulMatrix = null, string name = null)
         {
             Pointer = pointer;
             Size = size;
             TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
             Name = name ?? $"OpenGL Texture - {Pointer}";
             Created = true;
-        }
 
-        /// <inheritdoc />
-        /// <summary>
-        /// Wrap an already created texture in a GLTexture object.
-        /// </summary>
-        /// <param name="pointer">Pointer to the created OpenGL texture.</param>
-        /// <param name="size">The size of the texture.</param>
-        /// <param name="matrix">The texture matrix.</param>
-        /// <param name="name">The name of the texture.</param>
-        public GLTexture(uint pointer, Vector2 size, Matrix4x4 matrix, string name = null)
-        {
-            Pointer = pointer;
-            Size = size;
-            TextureMatrix = matrix;
-            Name = name ?? $"OpenGL Texture - {Pointer}";
-            Created = true;
+            if (mulMatrix != null) TextureMatrix *= (Matrix4x4) mulMatrix;
         }
 
         protected override void CreateInternal(byte[] data)
