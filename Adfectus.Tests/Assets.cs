@@ -37,7 +37,7 @@ namespace Adfectus.Tests
             Assert.Equal("Hello, I am an embedded file ^^", textFile.Content);
 
             // The asset should be considered loaded.
-            Assert.Contains("Embedded/embedText.txt", Engine.AssetLoader.LoadedAssets.Select(x => x.Name));
+            Assert.True(Engine.AssetLoader.Loaded("Embedded/embedText.txt"));
 
             // The name should be case insensitive.
             TextFile insensitive = Engine.AssetLoader.Get<TextFile>("embedded/embedtext.txt");

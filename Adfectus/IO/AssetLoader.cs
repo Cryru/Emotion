@@ -53,7 +53,7 @@ namespace Adfectus.IO
 
         /// <summary>
         /// Add a source to the asset loader.
-        /// Conflicting asset names are overwritten by whichever was added last.
+        /// Conflicting asset names are overwritten by whichever was added first.
         /// </summary>
         /// <param name="source">A new source to load assets from.</param>
         public void AddSource(AssetSource source)
@@ -61,7 +61,8 @@ namespace Adfectus.IO
             string[] sourceManifest = source.GetManifest();
             foreach (string asset in sourceManifest)
             {
-                _manifest.AddOrUpdate(NameToEngineName(asset), source, (_,__) => source);
+                _manifest.TryAdd(NameToEngineName(asset), source);
+                //_manifest.AddOrUpdate(NameToEngineName(asset), source, (_,__) => source);
             }
         }
 
@@ -76,7 +77,7 @@ namespace Adfectus.IO
         /// <returns>Whether an asset with the provided name exists in any source.</returns>
         public bool Exists(string name)
         {
-            return _manifest.ContainsKey(name);
+            return _manifest.ContainsKey(NameToEngineName(name));
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace Adfectus.IO
         /// <returns>Whether an asset with a provided name is loaded.</returns>
         public bool Loaded(string name)
         {
-            return _loadedAssets.ContainsKey(name);
+            return _loadedAssets.ContainsKey(NameToEngineName(name));
         }
 
         /// <summary>
@@ -175,7 +176,7 @@ namespace Adfectus.IO
         /// <returns>The converted name.</returns>
         public static string NameToEngineName(string name)
         {
-            return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/');
+            return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
         }
 
         #endregion
