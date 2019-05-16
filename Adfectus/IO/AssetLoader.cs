@@ -32,6 +32,23 @@ namespace Adfectus.IO
         protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
         protected Dictionary<Type, Func<Asset>> _customLoaders = new Dictionary<Type, Func<Asset>>();
 
+        /// <summary>
+        /// Create an asset loader from a set of sources.
+        /// </summary>
+        /// <param name="sources"></param>
+        protected AssetLoader(AssetSource[] sources)
+        {
+            foreach (AssetSource source in sources)
+            {
+                AddSource(source);
+            }
+        }
+
+        protected AssetLoader()
+        {
+
+        }
+
         #region Sources
 
         /// <summary>
@@ -57,7 +74,7 @@ namespace Adfectus.IO
         /// </summary>
         /// <param name="name">The name of the asset to check.</param>
         /// <returns>Whether an asset with the provided name exists in any source.</returns>
-        public bool AssetExists(string name)
+        public bool Exists(string name)
         {
             return _manifest.ContainsKey(name);
         }
@@ -67,7 +84,7 @@ namespace Adfectus.IO
         /// </summary>
         /// <param name="name">The name of the asset to check.</param>
         /// <returns>Whether an asset with a provided name is loaded.</returns>
-        public bool AssetLoaded(string name)
+        public bool Loaded(string name)
         {
             return _loadedAssets.ContainsKey(name);
         }

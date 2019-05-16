@@ -15,94 +15,19 @@ using Adfectus.Sound;
 
 namespace Adfectus.Platform.DesktopGL.Sound
 {
-    /// <summary>
-    /// A sound layer is in charge of playing one sound or a list of sounds asynchronously. To play multiple sounds you would
-    /// use different layers.
-    /// </summary>
-    public sealed class SoundLayer
+    public sealed class ALSoundLayer : SoundLayer
     {
         #region Properties
 
-        /// <summary>
-        /// The layer's name.
-        /// </summary>
-        public string Name { get; private set; }
-
-        /// <summary>
-        /// The layer's volume from 0 to ???. Is 100 by default.
-        /// </summary>
-        public float Volume { get; set; } = 100f;
-
-        /// <summary>
-        /// Whether the layer is playing, is paused, etc.
-        /// </summary>
-        public SoundStatus Status { get; private set; } = SoundStatus.Initial;
-
-        /// <summary>
-        /// Whether to loop the currently playing source.
-        /// </summary>
-        public bool Looping { get; set; }
-
-        /// <summary>
-        /// Loop the last queued track only instead of everything. Is true by default.
-        /// </summary>
-        public bool LoopLastOnly { get; set; } = true;
-
-        /// <summary>
-        /// The position of the playback within the TotalDuration in seconds.
-        /// </summary>
-        public float PlaybackLocation { get; private set; }
-
-        /// <summary>
-        /// The duration of All sounds queued on the layer in seconds.
-        /// </summary>
-        public float TotalDuration { get; private set; }
-
-        /// <summary>
-        /// The file currently playing.
-        /// </summary>
-        public SoundFile CurrentlyPlayingFile { get; private set; }
-
-        /// <summary>
-        /// The index of the currently playing file within the Playlist.
-        /// </summary>
-        public int CurrentlyPlayingFileIndex { get; private set; }
+        public override List<SoundFile> PlayList
+        {
+            get => ALPlayList.Select(x => (SoundFile) x).ToList();
+        }
 
         /// <summary>
         /// The list of files queued.
         /// </summary>
-        public List<ALSoundFile> PlayList { get; private set; } = new List<ALSoundFile>();
-
-        #region Fading
-
-        /// <summary>
-        /// The duration of the fade in effect in seconds.
-        /// </summary>
-        public float FadeInLength { get; set; }
-
-        /// <summary>
-        /// The duration of the fade out effect in seconds.
-        /// </summary>
-        public float FadeOutLength { get; set; }
-
-        /// <summary>
-        /// Whether to skip the natural fade out when a file is over but still want to keep the FadeOutLength property to support
-        /// FadeOutOnChange.
-        /// </summary>
-        public bool SkipNaturalFadeOut { get; set; }
-
-        /// <summary>
-        /// Whether to fade in only on the first loop. false by default. Takes effect instantly, if layer is Already playing it
-        /// won't fade in subsequent loops.
-        /// </summary>
-        public bool FadeInFirstLoopOnly { get; set; }
-
-        /// <summary>
-        /// Whether to fade out the file when a new one is played. Makes for smooth transitions.
-        /// </summary>
-        public bool FadeOutOnChange { get; set; }
-
-        #endregion
+        public List<ALSoundFile> ALPlayList { get; private set; } = new List<ALSoundFile>();
 
         #endregion
 
@@ -112,12 +37,6 @@ namespace Adfectus.Platform.DesktopGL.Sound
         /// The OpenAl pointer to the AlSource.
         /// </summary>
         public uint AlSource { get; private set; }
-
-        /// <summary>
-        /// The volume reported to OpenAl for this layer. This will be influenced by the globAl volume, fading, layer volume, and
-        /// other factors.
-        /// </summary>
-        public float ReportedVolume { get; private set; }
 
         /// <summary>
         /// Tracker for whether the currently playing track is the first.
@@ -136,10 +55,8 @@ namespace Adfectus.Platform.DesktopGL.Sound
         /// Creates a new sound layer. This is usuAlly done and managed by the ALSoundManager object in the Context.
         /// </summary>
         /// <param name="name">The name of the layer. Used by the ALSoundManager to refer to the layer.</param>
-        public SoundLayer(string name)
+        public ALSoundLayer(string name) : base(name)
         {
-            Name = name;
-
             ALThread.ExecuteALThread(() =>
             {
                 // Initiate source.
@@ -227,7 +144,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
             void QueuePlayInternAl()
             {
                 // Check if mixing number of channels.
-                if (PlayList.Count > 0 && PlayList[0].Channels != file.Channels)
+                if (ALPlayList.Count > 0 && ALPlayList[0].Channels != file.Channels)
                 {
                     Engine.Log.Warning("Queuing a track with a different number of channels to the one(s) in the playlist is not supported.", MessageSource.SoundManager);
                     return;
@@ -239,7 +156,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
                 if (Status == SoundStatus.Stopped) PerformReset();
 
                 Al.SourceQueueBuffers(AlSource, 1, new[] {alSoundFile.ALBuffer});
-                PlayList.Add(alSoundFile);
+                ALPlayList.Add(alSoundFile);
                 ALThread.CheckError($"queuing {alSoundFile.ALBuffer} in source {AlSource}");
 
                 // Play if not playing.
@@ -272,7 +189,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
 
                 // Queue the file.
                 Al.SourceQueueBuffers(AlSource, 1, new[] {alSoundFile.ALBuffer});
-                PlayList.Add(alSoundFile);
+                ALPlayList.Add(alSoundFile);
                 ALThread.CheckError($"queuing single {alSoundFile.ALBuffer} in source {AlSource}");
 
                 // Play it.
@@ -301,7 +218,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
                 ALThread.CheckError($"cleanup of source {AlSource}");
 
                 AlSource = 0;
-                PlayList.Clear();
+                ALPlayList.Clear();
             }).Wait();
         }
 
@@ -355,7 +272,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
             Engine.Log.Trace($"removed {processed} buffers of source {AlSource} - {string.Join(", ", removed)}", MessageSource.SoundManager);
             ALThread.CheckError($"removing {processed} buffers of source {AlSource}");
 
-            if (PlayList.Count > 0) PlayList.RemoveRange(0, Math.Min(PlayList.Count, processed));
+            if (ALPlayList.Count > 0) ALPlayList.RemoveRange(0, Math.Min(ALPlayList.Count, processed));
             _isFirst = false;
         }
 
@@ -365,7 +282,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
         private void PerformReset()
         {
             _isFirst = true;
-            PlayList.Clear();
+            ALPlayList.Clear();
             _forceFadeOut = false;
             _forceFadeOutLength = 0f;
             _forceFadeOutStartDuration = 0f;
@@ -375,23 +292,23 @@ namespace Adfectus.Platform.DesktopGL.Sound
         private int UpdateCurrentlyPlayingFile()
         {
             // Check if anything playing.
-            if (PlayList.Count == 0) return -1;
+            if (ALPlayList.Count == 0) return -1;
 
             // Accumulative playback tracker.
             float playback = 0;
 
             // Calculate currently playing through the playback and the playlist.
-            for (int i = 0; i < PlayList.Count; i++)
+            for (int i = 0; i < ALPlayList.Count; i++)
             {
-                SoundFile sf = PlayList[i];
+                SoundFile sf = ALPlayList[i];
                 playback += sf.Duration;
                 if (PlaybackLocation <= playback) return i;
             }
 
             // Unknown.
-            Engine.Log.Warning($"Unknown currently playing file. {PlaybackLocation} with playlist {string.Join(", ", PlayList.Select(x => x.Name + ">" + x.Duration))}", MessageSource.SoundManager);
+            Engine.Log.Warning($"Unknown currently playing file. {PlaybackLocation} with playlist {string.Join(", ", ALPlayList.Select(x => x.Name + ">" + x.Duration))}", MessageSource.SoundManager);
 
-            return PlayList.Count - 1;
+            return ALPlayList.Count - 1;
         }
 
         /// <summary>
@@ -420,7 +337,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
             UpdatePlayingState();
 
             // Check whether the current track is last.
-            bool last = PlayList.Count != 0 && CurrentlyPlayingFileIndex == PlayList.Count - 1;
+            bool last = ALPlayList.Count != 0 && CurrentlyPlayingFileIndex == ALPlayList.Count - 1;
 
             // Update volume. Requires an updated currently playing track.
             UpdateVolume(last);
@@ -558,10 +475,10 @@ namespace Adfectus.Platform.DesktopGL.Sound
         {
             CurrentlyPlayingFileIndex = UpdateCurrentlyPlayingFile();
 
-            if (CurrentlyPlayingFileIndex == -1 || CurrentlyPlayingFileIndex > PlayList.Count) CurrentlyPlayingFile = null;
-            else CurrentlyPlayingFile = PlayList[CurrentlyPlayingFileIndex];
+            if (CurrentlyPlayingFileIndex == -1 || CurrentlyPlayingFileIndex > ALPlayList.Count) CurrentlyPlayingFile = null;
+            else CurrentlyPlayingFile = ALPlayList[CurrentlyPlayingFileIndex];
 
-            TotalDuration = PlayList.ToArray().Sum(x => x.Duration);
+            TotalDuration = ALPlayList.Sum(x => x.Duration);
         }
 
         private void UpdatePlaybackLocation()
