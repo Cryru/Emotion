@@ -198,7 +198,7 @@ namespace Adfectus.Platform.DesktopGL.Sound
 
         public override void RemoveLayer(string layerName)
         {
-            _layers.TryRemove(layerName, out ALSoundLayer playBackLayer);
+            _layers.TryRemove(layerName.ToLower(), out ALSoundLayer playBackLayer);
             playBackLayer?.Dispose();
         }
 

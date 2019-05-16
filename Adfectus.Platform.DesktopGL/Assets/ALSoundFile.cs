@@ -43,6 +43,7 @@ namespace Adfectus.Platform.DesktopGL.Assets
 
         protected override void DisposeInternal()
         {
+            base.DisposeInternal();
             ((ALSoundManager) Engine.SoundManager).DestroyBuffer(this);
         }
 

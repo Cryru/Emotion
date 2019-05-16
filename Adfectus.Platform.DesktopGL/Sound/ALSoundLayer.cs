@@ -178,7 +178,11 @@ namespace Adfectus.Platform.DesktopGL.Sound
         public AwAction Play(SoundFile file)
         {
             // Convert to platform format.
-            if(!(file is ALSoundFile alSoundFile)) return null;
+            if (!(file is ALSoundFile alSoundFile))
+            {
+                Engine.Log.Warning("The file provided to the ALSoundLayer isn't a ALSoundFile.", MessageSource.SoundManager);
+                return null;
+            }
 
             Engine.Log.Trace($"Playing [{file.Name}] on {this}.", MessageSource.SoundManager);
 

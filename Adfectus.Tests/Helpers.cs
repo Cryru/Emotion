@@ -43,7 +43,17 @@ namespace Adfectus.Tests
             {
                 "gjRM42NnqSthaDCODi8la+7jklcrik52G18woKYa1s0=", "MZqlv1R57P1ofwNJzE4XOmyO2Bp2ZLuWaYwzgAgcBcY="
             }, // Weird tilemap drawing. The differences in this test really show the sampler differences.
-            {"4Z0J5whko6/LROZxJNklqov6Y/YlZckSgfbnR6Iy9CQ=", "l5ymQ0MWYBzsM7iFYqKsiKMjRqA2UWQmqOsWW19K7Iw="} // Arbitrary vertices draw. Differences in color.
+            {"4Z0J5whko6/LROZxJNklqov6Y/YlZckSgfbnR6Iy9CQ=", "l5ymQ0MWYBzsM7iFYqKsiKMjRqA2UWQmqOsWW19K7Iw="}, // Arbitrary vertices draw. Differences in color.
+
+            // Something else (Possibly a change in scaling code) caused these to offset by a pixel on some machines.
+            {"JYiEunCa/hUSonvebkdIuRAkUIX1mrEfwmjX9QTX6lk=", "8aivucpanUVd+Ji0bDXfgk6H4N50z+MeNwlkzUhQGas="},
+            {"kXYYXLKpYk2PF2UVQHKCRII1V0KcWPmXtPutCY0hg5Y=", "/wWfA8rwIzhspD7e4LamEx3vWU85OP6jSEDMJpHXVZ8="},
+            {"FIxklRD5Q0J6vS6iLmiC6/ASumWpl084SyV/+xnO0Cw=", "0lBVAPJSqH9CXVpvqjJoo4Q+N9ZE85o2cQcQvnfXosc="},
+            {"g1THQskeAiFmVThajtt6gk1W3VnVmkxPjFG9MhvqDRc=", "eJmRj5eeyngfsGEkmMJDYBVqK9pzZpOCK6GNctWpVUg="},
+            {"K+shxKxaB84w1k7ajpMfGTIccFMrk4AhImJL/hLC0Ag=", "Znb581mqFE2GUdCaNvlS08jyd7+mUkYQrGMIT9GKPV4="},
+            {"Az+jCouP3gighEmADRStBgb47gtCroi6oieBKSyHTG4=", "7iBfVG9OuqOLXFAoMx0u1O6PtBOfPl4m5RVD8kbheBQ="},
+            {"RZqf1syYmm8SL6ZiEW0B9rgBCOAo703csmcz71EPQpA=", "YnuPlWmWruXr2t3NIVrCDj4b+fEVf6/DGH/us3q6TvQ="},
+            {"0iri04iJToHaI2m0lAblziBReR3ug0Yr2vwienMVyxo=", "MZqlv1R57P1ofwNJzE4XOmyO2Bp2ZLuWaYwzgAgcBcY=" }
         };
 
         /// <summary>

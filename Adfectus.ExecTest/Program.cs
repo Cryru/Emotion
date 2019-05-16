@@ -199,7 +199,9 @@ for(let i = 0; i < 10; i++) {
         private bool reverse = false;
 
         public override void Draw()
-        {
+        {            Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 1),
+                Color.Red);
+            return;
             Engine.Renderer.Render(Vector3.Zero, Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
             loce.X += (0.3f * Engine.FrameTime) * (reverse ? -1 : 1);
             Engine.Renderer.Render(new Vector3(loce.X, 0, 0), new Vector2(50, Engine.GraphicsManager.RenderSize.Y), Color.White);
