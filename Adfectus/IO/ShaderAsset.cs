@@ -55,7 +55,7 @@ namespace Adfectus.IO
 
 #endif
 
-        internal override void CreateAsset(byte[] data)
+        protected override void CreateInternal(byte[] data)
         {
             // Deserialize the shader description.
             using (MemoryStream stream = new MemoryStream(data))
@@ -99,7 +99,7 @@ namespace Adfectus.IO
             Engine.AssetLoader.Destroy(Description.Frag);
         }
 
-        internal override void DestroyAsset()
+        protected override void DisposeInternal()
         {
             if (!IsFallback) Shader?.Delete();
         }

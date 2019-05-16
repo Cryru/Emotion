@@ -15,6 +15,7 @@ namespace Adfectus.Common.Threading
         private Action _contAction;
         private Action _actionToExec;
         private ManualResetEvent _mutex;
+        private bool _ran;
 
         /// <summary>
         /// An awaitable action which will execute on the same thread on which it is ran.
@@ -23,6 +24,7 @@ namespace Adfectus.Common.Threading
         public AwAction(bool ran)
         {
             _mutex = new ManualResetEvent(ran);
+            _ran = ran;
         }
 
         /// <summary>
@@ -64,6 +66,9 @@ namespace Adfectus.Common.Threading
             }
 
             _contAction = action;
+
+            // Check if ran.
+            if (_ran) _contAction?.Invoke();
         }
 
         /// <summary>

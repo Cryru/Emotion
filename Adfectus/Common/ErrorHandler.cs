@@ -2,9 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Adfectus.Logging;
-using Adfectus.Native;
 
 #endregion
 
@@ -41,41 +38,11 @@ namespace Adfectus.Common
             // If the debugger is attached, break so the error can be inspected.
             if (Debugger.IsAttached) Debugger.Break();
 
-            // Display the message box.
-            ShowErrorBox($"Fatal error occured!\n{ex}");
+            // Display the error box.
+            Engine.Host.DisplayErrorMessage($"Fatal error occured!\n{ex}");
 
             // Check whether to crash - and do so.
             if (Engine.Flags.CrashOnError) Engine.Quit();
-        }
-
-        /// <summary>
-        /// Display an error message as a message box.
-        /// </summary>
-        /// <param name="message">The message to display.</param>
-        public static void ShowErrorBox(string message)
-        {
-            try
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    WindowsNative.MessageBox(IntPtr.Zero, message, "Something went wrong!", (uint) (0x00000000L | 0x00000010L));
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    UnixNative.ExecuteBashCommand($"osascript -e 'tell app \"System Events\" to display dialog \"{message}\" buttons {{\"OK\"}} with icon caution'");
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    try
-                    {
-                        // Display a message box using Zenity.
-                        UnixNative.ExecuteBashCommand($"zenity --error --text=\"{message}\" --title=\"Something went wrong!\" 2>/dev/null");
-                    }
-                    catch (Exception)
-                    {
-                        // Fallback to xmessage.
-                        UnixNative.ExecuteBashCommand($"xmessage \"{message}\"");
-                    }
-            }
-            catch (Exception e)
-            {
-                Engine.Log.Warning($"Couldn't display error message box - {message}. {e}", MessageSource.Other);
-            }
         }
     }
 }

@@ -10,12 +10,12 @@
         /// </summary>
         public byte[] Content { get; private set; }
 
-        internal override void CreateAsset(byte[] data)
+        protected override void CreateInternal(byte[] data)
         {
             Content = data;
         }
 
-        internal override void DestroyAsset()
+        protected override void DisposeInternal()
         {
             Content = null;
         }

@@ -1,187 +1,182 @@
-﻿#region Using
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Adfectus.Common;
-using Adfectus.Logging;
-
-#endregion
 
 namespace Adfectus.IO
 {
     /// <summary>
-    /// Manages loading and unloading of assets.
+    /// Module used to load assets from various sources.
+    /// Implemented by Platform.
     /// </summary>
-    public class AssetLoader
+    public abstract class AssetLoader
     {
-        #region Properties
+        /// <summary>
+        /// List of all assets in all sources.
+        /// </summary>
+        public string[] AllAssets
+        {
+            get => _manifest.Keys.ToArray();
+        }
 
         /// <summary>
-        /// An array of the currently loaded assets.
+        /// List of all loaded assets from all sources.
         /// </summary>
         public Asset[] LoadedAssets
         {
             get => _loadedAssets.Values.ToArray();
         }
 
+        protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
+        protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
+        protected Dictionary<Type, Func<Asset>> _customLoaders = new Dictionary<Type, Func<Asset>>();
+
         /// <summary>
-        /// An array of all assets in the manifest.
+        /// Create an asset loader from a set of sources.
         /// </summary>
-        public string[] AllAssets
+        /// <param name="sources"></param>
+        protected AssetLoader(AssetSource[] sources)
         {
-            get => _assetManifest.Keys.ToArray();
-        }
-
-        #endregion
-
-        #region Objects
-
-        /// <summary>
-        /// Loaded assets.
-        /// </summary>
-        private ConcurrentDictionary<string, Asset> _loadedAssets;
-
-        /// <summary>
-        /// Manifest of all assets.
-        /// </summary>
-        private ConcurrentDictionary<string, AssetSource> _assetManifest;
-
-        #endregion
-
-        /// <summary>
-        /// Create a new asset loader.
-        /// </summary>
-        /// <param name="sources">The asset sources for the loader.</param>
-        public AssetLoader(IEnumerable<AssetSource> sources)
-        {
-            // Populate manifest.
-            _assetManifest = new ConcurrentDictionary<string, AssetSource>(StringComparer.OrdinalIgnoreCase);
             foreach (AssetSource source in sources)
             {
                 AddSource(source);
             }
-
-            _loadedAssets = new ConcurrentDictionary<string, Asset>(StringComparer.OrdinalIgnoreCase);
         }
+
+        protected AssetLoader()
+        {
+
+        }
+
+        #region Sources
 
         /// <summary>
         /// Add a source to the asset loader.
+        /// Conflicting asset names are overwritten by whichever was added first.
         /// </summary>
-        /// <param name="source">The source to add.</param>
+        /// <param name="source">A new source to load assets from.</param>
         public void AddSource(AssetSource source)
         {
-            // Get the manifest of the source.
-            string[] manifest = source.GetManifest();
+            string[] sourceManifest = source.GetManifest();
+            foreach (string asset in sourceManifest)
+            {
+                _manifest.TryAdd(NameToEngineName(asset), source);
+                //_manifest.AddOrUpdate(NameToEngineName(asset), source, (_,__) => source);
+            }
+        }
 
-            // Add all files from it to the total manifest, and link it to this source.
-            manifest.AsParallel().ForAll(x => _assetManifest.TryAdd(x, source));
+        #endregion
 
-            Engine.Log.Trace($"Added source {source} to asset loader, with a manifest size of {manifest.Length}.", MessageSource.AssetLoader);
+        #region Assets
+
+        /// <summary>
+        /// Whether an asset with the provided name exists in any source.
+        /// </summary>
+        /// <param name="name">The name of the asset to check.</param>
+        /// <returns>Whether an asset with the provided name exists in any source.</returns>
+        public bool Exists(string name)
+        {
+            return _manifest.ContainsKey(NameToEngineName(name));
         }
 
         /// <summary>
-        /// Returns an asset, if not loaded loads it.
+        /// Whether an asset with the provided name is loaded.
+        /// </summary>
+        /// <param name="name">The name of the asset to check.</param>
+        /// <returns>Whether an asset with a provided name is loaded.</returns>
+        public bool Loaded(string name)
+        {
+            return _loadedAssets.ContainsKey(NameToEngineName(name));
+        }
+
+        /// <summary>
+        /// Get a loaded asset by its name or load it.
         /// </summary>
         /// <typeparam name="T">The type of asset.</typeparam>
-        /// <param name="path">A file path to the asset with the RootDirectory as the parent. Will be converted to an engine path.</param>
-        /// <returns>A loaded asset.</returns>
-        [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
-        public T Get<T>(string path) where T : Asset
+        /// <param name="name">The name of the asset within any loaded source.</param>
+        /// <returns>The loaded or cached asset.</returns>
+        public T Get<T>(string name) where T : Asset, new()
         {
-            if (string.IsNullOrEmpty(path)) return null;
+            if (string.IsNullOrEmpty(name)) return default;
 
-            // Convert the path to an engine path.
-            string enginePath = PathToEnginePath(path);
+            // Convert to engine name.
+            name = NameToEngineName(name);
 
-            // Check if the asset is already loaded, in which case return it.
-            bool loaded = _loadedAssets.TryGetValue(enginePath, out Asset loadedAsset);
-            if (loaded) return (T) loadedAsset;
-
-            // Check if the asset exists in the manifest.
-            bool contains = _assetManifest.TryGetValue(enginePath, out AssetSource source);
-            if (!contains)
+            // Check if cached.
+            bool cached = _loadedAssets.TryGetValue(name, out Asset asset);
+            // If cached and not disposed - return it.
+            if (cached && !asset.Disposed)
             {
-                Engine.Log.Error($"Asset [{enginePath}] not found in manifest.", MessageSource.AssetLoader);
-                return null;
+                return (T) asset;
             }
 
-            // Get the asset.
-            byte[] fileContents = source.GetAsset(enginePath);
+            // Check if the asset exists in any of the sources.
+            bool assetFound = _manifest.TryGetValue(name, out AssetSource source);
+            if (!assetFound)
+            {
+                Engine.Log.Error($"Tried to load asset {name} which doesn't exist in any loaded source.", Logging.MessageSource.AssetLoader);
+                return default;
+            }
 
-            // Create an instance of the asset and add it.
-            DebugMessageWrap("Creating", enginePath, typeof(T), MessageType.Trace);
-            T temp = (T) Activator.CreateInstance(typeof(T));
-            temp.Name = enginePath;
-            temp.CreateAsset(fileContents);
-            DebugMessageWrap("Created", enginePath, typeof(T), MessageType.Info);
+            // Load the from the source.
+            byte[] data = source.GetAsset(name);
 
-            // Add it to the loaded assets.
-            _loadedAssets.TryAdd(enginePath, temp);
+            // Load and cache the asset.
+            asset = Load<T>(data);
+            asset.Name = name;
+            _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
-            // Return.
-            return temp;
+            return (T) asset;
         }
 
         /// <summary>
         /// Destroy an asset, freeing memory.
         /// </summary>
-        /// <param name="path">A path to the asset. Will be converted to an engine path.</param>
-        public void Destroy(string path)
+        /// <param name="name">The name of the asset.</param>
+        public void Destroy(string name)
         {
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrEmpty(name)) return;
 
-            // Convert the path to an engine path.
-            string enginePath = PathToEnginePath(path);
+            // Convert to engine name.
+            name = NameToEngineName(name);
 
             // Check if the asset is already loaded, if not do nothing. Also remove it from the list.
-            bool loaded = _loadedAssets.TryRemove(enginePath, out Asset asset);
+            bool loaded = _loadedAssets.TryRemove(name, out Asset asset);
             if (!loaded) return;
 
             // Dispose of asset.
-            DebugMessageWrap("Destroying", enginePath, asset.GetType(), MessageType.Info);
-            asset.DestroyAsset();
-            DebugMessageWrap("Destroyed", enginePath, null, MessageType.Trace);
-        }
-
-        #region Helpers
-
-        /// <summary>
-        /// Returns whether the specified asset exists.
-        /// </summary>
-        /// <param name="path">The path to the asset.</param>
-        /// <returns>True if it exists, false otherwise.</returns>
-        public bool Exists(string path)
-        {
-            return _assetManifest.ContainsKey(PathToEnginePath(path));
+            asset.Dispose();
         }
 
         /// <summary>
-        /// Converts the provided path to an engine universal format.
+        /// Load an asset from bytes.
         /// </summary>
-        /// <param name="path">The path to convert.</param>
-        /// <returns>The converted path.</returns>
-        public static string PathToEnginePath(string path)
+        /// <typeparam name="T">The type of asset to load.</typeparam>
+        /// <param name="data">A byte array to load the asset from.</param>
+        /// <returns>A loaded asset from the byte array.</returns>
+        public T Load<T>(byte[] data) where T : Asset, new()
         {
-            return path.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/');
+            // Check if a custom loader exists for this type.
+            bool customLoader = _customLoaders.TryGetValue(typeof(T), out Func<Asset> loaderFunc);
+            T asset = customLoader ? (T) loaderFunc() : new T();
+            asset.Create(data);
+
+            return asset;
         }
 
         #endregion
 
-        #region Debugging
+        #region Helpers
 
         /// <summary>
-        /// Post a formatted asset loader debug message.
+        /// Converts the provided asset name to an engine name
         /// </summary>
-        /// <param name="operation">The operation being performed.</param>
-        /// <param name="path">An engine path to the file.</param>
-        /// <param name="type">The type of asset.</param>
-        /// <param name="messageType">The type of message to log.</param>
-        private void DebugMessageWrap(string operation, string path, Type type, MessageType messageType)
+        /// <param name="name">The name to convert.</param>
+        /// <returns>The converted name.</returns>
+        public static string NameToEngineName(string name)
         {
-            Engine.Log.Log(messageType, MessageSource.AssetLoader, $"{operation} asset [{path}]{(type != null ? " of type " + type : "")}");
+            return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
         }
 
         #endregion

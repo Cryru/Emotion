@@ -17,6 +17,7 @@ using Adfectus.Graphics.Text;
 //using Adfectus.ImGuiNet;
 using Adfectus.Input;
 using Adfectus.Logging;
+using Adfectus.Platform.DesktopGL;
 using Adfectus.Primitives;
 using Adfectus.Scenography;
 //using Adfectus.Steam;
@@ -62,7 +63,7 @@ namespace Adfectus.ExecTest
             //new EngineBuilder().AddGenericPlugin(_pl
             ////ImGuiPlugin = new ImGuiNetPlugin();
            // ImGuiPlugin.LoadFont("calibri.ttf", 15, 15);
-            Engine.Setup();//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
+            Engine.Setup<DesktopPlatform>(new EngineBuilder().SetupFlags(new Vector2(960, 540), debugMode: true));//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
             Engine.SceneManager.SetScene(new TestScene());
             
             Vector2 first = new Vector2(10, 0);
@@ -198,7 +199,9 @@ for(let i = 0; i < 10; i++) {
         private bool reverse = false;
 
         public override void Draw()
-        {
+        {            Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 1),
+                Color.Red);
+            return;
             Engine.Renderer.Render(Vector3.Zero, Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
             loce.X += (0.3f * Engine.FrameTime) * (reverse ? -1 : 1);
             Engine.Renderer.Render(new Vector3(loce.X, 0, 0), new Vector2(50, Engine.GraphicsManager.RenderSize.Y), Color.White);
