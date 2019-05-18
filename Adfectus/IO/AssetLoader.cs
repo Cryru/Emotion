@@ -1,8 +1,13 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Adfectus.Common;
+using Adfectus.Logging;
+
+#endregion
 
 namespace Adfectus.IO
 {
@@ -46,7 +51,6 @@ namespace Adfectus.IO
 
         protected AssetLoader()
         {
-
         }
 
         #region Sources
@@ -106,16 +110,13 @@ namespace Adfectus.IO
             // Check if cached.
             bool cached = _loadedAssets.TryGetValue(name, out Asset asset);
             // If cached and not disposed - return it.
-            if (cached && !asset.Disposed)
-            {
-                return (T) asset;
-            }
+            if (cached && !asset.Disposed) return (T) asset;
 
             // Check if the asset exists in any of the sources.
             bool assetFound = _manifest.TryGetValue(name, out AssetSource source);
             if (!assetFound)
             {
-                Engine.Log.Error($"Tried to load asset {name} which doesn't exist in any loaded source.", Logging.MessageSource.AssetLoader);
+                Engine.Log.Error($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader);
                 return default;
             }
 

@@ -21,6 +21,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Game\Spatial\**" />
+    <EmbeddedResource Remove="Game\Spatial\**" />
+    <None Remove="Game\Spatial\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Assets\Shaders\HighCompat.xml" />
     <EmbeddedResource Include="Assets\Shaders\HighCompatFrag.frag" />
     <EmbeddedResource Include="Assets\Shaders\CompatFrag.frag" />

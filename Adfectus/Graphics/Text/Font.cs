@@ -15,15 +15,6 @@ namespace Adfectus.Graphics.Text
 
         #region Asset API
 
-        /// <summary>
-        /// Default constructor. Used by the Asset Loader.
-        /// </summary>
-        // ReSharper disable once PublicConstructorInAbstractClass
-        public Font()
-        {
-
-        }
-
         protected override void CreateInternal(byte[] data)
         {
             _fontBytes = data;

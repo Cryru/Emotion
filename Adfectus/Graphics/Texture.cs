@@ -44,5 +44,23 @@ namespace Adfectus.Graphics
         {
             // no-op
         }
+
+        /// <summary>
+        /// Return the texture flipped horizontally.
+        /// </summary>
+        /// <returns>An instance of this texture, but flipped horizontally.</returns>
+        public virtual Texture FlipHorizontal()
+        {
+            return this;
+        }
+
+        /// <summary>
+        /// Return the texture flipped vertically.
+        /// </summary>
+        /// <returns>An instance of this texture, but flipped vertically.</returns>
+        public virtual Texture FlipVertical()
+        {
+            return this;
+        }
     }
 }

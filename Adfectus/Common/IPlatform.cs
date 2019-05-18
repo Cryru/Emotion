@@ -1,9 +1,13 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using Adfectus.Common;
 using Adfectus.Graphics;
 using Adfectus.Input;
 using Adfectus.IO;
 using Adfectus.Sound;
+
+#endregion
 
 namespace Adfectus.Implementation
 {

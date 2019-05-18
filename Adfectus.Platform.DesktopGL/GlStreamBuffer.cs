@@ -8,6 +8,7 @@ using Adfectus.Graphics;
 using Adfectus.Logging;
 using Adfectus.Platform.DesktopGL.Assets;
 using Adfectus.Primitives;
+using Adfectus.Utility;
 using OpenGL;
 
 #endregion
@@ -289,11 +290,10 @@ namespace Adfectus.Platform.DesktopGL
             }
 
             // Add a small epsilon to prevent the wrong UVs from being sampled.
-            float epsilon = 0.0000001f;
-            nnUV = new Vector2(nnUV.X + epsilon, nnUV.Y + epsilon);
-            pnUV = new Vector2(pnUV.X - epsilon, pnUV.Y - epsilon);
-            ppUV = new Vector2(ppUV.X - epsilon, ppUV.Y - epsilon);
-            npUV = new Vector2(npUV.X + epsilon, npUV.Y + epsilon);
+            nnUV = new Vector2(nnUV.X + MathFloat.Epsilon, nnUV.Y + MathFloat.Epsilon);
+            pnUV = new Vector2(pnUV.X - MathFloat.Epsilon, pnUV.Y - MathFloat.Epsilon);
+            ppUV = new Vector2(ppUV.X - MathFloat.Epsilon, ppUV.Y - MathFloat.Epsilon);
+            npUV = new Vector2(npUV.X + MathFloat.Epsilon, npUV.Y + MathFloat.Epsilon);
 
             // Calculate vert positions.
             Vector3 pnV = new Vector3(position.X + size.X, position.Y, position.Z);

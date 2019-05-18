@@ -1,6 +1,8 @@
-﻿using System;
+﻿#region Using
+
 using System.Collections.Generic;
-using System.Text;
+
+#endregion
 
 namespace Adfectus.Sound
 {
@@ -21,7 +23,8 @@ namespace Adfectus.Sound
         public float Volume { get; set; } = 100f;
 
         /// <summary>
-        /// The volume reported to the backend for this layer. This will be influenced by the globAl volume, fading, layer volume, and
+        /// The volume reported to the backend for this layer. This will be influenced by the globAl volume, fading, layer volume,
+        /// and
         /// other factors.
         /// </summary>
         public float ReportedVolume { get; protected set; }

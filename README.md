@@ -101,6 +101,7 @@ For additional supported platforms, lookup .NetCore 3.0 support.
 - Framerate independent timing, semi-fixed step and free-step based on configuration.
   - Managed delta time and total time access in the shader for cool effects.
   - The update loop will always be up to date when a target fps is selected.
+- QuadTree Implementation
 - Lots of configuration through settings and flags.
 - Steam integration.
 - ImGui integration.

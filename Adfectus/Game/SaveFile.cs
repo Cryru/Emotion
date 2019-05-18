@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Xml.Serialization;
-using Adfectus.Common;
+using Adfectus.Utility;
 
 #endregion
 
@@ -55,10 +55,7 @@ namespace Adfectus.Game
         public void Save()
         {
             // If an old save file exists, back it up.
-            if (File.Exists(_path))
-            {
-                File.Copy(_path, _path + ".backup", true);
-            }
+            if (File.Exists(_path)) File.Copy(_path, _path + ".backup", true);
 
             using (StreamWriter stream = new StreamWriter(_path))
             {

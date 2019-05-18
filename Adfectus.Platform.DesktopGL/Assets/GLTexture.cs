@@ -88,5 +88,31 @@ namespace Adfectus.Platform.DesktopGL.Assets
         {
             Engine.GraphicsManager.DeleteTexture(Pointer);
         }
+
+        /// <inheritdoc />
+        public override Texture FlipHorizontal()
+        {
+            GLTexture newTe = new GLTexture
+            {
+                Pointer = Pointer,
+                Size = Size,
+                TextureMatrix = TextureMatrix * Matrix4x4.CreateScale(-1, 1, 1),
+                Name = $"{Name} - Flipped Horizontally"
+            };
+            return newTe;
+        }
+
+        /// <inheritdoc />
+        public override Texture FlipVertical()
+        {
+            GLTexture newTe = new GLTexture
+            {
+                Pointer = Pointer,
+                Size = Size,
+                TextureMatrix = TextureMatrix * Matrix4x4.CreateScale(1, -1, 1),
+                Name = $"{Name} - Flipped Vertically"
+            };
+            return newTe;
+        }
     }
 }

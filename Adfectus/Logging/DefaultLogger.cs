@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Adfectus.Common;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -33,9 +34,7 @@ namespace Adfectus.Logging
                 .MinimumLevel.Is(LogEventLevel.Verbose)
                 .WriteTo.Async(a => a.File(fileName));
 
-#if DEBUG
-            loggerConfig.WriteTo.Async(a => a.Console(LogEventLevel.Verbose, theme: AnsiConsoleTheme.Code));
-#endif
+            if (Engine.DebugMode) loggerConfig.WriteTo.Async(a => a.Console(LogEventLevel.Verbose, theme: AnsiConsoleTheme.Code));
 
             _logger = loggerConfig.CreateLogger();
         }

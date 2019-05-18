@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using Adfectus.Common;
 using Adfectus.IO;
 
 #endregion

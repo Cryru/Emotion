@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Adfectus.IO
+﻿namespace Adfectus.IO
 {
     /// <summary>
     /// An asset file.

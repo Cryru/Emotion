@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Adfectus.Common;
 using Adfectus.Game;
+using Adfectus.Game.QuadTree;
 using Adfectus.Game.Time;
 using Adfectus.Game.Time.Routines;
 using Adfectus.Graphics;
@@ -150,12 +151,23 @@ namespace Adfectus.ExecTest
 
         private Adfectus.Game.Text.RichText test;
         private CoroutineManager _coroutineManager;
-
+        private QuadTree<Transform> tree;
         public override void Load()
         {
             test = new Game.Text.RichText(new Vector3(10, 10, 0), new Vector2(200, 200), Engine.AssetLoader.Get<Font>("debugFont.otf").GetFontAtlas(20));
             test.SetText("sdadasdas");
             _coroutineManager = new CoroutineManager();
+
+            tree = new QuadTree<Transform>(0, 0, 200, 200, 2);
+  
+            // Add a hundred objects.
+            for (int x = 0; x < 10; x++)
+            {
+                for (int y = 0; y < 10; y++)
+                {
+                    tree.Add(new Transform(x * 10, y * 10, 0, 10, 10));
+                }
+            }
         }
 
         private float loc = 0;
@@ -199,9 +211,36 @@ for(let i = 0; i < 10; i++) {
         private bool reverse = false;
 
         public override void Draw()
-        {            Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 1),
-                Color.Red);
+        {
+            Color c = Color.White;
+
+            foreach (Transform node in tree)
+            {
+                Engine.Renderer.Render(node.Position, node.Size, c);
+                c = c == Color.White ? Color.Green : Color.White;
+            }
+
+            Engine.Renderer.RenderOutline(tree.QuadRect.PositionZ(0), tree.QuadRect.Size, Color.Red);
+            Queue<QuadTreeNode<Transform>> treeLeafs = new Queue<QuadTreeNode<Transform>>();
+            treeLeafs.Enqueue(tree.QuadTreeRoot);
+            while (treeLeafs.Count != 0)
+            {
+                QuadTreeNode<Transform> current = treeLeafs.Dequeue();
+                if (current.TopLeftChild != null) treeLeafs.Enqueue(current.TopLeftChild);
+                if (current.TopRightChild != null) treeLeafs.Enqueue(current.TopRightChild);
+                if (current.BottomLeftChild != null) treeLeafs.Enqueue(current.BottomLeftChild);
+                if (current.BottomRightChild != null) treeLeafs.Enqueue(current.BottomRightChild);
+
+                Engine.Renderer.RenderOutline(current.QuadRect.PositionZ(0), current.QuadRect.Size, Color.Magenta);
+            }
+
+
+
             return;
+            
+            Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 1),
+                Color.Red);
+            
             Engine.Renderer.Render(Vector3.Zero, Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
             loce.X += (0.3f * Engine.FrameTime) * (reverse ? -1 : 1);
             Engine.Renderer.Render(new Vector3(loce.X, 0, 0), new Vector2(50, Engine.GraphicsManager.RenderSize.Y), Color.White);

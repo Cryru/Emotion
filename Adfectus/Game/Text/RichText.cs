@@ -8,6 +8,7 @@ using Adfectus.Common;
 using Adfectus.Graphics;
 using Adfectus.Graphics.Text;
 using Adfectus.Primitives;
+using Adfectus.Utility;
 
 #endregion
 
