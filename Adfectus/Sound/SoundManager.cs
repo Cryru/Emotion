@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Threading.Tasks;
 using Adfectus.Common;
+
+#endregion
 
 namespace Adfectus.Sound
 {
@@ -19,7 +23,7 @@ namespace Adfectus.Sound
         /// <summary>
         /// List of active sound layers.
         /// </summary>
-        public abstract string[] Layers {  get; }
+        public abstract string[] Layers { get; }
 
         /// <summary>
         /// Create a new sound manager.

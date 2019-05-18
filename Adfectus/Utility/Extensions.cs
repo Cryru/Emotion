@@ -4,7 +4,7 @@ using System.Numerics;
 
 #endregion
 
-namespace Adfectus.Primitives
+namespace Adfectus.Utility
 {
     /// <summary>
     /// Extension functionality of primitives.

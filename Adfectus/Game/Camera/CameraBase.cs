@@ -3,6 +3,7 @@
 using System.Numerics;
 using Adfectus.Common;
 using Adfectus.Primitives;
+using Adfectus.Utility;
 
 #endregion
 

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Adfectus.Common;
+using Adfectus.Logging;
 
 namespace Adfectus.IO
 {
@@ -20,6 +21,10 @@ namespace Adfectus.IO
             get => _manifest.Keys.ToArray();
         }
 
+        protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
+        protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
+        protected Dictionary<Type, Func<Asset>> _customLoaders = new Dictionary<Type, Func<Asset>>();
+
         /// <summary>
         /// List of all loaded assets from all sources.
         /// </summary>
@@ -27,10 +32,6 @@ namespace Adfectus.IO
         {
             get => _loadedAssets.Values.ToArray();
         }
-
-        protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
-        protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
-        protected Dictionary<Type, Func<Asset>> _customLoaders = new Dictionary<Type, Func<Asset>>();
 
         /// <summary>
         /// Create an asset loader from a set of sources.
@@ -46,7 +47,6 @@ namespace Adfectus.IO
 
         protected AssetLoader()
         {
-
         }
 
         #region Sources
@@ -106,16 +106,13 @@ namespace Adfectus.IO
             // Check if cached.
             bool cached = _loadedAssets.TryGetValue(name, out Asset asset);
             // If cached and not disposed - return it.
-            if (cached && !asset.Disposed)
-            {
-                return (T) asset;
-            }
+            if (cached && !asset.Disposed) return (T) asset;
 
             // Check if the asset exists in any of the sources.
             bool assetFound = _manifest.TryGetValue(name, out AssetSource source);
             if (!assetFound)
             {
-                Engine.Log.Error($"Tried to load asset {name} which doesn't exist in any loaded source.", Logging.MessageSource.AssetLoader);
+                Engine.Log.Error($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader);
                 return default;
             }
 

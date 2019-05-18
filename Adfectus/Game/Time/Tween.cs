@@ -119,11 +119,13 @@ namespace Adfectus.Game.Time
                     FieldInfo temp = (FieldInfo) memberInfo;
                     return temp.FieldType;
                 }
+
                 case MemberTypes.Property:
                 {
                     PropertyInfo temp = (PropertyInfo) memberInfo;
                     return temp.PropertyType;
                 }
+
                 default:
                 {
                     return null;
@@ -147,12 +149,14 @@ namespace Adfectus.Game.Time
                 {
                     return (float) Convert.ToDouble(Object.GetType().GetField(memberInfo.Name).GetValue(Object));
                 }
+
                 case MemberTypes.Property:
                 {
                     PropertyInfo property = Object.GetType().GetProperty(memberInfo.Name);
                     if (property == null) throw new Exception("Missing property on target.");
                     return (float) Convert.ToDouble(property.GetValue(Object));
                 }
+
                 default:
                 {
                     throw new Exception("Invalid member type.");
@@ -178,6 +182,7 @@ namespace Adfectus.Game.Time
                     field.SetValue(Object, Convert.ChangeType(value, field.FieldType));
                     break;
                 }
+
                 case MemberTypes.Property:
                 {
                     PropertyInfo property = Object.GetType().GetProperty(memberInfo.Name);
@@ -185,6 +190,7 @@ namespace Adfectus.Game.Time
                     property.SetValue(Object, Convert.ChangeType(value, property.PropertyType));
                     break;
                 }
+
                 default:
                 {
                     throw new Exception("Invalid member type.");

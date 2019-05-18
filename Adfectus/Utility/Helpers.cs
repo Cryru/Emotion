@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Adfectus.Common
+namespace Adfectus.Utility
 {
     /// <summary>
     /// General helper functions.
@@ -76,40 +76,6 @@ namespace Adfectus.Common
         public static string CrossPlatformPath(string path)
         {
             return path.Replace('/', '$').Replace('\\', '$').Replace('$', Path.DirectorySeparatorChar);
-        }
-
-        /// <summary>
-        /// Returns the next number which is a power of 2.
-        /// </summary>
-        /// <param name="num">The number to find.</param>
-        /// <returns>The closest power of 2 to num</returns>
-        public static int NextP2(int num)
-        {
-            int temp = 1;
-            while (temp < num) temp <<= 1;
-            return temp;
-        }
-
-        /// <summary>
-        /// Converts the angle in degrees to radians up to two decimals.
-        /// </summary>
-        /// <param name="angle">Angle in degrees.</param>
-        /// <returns>The degrees in radians.</returns>
-        public static float DegreesToRadians(int angle)
-        {
-            // Divide Pi by 180 and multiply by the angle, round up to two decimals.
-            return (float) Math.Round(Math.PI / 180 * angle, 2);
-        }
-
-        /// <summary>
-        /// Converts the radians to angles.
-        /// </summary>
-        /// <param name="radian">Angle in radians.</param>
-        /// <returns>The radians in degrees</returns>
-        public static int RadiansToDegrees(float radian)
-        {
-            // Divide 180 by Pi and multiply by the radians. Convert to an integer.
-            return (int) (180 / (float) Math.PI * radian);
         }
 
         /// <summary>

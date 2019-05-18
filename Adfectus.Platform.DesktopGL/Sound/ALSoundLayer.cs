@@ -8,8 +8,8 @@ using Adfectus.Common.Threading;
 using Adfectus.Logging;
 using Adfectus.OpenAL;
 using Adfectus.Platform.DesktopGL.Assets;
-using Adfectus.Primitives;
 using Adfectus.Sound;
+using Adfectus.Utility;
 
 #endregion
 

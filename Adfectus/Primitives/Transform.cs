@@ -129,27 +129,9 @@ namespace Adfectus.Primitives
         }
 
         /// <summary>
-        /// The right side of a transform, as if it was a rectangle.
-        /// </summary>
-        public float RightSide
-        {
-            get => X + Width;
-            set => X = value - Width;
-        }
-
-        /// <summary>
-        /// The bottom side of the transform, as if it was a rectangle.
-        /// </summary>
-        public float BottomSide
-        {
-            get => Y + Height;
-            set => Y = value - Height;
-        }
-
-        /// <summary>
         /// The center of the transform, as if it was a rectangle.
         /// </summary>
-        public Vector2 Center
+        public virtual Vector2 Center
         {
             get => new Vector2(X + Width / 2, Y + Height / 2);
             set
@@ -164,9 +146,24 @@ namespace Adfectus.Primitives
         /// <summary>
         /// The center of the transform, as if it was a rectangle, relative to its position.
         /// </summary>
-        public Vector2 CenterRelative
+        public virtual Vector2 CenterRelative
         {
             get => new Vector2(Width / 2, Height / 2);
+        }
+
+        /// <summary>
+        /// The rectangle bounding the transform.
+        /// </summary>
+        public virtual Rectangle Bounds
+        {
+            get => new Rectangle(X, Y, Width, Height);
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+                Width = value.Width;
+                Height = value.Height;
+            }
         }
 
         #endregion

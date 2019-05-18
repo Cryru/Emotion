@@ -16,6 +16,7 @@ using Adfectus.IO;
 using Adfectus.Logging;
 using Adfectus.Scenography;
 using Adfectus.Sound;
+using Adfectus.Utility;
 
 #endregion
 
@@ -115,6 +116,11 @@ namespace Adfectus.Common
         /// </summary>
         public static float TotalTime { get; private set; }
 
+        /// <summary>
+        /// Whether the engine is running in debug mode.
+        /// </summary>
+        public static bool DebugMode { get; private set; }
+
         #endregion
 
         #region Private Logic and Flags
@@ -180,10 +186,11 @@ namespace Adfectus.Common
             // Check if a builder was provided, and if it wasn't get the default one.
             if (builder == null) builder = new EngineBuilder();
             _targetTPS = builder.TargetTPS;
+            DebugMode = builder.DebugMode;
 
             // Check for Rationale debugger.
             // This needs to happen before the logger is setup.
-            if (File.Exists("Rationale.dll") && builder.DebugMode)
+            if (File.Exists("Rationale.dll") && DebugMode)
             {
                 // Invoke the debugger entry point.
                 Assembly rationaleAssembly = Assembly.LoadFrom("Rationale.dll");
@@ -191,32 +198,25 @@ namespace Adfectus.Common
                 MethodInfo entryPoint = null;
                 foreach (MethodInfo func in entryPoints)
                 {
-                    if (func.Name == "Inject")
-                    {
-                        entryPoint = func;
-                    }
+                    if (func.Name == "Inject") entryPoint = func;
                 }
 
                 if (entryPoint == null)
-                {
-                    Log.Error($"Couldn't find Rationale entry point.", MessageSource.Debugger);
-                }
+                    Log.Error("Couldn't find Rationale entry point.", MessageSource.Debugger);
                 else
-                {
                     try
                     {
                         // Pass the builder and entry assembly to the debugger. It can add plugins and do assembly reflection stuff.
-                        _rationaleDrawHook = (Action)entryPoint.Invoke(null, new object[] { builder });
+                        _rationaleDrawHook = (Action) entryPoint.Invoke(null, new object[] {builder});
                     }
                     catch (Exception ex)
                     {
                         Log.Error($"Couldn't attach Rationale debugger. {ex}", MessageSource.Debugger);
                     }
-                }
             }
 
             // Setup logger first so stuff can get traced in the logs.
-            Log = (LoggingProvider)Activator.CreateInstance(builder.Logger ?? typeof(DefaultLogger));
+            Log = (LoggingProvider) Activator.CreateInstance(builder.Logger ?? typeof(DefaultLogger));
 
             // Setup error handler because anything from this point onward can error.
             ErrorHandler.Setup();
@@ -229,7 +229,7 @@ namespace Adfectus.Common
             Log.Info($"Starting Adfectus v{Meta.FullVersion}", MessageSource.Engine);
             Log.Info("-----------", MessageSource.Engine);
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            Log.Info($"Debug Mode / Debugger Attached: {builder.DebugMode} / {Debugger.IsAttached}", MessageSource.Engine);
+            Log.Info($"Debug Mode / Debugger Attached: {DebugMode} / {Debugger.IsAttached}", MessageSource.Engine);
             Log.Info($"Framework: {RuntimeInformation.FrameworkDescription}", MessageSource.Engine);
             Log.Info($"SIMD Vectors: {Vector.IsHardwareAccelerated}", MessageSource.Engine);
             Log.Info("-----------", MessageSource.Engine);
@@ -256,6 +256,7 @@ namespace Adfectus.Common
                 ErrorHandler.SubmitError(new Exception("Could not create AssetLoader"));
                 return;
             }
+
             AddDefaultAssetAssemblies(AssetLoader, builder.AssetFolder, builder.AdditionalAssetSources);
             Log.Info($"Created module - AssetLoader (Folder: {builder.AssetFolder}).", MessageSource.Engine);
 
@@ -265,6 +266,7 @@ namespace Adfectus.Common
                 ErrorHandler.SubmitError(new Exception("Could not create SoundManager"));
                 return;
             }
+
             Log.Info("Created module - SoundManager.", MessageSource.Engine);
 
             Host = Platform.CreateHost(builder);
@@ -275,6 +277,8 @@ namespace Adfectus.Common
             }
             Log.Info("Created module - Host.", MessageSource.Engine);
 
+            Log.Info("Created module - Host.", MessageSource.Engine);
+
             // Scale the render and host sizes if requested.
             Vector2 renderSize = !builder.RescaleAutomatic ? builder.RenderSize : ScaleRenderSize(builder.RenderSize);
             if (builder.RescaleAutomatic)
@@ -282,6 +286,7 @@ namespace Adfectus.Common
                 Vector2 scaledHostSize = ScaleRenderSize(builder.HostSize);
                 Host.Size = scaledHostSize;
             }
+
             // Wait for host to focus.
             while (!Host.Open || !Host.Focused) Host.Update();
 
@@ -292,6 +297,7 @@ namespace Adfectus.Common
                 ErrorHandler.SubmitError(new Exception("Could not create InputManager"));
                 return;
             }
+
             Log.Info("Created module - InputManager.", MessageSource.Engine);
 
             GraphicsManager = Platform.CreateGraphicsManager(builder);
@@ -300,6 +306,7 @@ namespace Adfectus.Common
                 ErrorHandler.SubmitError(new Exception("Could not create GraphicsManager"));
                 return;
             }
+
             Log.Info("Created module - GraphicsManager.", MessageSource.Engine);
             GraphicsManager.Setup(renderSize);
 
