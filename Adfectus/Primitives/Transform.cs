@@ -136,8 +136,8 @@ namespace Adfectus.Primitives
             get => new Vector2(X + Width / 2, Y + Height / 2);
             set
             {
-                X = (int) value.X - Width / 2;
-                Y = (int) value.Y - Height / 2;
+                X = value.X - Width / 2;
+                Y = value.Y - Height / 2;
 
                 OnMove?.Invoke(this, EventArgs.Empty);
             }

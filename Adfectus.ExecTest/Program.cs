@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Adfectus.Common;
 using Adfectus.Game;
+using Adfectus.Game.Camera;
 using Adfectus.Game.QuadTree;
 using Adfectus.Game.Time;
 using Adfectus.Game.Time.Routines;
@@ -168,9 +169,22 @@ namespace Adfectus.ExecTest
                     tree.Add(new Transform(x * 10, y * 10, 0, 10, 10));
                 }
             }
+
+            _camera.Size = Engine.GraphicsManager.RenderSize;
+            _camera.Speed = 0.1f;
+            _camera.Target = _player;
+            Engine.Renderer.Camera = _camera;
         }
 
         private float loc = 0;
+
+        private Transform _player = new Transform(0, 0, 0, 100, 100);
+        private TargetCamera _camera = new TargetCamera(new System.Numerics.Vector3(), new System.Numerics.Vector2());
+
+        public void RenderTransform(Transform t, Color c)
+        {
+            Engine.Renderer.Render(t.Position, t.Size, c);
+        }
 
         public override void Update()
         {
@@ -186,13 +200,31 @@ namespace Adfectus.ExecTest
                 clickLocation.Add(pos);
             }
 
-            if (Engine.InputManager.IsKeyHeld("W")) Engine.Renderer.Camera.Y -= 5;
+            float speed = 0.5f;
+            if (Engine.InputManager.IsKeyHeld("A"))
+            {
+                _player.X -= speed * Engine.FrameTime;
+            }
+            if (Engine.InputManager.IsKeyHeld("D"))
+            {
+                _player.X += speed * Engine.FrameTime;
+            }
+            if (Engine.InputManager.IsKeyHeld("W"))
+            {
+                _player.Y -= speed * Engine.FrameTime;
+            }
+            if (Engine.InputManager.IsKeyHeld("S"))
+            {
+                _player.Y += speed * Engine.FrameTime;
+            }
 
-            if (Engine.InputManager.IsKeyHeld("S")) Engine.Renderer.Camera.Y += 5;
+            //if (Engine.InputManager.IsKeyHeld("W")) Engine.Renderer.Camera.Y -= 5;
 
-            if (Engine.InputManager.IsKeyHeld("A")) Engine.Renderer.Camera.X -= 5;
+            //if (Engine.InputManager.IsKeyHeld("S")) Engine.Renderer.Camera.Y += 5;
 
-            if (Engine.InputManager.IsKeyHeld("D")) Engine.Renderer.Camera.X += 5;
+            //if (Engine.InputManager.IsKeyHeld("A")) Engine.Renderer.Camera.X -= 5;
+
+            //if (Engine.InputManager.IsKeyHeld("D")) Engine.Renderer.Camera.X += 5;
 
             if (Engine.InputManager.IsKeyDown("Space"))
             {
@@ -212,6 +244,11 @@ for(let i = 0; i < 10; i++) {
 
         public override void Draw()
         {
+            RenderTransform(_player, Color.Red);
+            RenderTransform(new Transform(-200, 0, 0, 100, 100), Color.White);
+            RenderTransform(new Transform(200, 0, 0, 100, 100), Color.White);
+            RenderTransform(new Transform(0, 200, 0, 100, 100), Color.White);
+
             Color c = Color.White;
 
             foreach (Transform node in tree)

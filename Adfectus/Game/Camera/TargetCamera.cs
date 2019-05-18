@@ -45,7 +45,7 @@ namespace Adfectus.Game.Camera
         /// <summary>
         /// The speed at which the camera should move. From 0 to 1, 0 being an immovable camera, and 1 being always at the target.
         /// </summary>
-        public float Speed = 0.1f;
+        public float Speed { get; set; } = 0.1f;
 
         #endregion
 
@@ -73,8 +73,8 @@ namespace Adfectus.Game.Camera
             if (Target == null) return;
 
             // Smooth.
-            float lx = MathExtension.Lerp(Center.X, Target.X, MathExtension.Clamp(Speed * Engine.FrameTime, 0, 1));
-            float ly = MathExtension.Lerp(Center.Y, Target.Y, MathExtension.Clamp(Speed * Engine.FrameTime, 0, 1));
+            float lx = MathExtension.Lerp(Center.X, Target.Center.X, MathExtension.Clamp(Speed * Engine.FrameTime, 0, 1));
+            float ly = MathExtension.Lerp(Center.Y, Target.Center.Y, MathExtension.Clamp(Speed * Engine.FrameTime, 0, 1));
 
             Center = new Vector2(lx, ly);
         }
