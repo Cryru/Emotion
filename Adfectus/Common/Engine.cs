@@ -275,6 +275,7 @@ namespace Adfectus.Common
                 ErrorHandler.SubmitError(new Exception("Could not create Host"));
                 return;
             }
+            Log.Info("Created module - Host.", MessageSource.Engine);
 
             Log.Info("Created module - Host.", MessageSource.Engine);
 
@@ -403,7 +404,7 @@ namespace Adfectus.Common
                 while (accumulator >= targetTime)
                 {
                     // Assign frame time trackers.
-                    FrameTime = (float) (fixedStep ? targetTime * 1000f : RawFrameTime);
+                    FrameTime = (float)(fixedStep ? targetTime * 1000f : RawFrameTime);
                     TotalTime += FrameTime;
 
                     updated = true;

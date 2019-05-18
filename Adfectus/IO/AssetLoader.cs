@@ -1,13 +1,8 @@
-﻿#region Using
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Adfectus.Common;
-using Adfectus.Logging;
-
-#endregion
 
 namespace Adfectus.IO
 {
@@ -24,6 +19,10 @@ namespace Adfectus.IO
         {
             get => _manifest.Keys.ToArray();
         }
+
+        protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
+        protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
+        protected Dictionary<Type, Func<Asset>> _customLoaders = new Dictionary<Type, Func<Asset>>();
 
         /// <summary>
         /// List of all loaded assets from all sources.

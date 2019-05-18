@@ -18,7 +18,7 @@
     <tags>game-engine game engine emotion opengl gles opegles cross-platform game-development linux macos freeimage freetype openal adfectus</tags>
     <dependencies>
       <group targetFramework=".NETCoreApp3.0">
-        <dependency id="Adfectus" version="0.0.18" exclude="Build,Analyzers" />
+        <dependency id="Adfectus" version="0.0.19" exclude="Build,Analyzers" />
         <dependency id="Microsoft.NETCore.Platforms" version="3.0.0-preview.19073.11" exclude="Build,Analyzers" />
       </group>
     </dependencies>

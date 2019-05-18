@@ -24,8 +24,7 @@ namespace Adfectus.Sound
 
         /// <summary>
         /// The volume reported to the backend for this layer. This will be influenced by the globAl volume, fading, layer volume,
-        /// and
-        /// other factors.
+        /// and other factors.
         /// </summary>
         public float ReportedVolume { get; protected set; }
 
