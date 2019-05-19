@@ -80,13 +80,13 @@ namespace Adfectus.Game.UI
             addOpacity.A = (byte) _opacity;
 
             // Disable view matrix.
-            bool viewMatrixEnabled = Engine.GraphicsManager.ViewMatrixEnabled;
-            if (viewMatrixEnabled) Engine.GraphicsManager.ViewMatrixEnabled = false;
+            bool viewMatrixEnabled = Engine.Renderer.ViewMatrixEnabled;
+            if (viewMatrixEnabled) Engine.Renderer.ViewMatrixEnabled = false;
 
             renderer.Render(new Vector3(0, 0, 0), new Vector2(Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y), addOpacity);
 
             // Restore view matrix state.
-            Engine.GraphicsManager.ViewMatrixEnabled = viewMatrixEnabled;
+            Engine.Renderer.ViewMatrixEnabled = viewMatrixEnabled;
         }
 
         /// <summary>

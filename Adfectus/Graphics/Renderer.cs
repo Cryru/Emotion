@@ -8,7 +8,6 @@ using Adfectus.Graphics.Text;
 using Adfectus.Input;
 using Adfectus.Logging;
 using Adfectus.Primitives;
-using Adfectus.Utility;
 
 #endregion
 
@@ -36,8 +35,26 @@ namespace Adfectus.Graphics
             {
                 _camera = value;
                 _camera.Update();
+                UpdateCameraMatrix();
             }
         }
+
+        /// <summary>
+        /// Whether the view matrix is enabled.
+        /// </summary>
+        public bool ViewMatrixEnabled
+        {
+            get => _viewMatrixEnabled;
+            set
+            {
+                Submit();
+
+                _viewMatrixEnabled = value;
+                SyncViewMatrix();
+            }
+        }
+
+        private bool _viewMatrixEnabled = true;
 
         /// <summary>
         /// Private camera tracker.
@@ -136,41 +153,31 @@ namespace Adfectus.Graphics
             float targetAspectRatio = Engine.GraphicsManager.RenderSize.X / Engine.GraphicsManager.RenderSize.Y;
 
             float width = size.X;
-            float height = (int) (width / targetAspectRatio + 0.5f);
+            float height = (int)(width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > size.Y)
             {
                 height = size.Y;
-                width = (int) (height * targetAspectRatio + 0.5f);
+                width = (int)(height * targetAspectRatio + 0.5f);
             }
 
             if (Engine.Flags.RenderFlags.IntegerScale)
             {
-                float xIntScale = (float) Math.Floor(width / Engine.GraphicsManager.RenderSize.X);
-                float yIntScale = (float) Math.Floor(height / Engine.GraphicsManager.RenderSize.Y);
+                float xIntScale = (float)Math.Floor(width / Engine.GraphicsManager.RenderSize.X);
+                float yIntScale = (float)Math.Floor(height / Engine.GraphicsManager.RenderSize.Y);
                 width = Engine.GraphicsManager.RenderSize.X * xIntScale;
                 height = Engine.GraphicsManager.RenderSize.Y * yIntScale;
             }
 
-            int vpX = (int) (size.X / 2 - width / 2);
-            int vpY = (int) (size.Y / 2 - height / 2);
+            int vpX = (int)(size.X / 2 - width / 2);
+            int vpY = (int)(size.Y / 2 - height / 2);
 
             // Set the host scale attribute.
             HostScale = new Vector2(width, height);
 
             // Set viewport.
-            Engine.GraphicsManager?.SetViewport(vpX, vpY, (int) width, (int) height);
-        }
-
-        /// <summary>
-        /// Transforms a point through the viewMatrix converting it from screen space to world space.
-        /// </summary>
-        /// <param name="position">The point to transform.</param>
-        /// <returns>The provided point in the world.</returns>
-        public Vector2 ScreenToWorld(Vector2 position)
-        {
-            return Vector2.Transform(position, Camera.ViewMatrix.Inverted());
+            Engine.GraphicsManager?.SetViewport(vpX, vpY, (int)width, (int)height);
         }
 
         #endregion
@@ -278,9 +285,9 @@ namespace Adfectus.Graphics
             // Generate points.
             for (uint i = 0; i < Engine.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float) (i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
+                float angle = (float)(i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float)Math.Cos(angle) * radius;
+                float y = (float)Math.Sin(angle) * radius;
 
                 if (i == 0)
                 {
@@ -329,9 +336,9 @@ namespace Adfectus.Graphics
             // Generate points.
             for (uint i = 0; i < Engine.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float) (i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
+                float angle = (float)(i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float)Math.Cos(angle) * radius;
+                float y = (float)Math.Sin(angle) * radius;
 
                 _mainBuffer.MapNextVertex(new Vector3(radius + pX, radius + pY, 0), color);
                 _mainBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
@@ -399,7 +406,7 @@ namespace Adfectus.Graphics
             GLThread.ForceGLThread();
 
             // Check if anything was mapped at all.
-            if (!_mainBuffer.Mapping || !_mainBuffer.AnythingMapped) return;
+            if (_mainBuffer == null || !_mainBuffer.Mapping || !_mainBuffer.AnythingMapped) return;
 
             _mainBuffer.Render();
             _mainBuffer.Reset();
@@ -510,7 +517,16 @@ namespace Adfectus.Graphics
         #region System Functions
 
         /// <summary>
-        /// Updated the camera's matrix.
+        /// Synchronize the view matrix with the current shader.
+        /// </summary>
+        public void SyncViewMatrix()
+        {
+            Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("viewMatrix", ViewMatrixEnabled ? Camera.ViewMatrix : Matrix4x4.Identity);
+            Engine.GraphicsManager.CheckError("syncing shader");
+        }
+
+        /// <summary>
+        /// Update the camera's matrix.
         /// System function.
         /// </summary>
         public void UpdateCameraMatrix()
@@ -522,9 +538,7 @@ namespace Adfectus.Graphics
             {
                 // Flush the draw buffer.
                 Submit();
-
-                // Upload to the shader.
-                Engine.GraphicsManager.ViewMatrix = Camera.ViewMatrix;
+                if (ViewMatrixEnabled) SyncViewMatrix();
             });
         }
 
@@ -540,7 +554,7 @@ namespace Adfectus.Graphics
                     Matrix4x4.CreateOrthographicOffCenter(0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0, -100, 100));
 
             Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
-            Engine.GraphicsManager.ViewMatrix = Camera.ViewMatrix;
+            SyncViewMatrix();
 
             Engine.GraphicsManager.CurrentShader.SetUniformFloat("iTime", Engine.TotalTime / 1000f);
             Engine.GraphicsManager.CurrentShader.SetUniformVector3("iResolution", new Vector3(Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0));

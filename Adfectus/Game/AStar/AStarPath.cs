@@ -9,7 +9,10 @@ using System.Numerics;
 
 namespace Adfectus.Game.AStar
 {
-    public sealed class Path
+    /// <summary>
+    /// An AStar path.
+    /// </summary>
+    public sealed class AStarPath
     {
         #region Properties
 
@@ -18,33 +21,46 @@ namespace Adfectus.Game.AStar
         /// second is the goal node.
         /// By default this is the euclidean distance.
         /// </summary>
-        public Func<Node, Node, int> HeuristicFunction = (subject, end) => (int) Vector2.Distance(new Vector2(subject.X, subject.Y), new Vector2(end.X, end.Y));
+        public Func<AStarNode, AStarNode, int> HeuristicFunction = (subject, end) => (int) Vector2.Distance(new Vector2(subject.X, subject.Y), new Vector2(end.X, end.Y));
 
         /// <summary>
         /// Whether the final path has been found.
         /// </summary>
         public bool Finished { get; private set; }
 
+        /// <summary>
+        /// Whether diagonal movement is allowed.
+        /// </summary>
+        public bool Diagonal { get; private set; }
+
+        /// <summary>
+        /// The path last found.
+        /// Is null if the path was never Updated.
+        /// </summary>
+        public AStarNode[] LastFoundPath { get; private set; }
+
         #endregion
 
-        private HashSet<Node> _openSet;
-        private HashSet<Node> _closedSet;
+        private HashSet<AStarNode> _openSet;
+        private HashSet<AStarNode> _closedSet;
 
-        private Node _end;
-        private Grid _grid;
+        private AStarNode _end;
+        private AStarGrid _aStarGrid;
 
         /// <summary>
         /// Create a new A* path.
         /// </summary>
-        /// <param name="grid">The grid the path is on.</param>
-        /// <param name="start">The starting point on the grid.</param>
-        /// <param name="end">The ending point on the grid.</param>
-        public Path(Grid grid, Vector2 start, Vector2 end)
+        /// <param name="aStarGrid">The aStarGrid the path is on.</param>
+        /// <param name="start">The starting point on the aStarGrid.</param>
+        /// <param name="end">The ending point on the aStarGrid.</param>
+        /// <param name="diagonalMovement">Whether diagonal movement is allowed.</param>
+        public AStarPath(AStarGrid aStarGrid, Vector2 start, Vector2 end, bool diagonalMovement = true)
         {
-            _openSet = new HashSet<Node>();
-            _closedSet = new HashSet<Node>();
+            _openSet = new HashSet<AStarNode>();
+            _closedSet = new HashSet<AStarNode>();
 
-            _grid = grid;
+            _aStarGrid = aStarGrid;
+            Diagonal = diagonalMovement;
 
             Reset(start, end);
         }
@@ -52,29 +68,39 @@ namespace Adfectus.Game.AStar
         /// <summary>
         /// Restart the path finding.
         /// </summary>
-        /// <param name="start">The new starting point on the grid.</param>
-        /// <param name="end">The new ending point on the grid.</param>
+        /// <param name="start">The new starting point on the aStarGrid.</param>
+        /// <param name="end">The new ending point on the aStarGrid.</param>
         public void Reset(Vector2 start, Vector2 end)
         {
             Finished = false;
             _openSet.Clear();
             _closedSet.Clear();
 
-            _openSet.Add(_grid.GetNodeAt(start));
-            _end = _grid.GetNodeAt(end);
+            _openSet.Add(_aStarGrid.GetNodeAt(start));
+            _end = _aStarGrid.GetNodeAt(end);
+        }
+
+        /// <summary>
+        /// Update the path until the goal is found.
+        /// </summary>
+        /// <returns>The path found.</returns>
+        public AStarNode[] RunToEnd()
+        {
+            while (!Finished) Update();
+            return LastFoundPath;
         }
 
         /// <summary>
         /// Update the path. Executes a single step of path finding until the final path has been found.
         /// </summary>
         /// <returns>The current path in progress, or null if there is no path.</returns>
-        public Node[] Update()
+        public AStarNode[] Update()
         {
             // Loop while there are nodes in the open set, if there are none left and a path hasn't been found then there is no path.
             if (_openSet.Count > 0)
             {
                 // Get the node with the lowest score. (F)
-                Node current = _openSet.OrderBy(x => x.F).First();
+                AStarNode current = _openSet.OrderBy(x => x.F).First();
 
                 // Check if the current node is the end, in which case the path has been found.
                 if (current.Equals(_end))
@@ -88,9 +114,9 @@ namespace Adfectus.Game.AStar
                     _closedSet.Add(current);
 
                     // Get neighbors of current.
-                    Node[] neighbors = GetNeighbors(current.X, current.Y);
+                    IEnumerable<AStarNode> neighbors = GetNeighbors(current.X, current.Y);
 
-                    foreach (Node neighbor in neighbors)
+                    foreach (AStarNode neighbor in neighbors)
                     {
                         // Check if the neighbor is done with, in which case we skip.
                         if (_closedSet.Contains(neighbor)) continue;
@@ -117,7 +143,7 @@ namespace Adfectus.Game.AStar
                 }
 
                 // Return the path as currently found.
-                List<Node> path = new List<Node> {current};
+                List<AStarNode> path = new List<AStarNode> {current};
 
                 // Trace current's ancestry.
                 while (current.CameFrom != null)
@@ -128,12 +154,13 @@ namespace Adfectus.Game.AStar
 
                 // Reverse so the goal isn't at the 0 index but is last node.
                 path.Reverse();
+                LastFoundPath = path.ToArray();
 
-                return path.ToArray();
+                return LastFoundPath;
             }
 
             Finished = true;
-            return null;
+            return LastFoundPath;
         }
 
         /// <summary>
@@ -145,75 +172,80 @@ namespace Adfectus.Game.AStar
             _openSet.Clear();
             _closedSet = null;
             _openSet = null;
-            _grid = null;
+            _aStarGrid = null;
         }
 
         #region Helpers
 
-        private Node[] GetNeighbors(int x, int y)
+        private IEnumerable<AStarNode> GetNeighbors(int x, int y)
         {
-            List<Node> neighbors = new List<Node>();
+            List<AStarNode> neighbors = new List<AStarNode>();
+
+            bool hasLeft = x > 0 && x <= _aStarGrid.Width - 1;
+            bool hasRight = x >= 0 && x < _aStarGrid.Width - 1;
+            bool hasTop = y > 0 && y <= _aStarGrid.Height - 1;
+            bool hasBottom = y >= 0 && y < _aStarGrid.Height - 1;
 
             // Check for left.
-            if (x != 0)
+            if (hasLeft)
             {
-                Node left = _grid.GetNodeAt(x - 1, y);
+                AStarNode left = _aStarGrid.GetNodeAt(x - 1, y);
                 if (left.Walkable) neighbors.Add(left);
 
                 // Check top left diagonal.
-                if (y != 0)
+                if (Diagonal && hasTop)
                 {
-                    Node topLeft = _grid.GetNodeAt(x - 1, y - 1);
+                    AStarNode topLeft = _aStarGrid.GetNodeAt(x - 1, y - 1);
                     if (topLeft.Walkable) neighbors.Add(topLeft);
                 }
             }
 
             // Check for right.
-            if (x != _grid.Width - 1)
+            if (hasRight)
             {
-                Node right = _grid.GetNodeAt(x + 1, y);
+                AStarNode right = _aStarGrid.GetNodeAt(x + 1, y);
                 if (right.Walkable) neighbors.Add(right);
 
                 // Check top right diagonal.
-                if (y != 0)
+                if (Diagonal && hasTop)
                 {
-                    Node topRight = _grid.GetNodeAt(x + 1, y - 1);
+                    AStarNode topRight = _aStarGrid.GetNodeAt(x + 1, y - 1);
 
                     if (topRight.Walkable) neighbors.Add(topRight);
                 }
             }
 
             // Check for top.
-            if (y != 0)
+            if (hasTop)
             {
-                Node top = _grid.GetNodeAt(x, y - 1);
+                AStarNode top = _aStarGrid.GetNodeAt(x, y - 1);
                 if (top.Walkable) neighbors.Add(top);
             }
 
             // Check for bottom.
             // ReSharper disable once InvertIf
-            if (y != _grid.Height - 1)
+            if (hasBottom)
             {
-                Node bottom = _grid.GetNodeAt(x, y + 1);
+                AStarNode bottom = _aStarGrid.GetNodeAt(x, y + 1);
                 if (bottom.Walkable) neighbors.Add(bottom);
 
                 // Check bottom left diagonal.
-                if (x != 0)
+                if (Diagonal && hasLeft)
                 {
-                    Node bottomLeft = _grid.GetNodeAt(x - 1, y + 1);
+                    AStarNode bottomLeft = _aStarGrid.GetNodeAt(x - 1, y + 1);
                     if (bottomLeft.Walkable) neighbors.Add(bottomLeft);
                 }
 
                 // Check bottom right diagonal.
                 // ReSharper disable once InvertIf
-                if (x != _grid.Width - 1)
+                if (Diagonal && hasRight)
                 {
-                    Node bottomRight = _grid.GetNodeAt(x + 1, y + 1);
+                    AStarNode bottomRight = _aStarGrid.GetNodeAt(x + 1, y + 1);
                     if (bottomRight.Walkable) neighbors.Add(bottomRight);
                 }
             }
 
-            return neighbors.ToArray();
+            return neighbors;
         }
 
         #endregion

@@ -150,16 +150,6 @@ namespace Adfectus.Platform.DesktopGL
         #region State API
 
         /// <inheritdoc />
-        public override void SyncViewMatrix()
-        {
-            GLThread.ExecuteGLThread(() =>
-            {
-                CurrentShader.SetUniformMatrix4("viewMatrix", ViewMatrixEnabled ? ViewMatrix : Matrix4x4.Identity);
-                CheckError("syncing shader");
-            });
-        }
-
-        /// <inheritdoc />
         public override void StateDepthTest(bool enable)
         {
             GLThread.ExecuteGLThread(() =>

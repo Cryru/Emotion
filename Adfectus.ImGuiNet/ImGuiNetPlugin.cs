@@ -319,8 +319,8 @@ namespace Adfectus.ImGuiNet
             Engine.GraphicsManager.StateDepthTest(false);
 
             // Check if the view matrix is enabled.
-            bool viewMatrixEnabled = Engine.GraphicsManager.ViewMatrixEnabled;
-            if (viewMatrixEnabled) Engine.GraphicsManager.ViewMatrixEnabled = false;
+            bool viewMatrixEnabled = Engine.Renderer.ViewMatrixEnabled;
+            if (viewMatrixEnabled) Engine.Renderer.ViewMatrixEnabled = false;
 
             GuiBuffer.Reset();
             GuiBuffer.UnsafeSetMappedVertices(idxOffset / sizeof(ushort)); // The only reason for this is so the MappedVertices doesn't error.
@@ -361,7 +361,7 @@ namespace Adfectus.ImGuiNet
 
             // Reset state to default.
             Engine.GraphicsManager.DefaultGLState();
-            Engine.GraphicsManager.ViewMatrixEnabled = viewMatrixEnabled;
+            Engine.Renderer.ViewMatrixEnabled = viewMatrixEnabled;
         }
     }
 }

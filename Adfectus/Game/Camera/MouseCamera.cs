@@ -55,7 +55,7 @@ namespace Adfectus.Game.Camera
             if (_targetLastPosition == Vector2.Zero) _targetLastPosition = Target.Center;
 
             // Get mouse location.
-            Vector2 mouseLocation = Engine.Renderer.ScreenToWorld(Engine.InputManager.GetMousePosition());
+            Vector2 mouseLocation = ScreenToWorld(Engine.InputManager.GetMousePosition());
 
             // Smooth between the mouse location and the target.
             float lx = MathExtension.Lerp(Target.Center.X, mouseLocation.X, MathExtension.Clamp(Speed * Engine.FrameTime, 0, CameraMaxDistance));

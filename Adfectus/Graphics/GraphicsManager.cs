@@ -79,43 +79,12 @@ namespace Adfectus.Graphics
         /// </summary>
         public ShaderProgram CurrentShader { get; protected set; }
 
-        /// <summary>
-        /// The view matrix. Is synced either when this is set, when SyncViewMatrix is called, or ViewMatrixEnabled is toggled.
-        /// </summary>
-        public Matrix4x4 ViewMatrix
-        {
-            get => _viewMatrix;
-            set
-            {
-                Engine.Renderer.Submit();
-
-                _viewMatrix = value;
-                Engine.GraphicsManager.SyncViewMatrix();
-            }
-        }
-
-        /// <summary>
-        /// Whether the view matrix is enabled.
-        /// </summary>
-        public bool ViewMatrixEnabled
-        {
-            get => _viewMatrixEnabled;
-            set
-            {
-                Engine.Renderer.Submit();
-
-                _viewMatrixEnabled = value;
-                SyncViewMatrix();
-            }
-        }
-
         #endregion
 
         #region Cache
 
         protected uint _defaultQuadIbo;
         protected ShaderProgram _defaultProgram;
-        private bool _viewMatrixEnabled = true;
         private Matrix4x4 _viewMatrix;
 
         #endregion
@@ -175,11 +144,6 @@ namespace Adfectus.Graphics
         /// </summary>
         [Conditional("DEBUG")]
         public abstract void CheckError(string location = "");
-
-        /// <summary>
-        /// Synchronize the view matrix with the current shader.
-        /// </summary>
-        public abstract void SyncViewMatrix();
 
         /// <summary>
         /// Reset the GL state to the default one.

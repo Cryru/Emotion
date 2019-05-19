@@ -110,8 +110,8 @@ namespace Adfectus.Game.UI
         public void Draw()
         {
             // Disable view matrix.
-            bool viewMatrixEnabled = Engine.GraphicsManager.ViewMatrixEnabled;
-            if (viewMatrixEnabled) Engine.GraphicsManager.ViewMatrixEnabled = false;
+            bool viewMatrixEnabled = Engine.Renderer.ViewMatrixEnabled;
+            if (viewMatrixEnabled) Engine.Renderer.ViewMatrixEnabled = false;
 
             Engine.Renderer.PushToModelMatrix(Matrix4x4.CreateTranslation(0, 0, UIPriority));
 
@@ -125,7 +125,7 @@ namespace Adfectus.Game.UI
             }
 
             Engine.Renderer.PopModelMatrix();
-            Engine.GraphicsManager.ViewMatrixEnabled = viewMatrixEnabled;
+            Engine.Renderer.ViewMatrixEnabled = viewMatrixEnabled;
         }
 
         /// <summary>

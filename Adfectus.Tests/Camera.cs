@@ -71,9 +71,9 @@ namespace Adfectus.Tests
                 // Draw one rectangle on the screen, and one on the camera.
                 ExtDraw = () =>
                 {
-                    Engine.GraphicsManager.ViewMatrixEnabled = false;
+                    Engine.Renderer.ViewMatrixEnabled = false;
                     Engine.Renderer.Render(new Vector3(100, 100, 0), new Vector2(10, 10), Color.Red);
-                    Engine.GraphicsManager.ViewMatrixEnabled = true;
+                    Engine.Renderer.ViewMatrixEnabled = true;
 
                     Engine.Renderer.Render(new Vector3(100, 100, 0), new Vector2(10, 10), Color.White);
                 }

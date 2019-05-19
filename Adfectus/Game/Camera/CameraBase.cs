@@ -70,5 +70,25 @@ namespace Adfectus.Game.Camera
 
             Engine.Renderer?.UpdateCameraMatrix();
         }
+
+        /// <summary>
+        /// Transforms a point through the viewMatrix converting it from screen space to world space.
+        /// </summary>
+        /// <param name="position">The point to transform.</param>
+        /// <returns>The provided point in the world.</returns>
+        public virtual Vector2 ScreenToWorld(Vector2 position)
+        {
+            return Vector2.Transform(position, ViewMatrix.Inverted());
+        }
+
+        /// <summary>
+        /// Transforms a point through the viewMatrix converting it from world space to screen space.
+        /// </summary>
+        /// <param name="position">The point to transform.</param>
+        /// <returns>The provided point on the screen.</returns>
+        public virtual Vector2 WorldToScreen(Vector2 position)
+        {
+            return Vector2.Transform(position, ViewMatrix);
+        }
     }
 }
