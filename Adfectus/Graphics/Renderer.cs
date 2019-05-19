@@ -26,6 +26,16 @@ namespace Adfectus.Graphics
         public Vector2 HostScale { get; private set; }
 
         /// <summary>
+        /// The near clipping plane when in 2d mode.
+        /// </summary>
+        public float Near2D { get; set; } = -100;
+
+        /// <summary>
+        /// The far clipping plane when in 2d mode.
+        /// </summary>
+        public float Far2D { get; set; } = 100;
+
+        /// <summary>
         /// The renderer's camera.
         /// </summary>
         public CameraBase Camera
@@ -551,7 +561,7 @@ namespace Adfectus.Graphics
         {
             if (full)
                 Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("projectionMatrix",
-                    Matrix4x4.CreateOrthographicOffCenter(0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0, -100, 100));
+                    Matrix4x4.CreateOrthographicOffCenter(0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0, Near2D, Far2D));
 
             Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
             SyncViewMatrix();
