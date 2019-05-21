@@ -26,6 +26,12 @@ namespace Adfectus.Graphics
         public Vector2 HostScale { get; private set; }
 
         /// <summary>
+        /// The host resolutions margins to the actual render resolution.
+        /// The margins are the black bars in letterbox/pillarbox mode.
+        /// </summary>
+        public Vector2 HostMargins { get; private set; }
+
+        /// <summary>
         /// The near clipping plane when in 2d mode.
         /// </summary>
         public float Near2D { get; set; } = -100;
@@ -183,8 +189,15 @@ namespace Adfectus.Graphics
             int vpX = (int)(size.X / 2 - width / 2);
             int vpY = (int)(size.Y / 2 - height / 2);
 
-            // Set the host scale attribute.
+            // Set the host scale attributes.
             HostScale = new Vector2(width, height);
+            HostMargins = new Vector2(vpX, vpY);
+
+            if (Engine.Flags.RenderFlags.ExperimentalScaling)
+            {
+                Engine.GraphicsManager?.SetViewport(0, 0, (int)width, (int)height);
+                return;
+            }
 
             // Set viewport.
             Engine.GraphicsManager?.SetViewport(vpX, vpY, (int)width, (int)height);
@@ -574,7 +587,7 @@ namespace Adfectus.Graphics
         {
             if (full)
                 Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("projectionMatrix",
-                    Matrix4x4.CreateOrthographicOffCenter(0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0, Near2D, Far2D));
+                    Matrix4x4.CreateOrthographicOffCenter(Engine.Flags.RenderFlags.ExperimentalScaling ? -HostMargins.X : 0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, Engine.Flags.RenderFlags.ExperimentalScaling ? -HostMargins.Y : 0, Near2D, Far2D));
 
             Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
             SyncViewMatrix();

@@ -60,5 +60,10 @@ namespace Adfectus.Common.Configuration
         /// Whether to scale at integer scales only. False by default.
         /// </summary>
         public bool IntegerScale { get; set; } = false;
+
+        /// <summary>
+        /// Whether to use experimental scaling. In this mode the viewport is not pillarboxed / letterboxed but instead the resolution is increased.
+        /// </summary>
+        public bool ExperimentalScaling { get; set; } = false;
     }
 }
