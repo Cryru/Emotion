@@ -65,8 +65,7 @@ namespace Adfectus.Game.Camera
         /// </summary>
         protected virtual void RecreateMatrix()
         {
-            ViewMatrix = Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z).Inverted() * Matrix4x4.CreateScale(Zoom) * Matrix4x4.CreateTranslation(Width / 2, Height / 2, Z) *
-                         Matrix4x4.CreateTranslation(-X, -Y, Z);
+            ViewMatrix = Matrix4x4.CreateScale(Zoom, Zoom, Zoom) * Matrix4x4.CreateTranslation(-(Center.X * Zoom - Width / 2), -(Center.Y * Zoom - Height / 2), Z);
 
             Engine.Renderer?.UpdateCameraMatrix();
         }
