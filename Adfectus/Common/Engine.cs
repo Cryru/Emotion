@@ -505,6 +505,10 @@ namespace Adfectus.Common
             Renderer.End();
             GraphicsManager.CheckError("renderer end");
 
+            // Run the direct drawing code.
+            SceneManager.DirectDraw();
+            GraphicsManager.CheckError("scene direct draw");
+
             // Swap buffers.
             Host.SwapBuffers();
         }

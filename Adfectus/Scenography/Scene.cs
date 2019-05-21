@@ -31,5 +31,14 @@
         public virtual void NoFocusUpdate()
         {
         }
+
+        /// <summary>
+        /// Is run after the internal FBO is flushed to the window.
+        /// Any drawing in this function will happen directly on the window rather than the internal fbo.
+        /// </summary>
+        public virtual void DirectDraw()
+        {
+
+        }
     }
 }

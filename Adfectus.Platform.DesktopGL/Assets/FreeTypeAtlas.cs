@@ -20,14 +20,24 @@ namespace Adfectus.Platform.DesktopGL.Assets
         /// </summary>
         public Face Face { get; private set; }
 
-        public FreeTypeAtlas(byte[] fontBytes, uint fontSize, int glyphCount = 128)
+        /// <summary>
+        /// </summary>
+        /// <param name="fontBytes"></param>
+        /// <param name="fontSize"></param>
+        /// <param name="glyphCount"></param>
+        /// <param name="charSize">
+        /// Whether to create the characters in char size, on by default. If off the font size passed will
+        /// be the pixel size instead.
+        /// </param>
+        public FreeTypeAtlas(byte[] fontBytes, uint fontSize, int glyphCount = 128, bool charSize = true)
         {
             Glyphs = new Glyph[glyphCount];
 
             Library library = new Library();
             Face face = new Face(library, fontBytes, 0);
-            face.SetCharSize(0, (int) fontSize, 96, 96);
-
+            if (charSize) face.SetCharSize(0, (int) fontSize, 96, 96);
+            else face.SetPixelSizes(0, fontSize);
+            
             // Get line spacing.
             LineSpacing = (float) face.Size.Metrics.Height;
             Ascent = (float) face.Size.Metrics.Ascender.ToDouble();

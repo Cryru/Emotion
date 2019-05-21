@@ -215,11 +215,24 @@ namespace Adfectus.Graphics
         /// <param name="text">The text to render.</param>
         /// <param name="position">The position to render to.</param>
         /// <param name="color">The color to render in.</param>
+        [Obsolete("Use the Atlas overload instead.")]
         public void RenderString(Font font, uint textSize, string text, Vector3 position, Color color)
+        {
+            Atlas atlas = font.GetFontAtlas(textSize);
+            RenderString(atlas, text, position, color);
+        }
+
+        /// <summary>
+        /// Renders a string to the screen.
+        /// </summary>
+        /// <param name="atlas">The font atlas to use. Can be accessed from a Font asset.</param>
+        /// <param name="text">The text to render.</param>
+        /// <param name="position">The position to render to.</param>
+        /// <param name="color">The color to render in.</param>
+        public void RenderString(Atlas atlas, string text, Vector3 position, Color color)
         {
             // Queue letters.
             Rectangle[] uvs = new Rectangle[text.Length];
-            Atlas atlas = font.GetFontAtlas(textSize);
 
             float penX = position.X;
             float penY = position.Y;

@@ -12,17 +12,19 @@ namespace Adfectus.Graphics.Text
     {
         private byte[] _fontBytes;
         private Dictionary<uint, Atlas> _atlasCache = new Dictionary<uint, Atlas>();
-
-        #region Asset API
+        private Dictionary<uint, Atlas> _atlasCachePixelSize = new Dictionary<uint, Atlas>();
 
         /// <summary>
         /// Default constructor. Used by the Asset Loader.
         /// </summary>
         // ReSharper disable once PublicConstructorInAbstractClass
+        // ReSharper disable once EmptyConstructor
         public Font()
         {
 
         }
+
+        #region Asset API
 
         protected override void CreateInternal(byte[] data)
         {
@@ -47,16 +49,25 @@ namespace Adfectus.Graphics.Text
         /// </summary>
         /// <param name="fontSize">The font size of the atlas to return.</param>
         /// <param name="glyphs">The number of glyphs to load. By default loads letters and grammar - the first 128.</param>
+        /// <param name="charSize">
+        /// Whether to create the characters in char size, on by default. If off the font size passed will
+        /// be the pixel size instead.
+        /// </param>
         /// <returns>A font atlas.</returns>
-        public Atlas GetFontAtlas(uint fontSize, int glyphs = 128)
+        public Atlas GetFontAtlas(uint fontSize, int glyphs = 128, bool charSize = true)
         {
-            // Cache the atlas if it isn't cached.
-            if (!_atlasCache.ContainsKey(fontSize)) _atlasCache[fontSize] = CreateAtlas(_fontBytes, fontSize, glyphs);
+            // Check if loading a char size or a pixel size font.
+            if (charSize)
+            {
+                if (!_atlasCache.ContainsKey(fontSize)) _atlasCache[fontSize] = CreateAtlas(_fontBytes, fontSize, glyphs, true);
+                return _atlasCache[fontSize];
+            }
 
-            return _atlasCache[fontSize];
+            if (!_atlasCachePixelSize.ContainsKey(fontSize)) _atlasCachePixelSize[fontSize] = CreateAtlas(_fontBytes, fontSize, glyphs, false);
+            return _atlasCachePixelSize[fontSize];
         }
 
-        protected virtual Atlas CreateAtlas(byte[] fontBytes, uint fontSize, int glyphs)
+        protected virtual Atlas CreateAtlas(byte[] fontBytes, uint fontSize, int glyphs, bool charSize)
         {
             // no-op
             return null;

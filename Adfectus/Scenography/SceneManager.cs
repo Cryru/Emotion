@@ -47,7 +47,7 @@ namespace Adfectus.Scenography
         #region Loops
 
         /// <summary>
-        /// Update all loaded layers.
+        /// Run the scene's update code.
         /// </summary>
         internal void Update()
         {
@@ -58,7 +58,7 @@ namespace Adfectus.Scenography
         }
 
         /// <summary>
-        /// Draw all loaded layers.
+        /// Run the scene drawing code.
         /// </summary>
         internal void Draw()
         {
@@ -68,11 +68,25 @@ namespace Adfectus.Scenography
             }
         }
 
+        /// <summary>
+        /// Run the scene's no focus update, if focus was lost.
+        /// </summary>
         internal void Unfocused()
         {
             lock (_swapMutex)
             {
                 Current.NoFocusUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Run the scene's direct to window drawing code.
+        /// </summary>
+        internal void DirectDraw()
+        {
+            lock (_swapMutex)
+            {
+                Current.DirectDraw();
             }
         }
 
