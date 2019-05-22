@@ -16,6 +16,7 @@ using Adfectus.Game.Time;
 using Adfectus.Game.Time.Routines;
 using Adfectus.Graphics;
 using Adfectus.Graphics.Text;
+using Adfectus.ImGuiNet;
 //using Adfectus.ImGuiNet;
 using Adfectus.Input;
 using Adfectus.Logging;
@@ -24,6 +25,8 @@ using Adfectus.Primitives;
 using Adfectus.Scenography;
 //using Adfectus.Steam;
 using Adfectus.Tests;
+using Adfectus.Utility;
+using ImGuiNET;
 using Xunit;
 
 #endregion
@@ -32,21 +35,10 @@ namespace Adfectus.ExecTest
 {
     public class TestScene : Scene
     {
-        private List<Vector2> clickLocation = new List<Vector2>();
         private static int _iterations = 1;
-        //private static SteamPlugin _pl;
 
         private static void Main(string[] args)
         {
-            //MonitorSimulator.main();
-            //args = new string[2] {"test", "1"};
-            //HarnessActual harnessInit = new HarnessActual();
-            //Adfectus.Tests.Shaders a = new Shaders();
-            //a.ShaderBrokenLoad();
-            //return;
-            //harnessInit.Dispose();
-            //return;
-
             if (args.Length > 0 && args[0] == "test")
             {
                 if (args.Length > 1) int.TryParse(args[1], out _iterations);
@@ -59,28 +51,14 @@ namespace Adfectus.ExecTest
                 return;
             }
 
-            //new EngineBuilder().SetupFlags(new Vector2(384, 216))
-            //Engine.Settings.RenderSettings.TargetTPS = 0;
-            //_pl = new SteamPlugin();
-            //new EngineBuilder().AddGenericPlugin(_pl
-            ////ImGuiPlugin = new ImGuiNetPlugin();
-           // ImGuiPlugin.LoadFont("calibri.ttf", 15, 15);
-            Engine.Setup<DesktopPlatform>(new EngineBuilder().SetupFlags(new Vector2(960, 540), debugMode: true));//new EngineBuilder().AddGenericPlugin(ImGuiPlugin));
+            Engine.Flags.RenderFlags.IntegerScale = true;
+            Engine.Setup<DesktopPlatform>(new EngineBuilder()
+                .SetupFlags(debugMode: true)
+                .AddGenericPlugin(new ImGuiNetPlugin())
+            );
             Engine.SceneManager.SetScene(new TestScene());
-            
-            Vector2 first = new Vector2(10, 0);
-            Vector2 second = new Vector2(100, 0);
-
-            Adfectus.Game.Time.Timer a = new Adfectus.Game.Time.Timer();
-            a.Tween(1000, first, second, TweenType.In, TweenMethod.Cubic);
-            a.AdvanceTime(100);
-
             Engine.Run();
-
-            bool aaaaa = true;
         }
-
-       // private static ImGuiNetPlugin ImGuiPlugin;
 
         /// <summary>
         /// Run the tests.
@@ -150,175 +128,38 @@ namespace Adfectus.ExecTest
             }
         }
 
-        private Adfectus.Game.Text.RichText test;
-        private CoroutineManager _coroutineManager;
-        private QuadTree<Transform> tree;
         public override void Load()
         {
-            test = new Game.Text.RichText(new Vector3(10, 10, 0), new Vector2(200, 200), Engine.AssetLoader.Get<Font>("debugFont.otf").GetFontAtlas(20));
-            test.SetText("sdadasdas");
-            _coroutineManager = new CoroutineManager();
-
-            tree = new QuadTree<Transform>(0, 0, 200, 200, 2);
-  
-            // Add a hundred objects.
-            for (int x = 0; x < 10; x++)
-            {
-                for (int y = 0; y < 10; y++)
-                {
-                    tree.Add(new Transform(x * 10, y * 10, 0, 10, 10));
-                }
-            }
-
-            _camera.Size = Engine.GraphicsManager.RenderSize;
-            _camera.Speed = 0.1f;
-            _camera.Target = _player;
-            Engine.Renderer.Camera = _camera;
+            
         }
 
-        private float loc = 0;
-
-        private Transform _player = new Transform(0, 0, 0, 100, 100);
-        private TargetCamera _camera = new TargetCamera(new System.Numerics.Vector3(), new System.Numerics.Vector2());
-
-        public void RenderTransform(Transform t, Color c)
-        {
-            Engine.Renderer.Render(t.Position, t.Size, c);
-        }
+        private float hostWidth = 640;
+        private float hostHeight = 360;
 
         public override void Update()
         {
-            if (Engine.InputManager.IsMouseKeyDown(MouseKey.Left))
-            {
-                //Engine.SoundManager.Play(Engine.AssetLoader.Get<SoundFile>("Sounds/noice.wav"), "test");
-
-                Vector2 pos = Engine.InputManager.GetMousePosition();
-
-                if (pos.X < 0) pos.X = 0;
-                if (pos.Y < 0) pos.Y = 0;
-
-                clickLocation.Add(pos);
-            }
-
-            float speed = 0.5f;
-            if (Engine.InputManager.IsKeyHeld("A"))
-            {
-                _player.X -= speed * Engine.FrameTime;
-            }
-            if (Engine.InputManager.IsKeyHeld("D"))
-            {
-                _player.X += speed * Engine.FrameTime;
-            }
-            if (Engine.InputManager.IsKeyHeld("W"))
-            {
-                _player.Y -= speed * Engine.FrameTime;
-            }
-            if (Engine.InputManager.IsKeyHeld("S"))
-            {
-                _player.Y += speed * Engine.FrameTime;
-            }
-
-            //if (Engine.InputManager.IsKeyHeld("W")) Engine.Renderer.Camera.Y -= 5;
-
-            //if (Engine.InputManager.IsKeyHeld("S")) Engine.Renderer.Camera.Y += 5;
-
-            //if (Engine.InputManager.IsKeyHeld("A")) Engine.Renderer.Camera.X -= 5;
-
-            //if (Engine.InputManager.IsKeyHeld("D")) Engine.Renderer.Camera.X += 5;
-
-            if (Engine.InputManager.IsKeyDown("Space"))
-            {
-                Engine.ScriptingEngine.RunScript(@"function printTest(str) {
-    help();
-    print(str);
-}
-
-for(let i = 0; i < 10; i++) {
-  printTest(i);
-}");
-            }
+           
         }
-
-        private Vector3 loce = new Vector3(0, 0, 0);
-        private bool reverse = false;
 
         public override void Draw()
         {
-            RenderTransform(_player, Color.Red);
-            RenderTransform(new Transform(-200, 0, 0, 100, 100), Color.White);
-            RenderTransform(new Transform(200, 0, 0, 100, 100), Color.White);
-            RenderTransform(new Transform(0, 200, 0, 100, 100), Color.White);
+            Engine.Renderer.Render(new Vector3(0, 0, 0), Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
 
-            Color c = Color.White;
+            ImGui.NewFrame();
 
-            foreach (Transform node in tree)
+            ImGui.Begin("Resolution Test");
+            ImGui.InputFloat("Width", ref hostWidth);
+            ImGui.InputFloat("Height", ref hostHeight);
+            ImGui.Text($"X: {hostWidth / Engine.GraphicsManager.RenderSize.X} / Y: {hostHeight / Engine.GraphicsManager.RenderSize.Y}");
+            ImGui.Text($"Aspect: {Utility.Helpers.GetAspectRatio(hostWidth, hostHeight)}");
+            if (ImGui.Button("Apply"))
             {
-                Engine.Renderer.Render(node.Position, node.Size, c);
-                c = c == Color.White ? Color.Green : Color.White;
+                Engine.Host.Size = new Vector2(hostWidth, hostHeight);
             }
 
-            Engine.Renderer.RenderOutline(tree.QuadRect.PositionZ(0), tree.QuadRect.Size, Color.Red);
-            Queue<QuadTreeNode<Transform>> treeLeafs = new Queue<QuadTreeNode<Transform>>();
-            treeLeafs.Enqueue(tree.QuadTreeRoot);
-            while (treeLeafs.Count != 0)
-            {
-                QuadTreeNode<Transform> current = treeLeafs.Dequeue();
-                if (current.TopLeftChild != null) treeLeafs.Enqueue(current.TopLeftChild);
-                if (current.TopRightChild != null) treeLeafs.Enqueue(current.TopRightChild);
-                if (current.BottomLeftChild != null) treeLeafs.Enqueue(current.BottomLeftChild);
-                if (current.BottomRightChild != null) treeLeafs.Enqueue(current.BottomRightChild);
+            ImGui.End();
 
-                Engine.Renderer.RenderOutline(current.QuadRect.PositionZ(0), current.QuadRect.Size, Color.Magenta);
-            }
-
-
-
-            return;
-            
-            Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 1),
-                Color.Red);
-            
-            Engine.Renderer.Render(Vector3.Zero, Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
-            loce.X += (0.3f * Engine.FrameTime) * (reverse ? -1 : 1);
-            Engine.Renderer.Render(new Vector3(loce.X, 0, 0), new Vector2(50, Engine.GraphicsManager.RenderSize.Y), Color.White);
-            Engine.Renderer.RenderCircle(new Vector3(0, 0, 0), 40,Color.Red/* ImGuiPlugin.Focused ? Color.Red : Color.Blue*/);
-            Engine.Renderer.Render(new Vector3(loce.X + 50, 0, 0), new Vector2(50,  Engine.GraphicsManager.RenderSize.Y), Color.Black);
-            if (loce.X >=  Engine.GraphicsManager.RenderSize.X - 100)
-            {
-                reverse = true;
-            } else if (loce.X <= 0)
-            {
-                reverse = false;
-            }
-
-            Vector2 mousePos = Engine.InputManager.GetMousePosition();
-            Engine.Renderer.Render(new Vector3(mousePos, 0), new Vector2(10, 10), Color.Pink);
-
-            Color p = Color.Pink;
-            p.A = 125;
-
-            for (int i = 0; i < clickLocation.Count; i++)
-            {
-                Engine.Renderer.Render(new Vector3(clickLocation[i], 0), new Vector2(10, 10), p);
-            }
-
-            Engine.Renderer.RenderOutline(Engine.Renderer.Camera.Position, Engine.Renderer.Camera.Size, Color.Pink);
-
-            Engine.Renderer.Render(test);
-
-            Texture tt = Engine.AssetLoader.Get<Texture>("Textures/16bmp.bmp");
-            Engine.Renderer.Render(new Vector3(200, 200, 10), new Vector2(100, 100), Color.White, tt);
-
-            //ImGui.NewFrame();
-            //ImGui.NewLine();
-            //ImGuiPlugin.UseFont("calibri.ttf");
-            //ImGui.Text("dasdsad");
-            //ImGuiPlugin.UseFont(null);
-            //ImGui.Text("dasdsad");
-            //Texture tt = Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png");
-            //Engine.Renderer.Render(new Vector3(200, 200, 10), new Vector2(100, 100), Color.White, tt);
-            //ImGui.Image(new IntPtr(tt.Pointer), new Vector2(100, 100));
-            //Engine.Renderer.RenderGui();
+            Engine.Renderer.RenderGui();
         }
 
         public override void Unload()

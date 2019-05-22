@@ -42,7 +42,7 @@ namespace Adfectus.Common
         /// <summary>
         /// The initial size of the window host.
         /// </summary>
-        public Vector2 HostSize { get; private set; } = new Vector2(960, 540);
+        public Vector2 HostSize { get; private set; } = new Vector2(640 * 2, 360 * 2);
 
         /// <summary>
         /// Whether the host is resizable by the user, should the platform allow.
@@ -72,7 +72,7 @@ namespace Adfectus.Common
         /// <summary>
         /// The resolution to render at.
         /// </summary>
-        public Vector2 RenderSize { get; private set; } = new Vector2(960, 540);
+        public Vector2 RenderSize { get; private set; } = new Vector2(640, 360);
 
         /// <summary>
         /// Whether to automatically rescale the render size on 16:10 screens.
@@ -154,9 +154,9 @@ namespace Adfectus.Common
         /// <param name="targetTPS">The target ticks per second.</param>
         /// <param name="debugMode">Whether the engine is in debug mode.</param>
         /// <returns>This builder, for chaining</returns>
-        public EngineBuilder SetupFlags(Vector2 renderSize, bool rescaleAutomatic = true, bool performBootstrap = true, int targetTPS = 60, bool debugMode = false)
+        public EngineBuilder SetupFlags(Vector2? renderSize = null, bool rescaleAutomatic = true, bool performBootstrap = true, int targetTPS = 60, bool debugMode = false)
         {
-            RenderSize = renderSize;
+            if(renderSize != null) RenderSize = (Vector2) renderSize;
             RescaleAutomatic = rescaleAutomatic;
             LoadNativeLibraries = performBootstrap;
             TargetTPS = targetTPS;

@@ -280,10 +280,10 @@ namespace Adfectus.Common
             Log.Info("Created module - Host.", MessageSource.Engine);
 
             // Scale the render and host sizes if requested.
-            Vector2 renderSize = !builder.RescaleAutomatic ? builder.RenderSize : ScaleRenderSize(builder.RenderSize);
+            Vector2 renderSize = !builder.RescaleAutomatic ? builder.RenderSize : Renderer.ScaleRenderSize(builder.RenderSize);
             if (builder.RescaleAutomatic)
             {
-                Vector2 scaledHostSize = ScaleRenderSize(builder.HostSize);
+                Vector2 scaledHostSize = Renderer.ScaleRenderSize(builder.HostSize);
                 Host.Size = scaledHostSize;
             }
 
@@ -529,44 +529,6 @@ namespace Adfectus.Common
             _forceUnfocused = unfocused;
         }
 #endif
-
-        /// <summary>
-        /// Scale the render size based on the host's aspect ratio.
-        /// </summary>
-        /// <param name="size">The set render size.</param>
-        /// <returns>The scaled size to the aspect ratio of the host.</returns>
-        private static Vector2 ScaleRenderSize(Vector2 size)
-        {
-            string aspectRatio = Helpers.GetAspectRatio(size.X, size.Y);
-            Vector2 screenSize = Host.GetScreenSize();
-            string screenAspectRatio = Helpers.GetAspectRatio(screenSize.X, screenSize.Y);
-
-            if (aspectRatio == screenAspectRatio) return size;
-
-            string[] aspectParams = screenAspectRatio.Split(':');
-            float.TryParse(aspectParams[0], out float screenWidth);
-            float.TryParse(aspectParams[1], out float screenHeight);
-
-            float majorValue = Math.Max(size.X, size.Y);
-            bool majorIsWidth = majorValue == size.X;
-
-            float w;
-            float h;
-
-            // Calculate the appropriate aspect's render size.
-            if (majorIsWidth)
-            {
-                w = size.X;
-                h = screenHeight * size.X / screenWidth;
-            }
-            else
-            {
-                w = screenWidth * size.Y / screenHeight;
-                h = size.Y;
-            }
-
-            return new Vector2(w, h);
-        }
 
         /// <summary>
         /// Build the default configuration of an asset loader.

@@ -14,16 +14,13 @@ in float Tid;
  
 out vec4 fragColor; 
  
-vec4 getTextureColor() { 
-    vec4 sampledColor = vec4(0.0, 0.0, 0.0, 0.0);
+vec4 getTextureColor(vec2 uvInput) { 
+    vec4 sampledColor = vec4(1.0, 1.0, 1.0, 1.0);
     
     // Check if a texture is in use.
     if (Tid >= 0.0) {
         // Sample for the texture's color at the specified vertex UV and multiply it by the tint.
-        sampledColor = texture(textures[int(Tid)], UV) * vertColor;
-    } else {
-        // If no texture then just use the color.
-        sampledColor = vertColor;
+        sampledColor = texture(textures[int(Tid)], uvInput);
     }
 
     // How to find the location of the pixel on the screen.
@@ -34,7 +31,7 @@ vec4 getTextureColor() {
 } 
  
 void main() { 
-    fragColor = getTextureColor();
+    fragColor = getTextureColor(UV) * vertColor;
     
     if (fragColor.a < 0.01)discard;
 }

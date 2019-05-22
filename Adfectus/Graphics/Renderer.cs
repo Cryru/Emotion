@@ -155,7 +155,7 @@ namespace Adfectus.Graphics
 
         #endregion
 
-        #region Other APIs
+        #region Scale APIs
 
         /// <summary>
         /// The host has changed size and the rendering must adapt.
@@ -238,6 +238,44 @@ namespace Adfectus.Graphics
 
             // Set viewport.
             Engine.GraphicsManager?.SetViewport(vpX, vpY, (int) width, (int) height);
+        }
+
+        /// <summary>
+        /// Scale the render size based on the host's aspect ratio.
+        /// </summary>
+        /// <param name="size">The set render size.</param>
+        /// <returns>The scaled size to the aspect ratio of the host.</returns>
+        public static Vector2 ScaleRenderSize(Vector2 size)
+        {
+            string aspectRatio = Helpers.GetAspectRatio(size.X, size.Y);
+            Vector2 screenSize = Engine.Host.GetScreenSize();
+            string screenAspectRatio = Helpers.GetAspectRatio(screenSize.X, screenSize.Y);
+
+            if (aspectRatio == screenAspectRatio) return size;
+
+            string[] aspectParams = screenAspectRatio.Split(':');
+            float.TryParse(aspectParams[0], out float screenWidth);
+            float.TryParse(aspectParams[1], out float screenHeight);
+
+            float majorValue = Math.Max(size.X, size.Y);
+            bool majorIsWidth = majorValue == size.X;
+
+            float w;
+            float h;
+
+            // Calculate the appropriate aspect's render size.
+            if (majorIsWidth)
+            {
+                w = size.X;
+                h = screenHeight * size.X / screenWidth;
+            }
+            else
+            {
+                w = screenWidth * size.Y / screenHeight;
+                h = size.Y;
+            }
+
+            return new Vector2(w, h);
         }
 
         #endregion

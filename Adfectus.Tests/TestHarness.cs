@@ -56,6 +56,7 @@ namespace Adfectus.Tests
         {
             Engine.Flags.PauseOnFocusLoss = false;
             EngineBuilder builder = new EngineBuilder().SetupAssets(additionalAssetSources: new AssetSource[] {new EmbeddedAssetSource(typeof(HarnessActual).Assembly, "Assets")})
+                .SetupHost(winSize: new Vector2(960, 540))
                 .SetupFlags(new Vector2(960, 540), false, targetTPS: 0);
             Engine.Setup<DesktopPlatform>(builder);
             Directory.CreateDirectory("ReferenceImages");
