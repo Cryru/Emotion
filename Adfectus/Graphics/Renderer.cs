@@ -217,7 +217,7 @@ namespace Adfectus.Graphics
                     float xScaleRounded = MathFloat.Floor(xIntScale);
                     float yScaleRounded = MathFloat.Floor(yIntScale);
 
-                    if(xIntScale == xScaleRounded && yIntScale == yScaleRounded)
+                    if (xIntScale == xScaleRounded && yIntScale == yScaleRounded)
                     {
                         setSize = new Vector2(_originalRenderSize.X, _originalRenderSize.Y);
                     }
