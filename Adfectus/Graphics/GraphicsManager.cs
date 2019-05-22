@@ -85,7 +85,6 @@ namespace Adfectus.Graphics
 
         protected uint _defaultQuadIbo;
         protected ShaderProgram _defaultProgram;
-        private Matrix4x4 _viewMatrix;
 
         #endregion
 
@@ -144,6 +143,12 @@ namespace Adfectus.Graphics
         /// </summary>
         [Conditional("DEBUG")]
         public abstract void CheckError(string location = "");
+
+        /// <summary>
+        /// Change the render size.
+        /// </summary>
+        /// <param name="newRenderSize"></param>
+        public abstract void Rescale(Vector2 newRenderSize);
 
         /// <summary>
         /// Reset the GL state to the default one.

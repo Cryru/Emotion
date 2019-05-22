@@ -45,6 +45,11 @@ namespace Adfectus.Common
         public Vector2 HostSize { get; private set; } = new Vector2(960, 540);
 
         /// <summary>
+        /// Whether the host is resizable by the user, should the platform allow.
+        /// </summary>
+        public bool HostResizable { get; private set; } = true;
+
+        /// <summary>
         /// The default assets folder.
         /// </summary>
         public string AssetFolder { get; private set; } = "Assets";
@@ -114,12 +119,14 @@ namespace Adfectus.Common
         /// <param name="title">The title label of the host.</param>
         /// <param name="winMode">The initial window mode of the host.</param>
         /// <param name="winSize">The initial window size of the host.</param>
+        /// <param name="resizable">Whether the host is resizable.</param>
         /// <returns>This builder, for chaining</returns>
-        public EngineBuilder SetupHost(string title = "Untitled", WindowMode winMode = WindowMode.Windowed, Vector2? winSize = null)
+        public EngineBuilder SetupHost(string title = "Untitled", WindowMode winMode = WindowMode.Windowed, Vector2? winSize = null, bool resizable = true)
         {
             HostTitle = title;
             HostWindowMode = winMode;
             if (winSize != null) HostSize = (Vector2) winSize;
+            HostResizable = resizable;
 
             return this;
         }

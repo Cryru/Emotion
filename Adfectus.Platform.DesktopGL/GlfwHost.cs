@@ -94,6 +94,8 @@ namespace Adfectus.Platform.DesktopGL
             _errorCallback = ErrorCallback;
             Glfw.SetErrorCallback(_errorCallback);
 
+            Glfw.WindowHint(Glfw.Resizable, builder.HostResizable ? 1 : 0);
+
             // Create a list of window configurations to try.
             List<WindowConfig> windowConfigurations = new List<WindowConfig>
             {

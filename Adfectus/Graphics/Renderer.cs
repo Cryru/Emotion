@@ -8,6 +8,7 @@ using Adfectus.Graphics.Text;
 using Adfectus.Input;
 using Adfectus.Logging;
 using Adfectus.Primitives;
+using Adfectus.Utility;
 
 #endregion
 
@@ -87,6 +88,11 @@ namespace Adfectus.Graphics
         /// </summary>
         private TransformationStack _modelMatrix;
 
+        /// <summary>
+        /// The render size the graphics manager was originally created with.
+        /// </summary>
+        private Vector2 _originalRenderSize;
+
         #endregion
 
         #region Initialization
@@ -102,6 +108,8 @@ namespace Adfectus.Graphics
 
             // Setup main map buffer.
             _mainBuffer = Engine.GraphicsManager.CreateQuadStreamBuffer(Engine.Flags.RenderFlags.MaxRenderable);
+
+            _originalRenderSize = Engine.GraphicsManager.RenderSize;
         }
 
         /// <summary>
@@ -166,28 +174,32 @@ namespace Adfectus.Graphics
             if (size.X == 0 || size.Y == 0) Engine.Log.Warning("Host resized to a size of 0.", MessageSource.Engine);
 
             // Calculate borderbox / pillarbox.
-            float targetAspectRatio = Engine.GraphicsManager.RenderSize.X / Engine.GraphicsManager.RenderSize.Y;
+            float targetAspectRatio;
+            if (Engine.Flags.RenderFlags.ExperimentalScaling)
+                targetAspectRatio = _originalRenderSize.X / _originalRenderSize.Y;
+            else
+                targetAspectRatio = Engine.GraphicsManager.RenderSize.X / Engine.GraphicsManager.RenderSize.Y;
 
             float width = size.X;
-            float height = (int)(width / targetAspectRatio + 0.5f);
+            float height = (int) (width / targetAspectRatio + 0.5f);
 
             // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
             if (height > size.Y)
             {
                 height = size.Y;
-                width = (int)(height * targetAspectRatio + 0.5f);
+                width = (int) (height * targetAspectRatio + 0.5f);
             }
 
             if (Engine.Flags.RenderFlags.IntegerScale)
             {
-                float xIntScale = (float)Math.Floor(width / Engine.GraphicsManager.RenderSize.X);
-                float yIntScale = (float)Math.Floor(height / Engine.GraphicsManager.RenderSize.Y);
+                float xIntScale = (float) Math.Floor(width / Engine.GraphicsManager.RenderSize.X);
+                float yIntScale = (float) Math.Floor(height / Engine.GraphicsManager.RenderSize.Y);
                 width = Engine.GraphicsManager.RenderSize.X * xIntScale;
                 height = Engine.GraphicsManager.RenderSize.Y * yIntScale;
             }
 
-            int vpX = (int)(size.X / 2 - width / 2);
-            int vpY = (int)(size.Y / 2 - height / 2);
+            int vpX = (int) (size.X / 2 - width / 2);
+            int vpY = (int) (size.Y / 2 - height / 2);
 
             // Set the host scale attributes.
             HostScale = new Vector2(width, height);
@@ -195,12 +207,37 @@ namespace Adfectus.Graphics
 
             if (Engine.Flags.RenderFlags.ExperimentalScaling)
             {
-                Engine.GraphicsManager?.SetViewport(0, 0, (int)width, (int)height);
+                Vector2 setSize = size;
+
+                if (Engine.Flags.RenderFlags.IntegerScale)
+                {
+                    float xIntScale = setSize.X / _originalRenderSize.X;
+                    float yIntScale = setSize.Y / _originalRenderSize.Y;
+
+                    float xScaleRounded = MathFloat.Floor(xIntScale);
+                    float yScaleRounded = MathFloat.Floor(yIntScale);
+
+                    if(xIntScale == xScaleRounded && yIntScale == yScaleRounded)
+                    {
+                        setSize = new Vector2(_originalRenderSize.X, _originalRenderSize.Y);
+                    }
+                    else
+                    {
+                        xIntScale -= xScaleRounded;
+                        xIntScale += 1;
+                        yIntScale -= yScaleRounded;
+                        yIntScale += 1;
+                        setSize = new Vector2(_originalRenderSize.X * xIntScale, _originalRenderSize.Y * yIntScale);
+                    }
+                }
+
+                Engine.GraphicsManager?.SetViewport(0, 0, (int) size.X, (int) size.Y);
+                Engine.GraphicsManager?.Rescale(setSize);
                 return;
             }
 
             // Set viewport.
-            Engine.GraphicsManager?.SetViewport(vpX, vpY, (int)width, (int)height);
+            Engine.GraphicsManager?.SetViewport(vpX, vpY, (int) width, (int) height);
         }
 
         #endregion
@@ -321,9 +358,9 @@ namespace Adfectus.Graphics
             // Generate points.
             for (uint i = 0; i < Engine.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float)Math.Cos(angle) * radius;
-                float y = (float)Math.Sin(angle) * radius;
+                float angle = (float) (i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
 
                 if (i == 0)
                 {
@@ -372,9 +409,9 @@ namespace Adfectus.Graphics
             // Generate points.
             for (uint i = 0; i < Engine.Flags.RenderFlags.CircleDetail; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
-                float x = (float)Math.Cos(angle) * radius;
-                float y = (float)Math.Sin(angle) * radius;
+                float angle = (float) (i * 2 * Math.PI / Engine.Flags.RenderFlags.CircleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
 
                 _mainBuffer.MapNextVertex(new Vector3(radius + pX, radius + pY, 0), color);
                 _mainBuffer.MapNextVertex(new Vector3(radius + x, radius + y, 0), color);
@@ -587,7 +624,7 @@ namespace Adfectus.Graphics
         {
             if (full)
                 Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("projectionMatrix",
-                    Matrix4x4.CreateOrthographicOffCenter(Engine.Flags.RenderFlags.ExperimentalScaling ? -HostMargins.X : 0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, Engine.Flags.RenderFlags.ExperimentalScaling ? -HostMargins.Y : 0, Near2D, Far2D));
+                    Matrix4x4.CreateOrthographicOffCenter(0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0, Near2D, Far2D));
 
             Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
             SyncViewMatrix();

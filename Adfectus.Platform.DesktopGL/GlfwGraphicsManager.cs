@@ -77,11 +77,23 @@ namespace Adfectus.Platform.DesktopGL
             if (errorCheck != ErrorCode.NoError) ErrorHandler.SubmitError(new Exception($"OpenGL error at {location}: {errorCheck}"));
         }
 
+        public override void Rescale(Vector2 newRenderSize)
+        {
+            RenderSize = newRenderSize;
+            CreateScaleFbo();
+        }
+
         /// <summary>
         /// Create the default DBO for scaling.
         /// </summary>
         private void CreateScaleFbo()
         {
+            if (_renderFbo != 0)
+            {
+                Gl.DeleteFramebuffers(_renderFbo);
+                _renderFboTexture.Dispose();
+            }
+
             // Create the FBO which rendering will be done to.
             _renderFbo = Gl.GenFramebuffer();
             Gl.BindFramebuffer(FramebufferTarget.Framebuffer, _renderFbo);
