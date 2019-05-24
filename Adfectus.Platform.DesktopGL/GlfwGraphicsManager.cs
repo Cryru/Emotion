@@ -261,7 +261,7 @@ namespace Adfectus.Platform.DesktopGL
 
         public override bool BindTexture(Texture texture, uint slot = 0)
         {
-            return BindTexture(((GLTexture) texture).Pointer, 0);
+            return BindTexture(((GLTexture) texture).Pointer);
         }
 
         /// <inheritdoc />
@@ -310,6 +310,16 @@ namespace Adfectus.Platform.DesktopGL
                 if (Engine.Flags.RenderFlags.TextureLoadStandard) Gl.GenerateMipmap(TextureTarget.Texture2d);
 
                 CheckError("after uploading texture");
+            });
+        }
+
+        /// <inheritdoc />
+        public override void SetTextureSmooth(bool smooth)
+        {
+            GLThread.ExecuteGLThread(() =>
+            {
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, smooth ? Gl.LINEAR : Gl.NEAREST);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, smooth ? Gl.LINEAR : Gl.NEAREST);
             });
         }
 
@@ -454,7 +464,7 @@ namespace Adfectus.Platform.DesktopGL
             return vaoId;
         }
 
-        
+
         /// <summary>
         /// Convert a managed C# type to a GL vertex attribute type.
         /// </summary>
@@ -843,7 +853,6 @@ namespace Adfectus.Platform.DesktopGL
 
             return $"IBO: {boundIbo}\r\nVBO: {boundVbo} [size:{boundVboSize}]\r\nVAO: {boundVao}\r\nShader: {boundShader}";
         }
-
 
         #endregion
     }

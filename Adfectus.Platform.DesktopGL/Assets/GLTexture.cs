@@ -14,11 +14,6 @@ namespace Adfectus.Platform.DesktopGL.Assets
     public class GLTexture : Texture
     {
         /// <summary>
-        /// The texture matrix used to convert UVs.
-        /// </summary>
-        public Matrix4x4 TextureMatrix { get; protected set; }
-
-        /// <summary>
         /// The OpenGL pointer of the texture.
         /// </summary>
         public uint Pointer;
@@ -111,6 +106,19 @@ namespace Adfectus.Platform.DesktopGL.Assets
                 Size = Size,
                 TextureMatrix = TextureMatrix * Matrix4x4.CreateScale(1, -1, 1),
                 Name = $"{Name} - Flipped Vertically"
+            };
+            return newTe;
+        }
+
+        /// <inheritdoc />
+        public override Texture ModifyMatrix(Matrix4x4 mat, bool replace = false)
+        {
+            GLTexture newTe = new GLTexture
+            {
+                Pointer = Pointer,
+                Size = Size,
+                TextureMatrix = replace ? mat : TextureMatrix * mat,
+                Name = $"{Name} - Modified by Matrix" + (replace ? " and Replaced" : "")
             };
             return newTe;
         }

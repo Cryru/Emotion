@@ -136,7 +136,7 @@ namespace Adfectus.Game.Text
             {
                 MapBuffer();
                 _updateRenderCache = false;
-                Engine.Log.Warning("RichText buffer wasn't mapped, and it didn't intend to map it.", MessageSource.GL);
+                Engine.Log.Warning($"RichText buffer wasn't mapped, and it didn't intend to map it. Text is {_textStripped}.", MessageSource.GL);
             }
 
             // Check if anything is mapped in the cache buffer.

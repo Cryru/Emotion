@@ -266,6 +266,12 @@ namespace Adfectus.Graphics
         /// <param name="pixelFormat">The pixel format of the texture.</param>
         public abstract void UploadToTexture(IntPtr data, Vector2 size, TextureInternalFormat internalFormat, TexturePixelFormat pixelFormat);
 
+        /// <summary>
+        /// Toggle smoothing on the currently bound texture.
+        /// </summary>
+        /// <param name="smooth">Whether to alias (smooth) the texture.</param>
+        public abstract void SetTextureSmooth(bool smooth);
+
         #endregion
 
         #region Data Buffer

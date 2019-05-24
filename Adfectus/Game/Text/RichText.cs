@@ -92,7 +92,7 @@ namespace Adfectus.Game.Text
         /// <summary>
         /// The text stripped of effect tags.
         /// </summary>
-        protected string _textStripped { get; set; }
+        protected string _textStripped { get; set; } = "";
 
         /// <summary>
         /// The lines of the text after wrap processing.
