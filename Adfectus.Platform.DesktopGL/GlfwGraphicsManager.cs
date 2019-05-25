@@ -431,7 +431,6 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override bool BindVertexArrayBuffer(uint bufferId)
         {
-
 #if DEBUG
             uint actualBound = GetBoundVertexArrayBuffer();
 
@@ -651,7 +650,6 @@ namespace Adfectus.Platform.DesktopGL
 
         #region RenderTargets and Sampling
 
-        
         /// <inheritdoc />
         public override RenderTarget CreateRenderTarget(Vector2 size)
         {
@@ -704,7 +702,7 @@ namespace Adfectus.Platform.DesktopGL
             return resultTarget;
         }
 
-                /// <inheritdoc />
+        /// <inheritdoc />
         public override RenderTarget CreateMSAARenderTarget(int samples, Vector2 size)
         {
             RenderTarget resultTarget = null;
@@ -767,12 +765,12 @@ namespace Adfectus.Platform.DesktopGL
             Gl.BindFramebuffer(FramebufferTarget.Framebuffer, target.Pointer);
             Gl.Viewport((int) target.Viewport.X, (int) target.Viewport.Y, (int) target.Viewport.Width, (int) target.Viewport.Height);
         }
-        
+
         /// <inheritdoc />
         public override void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false)
         {
             Vector2 sourceSize = source?.Size ?? RenderSize;
-            Vector2 destSize= dest?.Size ?? RenderSize;
+            Vector2 destSize = dest?.Size ?? RenderSize;
 
             Rectangle srcRect = sourceRect ?? new Rectangle(0, 0, sourceSize);
             Rectangle dstRect = destRect ?? new Rectangle(0, 0, destSize);
@@ -782,7 +780,7 @@ namespace Adfectus.Platform.DesktopGL
 
             Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, srcPointer);
             Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destPointer);
-            Gl.BlitFramebuffer((int)srcRect.X, (int)srcRect.Y, (int)srcRect.Width, (int)srcRect.Height, (int)dstRect.X, (int)dstRect.Y, (int)dstRect.Width, (int)dstRect.Height,
+            Gl.BlitFramebuffer((int) srcRect.X, (int) srcRect.Y, (int) srcRect.Width, (int) srcRect.Height, (int) dstRect.X, (int) dstRect.Y, (int) dstRect.Width, (int) dstRect.Height,
                 ClearBufferMask.ColorBufferBit, smooth ? BlitFramebufferFilter.Linear : BlitFramebufferFilter.Nearest);
         }
 

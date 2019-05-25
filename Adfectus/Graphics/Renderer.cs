@@ -106,7 +106,7 @@ namespace Adfectus.Graphics
         /// The model matrix stack.
         /// </summary>
         private TransformationStack _modelMatrix;
-        
+
         /// <summary>
         /// A stack of render targets. The one on top is the one rendering is done to.
         /// </summary>
@@ -581,7 +581,8 @@ namespace Adfectus.Graphics
         }
 
         /// <summary>
-        /// Pop off a render target off of the top of the target stack, meaning the one before it will be used for subsequent drawing.
+        /// Pop off a render target off of the top of the target stack, meaning the one before it will be used for subsequent
+        /// drawing.
         /// </summary>
         public void PopRenderTarget()
         {

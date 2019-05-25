@@ -436,6 +436,7 @@ namespace Adfectus.Graphics
 
         public abstract void BindRenderTarget(RenderTarget t);
         public abstract void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false);
+
         #endregion
 
         #region Other
@@ -449,7 +450,10 @@ namespace Adfectus.Graphics
         /// <param name="objectSize">The size in vertices of individual objects in the buffer.</param>
         /// <param name="size">The size of the buffer in vertices.</param>
         /// <param name="indicesPerObject">The indices per object.</param>
-        /// <param name="polygonMode">Whether the buffer should be in polygon mode. Off by default. If not in polygon mode it is in triangle mode.</param>
+        /// <param name="polygonMode">
+        /// Whether the buffer should be in polygon mode. Off by default. If not in polygon mode it is in
+        /// triangle mode.
+        /// </param>
         /// <returns>A streaming buffer used for drawing vertices.</returns>
         public abstract StreamBuffer CreateStreamBuffer(uint vbo, uint vao, uint ibo, uint objectSize, uint size, uint indicesPerObject, bool polygonMode = false);
 
@@ -460,7 +464,10 @@ namespace Adfectus.Graphics
         /// <param name="size">The size of the buffer in vertices.</param>
         /// <param name="ibo">The index buffer to attach to the stream buffer.</param>
         /// <param name="indicesPerObject">The indices per object.</param>
-        /// <param name="polygonMode">Whether the buffer should be in polygon mode. Off by default. If not in polygon mode it is in triangle mode.</param>
+        /// <param name="polygonMode">
+        /// Whether the buffer should be in polygon mode. Off by default. If not in polygon mode it is in
+        /// triangle mode.
+        /// </param>
         /// <returns>A streaming buffer used for drawing vertices.</returns>
         public StreamBuffer CreateStreamBuffer(uint objectSize, uint size, uint ibo, uint indicesPerObject, bool polygonMode = false)
         {
