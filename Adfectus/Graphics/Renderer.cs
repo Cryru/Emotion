@@ -157,7 +157,7 @@ namespace Adfectus.Graphics
             Engine.GraphicsManager.ResetState();
             Engine.GraphicsManager.ClearScreen();
             EnsureRenderTarget();
-            if (_targetStack.Count == 0) Engine.GraphicsManager.ClearScreen();
+            if (_targetStack.Count == 1) Engine.GraphicsManager.ClearScreen();
 
             // Update the current camera.
             Camera.Update();
