@@ -68,6 +68,13 @@ namespace Adfectus.Graphics
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The int array value to set it to.</param>
         public abstract void SetUniformIntArray(string name, int[] data);
+        
+        /// <summary>
+        /// Sets the uniform of the specified name to the provided value.
+        /// </summary>
+        /// <param name="name">The name of the uniform to upload to.</param>
+        /// <param name="data">The vector 2 to set it to.</param>
+        public abstract void SetUniformVector2(string name, Vector2 data);
 
         /// <summary>
         /// Sets the uniform of the specified name to the provided value.

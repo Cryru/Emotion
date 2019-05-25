@@ -156,6 +156,18 @@ namespace Adfectus.Platform.DesktopGL
         }
 
         /// <inheritdoc />
+        public override void SetUniformVector2(string name, Vector2 data)
+        {
+            uint id = GetUniformLocation(name);
+            // Check if the id exists.
+            if (id == uint.MaxValue) return;
+
+            Gl.Uniform2f((int) id, 1, data);
+
+            Engine.GraphicsManager.CheckError("setting vec2 uniform");
+        }
+
+        /// <inheritdoc />
         public override void SetUniformVector3(string name, Vector3 data)
         {
             uint id = GetUniformLocation(name);

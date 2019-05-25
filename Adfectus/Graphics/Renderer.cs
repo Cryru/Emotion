@@ -525,6 +525,19 @@ namespace Adfectus.Graphics
             Render(position, size, Color.White, texture, textureArea);
         }
 
+        
+        /// <summary>
+        /// Shortcut for Render(position, texture.Size, color, texture).
+        /// </summary>
+        /// <param name="position">The position to render to.</param>
+        /// <param name="color">The texture's tint.</param>
+        /// <param name="texture">The texture to use.</param>
+        /// <param name="textureArea">The area of the texture to render.</param>
+        public void RenderTexture(Vector3 position, Color color, Texture texture, Rectangle? textureArea = null)
+        {
+            Render(position, texture.Size, color, texture, textureArea);
+        }
+
         /// <summary>
         /// Submit all render commands so far.
         /// </summary>
@@ -735,7 +748,7 @@ namespace Adfectus.Graphics
             SyncViewMatrix();
 
             Engine.GraphicsManager.CurrentShader.SetUniformFloat("iTime", Engine.TotalTime / 1000f);
-            Engine.GraphicsManager.CurrentShader.SetUniformVector3("iResolution", new Vector3(Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0));
+            Engine.GraphicsManager.CurrentShader.SetUniformVector3("iResolution", new Vector3(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0));
             Engine.GraphicsManager.CurrentShader.SetUniformVector4("iMouse",
                 new Vector4(Engine.InputManager.GetMousePosition(), Engine.InputManager.IsMouseKeyDown(MouseKey.Left) ? 1 : 0, Engine.InputManager.IsMouseKeyDown(MouseKey.Right) ? 1 : 0));
 
