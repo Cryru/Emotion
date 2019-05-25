@@ -503,6 +503,29 @@ namespace Adfectus.Graphics
         }
 
         /// <summary>
+        /// Shortcut for Render(position, texture.Size, Color.White, texture).
+        /// </summary>
+        /// <param name="position">The position to render to.</param>
+        /// <param name="texture">The texture to use.</param>
+        /// <param name="textureArea">The area of the texture to render.</param>
+        public void RenderTexture(Vector3 position, Texture texture, Rectangle? textureArea = null)
+        {
+            Render(position, texture.Size, Color.White, texture, textureArea);
+        }
+
+        /// <summary>
+        /// Shortcut for Render(position, size, Color.White, texture).
+        /// </summary>
+        /// <param name="position">The position to render to.</param>
+        /// <param name="size">The size of the render.</param>
+        /// <param name="texture">The texture to use.</param>
+        /// <param name="textureArea">The area of the texture to render.</param>
+        public void RenderTexture(Vector3 position, Vector2 size, Texture texture, Rectangle? textureArea = null)
+        {
+            Render(position, size, Color.White, texture, textureArea);
+        }
+
+        /// <summary>
         /// Submit all render commands so far.
         /// </summary>
         public void Submit()
