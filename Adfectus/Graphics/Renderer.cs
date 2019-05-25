@@ -635,6 +635,7 @@ namespace Adfectus.Graphics
         {
             RenderTarget current = _targetStack.Peek();
             Engine.GraphicsManager.BindRenderTarget(current);
+            SystemSyncCurrentShader();
         }
 
         #endregion
@@ -728,7 +729,7 @@ namespace Adfectus.Graphics
         {
             if (full)
                 Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("projectionMatrix",
-                    Matrix4x4.CreateOrthographicOffCenter(0, Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y, 0, Near2D, Far2D));
+                    Matrix4x4.CreateOrthographicOffCenter(0, CurrentTarget.Size.X, CurrentTarget.Size.Y, 0, Near2D, Far2D));
 
             Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
             SyncViewMatrix();
