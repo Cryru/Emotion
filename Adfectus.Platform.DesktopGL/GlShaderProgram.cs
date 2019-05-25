@@ -37,15 +37,12 @@ namespace Adfectus.Platform.DesktopGL
                 Gl.AttachShader(Id, vertPointer);
                 Gl.AttachShader(Id, fragPointer);
 
-                if (Engine.Flags.RenderFlags.SetVertexAttribLocations)
-                {
-                    Gl.BindAttribLocation(Id, Engine.GraphicsManager.VertexLocation, "vertPos");
-                    Gl.BindAttribLocation(Id, Engine.GraphicsManager.UvLocation, "uv");
-                    Gl.BindAttribLocation(Id, Engine.GraphicsManager.TidLocation, "tid");
-                    Gl.BindAttribLocation(Id, Engine.GraphicsManager.ColorLocation, "color");
+                Gl.BindAttribLocation(Id, Engine.GraphicsManager.VertexLocation, "vertPos");
+                Gl.BindAttribLocation(Id, Engine.GraphicsManager.UvLocation, "uv");
+                Gl.BindAttribLocation(Id, Engine.GraphicsManager.TidLocation, "tid");
+                Gl.BindAttribLocation(Id, Engine.GraphicsManager.ColorLocation, "color");
 
-                    Engine.GraphicsManager.CheckError("setting locations");
-                }
+                Engine.GraphicsManager.CheckError("setting locations");
 
                 Gl.LinkProgram(Id);
 

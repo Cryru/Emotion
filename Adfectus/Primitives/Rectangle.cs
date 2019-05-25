@@ -136,20 +136,20 @@ namespace Adfectus.Primitives
 
         #region Constructors
 
-        public Rectangle(Vector2 location, Vector2 size)
-        {
-            X = location.X;
-            Y = location.Y;
-            Width = size.X;
-            Height = size.Y;
-        }
-
         public Rectangle(float x, float y, float width, float height)
         {
             X = x;
             Y = y;
             Width = width;
             Height = height;
+        }
+
+        public Rectangle(Vector2 location, Vector2 size) : this(location.X, location.Y, size.X, size.Y)
+        {
+        }
+
+        public Rectangle(float x, float y, Vector2 size) : this(x, y, size.X, size.Y)
+        {
         }
 
         #endregion Constructors

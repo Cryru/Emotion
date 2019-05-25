@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Adfectus.Common;
 using Adfectus.Game.Camera;
@@ -74,6 +75,22 @@ namespace Adfectus.Graphics
         private bool _viewMatrixEnabled = true;
 
         /// <summary>
+        /// The current render target.
+        /// </summary>
+        public RenderTarget CurrentTarget
+        {
+            get => _targetStack.Peek();
+        }
+
+        /// <summary>
+        /// The current model matrix.
+        /// </summary>
+        public Matrix4x4 ModelMatrix
+        {
+            get => _modelMatrix.CurrentMatrix;
+        }
+
+        /// <summary>
         /// Private camera tracker.
         /// </summary>
         private CameraBase _camera;
@@ -83,15 +100,17 @@ namespace Adfectus.Graphics
         /// </summary>
         private StreamBuffer _mainBuffer;
 
+        private StreamBuffer _verticesStreamBuffer;
+
         /// <summary>
         /// The model matrix stack.
         /// </summary>
         private TransformationStack _modelMatrix;
-
+        
         /// <summary>
-        /// The render size the graphics manager was originally created with.
+        /// A stack of render targets. The one on top is the one rendering is done to.
         /// </summary>
-        private Vector2 _originalRenderSize;
+        private Stack<RenderTarget> _targetStack;
 
         #endregion
 
@@ -103,13 +122,18 @@ namespace Adfectus.Graphics
         internal Renderer()
         {
             // Create objects.
-            Camera = new CameraBase(new Vector3(0, 0, 0), new Vector2(Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y));
+            Camera = new CameraBase(new Vector3(0, 0, 0), Engine.GraphicsManager.RenderSize);
             _modelMatrix = new TransformationStack();
+            _targetStack = new Stack<RenderTarget>();
+
+            // Create default render target.
+            // todo
+            RenderTarget defaultTarget = Engine.GraphicsManager.CreateRenderTarget(Engine.GraphicsManager.RenderSize);
+            _targetStack.Push(defaultTarget);
 
             // Setup main map buffer.
             _mainBuffer = Engine.GraphicsManager.CreateQuadStreamBuffer(Engine.Flags.RenderFlags.MaxRenderable);
-
-            _originalRenderSize = Engine.GraphicsManager.RenderSize;
+            _verticesStreamBuffer = Engine.GraphicsManager.CreateStreamBuffer(1, Engine.Flags.RenderFlags.MaxRenderable, 0, 1, true);
         }
 
         /// <summary>
@@ -132,6 +156,8 @@ namespace Adfectus.Graphics
             // Restore states.
             Engine.GraphicsManager.ResetState();
             Engine.GraphicsManager.ClearScreen();
+            EnsureRenderTarget();
+            if (_targetStack.Count == 0) Engine.GraphicsManager.ClearScreen();
 
             // Update the current camera.
             Camera.Update();
@@ -149,8 +175,15 @@ namespace Adfectus.Graphics
             // Submit remaining rendered.
             Submit();
 
-            // Flush the internal FBO to the host.
-            Engine.GraphicsManager.FlushBackbuffer();
+            // Flush the target to the host.
+            Engine.GraphicsManager.BindRenderTarget(null);
+            Engine.GraphicsManager.StateClip(false);
+            Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", Matrix4x4.Identity);
+            Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
+            Engine.Renderer.Render(Vector3.Zero, CurrentTarget.Size, Color.White, CurrentTarget.Texture);
+            Engine.Renderer.Submit();
+
+            Engine.GraphicsManager.CheckError("flushing current target");
         }
 
         #endregion
@@ -174,11 +207,7 @@ namespace Adfectus.Graphics
             if (size.X == 0 || size.Y == 0) Engine.Log.Warning("Host resized to a size of 0.", MessageSource.Engine);
 
             // Calculate borderbox / pillarbox.
-            float targetAspectRatio;
-            if (Engine.Flags.RenderFlags.ExperimentalScaling)
-                targetAspectRatio = _originalRenderSize.X / _originalRenderSize.Y;
-            else
-                targetAspectRatio = Engine.GraphicsManager.RenderSize.X / Engine.GraphicsManager.RenderSize.Y;
+            float targetAspectRatio = Engine.GraphicsManager.RenderSize.X / Engine.GraphicsManager.RenderSize.Y;
 
             float width = size.X;
             float height = (int) (width / targetAspectRatio + 0.5f);
@@ -204,37 +233,6 @@ namespace Adfectus.Graphics
             // Set the host scale attributes.
             HostScale = new Vector2(width, height);
             HostMargins = new Vector2(vpX, vpY);
-
-            if (Engine.Flags.RenderFlags.ExperimentalScaling)
-            {
-                Vector2 setSize = size;
-
-                if (Engine.Flags.RenderFlags.IntegerScale)
-                {
-                    float xIntScale = setSize.X / _originalRenderSize.X;
-                    float yIntScale = setSize.Y / _originalRenderSize.Y;
-
-                    float xScaleRounded = MathFloat.Floor(xIntScale);
-                    float yScaleRounded = MathFloat.Floor(yIntScale);
-
-                    if (xIntScale == xScaleRounded && yIntScale == yScaleRounded)
-                    {
-                        setSize = new Vector2(_originalRenderSize.X, _originalRenderSize.Y);
-                    }
-                    else
-                    {
-                        xIntScale -= xScaleRounded;
-                        xIntScale += 1;
-                        yIntScale -= yScaleRounded;
-                        yIntScale += 1;
-                        setSize = new Vector2(_originalRenderSize.X * xIntScale, _originalRenderSize.Y * yIntScale);
-                    }
-                }
-
-                Engine.GraphicsManager?.SetViewport(0, 0, (int) size.X, (int) size.Y);
-                Engine.GraphicsManager?.Rescale(setSize);
-                return;
-            }
 
             // Set viewport.
             Engine.GraphicsManager?.SetViewport(vpX, vpY, (int) width, (int) height);
@@ -478,12 +476,10 @@ namespace Adfectus.Graphics
         }
 
         /// <summary>
-        /// Draw an array of vertices and colors. The number of vertices must be divisible by 4, the number of colors must be equal
-        /// to the vertices or 1.
+        /// Draw an array of vertices and colors. The number of colors must be equal to the vertices or 1.
         /// </summary>
         /// <param name="vertices">
-        /// The array of vertices. They must form quads and therefore be a number divisible by 4. If
-        /// providing triangles duplicate the first or last vertex.
+        /// The array of vertices.
         /// </param>
         /// <param name="colors">
         /// An array of colors corresponding to the vertices. If only one color is provided it will be applied
@@ -497,16 +493,14 @@ namespace Adfectus.Graphics
                 return;
             }
 
-            if (vertices.Length % 4 != 0)
-            {
-                Engine.Log.Warning("Tried to render vertices but the number of vertices is not divisible by 4. Adfectus is optimized to draw quads.", MessageSource.Renderer);
-                return;
-            }
+            _verticesStreamBuffer.Reset();
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                _mainBuffer.MapNextVertex(vertices[i], colors.Length == 1 ? colors[0] : colors[i]);
+                _verticesStreamBuffer.MapNextVertex(vertices[i], colors.Length == 1 ? colors[0] : colors[i]);
             }
+
+            Render(_verticesStreamBuffer);
         }
 
         /// <summary>
@@ -569,6 +563,55 @@ namespace Adfectus.Graphics
             // Pop out of stack and update shader.
             _modelMatrix.Pop();
             Engine.GraphicsManager.CurrentShader.SetUniformMatrix4("modelMatrix", _modelMatrix.CurrentMatrix);
+        }
+
+        #endregion
+
+        #region Render Target
+
+        /// <summary>
+        /// Push a render target on top of the target stack, meaning it will be used for subsequent drawing.
+        /// </summary>
+        /// <param name="target">The target to push.</param>
+        public void PushRenderTarget(RenderTarget target)
+        {
+            Submit();
+            _targetStack.Push(target);
+            EnsureRenderTarget();
+        }
+
+        /// <summary>
+        /// Pop off a render target off of the top of the target stack, meaning the one before it will be used for subsequent drawing.
+        /// </summary>
+        public void PopRenderTarget()
+        {
+            if (_targetStack.Count == 1)
+            {
+                Engine.Log.Error("Cannot pop off the default render target.", MessageSource.Game);
+                return;
+            }
+
+            Submit();
+            _targetStack.Pop();
+            EnsureRenderTarget();
+        }
+
+        /// <summary>
+        /// Clear the currently bound render target.
+        /// </summary>
+        public void ClearRenderTarget()
+        {
+            Engine.GraphicsManager.ClearScreen();
+        }
+
+        /// <summary>
+        /// Resyncs the current render target with the one on top of the target stack.
+        /// You probably shouldn't be calling this yourself.
+        /// </summary>
+        public void EnsureRenderTarget()
+        {
+            RenderTarget current = _targetStack.Peek();
+            Engine.GraphicsManager.BindRenderTarget(current);
         }
 
         #endregion

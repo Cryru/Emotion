@@ -28,30 +28,6 @@ namespace Adfectus.Common.Configuration
         public uint MaxRenderable { get; internal set; } = ushort.MaxValue;
 
         /// <summary>
-        /// Whether to explicitly set the vertex attribute locations before linking the shader.
-        /// Used for GL 2.0 support.
-        /// </summary>
-        public bool SetVertexAttribLocations { get; set; }
-
-        /// <summary>
-        /// Whether the use an internal framebuffer when rendering before flushing to the window's framebuffer. This makes scaling
-        /// better on different displays.
-        /// True by default.
-        /// </summary>
-        public bool UseFramebuffer { get; set; } = true;
-
-        /// <summary>
-        /// Whether to use Vertex Array Objects. True by default.
-        /// </summary>
-        public bool UseVao { get; set; } = true;
-
-        /// <summary>
-        /// Whether to generate texture mip maps and apply a swizzle mask. True by default, turned off for compatibility.
-        /// When turned off the texture loading will assume RGBA instead of the standard FreeImage BGRA
-        /// </summary>
-        public bool TextureLoadStandard { get; set; } = true;
-
-        /// <summary>
         /// The color to clear the window with.
         /// </summary>
         public Color ClearColor { get; set; } = Color.Black;
@@ -60,10 +36,5 @@ namespace Adfectus.Common.Configuration
         /// Whether to scale at integer scales only. False by default.
         /// </summary>
         public bool IntegerScale { get; set; } = false;
-
-        /// <summary>
-        /// Whether to use experimental scaling. In this mode the viewport is not pillarboxed / letterboxed but instead the resolution is increased.
-        /// </summary>
-        public bool ExperimentalScaling { get; set; } = false;
     }
 }

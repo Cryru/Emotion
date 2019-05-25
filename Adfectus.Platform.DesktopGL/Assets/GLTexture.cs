@@ -72,7 +72,7 @@ namespace Adfectus.Platform.DesktopGL.Assets
                 Engine.GraphicsManager.BindTexture(Pointer);
                 Engine.GraphicsManager.SetTextureMask(0x0000ff00, 0x00ff0000, 0xff000000, 0x000000ff);
                 Engine.GraphicsManager.UploadToTexture(FreeImage.GetBits(freeImageBitmap), Size, TextureInternalFormat.Rgba8,
-                    Engine.Flags.RenderFlags.TextureLoadStandard ? TexturePixelFormat.Rgba : TexturePixelFormat.Bgra);
+                    TexturePixelFormat.Rgba);
             });
 
             // Cleanup FreeImage object.

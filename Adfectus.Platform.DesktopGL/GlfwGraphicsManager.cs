@@ -28,10 +28,6 @@ namespace Adfectus.Platform.DesktopGL
         private string _defaultFragShader;
         private string _defaultVertShader;
 
-        private uint _renderFbo;
-        private Texture _renderFboTexture;
-        private Rectangle _actualViewport;
-
         #endregion
 
         /// <inheritdoc />
@@ -58,7 +54,6 @@ namespace Adfectus.Platform.DesktopGL
 
             CreateDefaultShader();
             CreateDefaultIbo();
-            if (Engine.Flags.RenderFlags.UseFramebuffer) CreateScaleFbo();
 
             // Set default state.
             DefaultGLState();
@@ -75,59 +70,6 @@ namespace Adfectus.Platform.DesktopGL
         {
             ErrorCode errorCheck = Gl.GetError();
             if (errorCheck != ErrorCode.NoError) ErrorHandler.SubmitError(new Exception($"OpenGL error at {location}: {errorCheck}"));
-        }
-
-        public override void Rescale(Vector2 newRenderSize)
-        {
-            RenderSize = newRenderSize;
-            CreateScaleFbo();
-        }
-
-        /// <summary>
-        /// Create the default DBO for scaling.
-        /// </summary>
-        private void CreateScaleFbo()
-        {
-            if (_renderFbo != 0)
-            {
-                Gl.DeleteFramebuffers(_renderFbo);
-                _renderFboTexture.Dispose();
-            }
-
-            // Create the FBO which rendering will be done to.
-            _renderFbo = Gl.GenFramebuffer();
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, _renderFbo);
-
-            // Create the texture.
-            uint renderTexture = Gl.GenTexture();
-            Gl.BindTexture(TextureTarget.Texture2d, renderTexture);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgb, (int) RenderSize.X, (int) RenderSize.Y, 0, PixelFormat.Rgb,
-                PixelType.UnsignedByte, IntPtr.Zero);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, Gl.NEAREST);
-            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, Gl.NEAREST);
-
-            // Attach the texture to the frame buffer.
-            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, renderTexture, 0);
-
-            // Attach color components.
-            int[] modes = {Gl.COLOR_ATTACHMENT0};
-            Gl.DrawBuffers(modes);
-
-            // Create depth buffer.
-            uint depthBuffer = Gl.GenRenderbuffer();
-            Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
-            Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.DepthComponent16, (int) RenderSize.X,
-                (int) RenderSize.Y);
-            Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
-
-            // Check status.
-            FramebufferStatus status = Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-            if (status != FramebufferStatus.FramebufferComplete) Engine.Log.Warning($"Framebuffer creation failed. Error code {status}.", MessageSource.GL);
-
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            _renderFboTexture = new GLTexture(renderTexture, new Vector2(RenderSize.X, RenderSize.Y), null, "FBO Texture");
-
-            CheckError("creating scale fbo");
         }
 
         /// <inheritdoc />
@@ -176,6 +118,20 @@ namespace Adfectus.Platform.DesktopGL
         }
 
         /// <inheritdoc />
+        public override void StateClip(bool enable)
+        {
+            GLThread.ExecuteGLThread(() =>
+            {
+                if (enable)
+                    Gl.Enable(EnableCap.ScissorTest);
+                else
+                    Gl.Disable(EnableCap.ScissorTest);
+
+                CheckError("setting scissor (clip) state");
+            });
+        }
+
+        /// <inheritdoc />
         public override void SetClipRect(int x, int y, int width, int height)
         {
             GLThread.ExecuteGLThread(() =>
@@ -190,7 +146,7 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void SetViewport(int x, int y, int width, int height)
         {
-            _actualViewport = new Rectangle(x, y, width, height);
+            Viewport = new Rectangle(x, y, width, height);
 
             GLThread.ExecuteGLThread(() => { Gl.Viewport(x, y, width, height); });
         }
@@ -200,35 +156,6 @@ namespace Adfectus.Platform.DesktopGL
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             CheckError("clear");
-
-            // Start rendering to the custom framebuffer.
-            if (Engine.Flags.RenderFlags.UseFramebuffer)
-            {
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, _renderFbo);
-                Gl.Viewport(0, 0, (int) RenderSize.X, (int) RenderSize.Y);
-                Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                CheckError("setting framebuffer");
-            }
-        }
-
-        /// <inheritdoc />
-        public override void FlushBackbuffer()
-        {
-            if (Engine.Flags.RenderFlags.UseFramebuffer)
-            {
-                // Restore the actual frame buffer.
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-                Gl.Viewport((int) _actualViewport.X, (int) _actualViewport.Y, (int) _actualViewport.Width, (int) _actualViewport.Height);
-                Gl.Disable(EnableCap.ScissorTest);
-
-                // Render the internal fbo.
-                CurrentShader.SetUniformMatrix4("modelMatrix", Matrix4x4.Identity);
-                CurrentShader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
-                Engine.Renderer.Render(Vector3.Zero, _renderFboTexture.Size, Color.White, _renderFboTexture);
-                Engine.Renderer.Submit();
-
-                CheckError("flushing framebuffer");
-            }
         }
 
         #endregion
@@ -281,8 +208,6 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void SetTextureMask(uint r = 0xff000000, uint g = 0x00ff0000, uint b = 0x0000ff00, uint a = 0x000000ff)
         {
-            if (!Engine.Flags.RenderFlags.TextureLoadStandard) return;
-
             GLThread.ExecuteGLThread(() =>
             {
                 Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleR, MaskMeaning(r));
@@ -307,7 +232,7 @@ namespace Adfectus.Platform.DesktopGL
                 Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, Gl.NEAREST);
 
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, intFormat, (int) size.X, (int) size.Y, 0, glFormat, PixelType.UnsignedByte, data);
-                if (Engine.Flags.RenderFlags.TextureLoadStandard) Gl.GenerateMipmap(TextureTarget.Texture2d);
+                Gl.GenerateMipmap(TextureTarget.Texture2d);
 
                 CheckError("after uploading texture");
             });
@@ -490,8 +415,6 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override uint CreateVertexArrayBuffer()
         {
-            if (!Engine.Flags.RenderFlags.UseVao) return 1;
-
             uint newBufferId = 0;
 
             GLThread.ExecuteGLThread(() =>
@@ -508,7 +431,6 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override bool BindVertexArrayBuffer(uint bufferId)
         {
-            if (!Engine.Flags.RenderFlags.UseVao) return true;
 
 #if DEBUG
             uint actualBound = GetBoundVertexArrayBuffer();
@@ -543,7 +465,7 @@ namespace Adfectus.Platform.DesktopGL
                 BindDataBuffer(dataBufferId);
                 Gl.EnableVertexAttribArray(shaderIndex);
                 CheckError($"after enabling vertex array attributes {shaderIndex}");
-                Gl.VertexAttribPointer(shaderIndex, (int) componentCount, ToGLPointerType(dataType), normalized, (int) stride, Engine.Flags.RenderFlags.UseVao ? offset : IntPtr.Zero);
+                Gl.VertexAttribPointer(shaderIndex, (int) componentCount, ToGLPointerType(dataType), normalized, (int) stride, offset);
 
                 CheckError($"after setting vertex array attribute {shaderIndex}");
             });
@@ -552,8 +474,6 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void DestroyVertexArrayBuffer(uint bufferId)
         {
-            if (!Engine.Flags.RenderFlags.UseVao) return;
-
             GLThread.ExecuteGLThread(() =>
             {
                 Gl.DeleteVertexArrays(bufferId);
@@ -729,17 +649,156 @@ namespace Adfectus.Platform.DesktopGL
 
         #endregion
 
+        #region RenderTargets and Sampling
+
+        
+        /// <inheritdoc />
+        public override RenderTarget CreateRenderTarget(Vector2 size)
+        {
+            RenderTarget resultTarget = null;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                // Create the FBO which rendering will be done to.
+                uint newFbo = Gl.GenFramebuffer();
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, newFbo);
+
+                // Create the texture.
+                uint renderTexture = Gl.GenTexture();
+                Gl.BindTexture(TextureTarget.Texture2d, renderTexture);
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgb, (int) size.X, (int) size.Y, 0, PixelFormat.Rgb,
+                    PixelType.UnsignedByte, IntPtr.Zero);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, Gl.NEAREST);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, Gl.NEAREST);
+
+                // Attach the texture to the frame buffer.
+                Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, renderTexture, 0);
+
+                // Attach color components.
+                int[] modes = {Gl.COLOR_ATTACHMENT0};
+                Gl.DrawBuffers(modes);
+
+                // Create render buffer.
+                uint depthBuffer = Gl.GenRenderbuffer();
+                Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
+                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.Depth24Stencil8, (int) size.X,
+                    (int) size.Y);
+                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
+
+                // Check status.
+                FramebufferStatus status = Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+                if (status != FramebufferStatus.FramebufferComplete) Engine.Log.Warning($"Framebuffer creation failed. Error code {status}.", MessageSource.GL);
+
+                // Create the texture object.
+                Texture targetTexture = new GLTexture(renderTexture, new Vector2(size.X, size.Y), null, $"FBO {newFbo} Texture");
+
+                // Create the render target object.
+                resultTarget = new GlRenderTarget(newFbo, size, targetTexture);
+
+                CheckError("creating scale fbo");
+            });
+
+            // Restore bindings and so on.
+            Engine.Renderer?.EnsureRenderTarget();
+
+            return resultTarget;
+        }
+
+                /// <inheritdoc />
+        public override RenderTarget CreateMSAARenderTarget(int samples, Vector2 size)
+        {
+            RenderTarget resultTarget = null;
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                // Create the FBO.
+                uint newFbo = Gl.GenFramebuffer();
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, newFbo);
+
+                // Create the texture.
+                uint renderTexture = Gl.GenTexture();
+                Gl.BindTexture(TextureTarget.Texture2dMultisample, renderTexture);
+                Gl.TexImage2DMultisample(TextureTarget.Texture2dMultisample, samples, InternalFormat.Rgb, (int) size.X, (int) size.Y, true);
+
+                // Attach the texture to the frame buffer.
+                Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2dMultisample, renderTexture, 0);
+
+                // Attach color components.
+                int[] modes = {Gl.COLOR_ATTACHMENT0};
+                Gl.DrawBuffers(modes);
+
+                // Create render buffer.
+                uint depthBuffer = Gl.GenRenderbuffer();
+                Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
+                Gl.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, samples, InternalFormat.Depth24Stencil8, (int) size.X, (int) size.Y);
+                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
+
+                // Check status.
+                FramebufferStatus status = Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+                if (status != FramebufferStatus.FramebufferComplete) Engine.Log.Warning($"MSAA Framebuffer creation failed. Error code {status}.", MessageSource.GL);
+
+                // Construct a texture object for it.
+                Texture targetTexture = new GLTexture(renderTexture, new Vector2(size.X, size.Y), null, $"MSAA{samples} FBO Texture");
+
+                // Create the render target object.
+                resultTarget = new GlRenderTarget(newFbo, size, targetTexture);
+
+                CheckError("creating msaa fbo");
+            });
+
+            // Restore bindings and so on.
+            Engine.Renderer?.EnsureRenderTarget();
+
+            return resultTarget;
+        }
+
+        /// <inheritdoc />
+        public override void BindRenderTarget(RenderTarget t)
+        {
+            // Check if restoring the window target.
+            if (t == null)
+            {
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
+                return;
+            }
+
+            GlRenderTarget target = (GlRenderTarget) t;
+            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, target.Pointer);
+            Gl.Viewport((int) target.Viewport.X, (int) target.Viewport.Y, (int) target.Viewport.Width, (int) target.Viewport.Height);
+        }
+        
+        /// <inheritdoc />
+        public override void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false)
+        {
+            Vector2 sourceSize = source?.Size ?? RenderSize;
+            Vector2 destSize= dest?.Size ?? RenderSize;
+
+            Rectangle srcRect = sourceRect ?? new Rectangle(0, 0, sourceSize);
+            Rectangle dstRect = destRect ?? new Rectangle(0, 0, destSize);
+
+            uint srcPointer = ((GlRenderTarget) source)?.Pointer ?? 0;
+            uint destPointer = ((GlRenderTarget) dest)?.Pointer ?? 0;
+
+            Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, srcPointer);
+            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destPointer);
+            Gl.BlitFramebuffer((int)srcRect.X, (int)srcRect.Y, (int)srcRect.Width, (int)srcRect.Height, (int)dstRect.X, (int)dstRect.Y, (int)dstRect.Width, (int)dstRect.Height,
+                ClearBufferMask.ColorBufferBit, smooth ? BlitFramebufferFilter.Linear : BlitFramebufferFilter.Nearest);
+        }
+
+        #endregion
+
         #region Helpers
 
         /// <inheritdoc />
-        public override StreamBuffer CreateStreamBuffer(uint vbo, uint vao, uint ibo, uint objectSize, uint size, uint indicesPerObject)
+        public override StreamBuffer CreateStreamBuffer(uint vbo, uint vao, uint ibo, uint objectSize, uint size, uint indicesPerObject, bool polygonMode = false)
         {
             StreamBuffer streamBuffer = null;
 
             GLThread.ExecuteGLThread(() =>
             {
                 // Create a GL stream buffer.
-                streamBuffer = new GlStreamBuffer(vbo, vao, ibo, objectSize, size * objectSize, indicesPerObject, PrimitiveType.Triangles);
+                streamBuffer = new GlStreamBuffer(vbo, vao, ibo, objectSize, size * objectSize, indicesPerObject, polygonMode ? PrimitiveType.TriangleFan : PrimitiveType.Triangles);
             });
 
             return streamBuffer;
@@ -801,10 +860,16 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override uint GetBoundVertexArrayBuffer()
         {
-            if (!Engine.Flags.RenderFlags.UseVao) return 1;
-
             int id = 0;
             GLThread.ExecuteGLThread(() => Gl.Get(Gl.VERTEX_ARRAY_BINDING, out id));
+            return (uint) id;
+        }
+
+        /// <inheritdoc />
+        public override uint GetBoundRenderTarget()
+        {
+            int id = 0;
+            GLThread.ExecuteGLThread(() => Gl.Get(Gl.DRAW_FRAMEBUFFER_BINDING, out id));
             return (uint) id;
         }
 

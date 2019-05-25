@@ -178,10 +178,8 @@ namespace Adfectus.Platform.DesktopGL
                     // Set flags based on which context version was created.
                     if (currentConfig.VersionMajor < 3)
                     {
-                        Engine.Flags.RenderFlags.SetVertexAttribLocations = true;
-                        Engine.Flags.RenderFlags.UseVao = false;
-                        Engine.Flags.RenderFlags.UseFramebuffer = false;
-                        Engine.Flags.RenderFlags.TextureLoadStandard = false;
+                        ErrorHandler.SubmitError(new Exception("Couldn't create graphics device. Please update your drivers. If that doesn't work your computer doesn't support OpenGL 3.0 and this game."));
+                        return;
                     }
 
                     Engine.Log.Info($"Created GLFW window using config - {currentConfig}.", MessageSource.Host);

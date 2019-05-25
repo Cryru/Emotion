@@ -17,6 +17,37 @@ namespace Adfectus.Tests
     public class Scenography
     {
         /// <summary>
+        /// Swap a scene.
+        /// </summary>
+        [Fact]
+        public void PlainSwap()
+        {
+            // Add scene.
+            TestScene testScene = new TestScene();
+            Task loadingTask = Engine.SceneManager.SetScene(testScene);
+            // Wait for loading to complete.
+            loadingTask.Wait();
+            testScene.WaitFrames(1).Wait();
+
+            // Create a new test scene.
+            TestScene newTestScene = new TestScene {ExtLoad = () => { Task.Delay(500).Wait(); }};
+            loadingTask = Engine.SceneManager.SetScene(newTestScene);
+            // Wait for loading to complete.
+            loadingTask.Wait();
+            newTestScene.WaitFrames(1).Wait();
+
+            // The scene should be switched.
+            Assert.Equal(newTestScene, Engine.SceneManager.Current);
+
+            // Everything should've been called correctly on the scene.
+            Assert.True(testScene.LoadCalled);
+            Assert.True(testScene.UpdateCalled);
+            Assert.Equal(0, testScene.FocusLossCalled);
+            Assert.True(testScene.DrawCalled);
+            Assert.True(testScene.UnloadCalled);
+        }
+
+        /// <summary>
         /// Test whether loading and unloading of scenes in addition to the update and draw hooks work.
         /// </summary>
         [Fact]

@@ -199,7 +199,7 @@ namespace Adfectus.Platform.DesktopGL
             BindTextures();
 
             Engine.GraphicsManager.BindVertexArrayBuffer(Vao);
-            if (!Engine.Flags.RenderFlags.UseVao) Engine.GraphicsManager.BindDataBuffer(Vbo);
+            Engine.GraphicsManager.BindDataBuffer(Vbo);
             Engine.GraphicsManager.BindIndexBuffer(Ibo);
             Engine.GraphicsManager.CheckError("map buffer - bind");
 

@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Adfectus.Common;
 using Adfectus.IO;
+using Adfectus.Primitives;
 
 #endregion
 
@@ -21,6 +22,11 @@ namespace Adfectus.Graphics
         /// The resolution to render at.
         /// </summary>
         public Vector2 RenderSize { get; protected set; }
+
+        /// <summary>
+        /// The viewport.
+        /// </summary>
+        public Rectangle Viewport { get; protected set; }
 
         #region Shader Data
 
@@ -83,7 +89,16 @@ namespace Adfectus.Graphics
 
         #region Cache
 
-        protected uint _defaultQuadIbo;
+        /// <summary>
+        /// The default IBO for quad stream buffers. Is an index of 012230 up to MaxRender * 6
+        /// </summary>
+        public uint DefaultQuadIbo { get; protected set; }
+
+        /// <summary>
+        /// The default ibo. Is an index of 0..MaxRender
+        /// </summary>
+        public uint DefaultIbo { get; protected set; }
+
         protected ShaderProgram _defaultProgram;
 
         #endregion
@@ -129,9 +144,21 @@ namespace Adfectus.Graphics
                 offset += 4;
             }
 
-            _defaultQuadIbo = CreateDataBuffer();
-            BindIndexBuffer(_defaultQuadIbo);
+            DefaultQuadIbo = CreateDataBuffer();
+            BindIndexBuffer(DefaultQuadIbo);
             UploadToIndexBuffer(indices);
+
+            CheckError("default quad ibo setup");
+
+            DefaultIbo = Engine.GraphicsManager.CreateDataBuffer();
+            ushort[] iboData = new ushort[Engine.Flags.RenderFlags.MaxRenderable];
+            for (ushort i = 0; i < iboData.Length; i++)
+            {
+                iboData[i] = i;
+            }
+
+            Engine.GraphicsManager.BindIndexBuffer(DefaultIbo);
+            Engine.GraphicsManager.UploadToIndexBuffer(iboData);
 
             CheckError("default ibo setup");
         }
@@ -143,12 +170,6 @@ namespace Adfectus.Graphics
         /// </summary>
         [Conditional("DEBUG")]
         public abstract void CheckError(string location = "");
-
-        /// <summary>
-        /// Change the render size.
-        /// </summary>
-        /// <param name="newRenderSize"></param>
-        public abstract void Rescale(Vector2 newRenderSize);
 
         /// <summary>
         /// Reset the GL state to the default one.
@@ -175,6 +196,12 @@ namespace Adfectus.Graphics
         public abstract void StateDepthTest(bool enable);
 
         /// <summary>
+        /// Enables or disables scissor testing (clipping).
+        /// </summary>
+        /// <param name="enable">Whether to enable or disable clip testing. Is on by default.</param>
+        public abstract void StateClip(bool enable);
+
+        /// <summary>
         /// Set the scissor region.
         /// </summary>
         /// <param name="x"></param>
@@ -196,11 +223,6 @@ namespace Adfectus.Graphics
         /// Clears the framebuffer. Must be run on the GL thread.
         /// </summary>
         public abstract void ClearScreen();
-
-        /// <summary>
-        /// Flushes the internal FBO to the main FBO.
-        /// </summary>
-        public abstract void FlushBackbuffer();
 
         #region Texture API
 
@@ -407,6 +429,15 @@ namespace Adfectus.Graphics
 
         #endregion
 
+        #region RenderTargets and Sampling
+
+        public abstract RenderTarget CreateMSAARenderTarget(int samples, Vector2 size);
+        public abstract RenderTarget CreateRenderTarget(Vector2 size);
+
+        public abstract void BindRenderTarget(RenderTarget t);
+        public abstract void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false);
+        #endregion
+
         #region Other
 
         /// <summary>
@@ -418,8 +449,9 @@ namespace Adfectus.Graphics
         /// <param name="objectSize">The size in vertices of individual objects in the buffer.</param>
         /// <param name="size">The size of the buffer in vertices.</param>
         /// <param name="indicesPerObject">The indices per object.</param>
+        /// <param name="polygonMode">Whether the buffer should be in polygon mode. Off by default. If not in polygon mode it is in triangle mode.</param>
         /// <returns>A streaming buffer used for drawing vertices.</returns>
-        public abstract StreamBuffer CreateStreamBuffer(uint vbo, uint vao, uint ibo, uint objectSize, uint size, uint indicesPerObject);
+        public abstract StreamBuffer CreateStreamBuffer(uint vbo, uint vao, uint ibo, uint objectSize, uint size, uint indicesPerObject, bool polygonMode = false);
 
         /// <summary>
         /// Create a streaming buffer used for drawing any vertices.
@@ -428,8 +460,9 @@ namespace Adfectus.Graphics
         /// <param name="size">The size of the buffer in vertices.</param>
         /// <param name="ibo">The index buffer to attach to the stream buffer.</param>
         /// <param name="indicesPerObject">The indices per object.</param>
+        /// <param name="polygonMode">Whether the buffer should be in polygon mode. Off by default. If not in polygon mode it is in triangle mode.</param>
         /// <returns>A streaming buffer used for drawing vertices.</returns>
-        public StreamBuffer CreateStreamBuffer(uint objectSize, uint size, uint ibo, uint indicesPerObject)
+        public StreamBuffer CreateStreamBuffer(uint objectSize, uint size, uint ibo, uint indicesPerObject, bool polygonMode = false)
         {
             StreamBuffer streamBuffer = null;
 
@@ -444,8 +477,11 @@ namespace Adfectus.Graphics
                 uint vao = CreateVertexArrayBuffer();
                 GenerateDefaultVao(vao, vbo);
 
+                // Check if using the default ibo.
+                if (ibo == 0) ibo = DefaultIbo;
+
                 // Create a GL stream buffer.
-                streamBuffer = CreateStreamBuffer(vbo, vao, ibo, objectSize, size, indicesPerObject);
+                streamBuffer = CreateStreamBuffer(vbo, vao, ibo, objectSize, size, indicesPerObject, polygonMode);
             });
 
             return streamBuffer;
@@ -472,7 +508,7 @@ namespace Adfectus.Graphics
                 GenerateDefaultVao(vao, vbo);
 
                 // Create a GL stream buffer.
-                streamBuffer = CreateStreamBuffer(vbo, vao, _defaultQuadIbo, 4, size, 6);
+                streamBuffer = CreateStreamBuffer(vbo, vao, DefaultQuadIbo, 4, size, 6);
             });
 
             return streamBuffer;
@@ -495,6 +531,8 @@ namespace Adfectus.Graphics
         /// </summary>
         /// <returns>The id of the currently bound vertex array buffer.</returns>
         public abstract uint GetBoundVertexArrayBuffer();
+
+        public abstract uint GetBoundRenderTarget();
 
         /// <summary>
         /// Generates the default VAO.

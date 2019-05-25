@@ -36,6 +36,11 @@ namespace Adfectus.Scenography
         /// </summary>
         private object _swapMutex = new object();
 
+        /// <summary>
+        /// The scene to swap to in the next tick.
+        /// </summary>
+        private Scene _swapScene;
+
         #endregion
 
         internal SceneManager()
@@ -51,10 +56,8 @@ namespace Adfectus.Scenography
         /// </summary>
         internal void Update()
         {
-            lock (_swapMutex)
-            {
-                Current.Update();
-            }
+            SwapCheck();
+            Current.Update();
         }
 
         /// <summary>
@@ -62,10 +65,7 @@ namespace Adfectus.Scenography
         /// </summary>
         internal void Draw()
         {
-            lock (_swapMutex)
-            {
-                Current.Draw();
-            }
+            Current.Draw();
         }
 
         /// <summary>
@@ -73,10 +73,8 @@ namespace Adfectus.Scenography
         /// </summary>
         internal void Unfocused()
         {
-            lock (_swapMutex)
-            {
-                Current.NoFocusUpdate();
-            }
+            SwapCheck();
+            Current.NoFocusUpdate();
         }
 
         /// <summary>
@@ -84,10 +82,7 @@ namespace Adfectus.Scenography
         /// </summary>
         internal void DirectDraw()
         {
-            lock (_swapMutex)
-            {
-                Current.DirectDraw();
-            }
+            Current.DirectDraw();
         }
 
         #endregion
@@ -193,21 +188,38 @@ namespace Adfectus.Scenography
         }
 
         /// <summary>
-        /// Swaps the currently active scene safely and returns the old one.
+        /// Queues the scene to be swapped to on the next tick and returns the old one (which is the current one).
         /// </summary>
         /// <param name="toSwapTo">The scene to swap to.</param>
-        /// <returns>The previously active scene.</returns>
+        /// <returns>The previously active scene (the current one).</returns>
         private Scene SwapActive(Scene toSwapTo)
         {
-            Scene old;
-
             lock (_swapMutex)
             {
-                old = Current;
-                Current = toSwapTo;
-            }
+                if (_swapScene != null)
+                {
+                    Scene old = _swapScene;
+                    _swapScene = toSwapTo;
+                    return old;
+                }
 
-            return old;
+                _swapScene = toSwapTo;
+
+                return Current;
+            }
+        }
+
+        /// <summary>
+        /// Check whether swapping the scene is needed.
+        /// </summary>
+        private void SwapCheck()
+        {
+            lock (_swapMutex)
+            {
+                if (_swapScene == null) return;
+                Current = _swapScene;
+                _swapScene = null;
+            }
         }
 
         #endregion

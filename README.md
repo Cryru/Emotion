@@ -23,8 +23,7 @@ For additional supported platforms, lookup .NetCore 3.0 support.
 ### Requirements:
 
 - At least OpenGL 3.2 Support
-  - Note: Shader support for 2.0 is included, but I wouldn't list the requirements that low.
-  - Lower versions need testing.
+  - Note: OpenGL 3.0 is semi supported.
 - If older than Windows 10
   - [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 
