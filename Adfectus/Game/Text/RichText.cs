@@ -17,7 +17,7 @@ namespace Adfectus.Game.Text
     /// <summary>
     /// A RichText object which manages text wrapping, styles, tagging, and more.
     /// </summary>
-    public class RichText : TransformRenderable
+    public class RichText : TransformRenderable, IDisposable
     {
         #region Properties
 
@@ -655,6 +655,34 @@ namespace Adfectus.Game.Text
             if (lastCharacterIsSpace) spaces--;
 
             return spaces;
+        }
+
+        #endregion
+
+        #region Cleanup
+
+        private void ReleaseUnmanagedResources()
+        {
+            _renderCache.Delete();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            ReleaseUnmanagedResources();
+            if (disposing)
+            {
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~RichText()
+        {
+            Dispose(false);
         }
 
         #endregion
