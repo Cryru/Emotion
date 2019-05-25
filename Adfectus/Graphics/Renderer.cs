@@ -127,8 +127,7 @@ namespace Adfectus.Graphics
             _targetStack = new Stack<RenderTarget>();
 
             // Create default render target.
-            // todo
-            RenderTarget defaultTarget = Engine.GraphicsManager.CreateRenderTarget(Engine.GraphicsManager.RenderSize);
+            RenderTarget defaultTarget = Engine.GraphicsManager.CreateRenderTarget(Engine.GraphicsManager.RenderSize, false, TextureInternalFormat.Rgb, TexturePixelFormat.Rgb);
             _targetStack.Push(defaultTarget);
 
             // Setup main map buffer.

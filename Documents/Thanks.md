@@ -19,6 +19,14 @@ Deamon
 
 devsh
 
+dot
+
+WGG25
+
+jwki
+
+criver
+
 Game Industry People:
 
 Jack "Mailman"

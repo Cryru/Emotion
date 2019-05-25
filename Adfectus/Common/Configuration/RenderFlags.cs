@@ -28,11 +28,6 @@ namespace Adfectus.Common.Configuration
         public uint MaxRenderable { get; internal set; } = ushort.MaxValue;
 
         /// <summary>
-        /// The color to clear the window with.
-        /// </summary>
-        public Color ClearColor { get; set; } = Color.Black;
-
-        /// <summary>
         /// Whether to scale at integer scales only. False by default.
         /// </summary>
         public bool IntegerScale { get; set; } = false;

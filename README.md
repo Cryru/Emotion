@@ -99,6 +99,8 @@ For additional supported platforms, lookup .NetCore 3.0 support.
   - Managed delta time and total time access in the shader for cool effects.
   - The update loop will always be up to date when a target fps is selected.
 - QuadTree Implementation
+- Framebuffer stack and easy framebuffer (RenderTarget) management.
+- MSAA
 - Lots of configuration through settings and flags.
 - Steam integration.
 - ImGui integration.

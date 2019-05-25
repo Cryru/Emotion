@@ -10,6 +10,7 @@
         Green,
         Blue,
         Alpha,
+        Rgb,
 
         /// <summary>
         /// BGRA is not compatible with OpenGL ES. Instead a swizzle mask is used.

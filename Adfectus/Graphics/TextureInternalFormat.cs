@@ -7,6 +7,7 @@
     {
         Rgba8,
         Rgba,
-        R8
+        R8,
+        Rgb
     }
 }

@@ -59,8 +59,8 @@ namespace Adfectus.Platform.DesktopGL
             DefaultGLState();
             ResetState();
 
-            Gl.ClearColor(Engine.Flags.RenderFlags.ClearColor.R / 255f, Engine.Flags.RenderFlags.ClearColor.G / 255f, Engine.Flags.RenderFlags.ClearColor.B / 255f,
-                Engine.Flags.RenderFlags.ClearColor.A / 255f);
+            // Clear to transparent black.
+            Gl.ClearColor(0, 0, 0, 0);
 
             Engine.Log.Info("GraphicsManager ready.", MessageSource.GL);
         }
@@ -651,9 +651,13 @@ namespace Adfectus.Platform.DesktopGL
         #region RenderTargets and Sampling
 
         /// <inheritdoc />
-        public override RenderTarget CreateRenderTarget(Vector2 size)
+        public override RenderTarget CreateRenderTarget(Vector2 size, bool smooth = false, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba,
+            TexturePixelFormat pixelFormat = TexturePixelFormat.Rgba)
         {
             RenderTarget resultTarget = null;
+
+            InternalFormat intFormat = (InternalFormat) Enum.Parse(typeof(InternalFormat), internalFormat.ToString());
+            PixelFormat glFormat = (PixelFormat) Enum.Parse(typeof(PixelFormat), pixelFormat.ToString());
 
             GLThread.ExecuteGLThread(() =>
             {
@@ -664,10 +668,10 @@ namespace Adfectus.Platform.DesktopGL
                 // Create the texture.
                 uint renderTexture = Gl.GenTexture();
                 Gl.BindTexture(TextureTarget.Texture2d, renderTexture);
-                Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgb, (int) size.X, (int) size.Y, 0, PixelFormat.Rgb,
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, intFormat, (int) size.X, (int) size.Y, 0, glFormat,
                     PixelType.UnsignedByte, IntPtr.Zero);
-                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, Gl.NEAREST);
-                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, Gl.NEAREST);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, smooth ? Gl.LINEAR : Gl.NEAREST);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, smooth ? Gl.LINEAR : Gl.NEAREST);
 
                 // Attach the texture to the frame buffer.
                 Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, renderTexture, 0);
@@ -693,6 +697,9 @@ namespace Adfectus.Platform.DesktopGL
                 // Create the render target object.
                 resultTarget = new GlRenderTarget(newFbo, size, targetTexture);
 
+                // Clear the target.
+                ClearScreen();
+
                 CheckError("creating scale fbo");
             });
 
@@ -703,9 +710,11 @@ namespace Adfectus.Platform.DesktopGL
         }
 
         /// <inheritdoc />
-        public override RenderTarget CreateMSAARenderTarget(int samples, Vector2 size)
+        public override RenderTarget CreateMSAARenderTarget(int samples, Vector2 size, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba)
         {
             RenderTarget resultTarget = null;
+
+            InternalFormat intFormat = (InternalFormat) Enum.Parse(typeof(InternalFormat), internalFormat.ToString());
 
             GLThread.ExecuteGLThread(() =>
             {
@@ -716,7 +725,7 @@ namespace Adfectus.Platform.DesktopGL
                 // Create the texture.
                 uint renderTexture = Gl.GenTexture();
                 Gl.BindTexture(TextureTarget.Texture2dMultisample, renderTexture);
-                Gl.TexImage2DMultisample(TextureTarget.Texture2dMultisample, samples, InternalFormat.Rgb, (int) size.X, (int) size.Y, true);
+                Gl.TexImage2DMultisample(TextureTarget.Texture2dMultisample, samples, intFormat, (int) size.X, (int) size.Y, true);
 
                 // Attach the texture to the frame buffer.
                 Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2dMultisample, renderTexture, 0);
@@ -740,6 +749,9 @@ namespace Adfectus.Platform.DesktopGL
 
                 // Create the render target object.
                 resultTarget = new GlRenderTarget(newFbo, size, targetTexture);
+
+                // Clear the target.
+                ClearScreen();
 
                 CheckError("creating msaa fbo");
             });
@@ -782,6 +794,9 @@ namespace Adfectus.Platform.DesktopGL
             Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destPointer);
             Gl.BlitFramebuffer((int) srcRect.X, (int) srcRect.Y, (int) srcRect.Width, (int) srcRect.Height, (int) dstRect.X, (int) dstRect.Y, (int) dstRect.Width, (int) dstRect.Height,
                 ClearBufferMask.ColorBufferBit, smooth ? BlitFramebufferFilter.Linear : BlitFramebufferFilter.Nearest);
+
+            // Restore bindings and so on.
+            Engine.Renderer.EnsureRenderTarget();
         }
 
         #endregion

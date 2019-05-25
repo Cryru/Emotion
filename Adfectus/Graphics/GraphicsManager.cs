@@ -431,10 +431,40 @@ namespace Adfectus.Graphics
 
         #region RenderTargets and Sampling
 
-        public abstract RenderTarget CreateMSAARenderTarget(int samples, Vector2 size);
-        public abstract RenderTarget CreateRenderTarget(Vector2 size);
+        /// <summary>
+        /// Create a render target.
+        /// </summary>
+        /// <param name="size">The size of the target.</param>
+        /// <param name="smooth">Whether the target's texture will use smoothing.</param>
+        /// <param name="internalFormat">The internal format of the target's texture. Is Rgba by default.</param>
+        /// <param name="pixelFormat">The pixel format of the target's texture. Is Rgba by default.</param>
+        /// <returns>The created render target.</returns>
+        public abstract RenderTarget CreateRenderTarget(Vector2 size, bool smooth = false, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba,
+            TexturePixelFormat pixelFormat = TexturePixelFormat.Rgba);
 
+        /// <summary>
+        /// Create a render target to be used for Multi-sampling.
+        /// </summary>
+        /// <param name="samples">The number of samples.</param>
+        /// <param name="size">The size of the target.</param>
+        /// <param name="internalFormat">The internal format of the target's texture. Is Rgba by default.</param>
+        /// <returns>The created MS render target.</returns>
+        public abstract RenderTarget CreateMSAARenderTarget(int samples, Vector2 size, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba);
+
+        /// <summary>
+        /// Bind a render target, causing subsequent calls to refer to it.
+        /// </summary>
+        /// <param name="t">The target to bind.</param>
         public abstract void BindRenderTarget(RenderTarget t);
+
+        /// <summary>
+        /// Copy data from one render target to another. This overwrites any data in the destination.
+        /// </summary>
+        /// <param name="source">The target to copy from.</param>
+        /// <param name="dest">The target to copy to.</param>
+        /// <param name="sourceRect">The location to copy from in the source.</param>
+        /// <param name="destRect">The location to copy to in the destination.</param>
+        /// <param name="smooth">Whether to smoothly copy.</param>
         public abstract void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false);
 
         #endregion
