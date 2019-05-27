@@ -438,9 +438,10 @@ namespace Adfectus.Graphics
         /// <param name="smooth">Whether the target's texture will use smoothing.</param>
         /// <param name="internalFormat">The internal format of the target's texture. Is Rgba by default.</param>
         /// <param name="pixelFormat">The pixel format of the target's texture. Is Rgba by default.</param>
+        /// <param name="attachStencil">Whether to attach a stencil buffer to the render target.</param>
         /// <returns>The created render target.</returns>
         public abstract RenderTarget CreateRenderTarget(Vector2 size, bool smooth = false, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba,
-            TexturePixelFormat pixelFormat = TexturePixelFormat.Rgba);
+            TexturePixelFormat pixelFormat = TexturePixelFormat.Rgba, bool attachStencil = false);
 
         /// <summary>
         /// Create a render target to be used for Multi-sampling.
@@ -448,8 +449,9 @@ namespace Adfectus.Graphics
         /// <param name="samples">The number of samples.</param>
         /// <param name="size">The size of the target.</param>
         /// <param name="internalFormat">The internal format of the target's texture. Is Rgba by default.</param>
+        /// <param name="attachStencil">Whether to attach a stencil buffer to the render target.</param>
         /// <returns>The created MS render target.</returns>
-        public abstract RenderTarget CreateMSAARenderTarget(int samples, Vector2 size, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba);
+        public abstract RenderTarget CreateMSAARenderTarget(int samples, Vector2 size, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba, bool attachStencil = false);
 
         /// <summary>
         /// Bind a render target, causing subsequent calls to refer to it.
@@ -466,6 +468,59 @@ namespace Adfectus.Graphics
         /// <param name="destRect">The location to copy to in the destination.</param>
         /// <param name="smooth">Whether to smoothly copy.</param>
         public abstract void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false);
+
+        #endregion
+
+        #region Stencil Test
+
+        /// <summary>
+        /// Enable or disable stencil testing. Off by default.
+        /// Also sets the stencil state to default, clears the buffer, and submits any content in the renderer.
+        /// </summary>
+        /// <param name="enable"></param>
+        public abstract void StateStencilTest(bool enable);
+
+        /// <summary>
+        /// Set the stencil state to the default.
+        /// Mask - 0xFF (Draw)
+        /// Always 0xFF
+        /// Keep Keep Replace
+        /// </summary>
+        public abstract void StencilModeDefault();
+
+        /// <summary>
+        /// Start drawing to the stencil buffer.
+        /// Sets the state to
+        /// Mask - 0xFF (Draw)
+        /// Always - value
+        /// </summary>
+        /// <param name="value">The value to draw. Any subsequent draw calls will cause this value to be written to the stencil buffer.</param>
+        public abstract void StencilStartDraw(int value = 0xFF);
+
+        /// <summary>
+        /// Starts drawing to the stencil buffer with the following state:
+        /// Mask - 0x00 (No Draw)
+        /// Greater - threshold
+        /// </summary>
+        /// <param name="threshold">The threshold to cut off at. Anything of less value in the stencil buffer will not be rendered by subsequent draw calls.</param>
+        public abstract void StencilModeCutOutFrom(int threshold = 0xFF);
+
+        /// <summary>
+        /// Starts drawing to the stencil buffer with the following state:
+        /// Mask - 0x00 (No Draw)
+        /// Less - threshold
+        /// </summary>
+        /// <param name="filter">The filter to add at. Only that of greater value in the stencil buffer will be rendered by subsequent draw calls.</param>
+        public abstract void StencilModeMask(int filter = 0xFF);
+
+        /// <summary>
+        /// Sets the stencil mode to a custom mode.
+        /// </summary>
+        /// <param name="mask">The mask to be AND-ed to the buffer data.</param>
+        /// <param name="mode">The stencil function mode.</param>
+        /// <param name="funcRef">The value to compare against.</param>
+        /// <param name="modeMask">The stencil function mask.</param>
+        public abstract void StencilModeCustom(uint mask, string mode = "Always", int funcRef = 1, uint modeMask = 0xFF);
 
         #endregion
 

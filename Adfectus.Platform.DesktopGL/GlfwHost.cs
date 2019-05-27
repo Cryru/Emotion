@@ -316,6 +316,8 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public void Dispose()
         {
+            Glfw.HideWindow(_win);
+
             // Go out of fullscreen - if the closing hangs and the window is in fullscreen mode you're going to have a bad time.
             Glfw.SetWindowMonitor(_win, IntPtr.Zero, 0, 0, 100, 100, Glfw.DontCare);
 

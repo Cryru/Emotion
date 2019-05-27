@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Adfectus.Graphics;
 
 #endregion
 
@@ -34,6 +35,9 @@ namespace Adfectus.Common
 
             // Check if suppressing errors.
             if (SuppressErrors) return;
+
+            // Dispose of the host because you don't want to be stuck in fullscreen with an error.
+            GLThread.ExecuteGLThread(() => { Engine.Host.Dispose(); });
 
             // If the debugger is attached, break so the error can be inspected.
             if (Debugger.IsAttached) Debugger.Break();

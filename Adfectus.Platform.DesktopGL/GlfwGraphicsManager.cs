@@ -85,6 +85,9 @@ namespace Adfectus.Platform.DesktopGL
             StateDepthTest(true);
             Gl.DepthFunc(DepthFunction.Lequal);
 
+            // Reset stencil.
+            StateStencilTest(false);
+
             // Reset cull face.
             Gl.Disable(EnableCap.CullFace);
 
@@ -106,6 +109,8 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void StateDepthTest(bool enable)
         {
+            Engine.Renderer?.Submit();
+
             GLThread.ExecuteGLThread(() =>
             {
                 if (enable)
@@ -156,6 +161,9 @@ namespace Adfectus.Platform.DesktopGL
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             CheckError("clear");
+
+            // Fix for certain intel cards. They need a sync somewhere, and it's either this or a glFinish.
+            Gl.GetError();
         }
 
         #endregion
@@ -652,7 +660,7 @@ namespace Adfectus.Platform.DesktopGL
 
         /// <inheritdoc />
         public override RenderTarget CreateRenderTarget(Vector2 size, bool smooth = false, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba,
-            TexturePixelFormat pixelFormat = TexturePixelFormat.Rgba)
+            TexturePixelFormat pixelFormat = TexturePixelFormat.Rgba, bool attachStencil = false)
         {
             RenderTarget resultTarget = null;
 
@@ -685,7 +693,7 @@ namespace Adfectus.Platform.DesktopGL
                 Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
                 Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.Depth24Stencil8, (int) size.X,
                     (int) size.Y);
-                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
+                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
 
                 // Check status.
                 FramebufferStatus status = Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
@@ -710,7 +718,7 @@ namespace Adfectus.Platform.DesktopGL
         }
 
         /// <inheritdoc />
-        public override RenderTarget CreateMSAARenderTarget(int samples, Vector2 size, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba)
+        public override RenderTarget CreateMSAARenderTarget(int samples, Vector2 size, TextureInternalFormat internalFormat = TextureInternalFormat.Rgba, bool attachStencil = false)
         {
             RenderTarget resultTarget = null;
 
@@ -738,7 +746,7 @@ namespace Adfectus.Platform.DesktopGL
                 uint depthBuffer = Gl.GenRenderbuffer();
                 Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBuffer);
                 Gl.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, samples, InternalFormat.Depth24Stencil8, (int) size.X, (int) size.Y);
-                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
+                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, depthBuffer);
 
                 // Check status.
                 FramebufferStatus status = Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
@@ -754,10 +762,10 @@ namespace Adfectus.Platform.DesktopGL
                 ClearScreen();
 
                 CheckError("creating msaa fbo");
-            });
 
-            // Restore bindings and so on.
-            Engine.Renderer?.EnsureRenderTarget();
+                // Restore bindings and so on.
+                Engine.Renderer?.EnsureRenderTarget();
+            });
 
             return resultTarget;
         }
@@ -765,38 +773,123 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void BindRenderTarget(RenderTarget t)
         {
-            // Check if restoring the window target.
-            if (t == null)
+            GLThread.ExecuteGLThread(() =>
             {
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-                Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
-                return;
-            }
+                // Check if restoring the window target.
+                if (t == null)
+                {
+                    Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                    Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
+                    return;
+                }
 
-            GlRenderTarget target = (GlRenderTarget) t;
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, target.Pointer);
-            Gl.Viewport((int) target.Viewport.X, (int) target.Viewport.Y, (int) target.Viewport.Width, (int) target.Viewport.Height);
+                GlRenderTarget target = (GlRenderTarget) t;
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, target.Pointer);
+                Gl.Viewport((int) target.Viewport.X, (int) target.Viewport.Y, (int) target.Viewport.Width, (int) target.Viewport.Height);
+            });
         }
 
         /// <inheritdoc />
         public override void CopyRenderTarget(RenderTarget source, RenderTarget dest, Rectangle? sourceRect = null, Rectangle? destRect = null, bool smooth = false)
         {
-            Vector2 sourceSize = source?.Size ?? RenderSize;
-            Vector2 destSize = dest?.Size ?? RenderSize;
+            GLThread.ExecuteGLThread(() =>
+            {
+                Vector2 sourceSize = source?.Size ?? RenderSize;
+                Vector2 destSize = dest?.Size ?? RenderSize;
 
-            Rectangle srcRect = sourceRect ?? new Rectangle(0, 0, sourceSize);
-            Rectangle dstRect = destRect ?? new Rectangle(0, 0, destSize);
+                Rectangle srcRect = sourceRect ?? new Rectangle(0, 0, sourceSize);
+                Rectangle dstRect = destRect ?? new Rectangle(0, 0, destSize);
 
-            uint srcPointer = ((GlRenderTarget) source)?.Pointer ?? 0;
-            uint destPointer = ((GlRenderTarget) dest)?.Pointer ?? 0;
+                uint srcPointer = ((GlRenderTarget) source)?.Pointer ?? 0;
+                uint destPointer = ((GlRenderTarget) dest)?.Pointer ?? 0;
 
-            Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, srcPointer);
-            Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destPointer);
-            Gl.BlitFramebuffer((int) srcRect.X, (int) srcRect.Y, (int) srcRect.Width, (int) srcRect.Height, (int) dstRect.X, (int) dstRect.Y, (int) dstRect.Width, (int) dstRect.Height,
-                ClearBufferMask.ColorBufferBit, smooth ? BlitFramebufferFilter.Linear : BlitFramebufferFilter.Nearest);
+                Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, srcPointer);
+                Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destPointer);
+                Gl.BlitFramebuffer((int) srcRect.X, (int) srcRect.Y, (int) srcRect.Width, (int) srcRect.Height, (int) dstRect.X, (int) dstRect.Y, (int) dstRect.Width, (int) dstRect.Height,
+                    ClearBufferMask.ColorBufferBit, smooth ? BlitFramebufferFilter.Linear : BlitFramebufferFilter.Nearest);
 
-            // Restore bindings and so on.
-            Engine.Renderer.EnsureRenderTarget();
+                // Restore bindings and so on.
+                Engine.Renderer.EnsureRenderTarget();
+            });
+        }
+
+        #endregion
+
+        #region Stencil Testing
+
+        /// <inheritdoc />
+        public override void StateStencilTest(bool enable)
+        {
+            Engine.Renderer?.Submit();
+
+            GLThread.ExecuteGLThread(() =>
+            {
+                if (enable)
+                {
+                    Gl.Enable(EnableCap.StencilTest);
+                    Gl.StencilMask(0xFF);
+                    Gl.Clear(ClearBufferMask.StencilBufferBit);
+                    StencilModeDefault();
+                }
+                else
+                {
+                    Gl.Disable(EnableCap.StencilTest);
+                    StencilModeDefault();
+                }
+
+                CheckError("setting stencil test");
+            });
+        }
+
+        /// <inheritdoc />
+        public override void StencilModeDefault()
+        {
+            Gl.StencilMask(0x00);
+            Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
+            Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
+        }
+
+        /// <inheritdoc />
+        public override void StencilStartDraw(int value = 0xFF)
+        {
+            Engine.Renderer.Submit();
+
+            Gl.StencilMask(0xFF);
+            Gl.StencilFunc(StencilFunction.Always, value, 0xFF);
+        }
+
+        /// <inheritdoc />
+        public override void StencilModeCutOutFrom(int threshold = 0xFF)
+        {
+            Engine.Renderer.Submit();
+
+            Gl.StencilMask(0x00);
+            Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
+        }
+
+        /// <inheritdoc />
+        public override void StencilModeMask(int filter = 0xFF)
+        {
+            Engine.Renderer.Submit();
+
+            Gl.StencilMask(0x00);
+            Gl.StencilFunc(StencilFunction.Less, filter, 0xFF);
+        }
+
+        /// <inheritdoc />
+        public override void StencilModeCustom(uint mask, string mode = "Always", int funcRef = 1, uint modeMask = 0xFF)
+        {
+            Engine.Renderer.Submit();
+
+            bool successful = Enum.TryParse(typeof(StencilFunction), mode, out object modeParsed);
+            if (!successful)
+            {
+                Engine.Log.Warning("Invalid stencil mode - {mode}.", MessageSource.GL);
+                return;
+            }
+
+            Gl.StencilMask(mask);
+            Gl.StencilFunc((StencilFunction) modeParsed, funcRef, modeMask);
         }
 
         #endregion
