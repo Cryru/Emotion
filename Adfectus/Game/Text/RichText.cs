@@ -39,7 +39,13 @@ namespace Adfectus.Game.Text
         /// <summary>
         /// The text to render.
         /// </summary>
-        public string Text { get; private set; } = "";
+        public string Text
+        {
+            get => _text;
+            set => SetText(value);
+        }
+
+        private string _text = "";
 
         /// <summary>
         /// The text to render with tags removed.
@@ -140,7 +146,7 @@ namespace Adfectus.Game.Text
         /// <param name="text">The text to display.</param>
         public virtual void SetText(string text)
         {
-            Text = text;
+            _text = text;
             _penX = 0;
             _penY = 0;
             _updateRenderCache = true;
