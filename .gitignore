@@ -46,3 +46,6 @@ Logs
 # Emotion Games
 HealerGame
 ElectricSleep
+
+# Other
+*.DotSettings.user
