@@ -709,10 +709,10 @@ namespace Adfectus.Platform.DesktopGL
                 ClearScreen();
 
                 CheckError("creating scale fbo");
-            });
 
-            // Restore bindings and so on.
-            Engine.Renderer?.EnsureRenderTarget();
+                // Restore bindings and so on.
+                Engine.Renderer?.EnsureRenderTarget();
+            });
 
             return resultTarget;
         }

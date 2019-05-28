@@ -21,6 +21,7 @@ namespace Adfectus.Graphics
         /// <summary>
         /// The resolution to render at.
         /// </summary>
+        [Obsolete("Use Engine.Renderer.CurrentTarget.Size")]
         public Vector2 RenderSize { get; protected set; }
 
         /// <summary>
