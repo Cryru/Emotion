@@ -142,8 +142,8 @@ namespace Adfectus.Platform.DesktopGL
         public Vector2 GetMousePosition()
         {
             // Get the difference in scale.
-            float scaleX = Engine.Renderer.HostScale.X / Engine.GraphicsManager.RenderSize.X;
-            float scaleY = Engine.Renderer.HostScale.Y / Engine.GraphicsManager.RenderSize.Y;
+            float scaleX = Engine.Renderer.HostScale.X / Engine.Renderer.BaseTarget.Size.X;
+            float scaleY = Engine.Renderer.HostScale.Y / Engine.Renderer.BaseTarget.Size.Y;
 
             // Calculate letterbox/pillarbox margins.
             float marginX = Engine.Host.Size.X / 2 - Engine.Renderer.HostScale.X / 2;

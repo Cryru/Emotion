@@ -48,7 +48,7 @@ namespace Adfectus.Game.UI
             }
 
             Engine.Renderer.Render(Vector3.Zero, new Vector2(Width, Height), BackgroundColor);
-            Engine.Renderer.RenderString(_font, _textSize, _text, new Vector3(Padding.X, Padding.Y, 0), Color);
+            Engine.Renderer.RenderString(_font.GetFontAtlas(_textSize), _text, new Vector3(Padding.X, Padding.Y, 0), Color);
         }
     }
 }

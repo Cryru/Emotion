@@ -142,13 +142,13 @@ namespace Adfectus.Tests
 
                     // Also tests mapping and initializing of map buffers in another thread.
                     buffer = Engine.GraphicsManager.CreateQuadStreamBuffer(100);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 150, 0), new Vector2(20, 20), Color.White);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 180, 0), new Vector2(20, 20), Color.White);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 210, 0), new Vector2(20, 20), Color.White);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 240, 0), new Vector2(20, 20), Color.White);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 270, 0), new Vector2(20, 20), Color.White);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 300, 0), new Vector2(20, 20), Color.White);
-                    buffer.MapNextQuad(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 330, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 150, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 180, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 210, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 240, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 270, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 300, 0), new Vector2(20, 20), Color.White);
+                    buffer.MapNextQuad(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 330, 0), new Vector2(20, 20), Color.White);
                 },
                 // Unload the texture.
                 ExtUnload = () =>
@@ -165,7 +165,7 @@ namespace Adfectus.Tests
                     const int maxY = 5 * 49;
 
                     // Set background so we can see invalid alpha.
-                    Engine.Renderer.Render(new Vector3(0, 0, -1), Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
+                    Engine.Renderer.Render(new Vector3(0, 0, -1), Engine.Renderer.BaseTarget.Size, Color.CornflowerBlue);
 
                     // Draw normally.
                     for (int i = 0; i < 50; i++)
@@ -190,74 +190,75 @@ namespace Adfectus.Tests
                     }
 
                     // Draw line 0-1/1-0 with queuing.
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X, 0, 0), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 50, 0, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X, 0, 0), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 50, 0, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 100, 0, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 100, 0, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 150, 0, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 150, 0, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 200, 0, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 200, 0, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 250, 0, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 250, 0, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 300, 0, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 300, 0, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
 
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X, 100, 1), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 50, 100, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X, 100, 1), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 50, 100, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 100, 100, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 100, 100, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 150, 100, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 150, 100, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 200, 100, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 200, 100, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 250, 100, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 250, 100, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 300, 100, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 300, 100, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
 
                     // Render line 0-1/1-0 without queuing.
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X, 200, 0), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 50, 200, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X, 200, 0), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 50, 200, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 100, 200, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 100, 200, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 150, 200, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 150, 200, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 200, 200, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 200, 200, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 250, 200, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 250, 200, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 300, 200, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 300, 200, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
 
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X, 300, 1), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 50, 300, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X, 300, 1), new Vector2(100, 100), Color.White, Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 50, 300, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 100, 300, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 100, 300, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 150, 300, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 150, 300, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 200, 300, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 200, 300, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 250, 300, 0), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 250, 300, 0), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X - 300, 300, 1), new Vector2(100, 100), Color.White,
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X - 300, 300, 1), new Vector2(100, 100), Color.White,
                         Engine.AssetLoader.Get<Texture>("Textures/logoAlpha.png"));
 
                     // Draw a map buffer.
                     Engine.Renderer.Render(buffer);
 
                     // Render text.
-                    Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 1),
+                    Atlas atlas = Engine.AssetLoader.Get<Font>("debugFont.otf").GetFontAtlas(20);
+                    Engine.Renderer.RenderString(atlas, "This is test text", new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 0, 1),
                         Color.Red);
-                    Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 10, 2),
+                    Engine.Renderer.RenderString(atlas, "This is test text", new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 10, 2),
                         Color.Green);
-                    Engine.Renderer.RenderString(Engine.AssetLoader.Get<Font>("debugFont.otf"), 20, "This is test text", new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 20, 1),
+                    Engine.Renderer.RenderString(atlas, "This is test text", new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 20, 1),
                         Color.Blue);
-                    Engine.Renderer.Render(new Vector3(Engine.GraphicsManager.RenderSize.X / 2 - 100, 0, 0), new Vector2(200, 100), Color.Black);
+                    Engine.Renderer.Render(new Vector3(Engine.Renderer.BaseTarget.Size.X / 2 - 100, 0, 0), new Vector2(200, 100), Color.Black);
                 }
             };
 
@@ -532,7 +533,7 @@ void main() {
         [Fact]
         public void WeirdTileMapScalingTest()
         {
-            Map tileMap = null;
+            TileMap tileMap = null;
 
             // Create scene for this test.
             TestScene extScene = new TestScene
@@ -543,7 +544,7 @@ void main() {
                     // Change the resolution to one in which the scaling issue appears.
                     Engine.Host.Size = new Vector2(1008, 594);
 
-                    tileMap = new Map(Vector3.Zero, Vector2.Zero, Engine.AssetLoader, "Tilemap/DeepForest.tmx", "Tilemap/") {Size = new Vector2(600, 400)};
+                    tileMap = new TileMap(Vector3.Zero, Vector2.Zero, "Tilemap/DeepForest.tmx", "Tilemap/") {Size = new Vector2(600, 400)};
                 },
                 // Unload the map.
                 ExtUnload = () =>

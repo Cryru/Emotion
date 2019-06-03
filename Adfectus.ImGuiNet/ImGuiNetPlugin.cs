@@ -49,7 +49,7 @@ namespace Adfectus.ImGuiNet
 
             // Setup the font and display parameters.
             io.Fonts.AddFontDefault();
-            io.DisplaySize = Engine.GraphicsManager.RenderSize;
+            io.DisplaySize = Engine.Renderer.BaseTarget.Size;
             io.DisplayFramebufferScale = new Vector2(1f, 1f);
             io.NativePtr->IniFilename = null;
             io.NativePtr->LogFilename = null;

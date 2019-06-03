@@ -312,7 +312,7 @@ namespace Adfectus.Common
 
             // Create modules dependent on platform modules.
 
-            Renderer = new Renderer();
+            Renderer = new Renderer(builder);
             Log.Info("Created module - Renderer.", MessageSource.Engine);
             Renderer.HostResized();
 

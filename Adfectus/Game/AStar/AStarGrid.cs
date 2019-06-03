@@ -45,18 +45,18 @@ namespace Adfectus.Game.AStar
         }
 
         /// <summary>
-        /// Create a grid from a a Map object.
+        /// Create a grid from a TileMap object.
         /// </summary>
-        public AStarGrid(Map map, int layerId, int[] solidTiles)
+        public AStarGrid(TileMap tileMap, int layerId, int[] solidTiles)
         {
-            _nodes = new AStarNode[map.TiledMap.Width, map.TiledMap.Height];
+            _nodes = new AStarNode[tileMap.TiledMap.Width, tileMap.TiledMap.Height];
 
-            for (int x = 0; x < map.TiledMap.Width; x++)
+            for (int x = 0; x < tileMap.TiledMap.Width; x++)
             {
-                for (int y = 0; y < map.TiledMap.Height; y++)
+                for (int y = 0; y < tileMap.TiledMap.Height; y++)
                 {
-                    int tileId = x + y * map.TiledMap.Height;
-                    int imageId = map.GetTileImageIdInLayer(tileId, layerId);
+                    int tileId = x + y * tileMap.TiledMap.Height;
+                    int imageId = tileMap.GetTileImageIdInLayer(tileId, layerId);
                     bool solid = !solidTiles.Contains(imageId);
 
                     _nodes[x, y] = new AStarNode(x, y, solid);

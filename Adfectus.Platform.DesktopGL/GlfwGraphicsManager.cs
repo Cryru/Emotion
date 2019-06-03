@@ -33,8 +33,6 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void Setup(Vector2 renderSize)
         {
-            RenderSize = renderSize;
-
             Gl.BindAPI(s => Glfw.GetProcAddress(s));
             Gl.QueryContextVersion();
             // Check if context was created.
@@ -75,6 +73,9 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public override void DefaultGLState()
         {
+            // If the renderer is not setup, skip.
+            if (Engine.Renderer == null) return;
+
             CheckError("after setting default state");
 
             // Reset blend.
@@ -95,7 +96,7 @@ namespace Adfectus.Platform.DesktopGL
             Gl.DepthMask(true);
 
             // Reset scissor.
-            SetClipRect(0, 0, (int) RenderSize.X, (int) RenderSize.Y);
+            SetClipRect(0, 0, (int) Engine.Renderer.CurrentTarget.Size.X, (int) Engine.Renderer.CurrentTarget.Size.Y);
             Gl.FrontFace(FrontFaceDirection.Ccw);
 
             // Reset color mask.
@@ -142,7 +143,7 @@ namespace Adfectus.Platform.DesktopGL
             GLThread.ExecuteGLThread(() =>
             {
                 Gl.Enable(EnableCap.ScissorTest);
-                Gl.Scissor(x, (int) (RenderSize.Y - height - y), width, height);
+                Gl.Scissor(x, (int) (Engine.Renderer.CurrentTarget.Size.Y - height - y), width, height);
 
                 CheckError("setting clip rect");
             });
@@ -794,14 +795,17 @@ namespace Adfectus.Platform.DesktopGL
         {
             GLThread.ExecuteGLThread(() =>
             {
-                Vector2 sourceSize = source?.Size ?? RenderSize;
-                Vector2 destSize = dest?.Size ?? RenderSize;
+                RenderTarget srcTarget = source ?? Engine.Renderer.BaseTarget;
+                RenderTarget destTarget = dest ?? Engine.Renderer.BaseTarget;
+
+                Vector2 sourceSize = srcTarget.Size;
+                Vector2 destSize = destTarget.Size;
 
                 Rectangle srcRect = sourceRect ?? new Rectangle(0, 0, sourceSize);
                 Rectangle dstRect = destRect ?? new Rectangle(0, 0, destSize);
 
-                uint srcPointer = ((GlRenderTarget) source)?.Pointer ?? 0;
-                uint destPointer = ((GlRenderTarget) dest)?.Pointer ?? 0;
+                uint srcPointer = (uint) ((GlRenderTarget) srcTarget)?.Pointer;
+                uint destPointer = (uint) ((GlRenderTarget) destTarget)?.Pointer;
 
                 Gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, srcPointer);
                 Gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destPointer);

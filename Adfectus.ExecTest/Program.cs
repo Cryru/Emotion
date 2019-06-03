@@ -1,33 +1,21 @@
 ﻿#region Using
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Adfectus.Common;
-using Adfectus.Game;
-using Adfectus.Game.Camera;
-using Adfectus.Game.QuadTree;
-using Adfectus.Game.Time;
-using Adfectus.Game.Time.Routines;
-using Adfectus.Graphics;
-using Adfectus.Graphics.Text;
 using Adfectus.ImGuiNet;
-//using Adfectus.ImGuiNet;
-using Adfectus.Input;
 using Adfectus.Logging;
 using Adfectus.Platform.DesktopGL;
 using Adfectus.Primitives;
 using Adfectus.Scenography;
-//using Adfectus.Steam;
 using Adfectus.Tests;
-using Adfectus.Utility;
 using ImGuiNET;
 using Xunit;
+using Helpers = Adfectus.Utility.Helpers;
 
 #endregion
 
@@ -130,32 +118,27 @@ namespace Adfectus.ExecTest
 
         public override void Load()
         {
-            
         }
 
-        private float hostWidth = 640;
-        private float hostHeight = 360;
+        private float _hostWidth = 640;
+        private float _hostHeight = 360;
 
         public override void Update()
         {
-           
         }
 
         public override void Draw()
         {
-            Engine.Renderer.Render(new Vector3(0, 0, 0), Engine.GraphicsManager.RenderSize, Color.CornflowerBlue);
+            Engine.Renderer.Render(new Vector3(0, 0, 0), Engine.Renderer.BaseTarget.Size, Color.CornflowerBlue);
 
             ImGui.NewFrame();
 
             ImGui.Begin("Resolution Test");
-            ImGui.InputFloat("Width", ref hostWidth);
-            ImGui.InputFloat("Height", ref hostHeight);
-            ImGui.Text($"X: {hostWidth / Engine.GraphicsManager.RenderSize.X} / Y: {hostHeight / Engine.GraphicsManager.RenderSize.Y}");
-            ImGui.Text($"Aspect: {Utility.Helpers.GetAspectRatio(hostWidth, hostHeight)}");
-            if (ImGui.Button("Apply"))
-            {
-                Engine.Host.Size = new Vector2(hostWidth, hostHeight);
-            }
+            ImGui.InputFloat("Width", ref _hostWidth);
+            ImGui.InputFloat("Height", ref _hostHeight);
+            ImGui.Text($"X: {_hostWidth / Engine.Renderer.BaseTarget.Size.X} / Y: {_hostHeight / Engine.Renderer.BaseTarget.Size.Y}");
+            ImGui.Text($"Aspect: {Helpers.GetAspectRatio(_hostWidth, _hostHeight)}");
+            if (ImGui.Button("Apply")) Engine.Host.Size = new Vector2(_hostWidth, _hostHeight);
 
             ImGui.End();
 

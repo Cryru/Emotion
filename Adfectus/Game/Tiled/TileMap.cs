@@ -14,7 +14,7 @@ using TiledSharp;
 
 namespace Adfectus.Game.Tiled
 {
-    public class Map : TransformRenderable
+    public class TileMap : TransformRenderable
     {
         #region Properties
 
@@ -36,11 +36,6 @@ namespace Adfectus.Game.Tiled
         protected List<AnimatedTile> _animatedTiles = new List<AnimatedTile>();
 
         /// <summary>
-        /// todo: reference Context.AssetLoader
-        /// </summary>
-        private AssetLoader _assetLoader;
-
-        /// <summary>
         /// Whether the map is loaded.
         /// </summary>
         protected bool _loaded;
@@ -48,15 +43,12 @@ namespace Adfectus.Game.Tiled
         /// <summary>
         /// Create a new map object from a Tiled map.
         /// </summary>
-        /// <param name="position">The position of the Map.</param>
+        /// <param name="position">The position of the TileMap.</param>
         /// <param name="size">The size of the map. Leave at 0,0 to scale automatically.</param>
-        /// <param name="assetLoader">The asset loader to use to load map and tileset assets.</param>
         /// <param name="mapPath">The path to the map.</param>
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
-        public Map(Vector3 position, Vector2 size, AssetLoader assetLoader, string mapPath, string tileSetFolder) : base(position, size)
+        public TileMap(Vector3 position, Vector2 size, string mapPath, string tileSetFolder) : base(position, size)
         {
-            _assetLoader = assetLoader;
-
             // Check if no map is provided.
             if (mapPath == "") return;
 
@@ -65,11 +57,31 @@ namespace Adfectus.Game.Tiled
         }
 
         /// <summary>
+        /// Create a new map object from a Tiled map.
+        /// </summary>
+        /// <param name="position">The position of the TileMap.</param>
+        /// <param name="mapPath">The path to the map.</param>
+        /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
+        public TileMap(Vector3 position, string mapPath, string tileSetFolder) : this(position, Vector2.Zero, mapPath, tileSetFolder)
+        {
+        }
+
+        /// <summary>
+        /// Create a new map object from a Tiled map.
+        /// </summary>
+        /// <param name="mapPath">The path to the map.</param>
+        /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
+        public TileMap(string mapPath, string tileSetFolder) : this(Vector3.Zero, Vector2.Zero, mapPath, tileSetFolder)
+        {
+        }
+
+        /// <summary>
         /// Reset the tile map with another map and tileset. If an empty string is provided the map is reset to an unloaded state.
         /// </summary>
         /// <param name="mapPath">The path to the new map.</param>
         /// <param name="tileSetFolder">The path to the new tileset.</param>
-        public void Reset(string mapPath, string tileSetFolder)
+        /// <param name="resetSize">Whether to reset the size of the tilemap to the loaded one as well.</param>
+        public void Reset(string mapPath, string tileSetFolder, bool resetSize = false)
         {
             // Check if tileSetFolder ends in a slash.
             if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/') tileSetFolder += "/";
@@ -81,7 +93,7 @@ namespace Adfectus.Game.Tiled
             if (Tilesets.Count > 0)
                 foreach (Texture tileset in Tilesets)
                 {
-                    _assetLoader.Destroy(tileset.Name);
+                    Engine.AssetLoader.Destroy(tileset.Name);
                 }
 
             // Reset holders.
@@ -93,7 +105,7 @@ namespace Adfectus.Game.Tiled
             if (mapPath == "") return;
 
             // Load the map from the data as a stream.
-            using (MemoryStream mapFileStream = new MemoryStream(_assetLoader.Get<OtherAsset>(mapPath).Content))
+            using (MemoryStream mapFileStream = new MemoryStream(Engine.AssetLoader.Get<OtherAsset>(mapPath).Content))
             {
                 TiledMap = new TmxMap(mapFileStream);
             }
@@ -106,7 +118,7 @@ namespace Adfectus.Game.Tiled
                 if (tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
                 if (tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\'));
 
-                Texture temp = _assetLoader.Get<Texture>(tileSetFolder + tilesetFile);
+                Texture temp = Engine.AssetLoader.Get<Texture>(tileSetFolder + tilesetFile);
                 Tilesets.Add(temp);
             }
 
@@ -114,7 +126,7 @@ namespace Adfectus.Game.Tiled
             CacheAnimatedTiles();
 
             // Set default size if none set.
-            if (Width == 0 && Height == 0) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            if ((Width == 0 && Height == 0) || resetSize) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
 
             // Set loading flag.
             _loaded = true;

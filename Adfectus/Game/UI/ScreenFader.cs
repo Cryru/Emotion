@@ -83,7 +83,7 @@ namespace Adfectus.Game.UI
             bool viewMatrixEnabled = Engine.Renderer.ViewMatrixEnabled;
             if (viewMatrixEnabled) Engine.Renderer.ViewMatrixEnabled = false;
 
-            renderer.Render(new Vector3(0, 0, 0), new Vector2(Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y), addOpacity);
+            renderer.Render(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, addOpacity);
 
             // Restore view matrix state.
             Engine.Renderer.ViewMatrixEnabled = viewMatrixEnabled;

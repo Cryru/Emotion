@@ -83,6 +83,11 @@ namespace Adfectus.Graphics
         }
 
         /// <summary>
+        /// The base render target - the one on the very bottom.
+        /// </summary>
+        public RenderTarget BaseTarget { get; private set; }
+
+        /// <summary>
         /// The current model matrix.
         /// </summary>
         public Matrix4x4 ModelMatrix
@@ -119,16 +124,17 @@ namespace Adfectus.Graphics
         /// <summary>
         /// Creates a new renderer. Is called by the Engine when initializing modules.
         /// </summary>
-        internal Renderer()
+        internal Renderer(EngineBuilder builder)
         {
-            // Create objects.
-            Camera = new CameraBase(new Vector3(0, 0, 0), Engine.GraphicsManager.RenderSize);
-            _modelMatrix = new TransformationStack();
-            _targetStack = new Stack<RenderTarget>();
-
             // Create default render target.
-            RenderTarget defaultTarget = Engine.GraphicsManager.CreateRenderTarget(Engine.GraphicsManager.RenderSize, false, TextureInternalFormat.Rgb, TexturePixelFormat.Rgb, true);
+            _targetStack = new Stack<RenderTarget>();
+            RenderTarget defaultTarget = Engine.GraphicsManager.CreateRenderTarget(builder.RenderSize, false, TextureInternalFormat.Rgb, TexturePixelFormat.Rgb, true);
             _targetStack.Push(defaultTarget);
+            BaseTarget = defaultTarget;
+
+            // Create objects.
+            Camera = new CameraBase(new Vector3(0, 0, 0), CurrentTarget.Size);
+            _modelMatrix = new TransformationStack();
 
             // Setup main map buffer.
             _mainBuffer = Engine.GraphicsManager.CreateQuadStreamBuffer(Engine.Flags.RenderFlags.MaxRenderable);
@@ -154,6 +160,7 @@ namespace Adfectus.Graphics
         {
             // Restore states.
             Engine.GraphicsManager.ResetState();
+            Engine.GraphicsManager.DefaultGLState();
             Engine.GraphicsManager.ClearScreen();
             EnsureRenderTarget();
             if (_targetStack.Count == 1) Engine.GraphicsManager.ClearScreen();
@@ -206,7 +213,7 @@ namespace Adfectus.Graphics
             if (size.X == 0 || size.Y == 0) Engine.Log.Warning("Host resized to a size of 0.", MessageSource.Engine);
 
             // Calculate borderbox / pillarbox.
-            float targetAspectRatio = Engine.GraphicsManager.RenderSize.X / Engine.GraphicsManager.RenderSize.Y;
+            float targetAspectRatio = BaseTarget.Size.X / BaseTarget.Size.Y;
 
             float width = size.X;
             float height = (int) (width / targetAspectRatio + 0.5f);
@@ -220,10 +227,10 @@ namespace Adfectus.Graphics
 
             if (Engine.Flags.RenderFlags.IntegerScale)
             {
-                float xIntScale = (float) Math.Floor(width / Engine.GraphicsManager.RenderSize.X);
-                float yIntScale = (float) Math.Floor(height / Engine.GraphicsManager.RenderSize.Y);
-                width = Engine.GraphicsManager.RenderSize.X * xIntScale;
-                height = Engine.GraphicsManager.RenderSize.Y * yIntScale;
+                float xIntScale = (float) Math.Floor(width / BaseTarget.Size.X);
+                float yIntScale = (float) Math.Floor(height / BaseTarget.Size.Y);
+                width = BaseTarget.Size.X * xIntScale;
+                height = BaseTarget.Size.Y * yIntScale;
             }
 
             int vpX = (int) (size.X / 2 - width / 2);

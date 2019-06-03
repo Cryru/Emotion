@@ -22,7 +22,7 @@ namespace Adfectus.Graphics
         /// The resolution to render at.
         /// </summary>
         [Obsolete("Use Engine.Renderer.CurrentTarget.Size")]
-        public Vector2 RenderSize { get; protected set; }
+        public Vector2 RenderSize { get => Engine.Renderer.BaseTarget.Size; }
 
         /// <summary>
         /// The viewport.

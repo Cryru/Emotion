@@ -39,7 +39,7 @@ namespace Adfectus.Game.UI.Layout
 
         public override void Init()
         {
-            if (Parent == null) Size = new Vector2(Engine.GraphicsManager.RenderSize.X, Engine.GraphicsManager.RenderSize.Y);
+            if (Parent == null) Size = Engine.Renderer.CurrentTarget.Size;
         }
 
         #region Parenting
