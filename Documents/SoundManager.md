@@ -1,20 +1,20 @@
-# Sound Manager (Emotion.Sound.SoundManager)
+# Sound Manager (Adfectus.Sound.SoundManager)
 
-_Last Updated: Build 255_
+_Last Updated: Version 0.0.15_
 
-The sound manager is an Emotion context module accessible globally through `Context.SoundManager`. It provides you with the ability to play audio. Its classes can be found under the `Emotion.Sound` namespace.
+The sound manager is an Adfectus Engine module accessible globally through `Engine.SoundManager`. It provides you with the ability to play audio. Its classes can be found under the `Emotion.Sound` namespace.
 
 ## Loading Audio
 
 To play audio you will need to load a `SoundFile` asset using the `AssetLoader`. Currently the only supported format is `WAV`.
 
-_ex. `Context.AssetLoader.Get<SoundFile>("Sounds/mySound.wav");`_
+_ex. `Engine.AssetLoader.Get<SoundFile>("Sounds/mySound.wav");`_
 
 ## Playing Audio
 
-Audio in Emotion is played on layers, allowing you to play multiple tracks at the same time. For instance one layer can be your background music which will loop, while another can play your special effects. Layers are accessed through their string name. To access a layer use `Context.SoundManager.GetLayer("myLayer");`, if the layer doesn't exist it will be created when either accessed or a file is played on it. You never have to explicitly create one, but can destroy them using `Context.SoundManager.RemoveLayer("myLayer")`.
+Audio in Emotion is played on layers, allowing you to play multiple tracks at the same time. For instance one layer can be your background music which will loop, while another can play your special effects. Layers are accessed through their string name. To access a layer use `Engine.SoundManager.GetLayer("myLayer");`, if the layer doesn't exist it will be created when either accessed or a file is played on it. You never have to explicitly create one, but can destroy them using `Engine.SoundManager.RemoveLayer("myLayer")`.
 
-When playing a loaded `SoundFile` on a layer you have two choices. You can either "play" it or "queue" it. The first option will stop whatever tracks are playing currently and play the newly provided track, while the second one will queue the track to be played (seamlessly) once the first finishes. The former can be achieved through the `Context.SoundManager.Play(mySound, "myLayer");` function on the `SoundManager` or by using the layer's API directly - `myLayer.Play(mySound);`. The latter uses the `Context.SoundManager.QueuePlay(mySound, "myLayer");` and `layer.QueuePlay(mySound);` APIs respectively.
+When playing a loaded `SoundFile` on a layer you have two choices. You can either "play" it or "queue" it. The first option will stop whatever tracks are playing currently and play the newly provided track, while the second one will queue the track to be played (seamlessly) once the first finishes. The former can be achieved through the `Engine.SoundManager.Play(mySound, "myLayer");` function on the `SoundManager` or by using the layer's API directly - `myLayer.Play(mySound);`. The latter uses the `Engine.SoundManager.QueuePlay(mySound, "myLayer");` and `layer.QueuePlay(mySound);` APIs respectively.
 
 <img src="playVSqueue.gif">
 
@@ -30,7 +30,7 @@ By using the `Looping` property you can set whether the playlist should loop. If
 
 You can invoke the `Pause()` function on the layer to pause playback, and the `Resume()` function to resume. You can only pause a layer in `Playing` status, and you can resume a layer in `Paused` status. If you play a track on a paused layer it will be resumed. If you queue a track on a paused layer, it will be added to the back of the playlist as usual and the layer will remain paused.
 
-You can change the relative volume of the layer using the `Volume` property, and the volume of all sound using the `Context.Settings.SoundSettings.Volume` property. While the global volume's value must be between 0 and 100, the layer's volume can extend further - boosting the gain.
+You can change the relative volume of the layer using the `Volume` property, and the volume of all sound using the `Engine.Settings.SoundSettings.Volume` property. While the global volume's value must be between 0 and 100, the layer's volume can extend further - boosting the gain.
 
 **Note: Another state of pause is `FocusLossPause` which is applied automatically when the host loses focus and the layer is in Playing status. Any commands issued during this state are not run until the host regains focus.**
 
@@ -62,7 +62,7 @@ Through the `PlaybackLocation` and `TotalDuration` properties you can monitor th
 
 ## Deep Dive
 
-The `SoundManager` uses OpenAL in the background. All actions are executed on a specified thread where the audio context is created and is managed through the `ThreadManager` class - accessible by the global `ALThread` class. The AL loop's frequency is controlled by the `Context.Flags.SoundThreadFrequency` flag and is 50 milliseconds by default. **The ALThread does not run while the host is unfocused, but layers will still be updated.**
+The `SoundManager` uses OpenAL in the background. All actions are executed on a specified thread where the audio Engine is created and is managed through the `ThreadManager` class - accessible by the global `ALThread` class. The AL loop's frequency is controlled by the `Engine.Flags.SoundThreadFrequency` flag and is 50 milliseconds by default. **The ALThread does not run while the host is unfocused, but layers will still be updated.**
 
 AL errors are checked every tick and will cause the engine to crash. Additionally monitoring properties of the layer, such as `Status`, `PlaybackLocation`, `ReportedVolume`, `CurrentlyPlayingFile`, `TotalDuration`, and the removal of playlist tracks are updated on the ALThread, which means the values you can access are cached copies.
 
@@ -72,11 +72,9 @@ To allow seamless playing the audio buffers Emotion uses are all "streaming", wh
 
 ## References
 
-- [Sound Tests](https://github.com/Cryru/Emotion/blob/master/Emotion.Tests/src/Tests/Sound.cs)
-- [Emotion.Sound Namespace](https://github.com/Cryru/Emotion/tree/master/EmotionCore/src/Sound)
-- [SoundManager.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundManager.cs)
-- [SoundLayer.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundLayer.cs)
-- [SoundFile.cs](https://github.com/Cryru/Emotion/blob/master/EmotionCore/src/Sound/SoundFile.cs)
+- [Sound Tests](https://github.com/Cryru/Emotion/blob/master/Adfectus.Tests/Sound.cs)
+- [Adfectus.Sound Namespace](https://github.com/Cryru/Emotion/tree/master/Adfectus/Sound)
+- [Adfectus.DesktopGL.Sound Namespace](https://github.com/Cryru/Emotion/tree/master/Adfectus.Platform.DesktopGL/Sound)
 
 ## Todo
 

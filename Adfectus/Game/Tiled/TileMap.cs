@@ -28,6 +28,22 @@ namespace Adfectus.Game.Tiled
         /// </summary>
         public List<Texture> Tilesets { get; private set; } = new List<Texture>();
 
+        /// <summary>
+        /// The size of a tile in pixels.
+        /// </summary>
+        public Vector2 TileSize
+        {
+            get => new Vector2(TiledMap.TileWidth, TiledMap.TileHeight);
+        }
+
+        /// <summary>
+        /// The size of the map in tiles.
+        /// </summary>
+        public Vector2 SizeInTiles
+        {
+            get => new Vector2(TiledMap.Width, TiledMap.Height);
+        }
+
         #endregion
 
         /// <summary>
@@ -259,7 +275,7 @@ namespace Adfectus.Game.Tiled
         public int GetTileImageIdInLayer(int coordinate, int layer)
         {
             // Check if layer is out of bounds.
-            if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
+            if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 1) return -1;
 
             //Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;

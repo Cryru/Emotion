@@ -13,7 +13,7 @@ Any class which inherits the `Asset` class can be managed by the Assetloader. By
     Images to draw, loaded by FreeImage ex. BMP/PNG/JPEG/GIF
 - ShaderAsset
 
-    An Emotion xml shader description file. For more information refer to the shader documentation here - [Shaders](./Documents/Shaders).
+    An Adfectus xml shader description file. For more information refer to the shader documentation here - [Shaders](./Documents/Shaders).
 - Font
 
     Fonts to draw text. Loaded by FreeType ex. TTF/OTF
