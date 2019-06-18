@@ -1,14 +1,16 @@
 # Getting Started
 
-First you have to add Emotion to your project. You can do this either by looking up "Emotion" on Nuget, or by downloading the debug/release packages from the ReadMe. If you opt for the second option you need to include the `EmotionCore.dll` in your project, and set all other files to copy to the output directory.
+_Last Updated: Version 0.0.15_
 
-Once that's done invoke the `Context.Setup()` _(Emotion.Engine.Context)_ function. This loads libraries and performs platform dependent bootstrapping. 90% of the time this should be the first Emotion related function you invoke. After the setup you can now use Emotion APIs and modules, most of which are found as members of the Context class. 
+First you have to add Adfectus to your project. You can do this by looking up "Adfectus" on Nuget - and then choosing the packet for your platform (Adfectus.Platform.DesktopGL for example).
 
-You can also pass a function which takes in a `Settings` _(Emotion.Engine.Configuration.Settings)_ class to the Setup to configure some user related properties. Another way to configure the engine is to use the `Context.Flags` property which will be loaded and available from the start. It includes some lower level settings and is much more volatile. For more information refer to the [Configuration](./Configuration.md) documentation.
+Once that's done invoke the `Engine.Setup()` _(Adfectus.Common.Engine)_ function. This loads libraries and performs platform dependent bootstrapping. 90% of the time this should be the first Adfectus related function you invoke. After the setup you can now use Adfectus APIs and modules, most of which are found as members of the Engine class. 
+
+You can also pass an `EngineBuilder` _(Adfectus.Common.EngineBuilder)_ to the setup, which allows you to configure various properties. Another way to configure the engine is to use the `Engine.Flags` property which is accessible even before setup is called, but is not to be relied on as it includes some lower level settings and is much more volatile. For more information refer to the [Configuration](./Configuration.md) documentation.
 
 ## Scenography
 
-Your game code should be organized in objects called scenes. These objects have a load function which is ran at the start once, on another thread, and an update and draw function which will be executed as part of the draw loop. To create a scene you need to inherit the `Scene` _(Emotion.Engine.Scenography.Scene)_ class. Once you have created your scene all that is required for it to be loaded is invoking `Context.SceneManager.SetScene(new MainScene())`.
+Your game code should be organized in objects called scenes. These objects have a load function which is ran at the start once, on another thread, and an update and draw function which will be executed as part of the main loop. To create a scene you need to inherit the `Scene` _(Adfectus.Scenography.Scene)_ class. Once you have created your scene all that is required for it to be loaded is invoking `Engine.SceneManager.SetScene(new MyScene())`.
 
 For more information refer to the [Scenography](./Scenography.md) documentation.
 
@@ -18,31 +20,28 @@ Code Example:
 ```
 #region Using
 
-using Emotion.Engine;
-using Emotion.Engine.Scenography;
-using Emotion.Graphics;
+using Adfectus.Common;
+using Adfectus.Scenography;
 
 #endregion
 
 namespace MyGame
 {
-    public class MainScene : Scene
+    public class MyScene : Scene
     {
         public override void Load()
         {
             // Run on another thread, once. Loading assets and other resources should happen here.
         }
 
-        public override void Update(float frameTime)
+        public override void Update()
         {
             // If run on the game loop according to the timestep. Update your game's step here - physics etc.
-            // The frametime argument passed is `Context.FrameTime`.
         }
 
-        public override void Draw(Renderer renderer)
+        public override void Draw()
         {
-            // Perform drawing here.
-            // The renderer argument passed is `Context.Renderer`.
+            // Perform drawing here using the `Engine.Renderer` object.
         }
 
         public override void Unload()
@@ -57,10 +56,8 @@ namespace MyGame
 
 ## The Game Loop
 
-Once you have setup your scene you can start the game loop by invoking `Context.Run()`, this function is expected to be blocking. Your *scene's update function* will be called in a semi fixed step according to the `Settings.RenderSettings.CapFPS` setting. If the settings is set to 0, it will be executed as many times as possible. The *draw function* on the other hand will be called much more often. It is advised not to perform any state updating in the draw function,
-and to use `Context.FrameTime` for time tracking. When the host is unfocused neither function will be run.
-
-Note: The game loop is handled by the IHost instance. The above description is for the default host.
+Once you have setup your scene you can start the game loop by invoking `Engine.Run()`, this function is expected to be blocking. Your *scene's update function* will be called in a semi fixed step according to the EngineBuilder's `TargetTPS` setting (60 by default). If the settings is set to 0, it will be executed as many times as possible. The *draw function* on the other hand will be called less often. It is advised not to perform any state updating in the draw function,
+and to use `Engine.FrameTime` for time tracking. When the host is unfocused neither function will be run.
 
 ## You're Done Now
 
@@ -72,9 +69,9 @@ Your main function will look something like this now:
 ```
     public static void Main(string[] args)
     {
-        Context.Setup();
-        Context.SceneManager.SetScene(new MainScene());
-        Context.Run();
+        Engine.Setup();
+        Engine.SceneManager.SetScene(new MyScene());
+        Engine.Run();
     }
 ```
 ---
