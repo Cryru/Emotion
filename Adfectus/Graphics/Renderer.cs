@@ -160,8 +160,8 @@ namespace Adfectus.Graphics
         {
             // Restore states.
             Engine.GraphicsManager.ResetState();
-            Engine.GraphicsManager.DefaultGLState();
             Engine.GraphicsManager.ClearScreen();
+            Engine.GraphicsManager.DefaultGLState();
             EnsureRenderTarget();
             if (_targetStack.Count == 1) Engine.GraphicsManager.ClearScreen();
 
@@ -532,7 +532,7 @@ namespace Adfectus.Graphics
             Render(position, size, Color.White, texture, textureArea);
         }
 
-        
+
         /// <summary>
         /// Shortcut for Render(position, texture.Size, color, texture).
         /// </summary>

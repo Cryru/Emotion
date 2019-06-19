@@ -22,10 +22,10 @@ For additional supported platforms, lookup .NetCore 3.0 support.
 
 ### Requirements:
 
-- At least OpenGL 3.2 Support
-  - Note: OpenGL 3.0 is semi supported.
+- OpenGL 3.3 or higher
 - If older than Windows 10
   - [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+- On MacOS and Linux all the dependencies should be included by default.
 
 ### Platforms Tested On:
 
@@ -40,6 +40,9 @@ For additional supported platforms, lookup .NetCore 3.0 support.
 - Linux Mint 19.1
   - Nvidia 970M NV124 Nouveau Driver
   - Nvidia 960M Unknown Driver
+  - Nvidia 1060
+- Manjaro Linux 18
+  - Nvidia 1060
 - MacOSX 10.13 High Sierra
   - MacBook Air (Intel 4000)
 

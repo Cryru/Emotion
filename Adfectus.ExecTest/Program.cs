@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Adfectus.Common;
 using Adfectus.ImGuiNet;
+using Adfectus.Input;
 using Adfectus.Logging;
 using Adfectus.Platform.DesktopGL;
 using Adfectus.Primitives;
@@ -125,6 +126,9 @@ namespace Adfectus.ExecTest
 
         public override void Update()
         {
+            Joystick joystick = Engine.InputManager.GetJoystick(0);
+            if(joystick == null) return;
+            joystick.GetKeyDown();
         }
 
         public override void Draw()

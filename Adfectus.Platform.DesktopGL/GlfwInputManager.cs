@@ -26,6 +26,8 @@ namespace Adfectus.Platform.DesktopGL
         private KeyCode[] _allKeys;
         private MouseKey[] _mouseKeys;
 
+        private Dictionary<int, Joystick> _loadedJoysticks;
+
         #region State
 
         private float _mouseScroll;
@@ -72,6 +74,8 @@ namespace Adfectus.Platform.DesktopGL
                 _mouseStatus[key] = false;
                 _mouseStatusShadow[key] = false;
             }
+
+            _loadedJoysticks = new Dictionary<int, Joystick>();
         }
 
         #region Callbacks
@@ -264,6 +268,22 @@ namespace Adfectus.Platform.DesktopGL
             if (_textInputQueue.Count == 0) return (char) 0;
 
             return handle ? _textInputQueue.Dequeue() : _textInputQueue.Peek();
+        }
+
+        /// <inheritdoc />
+        public Joystick GetJoystick(int id)
+        {
+            // Check if cached.
+            if (_loadedJoysticks.ContainsKey(id)) return _loadedJoysticks[id];
+
+            // Check if the joystick exists.
+            if(Glfw.JoystickPresent(id) == 0) return null;
+
+            // Load and cache.
+            GlfwJoystick joystick = new GlfwJoystick(id, Glfw.GetJoystickName(id));
+            _loadedJoysticks.Add(id, joystick);
+
+            return joystick;
         }
     }
 }

@@ -148,5 +148,13 @@ namespace Adfectus.Input
         /// </param>
         /// <returns>The next text input character or null if none.</returns>
         char GetNextTextInput(bool handle = true);
+
+        /// <summary>
+        /// Get the joystick associated with a specific id.
+        /// If none is connected, returns null.
+        /// </summary>
+        /// <param name="id">The id of the joystick to load. Basically a number from 0 to the number of joysticks supported.</param>
+        /// <returns>A joystick object.</returns>
+        Joystick GetJoystick(int id);
     }
 }
