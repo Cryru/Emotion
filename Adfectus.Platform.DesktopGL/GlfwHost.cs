@@ -310,6 +310,8 @@ namespace Adfectus.Platform.DesktopGL
         /// <inheritdoc />
         public void Update()
         {
+            if (Engine.IsUnfocused) Glfw.WaitEvents();
+
             Glfw.PollEvents();
         }
 

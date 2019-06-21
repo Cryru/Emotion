@@ -279,6 +279,15 @@ namespace Adfectus.Platform.DesktopGL
             // Check if the joystick exists.
             if(Glfw.JoystickPresent(id) == 0) return null;
 
+            Glfw.GetVersion(out int major, out int minor, out int _);
+            if (major < 3 && minor < 3)
+            {
+                Engine.Log.Warning("Cannot use Joystick API. Glfw native library must be at least version 3.3", MessageSource.Input);
+                return null;
+            }
+
+            if(!Glfw.JoystickIsGamepad(id)) return null;
+
             // Load and cache.
             GlfwJoystick joystick = new GlfwJoystick(id, Glfw.GetJoystickName(id));
             _loadedJoysticks.Add(id, joystick);

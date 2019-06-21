@@ -1033,6 +1033,8 @@ namespace Adfectus
 
         public delegate int VulkanSupportedInternal();
 
+        public delegate bool JoystickIsGamepadInternal(int id);
+
         #endregion
 
         #region Function Handles
@@ -2230,6 +2232,8 @@ namespace Adfectus
         /// <returns><c>true</c> if Vulkan is available, or <c>false</c> otherwise.</returns>
         public static VulkanSupportedInternal VulkanSupported;
 
+        public static JoystickIsGamepadInternal JoystickIsGamepad;
+
         #endregion
 
         #region Functions
@@ -2351,6 +2355,7 @@ namespace Adfectus
             GetFuncPointer(lib, "glfwGetProcAddress", ref GetProcAddress);
             GetFuncPointer(lib, "glfwVulkanSupported", ref VulkanSupported);
             GetFuncPointer(lib, "glfwGetRequiredInstanceExtensions", ref _getRequiredInstanceExtensions);
+            GetFuncPointer(lib, "glfwJoystickIsGamepad", ref JoystickIsGamepad);
 
             // Run glfwInit.
             return _glfwInit();
