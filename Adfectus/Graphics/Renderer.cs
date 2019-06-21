@@ -160,10 +160,10 @@ namespace Adfectus.Graphics
         {
             // Restore states.
             Engine.GraphicsManager.ResetState();
-            Engine.GraphicsManager.ClearScreen();
-            Engine.GraphicsManager.DefaultGLState();
+            Engine.GraphicsManager.ClearScreen(); // This clears the host.
+            Engine.GraphicsManager.DefaultGLState(); // This needs to be after the host clear, so it doesn't overwrite its scissor.
             EnsureRenderTarget();
-            if (_targetStack.Count == 1) Engine.GraphicsManager.ClearScreen();
+            if (_targetStack.Count == 1) Engine.GraphicsManager.ClearScreen(); // This clears the render target.
 
             // Update the current camera.
             Camera.Update();

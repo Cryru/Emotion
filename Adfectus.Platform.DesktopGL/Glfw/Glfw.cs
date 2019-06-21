@@ -2232,7 +2232,39 @@ namespace Adfectus
         /// <returns><c>true</c> if Vulkan is available, or <c>false</c> otherwise.</returns>
         public static VulkanSupportedInternal VulkanSupported;
 
-        public static JoystickIsGamepadInternal JoystickIsGamepad;
+        //public static JoystickIsGamepadInternal JoystickIsGamepad;
+
+        //public delegate IntPtr GetGamepadNameInternal(int id);
+        //public static GetGamepadNameInternal GetGamepadName;
+
+        //public struct GamepadState
+        //{
+        //    public byte A;
+        //    public byte B;
+        //    public byte X;
+        //    public byte Y;
+        //    public byte LeftBumper;
+        //    public byte RightBumper;
+        //    public byte Back;
+        //    public byte Start;
+        //    public byte Guide;
+        //    public byte LeftThumb;
+        //    public byte RightThumb;
+        //    public byte Up;
+        //    public byte Right;
+        //    public byte Down;
+        //    public byte Left;
+
+        //    public float AxisLeftX;
+        //    public float AxisLeftY;
+        //    public float AxisRightX;
+        //    public float AxisRightY;
+        //    public float AxisLeftTrigger;
+        //    public float AxixRightTrigger;
+        //}
+
+        //public delegate int GetGamepadStateInternal(int id, ref GamepadState state);
+        //public static GetGamepadStateInternal GetGamepadState;
 
         #endregion
 
@@ -2355,7 +2387,9 @@ namespace Adfectus
             GetFuncPointer(lib, "glfwGetProcAddress", ref GetProcAddress);
             GetFuncPointer(lib, "glfwVulkanSupported", ref VulkanSupported);
             GetFuncPointer(lib, "glfwGetRequiredInstanceExtensions", ref _getRequiredInstanceExtensions);
-            GetFuncPointer(lib, "glfwJoystickIsGamepad", ref JoystickIsGamepad);
+            //GetFuncPointer(lib, "glfwJoystickIsGamepad", ref JoystickIsGamepad);
+            //GetFuncPointer(lib, "glfwGetGamepadName", ref GetGamepadName);
+            //GetFuncPointer(lib, "glfwGetGamepadState", ref GetGamepadState);
 
             // Run glfwInit.
             return _glfwInit();

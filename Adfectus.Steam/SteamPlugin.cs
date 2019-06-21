@@ -25,6 +25,16 @@ namespace Adfectus.Steam
         /// </summary>
         public static uint Appid { get; private set; }
 
+        /// <summary>
+        /// Whether the Steam controller API has been initiated, and should be kept updated.
+        /// </summary>
+        public static bool UsingControllers { get; private set; }
+
+        /// <summary>
+        /// Whether the api is ready to be used.
+        /// </summary>
+        public static bool Ready { get; private set; }
+
         #endregion
 
         private delegate void SteamWarningHook(int severity, string text);
@@ -95,6 +105,12 @@ namespace Adfectus.Steam
 
         public override void Update()
         {
+            // Update controllers api if using it.
+            if (UsingControllers)
+            {
+                SteamApi.SteamController.RunFrame();
+            }
+
             // Add frame time to timer.
             _internalTimer += (float) Engine.RawFrameTime;
 
@@ -102,6 +118,8 @@ namespace Adfectus.Steam
             if (!(_internalTimer > SteamUpdateTime)) return;
             _internalTimer -= SteamUpdateTime;
             SteamApi.RunCallbacks();
+
+            if(!Ready) Ready = true;
         }
 
         public override void Dispose()
@@ -115,10 +133,25 @@ namespace Adfectus.Steam
         /// Unlocks the achievement on Steam.
         /// </summary>
         /// <param name="achievementName">The name of the achievement.</param>
-        public void UnlockAchievement(string achievementName)
+        public static void UnlockAchievement(string achievementName)
         {
             SteamApi.SteamUserStats.SetAchievement(achievementName);
             SteamApi.SteamUserStats.StoreStats();
+        }
+
+        public static void GetJoystick(int id)
+        {
+            if (!UsingControllers)
+            {
+                SteamApi.SteamController.Init();
+                SteamApi.SteamController.RunFrame();
+                UsingControllers = true;
+            }
+
+            ulong[] handles = new ulong[100];
+            int count = SteamApi.SteamController.GetConnectedControllers(ref handles[0]);
+
+            Engine.Log.Info("Controllers Found: " + count, MessageSource.Other);
         }
 
         #endregion

@@ -13,6 +13,7 @@ using Adfectus.Logging;
 using Adfectus.Platform.DesktopGL;
 using Adfectus.Primitives;
 using Adfectus.Scenography;
+using Adfectus.Steam;
 using Adfectus.Tests;
 using ImGuiNET;
 using Xunit;
@@ -126,9 +127,7 @@ namespace Adfectus.ExecTest
 
         public override void Update()
         {
-            Joystick joystick = Engine.InputManager.GetJoystick(0);
-            if(joystick == null) return;
-            joystick.GetKeyDown();
+
         }
 
         public override void Draw()

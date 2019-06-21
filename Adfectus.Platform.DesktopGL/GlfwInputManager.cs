@@ -286,9 +286,21 @@ namespace Adfectus.Platform.DesktopGL
                 return null;
             }
 
-            if(!Glfw.JoystickIsGamepad(id)) return null;
+            //if(!Glfw.JoystickIsGamepad(id)) return null;
 
-            // Load and cache.
+            //// Load and cache.
+            //IntPtr name = Glfw.GetGamepadName(id);
+            //List<byte> bytes = new List<byte>();
+            //unsafe
+            //{
+            //    char* nptr = (char*) name;
+            //    while (*nptr != 0)
+            //    {
+            //        bytes.Add((byte)*nptr);
+            //        nptr++;
+            //    }
+            //}
+            //GlfwJoystick joystick = new GlfwJoystick(id, System.Text.Encoding.UTF8.GetString(bytes.ToArray()));
             GlfwJoystick joystick = new GlfwJoystick(id, Glfw.GetJoystickName(id));
             _loadedJoysticks.Add(id, joystick);
 

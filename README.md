@@ -107,6 +107,7 @@ For additional supported platforms, lookup .NetCore 3.0 support.
 - Lots of configuration through settings and flags.
 - Steam integration.
 - ImGui integration.
+- XInput Controller integration.
 
 ## Documentation
 

@@ -25,7 +25,7 @@
             Name = name;
         }
 
-        public abstract void GetKeyDown();
-        public abstract void GetAxis();
+        public abstract bool GetKeyDown(JoystickButton button);
+        public abstract float GetAxis(JoystickAxis axis);
     }
 }

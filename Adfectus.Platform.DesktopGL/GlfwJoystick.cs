@@ -22,19 +22,18 @@ namespace Adfectus.Platform.DesktopGL
         {
         }
 
-        public override void GetAxis()
+        public override float GetAxis(JoystickAxis axis)
         {
-      
+            float[] a = Glfw.GetJoystickAxes(Id, out int count);
+            if (count == 0) return 0;
+            return a[(int) axis];
         }
 
-        public override void GetKeyDown()
+        public override bool GetKeyDown(JoystickButton b)
         {
-            byte[] c = Glfw.GetJoystickButtons(Id, out int buttons);
-            //Engine.Log.Info(string.Join("|", c), Logging.MessageSource.Other);
-            for (int i = 0; i < buttons; i++)
-            {
-                
-            }
+            byte[] c = Glfw.GetJoystickButtons(Id, out int count);
+            if (count == 0) return false;
+            return c[(int) b] == 1;
         }
     }
 }
