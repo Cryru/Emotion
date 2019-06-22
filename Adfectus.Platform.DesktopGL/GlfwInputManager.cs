@@ -26,7 +26,7 @@ namespace Adfectus.Platform.DesktopGL
         private KeyCode[] _allKeys;
         private MouseKey[] _mouseKeys;
 
-        private Dictionary<int, Joystick> _loadedJoysticks;
+        private Dictionary<int, GlfwJoystick> _loadedJoysticks;
 
         #region State
 
@@ -75,7 +75,7 @@ namespace Adfectus.Platform.DesktopGL
                 _mouseStatusShadow[key] = false;
             }
 
-            _loadedJoysticks = new Dictionary<int, Joystick>();
+            _loadedJoysticks = new Dictionary<int, GlfwJoystick>();
         }
 
         #region Callbacks
@@ -121,6 +121,12 @@ namespace Adfectus.Platform.DesktopGL
 
                 int state = Glfw.GetKey(_win, (int) key);
                 _keyStatus[key] = state >= 1;
+            }
+
+            // Update joysticks.
+            foreach (KeyValuePair<int, GlfwJoystick> joystick in _loadedJoysticks)
+            {
+                joystick.Value.Update();
             }
 
             // Check for fullscreen toggling key combo.
@@ -276,15 +282,15 @@ namespace Adfectus.Platform.DesktopGL
             // Check if cached.
             if (_loadedJoysticks.ContainsKey(id)) return _loadedJoysticks[id];
 
-            // Check if the joystick exists.
-            if(Glfw.JoystickPresent(id) == 0) return null;
+            //// Check if the joystick exists.
+            //if(Glfw.JoystickPresent(id) == 0) return null;
 
-            Glfw.GetVersion(out int major, out int minor, out int _);
-            if (major < 3 && minor < 3)
-            {
-                Engine.Log.Warning("Cannot use Joystick API. Glfw native library must be at least version 3.3", MessageSource.Input);
-                return null;
-            }
+            //Glfw.GetVersion(out int major, out int minor, out int _);
+            //if (major < 3 && minor < 3)
+            //{
+            //    Engine.Log.Warning("Cannot use Joystick API. Glfw native library must be at least version 3.3", MessageSource.Input);
+            //    return null;
+            //}
 
             //if(!Glfw.JoystickIsGamepad(id)) return null;
 
@@ -302,6 +308,10 @@ namespace Adfectus.Platform.DesktopGL
             //}
             //GlfwJoystick joystick = new GlfwJoystick(id, System.Text.Encoding.UTF8.GetString(bytes.ToArray()));
             GlfwJoystick joystick = new GlfwJoystick(id, Glfw.GetJoystickName(id));
+
+            // Update twice to fill both current frame and last frame values.
+            joystick.Update();
+            joystick.Update();
             _loadedJoysticks.Add(id, joystick);
 
             return joystick;

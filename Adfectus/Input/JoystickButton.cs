@@ -13,12 +13,12 @@
         RightBumper = 5,
         Back = 6,
         Start = 7,
-        Guide = 8,
-        LeftThumb = 9,
-        RightThumb = 10,
-        Up = 11,
-        Right = 12,
-        Down = 13,
-        Left = 14
+        // Guide = 8, // It seems the "guide" button is not really reported. It if was - it would be here.
+        LeftThumb = 8,
+        RightThumb = 9,
+        Up = 10,
+        Right = 11,
+        Down = 12,
+        Left = 13
     }
 }
