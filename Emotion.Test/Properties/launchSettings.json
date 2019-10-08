@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Emotion.Test": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    },
+    "Emotion.Test - Desktop Tests": {
+      "commandName": "Project",
+      "commandLineArgs": "testOnly tag=EmotionDesktop"
+    }
+  }
+}

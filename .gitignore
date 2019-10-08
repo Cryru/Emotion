@@ -49,3 +49,5 @@ ElectricSleep
 
 # Other
 *.DotSettings.user
+cmake-build-debug
+.idea

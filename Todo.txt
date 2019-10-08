@@ -1,0 +1,48 @@
+DataBuffer.CreateMapper
+	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
+Commands
+	- Merge state changing commands one after another into one.
+GL
+	- Investigate why the VertexArrayObject binding cache doesn't work. Maybe VertexArrayBinding isn't the right value?
+Rendering
+	- Add state changes test
+Standard.Image
+	- PNG: Make the conversion to 32bpp little endian and the inverting in place when encoding the data rather than at the start.
+	- Implement ByteWriter and use it to encode the images.
+	- JPEG Support
+	- Add tests for image encoding
+Logging
+	- Filtering
+Standard.Text
+	- Improve the CFF dictionary parsing with a class with annotations instead of the dictionary hell happening there.
+	- WOFF table parsing (and whatever else is needed for it to be supported)
+	- Kern table and kerning
+	- FDSelect array CFF subr. (No font found which does this.)
+	- LTag parsing (couldn't find such font)
+	- Cff fonts without a CMap (couldn't find such font)
+	- GSub table
+	- GPos table
+	- FVar table
+	- Meta table
+	- Improve Glyf glyph parsing. Currently it cannot be multi-threaded because of the composite parts. Maybe it should be done in two passes.
+	- Long Term: Implement the FreeType rasterizer.
+	- Glyf: No contour error handling
+	- RenderGlyph, "e" variable resizing is not really needed.
+Emotion.Test
+	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
+Documentation
+	- Finish the documentation :D
+Game Logic
+	- UI with scaling and some kind of event capturing/focus system
+	- Add RichText tests
+Platform
+	- Windows Sound
+	- Mac
+	- Linux
+	- Android
+	- Web
+Meta
+	- Nuget Package
+	- Autobuild nuget package, with version patching, and commit hash patching
+Input
+	- Controller Support (Wherever possible)

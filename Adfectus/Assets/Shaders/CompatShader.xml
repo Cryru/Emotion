@@ -1,5 +1,0 @@
-<ShaderDescription>
-  <Frag>Shaders/CompatFrag.frag</Frag>
-  <Vert>Shaders/CompatVert.vert</Vert>
-  <Fallback>Shaders/HighCompat.xml</Fallback>
-</ShaderDescription>

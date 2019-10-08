@@ -1,0 +1,4 @@
+- Automatic TextureArrayLimit detection.
+- Use different struct than VertexData for drawing vertices.
+- Handlers of custom RenderCommands
+- Improve glyph rasterization.
