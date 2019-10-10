@@ -58,7 +58,7 @@ namespace Emotion.Game.Animation
         /// </summary>
         public Rectangle CurrentFrame
         {
-            get => GetFrameBounds(Texture.Size, _frameSize, _spacing, CurrentFrameIndex);
+            get => GetFrameBounds(CurrentFrameIndex);
         }
 
         /// <summary>
@@ -77,6 +77,19 @@ namespace Emotion.Game.Animation
             get => (int) (Texture.Size.X / _frameSize.X * Texture.Size.Y / _frameSize.Y - 1);
         }
 
+        /// <summary>
+        /// The size of the individual frames.
+        /// </summary>
+        public Vector2 FrameSize
+        {
+            get => _frameSize;
+            set
+            {
+                _frameSize = value;
+                Reset();
+            }
+        }
+
         #endregion
 
         private Vector2 _frameSize;
@@ -87,6 +100,34 @@ namespace Emotion.Game.Animation
 
         /// <summary>
         /// Create a new animated texture object. Which will animate from the first frame to the last.
+        /// </summary>
+        /// <param name="texture">The spritesheet texture.</param>
+        /// <param name="columns">The number of columns of frames.</param>
+        /// <param name="rows">The number of rows of frames.</param>
+        /// <param name="loopType">The type of loop to apply to the animation.</param>
+        /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
+        public AnimatedTexture(Texture texture, int columns, int rows, AnimationLoopType loopType, int timeBetweenFrames)
+            : this(texture, new Vector2(texture.Size.X / columns, texture.Size.Y / rows), loopType, timeBetweenFrames)
+        {
+        }
+
+        /// <summary>
+        /// Create a new animated texture object. Which will animate from the first frame to the last.
+        /// </summary>
+        /// <param name="texture">The spritesheet texture.</param>
+        /// <param name="columns">The number of columns of frames.</param>
+        /// <param name="rows">The number of rows of frames.</param>
+        /// <param name="loopType">The type of loop to apply to the animation.</param>
+        /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
+        /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
+        /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
+        public AnimatedTexture(Texture texture, int columns, int rows, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame, int endingFrame)
+            : this(texture, new Vector2(texture.Size.X / columns, texture.Size.Y / rows), loopType, timeBetweenFrames, startingFrame, endingFrame)
+        {
+        }
+
+        /// <summary>
+        /// Create a new animated texture object.
         /// </summary>
         /// <param name="texture">The spritesheet texture.</param>
         /// <param name="frameSize">The size of frames within the texture. It is assumed that all frames are of the same size.</param>
@@ -132,7 +173,6 @@ namespace Emotion.Game.Animation
             EndingFrame = endingFrame;
             TimeBetweenFrames = timeBetweenFrames;
 
-            ClampFrameParameters();
             Reset();
         }
 
@@ -142,6 +182,8 @@ namespace Emotion.Game.Animation
         /// <param name="frameTime">The time passed since the last update.</param>
         public void Update(float frameTime)
         {
+            if (_frameSize == Vector2.Zero) return;
+
             // Clamp frame parameters.
             ClampFrameParameters();
 
@@ -165,6 +207,19 @@ namespace Emotion.Game.Animation
             _timePassed = 0;
             CurrentFrameIndex = GetStartingFrame();
             LoopCount = 0;
+            ClampFrameParameters();
+        }
+
+        /// <summary>
+        /// Set the current frame to the specified frame.
+        /// Animation will continue from there.
+        /// If the index is invalid it will either be set to the starting or ending frame.
+        /// </summary>
+        /// <param name="index">The index to set the current frame to.</param>
+        public void SetFrame(int index)
+        {
+            CurrentFrameIndex = index;
+            ClampFrameParameters();
         }
 
         #region Logic
@@ -292,6 +347,16 @@ namespace Emotion.Game.Animation
         }
 
         #endregion
+
+        /// <summary>
+        /// Get the bounds of the specified frame.
+        /// </summary>
+        /// <param name="frameId">The frame to get the bounds of.</param>
+        /// <returns>The bounds of the requested frame.</returns>
+        public Rectangle GetFrameBounds(int frameId)
+        {
+            return GetFrameBounds(Texture.Size, _frameSize, _spacing, frameId);
+        }
 
         /// <summary>
         /// Returns the bounds of a frame within a spritesheet texture.

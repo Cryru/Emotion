@@ -472,7 +472,7 @@ namespace Emotion.Graphics
 
         #endregion
 
-        #region Framebuffer, Shader, and Model Matirx Syncronization and State
+        #region Framebuffer, Shader, and Model Matrix Syncronization and State
 
         /// <summary>
         /// Synchronizes uniform properties with the currently bound shader.

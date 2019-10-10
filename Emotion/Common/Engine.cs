@@ -245,7 +245,7 @@ namespace Emotion.Common
 
                 if (_unfocusedHostEvent != null)
                 {
-                    _unfocusedHostEvent.Set();
+                    _unfocusedHostEvent?.Set();
                     continue;
                 }
 

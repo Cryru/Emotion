@@ -112,11 +112,11 @@ namespace Emotion.IO
             // If loaded and not disposed - return it.
             if (loaded && !asset.Disposed) return (T) asset;
 
-            // Find which source contains it, if any.
-            bool assetFound = _manifest.TryGetValue(name, out AssetSource source);
+            // Get the source which contains it, if any.
+            AssetSource source = GetSource(name);
 
             // Check if the asset was found in any source.
-            if (!assetFound)
+            if (source == null)
             {
                 Engine.Log.Warning($"Tried to load asset {name} which doesn't exist in any loaded source.", MessageSource.AssetLoader);
                 return default;
@@ -131,6 +131,17 @@ namespace Emotion.IO
             _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
             return (T) asset;
+        }
+
+        /// <summary>
+        /// Get the source which contains the specified asset.
+        /// </summary>
+        /// <param name="name">The name of the asset.</param>
+        /// <returns>The source which can load the asset, or null if none.</returns>
+        public AssetSource GetSource(string name)
+        {
+            bool assetFound = _manifest.TryGetValue(name, out AssetSource source);
+            return assetFound ? source : null;
         }
 
         /// <summary>

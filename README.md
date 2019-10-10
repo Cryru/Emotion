@@ -44,6 +44,9 @@ Tested platforms are:
   - Fullscreen mode.
   - Pause when focus is lost, lowering resource usage in the background.
   - Software renderer fallback. (Windows only, through Gallium, check platform documentation)
+- Mouse and keyboard input.
+  - Detect key down, key up, and key held independently.
+  - Detect text input.
 - SIMD vector and matrix math, through System.Numerics.
 - File Support
   - Reading and writing of various BMP formats and PNG files.
@@ -52,24 +55,42 @@ Tested platforms are:
   - Parsing of "CFF" and "TTF" font formats, rasterizing and preparing an atlas of glyphs using an Emotion parser and rasterizer.
 	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the inluded native library)
     	- Optionally the font can also be rasterized using StbTrueTypeSharp.
+- Asset loading and managements
+ - Load assets from different sources, and manage their lifecycle.
+- Camera system.
 - Rendering
   - Drawing of things like lines, rectangles, triangles, and circles.
 	- These are all drawn as triangles, no GL_LINES here, monsieur!
   - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
-  - Textures with alpha testing and blending.
-   - Draw order independent. (Mostly, you'll still need to order semi-transparent objects. This feature is achieved by discarding invisible fragments.)
+  - Draw order independent texture alpha testing and blending. (Mostly, you'll still need to order semi-transparent objects. This feature is achieved by discarding invisible fragments.)
+  - Model matrix stack.
+  - Spritesheet based animation.
+  - Text.
+    - Includes advanced font drawing with control over each individual glyph.
+    - Extensible Richtext class featuring auto wrapping, alignment, markup, and more.
   - Cache draw commands to reexecute them faster.
   - Different types of scaling, with pixel art in mind, allowing your game to look the same on all resolutions.
-- Shader pipeline which will try multiple preprocessors to increase the compatibility of your shader.
+- Shader pipeline
+  - Try multiple preprocessors to increase the compatibility of your shader.
+  - Specify fallbacks
+  - Predefined uniforms based on ShaderToy
+- An implementation of A*.
+  - With the ability to add a custom heuristics function, and perform other customizations.
 - Logging.
   - Runs on another thread as not to interrupt your game.
   - Remote logging to PaperTrail and other services which support the protocol.
+  - Easily create your own logger!
 - Framerate independent timing, semi-fixed step and free-step based on configuration.
   - Managed delta time and total time access in the shader allow for cool effects.
   - The update loop will always be up to date when a target fps is selected.
   - Multithreaded update loop (on by default)!
+- Easy tilemap drawing.
+  - Integration with the "Tiled" application.
+  - Includes layer opacity, multiple tilesets, animated tiles, and more.
 - QuadTree Implementation
 - Runtime configuration.
+- ImGui Integration through a plugin.
+- Framebuffer stack and easy framebuffer (RenderTarget) management.
 - Execute C# files as scripts in runtime!
 
 ## Building and Using
@@ -93,6 +114,10 @@ OpenGL.Net (Forked)
 Serilog
  - Used for logging.
  - [Website](https://serilog.net/)
+
+CimGui and CimGuiNet
+ - Dev Mode UI
+ - Included native libraries for MacOS, Linux, Windows64
 
 ## Optional Dependencies (These will probably be removed later down the line)
 
