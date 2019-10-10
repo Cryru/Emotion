@@ -32,6 +32,11 @@ namespace Emotion.Platform.Implementation
         public Window Window { get; protected set; }
 
         /// <summary>
+        /// The platform's audio context. If any.
+        /// </summary>
+        public AudioContext Audio { get; protected set; }
+
+        /// <summary>
         /// List of connected monitors.
         /// </summary>
         public List<Monitor> Monitors = new List<Monitor>();
@@ -99,7 +104,7 @@ namespace Emotion.Platform.Implementation
                 Config = conf;
 
             SetupPlatform();
-            Window = CreateWindowPlatform();
+            Window = CreateWindow();
             if (Window == null) return;
 
             // Bind this window and its context.
@@ -125,7 +130,7 @@ namespace Emotion.Platform.Implementation
         #region Implementation API
 
         protected abstract void SetupPlatform();
-        protected abstract Window CreateWindowPlatform();
+        protected abstract Window CreateWindow();
 
         /// <summary>
         /// Display an error message natively.
