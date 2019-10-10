@@ -23,7 +23,7 @@ namespace Emotion.Platform.Implementation.Null
         {
         }
 
-        protected override Window CreateWindowPlatform()
+        protected override Window CreateWindow()
         {
             return new NullWindow(this);
         }

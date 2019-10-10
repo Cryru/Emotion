@@ -9,6 +9,7 @@ using System.Text;
 using Emotion.Common;
 using Emotion.Platform.Config;
 using Emotion.Platform.Helpers;
+using Emotion.Platform.Implementation.Win32.Audio;
 using Emotion.Platform.Implementation.Win32.Native;
 using Emotion.Platform.Implementation.Win32.Wgl;
 using Emotion.Platform.Input;
@@ -97,7 +98,7 @@ namespace Emotion.Platform.Implementation.Win32
 
             // todo: load libraries - if any
             // probably XInput
-            // sound
+            Audio = CreateAudio();
 
             PopulateKeyCodes();
             PopulateKeyNames();
@@ -113,6 +114,17 @@ namespace Emotion.Platform.Implementation.Win32
             CreateHelperWindow();
 
             PollMonitors();
+        }
+
+        private AudioContext CreateAudio()
+        {
+            WasApiAudioContext wasapi = WasApiAudioContext.TryCreate();
+            if (wasapi != null) return wasapi;
+
+            // winmm
+            // dsound
+
+            return null;
         }
 
         #region Input
@@ -787,7 +799,7 @@ namespace Emotion.Platform.Implementation.Win32
             return true;
         }
 
-        protected override Window CreateWindowPlatform()
+        protected override Window CreateWindow()
         {
             var windowInitialSize = new Rect
             {
