@@ -57,6 +57,22 @@ namespace Emotion.Game.Tiled
         /// </summary>
         protected bool _loaded;
 
+
+        /// <summary>
+        /// Create a new map object from a Tiled map.
+        /// </summary>
+        /// <param name="position">The position of the TileMap.</param>
+        /// <param name="size">The size of the map. Leave at 0,0 to scale automatically.</param>
+        /// <param name="mapFile">The file to load as the map.</param>
+        /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
+        public TileMap(Vector3 position, Vector2 size, OtherAsset mapFile, string tileSetFolder) : base(position, size)
+        {
+            if (mapFile == null) return;
+
+            // Reset with the constructor parameters.
+            Reset(mapFile, tileSetFolder);
+        }
+
         /// <summary>
         /// Create a new map object from a Tiled map.
         /// </summary>
@@ -71,6 +87,17 @@ namespace Emotion.Game.Tiled
 
             // Reset with the constructor parameters.
             Reset(mapPath, tileSetFolder);
+        }
+
+        /// <summary>
+        /// Create a new map object from a Tiled map.
+        /// </summary>
+        /// <param name="position">The position of the TileMap.</param>
+        /// <param name="mapFile">The file to load as the map.</param>
+        /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
+        public TileMap(Vector3 position, OtherAsset mapFile, string tileSetFolder) : this(position, Vector2.Zero, mapFile, tileSetFolder)
+        {
+
         }
 
         /// <summary>
@@ -100,6 +127,17 @@ namespace Emotion.Game.Tiled
         /// <param name="resetSize">Whether to reset the size of the tilemap to the loaded one as well.</param>
         public void Reset(string mapPath, string tileSetFolder, bool resetSize = false)
         {
+            Reset(mapPath != null ? Engine.AssetLoader.Get<OtherAsset>(mapPath) : null, tileSetFolder, resetSize);
+        }
+
+        /// <summary>
+        /// Reset the tile map with another map and tileset. If an empty string is provided the map is reset to an unloaded state.
+        /// </summary>
+        /// <param name="mapFile">The new map file.</param>
+        /// <param name="tileSetFolder">The path to the new tileset.</param>
+        /// <param name="resetSize">Whether to reset the size of the tilemap to the loaded one as well.</param>
+        public void Reset(OtherAsset mapFile, string tileSetFolder, bool resetSize = false)
+        {
             // Check if tileSetFolder ends in a slash.
             if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/') tileSetFolder += "/";
 
@@ -119,10 +157,10 @@ namespace Emotion.Game.Tiled
             TiledMap = null;
 
             // Check if no map is provided.
-            if (mapPath == "") return;
+            if (mapFile == null) return;
 
             // Load the map from the data as a stream.
-            using (var mapFileStream = new MemoryStream(Engine.AssetLoader.Get<OtherAsset>(mapPath).Content))
+            using (var mapFileStream = new MemoryStream(mapFile.Content))
             {
                 TiledMap = new TmxMap(mapFileStream);
             }

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Numerics;
+using Emotion.Graphics;
 using ImGuiNET;
 
 #endregion
@@ -19,12 +20,12 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 
         public WindowManager Parent { get; set; }
 
-        public ImGuiWindow(string title = "Untitled")
+        protected ImGuiWindow(string title = "Untitled")
         {
             Title = title;
         }
 
-        public void Render(Vector2 spawnOffset)
+        public void Render(Vector2 spawnOffset, RenderComposer composer)
         {
             ImGui.SetNextWindowPos(spawnOffset, ImGuiCond.Appearing);
             if (CantClose)
@@ -33,11 +34,11 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                 ImGui.Begin(Title, ref Open, ImGuiWindowFlags.AlwaysAutoResize);
             Position = ImGui.GetWindowPos();
             Size = ImGui.GetWindowSize();
-            RenderContent();
+            RenderContent(composer);
             ImGui.End();
         }
 
         public abstract void Update();
-        protected abstract void RenderContent();
+        protected abstract void RenderContent(RenderComposer composer);
     }
 }

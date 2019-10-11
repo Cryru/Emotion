@@ -35,8 +35,10 @@ Tested platforms are:
 ### Configurations Tested On:
 
 - Windows 10 x64
-  - Nvidia 1060
-  - Nvidia 1050
+  - Nvidia GeForce 1060
+  - Nvidia GeForce 1050
+  - Intel UHD Graphics 620
+  - Nvidia GeForce 940MX
 
 ## Features So Far
 

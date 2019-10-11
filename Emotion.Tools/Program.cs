@@ -54,7 +54,7 @@ namespace Emotion.Tools
 
             ImGui.NewFrame();
 
-            _manager.Render();
+            _manager.Render(composer);
 
             ImGuiNetPlugin.RenderUI(composer);
         }

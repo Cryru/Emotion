@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Graphics;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using ImGuiNET;
 
@@ -14,9 +15,10 @@ namespace Emotion.Tools.Windows
             CantClose = true;
         }
 
-        protected override void RenderContent()
+        protected override void RenderContent(RenderComposer composer)
         {
             if (ImGui.Button("Animation Editor")) Parent.AddWindow(new AnimationEditor());
+            if (ImGui.Button("Map Editor")) Parent.AddWindow(new MapEditor());
 
             if (ImGui.Button("Performance Monitor")) Parent.AddWindow(new PerformanceMonitor());
         }

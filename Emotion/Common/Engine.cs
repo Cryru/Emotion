@@ -72,12 +72,6 @@ namespace Emotion.Common
         #endregion
 
         /// <summary>
-        /// The time it took between the current tick and the last tick - in milliseconds.
-        /// This means that 60 tps would have this value at around 16
-        /// </summary>
-        public static float RawDeltaTime { get; set; }
-
-        /// <summary>
         /// The time you should assume passed between ticks (in milliseconds), for smoothest operation.
         /// Depends on the Configuration's TPS, and should always be constant.
         /// </summary>
@@ -191,12 +185,11 @@ namespace Emotion.Common
             }
             else
             {
+                Host.Window.Context.SetSwapInterval(1);
+
                 if (!Configuration.UpdateThreadIsRenderThread)
                 {
                     Log.Info("Starting multi-threaded loop...", MessageSource.Engine);
-
-                    // Enable VSync
-                    Host.Window.Context.SetSwapInterval(1);
 
                     // Start the update thread.
                     var updateThread = new Thread(EngineUpdateLoop);
@@ -209,9 +202,6 @@ namespace Emotion.Common
                 else
                 {
                     Log.Info("Starting single-threaded loop...", MessageSource.Engine);
-
-                    // Disable VSync as it will slow down the update loop.
-                    Host.Window.Context.SetSwapInterval(1);
 
                     EngineLoopSingleThread();
                 }
@@ -280,9 +270,6 @@ namespace Emotion.Common
 
             DeltaTime = 1000f / Configuration.DesiredTPS;
 
-            double lastTick = 0;
-            Stopwatch timer = Stopwatch.StartNew();
-
             while (Running)
             {
                 if (SpecialRenderThread()) break;
@@ -291,12 +278,6 @@ namespace Emotion.Common
                 var runFrame = true;
                 if (Configuration.FrameByFrame != null) runFrame = Configuration.FrameByFrame();
                 if (!runFrame) continue;
-
-                double curTime = timer.Elapsed.TotalMilliseconds;
-
-                double deltaTime = (curTime - lastTick) / 1000f;
-                lastTick = curTime;
-                RawDeltaTime = (float) (deltaTime * 1000f);
 
                 RunTick();
                 RunFrame();
@@ -348,8 +329,7 @@ namespace Emotion.Common
             // Snap delta.
             if (Math.Abs(_targetTime - deltaTime) <= 0.001) deltaTime = _targetTime;
 
-            // Add to the accumulator and write off as raw frame time.
-            RawDeltaTime = (float) (deltaTime * 1000f);
+            // Add to the accumulator.
             _accumulator += deltaTime;
 
             // Check if reached max delta.
@@ -359,7 +339,7 @@ namespace Emotion.Common
             while (_accumulator >= _targetTime)
             {
                 // Assign frame time trackers.
-                DeltaTime = (float) (_fixedStep ? _targetTime * 1000f : RawDeltaTime);
+                DeltaTime = (float) (_fixedStep ? _targetTime * 1000f : (deltaTime * 1000f));
                 TotalTime += DeltaTime;
 
                 RunTickInternal();
@@ -444,10 +424,10 @@ namespace Emotion.Common
         /// <returns>The default asset loader.</returns>
         private static AssetLoader LoadDefaultAssetLoader()
         {
-            AssetLoader loader = new AssetLoader();
+            var loader = new AssetLoader();
 
             // Add default embedded sources.
-            List<Assembly> sourceAssemblies = new List<Assembly>
+            var sourceAssemblies = new List<Assembly>
             {
                 Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
                 Assembly.GetExecutingAssembly(), // Is the engine.
