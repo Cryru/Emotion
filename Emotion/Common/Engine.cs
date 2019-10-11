@@ -13,6 +13,7 @@ using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Platform.Config;
 using Emotion.Platform.Implementation;
+using Emotion.Scenography;
 using Emotion.Standard.Logging;
 
 //using Emotion.Native;
@@ -48,6 +49,11 @@ namespace Emotion.Common
         /// The legacy input manager.
         /// </summary>
         public static InputManager InputManager { get; private set; }
+
+        /// <summary>
+        /// Module which manages loading and unloading of scenes.
+        /// </summary>
+        public static SceneManager SceneManager { get; private set; }
 
         #endregion
 
@@ -149,6 +155,8 @@ namespace Emotion.Common
             GLThread.BindThread();
             Renderer = new Renderer();
             Renderer.Setup();
+
+            SceneManager = new SceneManager();
 
             // Setup plugins.
             foreach (IPlugin p in Configuration.Plugins)
@@ -369,6 +377,7 @@ namespace Emotion.Common
             }
 #endif
             InputManager.Update();
+            SceneManager.Update();
             DebugUpdateAction?.Invoke();
 
             // Update plugins.
@@ -388,6 +397,7 @@ namespace Emotion.Common
         {
             RenderComposer composer = Renderer.StartFrame();
             DebugDrawAction?.Invoke(composer);
+            SceneManager.Draw(composer);
             Renderer.EndFrame();
             Host.Window.Context.SwapBuffers();
 #if TIMING_DEBUG
