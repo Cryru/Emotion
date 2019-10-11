@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Threading;
 
 #endregion
 
@@ -31,6 +32,7 @@ namespace Emotion.Common.Threading
         /// </summary>
         public static void BindThread()
         {
+            if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "GL Thread";
             _threadManager.BindThread();
         }
 

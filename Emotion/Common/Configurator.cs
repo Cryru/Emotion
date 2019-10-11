@@ -146,30 +146,21 @@ namespace Emotion.Common
         }
 
         /// <summary>
-        /// The number of update loops ticks desired in a second.
+        /// The desired tps and fps.
         /// 60 by default, if set to 0 or below, the loop will run as fast as possible.
         /// You usually don't want that as it means it will have an uneven delta time.
         /// </summary>
-        public int DesiredTPS { get; private set; } = 60;
-
-        /// <summary>
-        /// Whether to run the update thread on the same thread as the draw thread.
-        /// This is mostly used for debugging and is the way Emotion/Adfectus/SoulEngine used to work.
-        /// On some platforms this is forced automatically, and on some platforms it is ignored.
-        /// </summary>
-        public bool UpdateThreadIsRenderThread { get; private set; }
+        public uint DesiredStep { get; private set; } = 60;
 
         /// <summary>
         /// Set settings regarding the main loop.
         /// </summary>
-        /// <param name="desiredTps">The number of update loops ticks desired in a second.</param>
-        /// <param name="updateThreadIsRenderThread">Whether to run the update loop on the same thread as the render loop.</param>
+        /// <param name="desiredStep">The target tps and fps.</param>
         /// <returns>This configurator, for chaining purposes.</returns>
-        public Configurator SetLoopSettings(int desiredTps, bool updateThreadIsRenderThread)
+        public Configurator SetLoopSettings(uint desiredStep)
         {
             if (Setup) return this;
-            DesiredTPS = desiredTps;
-            UpdateThreadIsRenderThread = updateThreadIsRenderThread;
+            DesiredStep = desiredStep;
             return this;
         }
 

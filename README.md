@@ -75,17 +75,14 @@ Tested platforms are:
 - Shader pipeline
   - Try multiple preprocessors to increase the compatibility of your shader.
   - Specify fallbacks
-  - Predefined uniforms based on ShaderToy
+  - Predefined uniforms based on ShaderToy allow for cool effects.
 - An implementation of A*.
   - With the ability to add a custom heuristics function, and perform other customizations.
 - Logging.
   - Runs on another thread as not to interrupt your game.
   - Remote logging to PaperTrail and other services which support the protocol.
   - Easily create your own logger!
-- Framerate independent timing, semi-fixed step and free-step based on configuration.
-  - Managed delta time and total time access in the shader allow for cool effects.
-  - The update loop will always be up to date when a target fps is selected.
-  - Multithreaded update loop (on by default)!
+- Framerate independent timing with a semi-fixed step.
 - Easy tilemap drawing.
   - Integration with the "Tiled" application.
   - Includes layer opacity, multiple tilesets, animated tiles, and more.
