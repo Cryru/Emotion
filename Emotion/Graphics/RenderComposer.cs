@@ -151,6 +151,7 @@ namespace Emotion.Graphics
                     {
                         batch = GetRenderCommand<QuadBatch>();
                         PushCommand(batch);
+                        ActiveQuadBatch = batch;
                     }
 
                     batch.PushSprite(batchable);
@@ -162,10 +163,6 @@ namespace Emotion.Graphics
             // Command post processing.
             switch (command)
             {
-                // If pushing a batch, that's the new current batch.
-                case QuadBatch batch when !dontBatch:
-                    ActiveQuadBatch = batch;
-                    break;
                 // Changing the state invalidates the batches.
                 // Drawing vertices too, as they will be drawn by a different VBO and IBO.
                 case RenderVerticesCommand _:
