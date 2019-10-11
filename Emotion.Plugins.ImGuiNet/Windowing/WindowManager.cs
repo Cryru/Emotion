@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Numerics;
+using Emotion.Graphics;
+// ReSharper disable InconsistentlySynchronizedField
 
 #endregion
 
@@ -15,16 +17,16 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
         {
             lock (_openWindows)
             {
-                for (int i = 0; i < _openWindows.Count; i++)
+                foreach (ImGuiWindow w in _openWindows)
                 {
-                    _openWindows[i].Update();
+                    w.Update();
                 }
             }
         }
 
-        public void Render()
+        public void Render(RenderComposer composer)
         {
-            for (int i = 0; i < _openWindows.Count; i++)
+            for (var i = 0; i < _openWindows.Count; i++)
             {
                 // Remove closed.
                 if (!_openWindows[i].Open)
@@ -36,10 +38,10 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                     }
 
                 // Overlap prevention on open. (kind of)
-                Vector2 spawnOffset = new Vector2(10, 10);
+                var spawnOffset = new Vector2(10, 10);
                 if (i != 0) spawnOffset = _openWindows[i - 1].Position + _openWindows[i - 1].Size;
 
-                _openWindows[i].Render(spawnOffset);
+                _openWindows[i].Render(spawnOffset, composer);
             }
         }
 

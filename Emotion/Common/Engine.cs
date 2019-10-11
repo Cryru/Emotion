@@ -13,6 +13,7 @@ using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Platform.Config;
 using Emotion.Platform.Implementation;
+using Emotion.Scenography;
 using Emotion.Standard.Logging;
 
 //using Emotion.Native;
@@ -49,6 +50,11 @@ namespace Emotion.Common
         /// </summary>
         public static InputManager InputManager { get; private set; }
 
+        /// <summary>
+        /// Module which manages loading and unloading of scenes.
+        /// </summary>
+        public static SceneManager SceneManager { get; private set; }
+
         #endregion
 
         #region Flags
@@ -70,12 +76,6 @@ namespace Emotion.Common
         public static bool Stopped { get; set; }
 
         #endregion
-
-        /// <summary>
-        /// The time it took between the current tick and the last tick - in milliseconds.
-        /// This means that 60 tps would have this value at around 16
-        /// </summary>
-        public static float RawDeltaTime { get; set; }
 
         /// <summary>
         /// The time you should assume passed between ticks (in milliseconds), for smoothest operation.
@@ -156,6 +156,8 @@ namespace Emotion.Common
             Renderer = new Renderer();
             Renderer.Setup();
 
+            SceneManager = new SceneManager();
+
             // Setup plugins.
             foreach (IPlugin p in Configuration.Plugins)
             {
@@ -176,13 +178,6 @@ namespace Emotion.Common
             // This indicates an error in the setup.
             if (Stopped) return;
 
-            // Setup tick time trackers.
-            _timer = Stopwatch.StartNew();
-            _fixedStep = Configuration.DesiredTPS > 0;
-            _targetTime = _fixedStep ? 1f / Configuration.DesiredTPS : 0;
-            _accumulator = 0f;
-            _lastTick = 0f;
-
             Running = true;
             if (Configuration.DebugMode && Configuration.DebugLoop)
             {
@@ -191,115 +186,112 @@ namespace Emotion.Common
             }
             else
             {
-                if (!Configuration.UpdateThreadIsRenderThread)
-                {
-                    Log.Info("Starting multi-threaded loop...", MessageSource.Engine);
-
-                    // Enable VSync
-                    Host.Window.Context.SetSwapInterval(1);
-
-                    // Start the update thread.
-                    var updateThread = new Thread(EngineUpdateLoop);
-                    if (updateThread.Name == null) updateThread.Name = "Update Thread";
-                    if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Render Thread";
-                    updateThread.Start();
-
-                    EngineRenderLoop();
-                }
-                else
-                {
-                    Log.Info("Starting single-threaded loop...", MessageSource.Engine);
-
-                    // Disable VSync as it will slow down the update loop.
-                    Host.Window.Context.SetSwapInterval(1);
-
-                    EngineLoopSingleThread();
-                }
+                Log.Info("Starting loop...", MessageSource.Engine);
+                Loop();
             }
 
             Quit();
         }
 
+        private static void Loop()
+        {
+            uint desiredStep = Configuration.DesiredStep;
+            if (desiredStep == 0) desiredStep = 60;
+
+            // Setup tick time trackers.
+            Stopwatch timer = Stopwatch.StartNew();
+            double targetTime = 1000f / desiredStep;
+            double accumulator = 0f;
+            double lastTick = 0f;
+            
+            double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
+            double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
+
+            DeltaTime = (float) targetTime;
+
+            while (Running)
+            {
+                // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
+                if (SpecialRenderThread()) break;
+
+                double curTime = timer.ElapsedMilliseconds;
+                double deltaTime = curTime - lastTick;
+                lastTick = curTime;
+
+                // Snap delta.
+                if (Math.Abs(targetTime - deltaTime) <= 1) deltaTime = targetTime;
+
+                // Add to the accumulator.
+                accumulator += deltaTime;
+
+                // Update as many times as needed.
+                var updated = false;
+                while (accumulator > targetTimeFuzzyUpper)
+                {
+                    RunTick();
+                    accumulator -= targetTime;
+                    updated = true;
+
+                    if (accumulator < targetTimeFuzzyLower-targetTime) accumulator = 0;
+                }
+
+                if (!Host.IsOpen) break;
+                if(updated) RunFrame();
+            }
+        }
+
         #region Main Loop Variants
-
-        private static void EngineLoopSingleThread()
-        {
-            while (Running)
-            {
-                if (SpecialRenderThread()) break;
-
-                bool updated = RunTick();
-
-                // It is possible for the update to close the host - which will error the draw as the context will be gone.
-                if (!Host.IsOpen) break;
-
-                if (updated) RunFrame();
-            }
-        }
-
-        private static void EngineRenderLoop()
-        {
-            while (Running)
-            {
-                if (SpecialRenderThread()) break;
-
-                if (_unfocusedHostEvent != null)
-                {
-                    _unfocusedHostEvent?.Set();
-                    continue;
-                }
-
-                RunFrame();
-            }
-        }
-
-        private static ManualResetEvent _unfocusedHostEvent; // Used to block the update loop when the render loop is not running.
-
-        private static void EngineUpdateLoop()
-        {
-            while (Running)
-            {
-                if (!Host.Window.Focused)
-                {
-                    _unfocusedHostEvent = new ManualResetEvent(false);
-                    _unfocusedHostEvent.WaitOne();
-                    _unfocusedHostEvent = null;
-                    continue;
-                }
-
-                RunTick();
-
-                // It is possible for the update to close the host.
-                if (!Host.IsOpen) break;
-            }
-        }
 
         private static void DebugModeLoop()
         {
-            if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Render Thread";
+            uint desiredStep = Configuration.DesiredStep;
+            if (desiredStep == 0) desiredStep = 60;
 
-            DeltaTime = 1000f / Configuration.DesiredTPS;
-
-            double lastTick = 0;
+            // Setup tick time trackers.
             Stopwatch timer = Stopwatch.StartNew();
+            double targetTime = 1000f / desiredStep;
+            double accumulator = 0f;
+            double lastTick = 0f;
+            
+            double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
+            double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
+
+            DeltaTime = (float) targetTime;
 
             while (Running)
             {
+                // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
                 if (SpecialRenderThread()) break;
 
-                // If the function exists, test whether to run the frame.
-                var runFrame = true;
-                if (Configuration.FrameByFrame != null) runFrame = Configuration.FrameByFrame();
-                if (!runFrame) continue;
-
-                double curTime = timer.Elapsed.TotalMilliseconds;
-
-                double deltaTime = (curTime - lastTick) / 1000f;
+                double curTime = timer.ElapsedMilliseconds;
+                double deltaTime = curTime - lastTick;
                 lastTick = curTime;
-                RawDeltaTime = (float) (deltaTime * 1000f);
 
-                RunTick();
-                RunFrame();
+                // Snap delta.
+                if (Math.Abs(targetTime - deltaTime) <= 1) deltaTime = targetTime;
+
+                // Add to the accumulator.
+                accumulator += deltaTime;
+
+                // Update as many times as needed.
+                var updated = false;
+                while (accumulator > targetTimeFuzzyUpper)
+                {
+                    // If the function exists, test whether to run the frame.
+                    var runFrame = true;
+                    if (Configuration.FrameByFrame != null) runFrame = Configuration.FrameByFrame();
+                    if (runFrame)
+                    {
+                        RunTick();
+                        updated = true;
+                    }
+                    
+                    accumulator -= targetTime;
+                    if (accumulator < targetTimeFuzzyLower-targetTime) accumulator = 0;
+                }
+
+                if (!Host.IsOpen) break;
+                if(updated) RunFrame();
             }
         }
 
@@ -331,51 +323,7 @@ namespace Emotion.Common
             return false;
         }
 
-        // Time trackers for run tick.
-        private static Stopwatch _timer;
-        private static bool _fixedStep;
-        private static double _targetTime;
-        private static double _accumulator;
-        private static double _lastTick;
-
-        private static bool RunTick()
-        {
-            // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
-            double curTime = _timer.ElapsedMilliseconds;
-            double deltaTime = (curTime - _lastTick) / 1000f;
-            _lastTick = curTime;
-
-            // Snap delta.
-            if (Math.Abs(_targetTime - deltaTime) <= 0.001) deltaTime = _targetTime;
-
-            // Add to the accumulator and write off as raw frame time.
-            RawDeltaTime = (float) (deltaTime * 1000f);
-            _accumulator += deltaTime;
-
-            // Check if reached max delta.
-            if (_accumulator > _targetTime * 5f) _accumulator = _targetTime * 5f;
-
-            var updated = false;
-            while (_accumulator >= _targetTime)
-            {
-                // Assign frame time trackers.
-                DeltaTime = (float) (_fixedStep ? _targetTime * 1000f : RawDeltaTime);
-                TotalTime += DeltaTime;
-
-                RunTickInternal();
-                updated = true;
-                _accumulator -= _targetTime;
-                if (_accumulator < 0f) _accumulator = 0f;
-
-                if (_fixedStep) continue;
-                _accumulator = 0f;
-                break;
-            }
-
-            return updated;
-        }
-
-        private static void RunTickInternal()
+        private static void RunTick()
         {
 #if TIMING_DEBUG
             if(_curFrameId == _frameId)
@@ -389,6 +337,7 @@ namespace Emotion.Common
             }
 #endif
             InputManager.Update();
+            SceneManager.Update();
             DebugUpdateAction?.Invoke();
 
             // Update plugins.
@@ -408,6 +357,7 @@ namespace Emotion.Common
         {
             RenderComposer composer = Renderer.StartFrame();
             DebugDrawAction?.Invoke(composer);
+            SceneManager.Draw(composer);
             Renderer.EndFrame();
             Host.Window.Context.SwapBuffers();
 #if TIMING_DEBUG
@@ -444,10 +394,10 @@ namespace Emotion.Common
         /// <returns>The default asset loader.</returns>
         private static AssetLoader LoadDefaultAssetLoader()
         {
-            AssetLoader loader = new AssetLoader();
+            var loader = new AssetLoader();
 
             // Add default embedded sources.
-            List<Assembly> sourceAssemblies = new List<Assembly>
+            var sourceAssemblies = new List<Assembly>
             {
                 Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
                 Assembly.GetExecutingAssembly(), // Is the engine.

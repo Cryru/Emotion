@@ -1,7 +1,10 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Graphics;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using ImGuiNET;
 
@@ -11,11 +14,12 @@ namespace Emotion.Tools.Windows
 {
     public class PerformanceMonitor : ImGuiWindow
     {
-        private float[] dtTracker = new float[100];
-        private int dtIdx;
+        private float[] _dtTracker = new float[100];
+        private int _dtIdx;
+        private Stopwatch _dtTimer = new Stopwatch();
 
-        private float[] updateTracker = new float[100];
-        private int updateIdx;
+        private float[] _updateTracker = new float[100];
+        private int _updateIdx;
 
         private int _updatesPerFrame;
 
@@ -27,14 +31,14 @@ namespace Emotion.Tools.Windows
         {
         }
 
-        protected override void RenderContent()
+        protected override void RenderContent(RenderComposer composer)
         {
-            updateTracker[updateIdx] = _updatesPerFrame;
-            updateIdx++;
-            if (updateIdx > updateTracker.Length - 1) updateIdx = 0;
+            _updateTracker[_updateIdx] = _updatesPerFrame;
+            _updateIdx++;
+            if (_updateIdx > _updateTracker.Length - 1) _updateIdx = 0;
             _updatesPerFrame = 0;
-            ImGui.PlotLines("DeltaTime", ref dtTracker[0], 100, 0, "", 0, 50);
-            ImGui.PlotLines("Updates", ref updateTracker[0], 100, 0, "", 0, 5);
+            ImGui.PlotLines("DeltaTime", ref _dtTracker[0], 100, 0, "", 0, 30);
+            ImGui.PlotLines("Updates", ref _updateTracker[0], 100, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
 
             _fpsTracker++;
@@ -42,9 +46,10 @@ namespace Emotion.Tools.Windows
 
         public override void Update()
         {
-            dtTracker[dtIdx] = Engine.DeltaTime;
-            dtIdx++;
-            if (dtIdx > dtTracker.Length - 1) dtIdx = 0;
+            _dtTracker[_dtIdx] = _dtTimer.ElapsedMilliseconds;
+            _dtTimer.Restart();
+            _dtIdx++;
+            if (_dtIdx > _dtTracker.Length - 1) _dtIdx = 0;
 
             _updatesPerFrame++;
 

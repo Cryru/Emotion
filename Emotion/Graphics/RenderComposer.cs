@@ -151,6 +151,7 @@ namespace Emotion.Graphics
                     {
                         batch = GetRenderCommand<QuadBatch>();
                         PushCommand(batch);
+                        ActiveQuadBatch = batch;
                     }
 
                     batch.PushSprite(batchable);
@@ -162,10 +163,6 @@ namespace Emotion.Graphics
             // Command post processing.
             switch (command)
             {
-                // If pushing a batch, that's the new current batch.
-                case QuadBatch batch when !dontBatch:
-                    ActiveQuadBatch = batch;
-                    break;
                 // Changing the state invalidates the batches.
                 // Drawing vertices too, as they will be drawn by a different VBO and IBO.
                 case RenderVerticesCommand _:
@@ -310,6 +307,18 @@ namespace Emotion.Graphics
             var command = GetRenderCommand<SubComposerCommand>();
             command.Composer = composer;
             PushCommand(command);
+        }
+
+        /// <summary>
+        /// Render a transform renderable. The rendering code is inside the object itself.
+        /// This just makes sure its model matrix is pushed and invalidates the current batch.
+        /// </summary>
+        /// <param name="renderable">The renderable to enter.</param>
+        public void Render(TransformRenderable renderable)
+        {
+            PushModelMatrix(renderable.ModelMatrix);
+            renderable.Render(this);
+            PopModelMatrix();
         }
 
         #region State Changes

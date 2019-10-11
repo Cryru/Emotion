@@ -55,6 +55,16 @@ namespace Emotion.Graphics
         /// </summary>
         public uint MaxIndices { get; internal set; } = ushort.MaxValue;
 
+        /// <summary>
+        /// The positive cut off of the camera.
+        /// </summary>
+        public float FarZ = 100;
+
+        /// <summary>
+        /// The negative cut off of the camera.
+        /// </summary>
+        public float NearZ = -100;
+        
         #endregion
 
         #region Objects
@@ -323,6 +333,9 @@ namespace Emotion.Graphics
             // Reset the main composer.
             _composer.Reset();
 
+            // Update the camera
+            Camera.Update();
+            
             // Reset to the default state.
             _defaultStateCommand.Execute(_composer);
 
@@ -482,7 +495,7 @@ namespace Emotion.Graphics
             ShaderProgram currentShader = CurrentState.Shader;
             if (CurrentState.Shader == null) return;
 
-            currentShader.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, CurrentTarget.Size.X, CurrentTarget.Size.Y, 0, -100, 100));
+            currentShader.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, CurrentTarget.Size.X, CurrentTarget.Size.Y, 0, NearZ, FarZ));
 
             SyncModelMatrix();
             SyncViewMatrix();

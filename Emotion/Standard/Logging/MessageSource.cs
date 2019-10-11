@@ -9,6 +9,7 @@
         public static string GL = "GL"; // Sent by the renderer and graphics related objects.
         public static string ShaderSource = "ShaderSource"; // Sent by the ShaderFactory - is spammy and contains shader source code.
         public static string AssetLoader = "AssetLoader";
+        public static string SceneManager = "SceneManager";
         public static string ScriptingEngine = "ScriptingEngine";
         public static string Platform = "Platform";
 
