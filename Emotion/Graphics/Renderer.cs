@@ -333,6 +333,9 @@ namespace Emotion.Graphics
             // Reset the main composer.
             _composer.Reset();
 
+            // Update the camera
+            Camera.Update();
+            
             // Reset to the default state.
             _defaultStateCommand.Execute(_composer);
 
