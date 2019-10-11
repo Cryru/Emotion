@@ -81,7 +81,7 @@ namespace Emotion.Graphics.Camera
             Vector2 margin = (currentSize - targetSize) / 2;
             Vector3 pos = posOffset - new Vector3(margin, 0);
             ViewMatrixUnscaled = Matrix4x4.CreateTranslation(-pos.X, -pos.Y, pos.Z);
-            ViewMatrix = Matrix4x4.CreateScale(scale, Position) * ViewMatrixUnscaled;
+            ViewMatrix = Matrix4x4.CreateScale(scale, new Vector3(X, Y, 0)) * ViewMatrixUnscaled;
         }
 
         /// <summary>
