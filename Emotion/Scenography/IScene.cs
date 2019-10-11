@@ -5,26 +5,26 @@ namespace Emotion.Scenography
     /// <summary>
     /// A single scene.
     /// </summary>
-    public abstract class Scene
+    public interface IScene
     {
         /// <summary>
         /// Is run when the scene is loading.
         /// </summary>
-        public abstract void Load();
+        void Load();
 
         /// <summary>
         /// Is run every tick while the window is focused.
         /// </summary>
-        public abstract void Update();
+        void Update();
 
         /// <summary>
         /// Is run every frame while the window is focused.
         /// </summary>
-        public abstract void Draw(RenderComposer composer);
+        void Draw(RenderComposer composer);
 
         /// <summary>
         /// Is run when the scene is unloading.
         /// </summary>
-        public abstract void Unload();
+        void Unload();
     }
 }
