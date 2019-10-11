@@ -2,8 +2,10 @@
 
 using System;
 using System.Numerics;
+using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
+using ImGuiNET;
 
 #endregion
 
@@ -29,6 +31,11 @@ namespace Emotion.Plugins.ImGuiNet
             );
 
             return new Tuple<Vector2, Vector2>(uvOne, uvTwo);
+        }
+
+        public static void RenderUI(this RenderComposer composer)
+        {
+            ImGuiNetPlugin.RenderUI(composer);
         }
     }
 }
