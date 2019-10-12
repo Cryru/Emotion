@@ -42,7 +42,7 @@ namespace Emotion.Plugins.ImGuiNet
 
         public static float ImGuiScale
         {
-            get => Engine.Renderer.Scale;
+            get => (int) MathF.Max(1, Engine.Renderer.Scale * 0.5f);
         }
 
         #region Privates
@@ -50,7 +50,6 @@ namespace Emotion.Plugins.ImGuiNet
         private static ConcurrentQueue<Action> _beforeStartOperations = new ConcurrentQueue<Action>();
         private static IntPtr _imguiContext;
         private static Dictionary<string, ImFontPtr> _loadedFonts = new Dictionary<string, ImFontPtr>();
-        private static List<Texture> _loadedFontsEmotion = new List<Texture>();
         private static bool _usingDefaultFont = true;
         private static List<char> _textInput = new List<char>();
 
@@ -99,7 +98,7 @@ namespace Emotion.Plugins.ImGuiNet
                 }
             };
 
-            // Create the imgui context.
+            // Create the ImGui context.
             _imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(_imguiContext);
 
@@ -281,7 +280,6 @@ namespace Emotion.Plugins.ImGuiNet
 
                     // Upload the font.
                     var newFontTexture = new Texture(new Vector2(width, height), pixels);
-                    _loadedFontsEmotion.Add(newFontTexture);
 
                     // Let ImGui know where to find the texture.
                     io.Fonts.SetTexID(new IntPtr(newFontTexture.Pointer));
