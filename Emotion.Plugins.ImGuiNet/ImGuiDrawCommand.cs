@@ -69,10 +69,10 @@ namespace Emotion.Plugins.ImGuiNet
 
                     // Set the clip rect.
                     Engine.Renderer.SetClip(new Rectangle(
-                        currentCommandList.ClipRect.X,
-                        currentCommandList.ClipRect.Y,
-                        currentCommandList.ClipRect.Z - currentCommandList.ClipRect.X,
-                        currentCommandList.ClipRect.W - currentCommandList.ClipRect.Y
+                        currentCommandList.ClipRect.X * ImGuiNetPlugin.ImGuiScale,
+                        currentCommandList.ClipRect.Y * ImGuiNetPlugin.ImGuiScale,
+                        (currentCommandList.ClipRect.Z - currentCommandList.ClipRect.X) * ImGuiNetPlugin.ImGuiScale,
+                        (currentCommandList.ClipRect.W - currentCommandList.ClipRect.Y) * ImGuiNetPlugin.ImGuiScale
                     ));
 
                     // Set the draw range of this specific command, and draw it.

@@ -10,6 +10,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Command;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
@@ -38,6 +39,11 @@ namespace Emotion.Plugins.ImGuiNet
         public static bool Focused { get; private set; }
 
         #endregion
+
+        public static float ImGuiScale
+        {
+            get => Engine.Renderer.Scale;
+        }
 
         #region Privates
 
@@ -88,7 +94,8 @@ namespace Emotion.Plugins.ImGuiNet
                 State = new RenderState
                 {
                     DepthTest = false,
-                    ViewMatrix = false
+                    ViewMatrix = false,
+                    Shader = ShaderFactory.DefaultProgram
                 }
             };
 
@@ -100,7 +107,7 @@ namespace Emotion.Plugins.ImGuiNet
 
             // Setup the font and display parameters.
             io.Fonts.AddFontDefault();
-            io.DisplaySize = Engine.Renderer.CurrentTarget.Size;
+            io.DisplaySize = Engine.Renderer.CurrentTarget.Size / ImGuiScale;
             io.DisplayFramebufferScale = new Vector2(1, 1);
             io.NativePtr->IniFilename = null;
             io.NativePtr->LogFilename = null;
@@ -179,7 +186,7 @@ namespace Emotion.Plugins.ImGuiNet
                 Focused = false;
 
             // Update input.
-            io.MousePos = Engine.Host.MousePosition;
+            io.MousePos = Engine.Host.MousePosition / ImGuiScale;
             io.MouseDown[0] = Engine.InputManager.IsMouseKeyDown(MouseKey.Left) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Left);
             io.MouseDown[1] = Engine.InputManager.IsMouseKeyDown(MouseKey.Right) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Right);
             io.MouseDown[2] = Engine.InputManager.IsMouseKeyDown(MouseKey.Middle) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Middle);
@@ -219,8 +226,10 @@ namespace Emotion.Plugins.ImGuiNet
 
         public static void RenderUI(RenderComposer composer)
         {
+            composer.PushModelMatrix(Matrix4x4.CreateScale(ImGuiScale));
             composer.PushCommand(_imGuiState);
             composer.PushCommand(Command);
+            composer.PopModelMatrix();
 
             // No need to restore state, as this should be rendered last and is also used in developer mode only.
         }
