@@ -152,7 +152,7 @@ namespace Emotion.Plugins.ImGuiNet
                 VAO = vao
             };
 
-            Engine.Host.OnTextInput.AddListener(c => { _textInput.Add(c); });
+            Engine.Host.OnTextInput.AddListener(c => { _textInput.Add(c); return true; });
 
             Initialized = true;
         }
