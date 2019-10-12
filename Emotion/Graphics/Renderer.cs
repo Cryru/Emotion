@@ -227,7 +227,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Is called when the host is resized.
         /// </summary>
-        internal void HostResizedFullScale(Vector2 size)
+        internal bool HostResizedFullScale(Vector2 size)
         {
             // Recalculate scale.
             Vector2 baseRes = Engine.Configuration.RenderSize;
@@ -256,12 +256,14 @@ namespace Emotion.Graphics
             }
 
             Camera?.RecreateMatrix();
+
+            return true;
         }
 
         /// <summary>
         /// Is called when the host is resized.
         /// </summary>
-        internal void HostResized(Vector2 size)
+        internal bool HostResized(Vector2 size)
         {
             // Calculate borderbox / pillarbox.
             float targetAspectRatio = DrawBuffer.Size.X / DrawBuffer.Size.Y;
@@ -290,6 +292,8 @@ namespace Emotion.Graphics
             ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
             ScreenBuffer.Size = size;
             _blitRenderCommand.Size = size;
+
+            return true;
         }
 
         /// <summary>

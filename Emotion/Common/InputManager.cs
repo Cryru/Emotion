@@ -49,7 +49,7 @@ namespace Emotion.Common
                 _mouseStatusShadow[key] = false;
             }
 
-            Engine.Host.OnMouseScroll.AddListener(scroll => { _mouseScrollAccum += scroll; });
+            Engine.Host.OnMouseScroll.AddListener(scroll => { _mouseScrollAccum += scroll; return true; });
         }
 
         /// <summary>

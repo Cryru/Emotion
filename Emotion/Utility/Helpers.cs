@@ -3,7 +3,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
+using Emotion.Common;
+using Emotion.Platform.Input;
 
 #endregion
 
@@ -71,6 +74,22 @@ namespace Emotion.Utility
         {
             //We add one because Random.Next does not include max.
             return _generator.Next(min, max + 1);
+        }
+
+        /// <summary>
+        /// Add this to your update loop to control the camera with WASD.
+        /// </summary>
+        /// <param name="speed">The speed to move the camera at.</param>
+        public static void CameraWASDUpdate(float speed = 0.35f)
+        {
+            Vector2 dir = Vector2.Zero;
+            if (Engine.InputManager.IsKeyHeld(Key.W)) dir.Y -= 1;
+            if (Engine.InputManager.IsKeyHeld(Key.A)) dir.X -= 1;
+            if (Engine.InputManager.IsKeyHeld(Key.S)) dir.Y += 1;
+            if (Engine.InputManager.IsKeyHeld(Key.D)) dir.X += 1;
+
+            dir *= new Vector2(speed, speed);
+            Engine.Renderer.Camera.Position += new Vector3(dir, 0);
         }
     }
 }
