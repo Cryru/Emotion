@@ -22,8 +22,6 @@ namespace Emotion.ExecTest
 
         private static void Main(string[] args)
         {
-            Rectangle t = new Rectangle();
-            t.RayIntersects()
             Engine.Setup(new Configurator().SetDebug(true).SetRenderSize(integerScale: true));
             Engine.DebugDrawAction = DebugDrawAction;
             Engine.DebugUpdateAction = DebugUpdateAction;
