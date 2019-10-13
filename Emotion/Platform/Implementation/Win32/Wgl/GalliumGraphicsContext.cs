@@ -61,6 +61,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
             Win32Platform.CheckError("Checking if context creation passed.");
             Engine.Log.Trace($"Requested {contextName} using pixel format id {pixelFormatIdx}", MessageSource.Win32);
+
+            Valid = true;
         }
 
         #region Init

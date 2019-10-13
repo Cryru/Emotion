@@ -835,7 +835,7 @@ namespace Emotion.Platform.Implementation.Win32
                 Engine.Log.Warning($"Couldn't create WGL context - {ex}, falling back to MESA if possible.", MessageSource.Win32);
             }
 
-            if (context == null)
+            if (context == null || !context.Valid)
                 try
                 {
                     context = new GalliumGraphicsContext(handle, this);
@@ -845,7 +845,7 @@ namespace Emotion.Platform.Implementation.Win32
                     Engine.SubmitError(new Exception("Couldn't create MESA context.", ex));
                 }
 
-            if (context == null)
+            if (context == null || !context.Valid)
             {
                 Engine.SubmitError(new Exception("Couldn't create graphics context!"));
                 return null;

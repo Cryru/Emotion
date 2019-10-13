@@ -10,6 +10,11 @@ namespace Emotion.Platform.Implementation
 {
     public abstract class GraphicsContext : IDisposable
     {
+        /// <summary>
+        /// Whether the context is valid.
+        /// </summary>
+        public bool Valid { get; protected set; }
+
         public int SwapInternal { get; protected set; }
 
         /// <summary>
