@@ -162,10 +162,10 @@ namespace Emotion.Platform.Implementation.Win32
                         }
 
                         bool successful = User32.SetWindowPos(
-                            Handle, (IntPtr) HwndZOrder.HWND_TOPMOST,
-                            (int) primary.Position.X, (int) primary.Position.Y,
-                            primary.Width - (int) primary.Position.X, primary.Height - (int) primary.Position.X,
-                            WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOCOPYBITS | WindowPositionFlags.SWP_SHOWWINDOW | WindowPositionFlags.SWP_FRAMECHANGED
+                            Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
+                            (int)primary.Position.X, (int)primary.Position.Y,
+                            primary.Width - (int)primary.Position.X, primary.Height - (int)primary.Position.X,
+                            WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOCOPYBITS | WindowPositionFlags.SWP_FRAMECHANGED
                         );
                         if (!successful)
                             Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window rect.", true);
@@ -192,9 +192,9 @@ namespace Emotion.Platform.Implementation.Win32
         #region Window Native Helpers
 
         // Default styles.
-        public const WindowStyles DEFAULT_WINDOW_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_SYSMENU | WindowStyles.WS_MINIMIZEBOX | WindowStyles.WS_CAPTION;
+        public const WindowStyles DEFAULT_WINDOW_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_SYSMENU | WindowStyles.WS_MINIMIZEBOX | WindowStyles.WS_CAPTION | WindowStyles.WS_MAXIMIZEBOX;
         public const WindowExStyles DEFAULT_WINDOW_STYLE_EX = WindowExStyles.WS_EX_APPWINDOW; // Things like "always top" can be configured here.
-        public const WindowStyles FULLSCREEN_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_POPUP;
+        public const WindowStyles FULLSCREEN_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_VISIBLE | WindowStyles.WS_OVERLAPPED;
 
         /// <summary>
         /// Transform the provided rectangle to fit the scale and position of the window.
@@ -240,15 +240,7 @@ namespace Emotion.Platform.Implementation.Win32
 
         internal static WindowStyles DetermineWindowStyle(Win32Window window)
         {
-            WindowStyles style = DEFAULT_WINDOW_STYLE;
-
-            if (window.DisplayMode != DisplayMode.Windowed)
-                // In the fullscreen modes this will hide the taskbar.
-                style |= WindowStyles.WS_POPUP;
-            else
-                style |= WindowStyles.WS_MAXIMIZEBOX;
-
-            return style;
+            return window.DisplayMode == DisplayMode.Windowed ? DEFAULT_WINDOW_STYLE : FULLSCREEN_STYLE;
         }
 
         #endregion
