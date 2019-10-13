@@ -70,7 +70,11 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 return;
             }
 
-            if (!Gdi32.SetPixelFormat(_dc, pixelFormatIdx, ref pfd)) Win32Platform.CheckError("WGL: Could not set pixel format.", true);
+            if (!Gdi32.SetPixelFormat(_dc, pixelFormatIdx, ref pfd))
+            {
+                Win32Platform.CheckError("WGL: Could not set pixel format.", true);
+                return;
+            }
 
             // Check for RenderDoc
             if (Kernel32.GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
