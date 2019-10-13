@@ -262,7 +262,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             var usableConfigs = new List<FramebufferConfig>();
 
             // Check whether we can use the modern API or not.
-            if (!_arbPixelFormat)
+            if (_arbPixelFormat)
             {
                 if (_getPixelFormatAttribivArb == null) throw new Exception("WGL: Unsupported graphics context, getPixelFormatAttribivArb is missing!");
 
@@ -346,10 +346,9 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
                     fbConfig.AuxBuffers = FindAttributeValue(attributes, values, WglAttributes.AuxBuffersArb);
 
-                    if (FindAttributeValue(attributes, values, WglAttributes.StereoArb) != 0)
-                        fbConfig.Stereo = true;
-                    if (FindAttributeValue(attributes, values, WglAttributes.DoubleBufferArb) != 0)
-                        fbConfig.Doublebuffer = true;
+                    fbConfig.Stereo = FindAttributeValue(attributes, values, WglAttributes.StereoArb) != 0;
+                    fbConfig.Doublebuffer = FindAttributeValue(attributes, values, WglAttributes.DoubleBufferArb) != 0;
+
                     if (_arbMultisample)
                         fbConfig.Samples = FindAttributeValue(attributes, values, WglAttributes.SamplesArb);
 

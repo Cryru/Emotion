@@ -599,10 +599,6 @@ namespace Emotion.Platform.Implementation.Win32
                     return IntPtr.Zero;
                 case WM.KILLFOCUS:
 
-                    // Pull out of fullscreen.
-                    if (win.DisplayMode == DisplayMode.Fullscreen)
-                        win.WindowState = WindowState.Minimized;
-
                     // Pull all buttons up.
                     for (var i = 0; i < _keys.Length; i++)
                     {
