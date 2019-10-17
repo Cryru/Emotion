@@ -7,13 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Emotion.Plugins.ImGuiNet\Emotion.Plugins.ImGuiNet.csproj" />
     <ProjectReference Include="..\Emotion\Emotion.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Assets\spritesheetAnimation.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Assets\" />
   </ItemGroup>
 
 </Project>

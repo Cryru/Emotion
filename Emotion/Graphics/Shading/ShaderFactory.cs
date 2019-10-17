@@ -143,7 +143,7 @@ namespace Emotion.Graphics.Shading
             // Find a configuration which will compile the shader.
             foreach (KeyValuePair<string, Func<string[], string[]>> configuration in _shaderConfigurations)
             {
-                Engine.Log.Info($"Attempting shader compilation with config - {configuration.Key}...", MessageSource.Renderer);
+                Engine.Log.Trace($"Attempting shader compilation with config - {configuration.Key}...", MessageSource.Renderer);
 
                 // Apply configuration.
                 var attempt = new string[preprocessed.Length];

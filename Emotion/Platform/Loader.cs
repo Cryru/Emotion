@@ -7,6 +7,7 @@ using Emotion.Platform.Config;
 using Emotion.Platform.Implementation;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
+using Emotion.Standard.Logging;
 
 #endregion
 
@@ -60,7 +61,7 @@ namespace Emotion.Platform
 
             if (platform == null) throw new Exception("Unknown platform.");
 
-            Engine.Log.Info($"Platform is: {platform}", "Emotion.Platform.Loader");
+            Engine.Log.Info($"Platform is: {platform}", MessageSource.Platform);
             platform.Setup(conf);
 
             return platform;

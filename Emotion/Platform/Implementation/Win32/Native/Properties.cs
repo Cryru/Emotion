@@ -11,7 +11,7 @@ namespace WinApi
 #if !ANSI
         public const CharSet BUILD_CHAR_SET = CharSet.Unicode;
 #else
-        public const CharSet BuildCharSet = CharSet.Ansi;
+        public const CharSet BUILD_CHAR_SET = CharSet.Ansi;
 #endif
     }
 }

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
@@ -7,6 +8,7 @@ using Emotion.Game.Text;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Platform.Input;
+using Emotion.Plugins.ImGuiNet;
 using Emotion.Primitives;
 
 #endregion
@@ -22,7 +24,7 @@ namespace Emotion.ExecTest
 
         private static void Main(string[] args)
         {
-            Engine.Setup(new Configurator().SetDebug(true).SetRenderSize(integerScale: true));
+            Engine.Setup(new Configurator().SetDebug(true).SetRenderSize(integerScale: true).AddPlugin(new ImGuiNetPlugin()));
             Engine.DebugDrawAction = DebugDrawAction;
             Engine.DebugUpdateAction = DebugUpdateAction;
             Engine.Host.OnKey.AddListener((key, status) =>
@@ -68,13 +70,6 @@ namespace Emotion.ExecTest
             Engine.Run();
         }
 
-        private static Vector3[] vertices =
-        {
-            new Vector3(0, 0, 0),
-            new Vector3(100, 10, 0),
-            new Vector3(100, 100, 0)
-        };
-
         private static bool init = true;
 
         private static void DebugUpdateAction()
@@ -93,33 +88,14 @@ namespace Emotion.ExecTest
 
         private static void DebugInit()
         {
-           // _rText = new RichText(new Vector3(10, 10, 0), new Vector2(100, 50), Engine.AssetLoader.Get<FontAsset>("1980XX.ttf").GetAtlas(20));
-           // _rText.Alignment = TextAlignment.Centered;
-           // _rText.Text = "The quick brown fox, <color=1-50-1>jumped</> over the\nlazy dog!";
+
         }
 
         private static void DebugDrawAction(RenderComposer composer)
         {
-           // composer.RenderSprite(new Vector3(0, 0, 0), Engine.Configuration.RenderSize, Color.CornflowerBlue);
-            
             composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
             composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
             composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
-            //composer.RenderSprite(new Vector3(0, 0, 0), Engine.AssetLoader.Get<TextureAsset>("test.png").Texture.Size, Color.White, Engine.AssetLoader.Get<TextureAsset>("test.png").Texture);
-            //composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(100, 100, 0)));
-            //composer.RenderVertices(vertices, Color.White);
-            //composer.PopModelMatrix();
-            //composer.RenderSprite(new Vector3(-10, -10, 0), new Vector2(10, 10), Color.Red);
-            //composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(3, 3), Color.Pink);
-            //var asset = Engine.AssetLoader.Get<TextureAsset>("spritesheetAnimation.png");
-            //composer.RenderSprite(new Vector3(0, 0, 0), asset.Texture.Size, Color.White, asset.Texture);
-            //composer.RenderSprite(new Vector3(Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition), 0), new Vector2(3, 3), Color.Red);
-            //for (int i = 0; i < mousePosTest.Count; i++)
-            //{
-            //    composer.RenderSprite(new Vector3(mousePosTest[i], 0), new Vector2(3, 3), Color.Pink);
-            //}
-
-            //_rText?.Render(composer);
         }
     }
 }

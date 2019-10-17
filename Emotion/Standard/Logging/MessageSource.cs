@@ -12,6 +12,7 @@
         public static string SceneManager = "SceneManager";
         public static string ScriptingEngine = "ScriptingEngine";
         public static string Platform = "Platform";
+        public static string Audio = "Audio";
 
         public static string Other = "Other";
 

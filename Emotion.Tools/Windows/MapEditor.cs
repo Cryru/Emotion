@@ -50,13 +50,15 @@ namespace Emotion.Tools.Windows
 
         public override void Update()
         {
+            var speed = 0.5f;
             Vector2 dir = Vector2.Zero;
             if (Engine.InputManager.IsKeyHeld(Key.W)) dir.Y -= 1;
             if (Engine.InputManager.IsKeyHeld(Key.A)) dir.X -= 1;
             if (Engine.InputManager.IsKeyHeld(Key.S)) dir.Y += 1;
             if (Engine.InputManager.IsKeyHeld(Key.D)) dir.X += 1;
+            if (Engine.InputManager.IsKeyHeld(Key.LeftControl)) speed *= 2;
 
-            dir *= new Vector2(0.5f * Engine.DeltaTime, 0.5f * Engine.DeltaTime);
+            dir *= new Vector2(speed * Engine.DeltaTime, speed * Engine.DeltaTime);
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
 
             _map.Update(Engine.DeltaTime);

@@ -46,3 +46,5 @@ Meta
 	- Autobuild nuget package, with version patching, and commit hash patching
 Input
 	- Controller Support (Wherever possible)
+Audio
+	- Introduce some kind of "AudioFormat" class/struct to reduce passing of sampleRate, bitsPerSample, isFloat, and channels together.

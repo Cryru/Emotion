@@ -5,11 +5,15 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Platform.Implementation.Win32.Native
+// ReSharper disable InconsistentNaming
+// ReSharper disable once CheckNamespace
+// ReSharper disable IdentifierTypo
+// ReSharper disable CommentTypo
+namespace WinApi
 {
     public static unsafe class NtDll
     {
-        public const string DLL_NAME = "ntdll";
+        public const string LIBRARY_NAME = "ntdll";
 
         /// <summary>
         /// https://docs.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=vs-2019
@@ -111,7 +115,7 @@ namespace Emotion.Platform.Implementation.Win32.Native
         /// <param name="typeMask"></param>
         /// <param name="condition"></param>
         /// <returns></returns>
-        [DllImport(DLL_NAME)]
+        [DllImport(LIBRARY_NAME)]
         public static extern ulong VerSetConditionMask(
             ulong conditionMask,
             TypeMask typeMask,
@@ -121,13 +125,13 @@ namespace Emotion.Platform.Implementation.Win32.Native
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows/desktop/devnotes/rtlgetversion
         /// </summary>
-        [DllImport(DLL_NAME)]
+        [DllImport(LIBRARY_NAME)]
         public static extern int RtlGetVersion(out OsVersionInfoW info);
 
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/wdm/nf-wdm-rtlverifyversioninfo
         /// </summary>
-        [DllImport(DLL_NAME)]
+        [DllImport(LIBRARY_NAME)]
         public static extern NtStatus RtlVerifyVersionInfo(
             ref OsVersionInfoEXW versionInfo,
             TypeMask typeMask,
