@@ -9,6 +9,7 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
+using Emotion.Standard.Logging;
 using TiledSharp;
 
 #endregion
@@ -160,9 +161,15 @@ namespace Emotion.Game.Tiled
             if (mapFile == null) return;
 
             // Load the map from the data as a stream.
-            using (var mapFileStream = new MemoryStream(mapFile.Content))
+            try
             {
+                using var mapFileStream = new MemoryStream(mapFile.Content);
                 TiledMap = new TmxMap(mapFileStream);
+            }
+            catch (Exception ex)
+            {
+                Engine.Log.Warning($"Couldn't parse tilemap - {ex}.", MessageSource.Other);
+                return;
             }
 
             // Load all map tilesets.

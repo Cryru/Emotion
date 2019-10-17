@@ -19,6 +19,7 @@ namespace Emotion.Tools.Windows
         {
             if (ImGui.Button("Animation Editor")) Parent.AddWindow(new AnimationEditor());
             if (ImGui.Button("Map Editor")) Parent.AddWindow(new MapEditor());
+            if (ImGui.Button("Audio Editor")) Parent.AddWindow(new AudioEditor());
 
             if (ImGui.Button("Performance Monitor")) Parent.AddWindow(new PerformanceMonitor());
         }

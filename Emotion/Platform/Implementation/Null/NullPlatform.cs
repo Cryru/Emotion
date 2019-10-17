@@ -21,6 +21,7 @@ namespace Emotion.Platform.Implementation.Null
 
         protected override void SetupPlatform()
         {
+            Audio = new NullAudioContext();
         }
 
         protected override Window CreateWindow()

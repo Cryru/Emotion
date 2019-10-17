@@ -9,8 +9,8 @@ using System.Text;
 using Emotion.Common;
 using Emotion.Platform.Config;
 using Emotion.Platform.Helpers;
+using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32.Audio;
-using Emotion.Platform.Implementation.Win32.Native;
 using Emotion.Platform.Implementation.Win32.Wgl;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
@@ -124,7 +124,7 @@ namespace Emotion.Platform.Implementation.Win32
             // winmm
             // dsound
 
-            return null;
+            return new NullAudioContext();
         }
 
         #region Input
@@ -377,7 +377,7 @@ namespace Emotion.Platform.Implementation.Win32
         private void UpdateMouseKeyStatus(MouseKey key, bool down)
         {
             if (key == MouseKey.Unknown) return;
-            var keyIndex = (short) key - 1;
+            int keyIndex = (short) key - 1;
             if (keyIndex > _mouseKeys.Length - 1) return;
 
             // If it was down, but no longer is - it was let go.
@@ -399,7 +399,7 @@ namespace Emotion.Platform.Implementation.Win32
         public override bool GetMouseKeyDown(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            var keyIndex = (short) key - 1;
+            int keyIndex = (short) key - 1;
             return _mouseKeys[keyIndex];
         }
 
@@ -700,30 +700,25 @@ namespace Emotion.Platform.Implementation.Win32
 
                     var mouseKey = MouseKey.Unknown;
                     var buttonDown = false;
-                    switch (msg)
+                    mouseKey = msg switch
                     {
-                        case WM.LBUTTONDOWN:
-                        case WM.LBUTTONUP:
-                            mouseKey = MouseKey.Left;
-                            break;
-                        case WM.RBUTTONDOWN:
-                        case WM.RBUTTONUP:
-                            mouseKey = MouseKey.Right;
-                            break;
-                        case WM.MBUTTONDOWN:
-                        case WM.MBUTTONUP:
-                            mouseKey = MouseKey.Middle;
-                            break;
-                    }
+                        WM.LBUTTONDOWN => MouseKey.Left,
+                        WM.LBUTTONUP => MouseKey.Left,
+                        WM.RBUTTONDOWN => MouseKey.Right,
+                        WM.RBUTTONUP => MouseKey.Right,
+                        WM.MBUTTONDOWN => MouseKey.Middle,
+                        WM.MBUTTONUP => MouseKey.Middle,
+                        _ => mouseKey
+                    };
 
                     if (msg == WM.LBUTTONDOWN || msg == WM.RBUTTONDOWN ||
                         msg == WM.MBUTTONDOWN || msg == WM.XBUTTONDOWN)
                         buttonDown = true;
 
-                    bool nonePressed = true;
-                    for (int i = 0; i < _mouseKeys.Length; i++)
+                    var nonePressed = true;
+                    foreach (bool keyDown in _mouseKeys)
                     {
-                        if (_mouseKeys[i]) nonePressed = false;
+                        if (keyDown) nonePressed = false;
                     }
 
                     if (nonePressed)
@@ -732,9 +727,9 @@ namespace Emotion.Platform.Implementation.Win32
                     UpdateMouseKeyStatus(mouseKey, buttonDown);
 
                     nonePressed = true;
-                    for (int i = 0; i < _mouseKeys.Length; i++)
+                    foreach (bool keyDown in _mouseKeys)
                     {
-                        if (_mouseKeys[i]) nonePressed = false;
+                        if (keyDown) nonePressed = false;
                     }
 
                     if (nonePressed)
@@ -747,7 +742,7 @@ namespace Emotion.Platform.Implementation.Win32
 
                 case WM.MOUSEWHEEL:
 
-                    short scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
+                    var scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
                     OnMouseScroll.Invoke(scrollAmount / 120f);
 
                     return IntPtr.Zero;
