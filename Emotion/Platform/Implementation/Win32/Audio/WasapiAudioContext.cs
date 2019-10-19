@@ -78,6 +78,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             while (!Environment.HasShutdownStarted)
             {
+                if (_defaultDevice == null) continue;
                 if (!_defaultDevice.Initialized) _defaultDevice.Initialize();
 
                 if (_test == null || _reader == null) continue;
@@ -236,6 +237,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private void SetDefaultDevice()
         {
             _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console, out IMMDevice endpoint);
+            if (endpoint == null) return;
             int error = endpoint.GetId(out string defaultId);
             if (error != 0)
                 Win32Platform.CheckError("Couldn't retrieve the id of the default audio device.");
