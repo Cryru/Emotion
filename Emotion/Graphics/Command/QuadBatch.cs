@@ -23,29 +23,29 @@ namespace Emotion.Graphics.Command
         /// Whether the batch is full.
         /// This happens when the maximum indices are met, or the maximum textures.
         /// </summary>
-        public bool Full { get; private set; }
+        public bool Full { get; protected set; }
 
         /// <summary>
-        /// The texturable commands bound to this batch.
+        /// The sprite commands bound to this batch.
         /// </summary>
-        public List<RenderSpriteCommand> BatchedTexturables { get; private set; } = new List<RenderSpriteCommand>();
+        public List<RenderSpriteCommand> BatchedTexturables { get; protected set; } = new List<RenderSpriteCommand>();
 
         /// <summary>
         /// The textures to bind.
         /// </summary>
-        private uint[] _textureBinding = new uint[Texture.Bound.Length];
+        protected uint[] _textureBinding = new uint[Texture.Bound.Length];
 
         /// <summary>
         /// How many texture slots are utilized.
         /// </summary>
-        private int _textureSlotUtilization;
+        protected int _textureSlotUtilization;
 
-        private VertexBuffer _vbo;
-        private VertexArrayObject _vao;
-        private int _mappedTo; // How far the buffer is mapped.
-        private bool _rebindTextures = false; // Whether to rebind textures, after mapping has occured.
-        private uint _startIndex = 0;
-        private uint? _endIndex = null;
+        protected VertexBuffer _vbo;
+        protected VertexArrayObject _vao;
+        protected int _mappedTo; // How far the buffer is mapped.
+        protected bool _rebindTextures; // Whether to rebind textures, after mapping has occured.
+        protected uint _startIndex;
+        protected uint? _endIndex;
 
         /// <summary>
         /// Add a sprite to this batch.
@@ -147,8 +147,9 @@ namespace Emotion.Graphics.Command
                 {
                     _mappedTo += 4;
                     continue;
-                } 
-                else if (_rebindTextures)
+                }
+
+                if (_rebindTextures)
                 {
                     TextureBindingUpdate(x.Texture.Pointer);
                 }
@@ -229,19 +230,18 @@ namespace Emotion.Graphics.Command
         /// </summary>
         /// <param name="pointer">The texture pointer to add.</param>
         /// <returns>Whether the texture was added.</returns>
-        private bool TextureBindingUpdate(uint pointer)
+        protected bool TextureBindingUpdate(uint pointer)
         {
             if (_textureSlotUtilization == _textureBinding.Length) return false;
 
-            if (!TextureInBinding(pointer))
-            {
-                // Add to binding.
-                _textureBinding[_textureSlotUtilization] = pointer;
-                _textureSlotUtilization++;
+            if (TextureInBinding(pointer)) return true;
 
-                // Verify if the texture binding maximum has been reached.
-                if (_textureSlotUtilization == _textureBinding.Length) Full = true;
-            }
+            // Add to binding.
+            _textureBinding[_textureSlotUtilization] = pointer;
+            _textureSlotUtilization++;
+
+            // Verify if the texture binding maximum has been reached.
+            if (_textureSlotUtilization == _textureBinding.Length) Full = true;
 
             return true;
         }
@@ -251,7 +251,7 @@ namespace Emotion.Graphics.Command
         /// </summary>
         /// <param name="pointer">The texture point to check.</param>
         /// <returns>Whether this texture exists in the batch binding.</returns>
-        private bool TextureInBinding(uint pointer)
+        protected bool TextureInBinding(uint pointer)
         {
             for (var i = 0; i < _textureSlotUtilization; i++)
             {
@@ -270,7 +270,7 @@ namespace Emotion.Graphics.Command
         {
             // Convert to indices.
             _startIndex = start * 6;
-            _endIndex = end == null ? null : end * 6;
+            _endIndex = end * 6;
         }
 
         public override void Dispose()

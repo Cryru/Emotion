@@ -32,7 +32,7 @@ namespace Emotion.Test.Tests
             Assert.True(plat.Window.Focused);
 
             var resizes = new List<Vector2>();
-            plat.Window.OnResize.AddListener(t => { resizes.Add(t); });
+            plat.Window.OnResize.AddListener(t => { resizes.Add(t); return true; });
 
             plat.Window.Position = new Vector2(0, 0);
             Assert.True(plat.Window.Position == new Vector2(0, 0));

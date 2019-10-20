@@ -63,9 +63,10 @@ namespace Emotion.ExecTest
 
                 return true;
             });
-            Engine.Host.OnMouseKey.AddListener(key =>
+            Engine.Host.OnMouseKey.AddListener((key, _) =>
             {
                 if (key == MouseKey.Left) mousePosTest.Add(Engine.Host.MousePosition);
+                return true;
             });
             Engine.Run();
         }

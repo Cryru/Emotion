@@ -10,6 +10,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.Graphics.Command;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
@@ -39,12 +40,16 @@ namespace Emotion.Plugins.ImGuiNet
 
         #endregion
 
+        public static float ImGuiScale
+        {
+            get => (int) MathF.Max(1, Engine.Renderer.Scale * 0.5f);
+        }
+
         #region Privates
 
         private static ConcurrentQueue<Action> _beforeStartOperations = new ConcurrentQueue<Action>();
         private static IntPtr _imguiContext;
         private static Dictionary<string, ImFontPtr> _loadedFonts = new Dictionary<string, ImFontPtr>();
-        private static List<Texture> _loadedFontsEmotion = new List<Texture>();
         private static bool _usingDefaultFont = true;
         private static List<char> _textInput = new List<char>();
 
@@ -88,11 +93,12 @@ namespace Emotion.Plugins.ImGuiNet
                 State = new RenderState
                 {
                     DepthTest = false,
-                    ViewMatrix = false
+                    ViewMatrix = false,
+                    Shader = ShaderFactory.DefaultProgram
                 }
             };
 
-            // Create the imgui context.
+            // Create the ImGui context.
             _imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(_imguiContext);
 
@@ -100,7 +106,7 @@ namespace Emotion.Plugins.ImGuiNet
 
             // Setup the font and display parameters.
             io.Fonts.AddFontDefault();
-            io.DisplaySize = Engine.Renderer.CurrentTarget.Size;
+            io.DisplaySize = Engine.Renderer.CurrentTarget.Size / ImGuiScale;
             io.DisplayFramebufferScale = new Vector2(1, 1);
             io.NativePtr->IniFilename = null;
             io.NativePtr->LogFilename = null;
@@ -152,7 +158,7 @@ namespace Emotion.Plugins.ImGuiNet
                 VAO = vao
             };
 
-            Engine.Host.OnTextInput.AddListener(c => { _textInput.Add(c); });
+            Engine.Host.OnTextInput.AddListener(c => { _textInput.Add(c); return true; });
 
             Initialized = true;
         }
@@ -179,7 +185,7 @@ namespace Emotion.Plugins.ImGuiNet
                 Focused = false;
 
             // Update input.
-            io.MousePos = Engine.Host.MousePosition;
+            io.MousePos = Engine.Host.MousePosition / ImGuiScale;
             io.MouseDown[0] = Engine.InputManager.IsMouseKeyDown(MouseKey.Left) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Left);
             io.MouseDown[1] = Engine.InputManager.IsMouseKeyDown(MouseKey.Right) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Right);
             io.MouseDown[2] = Engine.InputManager.IsMouseKeyDown(MouseKey.Middle) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Middle);
@@ -219,8 +225,10 @@ namespace Emotion.Plugins.ImGuiNet
 
         public static void RenderUI(RenderComposer composer)
         {
+            composer.PushModelMatrix(Matrix4x4.CreateScale(ImGuiScale));
             composer.PushCommand(_imGuiState);
             composer.PushCommand(Command);
+            composer.PopModelMatrix();
 
             // No need to restore state, as this should be rendered last and is also used in developer mode only.
         }
@@ -272,7 +280,6 @@ namespace Emotion.Plugins.ImGuiNet
 
                     // Upload the font.
                     var newFontTexture = new Texture(new Vector2(width, height), pixels);
-                    _loadedFontsEmotion.Add(newFontTexture);
 
                     // Let ImGui know where to find the texture.
                     io.Fonts.SetTexID(new IntPtr(newFontTexture.Pointer));
