@@ -144,12 +144,12 @@ namespace Emotion.Platform.Implementation
                 return;
             }
 
-            // Resample.
-            if (srcSampleRate != dstSampleRate) Resample(ref temp, srcSampleRate, dstSampleRate);
-
             // Convert channels.
             if (srcChannels == 1 && dstChannels == 2) MonoToStereo(ref temp);
             if (dstChannels == 1 && srcChannels == 2) StereoToMono(ref temp);
+
+            // Resample.
+            if (srcSampleRate != dstSampleRate) Resample(ref temp, srcSampleRate, dstSampleRate);
 
             // Check if a data conversion is not needed.
             if (dstBps == 32 && dstFloat)

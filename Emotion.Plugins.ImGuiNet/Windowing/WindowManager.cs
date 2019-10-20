@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using Emotion.Common;
 using Emotion.Graphics;
 // ReSharper disable InconsistentlySynchronizedField
 
@@ -39,7 +41,13 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 
                 // Overlap prevention on open. (kind of)
                 var spawnOffset = new Vector2(10, 10);
-                if (i != 0) spawnOffset = _openWindows[i - 1].Position + _openWindows[i - 1].Size;
+                if (i != 0)
+                {
+                    ImGuiWindow prev = _openWindows[i - 1];
+                    spawnOffset = prev.Position.X + prev.Size.X * 2 > Engine.Renderer.CurrentTarget.Size.X / ImGuiNetPlugin.ImGuiScale ? 
+                        new Vector2(prev.Position.X, prev.Position.Y + prev.Size.Y + 10) : 
+                        new Vector2(_openWindows[i - 1].Position.X + _openWindows[i - 1].Size.X + 10, _openWindows[i - 1].Position.Y);
+                }
 
                 _openWindows[i].Render(spawnOffset, composer);
             }
@@ -49,6 +57,12 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
         {
             lock (_openWindows)
             {
+                // Check if unique.
+                if (_openWindows.Any(window => window.Title == win.Title))
+                {
+                    return;
+                }
+
                 win.Parent = this;
                 _openWindows.Add(win);
             }
