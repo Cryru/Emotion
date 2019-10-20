@@ -102,6 +102,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     continue;
                 }
 
+                if (_defaultDevice.AudioClient == null) continue;
+
                 int error = _defaultDevice.AudioClient.GetCurrentPadding(out int padding);
                 if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
 

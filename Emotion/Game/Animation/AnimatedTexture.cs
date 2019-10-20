@@ -90,6 +90,19 @@ namespace Emotion.Game.Animation
             }
         }
 
+        /// <summary>
+        /// Spacing between individual frames.
+        /// </summary>
+        public Vector2 Spacing
+        {
+            get => _spacing;
+            set
+            {
+                _spacing = value;
+                Reset();
+            }
+        }
+
         #endregion
 
         private Vector2 _frameSize;
@@ -174,6 +187,22 @@ namespace Emotion.Game.Animation
             TimeBetweenFrames = timeBetweenFrames;
 
             Reset();
+        }
+
+        /// <summary>
+        /// Copy constructor.
+        /// </summary>
+        public AnimatedTexture(AnimatedTexture copy)
+        {
+            CurrentFrameIndex = copy.CurrentFrameIndex;
+            EndingFrame = copy.EndingFrame;
+            _frameSize = copy.FrameSize;
+            _spacing = copy.Spacing;
+            LoopCount = copy.LoopCount;
+            LoopType = copy.LoopType;
+            StartingFrame = copy.StartingFrame;
+            Texture = copy.Texture;
+            TimeBetweenFrames = copy.TimeBetweenFrames;
         }
 
         /// <summary>
