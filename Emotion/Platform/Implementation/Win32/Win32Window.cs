@@ -240,7 +240,7 @@ namespace Emotion.Platform.Implementation.Win32
 
         internal static WindowStyles DetermineWindowStyle(Win32Window window)
         {
-            return window.DisplayMode == DisplayMode.Windowed ? DEFAULT_WINDOW_STYLE : FULLSCREEN_STYLE;
+            return window.DisplayMode == DisplayMode.Fullscreen ? FULLSCREEN_STYLE : DEFAULT_WINDOW_STYLE;
         }
 
         #endregion
