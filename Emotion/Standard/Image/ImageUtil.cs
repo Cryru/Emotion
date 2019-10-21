@@ -33,7 +33,7 @@ namespace Emotion.Standard.Image
         }
 
         /// <summary>
-        /// Inverts an image.
+        /// Flips the image on the Y axis.
         /// </summary>
         /// <param name="imageData">The image pixels.</param>
         /// <param name="width">The width of the image.</param>

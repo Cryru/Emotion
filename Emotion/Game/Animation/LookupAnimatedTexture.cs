@@ -12,10 +12,9 @@ using Emotion.Standard.Logging;
 namespace Emotion.Game.Animation
 {
     /// <summary>
-    /// Handles spritesheets with equal sized frames.
-    /// Name is non-specific for legacy reasons.
+    /// A class for animating a texture using a lookup table of frames.
     /// </summary>
-    public sealed class AnimatedTexture : IAnimatedTexture
+    public sealed class LookupAnimatedTexture : IAnimatedTexture
     {
         #region Properties
 
@@ -35,27 +34,14 @@ namespace Emotion.Game.Animation
         public int TimeBetweenFrames { get; set; }
 
         /// <summary>
-        /// The size of the individual frames.
+        /// List of frames.
         /// </summary>
-        public Vector2 FrameSize
+        public Rectangle[] Frames
         {
-            get => _frameSize;
+            get => _frames;
             set
             {
-                _frameSize = value;
-                Reset();
-            }
-        }
-
-        /// <summary>
-        /// Spacing between individual frames.
-        /// </summary>
-        public Vector2 Spacing
-        {
-            get => _spacing;
-            set
-            {
-                _spacing = value;
+                _frames = value;
                 Reset();
             }
         }
@@ -82,7 +68,7 @@ namespace Emotion.Game.Animation
         /// <inheritdoc />
         public int TotalFrames
         {
-            get => (int) (Texture.Size.X / _frameSize.X * Texture.Size.Y / _frameSize.Y - 1);
+            get => Frames?.Length ?? 0;
         }
 
         /// <inheritdoc />
@@ -90,70 +76,23 @@ namespace Emotion.Game.Animation
 
         #endregion
 
-        private Vector2 _frameSize;
-        private Vector2 _spacing;
-
         private float _timePassed;
         private bool _inReverse;
-
-        /// <summary>
-        /// Create a new animated texture object. Which will animate from the first frame to the last.
-        /// </summary>
-        /// <param name="texture">The spritesheet texture.</param>
-        /// <param name="columns">The number of columns of frames.</param>
-        /// <param name="rows">The number of rows of frames.</param>
-        /// <param name="loopType">The type of loop to apply to the animation.</param>
-        /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
-        public AnimatedTexture(Texture texture, int columns, int rows, AnimationLoopType loopType, int timeBetweenFrames)
-            : this(texture, new Vector2(texture.Size.X / columns, texture.Size.Y / rows), loopType, timeBetweenFrames)
-        {
-        }
-
-        /// <summary>
-        /// Create a new animated texture object. Which will animate from the first frame to the last.
-        /// </summary>
-        /// <param name="texture">The spritesheet texture.</param>
-        /// <param name="columns">The number of columns of frames.</param>
-        /// <param name="rows">The number of rows of frames.</param>
-        /// <param name="loopType">The type of loop to apply to the animation.</param>
-        /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
-        /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
-        /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, int columns, int rows, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
-            : this(texture, new Vector2(texture.Size.X / columns, texture.Size.Y / rows), loopType, timeBetweenFrames, startingFrame, endingFrame)
-        {
-        }
+        private Rectangle[] _frames;
 
         /// <summary>
         /// Create a new animated texture object.
         /// </summary>
         /// <param name="texture">The spritesheet texture.</param>
-        /// <param name="frameSize">The size of frames within the texture. It is assumed that all frames are of the same size.</param>
+        /// <param name="frames">List of frame uvs..</param>
         /// <param name="loopType">The type of loop to apply to the animation.</param>
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
         /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1) : this(texture, frameSize,
-            Vector2.Zero,
-            loopType, timeBetweenFrames, startingFrame, endingFrame)
-        {
-        }
-
-        /// <summary>
-        /// Create a new animated texture object.
-        /// </summary>
-        /// <param name="texture">The spritesheet texture.</param>
-        /// <param name="frameSize">The size of frames within the texture. It is assumed that all frames are of the same size.</param>
-        /// <param name="spacing">The spacing between frames in the spritesheet. Also applied as an outermost border.</param>
-        /// <param name="loopType">The type of loop to apply to the animation.</param>
-        /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
-        /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
-        /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, Vector2 frameSize, Vector2 spacing, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
+        public LookupAnimatedTexture(Texture texture, Rectangle[] frames, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
         {
             Texture = texture;
-            _frameSize = frameSize;
-            _spacing = spacing;
+            _frames = frames;
 
             LoopType = loopType;
             StartingFrame = startingFrame;
@@ -163,10 +102,27 @@ namespace Emotion.Game.Animation
             Reset();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Copy constructor.
+        /// </summary>
+        public LookupAnimatedTexture(AnimatedTexture copy)
+        {
+            CurrentFrameIndex = copy.CurrentFrameIndex;
+            EndingFrame = copy.EndingFrame;
+            LoopCount = copy.LoopCount;
+            LoopType = copy.LoopType;
+            StartingFrame = copy.StartingFrame;
+            Texture = copy.Texture;
+            TimeBetweenFrames = copy.TimeBetweenFrames;
+        }
+
+        /// <summary>
+        /// Advance time for the animation.
+        /// </summary>
+        /// <param name="frameTime">The time passed since the last update.</param>
         public void Update(float frameTime)
         {
-            if (_frameSize == Vector2.Zero) return;
+            if (Frames == null) return;
 
             // Clamp frame parameters.
             ClampFrameParameters();
@@ -183,16 +139,23 @@ namespace Emotion.Game.Animation
             NextFrame();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reset the animation.
+        /// </summary>
         public void Reset()
         {
             _timePassed = 0;
-            ClampFrameParameters();
             CurrentFrameIndex = GetStartingFrame();
             LoopCount = 0;
+            ClampFrameParameters();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Set the current frame to the specified frame.
+        /// Animation will continue from there.
+        /// If the index is invalid it will either be set to the starting or ending frame.
+        /// </summary>
+        /// <param name="index">The index to set the current frame to.</param>
         public void SetFrame(int index)
         {
             CurrentFrameIndex = index;
@@ -293,7 +256,7 @@ namespace Emotion.Game.Animation
                 CurrentFrameIndex = GetStartingFrame();
             }
 
-            if (EndingFrame > TotalFrames || EndingFrame == -1) EndingFrame = TotalFrames;
+            if (EndingFrame > TotalFrames) EndingFrame = TotalFrames;
             if (StartingFrame > EndingFrame)
             {
                 StartingFrame = 0;
@@ -325,10 +288,14 @@ namespace Emotion.Game.Animation
 
         #endregion
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Get the bounds of the specified frame.
+        /// </summary>
+        /// <param name="frameId">The frame to get the bounds of.</param>
+        /// <returns>The bounds of the requested frame.</returns>
         public Rectangle GetFrameBounds(int frameId)
         {
-            return GetFrameBounds(Texture.Size, _frameSize, _spacing, frameId);
+            return frameId > Frames.Length ? Rectangle.Empty : Frames[frameId];
         }
 
         /// <summary>
@@ -360,7 +327,7 @@ namespace Emotion.Game.Animation
                 (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
         }
 
-        private AnimatedTexture()
+        private LookupAnimatedTexture()
         {
             // no-op, used for copy
         }
@@ -368,12 +335,11 @@ namespace Emotion.Game.Animation
         /// <inheritdoc />
         public IAnimatedTexture Copy()
         {
-            return new AnimatedTexture
+            return new LookupAnimatedTexture
             {
                 CurrentFrameIndex = CurrentFrameIndex,
                 EndingFrame = EndingFrame,
-                _frameSize = FrameSize,
-                _spacing = Spacing,
+                Frames = Frames,
                 LoopCount = LoopCount,
                 LoopType = LoopType,
                 StartingFrame = StartingFrame,
@@ -385,15 +351,14 @@ namespace Emotion.Game.Animation
         /// <inheritdoc />
         public AnimationDescriptionBase GetDescription(string textureName = null)
         {
-            return new AnimatedTextureDescription
+            return new LookupAnimatedDescription
             {
                 SpriteSheetName = textureName,
                 StartingFrame = StartingFrame,
                 EndingFrame = EndingFrame,
                 TimeBetweenFrames = TimeBetweenFrames,
                 LoopType = LoopType,
-                FrameSize = FrameSize,
-                Spacing = Spacing
+                Frames = Frames
             };
         }
     }

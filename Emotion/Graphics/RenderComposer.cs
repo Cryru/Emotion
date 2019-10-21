@@ -243,6 +243,21 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Render a rectangle outline.
+        /// </summary>
+        /// <param name="position">The position of the rectangle.</param>
+        /// <param name="size">The size of the rectangle.</param>
+        /// <param name="color">The color of the lines.</param>
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
+        {
+            RenderLine(position, new Vector3(position.X + size.X, position.Y, position.Z), color, thickness);
+            RenderLine(new Vector3(position.X + size.X, position.Y, position.Z), new Vector3(position.X + size.X, position.Y + size.Y, position.Z), color, thickness);
+            RenderLine(new Vector3(position.X + size.X, position.Y + size.Y, position.Z), new Vector3(position.X, position.Y + size.Y, position.Z), color, thickness);
+            RenderLine(new Vector3(position.X, position.Y + size.Y, position.Z), position, color, thickness);
+        }
+
+        /// <summary>
         /// Render arbitrary vertices. Clockwise order is expected.
         /// </summary>
         /// <param name="vertices">The vertex to render.</param>
