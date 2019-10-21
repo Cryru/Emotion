@@ -29,12 +29,12 @@ namespace Emotion.IO
         public string Fallback { get; set; } = "Shaders/DefaultShader.xml";
     }
 
-    public class ShaderAsset : Asset
+    public class ShaderAsset : XMLAsset<ShaderDescription>
     {
         /// <summary>
-        /// The description of the shader.
+        /// The description of the shader. Legacy property, redirect to Content.
         /// </summary>
-        public ShaderDescription Description { get; private set; }
+        public ShaderDescription Description { get => Content; }
 
         /// <summary>
         /// Whether using the fallback shader.
@@ -51,26 +51,20 @@ namespace Emotion.IO
         /// </summary>
         public ShaderProgram Shader { get; protected set; }
 
-        /// <summary>
-        /// The serializer used to deserialize shader files into ShaderDescription files.
-        /// </summary>
-        public static XmlSerializer Serializer = new XmlSerializer(typeof(ShaderDescription));
-
         protected override void CreateInternal(byte[] data)
         {
             // Deserialize the shader description.
-            using (var stream = new MemoryStream(data))
-            {
-                Description = (ShaderDescription) Serializer.Deserialize(stream);
-            }
+            base.CreateInternal(data);
+            // Fallback to default.
+            if (Content == null) Content = new ShaderDescription();
 
             // Get the text contents of the shader files referenced. If any of them are missing substitute with the default one.
             TextAsset vertShader = null;
             var ownVert = false;
 
-            if (!string.IsNullOrEmpty(Description.Vert))
+            if (!string.IsNullOrEmpty(Content.Vert))
             {
-                vertShader = Engine.AssetLoader.Get<TextAsset>(Description.Vert);
+                vertShader = Engine.AssetLoader.Get<TextAsset>(Content.Vert);
                 ownVert = true;
             }
             
@@ -83,9 +77,9 @@ namespace Emotion.IO
             TextAsset fragShader = null;
             var ownFrag = false;
 
-            if (!string.IsNullOrEmpty(Description.Frag))
+            if (!string.IsNullOrEmpty(Content.Frag))
             {
-                fragShader = Engine.AssetLoader.Get<TextAsset>(Description.Frag);
+                fragShader = Engine.AssetLoader.Get<TextAsset>(Content.Frag);
                 ownFrag = true;
             }
 
@@ -114,7 +108,7 @@ namespace Emotion.IO
             IsFallback = true;
 
             // If there is no fallback, fallback to default.
-            if (string.IsNullOrEmpty(Description.Fallback))
+            if (string.IsNullOrEmpty(Content.Fallback))
             {
                 Engine.Log.Warning("No fallback specified, falling back to default.", MessageSource.AssetLoader);
                 Shader = ShaderFactory.DefaultProgram;
@@ -122,18 +116,18 @@ namespace Emotion.IO
                 return;
             }
 
-            var fallBackShader = Engine.AssetLoader.Get<ShaderAsset>(Description.Fallback);
+            var fallBackShader = Engine.AssetLoader.Get<ShaderAsset>(Content.Fallback);
             // If not found, fallback to default.
             if (fallBackShader == null)
             {
-                Engine.Log.Warning($"Fallback {Description.Fallback} not found. Falling back to default.", MessageSource.AssetLoader);
+                Engine.Log.Warning($"Fallback {Content.Fallback} not found. Falling back to default.", MessageSource.AssetLoader);
                 Shader = ShaderFactory.DefaultProgram;
                 FallbackName = "Default";
                 return;
             }
 
-            Engine.Log.Warning($"Shader {Name} fell back to {Description.Fallback}.", MessageSource.AssetLoader);
-            FallbackName = Description.Fallback;
+            Engine.Log.Warning($"Shader {Name} fell back to {Content.Fallback}.", MessageSource.AssetLoader);
+            FallbackName = Content.Fallback;
             Shader = fallBackShader.Shader;
         }
 

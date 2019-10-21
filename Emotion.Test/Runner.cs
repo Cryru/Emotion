@@ -106,6 +106,8 @@ namespace Emotion.Test
 
         private static void Main(string[] args)
         {
+            NoLinkedRunners = true;
+
             // Correct the startup directory to the directory of the executable.
             // Emotion also does this inside the engine setup.
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
