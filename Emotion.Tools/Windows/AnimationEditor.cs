@@ -318,7 +318,7 @@ namespace Emotion.Tools.Windows
                 Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Rgba, PixelType.UnsignedByte, new IntPtr(p));
             }
 
-            ImageUtil.InvertImage(pixels, (int) _file.Texture.Size.X, (int) _file.Texture.Size.Y);
+            ImageUtil.FlipImageY(pixels, (int) _file.Texture.Size.X, (int) _file.Texture.Size.Y);
             // Convert to 1 bit.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {

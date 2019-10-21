@@ -38,7 +38,7 @@ namespace Emotion.Standard.Image
         /// <param name="imageData">The image pixels.</param>
         /// <param name="width">The width of the image.</param>
         /// <param name="height">The height of the image.</param>
-        public static unsafe void InvertImage(byte[] imageData, int width, int height)
+        public static unsafe void FlipImageY(byte[] imageData, int width, int height)
         {
             int bytesPerRow = imageData.Length / height;
 
