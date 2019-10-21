@@ -201,7 +201,7 @@ namespace Emotion.Tools.Windows
             // File data.
             ImGui.Text($"Current File: {_file?.Name ?? "None"}");
             if (_file == null) return;
-            if (_animation == null) _animation = new LookupAnimatedTexture(_file.Texture, _frameSize, (AnimationLoopType) _loopType, _frameTime);
+            if (_animation == null) _animation = new LookupAnimatedTexture(_file.Texture, null, (AnimationLoopType) _loopType, _frameTime);
             if (ImGui.Button("Reload Image")) LoadSpriteSheetFile(FileExplorer<TextureAsset>.ExplorerLoadAsset(_file.Name));
             ImGui.SameLine();
             if (_playing)
@@ -238,7 +238,11 @@ namespace Emotion.Tools.Windows
             // Editors
             if (_animation is LookupAnimatedTexture lookupAnim)
                 if (ImGui.Button("Auto Detect Frames"))
+                {
                     _lookupRects = AutoDetectLookup();
+                    lookupAnim.Frames = _lookupRects;
+                }
+                    
 
             ImGui.InputInt("Starting Frame", ref _startFrame);
             if (_startFrame != _animation.StartingFrame) _animation.StartingFrame = _startFrame;
@@ -358,7 +362,7 @@ namespace Emotion.Tools.Windows
                         if (width > size.X) size.X = width;
                         width = 0;
                     }
-                    step2: ;
+                    step2:
                     // Now go down from the start until we find a non-full.
                     var heightLeft = 0;
                     for (int yy = y; yy < _file.Texture.Size.Y; yy++)
@@ -388,8 +392,6 @@ namespace Emotion.Tools.Windows
                     x += (int) size.X;
                 }
             }
-
-            boxForceEnd:
 
             // Combine all boxes.
             restart:
