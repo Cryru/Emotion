@@ -69,7 +69,7 @@ namespace Emotion.Standard.Image.PNG
 
             // Convert to BGRA.
             ImageUtil.InvertEndian32Bpp(pixels);
-            ImageUtil.InvertImage(pixels, width, height);
+            ImageUtil.FlipImageY(pixels, width, height);
 
             var pngHeader = new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
             const int maxBlockSize = 0xFFFF;
@@ -316,7 +316,7 @@ namespace Emotion.Standard.Image.PNG
 
             // Convert to RGBA and invert.
             ImageUtil.InvertEndian32Bpp(pixels);
-            ImageUtil.InvertImage(pixels, fileHeader.Width, fileHeader.Height);
+            ImageUtil.FlipImageY(pixels, fileHeader.Width, fileHeader.Height);
 
             return pixels;
         }
