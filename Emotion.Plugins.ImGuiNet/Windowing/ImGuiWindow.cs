@@ -40,5 +40,10 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
 
         public abstract void Update();
         protected abstract void RenderContent(RenderComposer composer);
+
+        public virtual void Dispose()
+        {
+
+        }
     }
 }
