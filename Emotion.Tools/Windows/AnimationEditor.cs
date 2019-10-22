@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Xml.Serialization;
 using Emotion.Common;
@@ -14,6 +15,7 @@ using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using Emotion.Standard.Image;
+using Emotion.Tools.Windows.AnimationEditorWindows;
 using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;
@@ -26,8 +28,6 @@ namespace Emotion.Tools.Windows
     {
         private IAnimatedTexture _animation;
 
-        private Vector2 _frameSize = Vector2.Zero;
-        private Vector2 _spacing = Vector2.Zero;
         private int _loopType = 1;
         private int _frameTime = 250;
         private int _startFrame;
@@ -38,11 +38,18 @@ namespace Emotion.Tools.Windows
 
         private bool _playing = true;
 
-        public Dictionary<string, IAnimatedTexture> Saved = new Dictionary<string, IAnimatedTexture>();
+        public Dictionary<string, IAnimatedTexture> Saved = new Dictionary<string, IAnimatedTexture>(); // Currently does nothing.
         private string _saveName = "";
         private SavedAnimations _savedAnimationsWindow;
-
         private string _type;
+
+        // Standard only.
+        private Vector2 _frameSize = Vector2.Zero;
+        private Vector2 _spacing = Vector2.Zero;
+
+        // Lookup only.
+        private AnchorPlacer _anchorPlacerWindow;
+        private FrameOrderWindow _orderWindow;
 
         public AnimationEditor() : base("Animation Editor")
         {
@@ -50,23 +57,25 @@ namespace Emotion.Tools.Windows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            if (_type == null)
+            switch (_type)
             {
-                if (ImGui.Button("Standard")) _type = "standard";
-                ImGui.SameLine();
-                if (ImGui.Button("Lookup")) _type = "lookup";
-            }
-            else if (_type == "standard")
-            {
-                RenderContentStandard(composer);
-            }
-            else if (_type == "lookup")
-            {
-                RenderContentLookup(composer);
+                case null:
+                {
+                    if (ImGui.Button("Standard")) _type = "standard";
+                    ImGui.SameLine();
+                    if (ImGui.Button("Lookup")) _type = "lookup";
+                    break;
+                }
+                case "standard":
+                    RenderContentStandard();
+                    break;
+                case "lookup":
+                    RenderContentLookup(composer);
+                    break;
             }
         }
 
-        private void RenderContentStandard(RenderComposer composer)
+        private void RenderContentStandard()
         {
             // File selection.
             if (ImGui.Button("Choose SpriteSheet File"))
@@ -80,7 +89,10 @@ namespace Emotion.Tools.Windows
                 var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(f =>
                 {
                     if (f?.Content == null) return;
-                    _animation = f.Content.CreateFrom();
+                    IAnimatedTexture anim = f.Content.CreateFrom();
+                    _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
+                    LoadAnimationData(anim);
+                    _saveName = f.Name;
                 });
                 Parent.AddWindow(explorer);
             }
@@ -112,10 +124,10 @@ namespace Emotion.Tools.Windows
             ImGui.InputInt("Display Scale", ref _scale);
 
             // Editors
+            ImGui.InputInt("MS Between Frames", ref _frameTime);
+            if (_frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = _frameTime;
             if (_animation is AnimatedTexture standardAnim)
             {
-                ImGui.InputInt("MS Between Frames", ref _frameTime);
-                if (_frameTime != standardAnim.TimeBetweenFrames) _animation.TimeBetweenFrames = _frameTime;
                 ImGui.InputFloat2("Frame Size", ref _frameSize);
                 if (_frameSize != standardAnim.FrameSize) standardAnim.FrameSize = _frameSize;
                 ImGui.InputFloat2("Spacing", ref _spacing);
@@ -145,39 +157,8 @@ namespace Emotion.Tools.Windows
                     current ? new Vector4(1, 0, 0, 1) : Vector4.Zero);
             }
 
-            // Saving
-            ImGui.InputText("Name", ref _saveName, 100);
-            ImGui.SameLine();
-            if (string.IsNullOrEmpty(_saveName))
-            {
-                ImGui.TextDisabled("Save");
-                ImGui.SameLine();
-                ImGui.TextDisabled("SaveToFile");
-            }
-            else
-            {
-                if (ImGui.Button("Save"))
-                {
-                    Saved.Add(_saveName, _animation.Copy());
-                    _saveName = "";
-                    if (_savedAnimationsWindow == null) Parent.AddWindow(_savedAnimationsWindow = new SavedAnimations(this));
-                }
-
-                ImGui.SameLine();
-                if (ImGui.Button("SaveToFile"))
-                {
-                    AnimationDescriptionBase description = _animation.GetDescription(_file.Name);
-                    var serializer = new XmlSerializer(description.GetType());
-                    FileStream stream = File.OpenWrite(Helpers.CrossPlatformPath("./Assets/" + _saveName + ".anim"));
-                    serializer.Serialize(stream, description);
-                    stream.Flush();
-                    stream.Close();
-                    _saveName = "";
-                }
-            }
+            RenderSaveSection();
         }
-
-        private Rectangle[] _lookupRects;
 
         private void RenderContentLookup(RenderComposer composer)
         {
@@ -193,7 +174,10 @@ namespace Emotion.Tools.Windows
                 var explorer = new FileExplorer<XMLAsset<LookupAnimatedDescription>>(f =>
                 {
                     if (f?.Content == null) return;
-                    _animation = f.Content.CreateFrom();
+                    IAnimatedTexture anim = f.Content.CreateFrom();
+                    _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
+                    LoadAnimationData(anim);
+                    _saveName = f.Name;
                 });
                 Parent.AddWindow(explorer);
             }
@@ -217,32 +201,30 @@ namespace Emotion.Tools.Windows
 
             if (_file == null || _animation == null) return;
 
+            if (!(_animation is LookupAnimatedTexture lookupAnim)) return;
+
             // Image data and scale.
-            (Vector2 uv1, Vector2 uv2) = _animation.Texture.GetImGuiUV(_animation.CurrentFrame);
-            ImGui.Image(new IntPtr(_animation.Texture.Pointer), _animation.CurrentFrame.Size * _scale, uv1, uv2);
-
-            if (_lookupRects != null)
-            {
-                Vector2 pos = ImGui.GetWindowPos();
-                pos.Y += ImGui.GetWindowHeight();
-                composer.RenderSprite(new Vector3(pos, 0), _file.Texture.Size * _scale, Color.White, _file.Texture);
-                for (var i = 0; i < _lookupRects.Length; i++)
-                {
-                    composer.RenderOutline(new Vector3((_lookupRects[i].Location * _scale) + pos, 1) , _lookupRects[i].Size * _scale, Color.Red);
-                }
-            }
-
             ImGui.Text($"Resolution: {_animation.Texture.Size}");
             ImGui.InputInt("Display Scale", ref _scale);
 
             // Editors
-            if (_animation is LookupAnimatedTexture lookupAnim)
-                if (ImGui.Button("Auto Detect Frames"))
-                {
-                    _lookupRects = AutoDetectLookup();
-                    lookupAnim.Frames = _lookupRects;
-                }
-                    
+            ImGui.InputInt("MS Between Frames", ref _frameTime);
+            if (_frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = _frameTime;
+            if (ImGui.Button("Auto Detect Frames"))
+            {
+                lookupAnim.Frames = AutoDetectLookup();
+            }
+
+            ImGui.SameLine();
+            ImGui.Text("<- Will override frames and order.");
+
+            if (ImGui.Button("Place Anchor Points"))
+                if (_anchorPlacerWindow == null)
+                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, (LookupAnimatedTexture) _animation));
+
+            if (ImGui.Button("Order Frames"))
+                if (_anchorPlacerWindow == null)
+                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, (LookupAnimatedTexture) _animation));
 
             ImGui.InputInt("Starting Frame", ref _startFrame);
             if (_startFrame != _animation.StartingFrame) _animation.StartingFrame = _startFrame;
@@ -251,8 +233,9 @@ namespace Emotion.Tools.Windows
             ImGui.Combo("Loop Type", ref _loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
             if ((AnimationLoopType) _loopType != _animation.LoopType) _animation.LoopType = (AnimationLoopType) _loopType;
 
-            // Frames.
+            // Frames and info.
             ImGui.Text($"Current Frame: {_animation.CurrentFrameIndex + 1}/{_animation.AnimationFrames + 1}");
+            ImGui.Text($"Current Anchor: {(lookupAnim.Anchors.Length > 0 ? lookupAnim.Anchors[_animation.CurrentFrameIndex].ToString() : "Unknown")}");
 
             for (var i = 0; i < _animation.TotalFrames; i++)
             {
@@ -263,10 +246,19 @@ namespace Emotion.Tools.Windows
                 Rectangle frameBounds = _animation.GetFrameBounds(i);
                 (Vector2 u1, Vector2 u2) = _animation.Texture.GetImGuiUV(frameBounds);
 
-                ImGui.Image(new IntPtr(_animation.Texture.Pointer), _frameSize / 2f, u1, u2, Vector4.One,
+                ImGui.Image(new IntPtr(_animation.Texture.Pointer), frameBounds.Size / 2f, u1, u2, Vector4.One,
                     current ? new Vector4(1, 0, 0, 1) : Vector4.Zero);
             }
 
+            RenderSaveSection();
+
+            var offset = new Vector2(100, 100);
+            if (lookupAnim.Anchors.Length > 0) offset += lookupAnim.Anchors[lookupAnim.CurrentFrameIndex] * _scale;
+            composer.RenderSprite(new Vector3(offset, 1), _animation.CurrentFrame.Size * _scale, Color.White, _animation.Texture, _animation.CurrentFrame);
+        }
+
+        private void RenderSaveSection()
+        {
             // Saving
             ImGui.InputText("Name", ref _saveName, 100);
             ImGui.SameLine();
@@ -286,30 +278,34 @@ namespace Emotion.Tools.Windows
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button("SaveToFile"))
-                {
-                    AnimationDescriptionBase description = _animation.GetDescription(_file.Name);
-                    var serializer = new XmlSerializer(description.GetType());
-                    FileStream stream = File.OpenWrite(Helpers.CrossPlatformPath("./Assets/" + _saveName + ".anim"));
-                    serializer.Serialize(stream, description);
-                    stream.Flush();
-                    stream.Close();
-                    _saveName = "";
-                }
-            }
-        }
+                if (!ImGui.Button("SaveToFile")) return;
+                string outputFile = Helpers.CrossPlatformPath("./Assets/" + _saveName);
+                if (!outputFile.Contains(".anim")) outputFile += ".anim";
+                if (File.Exists(outputFile)) File.Delete(outputFile);
 
-        private void LoadSpriteSheetFile(TextureAsset f)
-        {
-            if (f?.Texture == null) return;
-            _file?.Dispose();
-            _file = f;
+                AnimationDescriptionBase description = _animation.GetDescription(_file.Name);
+                var serializer = new XmlSerializer(description.GetType());
+                FileStream stream = File.OpenWrite(outputFile);
+                serializer.Serialize(stream, description);
+                stream.Flush();
+                stream.Close();
+                _saveName = "";
+            }
         }
 
         public override void Update()
         {
             if (_playing)
                 _animation?.Update(Engine.DeltaTime);
+        }
+
+        #region Helpers
+
+        private void LoadSpriteSheetFile(TextureAsset f)
+        {
+            if (f?.Texture == null) return;
+            _file?.Dispose();
+            _file = f;
         }
 
         private unsafe Rectangle[] AutoDetectLookup()
@@ -328,6 +324,7 @@ namespace Emotion.Tools.Windows
             {
                 pixels[w] = (byte) (pixels[i + 3] > 10 ? 1 : 0);
             }
+
             Array.Resize(ref pixels, pixels.Length / 4);
 
             var boxes = new List<Rectangle>();
@@ -356,22 +353,21 @@ namespace Emotion.Tools.Windows
                                 if (width > size.X) size.X = width;
                                 goto step2;
                             }
+
                             width++;
                         }
 
                         if (width > size.X) size.X = width;
                         width = 0;
                     }
+
                     step2:
                     // Now go down from the start until we find a non-full.
                     var heightLeft = 0;
                     for (int yy = y; yy < _file.Texture.Size.Y; yy++)
                     {
                         byte curLook = pixels[(int) (yy * _file.Texture.Size.X + x)];
-                        if (curLook == 0)
-                        {
-                            break;
-                        }
+                        if (curLook == 0) break;
                         heightLeft++;
                     }
 
@@ -380,10 +376,7 @@ namespace Emotion.Tools.Windows
                     for (int yy = y; yy < _file.Texture.Size.Y; yy++)
                     {
                         byte curLook = pixels[(int) (yy * _file.Texture.Size.X + (x + size.X - 1))];
-                        if (curLook == 0)
-                        {
-                            break;
-                        }
+                        if (curLook == 0) break;
                         heightRight++;
                     }
 
@@ -408,44 +401,18 @@ namespace Emotion.Tools.Windows
                 }
             }
 
-            return boxes.ToArray();
+            return boxes.OrderBy(x => x.Y).ThenBy(x => x.X).ToArray();
         }
-    }
 
-    public class SavedAnimations : ImGuiWindow
-    {
-        private AnimationEditor _parent;
-
-        public SavedAnimations(AnimationEditor parent) : base("Saved Animations")
+        private void LoadAnimationData(IAnimatedTexture anim)
         {
-            _parent = parent;
-            CantClose = true;
+            _startFrame = anim.StartingFrame;
+            _endFrame = anim.EndingFrame;
+            _loopType = (int) anim.LoopType;
+            _frameTime = anim.TimeBetweenFrames;
+            _animation = anim;
         }
 
-        public override void Update()
-        {
-            if (!_parent.Open)
-            {
-                CantClose = false;
-                Open = false;
-            }
-        }
-
-        protected override void RenderContent(RenderComposer composer)
-        {
-            foreach (KeyValuePair<string, IAnimatedTexture> savedAnimation in _parent.Saved)
-            {
-                ImGui.Text(savedAnimation.Key);
-                IAnimatedTexture anim = savedAnimation.Value;
-                int animPreview = Math.Min(5, anim.AnimationFrames);
-                for (var i = 0; i <= animPreview; i++)
-                {
-                    Rectangle frameBounds = anim.GetFrameBounds(i);
-                    (Vector2 u1, Vector2 u2) = anim.Texture.GetImGuiUV(frameBounds);
-                    ImGui.Image(new IntPtr(anim.Texture.Pointer), frameBounds.Size / 2f, u1, u2);
-                    if (i != animPreview) ImGui.SameLine();
-                }
-            }
-        }
+        #endregion
     }
 }

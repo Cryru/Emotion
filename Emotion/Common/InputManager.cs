@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 
@@ -29,6 +30,14 @@ namespace Emotion.Common
 
         private Dictionary<MouseKey, bool> _mouseStatus = new Dictionary<MouseKey, bool>();
         private Dictionary<MouseKey, bool> _mouseStatusShadow = new Dictionary<MouseKey, bool>();
+
+        /// <summary>
+        /// Redirect of Engine.Host.MousePosition
+        /// </summary>
+        public Vector2 MousePosition
+        {
+            get => Engine.Host.MousePosition;
+        }
 
         public InputManager()
         {
