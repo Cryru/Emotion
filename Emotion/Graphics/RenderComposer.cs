@@ -181,20 +181,6 @@ namespace Emotion.Graphics
         #region RenderSprite Overloads
 
         /// <summary>
-        /// Render a (textured) quad to the screen using its transform.
-        /// </summary>
-        /// <param name="transform">The quad's transform.</param>
-        /// <param name="color">The color of the quad.</param>
-        /// <param name="texture">The texture of the quad, if any.</param>
-        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
-        public void RenderSprite(Transform transform, Color color, Texture texture = null, Rectangle? textureArea = null)
-        {
-            RenderSprite(transform.Position, transform.Size, color, texture, textureArea);
-        }
-
-        #endregion
-
-        /// <summary>
         /// Render a (textured) quad to the screen.
         /// </summary>
         /// <param name="position">The position of the quad.</param>
@@ -212,6 +198,32 @@ namespace Emotion.Graphics
             command.UV = textureArea;
             PushCommand(command);
         }
+
+        /// <summary>
+        /// Render a (textured) quad to the screen using its transform.
+        /// </summary>
+        /// <param name="transform">The quad's transform.</param>
+        /// <param name="color">The color of the quad.</param>
+        /// <param name="texture">The texture of the quad, if any.</param>
+        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
+        public void RenderSprite(Transform transform, Color color, Texture texture = null, Rectangle? textureArea = null)
+        {
+            RenderSprite(transform.Position, transform.Size, color, texture, textureArea);
+        }
+
+        /// <summary>
+        /// Render a (textured) quad to the screen.
+        /// </summary>
+        /// <param name="position">The position of the quad.</param>
+        /// <param name="size">The size of the quad.</param>
+        /// <param name="texture">The texture of the quad, if any.</param>
+        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
+        public void RenderSprite(Vector3 position, Vector2 size, Texture texture = null, Rectangle? textureArea = null)
+        {
+            RenderSprite(position, size, Color.White, texture, textureArea);
+        }
+
+        #endregion
 
         /// <summary>
         /// Render a line made out of quads.

@@ -235,6 +235,11 @@ namespace Emotion.Primitives
             return (int) Math.Pow(Math.Pow(X, Y), Math.Pow(Width, Height));
         }
 
+        public bool Intersects(Vector2 v2)
+        {
+            return Intersects(new Rectangle(v2, Vector2.One));
+        }
+
         public bool Intersects(Rectangle r2)
         {
             return r2.Left < Right &&

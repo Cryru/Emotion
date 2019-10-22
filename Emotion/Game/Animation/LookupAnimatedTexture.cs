@@ -46,6 +46,19 @@ namespace Emotion.Game.Animation
             }
         }
 
+        /// <summary>
+        /// List of anchor points per frame.
+        /// </summary>
+        public Vector2[] Anchors
+        {
+            get => _anchors;
+            set
+            {
+                _anchors = value;
+                Reset();
+            }
+        }
+
         #endregion
 
         #region Info Only
@@ -78,7 +91,8 @@ namespace Emotion.Game.Animation
 
         private float _timePassed;
         private bool _inReverse;
-        private Rectangle[] _frames;
+        private Rectangle[] _frames = new Rectangle[0];
+        private Vector2[] _anchors = new Vector2[0];
 
         /// <summary>
         /// Create a new animated texture object.
@@ -144,10 +158,15 @@ namespace Emotion.Game.Animation
         /// </summary>
         public void Reset()
         {
+            if(Frames != null && _anchors.Length != Frames.Length)
+            {
+                Array.Resize(ref _anchors, Frames.Length);
+            }
+
             _timePassed = 0;
+            ClampFrameParameters();
             CurrentFrameIndex = GetStartingFrame();
             LoopCount = 0;
-            ClampFrameParameters();
         }
 
         /// <summary>
@@ -295,36 +314,7 @@ namespace Emotion.Game.Animation
         /// <returns>The bounds of the requested frame.</returns>
         public Rectangle GetFrameBounds(int frameId)
         {
-            return frameId > Frames.Length ? Rectangle.Empty : Frames[frameId];
-        }
-
-        /// <summary>
-        /// Returns the bounds of a frame within a spritesheet texture.
-        /// </summary>
-        /// <param name="textureSize">The size of the spritesheet texture.</param>
-        /// <param name="frameSize">The size of individual frames.</param>
-        /// <param name="spacing">The spacing between frames.</param>
-        /// <param name="frameId">The index of the frame we are looking for. 0 based.</param>
-        /// <returns>The bounds of a frame within a spritesheet texture.</returns>
-        public static Rectangle GetFrameBounds(Vector2 textureSize, Vector2 frameSize, Vector2 spacing, int frameId)
-        {
-            // Get the total number of columns.
-            var columns = (int) (textureSize.X / frameSize.X);
-
-            // If invalid number of columns this means the texture size is larger than the frame size.
-            if (columns == 0)
-            {
-                Engine.Log.Trace($"Invalid frame size of [{frameSize}] for image of size [{textureSize}].", MessageSource.Other);
-                return new Rectangle(Vector2.Zero, textureSize);
-            }
-
-            // Get the current row and column.
-            var row = (int) (frameId / (float) columns);
-            int column = frameId % columns;
-
-            // Find the frame we are looking for.
-            return new Rectangle((int) (frameSize.X * column + spacing.X * (column + 1)),
-                (int) (frameSize.Y * row + spacing.Y * (row + 1)), (int) frameSize.X, (int) frameSize.Y);
+            return Frames == null || frameId > Frames.Length ? Rectangle.Empty : Frames[frameId];
         }
 
         private LookupAnimatedTexture()
@@ -340,6 +330,7 @@ namespace Emotion.Game.Animation
                 CurrentFrameIndex = CurrentFrameIndex,
                 EndingFrame = EndingFrame,
                 Frames = Frames,
+                Anchors = Anchors,
                 LoopCount = LoopCount,
                 LoopType = LoopType,
                 StartingFrame = StartingFrame,
@@ -358,7 +349,8 @@ namespace Emotion.Game.Animation
                 EndingFrame = EndingFrame,
                 TimeBetweenFrames = TimeBetweenFrames,
                 LoopType = LoopType,
-                Frames = Frames
+                Frames = Frames,
+                Anchors = Anchors
             };
         }
     }
