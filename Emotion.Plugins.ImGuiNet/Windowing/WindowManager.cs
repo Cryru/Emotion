@@ -34,6 +34,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                 if (!_openWindows[i].Open)
                     lock (_openWindows)
                     {
+                        _openWindows[i].Dispose();
                         _openWindows.RemoveAt(i);
                         i--;
                         continue;

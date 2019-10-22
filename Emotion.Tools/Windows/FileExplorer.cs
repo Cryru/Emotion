@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
@@ -17,6 +18,7 @@ namespace Emotion.Tools.Windows
     {
         private Action<T> _fileSelected;
         private string _customFile = "";
+        private Task _loadingTask;
 
         /// <summary>
         /// Create a file explorer dialog.
@@ -29,20 +31,36 @@ namespace Emotion.Tools.Windows
 
         protected override void RenderContent(RenderComposer composer)
         {
+            if (_loadingTask != null)
+            {
+                ImGui.Text("Loading...");
+                return;
+            }
+
             // Add custom path option.
             ImGui.InputText("Custom File: ", ref _customFile, 300);
             ImGui.SameLine();
             if (ImGui.Button("Load") && File.Exists(_customFile))
             {
-                T file = ExplorerLoadAsset(_customFile);
-                _fileSelected?.Invoke(file);
-                Open = false;
+                _loadingTask = Task.Run(async () =>
+                {
+                    T file = await ExplorerLoadAssetAsync(_customFile);
+                    if (file == null)
+                    {
+                        _loadingTask = null;
+                        return;
+                    }
+
+                    _fileSelected?.Invoke(file);
+                    Open = false;
+                });
+
                 return;
             }
 
             // Get all available assets.
             string[] assets = Engine.AssetLoader.AllAssets;
-            assets = assets.OrderBy(x => Path.GetDirectoryName(x)).ToArray();
+            assets = assets.OrderBy(Path.GetDirectoryName).ToArray();
             string directory = null;
             var nodeOpen = false;
             foreach (string asset in assets)
@@ -59,10 +77,18 @@ namespace Emotion.Tools.Windows
                 if (!nodeOpen) continue;
                 if (!ImGui.Button(Path.GetFileName(asset))) continue;
                 // Load the asset custom so the asset loader's caching doesn't get in the way.
-                T file = ExplorerLoadAsset(asset);
-                if (file == null) continue;
-                _fileSelected?.Invoke(file);
-                Open = false;
+                _loadingTask = Task.Run(async () =>
+                {
+                    T file = await ExplorerLoadAssetAsync(asset);
+                    if (file == null)
+                    {
+                        _loadingTask = null;
+                        return;
+                    }
+
+                    _fileSelected?.Invoke(file);
+                    Open = false;
+                });
                 return;
             }
 
@@ -71,6 +97,11 @@ namespace Emotion.Tools.Windows
 
         public override void Update()
         {
+        }
+
+        public static async Task<T> ExplorerLoadAssetAsync(string name)
+        {
+            return await Task.Run(() => ExplorerLoadAsset(name));
         }
 
         public static T ExplorerLoadAsset(string name)
