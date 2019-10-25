@@ -38,7 +38,30 @@ namespace Emotion.Standard.Audio
         /// <returns>A 24bit BMP image as bytes.</returns>
         public static byte[] Encode(byte[] soundData, AudioFormat format)
         {
-            throw new NotImplementedException();
+            var file = new byte[12 + 24 + 8 + soundData.Length];
+            using var writer = new BinaryWriter(new MemoryStream(file));
+
+            // Header - 12
+            writer.Write(Encoding.ASCII.GetBytes("RIFF"));
+            writer.Write(file.Length - 8);
+            writer.Write(Encoding.ASCII.GetBytes("WAVE"));
+
+            // Format header - 24
+            writer.Write(Encoding.ASCII.GetBytes("fmt "));
+            writer.Write(16);
+            writer.Write(format.IsFloat ? (short) 3 : (short) 1); // 2
+            writer.Write((short) format.Channels); // 2
+            writer.Write(format.SampleRate); // 4
+            writer.Write(format.SampleRate * format.SampleSize); // 4
+            writer.Write((short) format.SampleSize); // 2
+            writer.Write((short) format.BitsPerSample); // 2
+
+            // Data - 8 + soundLength
+            writer.Write(Encoding.ASCII.GetBytes("data"));
+            writer.Write(soundData.Length);
+            writer.Write(soundData);
+
+            return file;
         }
 
         /// <summary>
