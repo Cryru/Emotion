@@ -1,12 +1,14 @@
-﻿using Emotion.Common;
-using Emotion.Standard.Logging;
+﻿#region Using
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using Emotion.Common;
+using Emotion.Standard.Logging;
+
+#endregion
 
 namespace Emotion.Standard.Audio
 {
-    public static class AudioUtils
+    public static class AudioUtil
     {
         /// <summary>
         /// Converts 32bit float sound data from stereo to mono.
@@ -63,7 +65,7 @@ namespace Emotion.Standard.Audio
                     temp = new Span<float>(new float[data.Length]);
                     for (var i = 0; i < data.Length; i++)
                     {
-                        temp[i] = (float)data[i] / byte.MaxValue;
+                        temp[i] = (float) data[i] / byte.MaxValue;
                     }
 
                     break;
@@ -75,13 +77,9 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataShort.Length; i++)
                         {
                             if (dataShort[i] < 0)
-                            {
-                                temp[i] = (float)-dataShort[i] / short.MinValue;
-                            }
+                                temp[i] = (float) -dataShort[i] / short.MinValue;
                             else
-                            {
-                                temp[i] = (float)dataShort[i] / short.MaxValue;
-                            }
+                                temp[i] = (float) dataShort[i] / short.MaxValue;
                         }
                     }
 
@@ -94,13 +92,9 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataInt.Length; i++)
                         {
                             if (dataInt[i] < 0)
-                            {
-                                temp[i] = (float)-dataInt[i] / int.MinValue;
-                            }
+                                temp[i] = (float) -dataInt[i] / int.MinValue;
                             else
-                            {
-                                temp[i] = (float)dataInt[i] / int.MaxValue;
-                            }
+                                temp[i] = (float) dataInt[i] / int.MaxValue;
                         }
                     }
 
@@ -138,9 +132,10 @@ namespace Emotion.Standard.Audio
                         Span<byte> conv = new Span<byte>(tempPtr, data.Length);
                         for (var i = 0; i < data.Length; i++)
                         {
-                            conv[i] = (byte)(data[i] * byte.MaxValue);
+                            conv[i] = (byte) (data[i] * byte.MaxValue);
                         }
                     }
+
                     data = data.Slice(0, data.Length / 4);
                     break;
                 case 16: // short
@@ -150,15 +145,12 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataShort.Length; i++)
                         {
                             if (data[i] < 0)
-                            {
-                                dataShort[i] = (short)(-data[i] * short.MinValue);
-                            }
+                                dataShort[i] = (short) (-data[i] * short.MinValue);
                             else
-                            {
-                                dataShort[i] = (short)(data[i] * short.MaxValue);
-                            }
+                                dataShort[i] = (short) (data[i] * short.MaxValue);
                         }
                     }
+
                     data = data.Slice(0, data.Length / 2);
 
                     break;
@@ -169,15 +161,12 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataInt.Length; i++)
                         {
                             if (data[i] < 0)
-                            {
-                                dataInt[i] = (int)(-data[i] * int.MinValue);
-                            }
+                                dataInt[i] = (int) (-data[i] * int.MinValue);
                             else
-                            {
-                                dataInt[i] = (int)(data[i] * int.MaxValue);
-                            }
+                                dataInt[i] = (int) (data[i] * int.MaxValue);
                         }
                     }
+
                     break;
                 case 32:
                     // This is already the input format.
@@ -211,7 +200,7 @@ namespace Emotion.Standard.Audio
                     temp = new Span<float>(new float[data.Length]);
                     for (var i = 0; i < data.Length; i++)
                     {
-                        temp[i] = (float)data[i] / byte.MaxValue;
+                        temp[i] = (float) data[i] / byte.MaxValue;
                     }
 
                     break;
@@ -223,13 +212,9 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataShort.Length; i++)
                         {
                             if (dataShort[i] < 0)
-                            {
-                                temp[i] = (float)-dataShort[i] / short.MinValue;
-                            }
+                                temp[i] = (float) -dataShort[i] / short.MinValue;
                             else
-                            {
-                                temp[i] = (float)dataShort[i] / short.MaxValue;
-                            }
+                                temp[i] = (float) dataShort[i] / short.MaxValue;
                         }
                     }
 
@@ -242,13 +227,9 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataInt.Length; i++)
                         {
                             if (dataInt[i] < 0)
-                            {
-                                temp[i] = (float)-dataInt[i] / int.MinValue;
-                            }
+                                temp[i] = (float) -dataInt[i] / int.MinValue;
                             else
-                            {
-                                temp[i] = (float)dataInt[i] / int.MaxValue;
-                            }
+                                temp[i] = (float) dataInt[i] / int.MaxValue;
                         }
                     }
 
@@ -304,7 +285,7 @@ namespace Emotion.Standard.Audio
                     Array.Resize(ref data, temp.Length);
                     for (var i = 0; i < data.Length; i++)
                     {
-                        data[i] = (byte)(temp[i] * byte.MaxValue);
+                        data[i] = (byte) (temp[i] * byte.MaxValue);
                     }
 
                     break;
@@ -316,13 +297,9 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataShort.Length; i++)
                         {
                             if (temp[i] < 0)
-                            {
-                                dataShort[i] = (short)(-temp[i] * short.MinValue);
-                            }
+                                dataShort[i] = (short) (-temp[i] * short.MinValue);
                             else
-                            {
-                                dataShort[i] = (short)(temp[i] * short.MaxValue);
-                            }
+                                dataShort[i] = (short) (temp[i] * short.MaxValue);
                         }
                     }
 
@@ -335,13 +312,9 @@ namespace Emotion.Standard.Audio
                         for (var i = 0; i < dataInt.Length; i++)
                         {
                             if (temp[i] < 0)
-                            {
-                                dataInt[i] = (int)(-temp[i] * int.MinValue);
-                            }
+                                dataInt[i] = (int) (-temp[i] * int.MinValue);
                             else
-                            {
-                                dataInt[i] = (int)(temp[i] * int.MaxValue);
-                            }
+                                dataInt[i] = (int) (temp[i] * int.MaxValue);
                         }
                     }
 
@@ -361,9 +334,9 @@ namespace Emotion.Standard.Audio
         /// <param name="quality">The quality to convert at - the scrolling window size. 10 by default.</param>
         public static void Resample(ref Span<float> data, int srcSampleRate, int dstSamplerRate, int quality = 10)
         {
-            var dstLength = (int)(data.Length * ((float)dstSamplerRate / srcSampleRate));
+            var dstLength = (int) (data.Length * ((float) dstSamplerRate / srcSampleRate));
             var samples = new Span<float>(new float[dstLength]);
-            double dx = (double)data.Length / dstLength;
+            double dx = (double) data.Length / dstLength;
 
             // nyqist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
@@ -380,18 +353,18 @@ namespace Emotion.Standard.Audio
                 for (tau = -wndWidth2; tau < wndWidth2; tau++)
                 {
                     // input sample index.
-                    var j = (int)(x + tau);
+                    var j = (int) (x + tau);
 
                     // Hann Window. Scale and calculate sinc
                     double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
                     double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
                     var rSnc = 1.0;
                     if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                    if ((j < 0) || (j >= data.Length)) continue;
+                    if (j < 0 || j >= data.Length) continue;
                     rY += rG * rW * rSnc * data[j];
                 }
 
-                samples[i] = (float)rY;
+                samples[i] = (float) rY;
                 x += dx;
             }
 
