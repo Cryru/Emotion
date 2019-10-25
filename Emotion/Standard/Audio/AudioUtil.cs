@@ -129,7 +129,7 @@ namespace Emotion.Standard.Audio
                 case 8: // ubyte (C# byte)
                     fixed (void* tempPtr = &data[0])
                     {
-                        Span<byte> conv = new Span<byte>(tempPtr, data.Length);
+                        var conv = new Span<byte>(tempPtr, data.Length);
                         for (var i = 0; i < data.Length; i++)
                         {
                             conv[i] = (byte) (data[i] * byte.MaxValue);
@@ -264,7 +264,7 @@ namespace Emotion.Standard.Audio
             if (dstFormat.Channels == 1 && srcFormat.Channels == 2) StereoToMono(ref temp);
 
             // Resample.
-            if (srcFormat.SampleRate != dstFormat.SampleRate) Resample(ref temp, srcFormat.SampleRate, dstFormat.SampleRate);
+            if (srcFormat.SampleRate != dstFormat.SampleRate) Resample(ref temp, srcFormat, dstFormat);
 
             // Check if a data conversion is not needed.
             if (dstFormat.BitsPerSample == 32 && dstFormat.IsFloat)
@@ -329,14 +329,23 @@ namespace Emotion.Standard.Audio
         /// Resamples the provided 32bit float sound data using sinc based resampling.
         /// </summary>
         /// <param name="data">The data to convert.</param>
-        /// <param name="srcSampleRate">The sample rate of the source data.</param>
-        /// <param name="dstSamplerRate">The sample rate of the destination data.</param>
+        /// <param name="srcFormat">The format to sample from.</param>
+        /// <param name="dstFormat">The format to resample to.</param>
         /// <param name="quality">The quality to convert at - the scrolling window size. 10 by default.</param>
-        public static void Resample(ref Span<float> data, int srcSampleRate, int dstSamplerRate, int quality = 10)
+        public static void Resample(ref Span<float> data, AudioFormat srcFormat, AudioFormat dstFormat, int quality = 10)
         {
-            var dstLength = (int) (data.Length * ((float) dstSamplerRate / srcSampleRate));
+            if (srcFormat.Channels != dstFormat.Channels)
+            {
+                Engine.Log.Warning($"Cannot resample between formats with different channel count!", MessageSource.Audio);
+                return;
+            }
+
+            int channels = srcFormat.Channels;
+
+            float resampleRatio = ((float) dstFormat.SampleRate / srcFormat.SampleRate);
+            var dstLength = (int) (data.Length * resampleRatio);
             var samples = new Span<float>(new float[dstLength]);
-            double dx = (double) data.Length / dstLength;
+            double dx = (double) data.Length / (dstLength / channels);
 
             // nyqist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
@@ -346,25 +355,30 @@ namespace Emotion.Standard.Audio
             int wndWidth = quality * 2;
 
             double x = 0;
-            for (var i = 0; i < dstLength; i++)
+            for (var i = 0; i < dstLength; i+= channels)
             {
-                var rY = 0.0;
-                int tau;
-                for (tau = -wndWidth2; tau < wndWidth2; tau++)
+                for (var c = 0; c < channels; c++)
                 {
-                    // input sample index.
-                    var j = (int) (x + tau);
+                    var rY = 0.0;
+                    int tau;
+                    for (tau = -wndWidth2; tau < wndWidth2; tau++)
+                    {
+                        int channelTau = (tau * channels) + c;
 
-                    // Hann Window. Scale and calculate sinc
-                    double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
-                    double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
-                    var rSnc = 1.0;
-                    if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                    if (j < 0 || j >= data.Length) continue;
-                    rY += rG * rW * rSnc * data[j];
+                        // input sample index.
+                        var j = (int) (x + channelTau);
+
+                        // Hann Window. Scale and calculate sinc
+                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
+                        double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
+                        var rSnc = 1.0;
+                        if (rA != 0) rSnc = Math.Sin(rA) / rA;
+                        if (j < 0 || j >= data.Length) continue;
+                        rY += rG * rW * rSnc * data[j];
+                    }
+
+                    samples[i + c] = (float) rY;
                 }
-
-                samples[i] = (float) rY;
                 x += dx;
             }
 
