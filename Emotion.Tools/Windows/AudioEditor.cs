@@ -72,7 +72,7 @@ namespace Emotion.Tools.Windows
 
                 var dstFormat = new AudioFormat(_inputBitsPerSample, _inputFloat, _inputChan, _inputSampleRate);
                 if (!_file.Format.Equals(dstFormat))
-                    AudioUtils.ConvertFormat(_file.Format, dstFormat, ref _converted);
+                    AudioUtil.ConvertFormat(_file.Format, dstFormat, ref _converted);
 
                 var segmentConvert = new List<byte>();
 

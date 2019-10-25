@@ -65,15 +65,15 @@ namespace Emotion.Standard.Audio
             switch (SourceFormat.Channels)
             {
                 case 1 when ConvFormat.Channels == 2:
-                    AudioUtils.MonoToStereo(ref convData);
+                    AudioUtil.MonoToStereo(ref convData);
                     break;
                 case 2 when ConvFormat.Channels == 1:
-                    AudioUtils.StereoToMono(ref convData);
+                    AudioUtil.StereoToMono(ref convData);
                     break;
             }
 
             // Convert format.
-            Span<byte> destFormatData = AudioUtils.ConvertFloatToBps(ConvFormat, convData);
+            Span<byte> destFormatData = AudioUtil.ConvertFloatToBps(ConvFormat, convData);
             data = destFormatData.ToArray();
 
             return convertedSamples / ConvFormat.Channels;
