@@ -1,14 +1,16 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Platform.Implementation;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Standard.Audio;
 using ImGuiNET;
 
 #endregion
@@ -17,7 +19,7 @@ namespace Emotion.Tools.Windows
 {
     public class AudioEditor : ImGuiWindow
     {
-        private WaveSoundAsset _file;
+        private AudioAsset _file;
         private byte[] _converted;
         private int _convChan;
         private int _convSampleRate;
@@ -40,23 +42,21 @@ namespace Emotion.Tools.Windows
         {
             if (ImGui.Button("Choose File"))
             {
-                var explorer = new FileExplorer<WaveSoundAsset>(LoadFile);
+                var explorer = new FileExplorer<AudioAsset>(LoadFile);
                 Parent.AddWindow(explorer);
             }
 
             ImGui.Text($"Current File: {_file?.Name ?? "None"}");
             if (_file == null) return;
-            ImGui.Text($"Channels: {_file.Channels}");
-            ImGui.Text($"Sample Rate: {_file.SampleRate}");
-            ImGui.Text($"Bits Per Sample: {_file.BitsPerSample}");
+            ImGui.Text($"Duration: {_file.Duration} seconds");
+            ImGui.Text($"Channels: {_file.Format.Channels}");
+            ImGui.Text($"Sample Rate: {_file.Format.SampleRate}");
+            ImGui.Text($"Bits Per Sample: {_file.Format.BitsPerSample}");
             ImGui.SameLine();
-            ImGui.Text(_file.IsFloat ? "Float" : "Int");
+            ImGui.Text(_file.Format.IsFloat ? "Float" : "Int");
             ImGui.Text($"Data Size: {_file.SoundData.Length}");
 
-            if (ImGui.Button("Play"))
-            {
-                Engine.Host.Audio.PlayAudioTest(_file);
-            }
+            if (ImGui.Button("Play")) Engine.Host.Audio.PlayAudioTest(_file);
 
             ImGui.DragFloat("Zoom", ref _zoom, 0.1f, 0.1f, 1);
 
@@ -70,9 +70,29 @@ namespace Emotion.Tools.Windows
                 _converted = new byte[_file.SoundData.Length];
                 Array.Copy(_file.SoundData, 0, _converted, 0, _file.SoundData.Length);
 
-                if (_file.Channels != _inputChan || _file.BitsPerSample != _inputBitsPerSample || _file.IsFloat != _inputFloat || _file.SampleRate != _inputSampleRate)
-                    AudioContext.ConvertFormat(_file.BitsPerSample, _file.IsFloat, _file.SampleRate, _file.Channels,
-                        _inputBitsPerSample, _inputFloat, _inputSampleRate,  _inputChan, ref _converted);
+                var dstFormat = new AudioFormat(_inputBitsPerSample, _inputFloat, _inputChan, _inputSampleRate);
+                if (!_file.Format.Equals(dstFormat))
+                    AudioUtils.ConvertFormat(_file.Format, dstFormat, ref _converted);
+
+                var segmentConvert = new List<byte>();
+
+                var streamer = new AudioStreamer(_file.Format, _file.SoundData);
+                streamer.SetConvertFormat(dstFormat);
+                while (true)
+                {
+                    int samples = streamer.GetNextFrames(420, out byte[] segment);
+                    segmentConvert.AddRange(segment);
+                    if (samples == 0) break;
+                }
+
+                Debug.Assert(_converted.Length == segmentConvert.Count);
+                for (var i = 0; i < _converted.Length; i++)
+                {
+                    if (_converted[i] != segmentConvert[i])
+                    {
+                        var a = true;
+                    }
+                }
 
                 _convChan = _inputChan;
                 _convSampleRate = _inputSampleRate;
@@ -92,18 +112,18 @@ namespace Emotion.Tools.Windows
             }
 
             composer.SetUseViewMatrix(true);
-            RenderWaveFormImage(composer, _file.SoundData, _file.Channels, _file.BitsPerSample, _file.IsFloat, Color.Red);
-            if (_converted != null) RenderWaveFormImage(composer, _converted, _convChan * (_convSampleRate / _file.SampleRate), _convBitsPerSample, _convFloat, Color.Yellow, _scale);
+            RenderWaveFormImage(composer, _file.SoundData, _file.Format, Color.Red);
+            if (_converted != null) RenderWaveFormImage(composer, _converted, _file.Format, Color.Yellow, _scale);
         }
 
-        private void LoadFile(WaveSoundAsset f)
+        private void LoadFile(AudioAsset f)
         {
             _file = f;
             _converted = null;
-            _inputChan = _file.Channels;
-            _inputSampleRate = _file.SampleRate;
-            _inputBitsPerSample = _file.BitsPerSample;
-            _inputFloat = _file.IsFloat;
+            _inputChan = 2; //_file.Channels;
+            _inputSampleRate = 48000; //_file.SampleRate;
+            _inputBitsPerSample = 32; //_file.BitsPerSample;
+            _inputFloat = true; // _file.IsFloat;
         }
 
         public override void Update()
@@ -118,15 +138,16 @@ namespace Emotion.Tools.Windows
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
         }
 
-        public void RenderWaveFormImage(RenderComposer composer, byte[] data, int channels, int bitsPerSample, bool isFloat, Color color, float yOffset = 0)
+        public void RenderWaveFormImage(RenderComposer composer, byte[] data, AudioFormat f, Color color, float yOffset = 0)
         {
             var i = 0;
             float x = (Engine.Renderer.Camera.Position.X - Engine.Renderer.CurrentTarget.Size.X / 2) * _zoom;
             var prev = new Vector2(x, yOffset + _scale / 2);
+
             bool RenderFloat(float val)
             {
                 // Simple clip.
-                if(x > Engine.Renderer.CurrentTarget.Size.X / 2 + Engine.Renderer.Camera.Position.X) return false;
+                if (x > Engine.Renderer.CurrentTarget.Size.X / 2 + Engine.Renderer.Camera.Position.X) return false;
 
                 var cur = new Vector2(x, yOffset + (val * (_scale / 2) + _scale / 2));
                 composer.RenderLine(prev, cur, color);
@@ -135,7 +156,7 @@ namespace Emotion.Tools.Windows
                 return true;
             }
 
-            switch (bitsPerSample)
+            switch (f.BitsPerSample)
             {
                 case 16:
                     unsafe
@@ -143,34 +164,30 @@ namespace Emotion.Tools.Windows
                         fixed (void* dataPtr = &data[0])
                         {
                             var dataShort = new Span<short>(dataPtr, data.Length / 2);
-                            for (; i < dataShort.Length; i += channels)
+                            for (; i < dataShort.Length; i += f.Channels)
                             {
                                 float v;
                                 if (dataShort[i] < 0)
-                                {
                                     v = (float) -dataShort[i] / short.MinValue;
-                                } 
                                 else
-                                {
                                     v = (float) dataShort[i] / short.MaxValue;
-                                }
 
-                                if(!RenderFloat(v)) break;
+                                if (!RenderFloat(v)) break;
                             }
                         }
                     }
 
                     break;
-                case 32 when isFloat:
+                case 32 when f.IsFloat:
                     unsafe
                     {
                         fixed (void* dataPtr = &data[0])
                         {
                             var dataFloat = new Span<float>(dataPtr, data.Length / 4);
 
-                            for (; i < dataFloat.Length; i += channels)
+                            for (; i < dataFloat.Length; i += f.Channels)
                             {
-                                if(!RenderFloat(dataFloat[i])) break;
+                                if (!RenderFloat(dataFloat[i])) break;
                             }
                         }
                     }
@@ -182,19 +199,15 @@ namespace Emotion.Tools.Windows
                         fixed (void* dataPtr = &data[0])
                         {
                             var dataInt = new Span<int>(dataPtr, data.Length / 2);
-                            for (; i < dataInt.Length; i += channels)
+                            for (; i < dataInt.Length; i += f.Channels)
                             {
                                 float v;
                                 if (dataInt[i] < 0)
-                                {
                                     v = (float) -dataInt[i] / int.MinValue;
-                                } 
                                 else
-                                {
                                     v = (float) dataInt[i] / int.MaxValue;
-                                }
 
-                                if(!RenderFloat(v)) break;
+                                if (!RenderFloat(v)) break;
                             }
                         }
                     }

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.IO;
+using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
 
@@ -70,6 +71,11 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             Task.Run(AudioLoop);
         }
 
+        private AudioFormat AudioFormatFromWasApiFormat(WaveFormat fmt)
+        {
+            return new AudioFormat(fmt.BitsPerSample, fmt.IsFloat(), fmt.Channels, fmt.SampleRate);
+        }
+
         private void AudioLoop()
         {
             if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "WASAPI Audio Thread";
@@ -86,7 +92,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 var frameCount = (int) _defaultDevice.BufferSize;
 
                 // Ensure format.
-                if (!_defaultDevice.AudioClientFormat.Equals(_reader.ConvFormat)) _reader.SetFormat(_defaultDevice.AudioClientFormat);
+                if (!_defaultDevice.AudioClientFormat.Equals(_reader.ConvFormat)) _reader.SetConvertFormat(AudioFormatFromWasApiFormat(_defaultDevice.AudioClientFormat));
 
                 if (!_defaultDevice.Started)
                 {
@@ -122,17 +128,18 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// Fill a render client buffer.
         /// </summary>
         /// <param name="client">The client to fill.</param>
-        /// <param name="wasApiSoundReader">The buffer to fill from.</param>
+        /// <param name="streamer">The buffer to fill from.</param>
         /// <param name="bufferFrameCount">The number of samples to fill with.</param>
         /// <returns>Whether the buffer has been read to the end.</returns>
-        private unsafe bool FillBuffer(IAudioRenderClient client, ref WasApiSoundDataReader wasApiSoundReader, int bufferFrameCount)
+        private unsafe bool FillBuffer(IAudioRenderClient client, ref AudioStreamer streamer, int bufferFrameCount)
         {
             if (bufferFrameCount == 0) return false;
 
             int error = client.GetBuffer(bufferFrameCount, out IntPtr bufferPtr);
             if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.Audio);
-            var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * wasApiSoundReader.ConvBytesPerFrame);
-            int frames = wasApiSoundReader.Read(buffer, bufferFrameCount);
+            var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * streamer.ConvFormat.SampleSize);
+            int frames = streamer.GetNextFrames(bufferFrameCount, out byte[] data);
+            new Span<byte>(data).CopyTo(buffer);
             error = client.ReleaseBuffer(frames, frames == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.Audio);
             return frames == 0;
@@ -274,13 +281,13 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         #endregion
 
-        private WaveSoundAsset _test;
-        private WasApiSoundDataReader _reader;
+        private AudioAsset _test;
+        private AudioStreamer _reader;
 
-        public override void PlayAudioTest(WaveSoundAsset wav)
+        public override void PlayAudioTest(AudioAsset audio)
         {
-            _test = wav;
-            _reader = new WasApiSoundDataReader(_test);
+            _test = audio;
+            _reader = new AudioStreamer(_test.Format, audio.SoundData);
         }
     }
 }

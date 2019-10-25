@@ -10,7 +10,7 @@ namespace Emotion.Platform.Implementation.Null
 {
     public sealed class NullAudioContext : AudioContext
     {
-        public override void PlayAudioTest(WaveSoundAsset wav)
+        public override void PlayAudioTest(AudioAsset wav)
         {
            
         }
