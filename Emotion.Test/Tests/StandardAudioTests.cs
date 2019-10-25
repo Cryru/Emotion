@@ -1,17 +1,14 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using Emotion.Common;
-using Emotion.Graphics;
-using Emotion.Graphics.Objects;
 using Emotion.IO;
-using Emotion.Primitives;
 using Emotion.Standard.Audio;
-using Emotion.Standard.Image.BMP;
-using Emotion.Standard.Image.PNG;
 using Emotion.Test.Helpers;
-using Emotion.Test.Results;
+
+#endregion
 
 namespace Emotion.Test.Tests
 {
@@ -36,14 +33,14 @@ namespace Emotion.Test.Tests
 
             var copy = new byte[pepsi.SoundData.Length];
             Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
-            AudioUtils.ConvertFormat(pepsi.Format, new AudioFormat(32, true, 2, 44100), ref copy);
+            AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(32, true, 2, 44100), ref copy);
             Assert.True(copy.Length == pepsi.SoundData.Length * 2);
 
             copy = new byte[pepsi.SoundData.Length];
             Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
-            AudioUtils.ConvertFormat(pepsi.Format, new AudioFormat(16, true, 2, 48000), ref copy);
-            float ratio = 48000f / 44100;
-            Assert.True(copy.Length == pepsi.SoundData.Length * ratio);
+            AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
+            float ratio = 48000f / 44100; // Each channel must have been resampled.
+            Assert.True(copy.Length == (int) (pepsi.SoundData.Length * ratio));
         }
 
         [Test]
@@ -54,28 +51,33 @@ namespace Emotion.Test.Tests
             var format = new AudioFormat(32, true, 2, 48000);
             var copy = new byte[pepsi.SoundData.Length];
             Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
-            AudioUtils.ConvertFormat(pepsi.Format, format, ref copy);
+            AudioUtil.ConvertFormat(pepsi.Format, format, ref copy);
 
             var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
             streamer.SetConvertFormat(format);
 
-            var segmentConvert = new List<byte>();
-            int framesGet = new Random().Next(1, 500);
-            Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
-
-            DateTime start = DateTime.Now;
-            while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
+            for (var io = 0; io < 5; io++)
             {
-                int frameAmount = streamer.GetNextFrames(framesGet, out byte[] data);
-                if(frameAmount == 0) break;
-                Assert.Equal(data.Length, frameAmount * format.SampleSize);
-                segmentConvert.AddRange(data);
-            }
+                var segmentConvert = new List<byte>();
+                int framesGet = new Random().Next(1, 500);
+                Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
 
-            Assert.Equal(segmentConvert.Count, copy.Length);
-            for (var i = 0; i < copy.Length; i++)
-            {
-                Assert.Equal(copy[i], segmentConvert[i]);
+                DateTime start = DateTime.Now;
+                while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
+                {
+                    int frameAmount = streamer.GetNextFrames(framesGet, out byte[] data);
+                    if (frameAmount == 0) break;
+                    Assert.Equal(data.Length, frameAmount * format.SampleSize);
+                    segmentConvert.AddRange(data);
+                }
+
+                Assert.Equal(segmentConvert.Count, copy.Length);
+                for (var i = 0; i < copy.Length; i++)
+                {
+                    Assert.Equal(copy[i], segmentConvert[i]);
+                }
+
+                streamer.Reset();
             }
         }
     }
