@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
@@ -33,6 +34,7 @@ namespace Emotion.Tools.Windows
         private int _inputSampleRate;
         private int _inputBitsPerSample;
         private bool _inputFloat;
+        private int _convertQuality = 10;
 
         public AudioEditor() : base("Audio Editor")
         {
@@ -65,6 +67,7 @@ namespace Emotion.Tools.Windows
             ImGui.InputInt("Sample Rate", ref _inputSampleRate, 100);
             ImGui.InputInt("Bits Per Sample", ref _inputBitsPerSample, 2);
             ImGui.Checkbox("isFloat", ref _inputFloat);
+            ImGui.InputInt("Convert Quality", ref _convertQuality);
             if (ImGui.Button("Convert"))
             {
                 _converted = new byte[_file.SoundData.Length];
@@ -72,27 +75,7 @@ namespace Emotion.Tools.Windows
 
                 var dstFormat = new AudioFormat(_inputBitsPerSample, _inputFloat, _inputChan, _inputSampleRate);
                 if (!_file.Format.Equals(dstFormat))
-                    AudioUtil.ConvertFormat(_file.Format, dstFormat, ref _converted);
-
-                var segmentConvert = new List<byte>();
-
-                var streamer = new AudioStreamer(_file.Format, _file.SoundData);
-                streamer.SetConvertFormat(dstFormat);
-                while (true)
-                {
-                    int samples = streamer.GetNextFrames(420, out byte[] segment);
-                    segmentConvert.AddRange(segment);
-                    if (samples == 0) break;
-                }
-
-                Debug.Assert(_converted.Length == segmentConvert.Count);
-                for (var i = 0; i < _converted.Length; i++)
-                {
-                    if (_converted[i] != segmentConvert[i])
-                    {
-                        var a = true;
-                    }
-                }
+                    AudioUtil.ConvertFormat(_file.Format, dstFormat, ref _converted, _convertQuality);
 
                 _convChan = _inputChan;
                 _convSampleRate = _inputSampleRate;
@@ -109,6 +92,12 @@ namespace Emotion.Tools.Windows
                 ImGui.SameLine();
                 ImGui.Text(_convFloat ? "Float" : "Int");
                 ImGui.Text($"Converted Byte Size: {_converted.Length}");
+
+                if (ImGui.Button("Save To File"))
+                {
+                    byte[] wav = WavFormat.Encode(_converted, new AudioFormat(_inputBitsPerSample, _inputFloat, _inputChan, _inputSampleRate));
+                    File.WriteAllBytes($"{Path.GetFileNameWithoutExtension(_file.Name) + "_converted"}.wav", wav);
+                }
             }
 
             composer.SetUseViewMatrix(true);
@@ -120,10 +109,10 @@ namespace Emotion.Tools.Windows
         {
             _file = f;
             _converted = null;
-            _inputChan = 2; //_file.Channels;
-            _inputSampleRate = 48000; //_file.SampleRate;
-            _inputBitsPerSample = 32; //_file.BitsPerSample;
-            _inputFloat = true; // _file.IsFloat;
+            _inputChan = _file.Format.Channels;
+            _inputSampleRate = _file.Format.SampleRate;
+            _inputBitsPerSample = _file.Format.BitsPerSample;
+            _inputFloat = _file.Format.IsFloat;
         }
 
         public override void Update()

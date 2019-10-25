@@ -188,7 +188,8 @@ namespace Emotion.Standard.Audio
         /// <param name="srcFormat">The format of the input data.</param>
         /// <param name="dstFormat">The format to convert to.</param>
         /// <param name="data">The data to convert, as bytes.</param>
-        public static unsafe void ConvertFormat(AudioFormat srcFormat, AudioFormat dstFormat, ref byte[] data)
+        /// <param name="resampleQuality">The quality of resampling.</param>
+        public static unsafe void ConvertFormat(AudioFormat srcFormat, AudioFormat dstFormat, ref byte[] data, int resampleQuality = 10)
         {
             // Convert to float. All internal conversions are done in the float format as it is the most flexible and most common.
             Span<float> temp;
@@ -264,7 +265,7 @@ namespace Emotion.Standard.Audio
             if (dstFormat.Channels == 1 && srcFormat.Channels == 2) StereoToMono(ref temp);
 
             // Resample.
-            if (srcFormat.SampleRate != dstFormat.SampleRate) Resample(ref temp, srcFormat, dstFormat);
+            if (srcFormat.SampleRate != dstFormat.SampleRate) Resample(ref temp, srcFormat, dstFormat, resampleQuality);
 
             // Check if a data conversion is not needed.
             if (dstFormat.BitsPerSample == 32 && dstFormat.IsFloat)
@@ -347,7 +348,7 @@ namespace Emotion.Standard.Audio
             var samples = new Span<float>(new float[dstLength]);
             double dx = (double) data.Length / (dstLength / channels);
 
-            // nyqist half of destination sampleRate
+            // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
             const double rG = 2 * fMaxDivSr;
 
@@ -377,7 +378,7 @@ namespace Emotion.Standard.Audio
                         rY += rG * rW * rSnc * data[j];
                     }
 
-                    samples[i + c] = (float) rY;
+                    samples[i + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);
                 }
                 x += dx;
             }

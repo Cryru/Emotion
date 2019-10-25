@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 
@@ -61,17 +62,6 @@ namespace Emotion.Standard.Audio
                 return 0;
             }
 
-            // Convert channels.
-            switch (SourceFormat.Channels)
-            {
-                case 1 when ConvFormat.Channels == 2:
-                    AudioUtil.MonoToStereo(ref convData);
-                    break;
-                case 2 when ConvFormat.Channels == 1:
-                    AudioUtil.StereoToMono(ref convData);
-                    break;
-            }
-
             // Convert format.
             Span<byte> destFormatData = AudioUtil.ConvertFloatToBps(ConvFormat, convData);
             data = destFormatData.ToArray();
@@ -90,13 +80,15 @@ namespace Emotion.Standard.Audio
         /// <returns>How many samples were returned. Can not be more than the ones requested.</returns>
         private int PartialResample(ref double x, ref int i, int getSamples, out Span<float> samples)
         {
+            int channels = ConvFormat.Channels;
+
             var dstLength = (int) (SourceSamples * ResampleRatio);
             if (i + getSamples >= dstLength) getSamples = dstLength - i;
 
             samples = new Span<float>(new float[getSamples]);
-            double dx = (double) SourceSamples / dstLength;
+            double dx = (double) SourceSamples / (dstLength / channels);
 
-            // nyqist half of destination sampleRate
+            // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
             const double rG = 2 * fMaxDivSr;
 
@@ -104,30 +96,36 @@ namespace Emotion.Standard.Audio
             int wndWidth = ConvQuality * 2;
 
             int iStart = i;
-            for (; i < dstLength; i++)
+            for (; i < dstLength; i += channels)
             {
-                var rY = 0.0;
-                int tau;
-                for (tau = -wndWidth2; tau < wndWidth2; tau++)
+                for (var c = 0; c < channels; c++)
                 {
-                    // input sample index.
-                    var j = (int) (x + tau);
+                    var rY = 0.0;
+                    int tau;
+                    for (tau = -wndWidth2; tau < wndWidth2; tau++)
+                    {
+                        int channelTau = tau * channels + c;
 
-                    // Hann Window. Scale and calculate sinc
-                    double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
-                    double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
-                    var rSnc = 1.0;
-                    if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                    if (j < 0 || j >= SourceSamples) continue;
-                    rY += rG * rW * rSnc * GetSourceSampleAsFloat(j);
+                        // input sample index.
+                        var j = (int) (x + channelTau);
+
+                        // Hann Window. Scale and calculate sinc
+                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
+                        double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
+                        var rSnc = 1.0;
+                        if (rA != 0) rSnc = Math.Sin(rA) / rA;
+                        if (j < 0 || j >= SourceSamples) continue;
+                        rY += rG * rW * rSnc * GetSampleAsFloat(j);
+                    }
+
+                    samples[i - iStart + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);;
                 }
 
-                samples[i - iStart] = (float) rY;
                 x += dx;
 
                 // Check if gotten enough samples for the partial resampling.
-                if (i + 1 - iStart < getSamples) continue;
-                i++;
+                if (i + channels - iStart < getSamples) continue;
+                i += channels;
                 return getSamples;
             }
 
@@ -135,44 +133,73 @@ namespace Emotion.Standard.Audio
         }
 
         /// <summary>
-        /// Returns the specified sample from the source as a float.
+        /// Returns the specified sample from the source as a float, converted into the output channel format.
         /// </summary>
-        /// <param name="sampleIdx">The sample index to return.</param>
+        /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
+        /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
         /// <returns>The specified sample as a float.</returns>
-        private unsafe float GetSourceSampleAsFloat(int sampleIdx)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
         {
+            // Check if simulating stereo from mono.
+            if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
+
+            // Check if simulating mono from stereo.
+            if (!trueIndex && SourceFormat.Channels == 2 && ConvFormat.Channels == 1) sampleIdx *= 2;
+
+            float output;
+
             switch (SourceFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
-                    return (float) SoundData[sampleIdx] / byte.MaxValue;
+                    output = (float) SoundData[sampleIdx] / byte.MaxValue;
+                    break;
                 case 16: // short
                     fixed (void* dataPtr = &SoundData[sampleIdx * 2])
                     {
                         var dataShort = new Span<short>(dataPtr, 1);
                         if (dataShort[0] < 0)
-                            return (float) -dataShort[0] / short.MinValue;
-                        return (float) dataShort[0] / short.MaxValue;
+                            output = (float) -dataShort[0] / short.MinValue;
+                        else
+                            output = (float) dataShort[0] / short.MaxValue;
                     }
+
+                    break;
                 case 32 when !SourceFormat.IsFloat: // int
                     fixed (void* dataPtr = &SoundData[sampleIdx * 4])
                     {
                         var dataInt = new Span<int>(dataPtr, 1);
                         if (dataInt[0] < 0)
-                            return (float) -dataInt[0] / int.MinValue;
-                        return (float) dataInt[0] / int.MaxValue;
+                            output = (float) -dataInt[0] / int.MinValue;
+                        else
+                            output = (float) dataInt[0] / int.MaxValue;
                     }
+
+                    break;
                 case 32: // float
                     fixed (void* dataPtr = &SoundData[sampleIdx * 4])
                     {
                         var dataFloat = new Span<float>(dataPtr, 1);
-                        return dataFloat[0];
+                        output = dataFloat[0];
                     }
+
+                    break;
                 default:
                     Engine.Log.Warning($"Unsupported source bits per sample format by ConvertFormat  - {SourceFormat.BitsPerSample}", MessageSource.Audio);
                     return 0;
             }
+
+            // If simulating mono from stereo get the other channel and average them.
+            if (SourceFormat.Channels != 2 || ConvFormat.Channels != 1) return output;
+            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true);
+            output = (output + outputRightChannel) / 2f;
+
+            return output;
         }
 
+        /// <summary>
+        /// Restart the streamer's pointer.
+        /// </summary>
         public void Reset()
         {
             _dstResume = 0;
