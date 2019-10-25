@@ -101,7 +101,8 @@ namespace Emotion.Test
             "tag=Assets",
             "tag=Scripting",
             "tag=Coroutine",
-            "tag=FullScale conf=fullScale"
+            "tag=FullScale conf=fullScale",
+            "tag=StandardAudio"
         };
 
         private static void Main(string[] args)
@@ -352,6 +353,17 @@ namespace Emotion.Test
         public static void RunLoop(int count = 1)
         {
             _loopCounter = count;
+        }
+
+        /// <summary>
+        /// Used for debugging a specific linked runner.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="args"></param>
+        private static void RunAsRunner(string text, ref string[] args)
+        {
+            NoLinkedRunners = true;
+            args = text.Split(" ");
         }
 
         #region Image Comparison

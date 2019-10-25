@@ -5,6 +5,7 @@ using Emotion.Common;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
+using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using ImGuiNET;
@@ -29,6 +30,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
         public override void Update()
         {
+            if (ImGuiNetPlugin.Focused) return;
             if (!_clickPlace) return;
             if (!Engine.InputManager.IsMouseKeyDown(MouseKey.Left)) return;
             Vector2 pos = Engine.Host.MousePosition;
@@ -61,6 +63,14 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
                 }
 
                 pos.X += _anim.Frames[i].Size.X;
+            }
+
+            if(_clickPlace)
+            {
+                if(ImGui.Button("Cancel Click Place"))
+                {
+                    _clickPlace = false;
+                }
             }
         }
     }
