@@ -263,7 +263,7 @@ namespace Emotion.Standard.Audio
             // Convert channels.
             if (srcFormat.Channels == 1 && dstFormat.Channels == 2) MonoToStereo(ref temp);
             if (dstFormat.Channels == 1 && srcFormat.Channels == 2) StereoToMono(ref temp);
-            srcFormat = srcFormat.Copy();
+            srcFormat = srcFormat.Copy(); // Copy as not to mutate output.
             srcFormat.Channels = dstFormat.Channels;
 
             // Resample.
@@ -348,7 +348,7 @@ namespace Emotion.Standard.Audio
             float resampleRatio = ((float) dstFormat.SampleRate / srcFormat.SampleRate);
             var dstLength = (int) (data.Length * resampleRatio);
             var samples = new Span<float>(new float[dstLength]);
-            double dx = (double) data.Length / (dstLength / channels);
+            double dx = (double) (data.Length / channels) / (dstLength / channels);
 
             // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
@@ -366,18 +366,16 @@ namespace Emotion.Standard.Audio
                     int tau;
                     for (tau = -wndWidth2; tau < wndWidth2; tau++)
                     {
-                        int channelTau = (tau * channels) + c;
-
                         // input sample index.
-                        var j = (int) (x + channelTau);
+                        var j = (int) (x + tau);
 
                         // Hann Window. Scale and calculate sinc
                         double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
                         double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (j < 0 || j >= data.Length) continue;
-                        rY += rG * rW * rSnc * data[j];
+                        if (j < 0 || j >= data.Length / channels) continue;
+                        rY += rG * rW * rSnc * data[j * channels + c];
                     }
 
                     samples[i + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);
