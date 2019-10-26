@@ -96,7 +96,7 @@ namespace Emotion.Standard.Audio
             if (i + getSamples >= dstLength) getSamples = dstLength - i;
 
             samples = new Span<float>(new float[getSamples]);
-            double dx = (double) sourceConvLength / (dstLength / channels);
+            double dx = (double) (sourceConvLength / channels) / (dstLength / channels);
 
             // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
@@ -114,18 +114,16 @@ namespace Emotion.Standard.Audio
                     int tau;
                     for (tau = -wndWidth2; tau < wndWidth2; tau++)
                     {
-                        int channelTau = tau * channels + c;
-
                         // input sample index.
-                        var j = (int) (x + channelTau);
+                        var j = (int) (x + tau);
 
                         // Hann Window. Scale and calculate sinc
                         double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
                         double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (j < 0 || j >= sourceConvLength) continue;
-                        rY += rG * rW * rSnc * GetSampleAsFloat(j);
+                        if (j < 0 || j >= sourceConvLength / channels) continue;
+                        rY += rG * rW * rSnc * GetSampleAsFloat(j * channels + c);
                     }
 
                     samples[i - iStart + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);
