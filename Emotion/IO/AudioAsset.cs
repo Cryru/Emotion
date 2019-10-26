@@ -45,11 +45,9 @@ namespace Emotion.IO
                 Duration = duration;
             }
 
-            if (Format == null || SoundData == null)
-            {
-                Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
-                return;
-            }
+            if (Format != null && SoundData != null) return;
+            Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
+            return;
         }
 
         protected override void DisposeInternal()

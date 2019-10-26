@@ -42,5 +42,10 @@
         {
             return bps == BitsPerSample && isFloat == IsFloat && chan == Channels && sampleRate == SampleRate;
         }
+
+        public AudioFormat Copy()
+        {
+            return new AudioFormat(BitsPerSample, IsFloat, Channels, SampleRate);
+        }
     }
 }
