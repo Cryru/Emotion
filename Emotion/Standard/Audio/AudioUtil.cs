@@ -263,6 +263,8 @@ namespace Emotion.Standard.Audio
             // Convert channels.
             if (srcFormat.Channels == 1 && dstFormat.Channels == 2) MonoToStereo(ref temp);
             if (dstFormat.Channels == 1 && srcFormat.Channels == 2) StereoToMono(ref temp);
+            srcFormat = srcFormat.Copy();
+            srcFormat.Channels = dstFormat.Channels;
 
             // Resample.
             if (srcFormat.SampleRate != dstFormat.SampleRate) Resample(ref temp, srcFormat, dstFormat, resampleQuality);

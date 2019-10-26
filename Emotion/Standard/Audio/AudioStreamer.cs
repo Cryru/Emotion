@@ -38,7 +38,7 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="dstFormat">The format to convert to.</param>
         /// <param name="quality">The conversion quality.</param>
-        public void SetConvertFormat(AudioFormat dstFormat, int quality = 10)
+        public virtual void SetConvertFormat(AudioFormat dstFormat, int quality = 10)
         {
             ConvFormat = dstFormat;
             ConvQuality = quality;
@@ -51,10 +51,10 @@ namespace Emotion.Standard.Audio
         /// <param name="frameCount">The frames to get.</param>
         /// <param name="data">The data with the samples.</param>
         /// <returns>How many frames were gotten.</returns>
-        public int GetNextFrames(int frameCount, out byte[] data)
+        public virtual int GetNextFrames(int frameCount, out byte[] data)
         {
             // Gets the resampled samples.
-            int sampleCount = frameCount * SourceFormat.Channels;
+            int sampleCount = frameCount * ConvFormat.Channels;
             int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, out Span<float> convData);
             if (convertedSamples == 0)
             {
@@ -78,15 +78,25 @@ namespace Emotion.Standard.Audio
         /// <param name="getSamples">The number of resampled samples to return.</param>
         /// <param name="samples">The resampled samples data.</param>
         /// <returns>How many samples were returned. Can not be more than the ones requested.</returns>
-        private int PartialResample(ref double x, ref int i, int getSamples, out Span<float> samples)
+        protected int PartialResample(ref double x, ref int i, int getSamples, out Span<float> samples)
         {
             int channels = ConvFormat.Channels;
+            int sourceConvLength = SourceSamples;
+            switch (ConvFormat.Channels)
+            {
+                case 2 when SourceFormat.Channels == 1:
+                    sourceConvLength *= 2;
+                    break;
+                case 1 when SourceFormat.Channels == 2:
+                    sourceConvLength /= 2;
+                    break;
+            }
 
-            var dstLength = (int) (SourceSamples * ResampleRatio);
+            var dstLength = (int) (sourceConvLength * ResampleRatio);
             if (i + getSamples >= dstLength) getSamples = dstLength - i;
 
             samples = new Span<float>(new float[getSamples]);
-            double dx = (double) SourceSamples / (dstLength / channels);
+            double dx = (double) sourceConvLength / (dstLength / channels);
 
             // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
@@ -114,11 +124,11 @@ namespace Emotion.Standard.Audio
                         double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (j < 0 || j >= SourceSamples) continue;
+                        if (j < 0 || j >= sourceConvLength) continue;
                         rY += rG * rW * rSnc * GetSampleAsFloat(j);
                     }
 
-                    samples[i - iStart + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);;
+                    samples[i - iStart + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);
                 }
 
                 x += dx;
@@ -139,7 +149,7 @@ namespace Emotion.Standard.Audio
         /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
         /// <returns>The specified sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
+        protected unsafe float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
         {
             // Check if simulating stereo from mono.
             if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
@@ -200,7 +210,7 @@ namespace Emotion.Standard.Audio
         /// <summary>
         /// Restart the streamer's pointer.
         /// </summary>
-        public void Reset()
+        public virtual void Reset()
         {
             _dstResume = 0;
             _srcResume = 0;

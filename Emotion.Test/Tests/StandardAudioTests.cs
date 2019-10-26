@@ -24,6 +24,13 @@ namespace Emotion.Test.Tests
             Assert.True(pepsi.Format.BitsPerSample == 16);
             Assert.False(pepsi.Format.IsFloat);
             Assert.True(pepsi.SoundData != null);
+
+            var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+            Assert.True(money.Format.SampleRate == 22050);
+            Assert.True(money.Format.Channels == 1);
+            Assert.True(money.Format.BitsPerSample == 16);
+            Assert.False(money.Format.IsFloat);
+            Assert.True(money.SoundData != null);
         }
 
         [Test]
@@ -39,8 +46,16 @@ namespace Emotion.Test.Tests
             copy = new byte[pepsi.SoundData.Length];
             Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
             AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
-            float ratio = 48000f / 44100; // Each channel must have been resampled.
+            float ratio = 48000f / pepsi.Format.SampleRate;
             Assert.True(copy.Length == (int) (pepsi.SoundData.Length * ratio));
+
+            var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+
+            copy = new byte[money.SoundData.Length];
+            Array.Copy(money.SoundData, 0, copy, 0, money.SoundData.Length);
+            AudioUtil.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
+            ratio = 48000f / money.Format.SampleRate;
+            Assert.True(copy.Length == (int) (money.SoundData.Length * 2 * ratio));
         }
 
         [Test]
@@ -61,6 +76,38 @@ namespace Emotion.Test.Tests
                 var segmentConvert = new List<byte>();
                 int framesGet = new Random().Next(1, 500);
                 Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
+
+                DateTime start = DateTime.Now;
+                while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
+                {
+                    int frameAmount = streamer.GetNextFrames(framesGet, out byte[] data);
+                    if (frameAmount == 0) break;
+                    Assert.Equal(data.Length, frameAmount * format.SampleSize);
+                    segmentConvert.AddRange(data);
+                }
+
+                Assert.Equal(segmentConvert.Count, copy.Length);
+                for (var i = 0; i < copy.Length; i++)
+                {
+                    Assert.Equal(copy[i], segmentConvert[i]);
+                }
+
+                streamer.Reset();
+            }
+
+            var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+
+            copy = new byte[money.SoundData.Length];
+            Array.Copy(money.SoundData, 0, copy, 0, money.SoundData.Length);
+            AudioUtil.ConvertFormat(money.Format, format, ref copy);
+            streamer = new AudioStreamer(money.Format, money.SoundData);
+            streamer.SetConvertFormat(format);
+
+            for (var io = 0; io < 5; io++)
+            {
+                var segmentConvert = new List<byte>();
+                int framesGet = new Random().Next(1, 500);
+                Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
 
                 DateTime start = DateTime.Now;
                 while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
