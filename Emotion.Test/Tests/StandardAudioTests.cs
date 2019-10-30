@@ -80,10 +80,12 @@ namespace Emotion.Test.Tests
                 DateTime start = DateTime.Now;
                 while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
                 {
-                    int frameAmount = streamer.GetNextFrames(framesGet, out byte[] data);
+                    var data = new byte[framesGet * format.SampleSize];
+                    var spanData = new Span<byte>(data);
+                    int frameAmount = streamer.GetNextFrames(framesGet, spanData);
                     if (frameAmount == 0) break;
-                    Assert.Equal(data.Length, frameAmount * format.SampleSize);
-                    segmentConvert.AddRange(data);
+                    Assert.True(data.Length >= frameAmount * format.SampleSize);
+                    segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
                 }
 
                 Assert.Equal(segmentConvert.Count, copy.Length);
@@ -112,10 +114,12 @@ namespace Emotion.Test.Tests
                 DateTime start = DateTime.Now;
                 while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
                 {
-                    int frameAmount = streamer.GetNextFrames(framesGet, out byte[] data);
+                    var data = new byte[framesGet * format.SampleSize];
+                    var spanData = new Span<byte>(data);
+                    int frameAmount = streamer.GetNextFrames(framesGet, spanData);
                     if (frameAmount == 0) break;
-                    Assert.Equal(data.Length, frameAmount * format.SampleSize);
-                    segmentConvert.AddRange(data);
+                    Assert.True(data.Length >= frameAmount * format.SampleSize);
+                    segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
                 }
 
                 Assert.Equal(segmentConvert.Count, copy.Length);

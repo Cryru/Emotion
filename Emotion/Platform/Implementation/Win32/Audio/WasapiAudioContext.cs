@@ -138,8 +138,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             int error = client.GetBuffer(bufferFrameCount, out IntPtr bufferPtr);
             if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.Audio);
             var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * streamer.ConvFormat.SampleSize);
-            int frames = streamer.GetNextFrames(bufferFrameCount, out byte[] data);
-            new Span<byte>(data).CopyTo(buffer);
+            int frames = streamer.GetNextFrames(bufferFrameCount, buffer);
             error = client.ReleaseBuffer(frames, frames == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.Audio);
             return frames == 0;
