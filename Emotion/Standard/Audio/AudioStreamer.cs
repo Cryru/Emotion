@@ -42,29 +42,24 @@ namespace Emotion.Standard.Audio
         {
             ConvFormat = dstFormat;
             ConvQuality = quality;
-            ResampleRatio = (float) dstFormat.SampleRate / SourceFormat.SampleRate;
+            ResampleRatio = (float)dstFormat.SampleRate / SourceFormat.SampleRate;
         }
 
         /// <summary>
         /// Get the next number of specified frames.
         /// </summary>
         /// <param name="frameCount">The frames to get.</param>
-        /// <param name="data">The data with the samples.</param>
+        /// <param name="buffer">The buffer to fill with the samples.</param>
         /// <returns>How many frames were gotten.</returns>
-        public virtual int GetNextFrames(int frameCount, out byte[] data)
+        public virtual int GetNextFrames(int frameCount, Span<byte> buffer)
         {
             // Gets the resampled samples.
             int sampleCount = frameCount * ConvFormat.Channels;
-            int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, out Span<float> convData);
+            int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, buffer);
             if (convertedSamples == 0)
             {
-                data = new byte[0];
                 return 0;
             }
-
-            // Convert format.
-            Span<byte> destFormatData = AudioUtil.ConvertFloatToBps(ConvFormat, convData);
-            data = destFormatData.ToArray();
 
             return convertedSamples / ConvFormat.Channels;
         }
@@ -76,9 +71,9 @@ namespace Emotion.Standard.Audio
         /// <param name="x">The source sample to resume from/</param>
         /// <param name="i">The destination sample to resume from.</param>
         /// <param name="getSamples">The number of resampled samples to return.</param>
-        /// <param name="samples">The resampled samples data.</param>
+        /// <param name="samples">The buffer to fill with data.</param>
         /// <returns>How many samples were returned. Can not be more than the ones requested.</returns>
-        protected int PartialResample(ref double x, ref int i, int getSamples, out Span<float> samples)
+        protected int PartialResample(ref double x, ref int i, int getSamples, Span<byte> samples)
         {
             int channels = ConvFormat.Channels;
             int sourceConvLength = SourceSamples;
@@ -92,12 +87,6 @@ namespace Emotion.Standard.Audio
                     break;
             }
 
-            var dstLength = (int) (sourceConvLength * ResampleRatio);
-            if (i + getSamples >= dstLength) getSamples = dstLength - i;
-
-            samples = new Span<float>(new float[getSamples]);
-            double dx = (double) (sourceConvLength / channels) / (dstLength / channels);
-
             // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
             const double rG = 2 * fMaxDivSr;
@@ -105,7 +94,23 @@ namespace Emotion.Standard.Audio
             int wndWidth2 = ConvQuality;
             int wndWidth = ConvQuality * 2;
 
+            var dstLength = (int)(sourceConvLength * ResampleRatio);
+            double dx = (double)(sourceConvLength / channels) / (dstLength / channels);
             int iStart = i;
+
+            // Snap if more samples requested than left.
+            if (i + getSamples >= dstLength) getSamples = dstLength - i;
+
+            // Verify that the number of samples will fit.
+            int outputBps = ConvFormat.BitsPerSample / 8;
+            int outputLength = samples.Length / outputBps;
+            if (outputLength < getSamples)
+            {
+                Engine.Log.Warning($"The provided buffer to the audio streamer is of invalid size {samples.Length} while {getSamples} were requested.", MessageSource.Audio);
+                getSamples = outputLength;
+            }
+
+            // Resample the needed amount.
             for (; i < dstLength; i += channels)
             {
                 for (var c = 0; c < channels; c++)
@@ -115,7 +120,7 @@ namespace Emotion.Standard.Audio
                     for (tau = -wndWidth2; tau < wndWidth2; tau++)
                     {
                         // input sample index.
-                        var j = (int) (x + tau);
+                        var j = (int)(x + tau);
 
                         // Hann Window. Scale and calculate sinc
                         double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
@@ -126,7 +131,7 @@ namespace Emotion.Standard.Audio
                         rY += rG * rW * rSnc * GetSampleAsFloat(j * channels + c);
                     }
 
-                    samples[i - iStart + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);
+                    SetSampleAsFloat(i - iStart + c, MathF.Min(MathF.Max(-1, (float) rY), 1), samples);
                 }
 
                 x += dx;
@@ -160,16 +165,16 @@ namespace Emotion.Standard.Audio
             switch (SourceFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
-                    output = (float) SoundData[sampleIdx] / byte.MaxValue;
+                    output = (float)SoundData[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
                     fixed (void* dataPtr = &SoundData[sampleIdx * 2])
                     {
                         var dataShort = new Span<short>(dataPtr, 1);
                         if (dataShort[0] < 0)
-                            output = (float) -dataShort[0] / short.MinValue;
+                            output = (float)-dataShort[0] / short.MinValue;
                         else
-                            output = (float) dataShort[0] / short.MaxValue;
+                            output = (float)dataShort[0] / short.MaxValue;
                     }
 
                     break;
@@ -178,9 +183,9 @@ namespace Emotion.Standard.Audio
                     {
                         var dataInt = new Span<int>(dataPtr, 1);
                         if (dataInt[0] < 0)
-                            output = (float) -dataInt[0] / int.MinValue;
+                            output = (float)-dataInt[0] / int.MinValue;
                         else
-                            output = (float) dataInt[0] / int.MaxValue;
+                            output = (float)dataInt[0] / int.MaxValue;
                     }
 
                     break;
@@ -203,6 +208,58 @@ namespace Emotion.Standard.Audio
             output = (output + outputRightChannel) / 2f;
 
             return output;
+        }
+
+        /// <summary>
+        /// Sets the specified sample in the specified buffer from a float to the destination format.
+        /// </summary>
+        /// <param name="index">The index within the buffer - as if it was all floats.</param>
+        /// <param name="value">The value to set.</param>
+        /// <param name="buffer">The buffer to set in.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected unsafe void SetSampleAsFloat(int index, float value, Span<byte> buffer)
+        {
+            switch (ConvFormat.BitsPerSample)
+            {
+                case 8: // ubyte (C# byte)
+                    index /= 4;
+                    buffer[index] = (byte) (value * byte.MaxValue);
+                    break;
+                case 16: // short
+                    index /= 2;
+                    fixed (void* dataPtr = &buffer[0])
+                    {
+                        var dataShort = new Span<short>(dataPtr, buffer.Length / 2);
+                        if (value < 0)
+                            dataShort[index] = (short) (-value * short.MinValue);
+                        else
+                            dataShort[index] = (short) (value * short.MaxValue);
+                    }
+                    break;
+                case 32 when !ConvFormat.IsFloat: // int
+                    fixed (void* dataPtr = &buffer[0])
+                    {
+                        var dataInt = new Span<int>(dataPtr, buffer.Length);
+                        if (value < 0)
+                            dataInt[index] = (int) (-value * int.MinValue);
+                        else
+                            dataInt[index] = (int) (value * int.MaxValue);
+                    }
+
+                    break;
+                case 32:
+                    fixed (void* dataPtr = &buffer[0])
+                    {
+                        var unused = new Span<float>(dataPtr, buffer.Length)
+                        {
+                            [index] = value
+                        };
+                    }
+                    break;
+                default:
+                    Engine.Log.Warning($"Unsupported source bits per sample format by ConvertFormat - {ConvFormat.BitsPerSample}", MessageSource.Audio);
+                    break;
+            }
         }
 
         /// <summary>
