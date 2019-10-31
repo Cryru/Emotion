@@ -26,6 +26,11 @@ namespace Emotion.Standard.Audio
         private double _srcResume;
         private int _dstResume;
 
+        private int _sourceConvLength;
+        private int _dstLength;
+        private int _convQuality2;
+        private double _resampleStep;
+
         public AudioStreamer(AudioFormat srcFormat, byte[] audioData)
         {
             SourceFormat = srcFormat;
@@ -42,7 +47,22 @@ namespace Emotion.Standard.Audio
         {
             ConvFormat = dstFormat;
             ConvQuality = quality;
+            _convQuality2 = quality * 2;
             ResampleRatio = (float)dstFormat.SampleRate / SourceFormat.SampleRate;
+
+            _sourceConvLength = SourceSamples;
+            switch (ConvFormat.Channels)
+            {
+                case 2 when SourceFormat.Channels == 1:
+                    _sourceConvLength *= 2;
+                    break;
+                case 1 when SourceFormat.Channels == 2:
+                    _sourceConvLength /= 2;
+                    break;
+            }
+
+            _dstLength = (int)(_sourceConvLength * ResampleRatio);
+            _resampleStep = (double) (_sourceConvLength / ConvFormat.Channels) / (_dstLength / ConvFormat.Channels);
         }
 
         /// <summary>
@@ -76,30 +96,15 @@ namespace Emotion.Standard.Audio
         protected int PartialResample(ref double x, ref int i, int getSamples, Span<byte> samples)
         {
             int channels = ConvFormat.Channels;
-            int sourceConvLength = SourceSamples;
-            switch (ConvFormat.Channels)
-            {
-                case 2 when SourceFormat.Channels == 1:
-                    sourceConvLength *= 2;
-                    break;
-                case 1 when SourceFormat.Channels == 2:
-                    sourceConvLength /= 2;
-                    break;
-            }
 
             // Nyquist half of destination sampleRate
             const double fMaxDivSr = 0.5f;
             const double rG = 2 * fMaxDivSr;
 
-            int wndWidth2 = ConvQuality;
-            int wndWidth = ConvQuality * 2;
-
-            var dstLength = (int)(sourceConvLength * ResampleRatio);
-            double dx = (double)(sourceConvLength / channels) / (dstLength / channels);
             int iStart = i;
 
             // Snap if more samples requested than left.
-            if (i + getSamples >= dstLength) getSamples = dstLength - i;
+            if (i + getSamples >= _dstLength) getSamples = _dstLength - i;
 
             // Verify that the number of samples will fit.
             int outputBps = ConvFormat.BitsPerSample / 8;
@@ -111,30 +116,30 @@ namespace Emotion.Standard.Audio
             }
 
             // Resample the needed amount.
-            for (; i < dstLength; i += channels)
+            for (; i < _dstLength; i += channels)
             {
                 for (var c = 0; c < channels; c++)
                 {
                     var rY = 0.0;
                     int tau;
-                    for (tau = -wndWidth2; tau < wndWidth2; tau++)
+                    for (tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
                         // input sample index.
                         var j = (int)(x + tau);
 
                         // Hann Window. Scale and calculate sinc
-                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / wndWidth));
+                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / _convQuality2));
                         double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (j < 0 || j >= sourceConvLength / channels) continue;
+                        if (j < 0 || j >= _sourceConvLength / channels) continue;
                         rY += rG * rW * rSnc * GetSampleAsFloat(j * channels + c);
                     }
 
                     SetSampleAsFloat(i - iStart + c, MathF.Min(MathF.Max(-1, (float) rY), 1), samples);
                 }
 
-                x += dx;
+                x += _resampleStep;
 
                 // Check if gotten enough samples for the partial resampling.
                 if (i + channels - iStart < getSamples) continue;
@@ -142,7 +147,7 @@ namespace Emotion.Standard.Audio
                 return getSamples;
             }
 
-            return dstLength - iStart;
+            return _dstLength - iStart;
         }
 
         /// <summary>
