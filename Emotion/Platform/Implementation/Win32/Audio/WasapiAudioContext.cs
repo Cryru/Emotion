@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
@@ -14,7 +16,7 @@ using WinApi.ComBaseApi.COM;
 
 namespace Emotion.Platform.Implementation.Win32.Audio
 {
-    public class WasApiAudioContext : AudioContext, IMMNotificationClient
+    public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
     {
         public static WasApiAudioContext TryCreate()
         {
@@ -27,9 +29,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             return null;
         }
 
+        public WasApiAudioDevice DefaultDevice { get; private set; }
+
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new Dictionary<string, WasApiAudioDevice>();
-        private WasApiAudioDevice _defaultDevice;
 
         internal WasApiAudioContext(IMMDeviceEnumerator enumerator)
         {
@@ -82,67 +85,49 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             Engine.Log.Info("Starting audio loop...", MessageSource.Audio);
 
-            while (!Environment.HasShutdownStarted)
-            {
-                if (_defaultDevice == null) continue;
-                if (!_defaultDevice.Initialized) _defaultDevice.Initialize();
+            //while (!Environment.HasShutdownStarted)
+            //{
+            //    if (DefaultDevice == null) continue;
+            //    if (!DefaultDevice.Initialized) DefaultDevice.Initialize();
 
-                if (_test == null || _reader == null) continue;
+            //    if (_test == null || _reader == null) continue;
 
-                var frameCount = (int) _defaultDevice.BufferSize;
+            //    var frameCount = (int)DefaultDevice.BufferSize;
 
-                // Ensure format.
-                if (!_defaultDevice.AudioClientFormat.Equals(_reader.ConvFormat)) _reader.SetConvertFormat(AudioFormatFromWasApiFormat(_defaultDevice.AudioClientFormat));
+            //    // Ensure format.
+            //    if (!DefaultDevice.AudioClientFormat.Equals(_reader.ConvFormat)) _reader.SetConvertFormat(AudioFormatFromWasApiFormat(DefaultDevice.AudioClientFormat));
 
-                if (!_defaultDevice.Started)
-                {
-                    FillBuffer(_defaultDevice.RenderClient, ref _reader, (int) _defaultDevice.BufferSize);
-                    _defaultDevice.Start();
-                }
+            //    if (!DefaultDevice.Started)
+            //    {
+            //        FillBuffer(DefaultDevice.RenderClient, ref _reader, (int)DefaultDevice.BufferSize);
+            //        DefaultDevice.Start();
+            //    }
 
-                var timeout = (int) (3 * (_defaultDevice.UpdatePeriod / 1000));
-                bool success = _defaultDevice.WaitHandle.WaitOne(timeout);
-                if (!success)
-                {
-                    Engine.Log.Warning("Audio device wait timeout.", MessageSource.Audio);
-                    continue;
-                }
+            //    var timeout = (int)(3 * (DefaultDevice.UpdatePeriod / 1000));
+            //    bool success = DefaultDevice.WaitHandle.WaitOne(timeout);
+            //    if (!success)
+            //    {
+            //        Engine.Log.Warning("Audio device wait timeout.", MessageSource.Audio);
+            //        continue;
+            //    }
 
-                if (_defaultDevice.AudioClient == null) continue;
+            //    if (DefaultDevice.AudioClient == null) continue;
 
-                int error = _defaultDevice.AudioClient.GetCurrentPadding(out int padding);
-                if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
+            //    int error = DefaultDevice.AudioClient.GetCurrentPadding(out int padding);
+            //    if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
 
-                if (!FillBuffer(_defaultDevice.RenderClient, ref _reader, frameCount - padding)) continue;
-                // Wait for the final samples to be read.
-                Task.Delay((int) (_defaultDevice.UpdatePeriod / 1000)).Wait();
-                _defaultDevice.Stop();
-                _test = null;
-                _reader = null;
-            }
+            //    if (!FillBuffer(DefaultDevice.RenderClient, ref _reader, frameCount - padding)) continue;
+            //    // Wait for the final samples to be read.
+            //    Task.Delay((int)(DefaultDevice.UpdatePeriod / 1000)).Wait();
+            //    DefaultDevice.Stop();
+            //    _test = null;
+            //    _reader = null;
+            //}
 
             Engine.Log.Info("Audio loop has ended.", MessageSource.Audio);
         }
 
-        /// <summary>
-        /// Fill a render client buffer.
-        /// </summary>
-        /// <param name="client">The client to fill.</param>
-        /// <param name="streamer">The buffer to fill from.</param>
-        /// <param name="bufferFrameCount">The number of samples to fill with.</param>
-        /// <returns>Whether the buffer has been read to the end.</returns>
-        private unsafe bool FillBuffer(IAudioRenderClient client, ref AudioStreamer streamer, int bufferFrameCount)
-        {
-            if (bufferFrameCount == 0) return false;
 
-            int error = client.GetBuffer(bufferFrameCount, out IntPtr bufferPtr);
-            if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.Audio);
-            var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * streamer.ConvFormat.SampleSize);
-            int frames = streamer.GetNextFrames(bufferFrameCount, buffer);
-            error = client.ReleaseBuffer(frames, frames == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
-            if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.Audio);
-            return frames == 0;
-        }
 
         #region Events
 
@@ -269,24 +254,73 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 }
 
                 defaultDevice.Default = true;
-                _defaultDevice = defaultDevice;
+                DefaultDevice = defaultDevice;
                 Engine.Log.Trace($"Default audio device is: {defaultDevice.Name}.", MessageSource.Win32);
             }
             else
             {
                 Win32Platform.CheckError("Default audio device is not in device list.");
             }
+
+            // Tell all layers about this change.
+            lock (_layers)
+            {
+                foreach (WasApiLayer layer in _layers)
+                {
+                    layer.DefaultDeviceChanged(defaultDevice);
+                }
+            }
         }
 
         #endregion
 
-        private AudioAsset _test;
-        private AudioStreamer _reader;
-
-        public override void PlayAudioTest(AudioAsset audio)
+        public override string[] GetLayers()
         {
-            _test = audio;
-            _reader = new AudioStreamer(_test.Format, audio.SoundData);
+            string[] names;
+            lock (_layers)
+            {
+                names = new string[_layers.Count];
+                for (int i = 0; i < _layers.Count; i++)
+                {
+                    names[i] = _layers[i].Name;
+                }
+            }
+
+            return names;
+        }
+
+        private List<WasApiLayer> _layers = new List<WasApiLayer>();
+
+        public override AudioLayer CreateLayer(string layerName, float layerVolume = 1)
+        {
+            var newLayer = new WasApiLayer(layerName, this) {Volume = layerVolume};
+            lock (_layers)
+            {
+                _layers.Add(newLayer);
+            }
+
+            return newLayer;
+        }
+
+        public override void RemoveLayer(string layerName)
+        {
+            var layer = (WasApiLayer) GetLayer(layerName);
+            if(layer == null) return;
+
+            layer.Clear();
+            layer.Dispose();
+            lock (_layers)
+            {
+                _layers.Remove(layer);
+            }
+        }
+
+        public override AudioLayer GetLayer(string layerName)
+        {
+            lock (_layers)
+            {
+                return _layers.FirstOrDefault(layer => layer.Name == layerName);
+            }
         }
     }
 }

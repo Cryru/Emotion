@@ -35,6 +35,7 @@
 
         public bool Equals(AudioFormat f)
         {
+            if(f == null) return false;
             return f.BitsPerSample == BitsPerSample && f.IsFloat == IsFloat && f.Channels == Channels && f.SampleRate == SampleRate;
         }
 
