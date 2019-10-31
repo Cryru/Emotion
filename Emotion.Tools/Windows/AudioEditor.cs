@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Numerics;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
@@ -56,7 +57,12 @@ namespace Emotion.Tools.Windows
             ImGui.Text(_file.Format.IsFloat ? "Float" : "Int");
             ImGui.Text($"Data Size: {_file.SoundData.Length}");
 
-            if (ImGui.Button("Play")) Engine.Host.Audio.PlayAudioTest(_file);
+            if (ImGui.Button("Play"))
+            {
+                AudioLayer layer = Engine.Host.Audio.GetLayer("test");
+                if (layer == null) layer = Engine.Host.Audio.CreateLayer("test");
+                layer.PlayNext(_file);
+            }
 
             ImGui.DragFloat("Zoom", ref _zoom, 0.1f, 0.1f, 1);
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Emotion.Standard.Audio;
 
 #endregion
 
@@ -619,6 +620,11 @@ namespace WinApi.ComBaseApi.COM
         {
             if(obj == null) return false;
             return obj.Channels == Channels && SampleRate == obj.SampleRate && BitsPerSample == obj.BitsPerSample && IsFloat() == obj.IsFloat();
+        }
+
+        public AudioFormat ToEmotionFormat()
+        {
+            return new AudioFormat(BitsPerSample, IsFloat(), Channels, SampleRate);
         }
     }
 
