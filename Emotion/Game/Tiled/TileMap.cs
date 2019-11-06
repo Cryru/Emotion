@@ -256,8 +256,9 @@ namespace Emotion.Game.Tiled
                     tRect.X *= ratioDifferenceX;
                     tRect.Y *= ratioDifferenceY;
 
-                    // Check if visible rectangle exists.
-                    composer.RenderSprite(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), Tilesets[tsId].Texture, tiUv);
+                    TextureAsset tileSet = Tilesets[tsId];
+                    if (tileSet == null) continue;
+                    composer.RenderSprite(tRect.LocationZ(0), tRect.Size, new Color(255, 255, 255, (int) (layer.Opacity * 255)), tileSet.Texture, tiUv);
                 }
             }
         }
@@ -314,28 +315,31 @@ namespace Emotion.Game.Tiled
         }
 
         /// <summary>
+        /// Get the image id of the tile in the specified 1D coordinate.
+        /// The image id is relative to the tileset's id.
         /// </summary>
-        /// <param name="coordinate"></param>
-        /// <param name="layer"></param>
+        /// <param name="coordinate">The 1D coordinate to lookup the tile id of.</param>
+        /// <param name="layer">The tile layer to check in.</param>
+        /// <param name="tileSet">The id of the tile set in which the image id is.</param>
         /// <returns></returns>
-        public int GetTileImageIdInLayer(int coordinate, int layer)
+        public int GetTileImageIdInLayer(int coordinate, int layer, out int tileSet)
         {
             // Check if layer is out of bounds.
-            if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 1) return -1;
+            tileSet = -1;
+            if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
 
             //Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
 
             // Find the id of tile within the tileset.
-            int tsOffset = tId;
             for (var t = 0; t < TiledMap.Tilesets.Count; t++)
             {
-                // Check if the current tile is beyond the first tileset.
-                if (tId < TiledMap.Tilesets[t].FirstGid) break;
-                if (t > 0) tsOffset -= TiledMap.Tilesets[t].FirstGid - t;
+                if (t <= 0 || !(tId < TiledMap.Tilesets[t].FirstGid + TiledMap.Tilesets[t].TileCount)) continue;
+                tileSet = t; 
+                return tId - TiledMap.Tilesets[t].FirstGid;
             }
 
-            return tsOffset;
+            return -1;
         }
 
         #endregion
