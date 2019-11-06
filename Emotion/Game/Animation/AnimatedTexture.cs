@@ -15,24 +15,9 @@ namespace Emotion.Game.Animation
     /// Handles spritesheets with equal sized frames.
     /// Name is non-specific for legacy reasons.
     /// </summary>
-    public sealed class AnimatedTexture : IAnimatedTexture
+    public sealed class AnimatedTexture : AnimatedTextureBase
     {
         #region Properties
-
-        /// <inheritdoc />
-        public Texture Texture { get; private set; }
-
-        /// <inheritdoc />
-        public AnimationLoopType LoopType { get; set; }
-
-        /// <inheritdoc />
-        public int StartingFrame { get; set; }
-
-        /// <inheritdoc />
-        public int EndingFrame { get; set; }
-
-        /// <inheritdoc />
-        public int TimeBetweenFrames { get; set; }
 
         /// <summary>
         /// The size of the individual frames.
@@ -62,38 +47,15 @@ namespace Emotion.Game.Animation
 
         #endregion
 
-        #region Info Only
-
         /// <inheritdoc />
-        public int LoopCount { get; private set; }
-
-        /// <inheritdoc />
-        public Rectangle CurrentFrame
-        {
-            get => GetFrameBounds(CurrentFrameIndex);
-        }
-
-        /// <inheritdoc />
-        public int AnimationFrames
-        {
-            get => EndingFrame - StartingFrame;
-        }
-
-        /// <inheritdoc />
-        public int TotalFrames
+        public override int TotalFrames
         {
             get => (int) (Texture.Size.X / _frameSize.X * Texture.Size.Y / _frameSize.Y - 1);
         }
 
-        /// <inheritdoc />
-        public int CurrentFrameIndex { get; private set; }
-
-        #endregion
-
         private Vector2 _frameSize;
         private Vector2 _spacing;
 
-        private float _timePassed;
         private bool _inReverse;
 
         /// <summary>
@@ -164,16 +126,13 @@ namespace Emotion.Game.Animation
         }
 
         /// <inheritdoc />
-        public void Update(float frameTime)
+        public override void Update(float frameTime)
         {
             if (_frameSize == Vector2.Zero) return;
 
             // Clamp frame parameters.
             ClampFrameParameters();
-
-            // Clamp frame within range.
-            if (CurrentFrameIndex < StartingFrame) CurrentFrameIndex = StartingFrame;
-            if (CurrentFrameIndex > EndingFrame) CurrentFrameIndex = EndingFrame;
+            ClampCurrentFrame();
 
             _timePassed += frameTime;
 
@@ -181,22 +140,6 @@ namespace Emotion.Game.Animation
             if (!(_timePassed >= TimeBetweenFrames)) return;
             _timePassed -= TimeBetweenFrames;
             NextFrame();
-        }
-
-        /// <inheritdoc />
-        public void Reset()
-        {
-            _timePassed = 0;
-            ClampFrameParameters();
-            CurrentFrameIndex = GetStartingFrame();
-            LoopCount = 0;
-        }
-
-        /// <inheritdoc />
-        public void SetFrame(int index)
-        {
-            CurrentFrameIndex = index;
-            ClampFrameParameters();
         }
 
         #region Logic
@@ -280,53 +223,8 @@ namespace Emotion.Game.Animation
 
         #endregion
 
-        #region Helpers
-
-        /// <summary>
-        /// Clamp the starting and ending frames.
-        /// </summary>
-        private void ClampFrameParameters()
-        {
-            if (StartingFrame < 0)
-            {
-                StartingFrame = 0;
-                CurrentFrameIndex = GetStartingFrame();
-            }
-
-            if (EndingFrame > TotalFrames || EndingFrame == -1) EndingFrame = TotalFrames;
-            if (StartingFrame > EndingFrame)
-            {
-                StartingFrame = 0;
-                CurrentFrameIndex = GetStartingFrame();
-            }
-
-            if (EndingFrame < StartingFrame) EndingFrame = TotalFrames;
-        }
-
-        /// <summary>
-        /// Returns the starting frame for the current loop type.
-        /// </summary>
-        /// <returns>Returns the first frame for the current loop type.</returns>
-        private int GetStartingFrame()
-        {
-            switch (LoopType)
-            {
-                case AnimationLoopType.None:
-                case AnimationLoopType.Normal:
-                case AnimationLoopType.NormalThenReverse:
-                    return StartingFrame;
-                case AnimationLoopType.Reverse:
-                case AnimationLoopType.NoneReverse:
-                    return EndingFrame;
-            }
-
-            return -1;
-        }
-
-        #endregion
-
         /// <inheritdoc />
-        public Rectangle GetFrameBounds(int frameId)
+        public override Rectangle GetFrameBounds(int frameId)
         {
             return GetFrameBounds(Texture.Size, _frameSize, _spacing, frameId);
         }
@@ -366,7 +264,7 @@ namespace Emotion.Game.Animation
         }
 
         /// <inheritdoc />
-        public IAnimatedTexture Copy()
+        public override AnimatedTextureBase Copy()
         {
             return new AnimatedTexture
             {
@@ -383,7 +281,7 @@ namespace Emotion.Game.Animation
         }
 
         /// <inheritdoc />
-        public AnimationDescriptionBase GetDescription(string textureName = null)
+        public override AnimationDescriptionBase GetDescription(string textureName = null)
         {
             return new AnimatedTextureDescription
             {

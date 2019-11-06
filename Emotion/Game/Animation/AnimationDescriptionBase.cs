@@ -11,6 +11,6 @@
         public int TimeBetweenFrames { get; set; }
         public AnimationLoopType LoopType { get; set; }
 
-        public abstract IAnimatedTexture CreateFrom();
+        public abstract AnimatedTextureBase CreateFrom();
     }
 }

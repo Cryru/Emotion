@@ -15,7 +15,7 @@ namespace Emotion.Game.Animation
         public Rectangle[] Frames { get; set; }
         public Vector2[] Anchors { get; set; }
 
-        public override IAnimatedTexture CreateFrom()
+        public override AnimatedTextureBase CreateFrom()
         {
             var t = Engine.AssetLoader.Get<TextureAsset>(SpriteSheetName);
             return t == null ? null : new LookupAnimatedTexture(t.Texture, Frames, LoopType, TimeBetweenFrames, StartingFrame, EndingFrame) { Anchors = Anchors };
