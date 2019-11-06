@@ -126,7 +126,7 @@ namespace Emotion.Game.Tiled
         /// <param name="mapPath">The path to the new map.</param>
         /// <param name="tileSetFolder">The path to the new tileset.</param>
         /// <param name="resetSize">Whether to reset the size of the tilemap to the loaded one as well.</param>
-        public void Reset(string mapPath, string tileSetFolder, bool resetSize = false)
+        public virtual void Reset(string mapPath, string tileSetFolder, bool resetSize = false)
         {
             Reset(mapPath != null ? Engine.AssetLoader.Get<OtherAsset>(mapPath) : null, tileSetFolder, resetSize);
         }
@@ -137,7 +137,7 @@ namespace Emotion.Game.Tiled
         /// <param name="mapFile">The new map file.</param>
         /// <param name="tileSetFolder">The path to the new tileset.</param>
         /// <param name="resetSize">Whether to reset the size of the tilemap to the loaded one as well.</param>
-        public void Reset(OtherAsset mapFile, string tileSetFolder, bool resetSize = false)
+        public virtual void Reset(OtherAsset mapFile, string tileSetFolder, bool resetSize = false)
         {
             // Check if tileSetFolder ends in a slash.
             if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/') tileSetFolder += "/";
