@@ -50,6 +50,7 @@ namespace Emotion.Tools.Windows
         // Lookup only.
         private AnchorPlacer _anchorPlacerWindow;
         private FrameOrderWindow _orderWindow;
+        private bool _mirrored;
 
         public AnimationEditor() : base("Animation Editor")
         {
@@ -250,11 +251,16 @@ namespace Emotion.Tools.Windows
                     current ? new Vector4(1, 0, 0, 1) : Vector4.Zero);
             }
 
+            if (ImGui.Button("Mirror"))
+            {
+                _mirrored = !_mirrored;
+            }
+
             RenderSaveSection();
 
             var offset = new Vector2(100, 100);
             if (lookupAnim.Anchors.Length > 0) offset += lookupAnim.Anchors[lookupAnim.CurrentFrameIndex] * _scale;
-            composer.RenderSprite(new Vector3(offset, 1), _animation.CurrentFrame.Size * _scale, Color.White, _animation.Texture, _animation.CurrentFrame);
+            composer.RenderSprite(new Vector3(offset, 1), _animation.CurrentFrame.Size * _scale, Color.White, _animation.Texture, _animation.CurrentFrame, _mirrored);
         }
 
         private void RenderSaveSection()
