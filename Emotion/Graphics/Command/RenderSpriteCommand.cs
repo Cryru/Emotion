@@ -18,6 +18,7 @@ namespace Emotion.Graphics.Command
         public uint Color;
         public Texture Texture { get; set; }
         public Rectangle? UV;
+        public Matrix4x4? TextureModifier;
 
         /// <summary>
         /// The vertices of the sprite. Are set when it is processed.
@@ -56,7 +57,16 @@ namespace Emotion.Graphics.Command
             Rectangle uvRect = UV.Value;
 
             // Multiply UVs by the texture matrix to get the right values.
-            Matrix4x4 matrix = Texture.TextureMatrix;
+            Matrix4x4 matrix;
+            if (TextureModifier != null)
+            {
+                matrix =  Texture.TextureMatrix * (Matrix4x4) TextureModifier;
+            }
+            else
+            {
+                matrix = Texture.TextureMatrix;
+            }
+
             Vertices[0].UV = Vector2.Transform(uvRect.Position, matrix);
             Vertices[1].UV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), matrix);
             Vertices[2].UV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), matrix);

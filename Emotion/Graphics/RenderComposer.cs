@@ -180,6 +180,9 @@ namespace Emotion.Graphics
 
         #region RenderSprite Overloads
 
+        private static Matrix4x4 _flipMatX = Matrix4x4.CreateScale(-1, 1, 1);
+        private static Matrix4x4 _flipMatY = Matrix4x4.CreateScale(1, -1, 1);
+
         /// <summary>
         /// Render a (textured) quad to the screen.
         /// </summary>
@@ -188,13 +191,36 @@ namespace Emotion.Graphics
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad, if any.</param>
         /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
-        public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        /// <param name="flipX">Whether to flip the texture on the x axis.</param>
+        /// <param name="flipY">Whether to flip the texture on the y axis.</param>
+        public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
             var command = GetRenderCommand<RenderSpriteCommand>();
             command.Position = position;
             command.Size = size;
             command.Color = color.ToUint();
             command.Texture = texture;
+            command.TextureModifier = null;
+            if (flipX)
+            {
+                if (texture != null && textureArea != null)
+                {
+                    Rectangle r = (Rectangle) textureArea;
+                    r.X = texture.Size.X - r.Width - r.X;
+                    textureArea = r;
+                }
+                command.TextureModifier = _flipMatX;
+            }
+            if (flipY)
+            {
+                if (texture != null && textureArea != null)
+                {
+                    Rectangle r = (Rectangle) textureArea;
+                    r.Y = texture.Size.Y - r.Height - r.Y;
+                    textureArea = r;
+                }
+                command.TextureModifier = _flipMatY;
+            }
             command.UV = textureArea;
             PushCommand(command);
         }
