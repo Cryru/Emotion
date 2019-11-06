@@ -3,6 +3,7 @@
 using System;
 using System.Drawing;
 using System.Numerics;
+using System.Xml.Serialization;
 
 #endregion
 
@@ -47,24 +48,28 @@ namespace Emotion.Primitives
 
         public static Rectangle Empty { get; } = new Rectangle();
 
+        [XmlIgnore]
         public float Left
         {
             get => X;
             set => X = value;
         }
 
+        [XmlIgnore]
         public float Right
         {
             get => X + Width;
             set => X = value - Width;
         }
 
+        [XmlIgnore]
         public float Top
         {
             get => Y;
             set => Y = value;
         }
 
+        [XmlIgnore]
         public float Bottom
         {
             get => Y + Height;
@@ -91,6 +96,7 @@ namespace Emotion.Primitives
             get => new Vector2(Right, Bottom);
         }
 
+        [XmlIgnore]
         public Vector2 Location
         {
             get => new Vector2(X, Y);
@@ -101,6 +107,7 @@ namespace Emotion.Primitives
             }
         }
 
+        [XmlIgnore]
         public Vector2 Position
         {
             get => new Vector2(X, Y);
@@ -111,6 +118,7 @@ namespace Emotion.Primitives
             }
         }
 
+        [XmlIgnore]
         public Vector2 Size
         {
             get => new Vector2(Width, Height);
@@ -121,6 +129,7 @@ namespace Emotion.Primitives
             }
         }
 
+        [XmlIgnore]
         public Vector2 Center
         {
             get => new Vector2(X + Width / 2, Y + Height / 2);
