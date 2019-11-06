@@ -2,10 +2,8 @@
 
 using System;
 using System.Numerics;
-using Emotion.Common;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -14,24 +12,9 @@ namespace Emotion.Game.Animation
     /// <summary>
     /// A class for animating a texture using a lookup table of frames.
     /// </summary>
-    public sealed class LookupAnimatedTexture : IAnimatedTexture
+    public sealed class LookupAnimatedTexture : AnimatedTextureBase
     {
         #region Properties
-
-        /// <inheritdoc />
-        public Texture Texture { get; private set; }
-
-        /// <inheritdoc />
-        public AnimationLoopType LoopType { get; set; }
-
-        /// <inheritdoc />
-        public int StartingFrame { get; set; }
-
-        /// <inheritdoc />
-        public int EndingFrame { get; set; }
-
-        /// <inheritdoc />
-        public int TimeBetweenFrames { get; set; }
 
         /// <summary>
         /// List of frames.
@@ -61,35 +44,12 @@ namespace Emotion.Game.Animation
 
         #endregion
 
-        #region Info Only
-
         /// <inheritdoc />
-        public int LoopCount { get; private set; }
-
-        /// <inheritdoc />
-        public Rectangle CurrentFrame
-        {
-            get => GetFrameBounds(CurrentFrameIndex);
-        }
-
-        /// <inheritdoc />
-        public int AnimationFrames
-        {
-            get => EndingFrame - StartingFrame;
-        }
-
-        /// <inheritdoc />
-        public int TotalFrames
+        public override int TotalFrames
         {
             get => Frames?.Length ?? 0;
         }
 
-        /// <inheritdoc />
-        public int CurrentFrameIndex { get; private set; }
-
-        #endregion
-
-        private float _timePassed;
         private bool _inReverse;
         private Rectangle[] _frames = new Rectangle[0];
         private Vector2[] _anchors = new Vector2[0];
@@ -119,7 +79,7 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// Copy constructor.
         /// </summary>
-        public LookupAnimatedTexture(AnimatedTexture copy)
+        public LookupAnimatedTexture(LookupAnimatedTexture copy)
         {
             CurrentFrameIndex = copy.CurrentFrameIndex;
             EndingFrame = copy.EndingFrame;
@@ -134,16 +94,13 @@ namespace Emotion.Game.Animation
         /// Advance time for the animation.
         /// </summary>
         /// <param name="frameTime">The time passed since the last update.</param>
-        public void Update(float frameTime)
+        public override void Update(float frameTime)
         {
             if (Frames == null) return;
 
             // Clamp frame parameters.
             ClampFrameParameters();
-
-            // Clamp frame within range.
-            if (CurrentFrameIndex < StartingFrame) CurrentFrameIndex = StartingFrame;
-            if (CurrentFrameIndex > EndingFrame) CurrentFrameIndex = EndingFrame;
+            ClampCurrentFrame();
 
             _timePassed += frameTime;
 
@@ -153,32 +110,11 @@ namespace Emotion.Game.Animation
             NextFrame();
         }
 
-        /// <summary>
-        /// Reset the animation.
-        /// </summary>
-        public void Reset()
+        /// <inheritdoc />
+        public override void Reset()
         {
-            if(Frames != null && _anchors.Length != Frames.Length)
-            {
-                Array.Resize(ref _anchors, Frames.Length);
-            }
-
-            _timePassed = 0;
-            ClampFrameParameters();
-            CurrentFrameIndex = GetStartingFrame();
-            LoopCount = 0;
-        }
-
-        /// <summary>
-        /// Set the current frame to the specified frame.
-        /// Animation will continue from there.
-        /// If the index is invalid it will either be set to the starting or ending frame.
-        /// </summary>
-        /// <param name="index">The index to set the current frame to.</param>
-        public void SetFrame(int index)
-        {
-            CurrentFrameIndex = index;
-            ClampFrameParameters();
+            if (Frames != null && _anchors.Length != Frames.Length) Array.Resize(ref _anchors, Frames.Length);
+            base.Reset();
         }
 
         #region Logic
@@ -262,57 +198,12 @@ namespace Emotion.Game.Animation
 
         #endregion
 
-        #region Helpers
-
-        /// <summary>
-        /// Clamp the starting and ending frames.
-        /// </summary>
-        private void ClampFrameParameters()
-        {
-            if (StartingFrame < 0)
-            {
-                StartingFrame = 0;
-                CurrentFrameIndex = GetStartingFrame();
-            }
-
-            if (EndingFrame > TotalFrames) EndingFrame = TotalFrames;
-            if (StartingFrame > EndingFrame)
-            {
-                StartingFrame = 0;
-                CurrentFrameIndex = GetStartingFrame();
-            }
-
-            if (EndingFrame < StartingFrame) EndingFrame = TotalFrames;
-        }
-
-        /// <summary>
-        /// Returns the starting frame for the current loop type.
-        /// </summary>
-        /// <returns>Returns the first frame for the current loop type.</returns>
-        private int GetStartingFrame()
-        {
-            switch (LoopType)
-            {
-                case AnimationLoopType.None:
-                case AnimationLoopType.Normal:
-                case AnimationLoopType.NormalThenReverse:
-                    return StartingFrame;
-                case AnimationLoopType.Reverse:
-                case AnimationLoopType.NoneReverse:
-                    return EndingFrame;
-            }
-
-            return -1;
-        }
-
-        #endregion
-
         /// <summary>
         /// Get the bounds of the specified frame.
         /// </summary>
         /// <param name="frameId">The frame to get the bounds of.</param>
         /// <returns>The bounds of the requested frame.</returns>
-        public Rectangle GetFrameBounds(int frameId)
+        public override Rectangle GetFrameBounds(int frameId)
         {
             return Frames == null || frameId > Frames.Length ? Rectangle.Empty : Frames[frameId];
         }
@@ -323,7 +214,7 @@ namespace Emotion.Game.Animation
         }
 
         /// <inheritdoc />
-        public IAnimatedTexture Copy()
+        public override AnimatedTextureBase Copy()
         {
             return new LookupAnimatedTexture
             {
@@ -340,7 +231,7 @@ namespace Emotion.Game.Animation
         }
 
         /// <inheritdoc />
-        public AnimationDescriptionBase GetDescription(string textureName = null)
+        public override AnimationDescriptionBase GetDescription(string textureName = null)
         {
             return new LookupAnimatedDescription
             {

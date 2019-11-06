@@ -33,9 +33,9 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            foreach (KeyValuePair<string, IAnimatedTexture> savedAnimation in _parent.Saved)
+            foreach (KeyValuePair<string, AnimatedTextureBase> savedAnimation in _parent.Saved)
             {
-                IAnimatedTexture anim = savedAnimation.Value;
+                AnimatedTextureBase anim = savedAnimation.Value;
                 ImGui.BeginTooltip();
                 ImGui.SetTooltip($"Frames {anim.AnimationFrames} Range {anim.StartingFrame} - {anim.EndingFrame} Loop {anim.LoopType}");
                 ImGui.Text(savedAnimation.Key);

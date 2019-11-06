@@ -26,7 +26,7 @@ namespace Emotion.Tools.Windows
 {
     public class AnimationEditor : ImGuiWindow
     {
-        private IAnimatedTexture _animation;
+        private AnimatedTextureBase _animation;
 
         private int _loopType = 1;
         private int _frameTime = 250;
@@ -38,7 +38,7 @@ namespace Emotion.Tools.Windows
 
         private bool _playing = true;
 
-        public Dictionary<string, IAnimatedTexture> Saved = new Dictionary<string, IAnimatedTexture>(); // Currently does nothing.
+        public Dictionary<string, AnimatedTextureBase> Saved = new Dictionary<string, AnimatedTextureBase>(); // Currently does nothing.
         private string _saveName = "";
         private SavedAnimations _savedAnimationsWindow;
         private string _type;
@@ -89,7 +89,7 @@ namespace Emotion.Tools.Windows
                 var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(f =>
                 {
                     if (f?.Content == null) return;
-                    IAnimatedTexture anim = f.Content.CreateFrom();
+                    AnimatedTextureBase anim = f.Content.CreateFrom();
                     _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
                     LoadAnimationData(anim);
                     _saveName = f.Name;
@@ -174,7 +174,7 @@ namespace Emotion.Tools.Windows
                 var explorer = new FileExplorer<XMLAsset<LookupAnimatedDescription>>(f =>
                 {
                     if (f?.Content == null) return;
-                    IAnimatedTexture anim = f.Content.CreateFrom();
+                    AnimatedTextureBase anim = f.Content.CreateFrom();
                     _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
                     LoadAnimationData(anim);
                     _saveName = f.Name;
@@ -404,7 +404,7 @@ namespace Emotion.Tools.Windows
             return boxes.OrderBy(x => x.Y).ThenBy(x => x.X).ToArray();
         }
 
-        private void LoadAnimationData(IAnimatedTexture anim)
+        private void LoadAnimationData(AnimatedTextureBase anim)
         {
             _startFrame = anim.StartingFrame;
             _endFrame = anim.EndingFrame;

@@ -14,7 +14,7 @@ namespace Emotion.Game.Animation
         public Vector2 FrameSize { get; set; }
         public Vector2 Spacing { get; set; }
 
-        public override IAnimatedTexture CreateFrom()
+        public override AnimatedTextureBase CreateFrom()
         {
             var t = Engine.AssetLoader.Get<TextureAsset>(SpriteSheetName);
             return t == null ? null : new AnimatedTexture(t.Texture, FrameSize, Spacing, LoopType, TimeBetweenFrames, StartingFrame, EndingFrame);
