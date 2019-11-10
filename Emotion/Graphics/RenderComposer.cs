@@ -440,6 +440,16 @@ namespace Emotion.Graphics
         /// <param name="onSet">A function to call once the shader is bound. You can upload uniforms and such in here.</param>
         public void SetShader(ShaderProgram shader = null, Action onSet = null)
         {
+            SetShader(shader, (s) => onSet?.Invoke());
+        }
+
+        /// <summary>
+        /// Set the current shader.
+        /// </summary>
+        /// <param name="shader">The shader to set as current.</param>
+        /// <param name="onSet">A function to call once the shader is bound. You can upload uniforms and such in here.</param>
+        public void SetShader(ShaderProgram shader = null, Action<ShaderProgram> onSet = null)
+        {
             var stateChange = GetRenderCommand<ChangeStateCommand>();
             stateChange.State = new RenderState
             {
