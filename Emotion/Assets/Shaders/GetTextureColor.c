@@ -7,8 +7,7 @@ vec4 getTextureColor(int id, vec2 uvInput)
 	// Check if a texture is in use.
 	if (id >= 0)
 	{
-		// Sample for the texture's color at the specified vertex UV and multiply it
-		// by the tint.
+		// Sample for the texture's color at the specified vertex UV.
 		sampledColor = texture(textures[id], uvInput);
 	}
 	
