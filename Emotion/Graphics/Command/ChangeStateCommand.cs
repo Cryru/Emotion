@@ -12,7 +12,7 @@ namespace Emotion.Graphics.Command
     {
         public bool Force;
         public RenderState State;
-        public Action ShaderOnSet;
+        public Action<ShaderProgram> ShaderOnSet;
 
         public override void Process()
         {
@@ -38,7 +38,7 @@ namespace Emotion.Graphics.Command
                 Engine.Renderer.CurrentState.Shader = State.Shader;
                 Engine.Renderer.SyncShader();
 
-                ShaderOnSet?.Invoke();
+                ShaderOnSet?.Invoke(State.Shader);
             }
 
             if (State.DepthTest != null && (Force || State.DepthTest != Engine.Renderer.CurrentState.DepthTest)) Engine.Renderer.SetDepth((bool) State.DepthTest);

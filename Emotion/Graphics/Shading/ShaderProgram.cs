@@ -187,6 +187,7 @@ namespace Emotion.Graphics.Shading
 
         /// <summary>
         /// Sets the uniform of the specified name to the provided value.
+        /// The uniform is expected to be a vector4 in the shader.
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The color value to set it to.</param>
