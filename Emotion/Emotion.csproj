@@ -46,6 +46,7 @@
     <None Remove="Assets\DefaultShader.xml" />
     <None Remove="Assets\DefaultVert.vert" />
     <None Remove="Assets\GetTextureColor.c" />
+    <None Remove="Assets\Shaders\GetTextureSize.c" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,6 +54,7 @@
     <EmbeddedResource Include="Assets\Shaders\DefaultShader.xml" />
     <EmbeddedResource Include="Assets\Shaders\DefaultVert.vert" />
     <EmbeddedResource Include="Assets\Shaders\GetTextureColor.c" />
+    <EmbeddedResource Include="Assets\Shaders\GetTextureSize.c" />
   </ItemGroup>
 
   <ItemGroup>

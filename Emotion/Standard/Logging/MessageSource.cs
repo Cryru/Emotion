@@ -14,6 +14,7 @@
         public static string Platform = "Platform";
         public static string Audio = "Audio";
 
+        public static string Debug = "Debug";
         public static string Other = "Other";
 
         // Specific

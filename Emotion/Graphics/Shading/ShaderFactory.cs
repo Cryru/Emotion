@@ -44,11 +44,31 @@ namespace Emotion.Graphics.Shading
             var getTextureColor = Engine.AssetLoader.Get<TextAsset>("Shaders/GetTextureColor.c");
             if (getTextureColor == null)
             {
-                Engine.SubmitError(new Exception("Couldn't load default shader parts."));
+                Engine.SubmitError(new Exception("Couldn't load default shader parts - GetTextureColor."));
                 return;
             }
 
             _shaderParts.Add("GetTextureColor", getTextureColor);
+
+            var getTextureSize = Engine.AssetLoader.Get<TextAsset>("Shaders/GetTextureSize.c");
+            if (getTextureSize == null)
+            {
+                Engine.SubmitError(new Exception("Couldn't load default shader parts - GetTextureSize."));
+                return;
+            }
+
+            _shaderParts.Add("GetTextureSize", getTextureSize);
+        }
+
+        /// <summary>
+        /// Add a custom shader part to the shader preprocessor.
+        /// Instances of "//key" will be replaced by the content of the text asset.
+        /// </summary>
+        /// <param name="key">The key to replace.</param>
+        /// <param name="text">The text to replace it with.</param>
+        public static void AddShaderPart(string key, TextAsset text)
+        {
+            _shaderParts.Add(key, text);
         }
 
         /// <summary>
@@ -140,6 +160,11 @@ namespace Emotion.Graphics.Shading
             // Add version tag and preprocess the source.
             preprocessed = Preprocess(preprocessed);
 
+            if (Engine.Configuration.DebugMode)
+            {
+                WarningsCheck(preprocessed);
+            }
+
             // Find a configuration which will compile the shader.
             foreach (KeyValuePair<string, Func<string[], string[]>> configuration in _shaderConfigurations)
             {
@@ -202,6 +227,33 @@ namespace Emotion.Graphics.Shading
             }
 
             return source;
+        }
+
+        /// <summary>
+        /// Used in Debug Mode to generate more telling warnings from a preprocessed shader source.
+        /// </summary>
+        /// <param name="source">The shader source.</param>
+        private static void WarningsCheck(string[] source)
+        {
+            for (var i = 0; i < source.Length; i++)
+            {
+                // Check if version exists.
+                if (source[i][0] != '#')
+                {
+                    Engine.Log.Warning($"The first character is the shader is not '#' but is {source[i][0]}.", MessageSource.Debug);
+                }
+
+                if (!source[i].Contains("#version "))
+                {
+                    Engine.Log.Warning($"The shader is missing the version tag.", MessageSource.Debug);
+                }
+
+                // Legacy warnings.
+                if (source[i].Contains("float Tid"))
+                {
+                    Engine.Log.Warning($"The shader defines the 'Tid' uniform as float, which is how it used to be. Newer versions of Emotion expect it to be a 'flat in int'.", MessageSource.Debug);
+                }
+            }
         }
 
         #region Shader Configurations
