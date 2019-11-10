@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using Emotion.Common;
@@ -51,6 +52,49 @@ namespace Emotion.IO
         /// </summary>
         public ShaderProgram Shader { get; protected set; }
 
+        #region Debug Shader Reload
+
+        private static List<ShaderAsset> _activeShaderAssets;
+
+        static ShaderAsset()
+        {
+            if (!Engine.Configuration.DebugMode) return;
+
+            _activeShaderAssets = new List<ShaderAsset>();
+            Engine.Host.OnKey.AddListener((k, s) =>
+            {
+                // The reload shaders shortcut is Ctrl + R
+                if (k != Platform.Input.Key.R || s != Platform.Input.KeyStatus.Down || !Engine.InputManager.IsKeyHeld(Platform.Input.Key.LeftControl)) return true;
+
+                for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)
+                {
+                    if (_activeShaderAssets[i].Disposed)
+                    {
+                        _activeShaderAssets.RemoveAt(i);
+                    }
+                    else
+                    {
+                        _activeShaderAssets[i].ReloadShader();
+                    }
+                }
+                return true;
+            });
+        }
+
+        public ShaderAsset()
+        {
+            _activeShaderAssets?.Add(this);
+        }
+
+        private void ReloadShader()
+        {
+            Engine.Log.Warning($"Reloading shader {Name}...", MessageSource.Debug);
+            DisposeInternal();
+            Compile();
+        }
+
+        #endregion
+
         protected override void CreateInternal(byte[] data)
         {
             // Deserialize the shader description.
@@ -58,6 +102,11 @@ namespace Emotion.IO
             // Fallback to default.
             if (Content == null) Content = new ShaderDescription();
 
+            Compile();
+        }
+
+        private void Compile()
+        {
             // Get the text contents of the shader files referenced. If any of them are missing substitute with the default one.
             TextAsset vertShader = null;
             var ownVert = false;
