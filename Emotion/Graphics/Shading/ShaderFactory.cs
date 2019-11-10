@@ -238,12 +238,12 @@ namespace Emotion.Graphics.Shading
             for (var i = 0; i < source.Length; i++)
             {
                 // Check if version exists.
-                if (source[i][0] != '#')
+                if (i == 0 && source[i][0] != '#')
                 {
                     Engine.Log.Warning($"The first character is the shader is not '#' but is {source[i][0]}.", MessageSource.Debug);
                 }
 
-                if (!source[i].Contains("#version "))
+                if (i == 0 && !source[i].Contains("#version "))
                 {
                     Engine.Log.Warning($"The shader is missing the version tag.", MessageSource.Debug);
                 }
