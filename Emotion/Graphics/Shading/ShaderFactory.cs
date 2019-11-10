@@ -220,7 +220,11 @@ namespace Emotion.Graphics.Shading
                 // Inject texture parts.
                 foreach (var part in _shaderParts)
                 {
-                    if (source[i].Contains($"//{part.Key}")) source[i] = Helpers.NormalizeNewLines(part.Value.Content);
+                    if (source[i].Contains($"//{part.Key}"))
+                    {
+                        source[i] = Helpers.NormalizeNewLines(part.Value.Content);
+                        break;
+                    }
                 }
 
                 source[i] = source[i].Trim() + "\n";
