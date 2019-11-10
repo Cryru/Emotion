@@ -514,6 +514,13 @@ namespace Emotion.Graphics
             PushCommand(command);
         }
 
+        public void ClearFrameBuffer()
+        {
+            var command = GetRenderCommand<ExecCodeCommand>();
+            command.Func = Engine.Renderer.Clear;
+            PushCommand(command);
+        }
+
         /// <summary>
         /// Push a matrix on top of the model matrix stack.
         /// </summary>
