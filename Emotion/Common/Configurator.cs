@@ -165,21 +165,29 @@ namespace Emotion.Common
         }
 
         /// <summary>
+        /// Some kind of title or label displayed on the host.
+        /// On desktop platforms this is the window name.
+        /// </summary>
+        public string HostTitle { get; private set; } = "Untitled";
+
+        /// <summary>
         /// The starting size of the host. On desktop platforms the host is the window.
         /// On some platforms this is ignored as the host is either always fullscreen or unresizable.
         /// </summary>
-        public Vector2 HostSize = new Vector2(640, 360);
+        public Vector2 HostSize { get; private set; } = new Vector2(640, 360);
 
         /// <summary>
         /// Set starting settings regarding the host.
         /// Some of these might be ignored depending on the platform.
         /// </summary>
         /// <param name="hostSize">The starting size of the host.</param>
+        /// <param name="hostTitle">Some kind of window title.</param>
         /// <returns>This configurator, for chaining purposes.</returns>
-        public Configurator SetHostSettings(Vector2 hostSize)
+        public Configurator SetHostSettings(Vector2? hostSize = null, string hostTitle = null)
         {
             if (Setup) return this;
-            HostSize = hostSize;
+            HostTitle = hostTitle ?? HostTitle;
+            HostSize = hostSize ?? HostSize;
             return this;
         }
 
