@@ -36,6 +36,7 @@ Game Logic
 	- UI with scaling and some kind of event capturing/focus system
 	- Add RichText tests
 Platform
+	- Currently a PlatformConfig is passed to the PlatformLoader. This can be replaced by the Configuration used by the engine as currently it just copies properties from there.
 	- Windows Sound
 	- Mac
 	- Linux

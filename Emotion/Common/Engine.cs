@@ -123,7 +123,8 @@ namespace Emotion.Common
                 MinWidth = (int) Configuration.RenderSize.X,
                 MinHeight = (int) Configuration.RenderSize.Y,
                 Width = (int) Configuration.HostSize.X,
-                Height = (int) Configuration.HostSize.Y
+                Height = (int) Configuration.HostSize.Y,
+                Title = Configuration.HostTitle
             });
             // Check if the platform initialization was successful.
             if (Host == null)
