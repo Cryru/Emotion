@@ -337,6 +337,9 @@ namespace Emotion.Common
                 _curFrameId = _frameId;
             }
 #endif
+            TotalTime += DeltaTime;
+
+            Renderer.Update();
             InputManager.Update();
             SceneManager.Update();
             DebugUpdateAction?.Invoke();

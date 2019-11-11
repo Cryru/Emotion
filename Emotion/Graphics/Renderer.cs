@@ -337,9 +337,6 @@ namespace Emotion.Graphics
             // Reset the main composer.
             _composer.Reset();
 
-            // Update the camera
-            Camera.Update();
-            
             // Reset to the default state.
             _defaultStateCommand.Execute(_composer);
 
@@ -376,6 +373,12 @@ namespace Emotion.Graphics
 
             _composer.Process();
             _composer.Execute();
+        }
+
+        public void Update()
+        {
+            // Update the camera
+            Camera.Update();
         }
 
         #region State Control
