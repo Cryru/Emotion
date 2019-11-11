@@ -438,7 +438,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void SetShader()
         {
-            SetShader(null, (Action<ShaderProgram>) null);
+            SetShader(null);
         }
 
         /// <summary>
@@ -446,7 +446,7 @@ namespace Emotion.Graphics
         /// </summary>
         /// <param name="shader">The shader to set as current.</param>
         /// <param name="onSet">A function to call once the shader is bound. You can upload uniforms and such in here.</param>
-        public void SetShader(ShaderProgram shader, Action onSet = null)
+        public void SetShader(ShaderProgram shader, Action onSet)
         {
             SetShader(shader, (s) => onSet?.Invoke());
         }
@@ -514,6 +514,9 @@ namespace Emotion.Graphics
             PushCommand(command);
         }
 
+        /// <summary>
+        /// Clears the frame buffer currently being rendered to.
+        /// </summary>
         public void ClearFrameBuffer()
         {
             var command = GetRenderCommand<ExecCodeCommand>();
