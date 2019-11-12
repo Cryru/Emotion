@@ -14,11 +14,11 @@ namespace Emotion.Tools.Windows
 {
     public class PerformanceMonitor : ImGuiWindow
     {
-        private float[] _dtTracker = new float[100];
+        private float[] _dtTracker;
         private int _dtIdx;
         private Stopwatch _dtTimer = new Stopwatch();
 
-        private float[] _updateTracker = new float[100];
+        private float[] _updateTracker;
         private int _updateIdx;
 
         private int _updatesPerFrame;
@@ -27,8 +27,10 @@ namespace Emotion.Tools.Windows
         private int _fpsTracker;
         private int _fps;
 
-        public PerformanceMonitor() : base("Performance Monitor")
+        public PerformanceMonitor(int resolution = 100) : base("Performance Monitor")
         {
+            _dtTracker = new float[resolution];
+            _updateTracker = new float[resolution];
         }
 
         protected override void RenderContent(RenderComposer composer)
@@ -37,8 +39,8 @@ namespace Emotion.Tools.Windows
             _updateIdx++;
             if (_updateIdx > _updateTracker.Length - 1) _updateIdx = 0;
             _updatesPerFrame = 0;
-            ImGui.PlotLines("DeltaTime", ref _dtTracker[0], 100, 0, "", 0, 30);
-            ImGui.PlotLines("Updates", ref _updateTracker[0], 100, 0, "", 0, 5);
+            ImGui.PlotLines("DeltaTime", ref _dtTracker[0], _dtTracker.Length, 0, "", 0, 30);
+            ImGui.PlotLines("Updates", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
 
             _fpsTracker++;
