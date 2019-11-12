@@ -5,6 +5,7 @@ using System.Numerics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -67,10 +68,21 @@ namespace Emotion.Graphics.Command
                 matrix = Texture.TextureMatrix;
             }
 
-            Vertices[0].UV = Vector2.Transform(uvRect.Position, matrix);
-            Vertices[1].UV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), matrix);
-            Vertices[2].UV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), matrix);
-            Vertices[3].UV = Vector2.Transform(new Vector2(uvRect.X, uvRect.Y + uvRect.Height), matrix);
+            Vector2 nnUV = Vector2.Transform(uvRect.Position, matrix);
+            Vector2 pnUV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), matrix);
+            Vector2 ppUV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), matrix);
+            Vector2 npUV = Vector2.Transform(new Vector2(uvRect.X, uvRect.Y + uvRect.Height), matrix);
+
+            // Add a small epsilon to prevent the wrong UVs from being sampled.
+            nnUV = new Vector2(nnUV.X + MathFloat.EPSILON, nnUV.Y - MathFloat.EPSILON);
+            pnUV = new Vector2(pnUV.X - MathFloat.EPSILON, pnUV.Y - MathFloat.EPSILON);
+            ppUV = new Vector2(ppUV.X + MathFloat.EPSILON, ppUV.Y + MathFloat.EPSILON);
+            npUV = new Vector2(npUV.X - MathFloat.EPSILON, npUV.Y + MathFloat.EPSILON);
+
+            Vertices[0].UV = nnUV;
+            Vertices[1].UV = pnUV;
+            Vertices[2].UV = ppUV;
+            Vertices[3].UV = npUV;
 
             Processed = true;
         }
