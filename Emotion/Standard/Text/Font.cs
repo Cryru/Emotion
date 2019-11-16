@@ -486,8 +486,11 @@ namespace Emotion.Standard.Text
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
 
             // Get glyph bounding box.
-            Vector2 bounds = g.GetWidthAndHeight(scale);
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) bounds.X, (int) bounds.Y);
+            Rectangle bbox = g.GetBBox(scale);
+            var glyphWidth = (int) (bbox.Width - bbox.X);
+            var glyphHeight = (int) (bbox.Height - bbox.Y);
+
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, glyphWidth, glyphHeight);
 
             // Check if glyph can be rendered, and render it.
             if (g.Vertices != null && g.Vertices.Length != 0)
@@ -501,16 +504,18 @@ namespace Emotion.Standard.Text
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
 
             // Get glyph bounding box.
-            Vector2 bounds = g.GetWidthAndHeight(scale);
+            Rectangle bbox = g.GetBBox(scale);
+            var glyphWidth = (int) (bbox.Width - bbox.X);
+            var glyphHeight = (int) (bbox.Height - bbox.Y);
 
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) bounds.X, (int) bounds.Y);
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, glyphWidth, glyphHeight);
 
             // Check if glyph can be rendered.
             if (g.Vertices == null || g.Vertices.Length == 0)
                 return canvas;
 
             // Render the current glyph.
-            if (bounds.X == 0 || bounds.Y == 0) return canvas;
+            if (glyphWidth == 0 || glyphHeight == 0) return canvas;
             GlyphVertex[] vertices = g.Vertices;
 
             fixed (byte* pixels = &canvas.Data[0])
@@ -535,7 +540,6 @@ namespace Emotion.Standard.Text
                     verts[i].type = (byte) vertices[i].TypeFlag;
                 }
 
-                Rectangle bbox = g.GetBBox(scale);
                 fixed (StbTrueType.stbtt_vertex* vert = &verts[0])
                 {
                     StbTrueType.stbtt_Rasterize(&bitmap, 0.35f, vert, vertices.Length, scale, scale, 0, 0, (int) bbox.X, (int) bbox.Y, 1);

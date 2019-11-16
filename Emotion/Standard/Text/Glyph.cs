@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Numerics;
 using Emotion.Primitives;
 
 #endregion
@@ -53,17 +52,9 @@ namespace Emotion.Standard.Text
         {
             return new Rectangle(
                 (float) Math.Floor((double) XMin * scale),
-                (float) Math.Ceiling((double) -YMax * scale),
+                (float) Math.Floor((double) -YMax * scale),
                 (float) Math.Ceiling((double) XMax * scale),
-                (float) Math.Floor((double) -YMin * scale)
-            );
-        }
-
-        public Vector2 GetWidthAndHeight(float scale)
-        {
-            return new Vector2(
-                (float) Math.Round((XMax - XMin) * scale),
-                (float) Math.Round((-YMin + YMax) * scale)
+                (float) Math.Ceiling((double) -YMin * scale)
             );
         }
     }
