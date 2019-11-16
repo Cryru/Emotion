@@ -126,6 +126,7 @@ namespace Emotion.Game.Text
                 if (c == '\n')
                 {
                     if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
+                    largestBearing = 0;
                 }
 
                 // Spaces on the end of lines are not counted.

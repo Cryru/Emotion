@@ -287,6 +287,7 @@ namespace Emotion.Test
             foreach (LinkedRunner linked in _linkedRunners)
             {
                 Log.Info("----------------------------------------------------------------------", CustomMSource.TestRunner);
+                Log.Info($"Waiting for LR{linked.Id} - ({linked.Args})", CustomMSource.TestRunner);
                 int exitCode = linked.WaitForFinish(out string output, out string errorOutput);
                 output = output.Trim();
                 errorOutput = errorOutput.Trim();
