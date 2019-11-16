@@ -266,9 +266,18 @@ namespace Emotion.Test
                     {
                         func.Invoke(testClassInstance, new object[] { });
                     }
+                    catch (ImageDerivationException)
+                    {
+                        failedTests++;
+                    }
                     catch (Exception ex)
                     {
                         failedTests++;
+                        if (ex.InnerException is ImageDerivationException)
+                        {
+                            Log.Error($"{ex.InnerException.Message}", CustomMSource.TestRunner);
+                            continue;
+                        }
                         Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
                         Debug.Assert(false);
                     }
@@ -455,9 +464,10 @@ namespace Emotion.Test
 
             // Assert derivation is not higher than tolerable. This is not done using the Emotion.Test assert so it doesn't stop the test from continuing.
             if (derivedPixelPercentage > PixelDerivationTolerance)
-                Log.Error($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
-            else
-                Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
+            {
+                throw new ImageDerivationException($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.");
+            }
+            Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
         }
 
         /// <summary>
