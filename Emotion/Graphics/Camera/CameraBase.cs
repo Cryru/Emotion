@@ -42,7 +42,6 @@ namespace Emotion.Graphics.Camera
         /// Create a new camera basis.
         /// </summary>
         /// <param name="position">The position of the camera.</param>
-        /// <param name="size">The size of the camera's viewport.</param>
         /// <param name="zoom">The camera's zoom.</param>
         public CameraBase(Vector3 position, float zoom = 1f)
         {
@@ -77,10 +76,10 @@ namespace Emotion.Graphics.Camera
 
             // Find the camera margin and scale from the center.
             // As the current size expands more of the world will come into view until the integer scale changes at which point everything will be resized.
-            // This allows for pixel art to scale integerly.
+            // This allows for pixel art to scale integerly in FullScale mode.
             Vector2 margin = (currentSize - targetSize) / 2;
             Vector3 pos = posOffset - new Vector3(margin, 0);
-            ViewMatrixUnscaled = Matrix4x4.CreateTranslation(-pos.X, -pos.Y, pos.Z);
+            ViewMatrixUnscaled = Matrix4x4.CreateLookAt(pos, pos + new Vector3(0, 0, -1), new Vector3(0.0f, 1.0f, 0.0f));
             ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(X, Y, 0)) * ViewMatrixUnscaled;
         }
 

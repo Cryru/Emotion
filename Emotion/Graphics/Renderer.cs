@@ -216,7 +216,7 @@ namespace Emotion.Graphics
             }
 
             // Create the default camera.
-            Camera = new CameraBase(Vector3.Zero);
+            Camera = new CameraBase(new Vector3(0, 0, FarZ));
 
             // Initialize the default composer.
             _composer = new RenderComposer();
