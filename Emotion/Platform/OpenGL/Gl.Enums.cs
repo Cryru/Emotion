@@ -5552,18 +5552,6 @@ namespace OpenGL
         MaxArrayTextureLayers = Gl.MAX_ARRAY_TEXTURE_LAYERS,
 
         /// <summary>
-        /// Strongly typed for value GL_MAX_ATTRIB_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxAttribStackDepth = Gl.MAX_ATTRIB_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_CLIENT_ATTRIB_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxClientAttribStackDepth = Gl.MAX_CLIENT_ATTRIB_STACK_DEPTH,
-
-        /// <summary>
         /// Strongly typed for value GL_MAX_CLIP_DISTANCES, GL_MAX_CLIP_PLANES.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
