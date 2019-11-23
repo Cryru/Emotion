@@ -4,7 +4,6 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
-using Emotion.Standard.Image;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
@@ -29,6 +28,7 @@ namespace Emotion.IO
             byte[] pixels = null;
             var width = 0;
             var height = 0;
+            var flipped = false;
 
             // Check if PNG.
             if (PngFormat.IsPng(data))
@@ -36,8 +36,7 @@ namespace Emotion.IO
                 pixels = PngFormat.Decode(data, out PngFileHeader header);
                 width = header.Width;
                 height = header.Height;
-                // PNGs are stored flipped. This could be done using UV manipulation - but I believe this is cleaner (but slower).
-                ImageUtil.FlipImageY(pixels, height);
+                flipped = true;
             }
             // Check if BMP.
             else if (BmpFormat.IsBmp(data))
@@ -53,7 +52,11 @@ namespace Emotion.IO
                 return;
             }
 
-            GLThread.ExecuteGLThread(() => { Texture = new Texture(new Vector2(width, height), pixels); });
+            GLThread.ExecuteGLThread(() =>
+            {
+                Texture = new Texture(new Vector2(width, height), pixels);
+                if (flipped) Texture.TextureMatrix = Matrix4x4.CreateScale(1, -1, 1);
+            });
         }
 
         protected override void DisposeInternal()
