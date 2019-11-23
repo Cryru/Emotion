@@ -69,7 +69,7 @@ namespace Emotion.Graphics.Camera
             Vector2 currentSize = Engine.Renderer.DrawBuffer.Size;
 
             // Transform the position from the center position to the offset position.
-            Vector3 posOffset = Position - new Vector3(targetSize, 0) / 2;
+            Vector3 posOffset = new Vector3(X, Y, 0) - new Vector3(targetSize, 0) / 2;
 
             // Get the scale relative to the zoom.
             float scale = Engine.Renderer.IntScale * Zoom;
