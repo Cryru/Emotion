@@ -49,7 +49,7 @@ namespace Emotion.Test.Tests
                 emotionAtlasRgba,
                 ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
 
-            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.X, (int) emotionAtlas.Size.Y);
+            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
             Runner.VerifyCachedRender(ResultDb.EmotionTTAtlas, emotionAtlasRgba, emotionAtlas.Size);
         }
 
@@ -88,7 +88,7 @@ namespace Emotion.Test.Tests
                 emotionAtlasRgba,
                 ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
 
-            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.X, (int) emotionAtlas.Size.Y);
+            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
             Runner.VerifyCachedRender(ResultDb.EmotionCffAtlas, emotionAtlasRgba, emotionAtlas.Size);
         }
 
@@ -128,7 +128,7 @@ namespace Emotion.Test.Tests
                 emotionAtlasRgba,
                 ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
 
-            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.X, (int) emotionAtlas.Size.Y);
+            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
             Runner.VerifyCachedRender(ResultDb.EmotionCompositeAtlas, emotionAtlasRgba, emotionAtlas.Size);
         }
 

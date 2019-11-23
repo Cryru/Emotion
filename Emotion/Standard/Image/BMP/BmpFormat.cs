@@ -31,7 +31,7 @@ namespace Emotion.Standard.Image.BMP
         }
 
         /// <summary>
-        /// Encodes the provided pixel data to a 24bit BMP image.
+        /// Encodes the provided BGRA pixel data to a 24bit BMP image.
         /// </summary>
         /// <param name="pixelData">The date to encode.</param>
         /// <param name="width">The width of the image in the data.</param>
@@ -99,7 +99,7 @@ namespace Emotion.Standard.Image.BMP
         }
 
         /// <summary>
-        /// Decode the provided bmp to a RGBA pixel array.
+        /// Decode the provided bmp to a BGRA pixel array.
         /// Supported formats are:
         /// - 1, 4, and 8 bit BMP, tested with up to 256 colors.
         /// - 16bit BMP (untested)
@@ -172,9 +172,6 @@ namespace Emotion.Standard.Image.BMP
                     fileHeader.Width,
                     fileHeader.Height,
                     fileHeader.BitsPerPixel);
-
-            // Convert to RGBA.
-            ImageUtil.InvertEndian32Bpp(pixelOut);
 
             return pixelOut;
         }

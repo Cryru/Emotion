@@ -4,6 +4,7 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
+using Emotion.Standard.Image;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Test.Results;
@@ -102,6 +103,9 @@ namespace Emotion.Test.Tests
             byte[] decodedPixelData = PngFormat.Decode(bytes, out PngFileHeader fileHeader);
             Assert.True(decodedPixelData != null);
 
+            // PNG images are flipped.
+            ImageUtil.FlipImageY(decodedPixelData, fileHeader.Height);
+
             Runner.ExecuteAsLoop(_ =>
             {
                 var r = new Texture(
@@ -128,6 +132,9 @@ namespace Emotion.Test.Tests
             byte[] decodedPixelData = PngFormat.Decode(bytes, out PngFileHeader fileHeader);
             Assert.True(decodedPixelData != null);
             Assert.True(fileHeader.InterlaceMethod == 1);
+
+            // PNG images are flipped.
+            ImageUtil.FlipImageY(decodedPixelData, fileHeader.Height);
 
             Runner.ExecuteAsLoop(_ =>
             {

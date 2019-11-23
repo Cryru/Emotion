@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
@@ -430,7 +431,7 @@ namespace Emotion.Test
 
             // We want to store the comparison image for possible manual comparison.
             string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
-            byte[] file = PngFormat.Encode(comparisonImage, (int) comparisonSize.X, (int) comparisonSize.Y);
+            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(comparisonImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y);
             File.WriteAllBytes(filePath, file);
 
             // Check if the original image is missing, in which case we just store the comparison image.
@@ -458,7 +459,7 @@ namespace Emotion.Test
             {
                 string directory = Path.Join(RunnerReferenceImageFolder, $"Comparison_{fileName}");
                 Directory.CreateDirectory(directory);
-                byte[] derivedFile = PngFormat.Encode(derivationImage, (int) comparisonSize.X, (int) comparisonSize.Y);
+                byte[] derivedFile = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(derivationImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y);
                 File.WriteAllBytes(Path.Join(directory, "derivation.png"), derivedFile);
             }
 

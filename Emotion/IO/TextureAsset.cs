@@ -4,6 +4,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
+using Emotion.Standard.Image;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
@@ -35,6 +36,8 @@ namespace Emotion.IO
                 pixels = PngFormat.Decode(data, out PngFileHeader header);
                 width = header.Width;
                 height = header.Height;
+                // PNGs are stored flipped. This could be done using UV manipulation - but I believe this is cleaner (but slower).
+                ImageUtil.FlipImageY(pixels, height);
             }
             // Check if BMP.
             else if (BmpFormat.IsBmp(data))
