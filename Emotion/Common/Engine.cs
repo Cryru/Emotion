@@ -228,7 +228,7 @@ namespace Emotion.Common
                 accumulator += deltaTime;
 
                 // Update as many times as needed.
-                int updates = 0;
+                var updates = 0;
                 var updated = false;
                 while (accumulator > targetTimeFuzzyUpper)
                 {
