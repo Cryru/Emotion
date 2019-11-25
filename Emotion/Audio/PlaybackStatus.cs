@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Emotion.Audio
+﻿namespace Emotion.Audio
 {
     public enum PlaybackStatus
     {
-        None,
+        NotPlaying,
         Playing,
-        Paused,
+        Paused
     }
 }

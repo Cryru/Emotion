@@ -307,7 +307,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             var layer = (WasApiLayer) GetLayer(layerName);
             if(layer == null) return;
 
-            layer.Clear();
+            layer.Stop();
             layer.Dispose();
             lock (_layers)
             {

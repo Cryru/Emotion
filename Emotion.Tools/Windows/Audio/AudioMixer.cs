@@ -64,7 +64,7 @@ namespace Emotion.Tools.Windows
                     layer.Pause();
                 ImGui.SameLine();
                 if (ImGui.Button("Stop"))
-                    layer.Clear();
+                    layer.Stop();
                 ImGui.PopID();
             }
 

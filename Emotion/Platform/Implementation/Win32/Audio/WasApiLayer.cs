@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.IO;
@@ -44,7 +45,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 // If not playing, wait for it to start playing.
                 if (Status != PlaybackStatus.Playing)
                     _playWait.WaitOne();
-
+                
                 if (_playlist.Count == 0 || _currentTrack == -1 || _currentTrack > _playlist.Count - 1) Debug.Assert(false);
 
                 // Get the number of frames the buffer can hold total.
@@ -72,6 +73,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
                 if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
                 if (!FillBuffer(_layerContext.RenderClient, frameCount - padding)) continue;
+                // If done, reset the audio client.
+                Task.Delay(_layerContext.TimeoutPeriod).Wait();
+                _layerContext.Stop();
+                _layerContext.Reset();
             }
         }
 
@@ -110,10 +115,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         {
             switch(newStatus)
             {
-                case PlaybackStatus.None:
+                case PlaybackStatus.NotPlaying:
                     _playWait.Reset();
-                    //_layerContext.Stop();
-                    //_layerContext.Reset();
                     break;
                 case PlaybackStatus.Paused when oldStatus == PlaybackStatus.Playing:
                     _playWait.Reset();

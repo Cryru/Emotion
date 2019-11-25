@@ -46,7 +46,7 @@ namespace Emotion.Platform.Implementation.Null
             AudioLayer layer = GetLayer(layerName);
             if(layer == null) return;
 
-            layer.Clear();
+            layer.Stop();
             layer.Dispose();
             lock (_layers)
             {

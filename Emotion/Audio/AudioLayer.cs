@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
 using Emotion.Utility;
@@ -29,7 +30,7 @@ namespace Emotion.Audio
         /// <summary>
         /// The status of the audio layer.
         /// </summary>
-        public PlaybackStatus Status { get; protected set; } = PlaybackStatus.None;
+        public PlaybackStatus Status { get; protected set; } = PlaybackStatus.NotPlaying;
 
         /// <summary>
         /// The track currently playing - if any.
@@ -43,8 +44,18 @@ namespace Emotion.Audio
         protected List<AudioTrack> _playlist = new List<AudioTrack>();
         protected bool _loopingCurrent;
 
-        public EmotionEvent OnLooped = new EmotionEvent();
-        public EmotionEvent<string, string> OnTrackChanged = new EmotionEvent<string, string>();
+        /// <summary>
+        /// Called when the current track loops.
+        /// The input parameter is the track which looped.
+        /// </summary>
+        public EmotionEvent<AudioAsset> OnTrackLoop = new EmotionEvent<AudioAsset>();
+
+        /// <summary>
+        /// Called when the current track changes.
+        /// The first parameter is the old track, the second is the new one.
+        /// If there is no further track the new track parameter will be null.
+        /// </summary>
+        public EmotionEvent<AudioAsset, AudioAsset> OnTrackChanged = new EmotionEvent<AudioAsset, AudioAsset>();
 
         protected AudioLayer(string name)
         {
@@ -55,11 +66,11 @@ namespace Emotion.Audio
 
         public void PlayNext(AudioAsset file)
         {
-            lock(_playlist)
+            lock (_playlist)
             {
                 _playlist.Insert(_currentTrack + 1, new AudioTrack(file));
                 if (_currentTrack == -1) _currentTrack = 0;
-                if (Status == PlaybackStatus.None) TransitionStatus(PlaybackStatus.Playing);
+                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
 
@@ -68,7 +79,7 @@ namespace Emotion.Audio
             lock (_playlist)
             {
                 _playlist.Add(new AudioTrack(file));
-                if (Status == PlaybackStatus.None) TransitionStatus(PlaybackStatus.Playing);
+                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
 
@@ -95,12 +106,12 @@ namespace Emotion.Audio
             }
         }
 
-        public void Clear()
+        public void Stop()
         {
-            lock(_playlist)
+            lock (_playlist)
             {
                 _playlist.Clear();
-                TransitionStatus(PlaybackStatus.None);
+                TransitionStatus(PlaybackStatus.NotPlaying);
             }
         }
 
@@ -113,11 +124,18 @@ namespace Emotion.Audio
             if (Status != PlaybackStatus.Playing) return 0;
             if (_currentTrack < 0 || _currentTrack > _playlist.Count - 1) return 0;
 
+            // Pause if window is not focused.
+            if (Engine.Host != null && Engine.Host.Window != null && Engine.Host.Window.Focused) Engine.Host.FocusWait.WaitOne();
+
+            AudioTrack currentTrack;
             AudioStreamer streamer;
             lock (_playlist)
             {
-                streamer = _playlist[_currentTrack].Streamer;
+                currentTrack = _playlist[_currentTrack];
             }
+
+            streamer = _playlist[_currentTrack].Streamer;
+
             if (streamer == null) return 0;
 
             // Set the conversion format to the requested one - if it doesn't match.
@@ -128,44 +146,54 @@ namespace Emotion.Audio
 
             // Check if the buffer was filled.
             Debug.Assert(framesOutput <= framesRequested);
-            if(framesOutput == framesRequested)
-            {
-                return framesOutput;
-            }
+            if (framesOutput == framesRequested) return framesOutput;
 
             // If less frames were drawn than the buffer can take - the track is over.
 
             // Check if looping.
-            int playlistCount = 0;
-            lock(_playlist)
+            int playlistCount;
+            lock (_playlist)
             {
                 playlistCount = _playlist.Count;
             }
-            if(_loopingCurrent)
+
+            if (_loopingCurrent)
             {
                 streamer.Reset();
+                OnTrackLoop.Invoke(currentTrack.File);
             }
             // Otherwise, go to next track.
             else
             {
-                lock(_playlist)
+                lock (_playlist)
                 {
                     _playlist.RemoveAt(0);
                 }
+
                 playlistCount--;
             }
 
             // Check if there are more tracks.
-            if(playlistCount > 0)
+            if (playlistCount > 0)
             {
                 framesOutput += GetDataForCurrentTrack(format, framesRequested - framesOutput, dest, framesOutput);
+
+                AudioTrack newTrack;
+                lock (_playlist)
+                {
+                    newTrack = _playlist[_currentTrack];
+                }
+
+                OnTrackChanged.Invoke(currentTrack.File, newTrack.File);
             }
             else
             {
-                lock(_playlist)
+                lock (_playlist)
                 {
-                    TransitionStatus(PlaybackStatus.None);
+                    TransitionStatus(PlaybackStatus.NotPlaying);
                 }
+
+                OnTrackChanged.Invoke(currentTrack.File, null);
             }
 
             return framesOutput;
@@ -178,7 +206,7 @@ namespace Emotion.Audio
             InternalStatusChange(Status, newStatus);
             Status = newStatus;
 
-            if(newStatus == PlaybackStatus.None) _currentTrack = -1;
+            if (newStatus == PlaybackStatus.NotPlaying) _currentTrack = -1;
         }
 
         protected abstract void InternalStatusChange(PlaybackStatus oldStatus, PlaybackStatus newStatus);
