@@ -32,7 +32,7 @@ namespace Emotion.Platform.Implementation.Null
 
         public override AudioLayer CreateLayer(string layerName, float layerVolume = 1)
         {
-            var newLayer = new AudioLayer(layerName) {Volume = layerVolume};
+            var newLayer = new NullAudioLayer(layerName) {Volume = layerVolume};
             lock (_layers)
             {
                 _layers.Add(newLayer);

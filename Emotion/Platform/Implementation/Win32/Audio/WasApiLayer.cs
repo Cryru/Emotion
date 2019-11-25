@@ -42,27 +42,25 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             while (_alive && !Engine.Stopped)
             {
                 // If not playing, wait for it to start playing.
-                if (!Playing)
+                if (Status != PlaybackStatus.Playing)
                     _playWait.WaitOne();
 
                 if (_playlist.Count == 0 || _currentTrack == -1 || _currentTrack > _playlist.Count - 1) Debug.Assert(false);
 
-                AudioTrack currentTrack = _playlist[_currentTrack];
-                AudioStreamer streamer = currentTrack.Streamer;
+                // Get the number of frames the buffer can hold total.
                 var frameCount = (int) _layerContext.BufferSize;
-
-                // Ensure that the streamer outputs what the layer context expects.
-                if (!_layerContext.AudioClientFormat.Equals(streamer.ConvFormat)) currentTrack.Streamer.SetConvertFormat(_layerContext.AudioClientFormat);
 
                 // Check if the context is initialized.
                 if (!_layerContext.Initialized)
                 {
-                    FillBuffer(_layerContext.RenderClient, ref streamer, (int) _layerContext.BufferSize);
+                    FillBuffer(_layerContext.RenderClient, (int) _layerContext.BufferSize);
                     _layerContext.Start();
                 }
 
+                // Start if not started.
                 if (!_layerContext.Started) _layerContext.Start();
 
+                // Wait until more of the buffer is requested.
                 bool success = _layerContext.WaitHandle.WaitOne(_layerContext.TimeoutPeriod);
                 if (!success)
                 {
@@ -70,10 +68,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     continue;
                 }
 
+                // Get more frames.
                 int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
                 if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
-
-                if (!FillBuffer(_layerContext.RenderClient, ref streamer, frameCount - padding)) continue;
+                if (!FillBuffer(_layerContext.RenderClient, frameCount - padding)) continue;
             }
         }
 
@@ -81,17 +79,18 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// Fill a render client buffer.
         /// </summary>
         /// <param name="client">The client to fill.</param>
-        /// <param name="streamer">The buffer to fill from.</param>
         /// <param name="bufferFrameCount">The number of samples to fill with.</param>
         /// <returns>Whether the buffer has been read to the end.</returns>
-        private unsafe bool FillBuffer(IAudioRenderClient client, ref AudioStreamer streamer, int bufferFrameCount)
+        private unsafe bool FillBuffer(IAudioRenderClient client, int bufferFrameCount)
         {
             if (bufferFrameCount == 0) return false;
 
             int error = client.GetBuffer(bufferFrameCount, out IntPtr bufferPtr);
             if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.Audio);
-            var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * streamer.ConvFormat.SampleSize);
-            int frames = streamer.GetNextFrames(bufferFrameCount, buffer);
+            var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * _layerContext.AudioClientFormat.SampleSize);
+
+            int frames = GetDataForCurrentTrack(_layerContext.AudioClientFormat, bufferFrameCount, buffer);
+
             error = client.ReleaseBuffer(frames, frames == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
             if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.Audio);
             return frames == 0;
@@ -107,46 +106,28 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _updateDevice = true;
         }
 
-        public override void Resume()
+        protected override void InternalStatusChange(PlaybackStatus oldStatus, PlaybackStatus newStatus)
         {
-            base.Resume();
-            StartPlay();
-        }
-
-        public override void Pause()
-        {
-            base.Pause();
-            StopPlay();
-            _layerContext.Stop();
-        }
-
-        public override void Clear()
-        {
-            base.Clear();
-            StopPlay();
-            _layerContext.Reset();
-        }
-
-        public override void PlayNext(AudioAsset file)
-        {
-            base.PlayNext(file);
-            StartPlay();
+            switch(newStatus)
+            {
+                case PlaybackStatus.None:
+                    _playWait.Reset();
+                    //_layerContext.Stop();
+                    //_layerContext.Reset();
+                    break;
+                case PlaybackStatus.Paused when oldStatus == PlaybackStatus.Playing:
+                    _playWait.Reset();
+                    _layerContext.Stop();
+                    break;
+                case PlaybackStatus.Playing:
+                    _playWait.Set();
+                    break;
+            }
         }
 
         public override void Dispose()
         {
-            base.Dispose();
             _alive = false;
-        }
-
-        private void StartPlay()
-        {
-            _playWait.Set();
-        }
-
-        private void StopPlay()
-        {
-            _playWait.Reset();
         }
     }
 }
