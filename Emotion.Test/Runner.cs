@@ -109,6 +109,8 @@ namespace Emotion.Test
 
         private static void Main(string[] args)
         {
+            RunAsRunner("tag=StandardAudio", ref args);
+
             // Correct the startup directory to the directory of the executable.
             // Emotion also does this inside the engine setup.
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
@@ -208,8 +210,11 @@ namespace Emotion.Test
                     _loopAction = null;
 
                     // Release the lock.
-                    _loopWaiter.Set();
-                    _loopWaiter = null;
+                    lock (_loopWaiter)
+                    {
+                        _loopWaiter?.Set();
+                        _loopWaiter = null;
+                    }
                 }
 
                 // Check if running loops.

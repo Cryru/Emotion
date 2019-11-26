@@ -70,15 +70,15 @@ namespace Emotion.Test.Tests
 
             var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
             streamer.SetConvertFormat(format);
-
-            for (var io = 0; io < 5; io++)
+            for (var io = 0; io < 5 - 1; io++)
             {
                 var segmentConvert = new List<byte>();
                 int framesGet = new Random().Next(1, 500);
                 Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
 
+                var timedOut = true;
                 DateTime start = DateTime.Now;
-                while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
+                while (DateTime.Now.Subtract(start).TotalMinutes < 2f) // timeout
                 {
                     var data = new byte[framesGet * format.SampleSize];
                     var spanData = new Span<byte>(data);
@@ -86,7 +86,9 @@ namespace Emotion.Test.Tests
                     if (frameAmount == 0) break;
                     Assert.True(data.Length >= frameAmount * format.SampleSize);
                     segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
+                    timedOut = false;
                 }
+                if(timedOut) Engine.Log.Info($"StreamConvert timeout.", CustomMSource.TestRunner);
 
                 Assert.Equal(segmentConvert.Count, copy.Length);
                 for (var i = 0; i < copy.Length; i++)
