@@ -158,6 +158,20 @@ namespace Emotion.Audio
             }
         }
 
+        /// <summary>
+        /// Stop all previous playback, clear the playlist, and play the provided track.
+        /// This is essentially the same as calling Stop and then PlayNext but causes less state transitions and doesn't involve the platform.
+        /// </summary>
+        public void QuickPlay(AudioAsset file)
+        {
+            lock (_playlist)
+            {
+                _playlist.Clear();
+                _playlist.Add(new AudioTrack(file));
+                _currentTrack = 0;
+            }
+        }
+
         #endregion
 
         #region Stream Logic

@@ -1,7 +1,9 @@
-﻿using Emotion.Standard.Audio;
+﻿#region Using
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using Emotion.Standard.Audio;
+
+#endregion
 
 namespace Emotion.Audio
 {
