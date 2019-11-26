@@ -103,7 +103,8 @@ namespace Emotion.Test
             "tag=Scripting",
             "tag=Coroutine",
             "tag=FullScale conf=fullScale",
-            "tag=StandardAudio"
+            "tag=StandardAudio",
+            "tag=Audio"
         };
 
         private static void Main(string[] args)
@@ -239,13 +240,17 @@ namespace Emotion.Test
                 var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
                 if (!string.IsNullOrEmpty(TestTag) && t?.Tag != TestTag)
                 {
-                    Log.Info($"Skipping class {classType} because it doesn't match tag filter '{TestTag}'.", CustomMSource.TestRunner);
+#if TEST_DEBUG
+                    Log.Trace($"Skipping class {classType} because it doesn't match tag filter '{TestTag}'.", CustomMSource.TestRunner);
+#endif
                     continue;
                 }
 
                 if (string.IsNullOrEmpty(TestTag) && (t?.TagOnly ?? false))
                 {
-                    Log.Info($"Skipping class {classType} because it will only run with the tag '{t.Tag}'.", CustomMSource.TestRunner);
+#if TEST_DEBUG
+                    Log.Trace($"Skipping class {classType} because it will only run with the tag '{t.Tag}'.", CustomMSource.TestRunner);
+#endif
                     continue;
                 }
 

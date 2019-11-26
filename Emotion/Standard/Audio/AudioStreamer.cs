@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -43,12 +44,13 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="dstFormat">The format to convert to.</param>
         /// <param name="quality">The conversion quality.</param>
-        public virtual void SetConvertFormat(AudioFormat dstFormat, int quality = 10)
+        /// <param name="keepProgress">Whether to keep the resampling progress. If false the stream will begin from the beginning.</param>
+        public virtual void SetConvertFormat(AudioFormat dstFormat, int quality = 10, bool keepProgress = true)
         {
             ConvFormat = dstFormat;
             ConvQuality = quality;
             _convQuality2 = quality * 2;
-            ResampleRatio = (float)dstFormat.SampleRate / SourceFormat.SampleRate;
+            ResampleRatio = (float) dstFormat.SampleRate / SourceFormat.SampleRate;
 
             _sourceConvLength = SourceSamples;
             switch (ConvFormat.Channels)
@@ -61,8 +63,17 @@ namespace Emotion.Standard.Audio
                     break;
             }
 
-            _dstLength = (int)(_sourceConvLength * ResampleRatio);
+            _dstLength = (int) (_sourceConvLength * ResampleRatio);
             _resampleStep = (double) (_sourceConvLength / ConvFormat.Channels) / (_dstLength / ConvFormat.Channels);
+
+            if (keepProgress)
+            {
+                _dstResume = (int) ((_srcResume / _resampleStep) * ConvFormat.Channels);
+            }
+            else
+            {
+                Reset();
+            }
         }
 
         /// <summary>
@@ -75,11 +86,9 @@ namespace Emotion.Standard.Audio
         {
             // Gets the resampled samples.
             int sampleCount = frameCount * ConvFormat.Channels;
+            Debug.Assert((int) (_srcResume / _resampleStep * ConvFormat.Channels) - _dstResume <= 1);
             int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, buffer);
-            if (convertedSamples == 0)
-            {
-                return 0;
-            }
+            if (convertedSamples == 0) return 0;
 
             return convertedSamples / ConvFormat.Channels;
         }
@@ -125,7 +134,7 @@ namespace Emotion.Standard.Audio
                     for (tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
                         // input sample index.
-                        var j = (int)(x + tau);
+                        var j = (int) (x + tau);
 
                         // Hann Window. Scale and calculate sinc
                         double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / _convQuality2));
@@ -155,9 +164,10 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
         /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
+        /// <param name="secondChannel">Whether sampling for a second channel. Used internally.</param>
         /// <returns>The specified sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected unsafe float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
+        protected virtual unsafe float GetSampleAsFloat(int sampleIdx, bool trueIndex = false, bool secondChannel = false)
         {
             // Check if simulating stereo from mono.
             if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
@@ -170,16 +180,16 @@ namespace Emotion.Standard.Audio
             switch (SourceFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
-                    output = (float)SoundData[sampleIdx] / byte.MaxValue;
+                    output = (float) SoundData[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
                     fixed (void* dataPtr = &SoundData[sampleIdx * 2])
                     {
                         var dataShort = new Span<short>(dataPtr, 1);
                         if (dataShort[0] < 0)
-                            output = (float)-dataShort[0] / short.MinValue;
+                            output = (float) -dataShort[0] / short.MinValue;
                         else
-                            output = (float)dataShort[0] / short.MaxValue;
+                            output = (float) dataShort[0] / short.MaxValue;
                     }
 
                     break;
@@ -188,9 +198,9 @@ namespace Emotion.Standard.Audio
                     {
                         var dataInt = new Span<int>(dataPtr, 1);
                         if (dataInt[0] < 0)
-                            output = (float)-dataInt[0] / int.MinValue;
+                            output = (float) -dataInt[0] / int.MinValue;
                         else
-                            output = (float)dataInt[0] / int.MaxValue;
+                            output = (float) dataInt[0] / int.MaxValue;
                     }
 
                     break;
@@ -208,8 +218,8 @@ namespace Emotion.Standard.Audio
             }
 
             // If simulating mono from stereo get the other channel and average them.
-            if (SourceFormat.Channels != 2 || ConvFormat.Channels != 1) return output;
-            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true);
+            if (secondChannel || SourceFormat.Channels != 2 || ConvFormat.Channels != 1) return output;
+            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true, true);
             output = (output + outputRightChannel) / 2f;
 
             return output;
@@ -222,7 +232,7 @@ namespace Emotion.Standard.Audio
         /// <param name="value">The value to set.</param>
         /// <param name="buffer">The buffer to set in.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected unsafe void SetSampleAsFloat(int index, float value, Span<byte> buffer)
+        protected virtual unsafe void SetSampleAsFloat(int index, float value, Span<byte> buffer)
         {
             switch (ConvFormat.BitsPerSample)
             {
@@ -240,6 +250,7 @@ namespace Emotion.Standard.Audio
                         else
                             dataShort[index] = (short) (value * short.MaxValue);
                     }
+
                     break;
                 case 32 when !ConvFormat.IsFloat: // int
                     fixed (void* dataPtr = &buffer[0])
@@ -260,6 +271,7 @@ namespace Emotion.Standard.Audio
                             [index] = value
                         };
                     }
+
                     break;
                 default:
                     Engine.Log.Warning($"Unsupported source bits per sample format by ConvertFormat - {ConvFormat.BitsPerSample}", MessageSource.Audio);

@@ -9,14 +9,14 @@ namespace Emotion.Audio
 {
     public class AudioTrack
     {
-        public AudioStreamer Streamer { get; }
+        public AudioStreamerEffects Streamer { get; }
 
         public AudioAsset File { get; set; }
 
         public AudioTrack(AudioAsset file)
         {
             File = file;
-            Streamer = new AudioStreamer(File.Format, File.SoundData);
+            Streamer = new AudioStreamerEffects(File.Format, File.SoundData);
         }
     }
 }

@@ -309,10 +309,6 @@ namespace Emotion.Common
 
         #region Main Loop Parts
 
-        // These functions are here until a scene system is made.
-        public static Action<RenderComposer> DebugDrawAction;
-        public static Action DebugUpdateAction;
-
         /// <summary>
         /// Performs special operations that must be performed on the render thread - but are not part of it.
         /// </summary>
@@ -351,7 +347,6 @@ namespace Emotion.Common
             Renderer.Update();
             InputManager.Update();
             SceneManager.Update();
-            DebugUpdateAction?.Invoke();
 
             // Update plugins.
             foreach (IPlugin p in Configuration.Plugins)
@@ -369,7 +364,6 @@ namespace Emotion.Common
         private static void RunFrame()
         {
             RenderComposer composer = Renderer.StartFrame();
-            DebugDrawAction?.Invoke(composer);
             SceneManager.Draw(composer);
             Renderer.EndFrame();
             Host.Window.Context.SwapBuffers();

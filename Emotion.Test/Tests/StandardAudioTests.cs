@@ -131,5 +131,25 @@ namespace Emotion.Test.Tests
                 streamer.Reset();
             }
         }
+
+        [Test]
+        public void ConvertFormatChanges()
+        {
+            var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
+            var format = new AudioFormat(32, true, 2, 48000);
+            var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
+            streamer.SetConvertFormat(format);
+
+            // Higher to lower.
+            var testData = new byte[format.SampleRate * format.SampleSize];
+            var spanData = new Span<byte>(testData);
+            streamer.GetNextFrames(format.SampleRate, spanData);
+            
+            format = new AudioFormat(8, true, 1, 12000);
+            streamer.SetConvertFormat(format);
+            streamer.GetNextFrames(format.SampleRate, spanData);
+            streamer.GetNextFrames(format.SampleRate, spanData);
+            streamer.GetNextFrames(format.SampleRate, spanData);
+        }
     }
 }

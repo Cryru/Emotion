@@ -36,18 +36,6 @@ namespace Emotion.Test.Tests
             }).WaitOne();
         }
 
-        [Test]
-        public void RendererSimulation()
-        {
-            void RenderTick(RenderComposer c)
-            {
-                c.RenderSprite(new Vector3(), new Vector2(), Color.Red);
-            }
-
-            Engine.DebugDrawAction = RenderTick;
-            Runner.RunLoop();
-        }
-
         /// <summary>
         /// Ensure data buffer mapping is correct.
         /// </summary>

@@ -20,7 +20,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private WasApiAudioContext _parent;
         private Thread _thread;
         private bool _alive;
-        private WasApiAudioDevice.LayerContext _layerContext;
+        private WasApiLayerContext _layerContext;
         private volatile bool _updateDevice;
 
         private ManualResetEvent _playWait = new ManualResetEvent(false);
@@ -44,7 +44,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             {
                 // If not playing, wait for it to start playing.
                 if (Status != PlaybackStatus.Playing)
+                {
                     _playWait.WaitOne();
+                    continue;
+                }
                 
                 if (_playlist.Count == 0 || _currentTrack == -1 || _currentTrack > _playlist.Count - 1) Debug.Assert(false);
 
@@ -131,6 +134,12 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         public override void Dispose()
         {
             _alive = false;
+            _playWait.Set();
+            _layerContext.Stop();
+            _layerContext = null;
+            _parent = null;
+
+            if(_thread.IsAlive) _thread.Abort();
         }
     }
 }

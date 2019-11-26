@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using Emotion.Audio;
 using Emotion.Common;
@@ -49,9 +50,12 @@ namespace Emotion.Tools.Windows
 
                 ImGui.PushID(i);
                 ImGui.Text($"Status: {layer.Status}");
-                ImGui.Text($"Volume - {layer.Volume}");
+                ImGui.SameLine();
+                float volume = layer.Volume;
+                ImGui.InputFloat("Volume", ref volume);
+                layer.Volume = volume;
 
-                if(ImGui.Button("Add To Queue"))
+                if (ImGui.Button("Add To Queue"))
                     ExecuteOnFile(layer.AddToQueue);
                 ImGui.SameLine();
                 if (ImGui.Button("Play Next"))
@@ -65,7 +69,13 @@ namespace Emotion.Tools.Windows
                 ImGui.SameLine();
                 if (ImGui.Button("Stop"))
                     layer.Stop();
+
+                int r = 0;
+                string[] items = layer.Playlist.Select(x => x.Name).ToArray();
+                ImGui.ListBox("Playlist", ref r, items, items.Length);
+
                 ImGui.PopID();
+                ImGui.NewLine();
             }
 
             ImGui.NewLine();
