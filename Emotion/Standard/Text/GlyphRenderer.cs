@@ -83,6 +83,7 @@ namespace Emotion.Standard.Text
 
             n = 0;
             var wOffset = 0;
+            var subSample = 1;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < contourLengths.Length; i++)
             {
@@ -102,9 +103,9 @@ namespace Emotion.Standard.Text
                     }
 
                     e[n].X = windings[wOffset + a].X * scaleX;
-                    e[n].Y = windings[wOffset + a].Y * scaleY;
+                    e[n].Y = windings[wOffset + a].Y * scaleY * subSample;
                     e[n].X1 = windings[wOffset + b].X * scaleX;
-                    e[n].Y1 = windings[wOffset + b].Y * scaleY;
+                    e[n].Y1 = windings[wOffset + b].Y * scaleY * subSample;
                     n++;
                 }
 

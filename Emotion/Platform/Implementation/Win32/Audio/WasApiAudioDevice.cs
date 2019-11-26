@@ -18,70 +18,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         internal string Id { get; }
         internal IMMDevice ComHandle;
 
-        public class LayerContext
-        {
-            internal WasApiAudioDevice Parent { get; private set; }
-
-            internal bool Initialized { get; private set; }
-            internal bool Started { get; private set; }
-
-            internal IAudioClient AudioClient;
-            internal AudioFormat AudioClientFormat;
-            internal uint BufferSize;
-
-            internal long UpdatePeriod
-            {
-                get => _updatePeriod;
-                set
-                {
-                    _updatePeriod = value;
-                    TimeoutPeriod =  (int) (3 * (value / 1000));
-                }
-            }
-            internal int TimeoutPeriod;
-
-            internal IAudioRenderClient RenderClient;
-            internal EventWaitHandle WaitHandle;
-
-            private long _updatePeriod;
-
-            public LayerContext(WasApiAudioDevice parent)
-            {
-                Parent = parent;
-            }
-
-            public void Start()
-            {
-                Initialized = true;
-                int error = AudioClient.Start();
-                if (error != 0)
-                {
-                    Win32Platform.CheckError($"Couldn't start a layer context of device {Parent.Name}.", true);
-                }
-                Started = true;
-            }
-
-            public void Stop()
-            {
-                int error = AudioClient.Stop();
-                if (error != 0)
-                {
-                    Win32Platform.CheckError($"Couldn't stop a layer context of device {Parent.Name}.", true);
-                }
-                Started = false;
-            }
-
-            public void Reset()
-            {
-                int error = AudioClient.Reset();
-                if (error != 0)
-                {
-                    Win32Platform.CheckError($"Couldn't reset a layer context of device {Parent.Name}.", true);
-                }
-                Initialized = false;
-            }
-        }
-
         internal WasApiAudioDevice(string id, string name, IMMDevice handle)
         {
             Id = id;
@@ -92,9 +28,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// <summary>
         /// Late initialization for the WasApi backend's representation of this device.
         /// </summary>
-        public LayerContext CreateLayerContext()
+        public WasApiLayerContext CreateLayerContext()
         {
-            var context = new LayerContext(this);
+            var context = new WasApiLayerContext(this);
 
             // Activate the device.
             int error = ComHandle.Activate(ref IdAudioClient, ClsCtx.ALL, IntPtr.Zero, out object audioDevice);

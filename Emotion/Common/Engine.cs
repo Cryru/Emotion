@@ -204,7 +204,7 @@ namespace Emotion.Common
             double targetTime = 1000f / desiredStep;
             double accumulator = 0f;
             double lastTick = 0f;
-            
+
             double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
             double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
 
@@ -212,9 +212,11 @@ namespace Emotion.Common
 
             while (Running)
             {
+#if SIMULATE_LAG
+                Task.Delay(Helpers.GenerateRandomNumber(0, 16)).Wait();
+#endif
                 // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
                 if (SpecialRenderThread()) break;
-
                 double curTime = timer.ElapsedMilliseconds;
                 double deltaTime = curTime - lastTick;
                 lastTick = curTime;
@@ -226,6 +228,7 @@ namespace Emotion.Common
                 accumulator += deltaTime;
 
                 // Update as many times as needed.
+                var updates = 0;
                 var updated = false;
                 while (accumulator > targetTimeFuzzyUpper)
                 {
@@ -233,11 +236,17 @@ namespace Emotion.Common
                     accumulator -= targetTime;
                     updated = true;
 
-                    if (accumulator < targetTimeFuzzyLower-targetTime) accumulator = 0;
+                    if (accumulator < targetTimeFuzzyLower - targetTime) accumulator = 0;
+                    updates++;
+                    // Max updates are 5 - to prevent large spikes.
+                    // This does somewhat break the simulation - but these shouldn't happen expect as a last resort.
+                    if (updates <= 5) continue;
+                    accumulator = 0;
+                    break;
                 }
 
                 if (!Host.IsOpen) break;
-                if(updated) RunFrame();
+                if (updated) RunFrame();
             }
         }
 
@@ -253,7 +262,7 @@ namespace Emotion.Common
             double targetTime = 1000f / desiredStep;
             double accumulator = 0f;
             double lastTick = 0f;
-            
+
             double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
             double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
 
@@ -286,23 +295,19 @@ namespace Emotion.Common
                         RunTick();
                         updated = true;
                     }
-                    
+
                     accumulator -= targetTime;
-                    if (accumulator < targetTimeFuzzyLower-targetTime) accumulator = 0;
+                    if (accumulator < targetTimeFuzzyLower - targetTime) accumulator = 0;
                 }
 
                 if (!Host.IsOpen) break;
-                if(updated) RunFrame();
+                if (updated) RunFrame();
             }
         }
 
         #endregion
 
         #region Main Loop Parts
-
-        // These functions are here until a scene system is made.
-        public static Action<RenderComposer> DebugDrawAction;
-        public static Action DebugUpdateAction;
 
         /// <summary>
         /// Performs special operations that must be performed on the render thread - but are not part of it.
@@ -342,7 +347,6 @@ namespace Emotion.Common
             Renderer.Update();
             InputManager.Update();
             SceneManager.Update();
-            DebugUpdateAction?.Invoke();
 
             // Update plugins.
             foreach (IPlugin p in Configuration.Plugins)
@@ -360,7 +364,6 @@ namespace Emotion.Common
         private static void RunFrame()
         {
             RenderComposer composer = Renderer.StartFrame();
-            DebugDrawAction?.Invoke(composer);
             SceneManager.Draw(composer);
             Renderer.EndFrame();
             Host.Window.Context.SwapBuffers();

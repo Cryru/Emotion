@@ -6,6 +6,7 @@ using Emotion.Graphics;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Scenography;
 using Emotion.Tools.Windows;
 using ImGuiNET;
 
@@ -13,7 +14,7 @@ using ImGuiNET;
 
 namespace Emotion.Tools
 {
-    internal class Program
+    internal class Program : IScene
     {
         #region UI Logic
 
@@ -24,30 +25,26 @@ namespace Emotion.Tools
         private static void Main()
         {
             Engine.Setup(new Configurator().AddPlugin(new ImGuiNetPlugin()).SetDebug(true).SetHostSettings(new Vector2(1280, 720)));
-            Engine.DebugDrawAction = DebugDrawAction;
-            Engine.DebugUpdateAction = DebugUpdateAction;
+            Engine.SceneManager.SetScene(new Program());
             Engine.Run();
         }
 
-        private static bool init = true;
-
-        private static void DebugUpdateAction()
+        public void Update()
         {
-            if (init)
-            {
-                DebugInit();
-                init = false;
-            }
-
             _manager.Update();
         }
 
-        private static void DebugInit()
+        public void Load()
         {
             _manager.AddWindow(new ToolsMenu());
         }
 
-        private static void DebugDrawAction(RenderComposer composer)
+        public void Unload()
+        {
+
+        }
+
+        public void Draw(RenderComposer composer)
         {
             composer.SetUseViewMatrix(false);
             composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);

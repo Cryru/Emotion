@@ -34,7 +34,7 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The matrix to multiply UVs by.
         /// </summary>
-        public Matrix4x4 TextureMatrix { get; set; }
+        public Matrix4x4 TextureMatrix { get; set; } = Matrix4x4.Identity;
 
         /// <summary>
         /// Whether to apply linear interpolation to the texture.
@@ -72,7 +72,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
         public Texture(Vector2 size, bool smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Rgba)
+            PixelFormat pixelFormat = PixelFormat.Bgra)
         {
             Pointer = Gl.GenTexture();
 
@@ -90,7 +90,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
         public Texture(Vector2 size, byte[] data, bool smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Rgba)
+            PixelFormat pixelFormat = PixelFormat.Bgra)
         {
             Pointer = Gl.GenTexture();
 
@@ -130,7 +130,6 @@ namespace Emotion.Graphics.Objects
                     PixelType.UnsignedByte, data);
 
             Gl.GenerateMipmap(TextureTarget.Texture2d);
-            TextureMatrix = Matrix4x4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System.Numerics;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -54,23 +55,41 @@ namespace Emotion.Graphics.Command
             // If no UV specified - fill entire.
             if (UV == null) UV = new Rectangle(0, 0, Texture.Size);
 
+            // Convert input from texture coordinates to UV coordinates.
             Rectangle uvRect = UV.Value;
+            // 0, 1    1, 1
+            // 0, 0    1, 0
+            float uvXP = uvRect.X + uvRect.Width;
+            float uvYn = Texture.Size.Y - uvRect.Y;
+            float uvYp = Texture.Size.Y - (uvRect.Y + uvRect.Height);
+            Vector2 npUV = new Vector2(uvRect.X, uvYn) / Texture.Size;
+            Vector2 ppUV = new Vector2(uvXP, uvYn) / Texture.Size;
+            Vector2 pnUV = new Vector2(uvXP, uvYp) / Texture.Size;
+            Vector2 nnUV = new Vector2(uvRect.X, uvYp) / Texture.Size;
 
-            // Multiply UVs by the texture matrix to get the right values.
-            Matrix4x4 matrix;
+            // Add a small epsilon to prevent the wrong UVs from being sampled.
+            nnUV = new Vector2(nnUV.X + MathFloat.EPSILON, nnUV.Y - MathFloat.EPSILON);
+            pnUV = new Vector2(pnUV.X - MathFloat.EPSILON, pnUV.Y - MathFloat.EPSILON);
+            ppUV = new Vector2(ppUV.X + MathFloat.EPSILON, ppUV.Y + MathFloat.EPSILON);
+            npUV = new Vector2(npUV.X - MathFloat.EPSILON, npUV.Y + MathFloat.EPSILON);
+
+            // Same order as vertices.
+            Vertices[0].UV = npUV;
+            Vertices[1].UV = ppUV;
+            Vertices[2].UV = pnUV;
+            Vertices[3].UV = nnUV;
+
+            Matrix4x4 texMatrix = Texture.TextureMatrix;
+            // Add sprite modifier - if any.
             if (TextureModifier != null)
             {
-                matrix =  Texture.TextureMatrix * (Matrix4x4) TextureModifier;
-            }
-            else
-            {
-                matrix = Texture.TextureMatrix;
+                texMatrix *= TextureModifier.Value;
             }
 
-            Vertices[0].UV = Vector2.Transform(uvRect.Position, matrix);
-            Vertices[1].UV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y), matrix);
-            Vertices[2].UV = Vector2.Transform(new Vector2(uvRect.X + uvRect.Width, uvRect.Y + uvRect.Height), matrix);
-            Vertices[3].UV = Vector2.Transform(new Vector2(uvRect.X, uvRect.Y + uvRect.Height), matrix);
+            for (var i = 0; i < Vertices.Length; i++)
+            {
+                Vertices[i].UV = Vector2.Transform(Vertices[i].UV, texMatrix);
+            }
 
             Processed = true;
         }
@@ -88,7 +107,7 @@ namespace Emotion.Graphics.Command
             // Prepare to draw.
             VertexArrayObject.EnsureBound(composer.CommonVao);
             IndexBuffer.EnsureBound(IndexBuffer.QuadIbo.Pointer);
-            Texture.EnsureBound(Texture.Pointer);
+            if (Texture != null) Texture.EnsureBound(Texture.Pointer);
 
             Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedShort, IntPtr.Zero);
         }

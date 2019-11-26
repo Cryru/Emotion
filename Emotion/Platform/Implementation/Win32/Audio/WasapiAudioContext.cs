@@ -69,65 +69,12 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             // Register to audio device events.
             _enumerator.RegisterEndpointNotificationCallback(this);
-
-            // Start the loop.
-            Task.Run(AudioLoop);
         }
 
         private AudioFormat AudioFormatFromWasApiFormat(WaveFormat fmt)
         {
             return new AudioFormat(fmt.BitsPerSample, fmt.IsFloat(), fmt.Channels, fmt.SampleRate);
         }
-
-        private void AudioLoop()
-        {
-            if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "WASAPI Audio Thread";
-
-            Engine.Log.Info("Starting audio loop...", MessageSource.Audio);
-
-            //while (!Environment.HasShutdownStarted)
-            //{
-            //    if (DefaultDevice == null) continue;
-            //    if (!DefaultDevice.Initialized) DefaultDevice.Initialize();
-
-            //    if (_test == null || _reader == null) continue;
-
-            //    var frameCount = (int)DefaultDevice.BufferSize;
-
-            //    // Ensure format.
-            //    if (!DefaultDevice.AudioClientFormat.Equals(_reader.ConvFormat)) _reader.SetConvertFormat(AudioFormatFromWasApiFormat(DefaultDevice.AudioClientFormat));
-
-            //    if (!DefaultDevice.Started)
-            //    {
-            //        FillBuffer(DefaultDevice.RenderClient, ref _reader, (int)DefaultDevice.BufferSize);
-            //        DefaultDevice.Start();
-            //    }
-
-            //    var timeout = (int)(3 * (DefaultDevice.UpdatePeriod / 1000));
-            //    bool success = DefaultDevice.WaitHandle.WaitOne(timeout);
-            //    if (!success)
-            //    {
-            //        Engine.Log.Warning("Audio device wait timeout.", MessageSource.Audio);
-            //        continue;
-            //    }
-
-            //    if (DefaultDevice.AudioClient == null) continue;
-
-            //    int error = DefaultDevice.AudioClient.GetCurrentPadding(out int padding);
-            //    if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
-
-            //    if (!FillBuffer(DefaultDevice.RenderClient, ref _reader, frameCount - padding)) continue;
-            //    // Wait for the final samples to be read.
-            //    Task.Delay((int)(DefaultDevice.UpdatePeriod / 1000)).Wait();
-            //    DefaultDevice.Stop();
-            //    _test = null;
-            //    _reader = null;
-            //}
-
-            Engine.Log.Info("Audio loop has ended.", MessageSource.Audio);
-        }
-
-
 
         #region Events
 
@@ -307,7 +254,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             var layer = (WasApiLayer) GetLayer(layerName);
             if(layer == null) return;
 
-            layer.Clear();
+            layer.Stop();
             layer.Dispose();
             lock (_layers)
             {

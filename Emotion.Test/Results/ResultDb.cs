@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 
 #endregion
@@ -66,6 +67,7 @@ namespace Emotion.Test.Results
                 byte[] fileData = File.ReadAllBytes(file);
                 string fileName = Path.GetFileNameWithoutExtension(file);
                 byte[] pixels = PngFormat.Decode(fileData, out PngFileHeader header);
+                ImageUtil.FlipImageY(pixels, header.Height);
                 CachedResults.Add(fileName, pixels);
             }
         }

@@ -64,7 +64,7 @@ namespace Emotion.Graphics
         /// The negative cut off of the camera.
         /// </summary>
         public float NearZ = -100;
-        
+
         #endregion
 
         #region Objects
@@ -215,8 +215,8 @@ namespace Emotion.Graphics
                 HostResized(Engine.Host.Window.Size);
             }
 
-            // Create the default camera.
-            Camera = new CameraBase(Vector3.Zero);
+            // Put in a default camera.
+            Camera = new NoCamera(Vector3.Zero);
 
             // Initialize the default composer.
             _composer = new RenderComposer();
@@ -463,7 +463,7 @@ namespace Emotion.Graphics
         /// <param name="clip">The clip box to use.</param>
         public void SetClip(Rectangle? clip)
         {
-            if(clip == null)
+            if (clip == null)
             {
                 Gl.Disable(EnableCap.ScissorTest);
             }
@@ -604,7 +604,7 @@ namespace Emotion.Graphics
             var screenshotBuffer = new byte[(int) CurrentTarget.Viewport.Width * (int) CurrentTarget.Viewport.Height * 4];
             fixed (byte* pixelBuffer = &screenshotBuffer[0])
             {
-                Gl.ReadPixels((int) CurrentTarget.Viewport.X, (int) CurrentTarget.Viewport.Y, (int) CurrentTarget.Viewport.Width, (int) CurrentTarget.Viewport.Height, PixelFormat.Rgba,
+                Gl.ReadPixels((int) CurrentTarget.Viewport.X, (int) CurrentTarget.Viewport.Y, (int) CurrentTarget.Viewport.Width, (int) CurrentTarget.Viewport.Height, PixelFormat.Bgra,
                     PixelType.UnsignedByte, (IntPtr) pixelBuffer);
             }
 

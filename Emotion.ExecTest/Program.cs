@@ -10,23 +10,22 @@ using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Primitives;
+using Emotion.Scenography;
 
 #endregion
 
 namespace Emotion.ExecTest
 {
-    internal class Program
+    internal class Program : IScene
     {
         private static int dirX;
         private static int dirY;
-        private static List<Vector2> mousePosTest = new List<Vector2>();
-        private static RichText _rText;
+        private static readonly List<Vector2> mousePosTest = new List<Vector2>();
 
         private static void Main(string[] args)
         {
             Engine.Setup(new Configurator().SetDebug(true).SetRenderSize(integerScale: true).AddPlugin(new ImGuiNetPlugin()));
-            Engine.DebugDrawAction = DebugDrawAction;
-            Engine.DebugUpdateAction = DebugUpdateAction;
+            Engine.SceneManager.SetScene(new Program());
             Engine.Host.OnKey.AddListener((key, status) =>
             {
                 if (key == Key.W)
@@ -71,32 +70,29 @@ namespace Emotion.ExecTest
             Engine.Run();
         }
 
-        private static bool init = true;
-
-        private static void DebugUpdateAction()
+        public void Update()
         {
-            if (init)
-            {
-                DebugInit();
-                init = false;
-            }
-
             Engine.Renderer.Camera.X += dirX * 1 * Engine.DeltaTime;
             Engine.Renderer.Camera.Y += dirY * 1 * Engine.DeltaTime;
 
             Engine.Renderer.Camera.RecreateMatrix();
         }
 
-        private static void DebugInit()
-        {
-
-        }
-
-        private static void DebugDrawAction(RenderComposer composer)
+        public void Draw(RenderComposer composer)
         {
             composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
             composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
             composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
+        }
+
+        public void Load()
+        {
+
+        }
+
+        public void Unload()
+        {
+
         }
     }
 }

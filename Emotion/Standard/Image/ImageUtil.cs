@@ -36,17 +36,15 @@ namespace Emotion.Standard.Image
         /// Flips the image on the Y axis.
         /// </summary>
         /// <param name="imageData">The image pixels.</param>
-        /// <param name="width">The width of the image.</param>
         /// <param name="height">The height of the image.</param>
-        public static unsafe void FlipImageY(byte[] imageData, int width, int height)
+        public static unsafe void FlipImageY(byte[] imageData, int height)
         {
             int bytesPerRow = imageData.Length / height;
 
             fixed (void* dataPtr = &imageData[0])
             {
                 // Used to temporary hold a row.
-                var arr = new byte[bytesPerRow];
-                var copyRow = new Span<byte>(arr);
+                var copyRow = new Span<byte>(new byte[bytesPerRow]);
 
                 var buffer = new Span<byte>(dataPtr, imageData.Length);
                 for (var y = 0; y < height / 2; y++)
@@ -60,6 +58,42 @@ namespace Emotion.Standard.Image
                     copyRow.CopyTo(reverseRow);
                 }
             }
+        }
+
+        /// <summary>
+        /// Flips the image on the Y axis - but doesn't mutate the input pixel data.
+        /// </summary>
+        /// <param name="imageData">The image pixels.</param>
+        /// <param name="height">The height of the image.</param>
+        public static unsafe byte[] FlipImageYNoMutate(byte[] imageData, int height)
+        {
+            var output = new byte[imageData.Length];
+
+            int bytesPerRow = imageData.Length / height;
+            fixed (void* outDataPtr = &output[0])
+            {
+                fixed (void* dataPtr = &imageData[0])
+                {
+                    var buffer = new Span<byte>(dataPtr, imageData.Length);
+                    var outBuffer = new Span<byte>(outDataPtr, imageData.Length);
+                    for (var y = 0; y < height / 2; y++)
+                    {
+                        int rowIdx = y * bytesPerRow;
+                        int reverseRowIdx = (height - 1 - y) * bytesPerRow;
+
+                        Span<byte> row = buffer.Slice(rowIdx, bytesPerRow);
+                        Span<byte> reverseRow = buffer.Slice(reverseRowIdx, bytesPerRow);
+
+                        Span<byte> outputRow = outBuffer.Slice(rowIdx, bytesPerRow);
+                        Span<byte> outputReverseRow = outBuffer.Slice(reverseRowIdx, bytesPerRow);
+
+                        row.CopyTo(outputReverseRow);
+                        reverseRow.CopyTo(outputRow);
+                    }
+                }
+            }
+
+            return output;
         }
 
         /// <summary>

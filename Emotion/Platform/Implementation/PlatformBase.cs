@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using Emotion.Common;
 using Emotion.Platform.Config;
 using Emotion.Platform.Input;
@@ -65,6 +66,11 @@ namespace Emotion.Platform.Implementation
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
         /// </summary>
         public Vector2 MousePosition { get; protected set; } = Vector2.Zero;
+
+        /// <summary>
+        /// The event is set while the window is focused.
+        /// </summary>
+        public ManualResetEvent FocusWait { get; set; } = new ManualResetEvent(true);
 
         internal PlatformConfig Config;
 

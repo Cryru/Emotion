@@ -117,6 +117,7 @@ namespace Emotion.Game.Text
         {
             var sizeSoFar = new Vector2(0, _atlas.FontHeight);
             float largestLine = 0;
+            float largestBearing = 0;
             for (var i = 0; i < text.Length; i++)
             {
                 char c = text[i];
@@ -125,6 +126,7 @@ namespace Emotion.Game.Text
                 if (c == '\n')
                 {
                     if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
+                    largestBearing = 0;
                 }
 
                 // Spaces on the end of lines are not counted.
@@ -135,8 +137,15 @@ namespace Emotion.Game.Text
                 if (g != null)
                 {
                     sizeSoFar.X += g.Advance;
+
+                    if (g.YBearing > largestBearing)
+                    {
+                        largestBearing = g.YBearing;
+                    }
                 }
             }
+
+            sizeSoFar.Y -= largestBearing;
 
             if(largestLine != 0)
                 sizeSoFar.X = largestLine;

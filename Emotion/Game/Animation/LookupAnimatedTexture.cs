@@ -47,7 +47,7 @@ namespace Emotion.Game.Animation
         /// <inheritdoc />
         public override int TotalFrames
         {
-            get => Frames?.Length ?? 0;
+            get => Frames?.Length - 1 ?? 0;
         }
 
         private bool _inReverse;

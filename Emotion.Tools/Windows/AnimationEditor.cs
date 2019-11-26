@@ -238,7 +238,7 @@ namespace Emotion.Tools.Windows
             ImGui.Text($"Current Frame: {_animation.CurrentFrameIndex + 1}/{_animation.AnimationFrames + 1}");
             ImGui.Text($"Current Anchor: {(lookupAnim.Anchors.Length > 0 ? lookupAnim.Anchors[_animation.CurrentFrameIndex].ToString() : "Unknown")}");
 
-            for (var i = 0; i < _animation.TotalFrames; i++)
+            for (var i = 0; i <= _animation.TotalFrames; i++)
             {
                 if (i != 0 && i % 5 != 0) ImGui.SameLine(0, 5);
 
@@ -324,7 +324,6 @@ namespace Emotion.Tools.Windows
                 Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Rgba, PixelType.UnsignedByte, new IntPtr(p));
             }
 
-            ImageUtil.FlipImageY(pixels, (int) _file.Texture.Size.X, (int) _file.Texture.Size.Y);
             // Convert to 1 bit.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {
@@ -407,7 +406,7 @@ namespace Emotion.Tools.Windows
                 }
             }
 
-            return boxes.OrderBy(x => x.Y).ThenBy(x => x.X).ToArray();
+            return boxes.OrderBy(x => Math.Round((x.Y + x.Height / 2) / 100f)).ThenBy(x => Math.Round((x.X + x.Width / 2) / 100f)).ToArray();
         }
 
         private void LoadAnimationData(AnimatedTextureBase anim)

@@ -28,6 +28,8 @@ Standard.Text
 	- Long Term: Implement the FreeType rasterizer.
 	- Glyf: No contour error handling
 	- RenderGlyph, "e" variable resizing is not really needed.
+	- There are some weird artifacts when rendering certain glyphs. This can be reproduced with a size 39 of the Junction-Regular font.
+	- Add tests for MeasureString and fix broken stuff there.
 Emotion.Test
 	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
 Documentation

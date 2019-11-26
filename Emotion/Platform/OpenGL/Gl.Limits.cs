@@ -89,14 +89,6 @@ namespace OpenGL
             public int MaxPixelMapTable;
 
             /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value, the maximum supported depth of the attribute stack. The value must be at
-            /// least
-            /// 16. See Gl.PushAttrib.
-            /// </summary>
-            [Limit(MAX_ATTRIB_STACK_DEPTH)] [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxAttribStackDepth;
-
-            /// <summary>
             ///     <para>
             ///     [GL2.1] Gl.Get: params returns one value, the maximum supported depth of the modelview matrix stack. The value must
             ///     be
@@ -142,13 +134,6 @@ namespace OpenGL
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             public int[] MaxViewportDims = {0, 0};
-
-            /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value indicating the maximum supported depth of the client attribute stack. See
-            /// Gl.PushClientAttrib.
-            /// </summary>
-            [Limit(MAX_CLIENT_ATTRIB_STACK_DEPTH)] [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxClientAttribStackDepth;
 
             /// <summary>
             ///     <para>

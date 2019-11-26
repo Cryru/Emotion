@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
@@ -102,7 +103,8 @@ namespace Emotion.Test
             "tag=Scripting",
             "tag=Coroutine",
             "tag=FullScale conf=fullScale",
-            "tag=StandardAudio"
+            "tag=StandardAudio",
+            "tag=Audio"
         };
 
         private static void Main(string[] args)
@@ -238,13 +240,17 @@ namespace Emotion.Test
                 var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
                 if (!string.IsNullOrEmpty(TestTag) && t?.Tag != TestTag)
                 {
-                    Log.Info($"Skipping class {classType} because it doesn't match tag filter '{TestTag}'.", CustomMSource.TestRunner);
+#if TEST_DEBUG
+                    Log.Trace($"Skipping class {classType} because it doesn't match tag filter '{TestTag}'.", CustomMSource.TestRunner);
+#endif
                     continue;
                 }
 
                 if (string.IsNullOrEmpty(TestTag) && (t?.TagOnly ?? false))
                 {
-                    Log.Info($"Skipping class {classType} because it will only run with the tag '{t.Tag}'.", CustomMSource.TestRunner);
+#if TEST_DEBUG
+                    Log.Trace($"Skipping class {classType} because it will only run with the tag '{t.Tag}'.", CustomMSource.TestRunner);
+#endif
                     continue;
                 }
 
@@ -266,9 +272,18 @@ namespace Emotion.Test
                     {
                         func.Invoke(testClassInstance, new object[] { });
                     }
+                    catch (ImageDerivationException)
+                    {
+                        failedTests++;
+                    }
                     catch (Exception ex)
                     {
                         failedTests++;
+                        if (ex.InnerException is ImageDerivationException)
+                        {
+                            Log.Error($"{ex.InnerException.Message}", CustomMSource.TestRunner);
+                            continue;
+                        }
                         Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
                         Debug.Assert(false);
                     }
@@ -287,6 +302,7 @@ namespace Emotion.Test
             foreach (LinkedRunner linked in _linkedRunners)
             {
                 Log.Info("----------------------------------------------------------------------", CustomMSource.TestRunner);
+                Log.Info($"Waiting for LR{linked.Id} - ({linked.Args})", CustomMSource.TestRunner);
                 int exitCode = linked.WaitForFinish(out string output, out string errorOutput);
                 output = output.Trim();
                 errorOutput = errorOutput.Trim();
@@ -420,7 +436,7 @@ namespace Emotion.Test
 
             // We want to store the comparison image for possible manual comparison.
             string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
-            byte[] file = PngFormat.Encode(comparisonImage, (int) comparisonSize.X, (int) comparisonSize.Y);
+            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(comparisonImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y);
             File.WriteAllBytes(filePath, file);
 
             // Check if the original image is missing, in which case we just store the comparison image.
@@ -448,15 +464,16 @@ namespace Emotion.Test
             {
                 string directory = Path.Join(RunnerReferenceImageFolder, $"Comparison_{fileName}");
                 Directory.CreateDirectory(directory);
-                byte[] derivedFile = PngFormat.Encode(derivationImage, (int) comparisonSize.X, (int) comparisonSize.Y);
+                byte[] derivedFile = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(derivationImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y);
                 File.WriteAllBytes(Path.Join(directory, "derivation.png"), derivedFile);
             }
 
             // Assert derivation is not higher than tolerable. This is not done using the Emotion.Test assert so it doesn't stop the test from continuing.
             if (derivedPixelPercentage > PixelDerivationTolerance)
-                Log.Error($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
-            else
-                Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
+            {
+                throw new ImageDerivationException($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.");
+            }
+            Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
         }
 
         /// <summary>

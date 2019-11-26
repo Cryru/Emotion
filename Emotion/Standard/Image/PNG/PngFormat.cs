@@ -54,7 +54,7 @@ namespace Emotion.Standard.Image.PNG
         }
 
         /// <summary>
-        /// Encodes the provided pixel data to a PNG image.
+        /// Encodes the provided BGRA, Y flipped, pixel data to a PNG image.
         /// </summary>
         /// <param name="pixels">The pixel date to encode.</param>
         /// <param name="width">The width of the image in the data.</param>
@@ -62,15 +62,6 @@ namespace Emotion.Standard.Image.PNG
         /// <returns>A PNG image as bytes.</returns>
         public static byte[] Encode(byte[] pixels, int width, int height)
         {
-            // todo: Make the conversion to 32bpp little endian and the inverting in place when encoding the data.
-            var copyPixels = new byte[pixels.Length];
-            Array.Copy(pixels, copyPixels, pixels.Length);
-            pixels = copyPixels;
-
-            // Convert to BGRA.
-            ImageUtil.InvertEndian32Bpp(pixels);
-            ImageUtil.FlipImageY(pixels, width, height);
-
             var pngHeader = new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
             const int maxBlockSize = 0xFFFF;
 
@@ -157,9 +148,7 @@ namespace Emotion.Standard.Image.PNG
             WriteChunk(stream, PngChunkTypes.END, null);
 
             stream.Flush();
-            byte[] result = stream.ToArray();
-
-            return result;
+            return stream.ToArray();
         }
 
         #region Writing Utility
@@ -218,7 +207,7 @@ namespace Emotion.Standard.Image.PNG
         #endregion
 
         /// <summary>
-        /// Decode the provided png file to a RGBA pixel array.
+        /// Decode the provided png file to a BGRA pixel array, Y flipped.
         /// </summary>
         /// <param name="pngData">The png file as bytes.</param>
         /// <param name="fileHeader">The png file's header.</param>
@@ -313,10 +302,6 @@ namespace Emotion.Standard.Image.PNG
                 ParseInterlaced(data, fileHeader, bytesPerPixel, colorReader, pixels);
             else
                 Parse(data, fileHeader, bytesPerPixel, colorReader, pixels);
-
-            // Convert to RGBA and invert.
-            ImageUtil.InvertEndian32Bpp(pixels);
-            ImageUtil.FlipImageY(pixels, fileHeader.Width, fileHeader.Height);
 
             return pixels;
         }
