@@ -88,7 +88,7 @@ namespace Emotion.ExecTest
 
         public void Load()
         {
-            Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
+
         }
 
         public void Unload()
