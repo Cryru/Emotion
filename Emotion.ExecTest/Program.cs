@@ -6,6 +6,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Graphics;
+using Emotion.Graphics.Camera;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
@@ -24,7 +25,7 @@ namespace Emotion.ExecTest
 
         private static void Main(string[] args)
         {
-            Engine.Setup(new Configurator().SetDebug(true).SetRenderSize(integerScale: true).AddPlugin(new ImGuiNetPlugin()));
+            Engine.Setup(new Configurator().SetDebug(true).AddPlugin(new ImGuiNetPlugin()));
             Engine.SceneManager.SetScene(new Program());
             Engine.Host.OnKey.AddListener((key, status) =>
             {
@@ -87,7 +88,7 @@ namespace Emotion.ExecTest
 
         public void Load()
         {
-
+            Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
         }
 
         public void Unload()

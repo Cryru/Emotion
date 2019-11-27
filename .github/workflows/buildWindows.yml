@@ -18,19 +18,19 @@ jobs:
       run: |
         curl -L http://github.com/pal1000/mesa-dist-win/releases/download/19.1.6/mesa3d-19.1.6-release-mingw.7z -o mesa.7z
         7z x mesa.7z
-        mkdir .\Emotion.Test\bin\Debug\netcoreapp3.0\mesa
-        mv .\x64\opengl32.dll .\Emotion.Test\bin\Debug\netcoreapp3.0\mesa\opengl32.dll
-        ls .\Emotion.Test\bin\Debug\netcoreapp3.0
+        mkdir .\Tests\bin\Debug\netcoreapp3.0\mesa
+        mv .\x64\opengl32.dll .\Tests\bin\Debug\netcoreapp3.0\mesa\opengl32.dll
+        ls .\Tests\bin\Debug\netcoreapp3.0
     - name: Run Tests
       run: |
-        cd .\Emotion.Test\bin\Debug\netcoreapp3.0
+        cd .\Tests\bin\Debug\netcoreapp3.0
         ls .
-        .\Emotion.Test.exe
+        .\Tests.exe
     - name: Upload Test Artifact
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Emotion.Test\bin\Debug\netcoreapp3.0\TestResults
+        path: Tests\bin\Debug\netcoreapp3.0\TestResults
 
         
         

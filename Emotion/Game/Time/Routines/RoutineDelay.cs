@@ -3,7 +3,7 @@
     /// <summary>
     /// A coroutine wait handle.
     /// </summary>
-    internal interface IRoutineWaiter
+    public interface IRoutineWaiter
     {
         /// <summary>
         /// Whether the waiter has finished waiting, and the routine can proceed.

@@ -15,7 +15,6 @@ using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
-using Emotion.Test.Results;
 
 #endregion
 
@@ -23,6 +22,20 @@ namespace Emotion.Test
 {
     public static class Runner
     {
+        #region Settings
+
+        /// <summary>
+        /// Whether to not run linked runners.
+        /// </summary>
+        public static bool NoLinkedRunners;
+
+        /// <summary>
+        /// What percentage of the whole image's pixels can be different.
+        /// </summary>
+        public static float PixelDerivationTolerance = 10;
+
+        #endregion
+
         /// <summary>
         /// The logger for this runner.
         /// </summary>
@@ -37,11 +50,6 @@ namespace Emotion.Test
         /// The id of the runner instance.
         /// </summary>
         public static int RunnerId { get; private set; } = Process.GetCurrentProcess().Id;
-
-        /// <summary>
-        /// Whether to not run linked runners.
-        /// </summary>
-        public static bool NoLinkedRunners;
 
         /// <summary>
         /// The id of the test run. This is usually the id of the runner who initiated the test.
@@ -63,11 +71,6 @@ namespace Emotion.Test
         /// </summary>
         public static string TestTag;
 
-        /// <summary>
-        /// What percentage of the whole image's pixels can be different.
-        /// </summary>
-        public static float PixelDerivationTolerance = 10;
-
         private static Action<float> _loopAction;
         private static ManualResetEvent _loopWaiter;
         private static int _loopCounter;
@@ -80,13 +83,7 @@ namespace Emotion.Test
         /// <summary>
         /// Other configs which can be referenced in linked mode.
         /// </summary>
-        private static Dictionary<string, Action<Configurator>> _otherConfigs = new Dictionary<string, Action<Configurator>>
-        {
-            {"compat", (c) => c.SetRenderSettings(true)},
-            {"fullScale", (c) => c.SetRenderSize()},
-            {"marginScale", (c) => c.SetRenderSize(null, false, false)},
-            {"marginScaleInteger", (c) => c.SetRenderSize(null, true, false)},
-        };
+        private static Dictionary<string, Action<Configurator>> _otherConfigs;
 
         /// <summary>
         /// Other runners to run. and the arguments to run them with.
@@ -95,26 +92,30 @@ namespace Emotion.Test
         /// testOnly - Means that the engine will not be initialized. Used for running unit tests which don't depend on the engine.
         /// tag - Means that only tests with this tag will be run. If the tests are set to "tagOnly" that means that they will be run only if filtered by tag.
         /// </summary>
-        private static List<string> _otherRunners = new List<string>
-        {
-            "conf=compat",
-            "tag=EmotionDesktop testOnly",
-            "tag=Assets",
-            "tag=Scripting",
-            "tag=Coroutine",
-            "tag=FullScale conf=fullScale",
-            "tag=StandardAudio",
-            "tag=Audio"
-        };
+        private static string[] _otherRunners;
 
-        private static void Main(string[] args)
+        /// <summary>
+        /// Screenshot db.
+        /// </summary>
+        private static Dictionary<string, byte[]> _screenResultDb;
+
+        /// <summary>
+        /// Run tests.
+        /// </summary>
+        /// <param name="engineConfig">The default engine config. All configs in "otherConfigs" are modifications of this one.</param>
+        /// <param name="args">The execution args passed to the Main. This is needed to coordinate linked runners.</param>
+        /// <param name="otherRunners">List of configurations for other runners.</param>
+        /// <param name="otherConfigs">List of engine configurations to spawn runners with.</param>
+        /// <param name="screenResultDb">Database of screenshot results to compare against when using VerifyImage</param>
+        public static void RunTests(Configurator engineConfig, string[] args = null, string[] otherRunners = null, Dictionary<string, Action<Configurator>> otherConfigs = null, Dictionary<string, byte[]> screenResultDb = null)
         {
-            RunAsRunner("tag=StandardAudio", ref args);
+            _otherRunners = otherRunners ?? new string[0];
+            _otherConfigs = otherConfigs ?? new Dictionary<string, Action<Configurator>>();
+            _screenResultDb = screenResultDb ?? new Dictionary<string, byte[]>();
 
             // Correct the startup directory to the directory of the executable.
             // Emotion also does this inside the engine setup.
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-            ResultDb.LoadCache();
 
             // Check for test run id. This signifies whether the runner is linked.
             TestRunId = ArgumentsParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
@@ -147,14 +148,14 @@ namespace Emotion.Test
             // Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
             if (ArgumentsParser.FindArgument(args, "testOnly", out string _))
             {
-                Task tests = Task.Run(RunTests);
+                Task tests = Task.Run(BeginRun);
                 while (!tests.IsCompleted) TestLoop();
                 return;
             }
 
             // Set the default engine settings for the test runner.
             // The resolution is set like that because it is the resolution of the render references.
-            Configurator config = new Configurator().SetDebug(true, true, TestLoop).SetLogger(Log).SetHostSettings(new Vector2(640, 360)).SetRenderSize(fullScale: false);
+            Configurator config = engineConfig.SetDebug(true, true, TestLoop).SetLogger(Log);
             // Check if running with a custom config in linked mode.
             if (ArgumentsParser.FindArgument(args, "conf=", out string linkedModeConfig))
                 if (_otherConfigs.ContainsKey(linkedModeConfig))
@@ -176,7 +177,7 @@ namespace Emotion.Test
                 // Name the thread.
                 if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Runner Thread";
 
-                RunTests();
+                BeginRun();
 
                 Engine.Quit();
 
@@ -230,10 +231,12 @@ namespace Emotion.Test
             }
         }
 
-        private static void RunTests()
+        private static void BeginRun()
         {
             // Find all test classes.
-            Type[] testClasses = typeof(Runner).Assembly.GetTypes().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray();
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            if(entryAssembly == null) return;
+            Type[] testClasses = entryAssembly.GetTypes().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray();
 
             var timeTracker = new Stopwatch();
             var testCount = 0;
@@ -381,7 +384,7 @@ namespace Emotion.Test
         /// </summary>
         /// <param name="text"></param>
         /// <param name="args"></param>
-        private static void RunAsRunner(string text, ref string[] args)
+        public static void RunAsRunner(string text, ref string[] args)
         {
             NoLinkedRunners = true;
             args = text.Split(" ");
@@ -409,8 +412,8 @@ namespace Emotion.Test
         public static void VerifyCachedRender(string renderId, byte[] imageToCompareAgainst, Vector2 imageSize)
         {
             byte[] cachedRender = null;
-            if (ResultDb.CachedResults.ContainsKey(renderId))
-                cachedRender = ResultDb.CachedResults[renderId];
+            if (_screenResultDb.ContainsKey(renderId))
+                cachedRender = _screenResultDb[renderId];
             else
                 Log.Warning($"      Missing comparison render with id {renderId}.", CustomMSource.TestRunner);
 
