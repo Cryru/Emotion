@@ -169,6 +169,7 @@ namespace Emotion.Audio
                 _playlist.Clear();
                 _playlist.Add(new AudioTrack(file));
                 _currentTrack = 0;
+                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
 

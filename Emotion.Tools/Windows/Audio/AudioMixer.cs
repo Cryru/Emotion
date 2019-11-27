@@ -42,7 +42,7 @@ namespace Emotion.Tools.Windows
             }
 
             string[] layers = Engine.Host.Audio.GetLayers();
-            for (int i = 0; i < layers.Length; i++)
+            for (var i = 0; i < layers.Length; i++)
             {
                 AudioLayer layer = Engine.Host.Audio.GetLayer(layers[i]);
 
@@ -60,8 +60,11 @@ namespace Emotion.Tools.Windows
                 ImGui.SameLine();
                 if (ImGui.Button("Play Next"))
                     ExecuteOnFile(layer.PlayNext);
+                ImGui.SameLine();
+                if (ImGui.Button("Play Next"))
+                    ExecuteOnFile(layer.QuickPlay);
 
-                if (ImGui.Button("Play"))
+                if (ImGui.Button("Resume"))
                     layer.Resume();
                 ImGui.SameLine();
                 if (ImGui.Button("Pause"))
@@ -70,7 +73,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.Button("Stop"))
                     layer.Stop();
 
-                int r = 0;
+                var r = 0;
                 string[] items = layer.Playlist.Select(x => x.Name).ToArray();
                 ImGui.ListBox("Playlist", ref r, items, items.Length);
 
