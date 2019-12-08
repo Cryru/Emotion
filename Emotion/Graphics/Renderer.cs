@@ -231,10 +231,8 @@ namespace Emotion.Graphics
         {
             // Recalculate scale.
             Vector2 baseRes = Engine.Configuration.RenderSize;
-            if (baseRes.X < baseRes.Y)
-                Scale = size.X / baseRes.X;
-            else
-                Scale = size.Y / baseRes.Y;
+            Vector2 ratio = size / baseRes;
+            Scale = MathF.Min(ratio.X, ratio.Y);
 
             IntScale = (int) MathF.Floor((size.X + size.Y) / (baseRes.X + baseRes.Y));
 

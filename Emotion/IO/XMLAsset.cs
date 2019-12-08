@@ -33,7 +33,7 @@ namespace Emotion.IO
         {
             try
             {
-                // Deserialize the shader description.
+                // Deserialize the xml type.
                 using var stream = new MemoryStream(data);
                 Content = (T)Serializer.Deserialize(stream);
             } 
@@ -46,6 +46,19 @@ namespace Emotion.IO
         protected override void DisposeInternal()
         {
 
+        }
+
+        /// <summary>
+        /// Convert an object to an xml string.
+        /// Used in creating XMLAssets.
+        /// </summary>
+        /// <param name="obj">The obj to convert.</param>
+        /// <returns>The object as an xml string.</returns>
+        public static string FromObject(T obj)
+        {
+            using var stream = new StringWriter ();
+            Serializer.Serialize(stream, obj);
+            return stream.ToString();
         }
     }
 }

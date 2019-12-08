@@ -1,6 +1,8 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
@@ -148,6 +150,7 @@ namespace Emotion.Scenography
             }
             catch (Exception ex)
             {
+                if (Debugger.IsAttached) throw;
                 Engine.SubmitError(new Exception($"Couldn't load scene - {scene}.", ex));
             }
         }
@@ -167,6 +170,7 @@ namespace Emotion.Scenography
             }
             catch (Exception ex)
             {
+                if (Debugger.IsAttached) throw;
                 Engine.SubmitError(new Exception($"Couldn't unload scene - {scene}.", ex));
             }
         }
