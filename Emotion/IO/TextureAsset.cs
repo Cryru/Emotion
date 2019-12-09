@@ -14,7 +14,6 @@ namespace Emotion.IO
 {
     /// <summary>
     /// Represents an image. Supports all formats supported by Emotion.Standard.Image
-    /// Cached format is pure RGBA pixel data.
     /// </summary>
     public class TextureAsset : Asset
     {

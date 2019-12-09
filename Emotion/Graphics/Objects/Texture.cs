@@ -37,7 +37,7 @@ namespace Emotion.Graphics.Objects
         public Matrix4x4 TextureMatrix { get; set; } = Matrix4x4.Identity;
 
         /// <summary>
-        /// Whether to apply linear interpolation to the texture.
+        /// Whether to apply linear interpolation to the texture. Off by default.
         /// </summary>
         public bool Smooth
         {
@@ -60,6 +60,31 @@ namespace Emotion.Graphics.Objects
             }
         }
 
+        /// <summary>
+        /// Whether to tile the texture if sampled outside its bounds. On by default.
+        /// </summary>
+        public bool Tile
+        {
+            get => _tile;
+            set
+            {
+                _tile = value;
+
+                if (Engine.Renderer.Dsa)
+                {
+                    Gl.TextureParameter(Pointer, TextureParameterName.TextureWrapS, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                    Gl.TextureParameter(Pointer, TextureParameterName.TextureWrapT, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                }
+                else
+                {
+                    EnsureBound(Pointer);
+                    Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                    Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                }
+            }
+        }
+
+        private bool _tile = true;
         private bool _smooth;
         private InternalFormat _internalFormat;
         private PixelFormat _pixelFormat;

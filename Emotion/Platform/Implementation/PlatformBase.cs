@@ -89,7 +89,8 @@ namespace Emotion.Platform.Implementation
             new Vector2(1280, 800), // 16:10 HD
             new Vector2(1920, 1200), // 16:10 FullHD
 
-            new Vector2(800, 600) // 4:3
+            new Vector2(800, 600), // 4:3
+            new Vector2(1600, 768) // Super Wide
         };
 
         #region Internal
@@ -175,7 +176,7 @@ namespace Emotion.Platform.Implementation
             if (Engine.Configuration.DebugMode)
             {
                 bool ctrl = GetKeyDown(Key.LeftControl) || GetKeyDown(Key.RightControl);
-                if (key >= Key.F1 && key <= Key.F9 && state == KeyStatus.Down && ctrl && Window != null)
+                if (key >= Key.F1 && key <= Key.F10 && state == KeyStatus.Down && ctrl && Window != null)
                 {
                     Vector2 chosenSize = _windowSizes[key - Key.F1];
                     Window.Size = chosenSize;
