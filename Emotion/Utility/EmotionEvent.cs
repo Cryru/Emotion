@@ -7,6 +7,10 @@ using System.Collections.Generic;
 
 namespace Emotion.Utility
 {
+    /// <summary>
+    /// Custom event implementation which handles propagation.
+    /// </summary>
+
     public class EmotionEvent<T, T2>
     {
         private List<Func<T, T2, bool>> _listeners = new List<Func<T, T2, bool>>();

@@ -7,7 +7,7 @@ using System.Numerics;
 namespace Emotion.Utility
 {
     /// <summary>
-    /// Extension functionality of primitives.
+    /// Extension functionality of other classes not within Emotion.
     /// </summary>
     public static class Extensions
     {

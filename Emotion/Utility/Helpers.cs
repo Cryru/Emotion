@@ -12,6 +12,9 @@ using Emotion.Platform.Input;
 
 namespace Emotion.Utility
 {
+    /// <summary>
+    /// Various helper functions.
+    /// </summary>
     public static class Helpers
     {
         /// <summary>

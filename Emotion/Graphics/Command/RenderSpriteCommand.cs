@@ -68,10 +68,10 @@ namespace Emotion.Graphics.Command
             Vector2 nnUV = new Vector2(uvRect.X, uvYp) / Texture.Size;
 
             // Add a small epsilon to prevent the wrong UVs from being sampled.
-            nnUV = new Vector2(nnUV.X + MathFloat.EPSILON, nnUV.Y - MathFloat.EPSILON);
-            pnUV = new Vector2(pnUV.X - MathFloat.EPSILON, pnUV.Y - MathFloat.EPSILON);
-            ppUV = new Vector2(ppUV.X + MathFloat.EPSILON, ppUV.Y + MathFloat.EPSILON);
-            npUV = new Vector2(npUV.X - MathFloat.EPSILON, npUV.Y + MathFloat.EPSILON);
+            nnUV = new Vector2(nnUV.X + Maths.EPSILON, nnUV.Y - Maths.EPSILON);
+            pnUV = new Vector2(pnUV.X - Maths.EPSILON, pnUV.Y - Maths.EPSILON);
+            ppUV = new Vector2(ppUV.X + Maths.EPSILON, ppUV.Y + Maths.EPSILON);
+            npUV = new Vector2(npUV.X - Maths.EPSILON, npUV.Y + Maths.EPSILON);
 
             // Same order as vertices.
             Vertices[0].UV = npUV;
