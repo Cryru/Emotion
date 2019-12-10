@@ -3,16 +3,15 @@
 
 ## What is it?
 
-Emotion is a cross-platform 2D oriented game engine written in C# using .Net Core. Its goal is to have *no native* dependencies and be truly portable (apart from the platform specific code) and ensure compatibility. The core principle is that making games as a programmer should be about coding, and not about drag and drop interfaces, or wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
+Emotion is a cross-platform 2D oriented game engine written in C#. Its goal is to have *no native* dependencies and be truly portable (apart from the platform specific code of course). The core principle is that making games as a programmer should be about coding. Not about drag and drop interfaces and navigating menus, nor wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
 
 ## Documentation
 
-You can find the documentation in the ["Documentation" folder](/Documentation).
+Documentation is something which I really want to get around to doing. The existing one in the ["Documentation" folder](/Documentation) is not up to date and is a work in progress.
 
-It could be useful to check the tests in Emotion.Tests as examples, the comments in the code,
-or the annotations that come with the nuget package (which also exist as comments in the code).
+I would recommend checking out the tests in the "Tests" project as examples, and the comments in the code.
 
-## Requirements:
+## Requirements for Developers and Players:
 
 - OpenGL 3.3 or higher
 - Be able to run the Net Core runtime.
@@ -23,18 +22,22 @@ That's it.
 
 ## Platforms
 
-Supported platforms are mostly decided by what .Net Core supports (which is a lot) and whatever is implemented in Emotion.Platform. Refer to the documentation for more information.
+Supported platforms are those implemented in Emotion.Platform. You are free to implement one yourself. Refer to the code for more information.
 
-Tested platforms are: 
+The goal is for the following platforms to be supported: 
   - MacOS 10.12 Sierra x64 +
   - Debian 9+ x64 +
     - Linux Mint 18 +
     - Ubuntu 17.10 +
   - Windows 7 x64 +
 
+Currently supported:
+  - Windows 7 x64 +
+
 ### Configurations Tested On:
 
 - Windows 10 x64
+  - Nvidia GeForce 1070
   - Nvidia GeForce 1060
   - Nvidia GeForce 1050
   - Intel UHD Graphics 620
@@ -42,13 +45,12 @@ Tested platforms are:
 
 ## Features So Far
 
-- Window creation and input on desktop platforms (Win, Linux, Mac)
-  - Fullscreen mode.
+- Platform handling
+  - Window creation
+  - Keyboard, mouse, and text input.
+  - Borderless fullscreen, and windowed.
   - Pause when focus is lost, lowering resource usage in the background.
-  - Software renderer fallback. (Windows only, through Gallium, check platform documentation)
-- Mouse and keyboard input.
-  - Detect key down, key up, and key held independently.
-  - Detect text input.
+  - Software renderer fallback. (Windows only - through Gallium)
 - SIMD vector and matrix math, through System.Numerics.
 - File Support
   - Reading and writing of various BMP formats and PNG files.
@@ -57,40 +59,43 @@ Tested platforms are:
   - Parsing of "CFF" and "TTF" font formats, rasterizing and preparing an atlas of glyphs using an Emotion parser and rasterizer.
 	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the inluded native library)
     	- Optionally the font can also be rasterized using StbTrueTypeSharp.
+  - "WAV" files for audio.
 - Asset loading and managements
  - Load assets from different sources, and manage their lifecycle.
-- Camera system.
+- Layer-based audio system with playlists and a custom resampler.
 - Rendering
+  - Camera system.
   - Drawing of things like lines, rectangles, triangles, and circles.
 	- These are all drawn as triangles, no GL_LINES here, monsieur!
   - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
-  - Draw order independent texture alpha testing and blending. (Mostly, you'll still need to order semi-transparent objects. This feature is achieved by discarding invisible fragments.)
+  - Draw order independent texture alpha testing and blending. (Mostly, you'll still need to order semi-transparent objects. The included feature is achieved by discarding invisible fragments.)
   - Model matrix stack.
-  - Spritesheet based animation.
+  - Spritesheet based animation in either a grid or freeform format.
   - Text.
     - Includes advanced font drawing with control over each individual glyph.
     - Extensible Richtext class featuring auto wrapping, alignment, markup, and more.
-  - Cache draw commands to reexecute them faster.
-  - Different types of scaling, with pixel art in mind, allowing your game to look the same on all resolutions.
-- Shader pipeline
+  - Cache draw commands to re-execute them faster.
+  - Different types of scaling, with pixel art in mind, allowing your game to look good on all resolutions.
+  - Framebuffer (RenderTarget) stack, allows for easy management.
+- Shader Pipeline
   - Try multiple preprocessors to increase the compatibility of your shader.
-  - Specify fallbacks
+  - Specify fallbacks!
   - Predefined uniforms based on ShaderToy allow for cool effects.
-- An implementation of A*.
+- An implementation of A*
   - With the ability to add a custom heuristics function, and perform other customizations.
 - Logging.
   - Runs on another thread as not to interrupt your game.
   - Remote logging to PaperTrail and other services which support the protocol.
   - Easily create your own logger!
 - Framerate independent timing with a semi-fixed step.
-- Easy tilemap drawing.
+- Easy tilemap drawing and handling.
   - Integration with the "Tiled" application.
   - Includes layer opacity, multiple tilesets, animated tiles, and more.
 - QuadTree Implementation
-- Runtime configuration.
+- A lot of configurable options.
 - ImGui Integration through a plugin.
-- Framebuffer stack and easy framebuffer (RenderTarget) management.
 - Execute C# files as scripts in runtime!
+- Lots of math helper functions.
 
 ## Building and Using
 
@@ -106,9 +111,9 @@ To build just clone and build using Visual Studio 2019 or higher. It shouldn't t
 TiledSharp
  - Support for .tmx files.
 
-OpenGL.Net (Forked)
+OpenGL.Net (https://github.com/luca-piccioni/OpenGL.Net)
  - Used as a wrapper for OpenGL.
- - Based on [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net)
+ - Heavily forked, stripped down, and modified.
 
 Serilog
  - Used for logging.
