@@ -222,6 +222,24 @@ namespace Emotion.Graphics.Objects
         }
 
         /// <summary>
+        /// Get a portion of the buffer's memory as pointer to it, allowing you to map data. 
+        /// When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
+        /// </summary>
+        /// <typeparam name="T">The type of mapper to create.</typeparam>
+        /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>
+        /// <param name="length">Length for the mapping region. Set to -1 to map to the end of the buffer - in bytes.</param>
+        /// <returns>A mapper used to map data in the buffer.</returns>
+        public unsafe byte* CreateUnsafeMapper<T>(int offset = 0)
+        {
+            EnsureBound(Pointer, Type);
+
+            if (!_mapping) StartMapping();
+            if (!_mapping) return null;
+
+            return &_mappingPtr[offset];
+        }
+
+        /// <summary>
         /// Finish mapping the buffer, flushing data to the GPU.
         /// If the buffer wasn't mapping to begin with - nothing happens.
         /// </summary>
