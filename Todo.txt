@@ -7,6 +7,11 @@ GL
 	- Some kind of shared cache buffer for commands rather than the pool which exists now.
 Rendering
 	- Add tests for state changes
+	- Add tests for various batch stuff
+	- Uniform blocks (UBO) for syncing shaders
+	- Too much memory is being used currently to pass the RenderSprites into the VBO - maybe they shouldn't be commands?
+	- The RenderComposer shouldn't be allocating a vbo and vao
+	- It should be easier to create a custom VertexData structure and upload that in a batch
 Standard.Image
 	- Implement ByteWriter and use it to encode the images.
 	- JPEG Support

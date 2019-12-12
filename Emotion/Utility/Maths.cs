@@ -283,7 +283,7 @@ namespace Emotion.Utility
             // If amount < 0, return value1
             // If amount > 1, return value2
 
-            float result = MathExtension.Clamp(amount, 0f, 1f);
+            float result = Clamp(amount, 0f, 1f);
             result = Hermite(value1, 0f, value2, 0f, result);
 
             return result;
