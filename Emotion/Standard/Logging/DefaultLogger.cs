@@ -16,7 +16,7 @@ namespace Emotion.Standard.Logging
     /// <summary>
     /// The default logger. Uses SeriLog.
     /// </summary>
-    public sealed class DefaultLogger : LoggingProvider
+    public class DefaultLogger : LoggingProvider
     {
         /// <summary>
         /// SeriLog logger instance.

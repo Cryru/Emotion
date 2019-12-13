@@ -81,35 +81,32 @@ namespace Emotion.Test
         private static bool _runnerFolderCreated;
 
         /// <summary>
-        /// Other configs which can be referenced in linked mode.
-        /// </summary>
-        private static Dictionary<string, Action<Configurator>> _otherConfigs;
-
-        /// <summary>
         /// Other runners to run. and the arguments to run them with.
-        ///
-        /// conf - Means that a config from _otherConfigs with that key will be used for initializing the engine.
+        /// 
         /// testOnly - Means that the engine will not be initialized. Used for running unit tests which don't depend on the engine.
         /// tag - Means that only tests with this tag will be run. If the tests are set to "tagOnly" that means that they will be run only if filtered by tag.
+        /// 
+        /// The function argument can be used to specify a different engine config.
         /// </summary>
-        private static string[] _otherRunners;
+        private static Dictionary<string, Action<Configurator>> _otherConfigs;
 
         /// <summary>
         /// Screenshot db.
         /// </summary>
         private static Dictionary<string, byte[]> _screenResultDb;
 
+        private static Exception _loopException;
+
         /// <summary>
         /// Run tests.
         /// </summary>
         /// <param name="engineConfig">The default engine config. All configs in "otherConfigs" are modifications of this one.</param>
         /// <param name="args">The execution args passed to the Main. This is needed to coordinate linked runners.</param>
-        /// <param name="otherRunners">List of configurations for other runners.</param>
         /// <param name="otherConfigs">List of engine configurations to spawn runners with.</param>
         /// <param name="screenResultDb">Database of screenshot results to compare against when using VerifyImage</param>
-        public static void RunTests(Configurator engineConfig, string[] args = null, string[] otherRunners = null, Dictionary<string, Action<Configurator>> otherConfigs = null, Dictionary<string, byte[]> screenResultDb = null)
+        public static void RunTests(Configurator engineConfig, string[] args = null, Dictionary<string, Action<Configurator>> otherConfigs = null, Dictionary<string, byte[]> screenResultDb = null)
         {
-            _otherRunners = otherRunners ?? new string[0];
+            if (args == null) args = new string[] { };
             _otherConfigs = otherConfigs ?? new Dictionary<string, Action<Configurator>>();
             _screenResultDb = screenResultDb ?? new Dictionary<string, byte[]>();
 
@@ -122,24 +119,24 @@ namespace Emotion.Test
             TestRunFolder = Path.Join("TestResults", $"{TestRunId}");
             RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References");
 
-            // Check if master runner, and run linked runners.
-            if (TestRunId == RunnerId.ToString())
+            // Check if master runner.
+            bool linked = TestRunId != RunnerId.ToString();
+            Log = new TestRunnerLogger(RunnerId.ToString(), linked, Path.Join(TestRunFolder, "Logs"));
+            if(linked)
             {
+                Log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", CustomMSource.TestRunner);
+            } 
+            else
+            {
+                // Spawn linked runners
                 if (!NoLinkedRunners)
                 {
                     // Spawn a runner for each runtime config.
-                    foreach (string c in _otherRunners)
+                    foreach ((string arg, Action<Configurator> _) in _otherConfigs)
                     {
-                        _linkedRunners.Add(new LinkedRunner(c));
+                        _linkedRunners.Add(new LinkedRunner(arg));
                     }
                 }
-
-                Log = new DefaultLogger(true, Path.Join(TestRunFolder, "Logs"));
-            }
-            else
-            {
-                Log = new LinkedRunnerLogger();
-                Log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", CustomMSource.TestRunner);
             }
 
             // Check if running only specific tests.
@@ -154,12 +151,16 @@ namespace Emotion.Test
             }
 
             // Set the default engine settings for the test runner.
-            // The resolution is set like that because it is the resolution of the render references.
             Configurator config = engineConfig.SetDebug(true, true, TestLoop).SetLogger(Log);
-            // Check if running with a custom config in linked mode.
-            if (ArgumentsParser.FindArgument(args, "conf=", out string linkedModeConfig))
-                if (_otherConfigs.ContainsKey(linkedModeConfig))
-                    _otherConfigs[linkedModeConfig](config);
+
+            // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
+            string argsJoined = string.Join(" ", args);
+            string id = (from possibleConfigs in _otherConfigs where argsJoined.Contains(possibleConfigs.Key) select possibleConfigs.Key).FirstOrDefault();
+            if (id != null && _otherConfigs.ContainsKey(id) && _otherConfigs[id] != null)
+            {
+                Log.Info($"Loading custom engine config - {id}...", CustomMSource.TestRunner);
+                _otherConfigs[id](config);
+            }
 
             Engine.Setup(config);
             // Move the camera center in a way that its center is 0,0
@@ -203,6 +204,7 @@ namespace Emotion.Test
                     catch (Exception ex)
                     {
                         Log.Error($"LoopAction Error - {ex}", MessageSource.Other);
+                        _loopException = ex;
                     }
 
                     _loopCounter--;
@@ -238,14 +240,12 @@ namespace Emotion.Test
             if(entryAssembly == null) return;
             Type[] testClasses = entryAssembly.GetTypes().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray();
 
-            var timeTracker = new Stopwatch();
-            var testCount = 0;
-            var failedTests = 0;
-
+            // Find all test functions in these classes.
+            var tests = new List<MethodInfo>();
             foreach (Type classType in testClasses)
             {
                 // Check if filtering by tag.
-                var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
+                var t = (TestAttribute)classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
                 if (!string.IsNullOrEmpty(TestTag) && t?.Tag != TestTag)
                 {
 #if TEST_DEBUG
@@ -262,49 +262,70 @@ namespace Emotion.Test
                     continue;
                 }
 
-                Log.Info($"Running test class {classType}...", CustomMSource.TestRunner);
-
-                // Create an instance of the test class.
-                object testClassInstance = Activator.CreateInstance(classType);
-
                 // Find all test functions in this class.
-                MethodInfo[] functions = classType.GetMethods().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray();
-                float classTimer = 0;
-
-                foreach (MethodInfo func in functions)
-                {
-                    Log.Info($"  Running test {func.Name}...", CustomMSource.TestRunner);
-                    timeTracker.Restart();
-                    testCount++;
-                    try
-                    {
-                        func.Invoke(testClassInstance, new object[] { });
-                    }
-                    catch (ImageDerivationException)
-                    {
-                        failedTests++;
-                    }
-                    catch (Exception ex)
-                    {
-                        failedTests++;
-                        if (ex.InnerException is ImageDerivationException)
-                        {
-                            Log.Error($"{ex.InnerException.Message}", CustomMSource.TestRunner);
-                            continue;
-                        }
-                        Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
-                        Debug.Assert(false);
-                    }
-
-                    Log.Info($"  Test {func.Name} completed in {timeTracker.ElapsedMilliseconds}ms!", CustomMSource.TestRunner);
-                    classTimer += timeTracker.ElapsedMilliseconds;
-                }
-
-                Log.Info($"Test class {classType} completed in {classTimer}ms!", CustomMSource.TestRunner);
+                tests.AddRange(classType.GetMethods().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray());
             }
 
-            Log.Info($"Test completed: {testCount - failedTests}/{testCount}!", CustomMSource.TestRunner);
-            var results = new List<string> {$"Master: Test completed: {testCount - failedTests}/{testCount}!"};
+            Type currentClass = null;
+            object currentClassInstance = null;
+            float classTimer = 0;
+
+            var timeTracker = new Stopwatch();
+            var failedTests = 0;
+
+            foreach (MethodInfo func in tests)
+            {
+                // Create an instance of the test class.
+                if(currentClass != func.DeclaringType)
+                {
+                    if(currentClass != null) Log.Info($"Test class {currentClass} completed in {classTimer}ms!", CustomMSource.TestRunner);
+                    currentClass = func.DeclaringType;
+                    if (currentClass == null) throw new Exception($"Declaring type of function {func.Name} is missing.");
+                    currentClassInstance = Activator.CreateInstance(currentClass);
+                    classTimer = 0;
+                    Log.Info($"Running test class {currentClass}...", CustomMSource.TestRunner);
+                }
+
+                // Run test.
+                Log.Info($"  Running test {func.Name}...", CustomMSource.TestRunner);
+                timeTracker.Restart();
+                try
+                {
+                    func.Invoke(currentClassInstance, new object[] { });
+
+                    // Check if errored in the loop.
+                    if (_loopException != null) throw _loopException;
+                }
+                catch (ImageDerivationException)
+                {
+                    failedTests++;
+                }
+                catch (Exception ex)
+                {
+                    failedTests++;
+                    if (ex.InnerException is ImageDerivationException)
+                    {
+                        Log.Error($"{ex.InnerException.Message}", CustomMSource.TestRunner);
+                        continue;
+                    }
+                    Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
+                    Debug.Assert(false);
+                }
+
+                Log.Info($"  Test {func.Name} completed in {timeTracker.ElapsedMilliseconds}ms!", CustomMSource.TestRunner);
+                classTimer += timeTracker.ElapsedMilliseconds;
+
+                // Reset the loop exception.
+                _loopException = null;
+            }
+
+            Log.Info($"Test completed: {tests.Count - failedTests}/{tests.Count}!", CustomMSource.TestRunner);
+
+            // If not the master - then nothing else to do.
+            if (TestRunId != RunnerId.ToString()) return;
+
+            var results = new List<string> { $"Master: Test completed: {tests.Count - failedTests}/{tests.Count}!" };
+            int totalTests = tests.Count;
 
             // Wait for linked runners to exit.
             foreach (LinkedRunner linked in _linkedRunners)
@@ -326,7 +347,7 @@ namespace Emotion.Test
 
                         int failed = testsRun - testsSuccess;
                         failedTests += failed;
-                        testCount += testsRun;
+                        totalTests += testsRun;
 
                         results.Add($"LR{linked.Id} ({linked.Args}) {match.Groups[0].Value} {(!string.IsNullOrEmpty(errorOutput) ? "ERR" : "")}");
                     }
@@ -345,9 +366,8 @@ namespace Emotion.Test
                 if (!string.IsNullOrEmpty(errorOutput)) Log.Info($"[LR{linked.Id}] Error Output\n{errorOutput}", CustomMSource.TestRunner);
             }
 
-            // Post final results if master.
-            if (TestRunId != RunnerId.ToString()) return;
-            Log.Info($"Final test results: {testCount - failedTests}/{testCount}!", CustomMSource.TestRunner);
+            // Post final results.
+            Log.Info($"Final test results: {totalTests - failedTests}/{totalTests}!", CustomMSource.TestRunner);
             foreach (string r in results)
             {
                 Log.Info($"     {r}", CustomMSource.TestRunner);
