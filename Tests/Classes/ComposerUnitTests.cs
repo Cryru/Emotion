@@ -104,9 +104,9 @@ namespace Tests.Classes
 
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.ComposerRender);
-            }).WaitOne();
 
-            Assert.True(subComposer.Processed);
+                Assert.True(subComposer.Processed);
+            }).WaitOne();
         }
     }
 }
