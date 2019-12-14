@@ -31,7 +31,6 @@ namespace Tests
         private static void Main(string[] args)
         {
             ResultDb.LoadCache();
-            //Runner.NoLinkedRunners = true;
             Runner.RunTests(
                 new Configurator()
                 .SetHostSettings(new Vector2(640, 360)) // The resolution is set like that because it is the resolution of the render references.

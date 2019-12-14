@@ -27,9 +27,19 @@ namespace Emotion.Test.Helpers
         {
             string formattedMsg = _linked ? $"{_linkId} >> {message}" : $"{message}";
 
-            if (source == CustomMSource.TestRunner) Console.WriteLine(formattedMsg);
-
-            if (type == MessageType.Error) Console.Error.WriteLine(formattedMsg);
+            if (source == CustomMSource.TestRunner)
+            {
+                if (type == MessageType.Error)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(formattedMsg);
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.WriteLine(formattedMsg);
+                }
+            }
 
             base.Log(type, source, message);
         }

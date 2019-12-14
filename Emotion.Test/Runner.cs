@@ -203,7 +203,6 @@ namespace Emotion.Test
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"LoopAction Error - {ex}", MessageSource.Other);
                         _loopException = ex;
                     }
 
@@ -294,7 +293,12 @@ namespace Emotion.Test
                     func.Invoke(currentClassInstance, new object[] { });
 
                     // Check if errored in the loop.
-                    if (_loopException != null) throw _loopException;
+                    if (_loopException != null)
+                    {
+                        var wrapped = new Exception("Exception in test engine loop.", _loopException);
+                        _loopException = null;
+                        throw wrapped;
+                    }
                 }
                 catch (ImageDerivationException)
                 {
@@ -314,9 +318,6 @@ namespace Emotion.Test
 
                 Log.Info($"  Test {func.Name} completed in {timeTracker.ElapsedMilliseconds}ms!", CustomMSource.TestRunner);
                 classTimer += timeTracker.ElapsedMilliseconds;
-
-                // Reset the loop exception.
-                _loopException = null;
             }
 
             Log.Info($"Test completed: {tests.Count - failedTests}/{tests.Count}!", CustomMSource.TestRunner);
