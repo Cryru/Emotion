@@ -34,7 +34,7 @@ namespace Emotion.Graphics.Command
             // Check which state changes should apply, by checking which were set and which differ from the current.
             if (State.Shader != null && (Force || State.Shader != Engine.Renderer.CurrentState.Shader))
             {
-                ShaderProgram.EnsureBound(State.Shader);
+                ShaderProgram.EnsureBound(State.Shader.Pointer);
                 Engine.Renderer.CurrentState.Shader = State.Shader;
                 Engine.Renderer.SyncShader();
 

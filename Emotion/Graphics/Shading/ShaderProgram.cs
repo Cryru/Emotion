@@ -114,10 +114,12 @@ namespace Emotion.Graphics.Shading
 
             if(!Valid) return;
 
-            // Set default uniforms.
-            EnsureBound(this);
+            // Set default uniforms - this requires binding, so save the currently bound.
+            uint previouslyBound = Bound;
+            EnsureBound(Pointer);
             SetUniformIntArray("textures", Enumerable.Range(0, 15).ToArray());
             SetUniformFloat("time", 0);
+            EnsureBound(previouslyBound);
         }
 
         #region Uniform Manipulation
@@ -276,29 +278,22 @@ namespace Emotion.Graphics.Shading
         /// <summary>
         /// Ensures the provided program is the currently bound shader program.
         /// </summary>
-        /// <param name="program">The program object to ensure is bound.</param>
-        public static void EnsureBound(ShaderProgram program)
+        /// <param name="pointer">A pointer to the program object to ensure is bound.</param>
+        public static void EnsureBound(uint pointer)
         {
-            if (!program.Valid)
-            {
-                Engine.Log.Warning("Tried to bind an invalid shader program.", MessageSource.GL);
-                Debug.Assert(false);
-                return;
-            }
-
             // Check if it is already bound.
-            if (Bound == program.Pointer)
+            if (Bound == pointer)
             {
                 // If in debug mode, verify this with OpenGL.
                 if (!Engine.Configuration.DebugMode) return;
 
                 Gl.GetInteger(GetPName.CurrentProgram, out uint actualBound);
-                if (actualBound != program.Pointer) Engine.Log.Error($"Assumed bound shader was {program.Pointer} but it was {actualBound}.", MessageSource.GL);
+                if (actualBound != pointer) Engine.Log.Error($"Assumed bound shader was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }
 
-            Gl.UseProgram(program.Pointer);
-            Bound = program.Pointer;
+            Gl.UseProgram(pointer);
+            Bound = pointer;
         }
     }
 }

@@ -176,7 +176,7 @@ namespace Emotion.Graphics
                 return;
             }
 
-            ShaderProgram.EnsureBound(ShaderFactory.DefaultProgram);
+            ShaderProgram.EnsureBound(ShaderFactory.DefaultProgram.Pointer);
 
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
             ScreenBuffer = new FrameBuffer(0, Engine.Host.Window.Size);
