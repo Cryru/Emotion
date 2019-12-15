@@ -2,6 +2,8 @@ DataBuffer.CreateMapper
 	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
 Commands
 	- Merge state changing commands one after another into one.
+	- Shared VBO for Composer created IM QuadBatches
+	- Easy way to modify a QuadBatch to work with non-VertexData structure
 GL
 	- Investigate why the VertexArrayObject binding cache doesn't work. Maybe VertexArrayBinding isn't the right value?
 	- Some kind of shared cache buffer for commands rather than the pool which exists now.
