@@ -220,11 +220,11 @@ namespace Emotion.Tools.Windows
             ImGui.Text("<- Will override frames and order.");
 
             if (ImGui.Button("Place Anchor Points"))
-                if (_anchorPlacerWindow == null)
+                if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
                     Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, (LookupAnimatedTexture) _animation));
 
             if (ImGui.Button("Order Frames"))
-                if (_anchorPlacerWindow == null)
+                if (_orderWindow == null || !_orderWindow.Open)
                     Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, (LookupAnimatedTexture) _animation));
 
             ImGui.InputInt("Starting Frame", ref _startFrame);

@@ -67,3 +67,6 @@ Engine
 	- Configurator granularity - set host size without setting other host settings, for example
 Emotion.Game
 	- Bound box for the tile map - used to calculate only visible tiles and map only them.
+Tools
+	- FileExplorer extension matching per asset type (don't show those who don't match)
+	- FileExplorer directory nesting

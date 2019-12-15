@@ -36,7 +36,7 @@ namespace Emotion.Tools
 
         public void Load()
         {
-            _manager.AddWindow(new ToolsMenu());
+
         }
 
         public void Unload()
@@ -50,9 +50,8 @@ namespace Emotion.Tools
             composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
 
             ImGui.NewFrame();
-
+            composer.RenderToolsMenu(_manager);
             _manager.Render(composer);
-
             ImGuiNetPlugin.RenderUI(composer);
         }
     }
