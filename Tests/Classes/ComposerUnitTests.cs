@@ -104,13 +104,13 @@ namespace Tests.Classes
 
         public class TestCustomBatch : QuadBatch
         {
-            public override void Process()
+            public override void Process(RenderComposer c)
             {
                 for (int i = 0; i < BatchedTexturables.Count; i++)
                 {
                     BatchedTexturables[i].Color = (new Color(BatchedTexturables[i].Color) * Color.Magenta).ToUint();
                 }
-                base.Process();
+                base.Process(c);
             }
         }
 
