@@ -14,8 +14,8 @@ using OpenGL;
 namespace Emotion.Graphics.Command
 {
     /// <summary>
-    /// Batch which handles binding textured commands.
-    /// Up to 16 textures can be bound at once.
+    /// Batch which handles batching sprites to be drawn together.
+    /// Up to 16 textures and around 16k sprites can be batched at once.
     /// </summary>
     public class QuadBatch : RecyclableCommand
     {
