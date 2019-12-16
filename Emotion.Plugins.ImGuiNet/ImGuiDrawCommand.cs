@@ -91,9 +91,5 @@ namespace Emotion.Plugins.ImGuiNet
                 indicesOffset += (uint) drawList.VtxBuffer.Size;
             }
         }
-
-        public override void Process()
-        {
-        }
     }
 }
