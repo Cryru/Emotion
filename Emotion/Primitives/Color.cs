@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Utility;
 using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
@@ -70,6 +71,18 @@ namespace Emotion.Primitives
             A = 255;
         }
 
+        /// <summary>
+        /// Creates a new color, from a packed RGBA uint.
+        /// </summary>
+        /// <param name="packed">The packed uint.</param>
+        public Color(uint packed)
+        {
+            R = (byte) (packed >> 0);
+            G = (byte) (packed >> 8);
+            B = (byte) (packed >> 16);
+            A = (byte) (packed >> 24);
+        }
+
         #endregion
 
         /// <summary>
@@ -123,22 +136,22 @@ namespace Emotion.Primitives
 
         #region Functions
 
-        ///// <summary>
-        ///// Performs linear interpolation of <see cref="Color" />.
-        ///// </summary>
-        ///// <param name="value1">Source <see cref="Color" />.</param>
-        ///// <param name="value2">Destination <see cref="Color" />.</param>
-        ///// <param name="amount">Interpolation factor.</param>
-        ///// <returns>Interpolated <see cref="Color" />.</returns>
-        //public static Color Lerp(Color value1, Color value2, float amount)
-        //{
-        //    amount = MathExtension.Clamp(amount, 0, 1);
-        //    return new Color(
-        //        (byte) MathExtension.Lerp(value1.R, value2.R, amount),
-        //        (byte) MathExtension.Lerp(value1.G, value2.G, amount),
-        //        (byte) MathExtension.Lerp(value1.B, value2.B, amount),
-        //        (byte) MathExtension.Lerp(value1.A, value2.A, amount));
-        //}
+        /// <summary>
+        /// Performs linear interpolation of <see cref="Color" />.
+        /// </summary>
+        /// <param name="value1">Source <see cref="Color" />.</param>
+        /// <param name="value2">Destination <see cref="Color" />.</param>
+        /// <param name="amount">Interpolation factor.</param>
+        /// <returns>Interpolated <see cref="Color" />.</returns>
+        public static Color Lerp(Color value1, Color value2, float amount)
+        {
+            amount = Maths.Clamp(amount, 0, 1);
+            return new Color(
+                (byte)Maths.Lerp(value1.R, value2.R, amount),
+                (byte)Maths.Lerp(value1.G, value2.G, amount),
+                (byte)Maths.Lerp(value1.B, value2.B, amount),
+                (byte)Maths.Lerp(value1.A, value2.A, amount));
+        }
 
         /// <summary>
         /// Multiply <see cref="Color" /> by value.
