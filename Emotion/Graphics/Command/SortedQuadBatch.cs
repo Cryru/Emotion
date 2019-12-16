@@ -6,6 +6,10 @@ using System;
 
 namespace Emotion.Graphics.Command
 {
+    /// <summary>
+    /// Sorts batched sprites by their Z position.
+    /// Used for semi-opaque sprites.
+    /// </summary>
     public class SortedQuadBatch : QuadBatch
     {
         public override void Process(RenderComposer composer)
