@@ -14,10 +14,6 @@ namespace Emotion.Graphics.Command
         public RenderState State;
         public Action<ShaderProgram> ShaderOnSet;
 
-        public override void Process()
-        {
-        }
-
         public override void Recycle()
         {
             ShaderOnSet = null;

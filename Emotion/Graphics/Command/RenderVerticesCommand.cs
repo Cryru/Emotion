@@ -30,10 +30,6 @@ namespace Emotion.Graphics.Command
             VerticesUtilization = 0;
         }
 
-        public override void Process()
-        {
-        }
-
         public override void Execute(RenderComposer composer)
         {
             Span<VertexData> vertMapper = composer.VertexBuffer.CreateMapper<VertexData>(0, VerticesUtilization * VertexData.SizeInBytes);

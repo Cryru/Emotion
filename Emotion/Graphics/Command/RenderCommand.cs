@@ -2,7 +2,11 @@
 {
     public abstract class RenderCommand
     {
-        public abstract void Process();
+        public virtual void Process(RenderComposer composer)
+        {
+            // no-op
+        }
+
         public abstract void Execute(RenderComposer composer);
     }
 }

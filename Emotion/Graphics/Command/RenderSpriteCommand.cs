@@ -37,7 +37,7 @@ namespace Emotion.Graphics.Command
             Processed = false;
         }
 
-        public override void Process()
+        public override void Process(RenderComposer composer)
         {
             Vertices[0].Vertex = Position;
             Vertices[1].Vertex = new Vector3(Position.X + Size.X, Position.Y, Position.Z);

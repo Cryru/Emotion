@@ -109,7 +109,7 @@ namespace Emotion.Graphics.Command
         /// Process the batch, mapping the buffer with the batched sprites.
         /// Should only be called by the composer itself.
         /// </summary>
-        public override void Process()
+        public override void Process(RenderComposer composer)
         {
             // Check if anything to map.
             if(BatchedTexturables.Count == 0) return;
@@ -154,7 +154,7 @@ namespace Emotion.Graphics.Command
                     TextureBindingUpdate(x.Texture.Pointer);
                 }
 
-                x.Process();
+                x.Process(composer);
 
                 // Set the texture id in vertices with the one the batch will bind.
                 int tid = -1;

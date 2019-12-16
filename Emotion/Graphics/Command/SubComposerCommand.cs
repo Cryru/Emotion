@@ -11,7 +11,7 @@ namespace Emotion.Graphics.Command
     {
         public RenderComposer Composer;
 
-        public override void Process()
+        public override void Process(RenderComposer composer)
         {
             if (!Composer.Processed) Composer.Process();
         }

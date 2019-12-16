@@ -15,10 +15,6 @@ namespace Emotion.Graphics.Command
         public Matrix4x4? Matrix;
         public bool Multiply;
 
-        public override void Process()
-        {
-        }
-
         public override void Execute(RenderComposer _)
         {
             if (Matrix != null)

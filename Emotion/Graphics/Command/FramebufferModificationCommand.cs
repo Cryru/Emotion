@@ -14,10 +14,6 @@ namespace Emotion.Graphics.Command
     {
         public FrameBuffer Buffer;
 
-        public override void Process()
-        {
-        }
-
         public override void Execute(RenderComposer _)
         {
             if (Buffer != null)

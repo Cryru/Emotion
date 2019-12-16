@@ -13,11 +13,6 @@ namespace Emotion.Graphics.Command
     {
         public Action Func;
 
-        public override void Process()
-        {
-            
-        }
-
         public override void Execute(RenderComposer _)
         {
             Func?.Invoke();

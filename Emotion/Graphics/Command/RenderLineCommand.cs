@@ -21,7 +21,7 @@ namespace Emotion.Graphics.Command
             Vertices[3].Tid = -1;
         }
 
-        public override void Process()
+        public override void Process(RenderComposer composer)
         {
             Vector2 normal = Vector2.Normalize(new Vector2(PointTwo.Y - PointOne.Y, -(PointTwo.X - PointOne.X))) * Thickness;
             float z = Math.Max(PointOne.Z, PointTwo.Z);

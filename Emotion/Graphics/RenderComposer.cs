@@ -79,7 +79,7 @@ namespace Emotion.Graphics
             // ReSharper disable once ForCanBeConvertedToForeach
             for (var c = 0; c < RenderCommands.Count; c++)
             {
-                RenderCommands[c].Process();
+                RenderCommands[c].Process(this);
             }
 
             Processed = true;
