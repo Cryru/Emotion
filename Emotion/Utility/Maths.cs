@@ -310,9 +310,7 @@ namespace Emotion.Utility
         public static int IncrementWithWrap(int t, int length)
         {
             t++;
-            if (t == length)
-                return 0;
-            return t;
+            return t == length ? 0 : t;
         }
 
 
