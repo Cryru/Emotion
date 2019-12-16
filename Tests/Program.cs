@@ -16,7 +16,7 @@ namespace Tests
         private static Dictionary<string, Action<Configurator>> _otherConfigs = new Dictionary<string, Action<Configurator>>
         {
             {"compat", c => c.SetRenderSettings(true)},
-            {"tag=FullScale", c => c.SetRenderSize()},
+            {"tag=FullScale", c => c.SetRenderSize(new Vector2(320, 180))},
             //{"marginScale", c => c.SetRenderSize(null, false, false)},
             //{"marginScaleInteger", c => c.SetRenderSize(null, true, false)},
             {"tag=EmotionDesktop testOnly", null },

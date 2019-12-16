@@ -1,11 +1,14 @@
 ﻿#region Using
 
+using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Test;
+using Emotion.Test.Helpers;
+using Emotion.Utility;
 using Tests.Results;
 
 #endregion
@@ -34,6 +37,54 @@ namespace Tests.Classes
 
                 while (elements < count)
                 {
+                    var c = new Color(elements, 255 - elements, elements < ushort.MaxValue ? 255 : 0);
+
+                    composer.RenderSprite(new Vector3(x * size, y * size, 0), new Vector2(size, size), c);
+                    x++;
+                    elements++;
+
+                    if (x * size < Engine.Renderer.CurrentTarget.Size.X) continue;
+                    y++;
+                    x = 0;
+                }
+
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.RenderComposerSpriteLimitTest);
+            }).WaitOne();
+        }
+
+        /// <summary>
+        /// Tests whether the composer handles batching properly when the current batch is invalidated.
+        /// </summary>
+        [Test]
+        public void RenderComposerRandomInvalidation()
+        {
+            Runner.ExecuteAsLoop(_ =>
+            {
+                RenderComposer composer = Engine.Renderer.StartFrame();
+
+                const int count = ushort.MaxValue * 2;
+                const int size = 1;
+
+                var y = 0;
+                var x = 0;
+                var elements = 0;
+
+                // Generate the locations at which an invaldiation will occur.
+                List<int> invalidationIdx = new List<int>();
+                for (int i = 0; i < 10; i++)
+                {
+                    invalidationIdx.Add(Helpers.GenerateRandomNumber(100, count - 100));
+                }
+
+                while (elements < count)
+                {
+                    if(invalidationIdx.IndexOf(elements) != -1)
+                    {
+                        Runner.Log.Info($"Invalidation of batch at element - {elements}", CustomMSource.TestRunner);
+                        composer.InvalidateStateBatches();
+                    }
+
                     var c = new Color(elements, 255 - elements, elements < ushort.MaxValue ? 255 : 0);
 
                     composer.RenderSprite(new Vector3(x * size, y * size, 0), new Vector2(size, size), c);
