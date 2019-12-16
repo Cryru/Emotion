@@ -16,6 +16,7 @@ namespace Tests.Results
     {
         public static string ClearColorBasicRender = "ClearColorBasicRender";
         public static string RenderComposerSpriteLimitTest = "RenderComposerSpriteLimitTest";
+        public static string RenderComposerCustomBatch = "RenderComposerCustomBatch";
         public static string Bmp16ColorDecode = "Bmp16ColorDecode";
         public static string Bmp24BitDecode = "Bmp24BitDecode";
         public static string Bmp256ColorDecode = "Bmp256ColorDecode";

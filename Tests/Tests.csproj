@@ -110,6 +110,9 @@
     <None Update="Assets\CachedResults\PngDecodeInterlaced.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\CachedResults\RenderComposerCustomBatch.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\CachedResults\RenderComposerSpriteLimitTest.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

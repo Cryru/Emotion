@@ -60,6 +60,13 @@ namespace Emotion.Graphics
 
         #endregion
 
+        private CommandRecycler _spriteBatchFactory;
+
+        public RenderComposer()
+        {
+            Reset();
+        }
+
         /// <summary>
         /// Process all render commands in the composer, preparing them for rendering.
         /// </summary>
@@ -105,8 +112,11 @@ namespace Emotion.Graphics
         /// </summary>
         public void Reset()
         {
-            // Reset trackers.
+            // Reset batch state.
             ActiveQuadBatch = null;
+            _spriteBatchFactory = GetRenderCommandRecycler<QuadBatch>();
+
+            // Clear old commands.
             RenderCommands.Clear();
 
             foreach (KeyValuePair<Type, CommandRecycler> recycler in _commandCache)
@@ -122,12 +132,34 @@ namespace Emotion.Graphics
         /// <returns>A recycled, ready to use instance of the specified command type.</returns>
         public T GetRenderCommand<T>() where T : RecyclableCommand, new()
         {
+            CommandRecycler<T> recycler = GetRenderCommandRecycler<T>();
+            return (T) recycler.GetObject();
+        }
+
+        /// <summary>
+        /// Gets the recycling factory of the specified render command.
+        /// </summary>
+        /// <typeparam name="T">The command whose recycler to return.</typeparam>
+        /// <returns>The recycling factory of the specified render command..</returns>
+        public CommandRecycler<T> GetRenderCommandRecycler<T>() where T : RecyclableCommand, new()
+        {
             Type type = typeof(T);
-            if (_commandCache.ContainsKey(type)) return (T) _commandCache[type].GetObject();
+            if (_commandCache.ContainsKey(type)) return (CommandRecycler<T>) _commandCache[type];
 
             var newRecycler = new CommandRecycler<T>();
             _commandCache.Add(type, newRecycler);
-            return (T) newRecycler.GetObject();
+            return newRecycler;
+        }
+
+        /// <summary>
+        /// Set the type of the sprite batch. This will invalidate the current batch and create a batch of this type.
+        /// Subsequent batches until the end of the frame will be of this type.
+        /// </summary>
+        /// <typeparam name="T">The type of batch.</typeparam>
+        public void SetSpriteBatchType<T>() where T : QuadBatch, new()
+        {
+            InvalidateStateBatches();
+            _spriteBatchFactory = GetRenderCommandRecycler<T>();
         }
 
         /// <summary>
@@ -149,7 +181,7 @@ namespace Emotion.Graphics
                     QuadBatch batch = ActiveQuadBatch;
                     if (batch == null || batch.Full)
                     {
-                        batch = GetRenderCommand<QuadBatch>();
+                        batch = (QuadBatch) _spriteBatchFactory.GetObject();
                         PushCommand(batch);
                         ActiveQuadBatch = batch;
                     }
@@ -205,7 +237,7 @@ namespace Emotion.Graphics
             {
                 if (texture != null && textureArea != null)
                 {
-                    Rectangle r = (Rectangle) textureArea;
+                    var r = (Rectangle) textureArea;
                     r.X = texture.Size.X - r.Width - r.X;
                     textureArea = r;
                 }
@@ -215,7 +247,7 @@ namespace Emotion.Graphics
             {
                 if (texture != null && textureArea != null)
                 {
-                    Rectangle r = (Rectangle) textureArea;
+                    var r = (Rectangle) textureArea;
                     r.Y = texture.Size.Y - r.Height - r.Y;
                     textureArea = r;
                 }

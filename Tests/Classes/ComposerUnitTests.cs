@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
+using Emotion.Graphics.Command;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Test;
@@ -98,6 +99,57 @@ namespace Tests.Classes
 
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.RenderComposerSpriteLimitTest);
+            }).WaitOne();
+        }
+
+        public class TestCustomBatch : QuadBatch
+        {
+            public override void Process()
+            {
+                for (int i = 0; i < BatchedTexturables.Count; i++)
+                {
+                    BatchedTexturables[i].Color = (new Color(BatchedTexturables[i].Color) * Color.Magenta).ToUint();
+                }
+                base.Process();
+            }
+        }
+
+        /// <summary>
+        /// Tests whether setting a custom batch works.
+        /// </summary>
+        [Test]
+        public void RenderComposerCustomBatch()
+        {
+            Runner.ExecuteAsLoop(_ =>
+            {
+                RenderComposer composer = Engine.Renderer.StartFrame();
+
+                const int count = ushort.MaxValue * 2;
+                const int size = 1;
+
+                var y = 0;
+                var x = 0;
+                var elements = 0;
+
+                const int changeBatchAt = 10000;
+
+                while (elements < count)
+                {
+                    var c = new Color(elements, 255 - elements, elements < ushort.MaxValue ? 255 : 0);
+
+                    if (elements == changeBatchAt) composer.SetSpriteBatchType<TestCustomBatch>();
+
+                    composer.RenderSprite(new Vector3(x * size, y * size, 0), new Vector2(size, size), c);
+                    x++;
+                    elements++;
+
+                    if (x * size < Engine.Renderer.CurrentTarget.Size.X) continue;
+                    y++;
+                    x = 0;
+                }
+
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.RenderComposerCustomBatch);
             }).WaitOne();
         }
 
