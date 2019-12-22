@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Emotion.Graphics;
 using Emotion.Plugins.ImGuiNet.Windowing;
@@ -48,6 +49,8 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.BeginMenu("Game"))
             {
+                if (ImGui.MenuItem("Open Folder")) Process.Start("explorer.exe", ".");
+
                 foreach (KeyValuePair<string, Action<WindowManager>> tool in CustomTools.Where(tool => ImGui.MenuItem(tool.Key)))
                 {
                     tool.Value(manager);
