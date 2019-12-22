@@ -26,7 +26,6 @@ namespace Emotion.Platform.Implementation.Win32
 {
     public class Win32Platform : PlatformBase
     {
-        public static bool IsWindowsXpOrGreater { get; private set; }
         public static bool IsWindowsVistaOrGreater { get; private set; }
         public static bool IsWindows7OrGreater { get; private set; }
         public static bool IsWindows8OrGreater { get; private set; }
@@ -36,10 +35,6 @@ namespace Emotion.Platform.Implementation.Win32
 
         static Win32Platform()
         {
-            IsWindowsXpOrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWinXP),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWinXP),
-                0);
             IsWindowsVistaOrGreater = IsWindowsVersionOrGreaterWin32(
                 NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTVista),
                 NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTVista),
@@ -59,7 +54,6 @@ namespace Emotion.Platform.Implementation.Win32
             IsWindows10AnniversaryUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(14393);
             IsWindows10CreatorsUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(15063);
 
-            Engine.Log.Trace($"WindowsXpSupport: {IsWindowsXpOrGreater}", MessageSource.Win32);
             Engine.Log.Trace($"IsWindowsVistaOrGreater: {IsWindowsVistaOrGreater}", MessageSource.Win32);
             Engine.Log.Trace($"IsWindows7OrGreater: {IsWindows7OrGreater}", MessageSource.Win32);
             Engine.Log.Trace($"IsWindows8OrGreater: {IsWindows8OrGreater}", MessageSource.Win32);
