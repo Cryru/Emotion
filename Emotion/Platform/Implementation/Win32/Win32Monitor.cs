@@ -62,23 +62,21 @@ namespace Emotion.Platform.Implementation.Win32
                 Bottom = dm.dmPosition.Y + dm.dmPelsHeight
             };
 
-            User32.EnumDisplayMonitors(IntPtr.Zero, ref rect, MonitorCallback, this);
+            User32.EnumDisplayMonitors(IntPtr.Zero, ref rect, MonitorCallback, null);
             Win32Platform.CheckError("Creating monitor.");
         }
 
-        private static bool MonitorCallback(IntPtr hMonitor, IntPtr hdc, ref Rect rect, object dwData)
+        private bool MonitorCallback(IntPtr hMonitor, IntPtr hdc, ref Rect rect, object dwData)
         {
             var monitorInfo = new MonitorInfoEx();
             monitorInfo.Size = (uint) Marshal.SizeOf(monitorInfo);
 
             // Try to get monitor info.
             if (!User32.GetMonitorInfo(hMonitor, ref monitorInfo)) return false;
-            // Check if the dwData is a Win32Monitor. (This should always be true)
-            if (!(dwData is Win32Monitor callingMonitor)) return false;
             // Check if the adapter name matches, in which case this is the handle to this monitor.
-            if (monitorInfo.SzDevice == callingMonitor.AdapterName) callingMonitor.Handle = hMonitor;
+            if (monitorInfo.SzDevice == AdapterName) Handle = hMonitor;
 
-            callingMonitor.Position = new Vector2(monitorInfo.MonitorRect.Left, monitorInfo.MonitorRect.Top);
+            Position = new Vector2(monitorInfo.MonitorRect.Left, monitorInfo.MonitorRect.Top);
 
             return true;
         }
