@@ -89,6 +89,13 @@ namespace Emotion.Graphics.Command.Batches
 
         #endregion
 
+        #region Vertex Type
+
+        private int _structByteSize;
+        private Type _structType;
+
+        #endregion
+
         /// <summary>
         /// Default constructor for the recycler factory.
         /// </summary>
@@ -106,8 +113,11 @@ namespace Emotion.Graphics.Command.Batches
         /// </param>
         public SpriteBatch(bool ownGraphicsMemory = false)
         {
+            _structType = typeof(VertexData);
+            _structByteSize = Marshal.SizeOf<VertexData>();
+
             _size = 400; // Initial size is 100 sprites.
-            _batchedVertices = Marshal.AllocHGlobal(_size * VertexData.SizeInBytes);
+            _batchedVertices = Marshal.AllocHGlobal(_size * _structByteSize);
             _createGl = ownGraphicsMemory;
         }
 
@@ -147,14 +157,14 @@ namespace Emotion.Graphics.Command.Batches
                 // When resizing, go for a buffer twice as big as what's needed.
                 // The "fullness" check in PushSprite will ensure that the needed data isn't larger than what the default IBOs can batch at once.
                 var resizeAmount = (int) Math.Min(_size * 2, Engine.Renderer.MaxIndices);
-                _batchedVertices = Marshal.ReAllocHGlobal(_batchedVertices, (IntPtr) (resizeAmount * VertexData.SizeInBytes));
+                _batchedVertices = Marshal.ReAllocHGlobal(_batchedVertices, (IntPtr) (resizeAmount * _structByteSize));
                 _size = resizeAmount;
             }
 
             // Get the data.
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            var data = new Span<VertexData>((void*) &((VertexData*) _batchedVertices)[_mappedTo], 4);
+            var data = new Span<VertexData>((void*) &((byte*) _batchedVertices)[_mappedTo * _structByteSize], 4);
             _mappedTo += 4;
 
             // Set the Tid.
@@ -194,19 +204,24 @@ namespace Emotion.Graphics.Command.Batches
             else
             {
                 vbo = composer.VertexBuffer;
-                vao = composer.CommonVao;
+                composer.VaoCache.TryGetValue(_structType, out vao);
+                if (vao == null)
+                {
+                    vao = new VertexArrayObject<VertexData>(vbo);
+                    composer.VaoCache.Add(_structType, vao);
+                }
             }
 
             // Upload the data if needed.
             if (_upload)
             {
-                vbo.Upload(_batchedVertices, (uint) (_mappedTo * VertexData.SizeInBytes));
+                vbo.Upload(_batchedVertices, (uint) (_mappedTo * _structByteSize));
                 _upload = false;
             }
 
             // Bind graphics objects.
             VertexArrayObject.EnsureBound(vao);
-            if(vao.IBO == null) IndexBuffer.EnsureBound(IndexBuffer.QuadIbo.Pointer);
+            if (vao.IBO == null) IndexBuffer.EnsureBound(IndexBuffer.QuadIbo.Pointer);
             BindTextures();
 
             // Render specified range.
