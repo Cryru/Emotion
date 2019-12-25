@@ -34,17 +34,36 @@ namespace Emotion.Test
         /// </summary>
         public static float PixelDerivationTolerance = 10;
 
+        /// <summary>
+        /// The folder when rendered results are stored.
+        /// </summary>
+        public static string RenderResultStorage = "ReferenceImages";
+
+        #endregion
+
+        #region Configuration Holders
+
+        /// <summary>
+        /// Other runners to run. and the arguments to run them with.
+        /// 
+        /// testOnly - Means that the engine will not be initialized. Used for running unit tests which don't depend on the engine.
+        /// tag - Means that only tests with this tag will be run. If the tests are set to "tagOnly" that means that they will be run only if filtered by tag.
+        /// 
+        /// The function argument can be used to specify a different engine config.
+        /// </summary>
+        private static Dictionary<string, Action<Configurator>> _otherConfigs;
+
+        /// <summary>
+        /// Screenshot db.
+        /// </summary>
+        private static Dictionary<string, byte[]> _screenResultDb;
+
         #endregion
 
         /// <summary>
         /// The logger for this runner.
         /// </summary>
         public static LoggingProvider Log;
-
-        /// <summary>
-        /// The folder when rendered results are stored.
-        /// </summary>
-        public static string RenderResultStorage = "ReferenceImages";
 
         /// <summary>
         /// The id of the runner instance.
@@ -80,22 +99,9 @@ namespace Emotion.Test
 
         private static bool _runnerFolderCreated;
 
-        /// <summary>
-        /// Other runners to run. and the arguments to run them with.
-        /// 
-        /// testOnly - Means that the engine will not be initialized. Used for running unit tests which don't depend on the engine.
-        /// tag - Means that only tests with this tag will be run. If the tests are set to "tagOnly" that means that they will be run only if filtered by tag.
-        /// 
-        /// The function argument can be used to specify a different engine config.
-        /// </summary>
-        private static Dictionary<string, Action<Configurator>> _otherConfigs;
-
-        /// <summary>
-        /// Screenshot db.
-        /// </summary>
-        private static Dictionary<string, byte[]> _screenResultDb;
-
         private static Exception _loopException;
+
+        private static Dictionary<string, int> _comparisonImageDuplicate = new Dictionary<string, int>();
 
         /// <summary>
         /// Run tests.
@@ -461,7 +467,17 @@ namespace Emotion.Test
             }
 
             // Invent a name for this comparison and a folder to store data in, in case it is derived.
-            string fileName = $"{compareName}.png";
+            string fileName;
+            if (_comparisonImageDuplicate.ContainsKey(compareName))
+            {
+                fileName = $"{compareName}{_comparisonImageDuplicate[compareName]}.png";
+                _comparisonImageDuplicate[compareName]++;
+            }
+            else
+            {
+                fileName = $"{compareName}.png";
+                _comparisonImageDuplicate.Add(compareName, 1);
+            }
 
             // We want to store the comparison image for possible manual comparison.
             string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
