@@ -41,6 +41,7 @@ Emotion.Test
 	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
 	- Test functions which are run at the start and end of a class.
 	- Use a custom loop rather than the FrameByFrame hack.
+	- Some kind of multi-thread function to relieve the StandardAudio tests for example.
 Documentation
 	- Finish the documentation :D
 Game Logic
