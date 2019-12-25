@@ -71,7 +71,7 @@ namespace Tests.Classes
                 var x = 0;
                 var elements = 0;
 
-                // Generate the locations at which an invaldiation will occur.
+                // Generate the locations at which an invalidation will occur.
                 List<int> invalidationIdx = new List<int>();
                 for (int i = 0; i < 10; i++)
                 {

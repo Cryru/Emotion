@@ -52,11 +52,15 @@ namespace Emotion.Graphics
         public VertexBuffer VertexBuffer;
 
         /// <summary>
-        /// The common vao of this composer. Used if the command doesn't care about creating its own.
-        /// Is bound to the common VertexBuffer.
-        /// Do not use outside of command execution.
+        /// A common VertexData VAO. As that is the most commonly used structure.
+        /// VaoCache[typeof(VertexData)] will also return this object.
         /// </summary>
         public VertexArrayObject CommonVao;
+
+        /// <summary>
+        /// Cached VAOs per structure type. These are all bound to the common VBO.
+        /// </summary>
+        public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
 
         #endregion
 
@@ -79,6 +83,7 @@ namespace Emotion.Graphics
             {
                 VertexBuffer = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * VertexData.SizeInBytes));
                 CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
+                VaoCache.Add(typeof(VertexData), CommonVao);
             }
 
             if (Processed) return;

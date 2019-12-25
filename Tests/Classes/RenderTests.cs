@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Game.Text;
 using Emotion.Game.Tiled;
 using Emotion.Graphics;
 using Emotion.IO;
@@ -33,6 +34,25 @@ namespace Tests.Classes
                 composer.RenderString(new Vector3(10, 10, 0), Color.Red, "The quick brown fox jumps over the lazy dog.\n123456789!@#$%^&*(0", asset.GetAtlas(20));
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.ComposerRenderText);
+            }).WaitOne();
+        }
+
+        /// <summary>
+        /// Tests the rendering of RichText. This also tests batch caching.
+        /// </summary>
+        [Test]
+        public void RenderRichText()
+        {
+            var asset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
+            var testRich = new RichText(new Vector3(10, 10, 0), new Vector2(100, 100), asset.GetAtlas(20));
+            testRich.SetText("The quick brown fox jumps over the <color=255-0-0>lazy</> dog.\n123456789!@#$%^&*(0");
+
+            Runner.ExecuteAsLoop(_ =>
+            {
+                RenderComposer composer = Engine.Renderer.StartFrame();
+                composer.Render(testRich);
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.RenderRichText);
             }).WaitOne();
         }
 

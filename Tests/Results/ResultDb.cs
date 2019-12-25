@@ -30,6 +30,8 @@ namespace Tests.Results
         public static string ComposerRender = "ComposerRender";
         public static string ComposerDepthTest = "ComposerDepthTest";
 
+        public static string RenderRichText = "RenderRichText";
+
         public static string AnimatedTextureTest1 = "AnimatedTextureTest1";
         public static string AnimatedTextureTest2 = "AnimatedTextureTest2";
         public static string AnimatedTextureTest3 = "AnimatedTextureTest3";

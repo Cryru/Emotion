@@ -40,8 +40,6 @@ namespace Emotion.Graphics.Command
         /// </summary>
         protected int _textureSlotUtilization;
 
-        protected VertexBuffer _vbo;
-        protected VertexArrayObject _vao;
         protected int _mappedTo; // How far the buffer is mapped.
         protected bool _rebindTextures; // Whether to rebind textures, after mapping has occured.
         protected uint _startIndex;
@@ -105,55 +103,30 @@ namespace Emotion.Graphics.Command
             _rebindTextures = true;
         }
 
-        /// <summary>
-        /// Process the batch, mapping the buffer with the batched sprites.
-        /// Should only be called by the composer itself.
-        /// </summary>
-        public override void Process(RenderComposer composer)
+        public override void Execute(RenderComposer composer)
         {
-            // Check if anything to map.
-            if(BatchedTexturables.Count == 0) return;
-            // Check if all are mapped.
-            if(_mappedTo == BatchedTexturables.Count * 4) return;
-
-            // Create graphics objects, if missing.
+            if (BatchedTexturables.Count == 0) return;
+            
+            // Calculate needed size.
             var bufferLengthNeeded = (uint) (BatchedTexturables.Count * 4 * VertexData.SizeInBytes);
-            // When resizing (or creating) create a buffer twice as big as what's needed, but don't go over the max which can be used with the default IBOs.
-            // The "fullness" check in PushSprite will ensure that the needed data isn't larger than what the default IBOs can fit.
+
+            // When resizing, go for a buffer twice as big as what's needed.
+            // The "fullness" check in PushSprite will ensure that the needed data isn't larger than what the default IBOs can batch at once.
             uint resizeAmount = Math.Min(bufferLengthNeeded * 2, (uint) (Engine.Renderer.MaxIndices * VertexData.SizeInBytes));
-            if (_vbo == null)
-            {
-                _vbo = new VertexBuffer(resizeAmount);
-                _vao = new VertexArrayObject<VertexData>(_vbo, IndexBuffer.QuadIbo);
-            }
+
+            VertexBuffer vbo = composer.VertexBuffer;
 
             // Check if a resize is needed.
-            if (_vbo.Size < bufferLengthNeeded) _vbo.Upload(IntPtr.Zero, resizeAmount);
+            if (vbo.Size < bufferLengthNeeded) vbo.Upload(IntPtr.Zero, resizeAmount);
 
             // Open a mapper to the vbo.
-            Span<VertexData> mapper = _vbo.CreateMapper<VertexData>(0, (int) bufferLengthNeeded);
+            Span<VertexData> mapper = vbo.CreateMapper<VertexData>(0, (int) bufferLengthNeeded);
 
+            // Map sprites.
             // ReSharper disable once ForCanBeConvertedToForeach
             for (var j = 0; j < BatchedTexturables.Count; j++)
             {
                 RenderSpriteCommand x = BatchedTexturables[j];
-
-                // Check if already mapped.
-                if (j * 4 < _mappedTo) continue;
-
-                // If the sprite is processed it is also considered mapped.
-                // This happens when updating a single sprite once the initial mapping has occured.
-                if (x.Processed)
-                {
-                    _mappedTo += 4;
-                    continue;
-                }
-
-                if (_rebindTextures)
-                {
-                    TextureBindingUpdate(x.Texture.Pointer);
-                }
-
                 x.Process(composer);
 
                 // Set the texture id in vertices with the one the batch will bind.
@@ -179,15 +152,11 @@ namespace Emotion.Graphics.Command
                 }
             }
 
-            _vbo.FinishMapping();
-        }
+            vbo.FinishMapping();
 
-        public override void Execute(RenderComposer composer)
-        {
-            if (BatchedTexturables.Count == 0) return;
-
-            // Bind the vao. This will also bind the vbo and ibo.
-            VertexArrayObject.EnsureBound(_vao);
+            // Bind graphics objects.
+            VertexArrayObject.EnsureBound(composer.CommonVao);
+            IndexBuffer.EnsureBound(IndexBuffer.QuadIbo.Pointer);
             BindTextures();
 
             // Render specified range.
@@ -275,8 +244,7 @@ namespace Emotion.Graphics.Command
 
         public override void Dispose()
         {
-            _vbo?.Dispose();
-            _vao?.Dispose();
+
         }
     }
 }

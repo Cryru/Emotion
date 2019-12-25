@@ -116,6 +116,9 @@
     <None Update="Assets\CachedResults\RenderComposerSpriteLimitTest.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\CachedResults\RenderRichText.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\CachedResults\ShaderFallback.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
