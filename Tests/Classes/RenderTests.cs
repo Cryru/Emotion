@@ -127,7 +127,7 @@ namespace Tests.Classes
                 // Set a background so invalid alpha can be seen
                 composer.RenderSprite(new Vector3(0, 0, -1), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
 
-                composer.SetSpriteBatchType<SortedVertexDataBatch>();
+                composer.SetSpriteBatchType<SortedSpriteBatch>();
 
                 for (var i = 0; i < 50; i++)
                 {

@@ -24,7 +24,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The quad batch currently active.
         /// </summary>
-        public VertexDataBatch ActiveQuadBatch;
+        public SpriteBatch ActiveQuadBatch;
 
         /// <summary>
         /// Whether the composer has processed all of its commands.
@@ -134,7 +134,7 @@ namespace Emotion.Graphics
         {
             // Reset batch state.
             ActiveQuadBatch = null;
-            _spriteBatchFactory = GetRenderCommandRecycler<VertexDataBatch>();
+            _spriteBatchFactory = GetRenderCommandRecycler<SpriteBatch>();
 
             // Clear old commands.
             RenderCommands.Clear();
@@ -177,12 +177,12 @@ namespace Emotion.Graphics
         /// Returns the current batch, or creates a new one if none.
         /// </summary>
         /// <returns></returns>
-        public VertexDataBatch GetBatch()
+        public SpriteBatch GetBatch()
         {
             if (ActiveQuadBatch != null && !ActiveQuadBatch.Full) return ActiveQuadBatch;
 
             // Create new batch if there is no active one, or it is full.
-            var batch = (VertexDataBatch) _spriteBatchFactory.GetObject();
+            var batch = (SpriteBatch) _spriteBatchFactory.GetObject();
             PushCommand(batch);
             ActiveQuadBatch = batch;
 
@@ -204,7 +204,7 @@ namespace Emotion.Graphics
         /// Subsequent batches until the end of the frame will be of this type.
         /// </summary>
         /// <typeparam name="T">The type of batch.</typeparam>
-        public void SetSpriteBatchType<T>() where T : VertexDataBatch, new()
+        public void SetSpriteBatchType<T>() where T : SpriteBatch, new()
         {
             InvalidateStateBatches();
             _spriteBatchFactory = GetRenderCommandRecycler<T>();
@@ -215,7 +215,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RestoreSpriteBatchType()
         {
-            SetSpriteBatchType<VertexDataBatch>();
+            SetSpriteBatchType<SpriteBatch>();
         }
 
         #endregion
@@ -245,7 +245,7 @@ namespace Emotion.Graphics
                 // We don't know what the sub composer will do, so invalidate batches.
                 case SubComposerCommand _:
                 // If pushing a batch.
-                case VertexDataBatch _:
+                case SpriteBatch _:
                     InvalidateStateBatches();
                     break;
             }

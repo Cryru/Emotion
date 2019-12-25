@@ -11,7 +11,7 @@ namespace Emotion.Graphics.Command.Batches
     /// Sorts batched sprites by their Z position.
     /// Used for semi-opaque sprites.
     /// </summary>
-    public class SortedVertexDataBatch : VertexDataBatch
+    public class SortedSpriteBatch : SpriteBatch
     {
         public override unsafe void Process(RenderComposer composer)
         {

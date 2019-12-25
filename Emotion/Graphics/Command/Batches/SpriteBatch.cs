@@ -17,7 +17,7 @@ namespace Emotion.Graphics.Command.Batches
     /// Batch which handles batching sprites to be drawn together.
     /// Up to 16 textures and around 16k sprites can be batched at once.
     /// </summary>
-    public class VertexDataBatch : RecyclableCommand
+    public class SpriteBatch : RecyclableCommand
     {
         /// <summary>
         /// Whether the batch is full.
@@ -92,7 +92,7 @@ namespace Emotion.Graphics.Command.Batches
         /// <summary>
         /// Default constructor for the recycler factory.
         /// </summary>
-        public VertexDataBatch() : this(false)
+        public SpriteBatch() : this(false)
         {
         }
 
@@ -104,7 +104,7 @@ namespace Emotion.Graphics.Command.Batches
         /// If you are caching a render it is better to set this to true as it will prevent the data from being reuploaded.
         /// If set to false the VBO of the RenderComposer is used instead.
         /// </param>
-        public VertexDataBatch(bool ownGraphicsMemory = false)
+        public SpriteBatch(bool ownGraphicsMemory = false)
         {
             _size = 400; // Initial size is 100 sprites.
             _batchedVertices = Marshal.AllocHGlobal(_size * VertexData.SizeInBytes);
