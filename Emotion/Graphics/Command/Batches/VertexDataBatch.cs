@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using OpenGL;
@@ -13,13 +14,35 @@ using OpenGL;
 namespace Emotion.Graphics.Command.Batches
 {
     /// <summary>
-    /// An immediate mode like batch. Uses the VAO and VBO of the RenderComposer it is under, and
-    /// works with the VertexData struct.
+    /// Batch which handles batching sprites to be drawn together.
+    /// Up to 16 textures and around 16k sprites can be batched at once.
     /// </summary>
-    public class VertexDataBatch : QuadBatch
+    public class VertexDataBatch : RecyclableCommand
     {
         /// <summary>
-        /// Pointer to the batch memory.
+        /// Whether the batch is full.
+        /// This happens when the maximum indices are met, or the maximum textures.
+        /// </summary>
+        public bool Full { get; protected set; }
+
+        #region Texturing
+
+        /// <summary>
+        /// The textures to bind.
+        /// </summary>
+        protected uint[] _textureBinding = new uint[Texture.Bound.Length];
+
+        /// <summary>
+        /// How many texture slots are utilized.
+        /// </summary>
+        protected int _textureSlotUtilization;
+
+        #endregion
+
+        #region Memory Management
+
+        /// <summary>
+        /// Pointer to the unmanaged batch memory.
         /// </summary>
         protected IntPtr _batchedVertices;
 
@@ -33,6 +56,10 @@ namespace Emotion.Graphics.Command.Batches
         /// </summary>
         protected int _mappedTo;
 
+        #endregion
+
+        #region Draw Params
+
         /// <summary>
         /// The index to start rendering from.
         /// </summary>
@@ -43,20 +70,22 @@ namespace Emotion.Graphics.Command.Batches
         /// </summary>
         protected uint? _endIndex;
 
-        /// <summary>
-        /// Whether data needs to be uploaded.
-        /// </summary>
-        protected bool _upload = true;
+        #endregion
 
-        #region Own Memory
+        #region Own Graphics Memory
 
         /// <summary>
         /// Whether to create gl objects if missing.
         /// </summary>
         private bool _createGl;
 
-        private VertexBuffer _vbo;
-        private VertexArrayObject _vao;
+        /// <summary>
+        /// Whether data needs to be uploaded.
+        /// </summary>
+        protected bool _upload = true;
+
+        protected VertexBuffer _vbo;
+        protected VertexArrayObject _vao;
 
         #endregion
 
@@ -82,18 +111,26 @@ namespace Emotion.Graphics.Command.Batches
             _createGl = ownGraphicsMemory;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Recycle the batch, clearing all batched sprites and textures.
+        /// Graphics objects are reused if possible.
+        /// </summary>
         public override void Recycle()
         {
-            base.Recycle();
+            Full = false;
+            _textureSlotUtilization = 0;
             _mappedTo = 0;
             _startIndex = 0;
             _endIndex = null;
             _upload = true;
         }
 
-        /// <inheritdoc />
-        public override unsafe Span<VertexData> GetData(Texture texture)
+        /// <summary>
+        /// Returns the data within the batch to map a sprite into, and adds the provided texture to the texture mapping.
+        /// </summary>
+        /// <param name="texture">The texture to bind.</param>
+        /// <returns>he data inside the batch to be filled.</returns>
+        public virtual unsafe Span<VertexData> GetData(Texture texture)
         {
             // Check if already full.
             if (Full) return null;
@@ -180,26 +217,63 @@ namespace Emotion.Graphics.Command.Batches
             Gl.DrawElements(PrimitiveType.Triangles, (int) length, DrawElementsType.UnsignedShort, startIndex);
         }
 
-        #region API for Outside Composer
+        #region Texturing API
 
         /// <summary>
-        /// Get the batched sprite at the specific index.
-        /// Changes to the returned object will modify the sprite itself.
-        /// To change the texture request a binding from AddTextureBinding()
-        /// To clear unused texture bindings call RemapTextures().
+        /// Add the specified pointer to the texture binding, if possible.
         /// </summary>
-        /// <param name="index">The index of the batched sprite.</param>
-        /// <returns>The sprite at that index or null if invalid.</returns>
-        public unsafe Span<VertexData> GetSpriteAt(int index)
+        /// <param name="pointer">The texture pointer to add.</param>
+        /// <param name="bindingPointer">The pointer to the internal binding.</param>
+        /// <returns>Whether the texture was added.</returns>
+        public bool AddTextureBinding(uint pointer, out int bindingPointer)
         {
-            if (index < 0 || index * 4 >= _mappedTo) return null;
+            bindingPointer = -1;
 
-            // Mark state as dirty.
-            _upload = true;
+            if (_textureSlotUtilization == _textureBinding.Length) return false;
 
-            // ReSharper disable once PossibleNullReferenceException
-            // ReSharper disable once RedundantCast
-            return new Span<VertexData>((void*) &((VertexData*) _batchedVertices)[index * 4], 4);
+            if (TextureInBinding(pointer, out bindingPointer)) return true;
+
+            // Add to binding.
+            _textureBinding[_textureSlotUtilization] = pointer;
+            bindingPointer = _textureSlotUtilization;
+            _textureSlotUtilization++;
+
+            // Verify if the texture binding maximum has been reached.
+            if (_textureSlotUtilization == _textureBinding.Length) Full = true;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Check whether the specified texture pointer exists in the batch binding.
+        /// </summary>
+        /// <param name="pointer">The texture point to check.</param>
+        /// <param name="bindingPointer">The internal pointer bound at or -1 if not bound.</param>
+        /// <returns>Whether this texture exists in the batch binding.</returns>
+        public bool TextureInBinding(uint pointer, out int bindingPointer)
+        {
+            for (var i = 0; i < _textureSlotUtilization; i++)
+            {
+                if (_textureBinding[i] != pointer) continue;
+                bindingPointer = i;
+                return true;
+            }
+
+            bindingPointer = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// Bind the textures in use.
+        /// </summary>
+        public void BindTextures()
+        {
+            Debug.Assert(GLThread.IsGLThread());
+
+            for (uint i = 0; i < _textureSlotUtilization; i++)
+            {
+                Texture.EnsureBound(_textureBinding[i], i);
+            }
         }
 
         /// <summary>
@@ -244,6 +318,30 @@ namespace Emotion.Graphics.Command.Batches
                 // Amend vertex.
                 cur.Tid = newIdx;
             }
+        }
+
+        #endregion
+
+        #region API for Outside Composer
+
+        /// <summary>
+        /// Get the batched sprite at the specific index.
+        /// Changes to the returned object will modify the sprite itself.
+        /// To change the texture request a binding from AddTextureBinding()
+        /// To clear unused texture bindings call RemapTextures().
+        /// </summary>
+        /// <param name="index">The index of the batched sprite.</param>
+        /// <returns>The sprite at that index or null if invalid.</returns>
+        public unsafe Span<VertexData> GetSpriteAt(int index)
+        {
+            if (index < 0 || index * 4 >= _mappedTo) return null;
+
+            // Mark state as dirty.
+            _upload = true;
+
+            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable once RedundantCast
+            return new Span<VertexData>((void*) &((VertexData*) _batchedVertices)[index * 4], 4);
         }
 
         /// <summary>

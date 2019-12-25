@@ -24,7 +24,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The quad batch currently active.
         /// </summary>
-        public QuadBatch ActiveQuadBatch;
+        public VertexDataBatch ActiveQuadBatch;
 
         /// <summary>
         /// Whether the composer has processed all of its commands.
@@ -177,12 +177,12 @@ namespace Emotion.Graphics
         /// Returns the current batch, or creates a new one if none.
         /// </summary>
         /// <returns></returns>
-        public QuadBatch RequestBatch()
+        public VertexDataBatch GetBatch()
         {
             if (ActiveQuadBatch != null && !ActiveQuadBatch.Full) return ActiveQuadBatch;
 
             // Create new batch if there is no active one, or it is full.
-            var batch = (QuadBatch) _spriteBatchFactory.GetObject();
+            var batch = (VertexDataBatch) _spriteBatchFactory.GetObject();
             PushCommand(batch);
             ActiveQuadBatch = batch;
 
@@ -204,7 +204,7 @@ namespace Emotion.Graphics
         /// Subsequent batches until the end of the frame will be of this type.
         /// </summary>
         /// <typeparam name="T">The type of batch.</typeparam>
-        public void SetSpriteBatchType<T>() where T : QuadBatch, new()
+        public void SetSpriteBatchType<T>() where T : VertexDataBatch, new()
         {
             InvalidateStateBatches();
             _spriteBatchFactory = GetRenderCommandRecycler<T>();
@@ -245,7 +245,7 @@ namespace Emotion.Graphics
                 // We don't know what the sub composer will do, so invalidate batches.
                 case SubComposerCommand _:
                 // If pushing a batch.
-                case QuadBatch _:
+                case VertexDataBatch _:
                     InvalidateStateBatches();
                     break;
             }
