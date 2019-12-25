@@ -101,7 +101,6 @@ namespace Emotion.Graphics
         private RenderComposer _composer;
 
         private RenderState _blitState;
-        private RenderSpriteCommand _blitRenderCommand;
         private ChangeStateCommand _defaultStateCommand;
 
         #endregion
@@ -183,14 +182,7 @@ namespace Emotion.Graphics
             DrawBuffer = new FrameBuffer(new Texture(Engine.Configuration.RenderSize), true);
             _bufferStack.Push(DrawBuffer);
 
-            // Create the blit command for copying the draw buffer onto the screen buffer
-            _blitRenderCommand = new RenderSpriteCommand
-            {
-                Position = Vector3.Zero,
-                Size = ScreenBuffer.Size,
-                Texture = DrawBuffer.Texture,
-                Color = Color.White.ToUint()
-            };
+            // Create the blit state command for copying the draw buffer to the screen buffer.
             _blitState = RenderState.Default();
             _blitState.AlphaBlending = false;
             _blitState.DepthTest = false;
@@ -225,7 +217,7 @@ namespace Emotion.Graphics
         #region Event Handles and Sizing
 
         /// <summary>
-        /// Is called when the host is resized.
+        /// Is called when the host is resized - in full scale mode.
         /// </summary>
         internal bool HostResizedFullScale(Vector2 size)
         {
@@ -240,8 +232,6 @@ namespace Emotion.Graphics
             Gl.Viewport(0, 0, (int) size.X, (int) size.Y);
             ScreenBuffer.Viewport = new Rectangle(0, 0, size);
             ScreenBuffer.Size = size;
-            _blitRenderCommand.Size = size;
-            _blitRenderCommand.UV = new Rectangle(0, 0, size);
 
             // Recreate draw buffer.
             if (DrawBuffer.Size != size)
@@ -250,7 +240,6 @@ namespace Emotion.Graphics
                 DrawBuffer = new FrameBuffer(new Texture(size), true);
                 _bufferStack.Clear();
                 _bufferStack.Push(DrawBuffer);
-                _blitRenderCommand.Texture = DrawBuffer.Texture;
             }
 
             Camera?.RecreateMatrix();
@@ -289,7 +278,6 @@ namespace Emotion.Graphics
             // Set viewport.
             ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
             ScreenBuffer.Size = size;
-            _blitRenderCommand.Size = size;
 
             return true;
         }
@@ -366,7 +354,7 @@ namespace Emotion.Graphics
             // Push a blit from the draw buffer to the screen buffer.
             _composer.SetState(_blitState);
             _composer.RenderTo(ScreenBuffer);
-            _composer.PushCommand(_blitRenderCommand, true);
+            _composer.RenderSprite(Vector3.Zero, ScreenBuffer.Size, Color.White, DrawBuffer.Texture);
             _composer.RenderTo(null);
 
             _composer.Process();
