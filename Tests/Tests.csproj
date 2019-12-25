@@ -92,6 +92,9 @@
     <None Update="Assets\CachedResults\ComposerRender.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\CachedResults\ComposerRenderSorted.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\CachedResults\ComposerRenderText.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

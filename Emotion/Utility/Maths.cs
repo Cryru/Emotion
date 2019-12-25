@@ -65,6 +65,16 @@ namespace Emotion.Utility
         public const float EPSILON = 0.0000001f;
 
         /// <summary>
+        /// Matrix for flipping the X axis.
+        /// </summary>
+        public static Matrix4x4 FlipMatX = Matrix4x4.CreateScale(-1, 1, 1);
+
+        /// <summary>
+        /// Matrix for flipping the Y axis.
+        /// </summary>
+        public static Matrix4x4 FlipMatY = Matrix4x4.CreateScale(1, -1, 1);
+
+        /// <summary>
         /// Ceiling round the float to the nearest int value above y. note that this only works for values in the range of short.
         /// </summary>
         /// <returns>The ceil to int.</returns>

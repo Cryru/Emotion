@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Emotion.Graphics;
-using Emotion.Graphics.Command;
+using Emotion.Graphics.Command.Batches;
+using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Text;
@@ -94,7 +95,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The render cache of the entire text.
         /// </summary>
-        protected QuadBatch _renderCache { get; set; }
+        protected VertexDataBatch _renderCache { get; set; }
 
         /// <summary>
         /// The text layouter.
@@ -156,7 +157,7 @@ namespace Emotion.Game.Text
             FontAtlas = fontAtlas;
 
             _layouter = new TextLayouter(fontAtlas.Atlas);
-            _renderCache = new QuadBatch();
+            _renderCache = new VertexDataBatch(true);
         }
 
         /// <summary>
@@ -447,7 +448,7 @@ namespace Emotion.Game.Text
             }
 
             composer.PushModelMatrix(ModelMatrix);
-            composer.PushCommand(_renderCache, true);
+            composer.PushCommand(_renderCache);
             composer.PopModelMatrix();
         }
 
@@ -529,14 +530,9 @@ namespace Emotion.Game.Text
 
             _layouter.AddToPen(new Vector2(xOffset, yOffset));
             Vector2 drawPos = _layouter.AddLetter(c, out AtlasGlyph g);
-            _renderCache.PushSprite(new RenderSpriteCommand
-            {
-                Color = color.ToUint(),
-                Position = new Vector3(drawPos, 0),
-                Size = g.Size,
-                Texture = _fontAtlas.Texture,
-                UV = new Rectangle(g.Location, g.Size)
-            });
+
+            Span<VertexData> data = _renderCache.GetData(_fontAtlas.Texture);
+            VertexData.SpriteToVertexData(data, new Vector3(drawPos, 0), g.Size, color, _fontAtlas.Texture, new Rectangle(g.Location, g.Size));
         }
 
         #endregion

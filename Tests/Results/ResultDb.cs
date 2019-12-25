@@ -28,6 +28,7 @@ namespace Tests.Results
         public static string EmotionCompositeAtlas = "EmotionCompositeAtlas";
         public static string ComposerRenderText = "ComposerRenderText";
         public static string ComposerRender = "ComposerRender";
+        public static string ComposerRenderSorted = "ComposerRenderSorted";
         public static string ComposerDepthTest = "ComposerDepthTest";
 
         public static string RenderRichText = "RenderRichText";

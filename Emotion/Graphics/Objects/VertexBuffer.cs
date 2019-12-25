@@ -20,7 +20,7 @@ namespace Emotion.Graphics.Objects
             set => DataBuffer.Bound[BufferTarget.ArrayBuffer] = value;
         }
 
-        public VertexBuffer(uint byteSize = 0, BufferUsage usage = BufferUsage.StreamDraw) : base(BufferTarget.ArrayBuffer, byteSize, usage)
+        public VertexBuffer(uint byteSize = 0, BufferUsage usage = BufferUsage.DynamicDraw) : base(BufferTarget.ArrayBuffer, byteSize, usage)
         {
         }
 

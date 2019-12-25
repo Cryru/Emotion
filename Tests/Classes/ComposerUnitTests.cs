@@ -1,10 +1,12 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
-using Emotion.Graphics.Command;
+using Emotion.Graphics.Command.Batches;
+using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Test;
@@ -72,15 +74,15 @@ namespace Tests.Classes
                 var elements = 0;
 
                 // Generate the locations at which an invalidation will occur.
-                List<int> invalidationIdx = new List<int>();
-                for (int i = 0; i < 10; i++)
+                var invalidationIdx = new List<int>();
+                for (var i = 0; i < 10; i++)
                 {
                     invalidationIdx.Add(Helpers.GenerateRandomNumber(100, count - 100));
                 }
 
                 while (elements < count)
                 {
-                    if(invalidationIdx.IndexOf(elements) != -1)
+                    if (invalidationIdx.IndexOf(elements) != -1)
                     {
                         Runner.Log.Info($"Invalidation of batch at element - {elements}", CustomMSource.TestRunner);
                         composer.InvalidateStateBatches();
@@ -102,14 +104,17 @@ namespace Tests.Classes
             }).WaitOne();
         }
 
-        public class TestCustomBatch : QuadBatch
+        public class TestCustomBatch : VertexDataBatch
         {
-            public override void Process(RenderComposer c)
+            public override unsafe void Process(RenderComposer c)
             {
-                for (int i = 0; i < BatchedTexturables.Count; i++)
+                var data = new Span<VertexData>((void*) _batchedVertices, _mappedTo);
+
+                for (var i = 0; i < data.Length; i++)
                 {
-                    BatchedTexturables[i].Color = (new Color(BatchedTexturables[i].Color) * Color.Magenta).ToUint();
+                    data[i].Color = (new Color(data[i].Color) * Color.Magenta).ToUint();
                 }
+
                 base.Process(c);
             }
         }

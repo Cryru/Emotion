@@ -6,22 +6,20 @@ using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Game.Text;
 using Emotion.Graphics.Command;
+using Emotion.Graphics.Command.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
-using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Standard.Text;
 
 #endregion
 
 namespace Emotion.Graphics
 {
-    public sealed class RenderComposer
+    public sealed partial class RenderComposer
     {
-        private const int RENDER_COMMAND_INITIAL_SIZE = 128;
+        private const int RENDER_COMMAND_INITIAL_SIZE = 16;
 
         /// <summary>
         /// The quad batch currently active.
@@ -64,10 +62,27 @@ namespace Emotion.Graphics
 
         #endregion
 
+        /// <summary>
+        /// The factory for the currently active batch.
+        /// </summary>
         private CommandRecycler _spriteBatchFactory;
 
-        public RenderComposer()
+        /// <summary>
+        /// Whether to create GL objects if missing.
+        /// </summary>
+        private bool _createGl;
+
+        /// <summary>
+        /// Create a new RenderComposer to manage render commands.
+        /// </summary>
+        /// <param name="ownGraphicsMemory">
+        /// Whether the composer will own graphics memory.
+        /// If set to false the CommonVao, VertexBuffer, and VaoCache will be uninitialized.
+        /// Beware that some commands require them.
+        /// </param>
+        public RenderComposer(bool ownGraphicsMemory = true)
         {
+            _createGl = ownGraphicsMemory;
             Reset();
         }
 
@@ -79,7 +94,7 @@ namespace Emotion.Graphics
             Debug.Assert(GLThread.IsGLThread());
 
             // Create graphics objects if needed.
-            if (VertexBuffer == null)
+            if (_createGl && VertexBuffer == null)
             {
                 VertexBuffer = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * VertexData.SizeInBytes));
                 CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
@@ -119,7 +134,7 @@ namespace Emotion.Graphics
         {
             // Reset batch state.
             ActiveQuadBatch = null;
-            _spriteBatchFactory = GetRenderCommandRecycler<QuadBatch>();
+            _spriteBatchFactory = GetRenderCommandRecycler<VertexDataBatch>();
 
             // Clear old commands.
             RenderCommands.Clear();
@@ -156,6 +171,34 @@ namespace Emotion.Graphics
             return newRecycler;
         }
 
+        #region Batching
+
+        /// <summary>
+        /// Returns the current batch, or creates a new one if none.
+        /// </summary>
+        /// <returns></returns>
+        public QuadBatch RequestBatch()
+        {
+            if (ActiveQuadBatch != null && !ActiveQuadBatch.Full) return ActiveQuadBatch;
+
+            // Create new batch if there is no active one, or it is full.
+            var batch = (QuadBatch) _spriteBatchFactory.GetObject();
+            PushCommand(batch);
+            ActiveQuadBatch = batch;
+
+            return ActiveQuadBatch;
+        }
+
+        /// <summary>
+        /// Invalidates current render batches.
+        /// This should be done when the state changes in some way because calls afterwards will differ from those before and
+        /// cannot be batched.
+        /// </summary>
+        public void InvalidateStateBatches()
+        {
+            ActiveQuadBatch = null;
+        }
+
         /// <summary>
         /// Set the type of the sprite batch. This will invalidate the current batch and create a batch of this type.
         /// Subsequent batches until the end of the frame will be of this type.
@@ -168,32 +211,25 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Restore to the default batch type.
+        /// </summary>
+        public void RestoreSpriteBatchType()
+        {
+            SetSpriteBatchType<VertexDataBatch>();
+        }
+
+        #endregion
+
+        /// <summary>
         /// Push a render command to the composer.
         /// </summary>
         /// <param name="command">The command to push.</param>
-        /// <param name="dontBatch">Whether to not batch if batchable.</param>
-        public void PushCommand(RenderCommand command, bool dontBatch = false)
+        /// <param name="_">Legacy</param>
+        public void PushCommand(RenderCommand command, bool _ = false)
         {
             if (command == null) return;
 
             Processed = false;
-
-            // Check if a batchable command.
-            switch (command)
-            {
-                case RenderSpriteCommand batchable when !dontBatch:
-                    // Push to the current batch. Create new batch if there is no active one, or it is full.
-                    QuadBatch batch = ActiveQuadBatch;
-                    if (batch == null || batch.Full)
-                    {
-                        batch = (QuadBatch) _spriteBatchFactory.GetObject();
-                        PushCommand(batch);
-                        ActiveQuadBatch = batch;
-                    }
-
-                    batch.PushSprite(batchable);
-                    return;
-            }
 
             RenderCommands.Add(command);
 
@@ -208,128 +244,11 @@ namespace Emotion.Graphics
                 case ModelMatrixModificationCommand _:
                 // We don't know what the sub composer will do, so invalidate batches.
                 case SubComposerCommand _:
-                // If pushing a batch and it wasn't caught by the !dontBatch case
+                // If pushing a batch.
                 case QuadBatch _:
                     InvalidateStateBatches();
                     break;
             }
-        }
-
-        #region RenderSprite Overloads
-
-        private static Matrix4x4 _flipMatX = Matrix4x4.CreateScale(-1, 1, 1);
-        private static Matrix4x4 _flipMatY = Matrix4x4.CreateScale(1, -1, 1);
-
-        /// <summary>
-        /// Render a (textured) quad to the screen.
-        /// </summary>
-        /// <param name="position">The position of the quad.</param>
-        /// <param name="size">The size of the quad.</param>
-        /// <param name="color">The color of the quad.</param>
-        /// <param name="texture">The texture of the quad, if any.</param>
-        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
-        /// <param name="flipX">Whether to flip the texture on the x axis.</param>
-        /// <param name="flipY">Whether to flip the texture on the y axis.</param>
-        public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
-        {
-            var command = GetRenderCommand<RenderSpriteCommand>();
-            command.Position = position;
-            command.Size = size;
-            command.Color = color.ToUint();
-            command.Texture = texture;
-            command.TextureModifier = null;
-            if (flipX)
-            {
-                if (texture != null && textureArea != null)
-                {
-                    var r = (Rectangle) textureArea;
-                    r.X = texture.Size.X - r.Width - r.X;
-                    textureArea = r;
-                }
-                command.TextureModifier = _flipMatX;
-            }
-            if (flipY)
-            {
-                if (texture != null && textureArea != null)
-                {
-                    var r = (Rectangle) textureArea;
-                    r.Y = texture.Size.Y - r.Height - r.Y;
-                    textureArea = r;
-                }
-                command.TextureModifier = _flipMatY;
-            }
-            command.UV = textureArea;
-            PushCommand(command);
-        }
-
-        /// <summary>
-        /// Render a (textured) quad to the screen using its transform.
-        /// </summary>
-        /// <param name="transform">The quad's transform.</param>
-        /// <param name="color">The color of the quad.</param>
-        /// <param name="texture">The texture of the quad, if any.</param>
-        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
-        public void RenderSprite(Transform transform, Color color, Texture texture = null, Rectangle? textureArea = null)
-        {
-            RenderSprite(transform.Position, transform.Size, color, texture, textureArea);
-        }
-
-        /// <summary>
-        /// Render a (textured) quad to the screen.
-        /// </summary>
-        /// <param name="position">The position of the quad.</param>
-        /// <param name="size">The size of the quad.</param>
-        /// <param name="texture">The texture of the quad, if any.</param>
-        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
-        public void RenderSprite(Vector3 position, Vector2 size, Texture texture = null, Rectangle? textureArea = null)
-        {
-            RenderSprite(position, size, Color.White, texture, textureArea);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Render a line made out of quads.
-        /// </summary>
-        /// <param name="pointOne">The point to start the line.</param>
-        /// <param name="pointTwo">The point to end the line at.</param>
-        /// <param name="color">The color of the line.</param>
-        /// <param name="thickness">The thickness of the line.</param>
-        public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
-        {
-            RenderLine(new Vector3(pointOne, 0), new Vector3(pointTwo, 0), color, thickness);
-        }
-
-        /// <summary>
-        /// Render a line made out of quads.
-        /// </summary>
-        /// <param name="pointOne">The point to start the line.</param>
-        /// <param name="pointTwo">The point to end the line at.</param>
-        /// <param name="color">The color of the line.</param>
-        /// <param name="thickness">The thickness of the line.</param>
-        public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
-        {
-            var command = GetRenderCommand<RenderLineCommand>();
-            command.PointOne = pointOne;
-            command.PointTwo = pointTwo;
-            command.Color = color.ToUint();
-            command.Thickness = thickness;
-            PushCommand(command);
-        }
-
-        /// <summary>
-        /// Render a rectangle outline.
-        /// </summary>
-        /// <param name="position">The position of the rectangle.</param>
-        /// <param name="size">The size of the rectangle.</param>
-        /// <param name="color">The color of the lines.</param>
-        /// <param name="thickness">How thick the line should be.</param>
-        public void RenderOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
-        {
-            RenderLine(position, new Vector3(position.X + size.X, position.Y, position.Z), color, thickness);
-            RenderLine(new Vector3(position.X + size.X, position.Y, position.Z), new Vector3(position.X + size.X, position.Y + size.Y, position.Z), color, thickness);
-            RenderLine(new Vector3(position.X + size.X, position.Y + size.Y, position.Z), new Vector3(position.X, position.Y + size.Y, position.Z), color, thickness);
-            RenderLine(new Vector3(position.X, position.Y + size.Y, position.Z), position, color, thickness);
         }
 
         /// <summary>
@@ -363,27 +282,6 @@ namespace Emotion.Graphics
             }
 
             PushCommand(command);
-        }
-
-        /// <summary>
-        /// Render a string from an atlas.
-        /// </summary>
-        /// <param name="position">The top left position of where to start drawing the string.</param>
-        /// <param name="color">The text color.</param>
-        /// <param name="text">The text itself.</param>
-        /// <param name="atlas">The font atlas to use.</param>
-        public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas)
-        {
-            if (atlas?.Atlas?.Glyphs == null) return;
-
-            var layout = new TextLayouter(atlas.Atlas);
-            foreach (char c in text)
-            {
-                Vector2 gPos = layout.AddLetter(c, out AtlasGlyph g);
-                if (g == null) continue;
-                var uv = new Rectangle(g.Location, g.Size);
-                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), uv.Size, color, atlas.Texture, uv);
-            }
         }
 
         /// <summary>
@@ -477,7 +375,7 @@ namespace Emotion.Graphics
         /// <param name="onSet">A function to call once the shader is bound. You can upload uniforms and such in here.</param>
         public void SetShader(ShaderProgram shader, Action onSet)
         {
-            SetShader(shader, (s) => onSet?.Invoke());
+            SetShader(shader, s => onSet?.Invoke());
         }
 
         /// <summary>
@@ -520,17 +418,6 @@ namespace Emotion.Graphics
             stateChange.State = newState;
             PushCommand(stateChange);
         }
-
-        /// <summary>
-        /// Invalidates current render batches.
-        /// This should be done when the state changes in some way because calls afterwards will differ from those before and
-        /// cannot be batched.
-        /// </summary>
-        public void InvalidateStateBatches()
-        {
-            ActiveQuadBatch = null;
-        }
-
 
         /// <summary>
         /// Render to a frame buffer.

@@ -2,8 +2,6 @@ DataBuffer.CreateMapper
 	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
 Commands
 	- Merge state changing commands one after another into one.
-	- Shared VBO for Composer created IM QuadBatches
-	- Easy way to modify a QuadBatch to work with non-VertexData structure
 GL
 	- Investigate why the VertexArrayObject binding cache doesn't work. Maybe VertexArrayBinding isn't the right value?
 	- Some kind of shared cache buffer for commands rather than the pool which exists now.
@@ -11,9 +9,8 @@ Rendering
 	- Add tests for state changes
 	- Add tests for various batch stuff
 	- Uniform blocks (UBO) for syncing shaders
-	- Too much memory is being used currently to pass the RenderSprites into the VBO - maybe they shouldn't be commands?
-	- The RenderComposer shouldn't be allocating a vbo and vao
 	- It should be easier to create a custom VertexData structure and upload that in a batch
+	- When the barch memory is dirty, don't upload all of it. Just the part that's updated. Replace "_upload" will some kind of min-max indices.
 Standard.Image
 	- Implement ByteWriter and use it to encode the images.
 	- JPEG Support
