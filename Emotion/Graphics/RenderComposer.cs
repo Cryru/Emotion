@@ -63,9 +63,10 @@ namespace Emotion.Graphics
         public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
 
         /// <summary>
-        /// Shared memory pool. Page size is 32 mb.
+        /// Shared memory pool.
+        /// Page size is 2 mb - which is close to the data the maximum number of sprites that can be drawn in one batch using the VertexData struct.
         /// </summary>
-        public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 32);
+        public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 2);
 
         #endregion
 
