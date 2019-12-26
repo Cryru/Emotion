@@ -33,7 +33,7 @@ namespace Emotion.Standard.Logging
             string fileName = $".{Path.DirectorySeparatorChar}{logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}.log";
 
             LoggerConfiguration loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Is(LogEventLevel.Verbose)
+                .MinimumLevel.Is(LogEventLevel.Debug)
                 // Limit to 10 files, and maximum of 100mb per file.
                 .WriteTo.Async(a => a.File(fileName, fileSizeLimitBytes: 10000000, retainedFileCountLimit: 10));
 

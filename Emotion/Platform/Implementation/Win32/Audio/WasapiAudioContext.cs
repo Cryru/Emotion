@@ -20,9 +20,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
     {
         public static WasApiAudioContext TryCreate()
         {
-            // WasApi should be present on anything Vista and up.
-            if (!Win32Platform.IsWindowsVistaOrGreater) return null;
-
             // ReSharper disable once SuspiciousTypeConversion.Global
             if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioContext(enumerator);
             Win32Platform.CheckError("Couldn't create multimedia enumerator.", true);

@@ -180,27 +180,26 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         public override void SwapBuffers()
         {
             if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
-                if (Win32Platform.IsWindowsVistaOrGreater)
+            {
+                bool dwmComposition;
+
+                // DWM Composition is always enabled on Win8+
+                if (Win32Platform.IsWindows8OrGreater)
                 {
-                    bool dwmComposition;
-
-                    // DWM Composition is always enabled on Win8+
-                    if (Win32Platform.IsWindows8OrGreater)
-                    {
-                        dwmComposition = true;
-                    }
-                    else
-                    {
-                        HResult result = DwmApi.DwmIsCompositionEnabled(out dwmComposition);
-                        if (result != HResult.S_OK) dwmComposition = false;
-                    }
-
-                    if (dwmComposition)
-                        for (var i = 0; i < SwapInternal; i++)
-                        {
-                            DwmApi.DwmFlush();
-                        }
+                    dwmComposition = true;
                 }
+                else
+                {
+                    HResult result = DwmApi.DwmIsCompositionEnabled(out dwmComposition);
+                    if (result != HResult.S_OK) dwmComposition = false;
+                }
+
+                if (dwmComposition)
+                    for (var i = 0; i < SwapInternal; i++)
+                    {
+                        DwmApi.DwmFlush();
+                    }
+            }
 
             Gdi32.SwapBuffers(_dc);
         }

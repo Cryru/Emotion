@@ -13,7 +13,8 @@ I would recommend checking out the tests in the "Tests" project as examples, and
 
 ## Requirements for Developers and Players:
 
-- OpenGL 3.3 or higher
+- OpenGL 3.3 or higher (might work on 3.0, but needs testing)
+	- If your GPU doesn't support it, you might still be able to run it using [Mesa](https://github.com/pal1000/mesa-dist-win/releases). Place the opengl32.dll file in a "mesa" folder next to the exe.
 - Be able to run the Net Core runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 - A supported platform.
@@ -42,6 +43,8 @@ Currently supported:
   - Nvidia GeForce 1050
   - Intel UHD Graphics 620
   - Nvidia GeForce 940MX
+- Windows 7 x86
+  - Intel 4 Series Express (using Mesa)
 
 ## Features So Far
 

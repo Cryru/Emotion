@@ -1,8 +1,10 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using Emotion.Common;
 
 #endregion
@@ -50,44 +52,70 @@ namespace Emotion.Platform.Helpers
         public static IntPtr Nullptr = IntPtr.Zero;
 
         /// <summary>
-        /// ByteAccess functions taken from
-        /// https://www.codeproject.com/Messages/1296018/Re-What-is-the-equivalent-of-LOBYTE-and-HIBYTE-in.aspx
+        /// Make a C ulong (C# uint) from two ushorts.
         /// </summary>
-        public static uint MakeLong(ushort high, ushort low)
+        /// <returns></returns>
+        public static uint MakeULong(ushort high, ushort low)
         {
             return ((uint) low & 0xFFFF) | (((uint) high & 0xFFFF) << 16);
         }
 
+        /// <summary>
+        /// Make a word from two bytes.
+        /// </summary>
+        /// <returns></returns>
         public static ushort MakeWord(byte high, byte low)
         {
             return (ushort) (((uint) low & 0xFF) | (((uint) high & 0xFF) << 8));
         }
 
+        // ByteAccess functions taken from https://www.codeproject.com/Messages/1296018/Re-What-is-the-equivalent-of-LOBYTE-and-HIBYTE-in.aspx
+
+        /// <summary>
+        /// Access the lower word in a double word.
+        /// </summary>
         public static ushort LoWord(uint nValue)
         {
             return (ushort) (nValue & 0xFFFF);
         }
 
+        /// <summary>
+        /// Access the high word in a double word.
+        /// </summary>
         public static ushort HiWord(uint nValue)
         {
             return (ushort) (nValue >> 16);
         }
 
+        /// <summary>
+        /// Access the high word in a double word.
+        /// </summary>
         public static ushort HiWord(ulong nValue)
         {
             return (ushort) (nValue >> 16);
         }
 
+        /// <summary>
+        /// Access the lower byte in a word.
+        /// </summary>
         public static byte LoByte(ushort nValue)
         {
             return (byte) (nValue & 0xFF);
         }
 
+        /// <summary>
+        /// Access the high byte in a word.
+        /// </summary>
         public static byte HiByte(ushort nValue)
         {
             return (byte) (nValue >> 8);
         }
 
+        /// <summary>
+        /// Create a string from a null terminated char array.
+        /// </summary>
+        /// <param name="chArr">The char array to make a string from.</param>
+        /// <returns>The <see cref="string" /> contained.</returns>
         public static string StringFromNullTerminated(char[] chArr)
         {
             int i;
@@ -99,6 +127,29 @@ namespace Emotion.Platform.Helpers
             return new string(chArr, 0, i);
         }
 
+        /// <summary>
+        /// Create a string from a pointer to a null terminated UTF8 string. Copies memory.
+        /// </summary>
+        /// <param name="ptr">The address of the first character of the unmanaged string.</param>
+        /// <returns>The <see cref="string" /> contained in <paramref name="ptr" />.</returns>
+        public static string StringFromPtr(IntPtr ptr)
+        {
+            if (ptr == IntPtr.Zero)
+                return null;
+
+            var buff = new List<byte>();
+            var offset = 0;
+
+            for (;; offset++)
+            {
+                byte currentByte = Marshal.ReadByte(ptr, offset);
+                if (currentByte == 0)
+                    break;
+                buff.Add(currentByte);
+            }
+
+            return Encoding.UTF8.GetString(buff.ToArray());
+        }
 
         /// <summary>
         /// Load a native library.

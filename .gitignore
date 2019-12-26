@@ -51,3 +51,4 @@ ElectricSleep
 *.DotSettings.user
 cmake-build-debug
 .idea
+.csproj.user

@@ -33,54 +33,6 @@ namespace Khronos
     /// </remarks>
     public class KhronosApi
     {
-        #region String Encoding
-
-        /// <summary>
-        /// Copies all characters up to the first null character from an
-        /// unmanaged UTF8 string.
-        /// </summary>
-        /// <param name="ptr">
-        /// The address of the first character of the unmanaged string.
-        /// </param>
-        /// <returns>
-        /// The <see cref="string" /> represented by <paramref name="ptr" />.
-        /// </returns>
-        protected static string PtrToString(IntPtr ptr)
-        {
-            return PtrToStringUtf8(ptr);
-        }
-
-        /// <summary>
-        /// Copies all characters up to the first null character from an
-        /// unmanaged UTF8 string.
-        /// </summary>
-        /// <param name="ptr">
-        /// The address of the first character of the unmanaged string.
-        /// </param>
-        /// <returns>
-        /// The <see cref="string" /> represented by <paramref name="ptr" />.
-        /// </returns>
-        protected static string PtrToStringUtf8(IntPtr ptr)
-        {
-            if (ptr == IntPtr.Zero)
-                return null;
-
-            var buff = new List<byte>();
-            var offset = 0;
-
-            for (;; offset++)
-            {
-                byte currentByte = Marshal.ReadByte(ptr, offset);
-                if (currentByte == 0)
-                    break;
-                buff.Add(currentByte);
-            }
-
-            return Encoding.UTF8.GetString(buff.ToArray());
-        }
-
-        #endregion
-
         #region Function Linkage
 
         /// <summary>

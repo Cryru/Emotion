@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using Emotion.Platform.Helpers;
 using Khronos;
 
 #endregion
@@ -5494,7 +5495,7 @@ namespace OpenGL
             retValue = Delegates.pglGetStringi((int) name, index);
             DebugCheckErrors(retValue);
 
-            return PtrToString(retValue);
+            return NativeHelpers.StringFromPtr(retValue);
         }
 
         /// <summary>

@@ -9,6 +9,8 @@ using Emotion.Common;
 using Emotion.Platform.Config;
 using Emotion.Platform.Helpers;
 using Emotion.Standard.Logging;
+using Khronos;
+using OpenGL;
 using WinApi.Core;
 using WinApi.Gdi32;
 using User32 = WinApi.User32.User32Methods;
@@ -210,6 +212,21 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 _deleteContext(rc);
                 Win32Platform.CheckError("WGL: Could not make dummy context current.", true);
                 return;
+            }
+
+            // Check supported version.
+            KhronosVersion glGetString = Gl.QueryVersionExternal(GetProcAddress);
+            if (glGetString != null)
+            {
+                if (glGetString.Major < 3)
+                {
+                    _deleteContext(rc);
+                    throw new Exception("Wgl support is lower than 3.0");
+                }
+            }
+            else
+            {
+                Engine.Log.Warning("Couldn't verify wgl context version.", MessageSource.Wgl);
             }
 
             // NOTE: Functions must be loaded first as they're needed to retrieve the
@@ -453,25 +470,24 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         protected override void SetSwapIntervalPlatform(int interval)
         {
             if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
-                if (Win32Platform.IsWindowsVistaOrGreater)
+            {
+                bool dwmComposition;
+
+                // DWM Composition is always enabled on Win8+
+                if (Win32Platform.IsWindows8OrGreater)
                 {
-                    bool dwmComposition;
-
-                    // DWM Composition is always enabled on Win8+
-                    if (Win32Platform.IsWindows8OrGreater)
-                    {
-                        dwmComposition = true;
-                    }
-                    else
-                    {
-                        HResult result = DwmApi.DwmIsCompositionEnabled(out dwmComposition);
-                        if (result != HResult.S_OK) dwmComposition = false;
-                    }
-
-                    // HACK: Disable WGL swap interval when desktop composition is enabled to
-                    //       avoid interfering with DWM vsync
-                    if (dwmComposition) interval = 0;
+                    dwmComposition = true;
                 }
+                else
+                {
+                    HResult result = DwmApi.DwmIsCompositionEnabled(out dwmComposition);
+                    if (result != HResult.S_OK) dwmComposition = false;
+                }
+
+                // HACK: Disable WGL swap interval when desktop composition is enabled to
+                //       avoid interfering with DWM vsync
+                if (dwmComposition) interval = 0;
+            }
 
             _swapIntervalExt?.Invoke(interval);
         }
@@ -479,27 +495,26 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         public override void SwapBuffers()
         {
             if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
-                if (Win32Platform.IsWindowsVistaOrGreater)
+            {
+                bool dwmComposition;
+
+                // DWM Composition is always enabled on Win8+
+                if (Win32Platform.IsWindows8OrGreater)
                 {
-                    bool dwmComposition;
-
-                    // DWM Composition is always enabled on Win8+
-                    if (Win32Platform.IsWindows8OrGreater)
-                    {
-                        dwmComposition = true;
-                    }
-                    else
-                    {
-                        HResult result = DwmApi.DwmIsCompositionEnabled(out dwmComposition);
-                        if (result != HResult.S_OK) dwmComposition = false;
-                    }
-
-                    if (dwmComposition)
-                        for (var i = 0; i < SwapInternal; i++)
-                        {
-                            DwmApi.DwmFlush();
-                        }
+                    dwmComposition = true;
                 }
+                else
+                {
+                    HResult result = DwmApi.DwmIsCompositionEnabled(out dwmComposition);
+                    if (result != HResult.S_OK) dwmComposition = false;
+                }
+
+                if (dwmComposition)
+                    for (var i = 0; i < SwapInternal; i++)
+                    {
+                        DwmApi.DwmFlush();
+                    }
+            }
 
             Gdi32.SwapBuffers(_dc);
         }

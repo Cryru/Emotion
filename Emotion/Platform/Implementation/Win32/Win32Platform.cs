@@ -26,7 +26,6 @@ namespace Emotion.Platform.Implementation.Win32
 {
     public class Win32Platform : PlatformBase
     {
-        public static bool IsWindowsVistaOrGreater { get; private set; }
         public static bool IsWindows7OrGreater { get; private set; }
         public static bool IsWindows8OrGreater { get; private set; }
         public static bool IsWindows81OrGreater { get; private set; }
@@ -35,10 +34,6 @@ namespace Emotion.Platform.Implementation.Win32
 
         static Win32Platform()
         {
-            IsWindowsVistaOrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTVista),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTVista),
-                0);
             IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
                 NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin7),
                 NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWin7),
@@ -54,7 +49,6 @@ namespace Emotion.Platform.Implementation.Win32
             IsWindows10AnniversaryUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(14393);
             IsWindows10CreatorsUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(15063);
 
-            Engine.Log.Trace($"IsWindowsVistaOrGreater: {IsWindowsVistaOrGreater}", MessageSource.Win32);
             Engine.Log.Trace($"IsWindows7OrGreater: {IsWindows7OrGreater}", MessageSource.Win32);
             Engine.Log.Trace($"IsWindows8OrGreater: {IsWindows8OrGreater}", MessageSource.Win32);
             Engine.Log.Trace($"IsWindows81OrGreater: {IsWindows81OrGreater}", MessageSource.Win32);
@@ -98,10 +92,10 @@ namespace Emotion.Platform.Implementation.Win32
             PopulateKeyNames();
 
             if (IsWindows10CreatorsUpdateOrGreaterWin32)
-                User32.SetProcessDpiAwarenessContext(User32Methods.DpiAwarenessContext.DpiAwarenessContextPerMonitorAwareV2);
+                User32.SetProcessDpiAwarenessContext(User32.DpiAwarenessContext.DpiAwarenessContextPerMonitorAwareV2);
             else if (IsWindows81OrGreater)
-                User32.SetProcessDpiAwareness(User32Methods.ProcessDpiAwareness.ProcessPerMonitorDpiAware);
-            else if (IsWindowsVistaOrGreater)
+                User32.SetProcessDpiAwareness(User32.ProcessDpiAwareness.ProcessPerMonitorDpiAware);
+            else
                 User32.SetProcessDPIAware();
 
             RegisterWindowClass();
@@ -110,13 +104,11 @@ namespace Emotion.Platform.Implementation.Win32
             PollMonitors();
         }
 
-        private AudioContext CreateAudio()
+        private static AudioContext CreateAudio()
         {
+            // Try to create WasApi - otherwise return the fake context so execution can go on.
             WasApiAudioContext wasapi = WasApiAudioContext.TryCreate();
             if (wasapi != null) return wasapi;
-
-            // winmm
-            // dsound
 
             return new NullAudioContext();
         }
@@ -821,7 +813,7 @@ namespace Emotion.Platform.Implementation.Win32
             }
             catch (Exception ex)
             {
-                Engine.Log.Warning($"Couldn't create WGL context - {ex}, falling back to MESA if possible.", MessageSource.Win32);
+                Engine.Log.Warning($"Couldn't create WGL context, falling back to MESA if possible.\n{ex}", MessageSource.Win32);
             }
 
             if (context == null || !context.Valid)

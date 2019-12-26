@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
+using Emotion.Platform.Helpers;
 using Khronos;
 
 #endregion
@@ -79,8 +80,7 @@ namespace OpenGL
         /// Bind the OpenGL delegates for the API corresponding to the current OpenGL context.
         /// </summary>
         /// <param name="procLoadFunction">
-        /// The function OpenGL functions will be loaded through. Should be provided by your context
-        /// creator.
+        /// The function OpenGL functions will be loaded through. Should be provided by your context creator.
         /// </param>
         public static void BindAPI(Func<string, IntPtr> procLoadFunction)
         {
@@ -166,30 +166,29 @@ namespace OpenGL
         /// <returns>
         /// It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this thread.
         /// </returns>
-        private static KhronosVersion QueryContextVersionCore()
+        public static KhronosVersion QueryContextVersionCore()
         {
-            BindAPIFunction(Version100, null, "glGetError");
-            BindAPIFunction(Version100, null, "glGetString");
-            BindAPIFunction(Version100, null, "glGetIntegerv");
+            BindAPIFunction<Gl>("glGetError", Version100, null);
+            BindAPIFunction<Gl>("glGetString", Version100, null);
+            BindAPIFunction<Gl>("glGetIntegerv", Version100, null);
 
             return QueryContextVersion();
         }
 
         /// <summary>
-        /// Bind a single OpenGL delegates to a specific API.
+        /// Query the OpenGL version without binding the API.
         /// </summary>
-        /// <param name="version">
-        /// A <see cref="KhronosVersion" /> that specifies the API to bind.
-        /// </param>
-        /// <param name="extensions">
-        /// A <see cref="Khronos.KhronosApi.ExtensionsCollection" /> that specifies the extensions supported. It can be null.
-        /// </param>
-        /// <param name="functionName">
-        /// A <see cref="String" /> that specifies the name of the function to bind.
-        /// </param>
-        internal static void BindAPIFunction(KhronosVersion version, ExtensionsCollection extensions, string functionName)
+        /// <param name="procLoadFunction">The function OpenGL functions will be loaded through (in this case glGetString only).</param>
+        /// <returns>It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this thread.</returns>
+        public static KhronosVersion QueryVersionExternal(Func<string, IntPtr> procLoadFunction)
         {
-            BindAPIFunction<Gl>(functionName, version, extensions);
+            IntPtr func = procLoadFunction("glGetString");
+            if(func == IntPtr.Zero) return null;
+
+            var getString = Marshal.GetDelegateForFunctionPointer<Delegates.glGetString>(func);
+            IntPtr ptr = getString((int) StringName.Version);
+            string str = NativeHelpers.StringFromPtr(ptr);
+            return KhronosVersion.Parse(str);
         }
 
         #endregion
