@@ -145,6 +145,9 @@ namespace Emotion.Graphics
             // Clear old commands.
             RenderCommands.Clear();
 
+            // Reset the memory pool.
+            MemoryPool.Reset();
+
             foreach (KeyValuePair<Type, CommandRecycler> recycler in _commandCache)
             {
                 recycler.Value.Reset();
