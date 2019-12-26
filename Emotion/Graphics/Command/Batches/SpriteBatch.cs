@@ -7,39 +7,17 @@ using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
-using OpenGL;
 
 #endregion
 
 namespace Emotion.Graphics.Command.Batches
 {
     /// <summary>
-    /// Batch which handles batching sprites to be drawn together.
-    /// Up to 16 textures and around 16k sprites can be batched at once.
+    /// Batch which owns it's own CPU memory, and optionally GPU memory.
     /// </summary>
-    public class SpriteBatch : RecyclableCommand
+    public class SpriteBatch : SpriteBatchBase<VertexData>
     {
-        /// <summary>
-        /// Whether the batch is full.
-        /// This happens when the maximum indices are met, or the maximum textures.
-        /// </summary>
-        public bool Full { get; protected set; }
-
-        #region Texturing
-
-        /// <summary>
-        /// The textures to bind.
-        /// </summary>
-        protected uint[] _textureBinding = new uint[Texture.Bound.Length];
-
-        /// <summary>
-        /// How many texture slots are utilized.
-        /// </summary>
-        protected int _textureSlotUtilization;
-
-        #endregion
-
-        #region Memory Management
+        #region Own CPU Memory
 
         /// <summary>
         /// Pointer to the unmanaged batch memory.
@@ -51,25 +29,6 @@ namespace Emotion.Graphics.Command.Batches
         /// </summary>
         protected int _size;
 
-        /// <summary>
-        /// The number of vertices in use from _batchedVertices.
-        /// </summary>
-        protected int _mappedTo;
-
-        #endregion
-
-        #region Draw Params
-
-        /// <summary>
-        /// The index to start rendering from.
-        /// </summary>
-        protected uint _startIndex;
-
-        /// <summary>
-        /// The index to end rendering at.
-        /// </summary>
-        protected uint? _endIndex;
-
         #endregion
 
         #region Own Graphics Memory
@@ -77,7 +36,7 @@ namespace Emotion.Graphics.Command.Batches
         /// <summary>
         /// Whether to create gl objects if missing.
         /// </summary>
-        private bool _createGl;
+        protected bool _createGl;
 
         /// <summary>
         /// Whether data needs to be uploaded.
@@ -89,58 +48,23 @@ namespace Emotion.Graphics.Command.Batches
 
         #endregion
 
-        #region Vertex Type
-
-        private int _structByteSize;
-        private Type _structType;
-
-        #endregion
-
-        /// <summary>
-        /// Default constructor for the recycler factory.
-        /// </summary>
-        public SpriteBatch() : this(false)
-        {
-        }
-
         /// <summary>
         /// Create a new batch for sprites.
         /// </summary>
         /// <param name="ownGraphicsMemory">
         /// Whether to use own graphics memory.
-        /// If you are caching a render it is better to set this to true as it will prevent the data from being reuploaded.
+        /// If you are caching a render it is better to set this to true as it will prevent the data from being re-uploaded.
         /// If set to false the VBO of the RenderComposer is used instead.
         /// </param>
         public SpriteBatch(bool ownGraphicsMemory = false)
         {
-            _structType = typeof(VertexData);
-            _structByteSize = Marshal.SizeOf<VertexData>();
-
             _size = 400; // Initial size is 100 sprites.
             _batchedVertices = Marshal.AllocHGlobal(_size * _structByteSize);
             _createGl = ownGraphicsMemory;
         }
 
-        /// <summary>
-        /// Recycle the batch, clearing all batched sprites and textures.
-        /// Graphics objects are reused if possible.
-        /// </summary>
-        public override void Recycle()
-        {
-            Full = false;
-            _textureSlotUtilization = 0;
-            _mappedTo = 0;
-            _startIndex = 0;
-            _endIndex = null;
-            _upload = true;
-        }
-
-        /// <summary>
-        /// Returns the data within the batch to map a sprite into, and adds the provided texture to the texture mapping.
-        /// </summary>
-        /// <param name="texture">The texture to bind.</param>
-        /// <returns>he data inside the batch to be filled.</returns>
-        public virtual unsafe Span<VertexData> GetData(Texture texture)
+        /// <inheritdoc />
+        public override unsafe Span<VertexData> GetData(Texture texture)
         {
             // Check if already full.
             if (Full) return null;
@@ -219,76 +143,27 @@ namespace Emotion.Graphics.Command.Batches
                 _upload = false;
             }
 
-            // Bind graphics objects.
-            VertexArrayObject.EnsureBound(vao);
-            if (vao.IBO == null) IndexBuffer.EnsureBound(IndexBuffer.QuadIbo.Pointer);
-            BindTextures();
-
-            // Render specified range.
-            var startIndex = (IntPtr) (_startIndex * sizeof(ushort));
-            uint length = _endIndex - _startIndex ?? (uint) (_mappedTo / 4) * 6 - _startIndex;
-            Debug.Assert((uint) _mappedTo <= Engine.Renderer.MaxIndices);
-            Debug.Assert((uint) startIndex + length <= Engine.Renderer.MaxIndices * 6);
-            Gl.DrawElements(PrimitiveType.Triangles, (int) length, DrawElementsType.UnsignedShort, startIndex);
-        }
-
-        #region Texturing API
-
-        /// <summary>
-        /// Add the specified pointer to the texture binding, if possible.
-        /// </summary>
-        /// <param name="pointer">The texture pointer to add.</param>
-        /// <param name="bindingPointer">The pointer to the internal binding.</param>
-        /// <returns>Whether the texture was added.</returns>
-        public bool AddTextureBinding(uint pointer, out int bindingPointer)
-        {
-            bindingPointer = -1;
-
-            if (_textureSlotUtilization == _textureBinding.Length) return false;
-
-            if (TextureInBinding(pointer, out bindingPointer)) return true;
-
-            // Add to binding.
-            _textureBinding[_textureSlotUtilization] = pointer;
-            bindingPointer = _textureSlotUtilization;
-            _textureSlotUtilization++;
-
-            // Verify if the texture binding maximum has been reached.
-            if (_textureSlotUtilization == _textureBinding.Length) Full = true;
-
-            return true;
+            Draw(vao);
         }
 
         /// <summary>
-        /// Check whether the specified texture pointer exists in the batch binding.
+        /// Get the batched sprite at the specific index.
+        /// Changes to the returned object will modify the sprite itself.
+        /// To change the texture request a binding from AddTextureBinding()
+        /// To clear unused texture bindings call RemapTextures().
         /// </summary>
-        /// <param name="pointer">The texture point to check.</param>
-        /// <param name="bindingPointer">The internal pointer bound at or -1 if not bound.</param>
-        /// <returns>Whether this texture exists in the batch binding.</returns>
-        public bool TextureInBinding(uint pointer, out int bindingPointer)
+        /// <param name="index">The index of the batched sprite.</param>
+        /// <returns>The sprite at that index or null if invalid.</returns>
+        public unsafe Span<VertexData> GetSpriteAt(int index)
         {
-            for (var i = 0; i < _textureSlotUtilization; i++)
-            {
-                if (_textureBinding[i] != pointer) continue;
-                bindingPointer = i;
-                return true;
-            }
+            if (index < 0 || index * 4 >= _mappedTo) return null;
 
-            bindingPointer = -1;
-            return false;
-        }
+            // Mark state as dirty.
+            _upload = true;
 
-        /// <summary>
-        /// Bind the textures in use.
-        /// </summary>
-        public void BindTextures()
-        {
-            Debug.Assert(GLThread.IsGLThread());
-
-            for (uint i = 0; i < _textureSlotUtilization; i++)
-            {
-                Texture.EnsureBound(_textureBinding[i], i);
-            }
+            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable once RedundantCast
+            return new Span<VertexData>((void*) &((VertexData*) _batchedVertices)[index * 4], 4);
         }
 
         /// <summary>
@@ -335,47 +210,26 @@ namespace Emotion.Graphics.Command.Batches
             }
         }
 
-        #endregion
-
-        #region API for Outside Composer
-
-        /// <summary>
-        /// Get the batched sprite at the specific index.
-        /// Changes to the returned object will modify the sprite itself.
-        /// To change the texture request a binding from AddTextureBinding()
-        /// To clear unused texture bindings call RemapTextures().
-        /// </summary>
-        /// <param name="index">The index of the batched sprite.</param>
-        /// <returns>The sprite at that index or null if invalid.</returns>
-        public unsafe Span<VertexData> GetSpriteAt(int index)
+        /// <inheritdoc />
+        public override void Recycle()
         {
-            if (index < 0 || index * 4 >= _mappedTo) return null;
-
-            // Mark state as dirty.
-            _upload = true;
-
-            // ReSharper disable once PossibleNullReferenceException
-            // ReSharper disable once RedundantCast
-            return new Span<VertexData>((void*) &((VertexData*) _batchedVertices)[index * 4], 4);
+            base.Recycle();
+            _upload = false;
         }
 
-        /// <summary>
-        /// Set the render range for the batch. By default the whole batch is rendered.
-        /// </summary>
-        /// <param name="start">The sprite index to start rendering from. Inclusive.</param>
-        /// <param name="end">The sprite index to stop rendering at. If null will draw to the end. Exclusive.</param>
-        public void SetRenderRange(uint start, uint? end = null)
-        {
-            // Convert to indices.
-            _startIndex = start * 6;
-            _endIndex = end * 6;
-        }
-
-        #endregion
-
+        /// <inheritdoc />
         public override void Dispose()
         {
+            // Clear CPU memory.
             Marshal.FreeHGlobal(_batchedVertices);
+
+            // If owning graphics memory, clear that too.
+            if (_createGl)
+                GLThread.ExecuteGLThreadAsync(() =>
+                {
+                    _vbo?.Dispose();
+                    _vao?.Dispose();
+                });
         }
     }
 }

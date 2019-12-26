@@ -12,6 +12,8 @@ using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives;
+using Emotion.Standard.Utility;
+using VertexDataBatch = Emotion.Graphics.Command.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
@@ -24,7 +26,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The quad batch currently active.
         /// </summary>
-        public SpriteBatch ActiveQuadBatch;
+        public VertexDataBatch ActiveQuadBatch;
 
         /// <summary>
         /// Whether the composer has processed all of its commands.
@@ -41,7 +43,7 @@ namespace Emotion.Graphics
         /// </summary>
         private Dictionary<Type, CommandRecycler> _commandCache = new Dictionary<Type, CommandRecycler>();
 
-        #region Objects
+        #region Common Objects
 
         /// <summary>
         /// The common vertex buffer of this composer. Used if the command doesn't care about creating its own.
@@ -59,6 +61,11 @@ namespace Emotion.Graphics
         /// Cached VAOs per structure type. These are all bound to the common VBO.
         /// </summary>
         public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
+
+        /// <summary>
+        /// Shared memory pool. Page size is 32 mb.
+        /// </summary>
+        public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 32);
 
         #endregion
 
@@ -133,8 +140,7 @@ namespace Emotion.Graphics
         public void Reset()
         {
             // Reset batch state.
-            ActiveQuadBatch = null;
-            _spriteBatchFactory = GetRenderCommandRecycler<SpriteBatch>();
+            RestoreSpriteBatchType();
 
             // Clear old commands.
             RenderCommands.Clear();
@@ -177,12 +183,19 @@ namespace Emotion.Graphics
         /// Returns the current batch, or creates a new one if none.
         /// </summary>
         /// <returns></returns>
-        public SpriteBatch GetBatch()
+        public VertexDataBatch GetBatch()
         {
             if (ActiveQuadBatch != null && !ActiveQuadBatch.Full) return ActiveQuadBatch;
 
             // Create new batch if there is no active one, or it is full.
-            var batch = (SpriteBatch) _spriteBatchFactory.GetObject();
+            var batch = (VertexDataBatch) _spriteBatchFactory.GetObject();
+
+            // If using shared memory, link to the composer.
+            if (batch is SharedMemorySpriteBatch sharedMemoryBatch)
+            {
+                sharedMemoryBatch.SetOwner(this);
+            }
+
             PushCommand(batch);
             ActiveQuadBatch = batch;
 
@@ -204,7 +217,7 @@ namespace Emotion.Graphics
         /// Subsequent batches until the end of the frame will be of this type.
         /// </summary>
         /// <typeparam name="T">The type of batch.</typeparam>
-        public void SetSpriteBatchType<T>() where T : SpriteBatch, new()
+        public void SetSpriteBatchType<T>() where T : VertexDataBatch, new()
         {
             InvalidateStateBatches();
             _spriteBatchFactory = GetRenderCommandRecycler<T>();
@@ -215,7 +228,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RestoreSpriteBatchType()
         {
-            SetSpriteBatchType<SpriteBatch>();
+            SetSpriteBatchType<SharedMemorySpriteBatch>();
         }
 
         #endregion
@@ -245,7 +258,7 @@ namespace Emotion.Graphics
                 // We don't know what the sub composer will do, so invalidate batches.
                 case SubComposerCommand _:
                 // If pushing a batch.
-                case SpriteBatch _:
+                case SpriteBatchBase _:
                     InvalidateStateBatches();
                     break;
             }
@@ -468,7 +481,13 @@ namespace Emotion.Graphics
         public void Dispose()
         {
             VertexBuffer.Dispose();
-            CommonVao.Dispose();
+
+            foreach (KeyValuePair<Type, VertexArrayObject> vao in VaoCache)
+            {
+                vao.Value.Dispose();
+            }
+
+            MemoryPool.Dispose();
 
             foreach (KeyValuePair<Type, CommandRecycler> recycler in _commandCache)
             {
