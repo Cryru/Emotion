@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using Emotion.Scripting;
 
@@ -40,7 +41,6 @@ namespace Emotion.IO
 
         protected override void DisposeInternal()
         {
-            Context.Unload();
             Assembly = null;
             Context = null;
         }

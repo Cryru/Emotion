@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CSharp.RuntimeBinder;
 
 #endregion
 
@@ -81,7 +80,6 @@ namespace Emotion.Scripting
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(AssemblyTargetedPatchBandAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(CSharpArgumentInfo).Assembly.Location),
 
                 // Emotion references.
                 MetadataReference.CreateFromFile(typeof(Engine).Assembly.Location),
