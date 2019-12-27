@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Common;
 using Emotion.Platform.Config;
@@ -99,7 +100,7 @@ namespace Emotion.Platform.Implementation
         /// Setup the native platform and creates a window.
         /// </summary>
         /// <param name="conf">Optional configuration for the platform.</param>
-        public void Setup(PlatformConfig conf = null)
+        internal void Setup(PlatformConfig conf = null)
         {
             // Check if default config, which should always be valid.
             // If not using the default config, check if it is valid.
@@ -132,45 +133,9 @@ namespace Emotion.Platform.Implementation
             IsOpen = true;
         }
 
-        #endregion
-
-        #region Implementation API
-
-        protected abstract void SetupPlatform();
-        protected abstract Window CreateWindow();
-
         /// <summary>
-        /// Display an error message natively.
-        /// Usually this means a popup will show up.
+        /// Provides default button behavior for all platforms.
         /// </summary>
-        /// <param name="message">The message to display.</param>
-        public abstract void DisplayMessageBox(string message);
-
-        /// <summary>
-        /// Update the platform. If this returns false then the platform/its window was closed.
-        /// If the window is unfocused this blocks until a platform message is received.
-        /// </summary>
-        /// <returns>Whether the platform is alive.</returns>
-        public abstract bool Update();
-
-        #endregion
-
-        #region Input API
-
-        /// <summary>
-        /// Returns whether the specified key is down.
-        /// </summary>
-        /// <param name="key">To key to check.</param>
-        public abstract bool GetKeyDown(Key key);
-
-        /// <summary>
-        /// Returns whether the specified mouse key is down.
-        /// </summary>
-        /// <param name="key">To mouse key to check.</param>
-        public abstract bool GetMouseKeyDown(MouseKey key);
-
-        #endregion
-
         private bool DefaultButtonBehavior(Key key, KeyStatus state)
         {
             if (Engine.Configuration.DebugMode)
@@ -226,6 +191,72 @@ namespace Emotion.Platform.Implementation
                     Window.DisplayMode = DisplayMode.Windowed;
             }
         }
+
+        #endregion
+
+        #region Implementation API
+
+        protected abstract void SetupPlatform();
+        protected abstract Window CreateWindow();
+
+        /// <summary>
+        /// Display an error message natively.
+        /// Usually this means a popup will show up.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
+        public abstract void DisplayMessageBox(string message);
+
+        /// <summary>
+        /// Update the platform. If this returns false then the platform/its window was closed.
+        /// If the window is unfocused this blocks until a platform message is received.
+        /// </summary>
+        /// <returns>Whether the platform is alive.</returns>
+        public abstract bool Update();
+
+        #endregion
+
+        #region Input API
+
+        /// <summary>
+        /// Returns whether the specified key is down.
+        /// </summary>
+        /// <param name="key">To key to check.</param>
+        public abstract bool GetKeyDown(Key key);
+
+        /// <summary>
+        /// Returns whether the specified mouse key is down.
+        /// </summary>
+        /// <param name="key">To mouse key to check.</param>
+        public abstract bool GetMouseKeyDown(MouseKey key);
+
+        #endregion
+
+        #region Library API
+
+        /// <summary>
+        /// Load a native library.
+        /// </summary>
+        /// <param name="path">The path to the native library.</param>
+        public abstract IntPtr LoadLibrary(string path);
+
+        /// <summary>
+        /// Get the pointer which corresponds to a symbol (such as a function) in a native library.
+        /// </summary>
+        /// <param name="library">The pointer to a native library..</param>
+        /// <param name="symbolName">The name of the symbol to find.</param>
+        /// <returns>The pointer which corresponds to the library looking for.</returns>
+        public abstract IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName);
+
+        /// <summary>
+        /// Get a function delegate from a library.
+        /// </summary>
+        public TDelegate GetFunctionByName<TDelegate>(IntPtr library, string funcName)
+        {
+            IntPtr funcAddress = GetLibrarySymbolPtr(library, funcName);
+            return funcAddress == IntPtr.Zero ? default : Marshal.GetDelegateForFunctionPointer<TDelegate>(funcAddress);
+        }
+
+        #endregion
 
         /// <summary>
         /// Dispose of the platform.

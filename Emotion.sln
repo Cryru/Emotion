@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Plugins.ImGuiNet", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Tools", "Emotion.Tools\Emotion.Tools.csproj", "{8F4F13BC-8AC5-46E8-8B7F-F1E9BF3BEEBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{6E9D6714-EAB5-4878-85FA-4D49E3C21870}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{6E9D6714-EAB5-4878-85FA-4D49E3C21870}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

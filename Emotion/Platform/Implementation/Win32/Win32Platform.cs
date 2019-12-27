@@ -35,16 +35,16 @@ namespace Emotion.Platform.Implementation.Win32
         static Win32Platform()
         {
             IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin7),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWin7),
+                NativeHelpers.HiByte((ushort)NtDll.WinVer.Win32WinNTWin7),
+                NativeHelpers.LoByte((ushort)NtDll.WinVer.Win32WinNTWin7),
                 0);
             IsWindows8OrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin8),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWin8),
+                NativeHelpers.HiByte((ushort)NtDll.WinVer.Win32WinNTWin8),
+                NativeHelpers.LoByte((ushort)NtDll.WinVer.Win32WinNTWin8),
                 0);
             IsWindows81OrGreater = IsWindowsVersionOrGreaterWin32(
-                NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWinBlue),
-                NativeHelpers.LoByte((ushort) NtDll.WinVer.Win32WinNTWinBlue),
+                NativeHelpers.HiByte((ushort)NtDll.WinVer.Win32WinNTWinBlue),
+                NativeHelpers.LoByte((ushort)NtDll.WinVer.Win32WinNTWinBlue),
                 0);
             IsWindows10AnniversaryUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(14393);
             IsWindows10CreatorsUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(15063);
@@ -81,8 +81,8 @@ namespace Emotion.Platform.Implementation.Win32
             // To make SetForegroundWindow work as we want, we need to fiddle
             // with the "FOREGROUNDLOCKTIMEOUT" system setting (we do this as early
             // as possible in the hope of still being the foreground process)
-            User32.SystemParametersInfo((uint) SystemParametersWindowInfo.SPI_GETFOREGROUNDLOCKTIMEOUT, 0, ref _foregroundLockTimeout, 0);
-            User32.SystemParametersInfo((uint) SystemParametersWindowInfo.SPI_SETFOREGROUNDLOCKTIMEOUT, 0, ref NativeHelpers.Nullptr, SystemParamtersInfoFlags.SPIF_SENDWININICHANGE);
+            User32.SystemParametersInfo((uint)SystemParametersWindowInfo.SPI_GETFOREGROUNDLOCKTIMEOUT, 0, ref _foregroundLockTimeout, 0);
+            User32.SystemParametersInfo((uint)SystemParametersWindowInfo.SPI_SETFOREGROUNDLOCKTIMEOUT, 0, ref NativeHelpers.Nullptr, SystemParamtersInfoFlags.SPIF_SENDWININICHANGE);
 
             // todo: load libraries - if any
             // probably XInput
@@ -113,6 +113,74 @@ namespace Emotion.Platform.Implementation.Win32
             return new NullAudioContext();
         }
 
+        private void RegisterWindowClass()
+        {
+            _wndProcDelegate = WndProc;
+            var wc = new WindowClassEx
+            {
+                Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_OWNDC,
+                WindowProc = _wndProcDelegate,
+                InstanceHandle = Kernel32.GetModuleHandle(null),
+                CursorHandle = User32.LoadCursor(IntPtr.Zero, (IntPtr)SystemCursor.IDC_ARROW),
+                ClassName = CLASS_NAME
+            };
+            wc.Size = (uint)Marshal.SizeOf(wc);
+
+            // Load user icon - if any.
+            wc.IconHandle = User32.LoadImage(Kernel32.GetModuleHandle(null), "#32512", ResourceImageType.IMAGE_ICON, 0, 0, LoadResourceFlags.LR_DEFAULTSIZE | LoadResourceFlags.LR_SHARED);
+            if (wc.IconHandle == IntPtr.Zero)
+            {
+                Kernel32.SetLastError(0);
+
+                // None loaded - load default.
+                wc.IconHandle = User32.LoadImage(IntPtr.Zero, (IntPtr)SystemIcon.IDI_APPLICATION, ResourceImageType.IMAGE_ICON, 0, 0, LoadResourceFlags.LR_DEFAULTSIZE | LoadResourceFlags.LR_SHARED);
+            }
+
+            _windowClass = User32.RegisterClassEx(ref wc);
+            if (_windowClass == 0) CheckError("Win32: Failed to register window class.", true);
+
+            CheckError("Win32: Could not register class.");
+        }
+
+        private void CreateHelperWindow()
+        {
+            HelperWindowHandle = User32.CreateWindowEx(
+                WindowExStyles.WS_EX_OVERLAPPEDWINDOW,
+                CLASS_NAME,
+                "Emotion Helper Window",
+                WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN,
+                0, 0, 100, 100,
+                IntPtr.Zero, IntPtr.Zero,
+                Kernel32.GetModuleHandle(null),
+                IntPtr.Zero
+            );
+
+            if (HelperWindowHandle == IntPtr.Zero) CheckError("Win32: Failed to create helper window.", true);
+
+            // HACK: The command to the first ShowWindow call is ignored if the parent
+            //       process passed along a STARTUPINFO, so clear that with a no-op call
+            User32.ShowWindow(HelperWindowHandle, ShowWindowCommands.SW_HIDE);
+
+            // Register for HID device notifications
+            var dbi = new DevBroadcastDeviceInterfaceW();
+            dbi.DbccSize = (uint)Marshal.SizeOf(dbi);
+            dbi.DbccDeviceType = DeviceType.DeviceInterface;
+            dbi.DbccClassGuid = User32Guids.GuidDevInterfaceHid;
+            _deviceNotificationHandle = User32.RegisterDeviceNotificationW(HelperWindowHandle, ref dbi, DeviceNotificationFlags.WindowHandle);
+
+            CheckError("Registering for device notifications.");
+
+            while (User32.PeekMessage(out Message msg, HelperWindowHandle, 0, 0, PeekMessageFlags.PM_REMOVE))
+            {
+                User32.TranslateMessage(ref msg);
+                User32.DispatchMessage(ref msg);
+            }
+
+            Kernel32.SetLastError(0);
+
+            CheckError("Creating helper window.");
+        }
+
         #region Input
 
         /// <summary>
@@ -120,7 +188,7 @@ namespace Emotion.Platform.Implementation.Win32
         /// </summary>
         private void PopulateKeyCodes()
         {
-            _scanCodes = new short[(int) Key.Last];
+            _scanCodes = new short[(int)Key.Last];
 
             for (var i = 0; i < _scanCodes.Length; i++)
             {
@@ -260,7 +328,7 @@ namespace Emotion.Platform.Implementation.Win32
             for (scanCode = 0; scanCode < 512; scanCode++)
             {
                 if (_keyCodes[scanCode] > 0)
-                    _scanCodes[(short) _keyCodes[scanCode]] = scanCode;
+                    _scanCodes[(short)_keyCodes[scanCode]] = scanCode;
             }
         }
 
@@ -275,14 +343,14 @@ namespace Emotion.Platform.Implementation.Win32
             _keyNames = new string[_scanCodes.Length];
             _keys = new bool[_keyNames.Length];
 
-            for (var key = (int) Key.Space; key < (int) Key.Last; key++)
+            for (var key = (int)Key.Space; key < (int)Key.Last; key++)
             {
                 uint vk;
 
                 int scanCode = _scanCodes[key];
                 if (scanCode == -1) continue;
 
-                if (key >= (int) Key.Kp0 && key <= (int) Key.KpAdd)
+                if (key >= (int)Key.Kp0 && key <= (int)Key.KpAdd)
                 {
                     uint[] vks =
                     {
@@ -292,16 +360,16 @@ namespace Emotion.Platform.Implementation.Win32
                         (uint) VirtualKey.MULTIPLY, (uint) VirtualKey.SUBTRACT, (uint) VirtualKey.ADD
                     };
 
-                    vk = vks[key - (int) Key.Kp0];
+                    vk = vks[key - (int)Key.Kp0];
                 }
                 else
                 {
-                    vk = User32.MapVirtualKey((uint) scanCode, VirtualKeyMapType.MAPVK_VSC_TO_VK);
+                    vk = User32.MapVirtualKey((uint)scanCode, VirtualKeyMapType.MAPVK_VSC_TO_VK);
                 }
 
                 var chars = new StringBuilder(16);
-                int length = User32.ToUnicode(vk, (uint) scanCode, state, chars, chars.Capacity, 0);
-                if (length == -1) length = User32.ToUnicode(vk, (uint) scanCode, state, chars, chars.Capacity, 0);
+                int length = User32.ToUnicode(vk, (uint)scanCode, state, chars, chars.Capacity, 0);
+                if (length == -1) length = User32.ToUnicode(vk, (uint)scanCode, state, chars, chars.Capacity, 0);
 
                 if (length < 1) continue;
 
@@ -317,26 +385,26 @@ namespace Emotion.Platform.Implementation.Win32
             switch (wParam)
             {
                 // Control keys require special handling.
-                case (uint) VirtualKey.CONTROL when (lParam & 0x01000000) != 0:
+                case (uint)VirtualKey.CONTROL when (lParam & 0x01000000) != 0:
                     return Key.RightControl;
-                case (uint) VirtualKey.CONTROL:
-                {
-                    uint time = User32.GetMessageTime();
+                case (uint)VirtualKey.CONTROL:
+                    {
+                        uint time = User32.GetMessageTime();
 
-                    // HACK: Alt Gr sends Left Ctrl and then Right Alt in close sequence
-                    //       We only want the Right Alt message, so if the next message is
-                    //       Right Alt we ignore this (synthetic) Left Ctrl message
-                    if (!User32.PeekMessage(out Message next, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_NOREMOVE)) return Key.LeftControl;
-                    if (next.Value != WM.KEYDOWN && next.Value != WM.SYSKEYDOWN && next.Value != WM.KEYUP && next.Value != WM.SYSKEYUP) return Key.LeftControl;
-                    if ((uint) next.WParam == (uint) VirtualKey.MENU && ((uint) next.LParam & 0x01000000) != 0 && next.Time == time)
-                        // Next message is Right Alt down so discard this
-                        return Key.Unknown;
+                        // HACK: Alt Gr sends Left Ctrl and then Right Alt in close sequence
+                        //       We only want the Right Alt message, so if the next message is
+                        //       Right Alt we ignore this (synthetic) Left Ctrl message
+                        if (!User32.PeekMessage(out Message next, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_NOREMOVE)) return Key.LeftControl;
+                        if (next.Value != WM.KEYDOWN && next.Value != WM.SYSKEYDOWN && next.Value != WM.KEYUP && next.Value != WM.SYSKEYUP) return Key.LeftControl;
+                        if ((uint)next.WParam == (uint)VirtualKey.MENU && ((uint)next.LParam & 0x01000000) != 0 && next.Time == time)
+                            // Next message is Right Alt down so discard this
+                            return Key.Unknown;
 
-                    return Key.LeftControl;
-                }
+                        return Key.LeftControl;
+                    }
                 // IME notifies that keys have been filtered by setting the virtual
                 // key-code to VK_PROCESSKEY
-                case (uint) VirtualKey.PROCESSKEY:
+                case (uint)VirtualKey.PROCESSKEY:
                     return Key.Unknown;
             }
 
@@ -347,7 +415,7 @@ namespace Emotion.Platform.Implementation.Win32
 
         private void UpdateKeyStatus(Key key, bool down)
         {
-            var keyIndex = (short) key;
+            var keyIndex = (short)key;
 
             // If it was down, and still is - then it's held.
             if (_keys[keyIndex] && down) OnKey.Invoke(key, KeyStatus.Held);
@@ -363,7 +431,7 @@ namespace Emotion.Platform.Implementation.Win32
         private void UpdateMouseKeyStatus(MouseKey key, bool down)
         {
             if (key == MouseKey.Unknown) return;
-            int keyIndex = (short) key - 1;
+            int keyIndex = (short)key - 1;
             if (keyIndex > _mouseKeys.Length - 1) return;
 
             // If it was down, but no longer is - it was let go.
@@ -378,85 +446,28 @@ namespace Emotion.Platform.Implementation.Win32
         public override bool GetKeyDown(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            return _keys[(short) key];
+            return _keys[(short)key];
         }
 
         /// <inheritdoc />
         public override bool GetMouseKeyDown(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key - 1;
+            int keyIndex = (short)key - 1;
             return _mouseKeys[keyIndex];
         }
-
         #endregion
 
-        private void RegisterWindowClass()
+        /// <inheritdoc />
+        public override IntPtr LoadLibrary(string path)
         {
-            _wndProcDelegate = WndProc;
-            var wc = new WindowClassEx
-            {
-                Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_OWNDC,
-                WindowProc = _wndProcDelegate,
-                InstanceHandle = Kernel32.GetModuleHandle(null),
-                CursorHandle = User32.LoadCursor(IntPtr.Zero, (IntPtr) SystemCursor.IDC_ARROW),
-                ClassName = CLASS_NAME
-            };
-            wc.Size = (uint) Marshal.SizeOf(wc);
-
-            // Load user icon - if any.
-            wc.IconHandle = User32.LoadImage(Kernel32.GetModuleHandle(null), "#32512", ResourceImageType.IMAGE_ICON, 0, 0, LoadResourceFlags.LR_DEFAULTSIZE | LoadResourceFlags.LR_SHARED);
-            if (wc.IconHandle == IntPtr.Zero)
-            {
-                Kernel32.SetLastError(0);
-
-                // None loaded - load default.
-                wc.IconHandle = User32.LoadImage(IntPtr.Zero, (IntPtr) SystemIcon.IDI_APPLICATION, ResourceImageType.IMAGE_ICON, 0, 0, LoadResourceFlags.LR_DEFAULTSIZE | LoadResourceFlags.LR_SHARED);
-            }
-
-            _windowClass = User32.RegisterClassEx(ref wc);
-            if (_windowClass == 0) CheckError("Win32: Failed to register window class.", true);
-
-            CheckError("Win32: Could not register class.");
+            return Kernel32.LoadLibrary(path);
         }
 
-        private void CreateHelperWindow()
+        /// <inheritdoc />
+        public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
         {
-            HelperWindowHandle = User32.CreateWindowEx(
-                WindowExStyles.WS_EX_OVERLAPPEDWINDOW,
-                CLASS_NAME,
-                "Emotion Helper Window",
-                WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN,
-                0, 0, 100, 100,
-                IntPtr.Zero, IntPtr.Zero,
-                Kernel32.GetModuleHandle(null),
-                IntPtr.Zero
-            );
-
-            if (HelperWindowHandle == IntPtr.Zero) CheckError("Win32: Failed to create helper window.", true);
-
-            // HACK: The command to the first ShowWindow call is ignored if the parent
-            //       process passed along a STARTUPINFO, so clear that with a no-op call
-            User32.ShowWindow(HelperWindowHandle, ShowWindowCommands.SW_HIDE);
-
-            // Register for HID device notifications
-            var dbi = new DevBroadcastDeviceInterfaceW();
-            dbi.DbccSize = (uint) Marshal.SizeOf(dbi);
-            dbi.DbccDeviceType = DeviceType.DeviceInterface;
-            dbi.DbccClassGuid = User32Guids.GuidDevInterfaceHid;
-            _deviceNotificationHandle = User32.RegisterDeviceNotificationW(HelperWindowHandle, ref dbi, DeviceNotificationFlags.WindowHandle);
-
-            CheckError("Registering for device notifications.");
-
-            while (User32.PeekMessage(out Message msg, HelperWindowHandle, 0, 0, PeekMessageFlags.PM_REMOVE))
-            {
-                User32.TranslateMessage(ref msg);
-                User32.DispatchMessage(ref msg);
-            }
-
-            Kernel32.SetLastError(0);
-
-            CheckError("Creating helper window.");
+            return Kernel32.GetProcAddress(library, symbolName);
         }
 
         /// <summary>
@@ -468,12 +479,12 @@ namespace Emotion.Platform.Implementation.Win32
             var inactive = new List<Monitor>();
             inactive.AddRange(Monitors);
 
-            for (uint adapterIndex = 0;; adapterIndex++)
+            for (uint adapterIndex = 0; ; adapterIndex++)
             {
                 var first = false;
 
                 var adapter = new DisplayDeviceW();
-                adapter.Cb = (uint) Marshal.SizeOf(adapter);
+                adapter.Cb = (uint)Marshal.SizeOf(adapter);
 
                 if (!User32.EnumDisplayDevicesW(null, adapterIndex, ref adapter, 0)) break;
 
@@ -483,10 +494,10 @@ namespace Emotion.Platform.Implementation.Win32
                 if ((adapter.StateFlags & DisplayDeviceStateFlags.PrimaryDevice) != 0) first = true;
 
                 uint displayIndex;
-                for (displayIndex = 0;; displayIndex++)
+                for (displayIndex = 0; ; displayIndex++)
                 {
                     var display = new DisplayDeviceW();
-                    display.Cb = (uint) Marshal.SizeOf(display);
+                    display.Cb = (uint)Marshal.SizeOf(display);
 
                     if (!User32.EnumDisplayDevicesW(adapter.DeviceName, displayIndex, ref display, 0)) break;
 
@@ -523,8 +534,8 @@ namespace Emotion.Platform.Implementation.Win32
         {
             // Check if the message is for this window.
             Win32Window win = null;
-            if (Window != null && hWnd == ((Win32Window) Window).Handle)
-                win = (Win32Window) Window;
+            if (Window != null && hWnd == ((Win32Window)Window).Handle)
+                win = (Win32Window)Window;
 
             if (win == null)
             {
@@ -552,7 +563,7 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.GETMINMAXINFO:
                     Rect windowR = win.GetFullWindowRect(0, 0);
                     // ReSharper disable once NotAccessedVariable
-                    var mmi = (MinMaxInfo*) lParam;
+                    var mmi = (MinMaxInfo*)lParam;
 
                     int offX = windowR.Right - windowR.Left;
                     int offY = windowR.Bottom - windowR.Top;
@@ -572,8 +583,8 @@ namespace Emotion.Platform.Implementation.Win32
                     return IntPtr.Zero;
                 case WM.SIZE:
 
-                    int width = NativeHelpers.LoWord((uint) lParam);
-                    int height = NativeHelpers.HiWord((uint) lParam);
+                    int width = NativeHelpers.LoWord((uint)lParam);
+                    int height = NativeHelpers.HiWord((uint)lParam);
 
                     // Don't send resize event when minimized.
                     if (width != 0 && height != 0) win.OnResize.Invoke(new Vector2(width, height));
@@ -588,7 +599,7 @@ namespace Emotion.Platform.Implementation.Win32
                     // Pull all buttons up.
                     for (var i = 0; i < _keys.Length; i++)
                     {
-                        UpdateKeyStatus((Key) i, false);
+                        UpdateKeyStatus((Key)i, false);
                     }
 
                     win.Focused = false;
@@ -597,10 +608,10 @@ namespace Emotion.Platform.Implementation.Win32
 
                 case WM.SYSCOMMAND:
 
-                    switch ((int) wParam & 0xfff0)
+                    switch ((int)wParam & 0xfff0)
                     {
-                        case (int) SysCommand.SC_SCREENSAVE:
-                        case (int) SysCommand.SC_MONITORPOWER:
+                        case (int)SysCommand.SC_SCREENSAVE:
+                        case (int)SysCommand.SC_MONITORPOWER:
                             if (Window.DisplayMode == DisplayMode.Fullscreen)
                                 // We are running in full screen mode, so disallow
                                 // screen saver and screen blanking
@@ -609,7 +620,7 @@ namespace Emotion.Platform.Implementation.Win32
                             break;
 
                         // User trying to access application menu using ALT?
-                        case (int) SysCommand.SC_KEYMENU:
+                        case (int)SysCommand.SC_KEYMENU:
                             return IntPtr.Zero;
                     }
 
@@ -628,13 +639,13 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.SYSCHAR:
                 case WM.UNICHAR:
 
-                    if (msg == WM.UNICHAR && (int) wParam == 0xFFFF)
+                    if (msg == WM.UNICHAR && (int)wParam == 0xFFFF)
                         // WM_UNICHAR is not sent by Windows, but is sent by some
                         // third-party input method engine
                         // Returning TRUE here announces support for this message
-                        return (IntPtr) 1;
+                        return (IntPtr)1;
 
-                    OnTextInput.Invoke((char) wParam);
+                    OnTextInput.Invoke((char)wParam);
 
                     break;
 
@@ -643,15 +654,15 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.KEYUP:
                 case WM.SYSKEYUP:
 
-                    var lParamLong = (ulong) lParam;
-                    Key key = TranslateKey((ulong) wParam, lParamLong);
+                    var lParamLong = (ulong)lParam;
+                    Key key = TranslateKey((ulong)wParam, lParamLong);
                     if (key == Key.Unknown) break;
 
                     // Scan code can be used for debugging purposes.
                     //uint scanCode = NativeHelpers.HiWord(lParamLong) & (uint) 0x1ff;
-                    bool up = (((ulong) lParam >> 31) & 1) != 0;
+                    bool up = (((ulong)lParam >> 31) & 1) != 0;
 
-                    if (up && (uint) wParam == (uint) VirtualKey.SHIFT)
+                    if (up && (uint)wParam == (uint)VirtualKey.SHIFT)
                     {
                         // HACK: Release both Shift keys on Shift up event, as when both
                         //       are pressed the first release does not emit any event
@@ -668,8 +679,8 @@ namespace Emotion.Platform.Implementation.Win32
 
                 case WM.MOUSEMOVE:
 
-                    int x = NativeHelpers.LoWord((uint) lParam);
-                    int y = NativeHelpers.HiWord((uint) lParam);
+                    int x = NativeHelpers.LoWord((uint)lParam);
+                    int y = NativeHelpers.HiWord((uint)lParam);
 
                     var pos = new Vector2(x, y);
                     MousePosition = Engine.Renderer != null ? Engine.Renderer.ScaleMousePosition(pos) : pos;
@@ -722,13 +733,13 @@ namespace Emotion.Platform.Implementation.Win32
                         User32.ReleaseCapture();
 
                     if (msg == WM.XBUTTONDOWN || msg == WM.XBUTTONUP)
-                        return (IntPtr) 1;
+                        return (IntPtr)1;
 
                     return IntPtr.Zero;
 
                 case WM.MOUSEWHEEL:
 
-                    var scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
+                    var scrollAmount = (short)NativeHelpers.HiWord((ulong)wParam);
                     OnMouseScroll.Invoke(scrollAmount / 120f);
 
                     return IntPtr.Zero;
@@ -737,6 +748,7 @@ namespace Emotion.Platform.Implementation.Win32
             return User32.DefWindowProc(hWnd, msg, wParam, lParam);
         }
 
+        /// <inheritdoc />
         public override bool Update()
         {
             // Check if open.
@@ -752,9 +764,9 @@ namespace Emotion.Platform.Implementation.Win32
             KeyState rShift = User32.GetAsyncKeyState(VirtualKey.RSHIFT);
 
             // Check if it was down, but no longer is.
-            if (_keys[(short) Key.LeftShift] && lShift.Value != 0)
+            if (_keys[(short)Key.LeftShift] && lShift.Value != 0)
                 UpdateKeyStatus(Key.LeftShift, false);
-            if (_keys[(short) Key.RightShift] && rShift.Value != 0)
+            if (_keys[(short)Key.RightShift] && rShift.Value != 0)
                 UpdateKeyStatus(Key.RightShift, false);
 
             while (User32.PeekMessage(out Message msg, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_REMOVE))
@@ -792,7 +804,7 @@ namespace Emotion.Platform.Implementation.Win32
                 CLASS_NAME,
                 Config.Title,
                 Win32Window.DEFAULT_WINDOW_STYLE,
-                (int) CreateWindowFlags.CW_USEDEFAULT, (int) CreateWindowFlags.CW_USEDEFAULT, // Position - default
+                (int)CreateWindowFlags.CW_USEDEFAULT, (int)CreateWindowFlags.CW_USEDEFAULT, // Position - default
                 initialWidth, initialHeight, // Size - initial
                 IntPtr.Zero, // No parent window
                 IntPtr.Zero, // No window menu
@@ -888,11 +900,11 @@ namespace Emotion.Platform.Implementation.Win32
             IntPtr parentWindow = IntPtr.Zero;
 
             if (Window != null)
-                parentWindow = ((Win32Window) Window).Handle;
+                parentWindow = ((Win32Window)Window).Handle;
             else if (HelperWindowHandle != IntPtr.Zero)
                 parentWindow = HelperWindowHandle;
 
-            User32.MessageBox(parentWindow, message, "Something went wrong!", (uint) (0x00000000L | 0x00000010L));
+            User32.MessageBox(parentWindow, message, "Something went wrong!", (uint)(0x00000000L | 0x00000010L));
         }
 
         #region Helpers
@@ -903,9 +915,9 @@ namespace Emotion.Platform.Implementation.Win32
         private static unsafe bool IsWindowsVersionOrGreaterWin32(int major, int minor, int sp)
         {
             var osVer = new NtDll.OsVersionInfoEXW
-                {DwMajorVersion = (uint) major, DwMinorVersion = (uint) minor, DwBuildNumber = 0, DwPlatformId = 0, WServicePackMajor = (ushort) sp};
-            osVer.DwOSVersionInfoSize = (uint) Marshal.SizeOf(osVer);
-            osVer.SzCsdVersion[0] = (char) 0;
+            { DwMajorVersion = (uint)major, DwMinorVersion = (uint)minor, DwBuildNumber = 0, DwPlatformId = 0, WServicePackMajor = (ushort)sp };
+            osVer.DwOSVersionInfoSize = (uint)Marshal.SizeOf(osVer);
+            osVer.SzCsdVersion[0] = (char)0;
 
             const NtDll.TypeMask mask = NtDll.TypeMask.VerMajorVersion | NtDll.TypeMask.VerMinorVersion | NtDll.TypeMask.VerServicePackMajor;
 
@@ -922,7 +934,7 @@ namespace Emotion.Platform.Implementation.Win32
         private static bool IsWindows10BuildOrGreaterWin32(int build)
         {
             var osVer = new NtDll.OsVersionInfoEXW
-                {DwMajorVersion = 10, DwMinorVersion = 0, DwBuildNumber = (uint) build};
+            { DwMajorVersion = 10, DwMinorVersion = 0, DwBuildNumber = (uint)build };
 
             const NtDll.TypeMask mask = NtDll.TypeMask.VerMajorVersion | NtDll.TypeMask.VerMinorVersion | NtDll.TypeMask.VerBuildNumber;
 
@@ -959,7 +971,7 @@ namespace Emotion.Platform.Implementation.Win32
                     Engine.SubmitError(new Exception($"Driver doesn't support profile of {msg}"));
                     break;
                 default:
-                    Engine.SubmitError(new Exception(msg, new Win32Exception((int) errorCheck)));
+                    Engine.SubmitError(new Exception(msg, new Win32Exception((int)errorCheck)));
                     break;
             }
         }

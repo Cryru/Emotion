@@ -152,34 +152,9 @@ namespace Emotion.Platform.Helpers
         }
 
         /// <summary>
-        /// Load a native library.
-        /// </summary>
-        /// <param name="path">The path to the native library.</param>
-        public static IntPtr LoadLibrary(string path)
-        {
-            bool libraryFound = NativeLibrary.TryLoad(path, out IntPtr libAddress);
-            if (!libraryFound) Engine.Log.Warning($"Couldn't find native library - {path}", "NativeLoader");
-
-            Debug.Assert(libAddress != IntPtr.Zero);
-            return libAddress;
-        }
-
-        /// <summary>
-        /// Get a function delegate from a library.
-        /// </summary>
-        internal static TDelegate GetFunctionByName<TDelegate>(IntPtr library, string funcName)
-        {
-            bool funcFound = NativeLibrary.TryGetExport(library, funcName, out IntPtr funcAddress);
-            if (!funcFound) Engine.Log.Warning($"Couldn't find native function - {funcName}", "NativeLoader");
-
-            Debug.Assert(funcAddress != IntPtr.Zero);
-            return Marshal.GetDelegateForFunctionPointer<TDelegate>(funcAddress);
-        }
-
-        /// <summary>
         /// Get a function from a library into a delegate.
         /// </summary>
-        internal static TDelegate GetFunctionByPtr<TDelegate>(IntPtr ptr)
+        public static TDelegate GetFunctionByPtr<TDelegate>(IntPtr ptr)
         {
             return ptr == IntPtr.Zero ? default : Marshal.GetDelegateForFunctionPointer<TDelegate>(ptr);
         }

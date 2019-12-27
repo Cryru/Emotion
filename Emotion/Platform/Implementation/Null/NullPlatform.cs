@@ -38,5 +38,15 @@ namespace Emotion.Platform.Implementation.Null
         {
             return false;
         }
+
+        public override IntPtr LoadLibrary(string path)
+        {
+            return IntPtr.Zero;
+        }
+
+        public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
+        {
+            return IntPtr.Zero;
+        }
     }
 }

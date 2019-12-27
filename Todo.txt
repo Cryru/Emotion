@@ -55,6 +55,8 @@ Platform
 	- Android
 	- Web
 	- Implement the InputManager in the PlatformBase itself
+	- Cleanup on InitConfig and PlatformConfig
+	- Cleanup on PlatformBase
 Meta
 	- Nuget Package
 	- Autobuild nuget package, with version patching, and commit hash patching

@@ -22,7 +22,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
     {
         private IntPtr _openGlLibrary;
 
-        private WglFunctions.WglCreateContext _createContext;
         private WglFunctions.WglDeleteContext _deleteContext;
         private WglFunctions.WglGetProcAddress _getProcAddress;
         private WglFunctions.WglMakeCurrent _makeCurrent;
@@ -34,41 +33,9 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
         public GalliumGraphicsContext(IntPtr windowHandle, Win32Platform platform)
         {
-            PrepareLlvmPipe();
-
             _platform = platform;
             PlatformConfig config = _platform.Config;
 
-            _dc = User32.GetDC(windowHandle);
-            if (_dc == IntPtr.Zero) Win32Platform.CheckError("WGL: Could not get window dc.", true);
-
-            int pixelFormatIdx = SupportedPixelFormat(_dc, config);
-            if (pixelFormatIdx == 0) return;
-
-            var pfd = new PixelFormatDescriptor();
-            pfd.NSize = (ushort) Marshal.SizeOf(pfd);
-            if (Gdi32.DescribePixelFormat(_dc, pixelFormatIdx, (uint) sizeof(PixelFormatDescriptor), ref pfd) == 0)
-            {
-                Win32Platform.CheckError("WGL: Failed to retrieve PFD for the selected pixel format.", true);
-                return;
-            }
-
-            if (!Gdi32.SetPixelFormat(_dc, pixelFormatIdx, ref pfd)) Win32Platform.CheckError("WGL: Could not set pixel format.", true);
-
-            var contextName = "Gallium-OpenGL";
-            _contextHandle = _createContext(_dc);
-            if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError(contextName, true);
-
-            Win32Platform.CheckError("Checking if context creation passed.");
-            Engine.Log.Trace($"Requested {contextName} using pixel format id {pixelFormatIdx}", MessageSource.Win32);
-
-            Valid = true;
-        }
-
-        #region Init
-
-        private void PrepareLlvmPipe()
-        {
             // Unload old OpenGL, if any.
             IntPtr loadedOpenGl = Kernel32.GetModuleHandle("opengl32.dll");
             var counter = 0;
@@ -85,15 +52,41 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             if (counter > 0) Engine.Log.Info($"OpenGL32.dll was unloaded after {counter} attempts.", MessageSource.Win32);
 
             // Load library.
-            _openGlLibrary = NativeHelpers.LoadLibrary("mesa\\opengl32.dll");
+            _openGlLibrary = _platform.LoadLibrary("mesa\\opengl32.dll");
             if (_openGlLibrary == IntPtr.Zero) throw new Exception("mesa\\opengl32.dll not found.");
 
-            _createContext = NativeHelpers.GetFunctionByName<WglFunctions.WglCreateContext>(_openGlLibrary, "wglCreateContext");
-            _deleteContext = NativeHelpers.GetFunctionByName<WglFunctions.WglDeleteContext>(_openGlLibrary, "wglDeleteContext");
-            _getProcAddress = NativeHelpers.GetFunctionByName<WglFunctions.WglGetProcAddress>(_openGlLibrary, "wglGetProcAddress");
-            _makeCurrent = NativeHelpers.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
-            _makeCurrent = NativeHelpers.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
+            var createContext = _platform.GetFunctionByName<WglFunctions.WglCreateContext>(_openGlLibrary, "wglCreateContext");
+            _deleteContext = _platform.GetFunctionByName<WglFunctions.WglDeleteContext>(_openGlLibrary, "wglDeleteContext");
+            _getProcAddress = _platform.GetFunctionByName<WglFunctions.WglGetProcAddress>(_openGlLibrary, "wglGetProcAddress");
+            _makeCurrent = _platform.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
+            _makeCurrent = _platform.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
             _swapIntervalExt = NativeHelpers.GetFunctionByPtr<WglFunctions.SwapInternalExt>(_getProcAddress("wglSwapIntervalEXT"));
+
+            // Setup context.
+            _dc = User32.GetDC(windowHandle);
+            if (_dc == IntPtr.Zero) Win32Platform.CheckError("WGL: Could not get window dc.", true);
+
+            int pixelFormatIdx = SupportedPixelFormat(_dc, config);
+            if (pixelFormatIdx == 0) return;
+
+            var pfd = new PixelFormatDescriptor();
+            pfd.NSize = (ushort) Marshal.SizeOf(pfd);
+            if (Gdi32.DescribePixelFormat(_dc, pixelFormatIdx, (uint) sizeof(PixelFormatDescriptor), ref pfd) == 0)
+            {
+                Win32Platform.CheckError("WGL: Failed to retrieve PFD for the selected pixel format.", true);
+                return;
+            }
+
+            if (!Gdi32.SetPixelFormat(_dc, pixelFormatIdx, ref pfd)) Win32Platform.CheckError("WGL: Could not set pixel format.", true);
+
+            const string contextName = "Gallium-OpenGL";
+            _contextHandle = createContext(_dc);
+            if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError(contextName, true);
+
+            Win32Platform.CheckError("Checking if context creation passed.");
+            Engine.Log.Trace($"Requested {contextName} using pixel format id {pixelFormatIdx}", MessageSource.Win32);
+
+            Valid = true;
         }
 
         /// <summary>
@@ -102,7 +95,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// <param name="dc">The window's handle.</param>
         /// <param name="config">The config which contains the requested pixel format.</param>
         /// <returns>The index of the pixel format to use.</returns>
-        private int SupportedPixelFormat(IntPtr dc, PlatformConfig config)
+        private static int SupportedPixelFormat(IntPtr dc, PlatformConfig config)
         {
             var usableConfigs = new List<FramebufferConfig>();
 
@@ -168,8 +161,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             return 0;
         }
 
-        #endregion
-
         #region Graphic Context API
 
         protected override void SetSwapIntervalPlatform(int interval)
@@ -212,7 +203,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         public override IntPtr GetProcAddress(string func)
         {
             IntPtr proc = _getProcAddress(func);
-            return proc == IntPtr.Zero ? NativeLibrary.GetExport(_openGlLibrary, func) : proc;
+            return proc == IntPtr.Zero ? _platform.GetLibrarySymbolPtr(_openGlLibrary, func) : proc;
         }
 
         public override void Dispose()
