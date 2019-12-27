@@ -185,46 +185,36 @@ namespace WinApi.ComBaseApi.COM
         */
 
         /// <summary>
-        /// Creates a new PropVariant containing a long value
-        /// </summary>
-        public static PropVariant FromLong(long value)
-        {
-            return new PropVariant {vt = (short) VarEnum.VT_I8, hVal = value};
-        }
-
-        
-        /// <summary>
         /// Property value
         /// </summary>
         public object Value
         {
             get
             {
-                VarEnum ve = DataType;
+                short ve = DataType;
                 switch (ve)
                 {
-                    case VarEnum.VT_I1:
+                    case 16: // VarEnum.VT_I1 8bit integer
                         return bVal;
-                    case VarEnum.VT_I2:
+                    case 22:
+                    case 2: // VarEnum.VT_I2 16bit integer
                         return iVal;
-                    case VarEnum.VT_I4:
+                    case 3: // VarEnum.VT_I4 32bit integer
                         return lVal;
-                    case VarEnum.VT_I8:
+                    case 20: // VarEnum.VT_I8 64bit integer
                         return hVal;
-                    case VarEnum.VT_INT:
-                        return iVal;
-                    case VarEnum.VT_UI4:
+                    case 19: // VarEnum.VT_UI4 32bit unsigned integer
                         return ulVal;
-                    case VarEnum.VT_UI8:
+                    case 21: // VarEnum.VT_UI8 64bit unsigned integer
                         return uhVal;
-                    case VarEnum.VT_LPWSTR:
+                    case 31: // VarEnum.VT_LPWSTR Wide null terminated string
                         return Marshal.PtrToStringUni(pointerValue);
-                    case VarEnum.VT_BLOB:
-                    case VarEnum.VT_VECTOR | VarEnum.VT_UI1:
+                    case 65: // VarEnum.VT_BLOB Length prefixed byte array
+                    case 4096 | 17: // VarEnum.VT_VECTOR | VarEnum.VT_UI1 Array of unsigned bytes
                         return blobVal;
-                    case VarEnum.VT_CLSID:
+                    case 72: // VarEnum.VT_CLSID COM class
                         return Marshal.PtrToStructure<Guid>(pointerValue);
-                    case VarEnum.VT_BOOL:
+                    case 11: // VarEnum.VT_BOOL boolean
                         switch (boolVal)
                         {
                             case -1:
@@ -234,7 +224,7 @@ namespace WinApi.ComBaseApi.COM
                             default:
                                 throw new NotSupportedException("PropVariant VT_BOOL must be either -1 or 0");
                         }
-                    case VarEnum.VT_FILETIME:
+                    case 64: // VarEnum.VT_FILETIME WIN32 Filetime
                         return DateTime.FromFileTime((((long)filetime.dwHighDateTime) << 32) + filetime.dwLowDateTime);
                 }
                 throw new NotImplementedException("PropVariant " + ve);
@@ -244,9 +234,9 @@ namespace WinApi.ComBaseApi.COM
         /// <summary>
         /// Gets the type of data in this PropVariant
         /// </summary>
-        public VarEnum DataType
+        public short DataType
         {
-            get => (VarEnum) vt;
+            get => vt;
         }
     }
 }
