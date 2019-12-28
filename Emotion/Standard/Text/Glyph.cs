@@ -48,6 +48,12 @@ namespace Emotion.Standard.Text
 
         #endregion
 
+        public Rectangle GetDrawBox(float scale)
+        {
+            Rectangle bbox = GetBBox(scale);
+            return new Rectangle(0, 0, bbox.Width - bbox.X, bbox.Height - bbox.Y);
+        }
+
         public Rectangle GetBBox(float scale)
         {
             return new Rectangle(

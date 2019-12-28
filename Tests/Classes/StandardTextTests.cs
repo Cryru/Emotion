@@ -1,7 +1,10 @@
 ﻿#region Using
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using Emotion.Primitives;
 using Emotion.Standard.Image;
 using Emotion.Standard.Text;
 using Emotion.Test;
@@ -16,121 +19,109 @@ namespace Tests.Classes
     public class StandardTextTests
     {
         [Test]
-        public void ParseTrueTypeFont()
+        public void VerifyFontRendering()
         {
-            byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", "1980XX.ttf"));
-            var f = new Font(data);
-            StbTrueType.stbtt_fontinfo stbFont = LoadFontStb(data);
-            CompareMetricsWithStb(f, stbFont);
+            var fonts = new[]
+            {
+                "Junction-Bold.otf", // Cff
+                "CaslonOS.otf", // Cff 2 (covers other cases)
+                "1980XX.ttf", // Ttf
+                "LatoWeb-Regular.ttf" // Composite
+            };
 
-            Assert.True(f.Valid);
-            Assert.True(f.FullName == "1980XX");
-            Assert.True(f.UnitsPerEm == 1024);
-            Assert.True(f.Descender == -128);
-            Assert.True(f.Ascender == 682);
-            Assert.True(f.Glyphs.Length == 144);
-        }
+            var names = new[]
+            {
+                "Junction-Bold",
+                "CaslonOS-Regular",
+                "1980XX",
+                "Lato Regular"
+            };
 
-        [Test]
-        public void CompareEmotionAtlasWithStbAtlasTrueType()
-        {
-            byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", "1980XX.ttf"));
+            var unitsPerEm = new[]
+            {
+                1000,
+                1000,
+                1024,
+                2000
+            };
 
-            var f = new Font(data);
-            FontAtlas emotionAtlas = f.GetAtlas(17);
-            FontAtlas stbAtlas = f.GetAtlas(17, rasterizer: Font.GlyphRasterizer.StbTrueType);
+            int[] descender =
+            {
+                -250,
+                -360,
+                -128,
+                -426
+            };
 
-            Assert.True(emotionAtlas != null);
-            if (emotionAtlas == null) return;
-            Assert.True(stbAtlas != null);
+            var ascender = new[]
+            {
+                750,
+                840,
+                682,
+                1974
+            };
 
-            byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
+            var glyphs = new[]
+            {
+                270,
+                279,
+                141,
+                2164
+            };
 
-            Runner.VerifyImages("CompareEmotionAtlasWithStbAtlasTrueType",
-                emotionAtlasRgba,
-                ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
+            string[] cachedRender =
+            {
+                ResultDb.EmotionCffAtlas,
+                "",
+                ResultDb.EmotionTTAtlas,
+                ResultDb.EmotionCompositeAtlas
+            };
 
-            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
-            Runner.VerifyCachedRender(ResultDb.EmotionTTAtlas, emotionAtlasRgba, emotionAtlas.Size);
-        }
+            for (var i = 0; i < fonts.Length; i++)
+            {
+                byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", fonts[i]));
+                var f = new Font(data);
 
-        [Test]
-        public void ParseCffFont()
-        {
-            byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", "Junction-Bold.otf"));
-            var f = new Font(data);
-            StbTrueType.stbtt_fontinfo stbFont = LoadFontStb(data);
-            CompareMetricsWithStb(f, stbFont);
+                // Verify basic font data.
+                Assert.True(f.Valid);
+                Assert.True(f.FullName == names[i]);
+                Assert.True(f.UnitsPerEm == unitsPerEm[i]);
+                Assert.True(f.Descender == descender[i]);
+                Assert.True(f.Ascender == ascender[i]);
+                Assert.True(f.Glyphs.Length == glyphs[i]);
 
-            Assert.True(f.Valid);
-            Assert.True(f.FullName == "Junction-Bold");
-            Assert.True(f.UnitsPerEm == 1000);
-            Assert.True(f.Descender == -250);
-            Assert.True(f.Ascender == 750);
-            Assert.True(f.Glyphs.Length == 270);
-        }
+                // Get atlases.
+                FontAtlas emotionAtlas = f.GetAtlas(17);
+                FontAtlas packedAtlas = RenderFontStbPacked(data, 17, emotionAtlas.Size * 2, (int) f.LastCharIndex, f, out StbTrueType.stbtt_fontinfo stbFont);
 
-        [Test]
-        public void CompareEmotionAtlasWithStbAtlasCff()
-        {
-            byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", "Junction-Bold.otf"));
+                // Compare glyph parsing.
+                CompareMetricsWithStb(f, stbFont);
 
-            var f = new Font(data);
-            FontAtlas emotionAtlas = f.GetAtlas(17);
-            FontAtlas stbAtlas = f.GetAtlas(17, rasterizer: Font.GlyphRasterizer.StbTrueType);
+                // Compare render metrics.
+                foreach (KeyValuePair<char, AtlasGlyph> g in emotionAtlas.Glyphs)
+                {
+                    AtlasGlyph glyph = packedAtlas.Glyphs[g.Key];
+                    Assert.Equal(glyph.Advance, g.Value.Advance);
+                    Assert.Equal(glyph.XMin, g.Value.XMin);
+                    Assert.Equal(glyph.Size, g.Value.Size);
+                    Assert.Equal(glyph.YBearing, g.Value.YBearing);
+                }
 
-            Assert.True(emotionAtlas != null);
-            if (emotionAtlas == null) return;
-            Assert.True(stbAtlas != null);
+                FontAtlas stbAtlas = f.GetAtlas(17, rasterizer: Font.GlyphRasterizer.StbTrueType);
 
-            byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
+                // Compare renders.
+                byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
+                Runner.VerifyImages("CompareFont - " + fonts[i],
+                    emotionAtlasRgba,
+                    ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
 
-            Runner.VerifyImages("CompareEmotionAtlasWithStbAtlasCff",
-                emotionAtlasRgba,
-                ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
+                // Check if there's a verified render.
+                if (string.IsNullOrEmpty(cachedRender[i])) continue;
 
-            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
-            Runner.VerifyCachedRender(ResultDb.EmotionCffAtlas, emotionAtlasRgba, emotionAtlas.Size);
-        }
-
-        [Test]
-        public void ParseCompositeTtFont()
-        {
-            byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", "LatoWeb-Regular.ttf"));
-            var f = new Font(data);
-
-            StbTrueType.stbtt_fontinfo stbFont = LoadFontStb(data);
-            CompareMetricsWithStb(f, stbFont);
-
-            Assert.True(f.Valid);
-            Assert.True(f.FullName == "Lato Regular");
-            Assert.True(f.UnitsPerEm == 2000);
-            Assert.True(f.Descender == -426);
-            Assert.True(f.Ascender == 1974);
-            Assert.True(f.Glyphs.Length == 3023);
-        }
-
-        [Test]
-        public void CompareEmotionAtlasWithStbAtlasComposite()
-        {
-            byte[] data = File.ReadAllBytes(Path.Combine("Assets", "Fonts", "LatoWeb-Regular.ttf"));
-
-            var f = new Font(data);
-            FontAtlas emotionAtlas = f.GetAtlas(17, 0, 1000);
-            FontAtlas stbAtlas = f.GetAtlas(17, 0, 1000, Font.GlyphRasterizer.StbTrueType);
-
-            Assert.True(emotionAtlas != null);
-            if (emotionAtlas == null) return;
-            Assert.True(stbAtlas != null);
-
-            byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
-
-            Runner.VerifyImages("CompareEmotionAtlasWithStbAtlasComposite",
-                emotionAtlasRgba,
-                ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
-
-            ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
-            Runner.VerifyCachedRender(ResultDb.EmotionCompositeAtlas, emotionAtlasRgba, emotionAtlas.Size);
+                // Compare with cached render.
+                ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
+                Runner.VerifyCachedRender(cachedRender[i], emotionAtlasRgba, emotionAtlas.Size);
+            }
         }
 
         [Test]
@@ -144,6 +135,54 @@ namespace Tests.Classes
         }
 
         #region Helpers
+
+        public static unsafe FontAtlas RenderFontStbPacked(byte[] ttf, float fontSize, Vector2 atlasSize, int numChars, Font f, out StbTrueType.stbtt_fontinfo fontInfo)
+        {
+            FontAtlas atlasObj;
+
+            fontInfo = new StbTrueType.stbtt_fontinfo();
+            fixed (byte* ttPtr = &ttf[0])
+            {
+                StbTrueType.stbtt_InitFont(fontInfo, ttPtr, 0);
+
+                float scaleFactor = StbTrueType.stbtt_ScaleForPixelHeight(fontInfo, fontSize);
+                int ascent, descent, lineGap;
+                StbTrueType.stbtt_GetFontVMetrics(fontInfo, &ascent, &descent, &lineGap);
+
+                atlasSize *= 3; // Needs to be big as the packing sucks, and glyphs getting cut out messes with the tests.
+                var pixels = new byte[(int) atlasSize.X * (int) atlasSize.Y];
+
+                var pc = new StbTrueType.stbtt_pack_context();
+                fixed (byte* pixelsPtr = pixels)
+                {
+                    StbTrueType.stbtt_PackBegin(pc, pixelsPtr, (int) atlasSize.X, (int) atlasSize.Y, (int) atlasSize.X, 1, null);
+                }
+
+                var cd = new StbTrueType.stbtt_packedchar[numChars];
+                fixed (StbTrueType.stbtt_packedchar* charPtr = cd)
+                {
+                    StbTrueType.stbtt_PackFontRange(pc, ttPtr, 0, fontSize, 0, numChars, charPtr);
+                }
+
+                StbTrueType.stbtt_PackEnd(pc);
+                atlasObj = new FontAtlas(atlasSize, pixels, "test", fontSize, f);
+                for (var i = 0; i < cd.Length; ++i)
+                {
+                    float yOff = cd[i].yoff;
+                    yOff += ascent * scaleFactor;
+
+                    var atlasGlyph = new AtlasGlyph((char) i, (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, 10)
+                    {
+                        Location = new Vector2(cd[i].x0, cd[i].y0),
+                        Size = new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0),
+                        YBearing = (int) MathF.Round(yOff) // overwrite
+                    };
+                    atlasObj.Glyphs[(char) i] = atlasGlyph;
+                }
+            }
+
+            return atlasObj;
+        }
 
         public static StbTrueType.stbtt_fontinfo LoadFontStb(byte[] bytes)
         {
@@ -162,6 +201,30 @@ namespace Tests.Classes
 
         public static unsafe void CompareMetricsWithStb(Font f, StbTrueType.stbtt_fontinfo stbFont)
         {
+            var pc = new StbTrueType.stbtt_pack_context();
+            StbTrueType.stbtt_PackBegin(pc, (byte*) 0, 512, 512, 512, 1, null);
+
+            var cd = new StbTrueType.stbtt_packedchar[f.LastCharIndex + 1];
+            StbTrueType.stbrp_rect[] rects;
+            fixed (StbTrueType.stbtt_packedchar* charDataPtr = &cd[0])
+            {
+                var range = new StbTrueType.stbtt_pack_range
+                {
+                    first_unicode_codepoint_in_range = 0,
+                    array_of_unicode_codepoints = null,
+                    num_chars = (int) f.LastCharIndex + 1,
+                    chardata_for_range = charDataPtr,
+                    font_size = f.Height
+                };
+
+                rects = new StbTrueType.stbrp_rect[f.LastCharIndex + 1];
+                fixed (StbTrueType.stbrp_rect* rectPtr = &rects[0])
+                {
+                    int n = StbTrueType.stbtt_PackFontRangesGatherRects(pc, stbFont, &range, 1, rectPtr);
+                    StbTrueType.stbtt_PackFontRangesPackRects(pc, rectPtr, n);
+                }
+            }
+
             foreach (Glyph glyph in f.Glyphs)
             {
                 if (glyph.CharIndex == (char) 0) continue;
@@ -169,7 +232,7 @@ namespace Tests.Classes
                 var bearing = 0;
                 StbTrueType.stbtt_GetCodepointHMetrics(stbFont, (int) glyph.CharIndex, &advance, &bearing);
                 Assert.True(advance == glyph.AdvanceWidth);
-                Assert.True(bearing == glyph.LeftSideBearing);
+                Assert.True(bearing == glyph.LeftSideBearing || glyph.LeftSideBearing == 0); // stb has junk data beyond valid
 
                 var minX = 0;
                 var maxX = 0;
@@ -177,11 +240,19 @@ namespace Tests.Classes
                 var maxY = 0;
                 StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, (int) glyph.CharIndex, 1, 1, 0, 0, &minX, &minY, &maxX, &maxY);
 
-                // The Y is inverted in STB so we invert the ymin and ymax when verifying.
-                Assert.True(minX == glyph.XMin);
-                Assert.True(maxX == glyph.XMax);
-                Assert.True(minY == -glyph.YMax);
-                Assert.True(maxY == -glyph.YMin);
+                Rectangle bbox = glyph.GetBBox(1f);
+
+                Assert.Equal(minX, bbox.X);
+                Assert.Equal(minY, bbox.Y);
+                Assert.Equal(maxX, bbox.Width);
+                Assert.Equal(maxY, bbox.Height);
+
+                Rectangle drawBox = glyph.GetDrawBox(1f);
+                drawBox.Width += 1;
+                drawBox.Height += 1;
+                StbTrueType.stbrp_rect rect = rects[glyph.CharIndex];
+                Assert.Equal(rect.w, drawBox.Width);
+                Assert.Equal(rect.h, drawBox.Height);
             }
         }
 

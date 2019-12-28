@@ -296,7 +296,7 @@ namespace Emotion.Standard.Text
                 {
                     var cMap = new CMap(r.Branch(cmapTable.Offset, true, cmapTable.Length));
                     var post = new Post(r.Branch(postTable.Offset, true, postTable.Length));
-                    AddGlyphNames(Glyphs, cMap.GlyphIndexMap, post.Names);
+                    AddGlyphNames(ref Glyphs, cMap.GlyphIndexMap, post.Names);
                 }
             }
             else
@@ -396,7 +396,7 @@ namespace Emotion.Standard.Text
             if (numChars == -1) numChars = (int) (LastCharIndex - firstChar);
 
             // The scale to render at.
-            float scale = fontSize / UnitsPerEm;
+            float scale = fontSize / Height;
             var glyphRenders = new List<Task<GlyphRenderer.GlyphCanvas>>();
 
             for (var i = 0; i < numChars; i++)
@@ -467,7 +467,7 @@ namespace Emotion.Standard.Text
                     }
                 }
 
-                atlasGlyphs[i].SetAtlasLocation(pen, new Vector2(canvases[i].Width, canvases[i].Height));
+                atlasGlyphs[i].Location = pen;
 
                 // Increment pen. Leave space between glyphs.
                 pen.X += canvases[i].Width + glyphSpacing;
@@ -484,13 +484,7 @@ namespace Emotion.Standard.Text
         private static GlyphRenderer.GlyphCanvas RenderGlyph(Font f, Glyph g, float scale)
         {
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-
-            // Get glyph bounding box.
-            Rectangle bbox = g.GetBBox(scale);
-            var glyphWidth = (int) (bbox.Width - bbox.X);
-            var glyphHeight = (int) (bbox.Height - bbox.Y);
-
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, glyphWidth, glyphHeight);
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X, (int) atlasGlyph.Size.Y);
 
             // Check if glyph can be rendered, and render it.
             if (g.Vertices != null && g.Vertices.Length != 0)
@@ -502,20 +496,14 @@ namespace Emotion.Standard.Text
         private static unsafe GlyphRenderer.GlyphCanvas RenderGlyphStb(Font f, Glyph g, float scale)
         {
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-
-            // Get glyph bounding box.
-            Rectangle bbox = g.GetBBox(scale);
-            var glyphWidth = (int) (bbox.Width - bbox.X);
-            var glyphHeight = (int) (bbox.Height - bbox.Y);
-
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, glyphWidth, glyphHeight);
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X, (int) atlasGlyph.Size.Y);
 
             // Check if glyph can be rendered.
             if (g.Vertices == null || g.Vertices.Length == 0)
                 return canvas;
 
             // Render the current glyph.
-            if (glyphWidth == 0 || glyphHeight == 0) return canvas;
+            if ((int) atlasGlyph.Size.X == 0 || (int) atlasGlyph.Size.Y == 0) return canvas;
             GlyphVertex[] vertices = g.Vertices;
 
             fixed (byte* pixels = &canvas.Data[0])
@@ -539,6 +527,8 @@ namespace Emotion.Standard.Text
                     verts[i].cy1 = vertices[i].Cy1;
                     verts[i].type = (byte) vertices[i].TypeFlag;
                 }
+
+                Rectangle bbox = g.GetBBox(scale);
 
                 fixed (StbTrueType.stbtt_vertex* vert = &verts[0])
                 {
@@ -605,26 +595,21 @@ namespace Emotion.Standard.Text
         /// <param name="glyphs">The glyphs themselves.</param>
         /// <param name="glyphIndexMap">Indices to glyph unicode symbols.</param>
         /// <param name="glyphNames">The glyph names read from the postscript table.</param>
-        private static void AddGlyphNames(Glyph[] glyphs, Dictionary<uint, uint> glyphIndexMap, IReadOnlyList<string> glyphNames)
+        private static void AddGlyphNames(ref Glyph[] glyphs, Dictionary<uint, uint> glyphIndexMap, IReadOnlyList<string> glyphNames)
         {
             Dictionary<uint, uint> indexMap = glyphIndexMap;
 
+            var glyphsReorder = new List<Glyph>();
             foreach ((uint key, uint value) in indexMap)
             {
                 Glyph glyph = glyphs[value];
+                glyph.Name = glyphNames[(int) value];
                 glyph.MapIndex = value;
-
-                if (glyph.CharIndex == default)
-                    glyph.CharIndex = key;
+                glyph.CharIndex = key;
+                glyphsReorder.Add(glyph);
             }
 
-            if (glyphNames == null) return;
-
-            for (var i = 0; i < glyphs.Length; i++)
-            {
-                Glyph glyph = glyphs[i];
-                glyph.Name = glyphNames[i];
-            }
+            glyphs = glyphsReorder.ToArray();
         }
 
         /// <summary>
@@ -670,7 +655,7 @@ namespace Emotion.Standard.Text
         /// </summary>
         /// <param name="tag">The tag of the table to get.</param>
         /// <returns>The table with the specified tag, or null if not found.</returns>
-        private FontTable GetTable(string tag)
+        public FontTable GetTable(string tag)
         {
             return Tables.FirstOrDefault(x => x.Tag == tag);
         }

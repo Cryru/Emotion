@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Emotion.Primitives;
 
 #endregion
 
@@ -43,6 +44,8 @@ namespace Emotion.Standard.Text
         /// </summary>
         public float YBearing { get; set; }
 
+        public Glyph g;
+
         public AtlasGlyph(char charIndex, float advance, float xMin, float yBearing)
         {
             CharIndex = charIndex;
@@ -54,17 +57,14 @@ namespace Emotion.Standard.Text
 
         public AtlasGlyph(Glyph fontGlyph, float scale, float ascend)
         {
+            g = fontGlyph;
+
             CharIndex = (char) fontGlyph.CharIndex;
-
-            Advance = MathF.Floor(fontGlyph.AdvanceWidth * scale);
+            Advance = MathF.Round(fontGlyph.AdvanceWidth * scale);
             XMin = MathF.Floor(fontGlyph.XMin * scale);
-            YBearing = MathF.Floor(ascend * scale) - MathF.Ceiling(fontGlyph.YMax * scale);
-        }
-
-        public void SetAtlasLocation(Vector2 penLocation, Vector2 size)
-        {
-            Location = penLocation;
-            Size = size;
+            Rectangle bbox = fontGlyph.GetBBox(scale);
+            YBearing = MathF.Round(bbox.Y + ascend * scale);
+            Size = fontGlyph.GetDrawBox(scale).Size;
         }
     }
 

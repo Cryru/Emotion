@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿#region Using
+
+using System.Collections.Generic;
 using Emotion.Game.QuadTree;
 using Emotion.Primitives;
 using Emotion.Test;
+
+#endregion
 
 namespace Tests.Classes
 {
@@ -14,7 +18,7 @@ namespace Tests.Classes
         [Test]
         public void QuadTreeTest()
         {
-            QuadTree<Transform> tree = new QuadTree<Transform>(0, 0, 100, 100);
+            var tree = new QuadTree<Transform>(0, 0, 100, 100);
 
             // There shouldn't be anything inside.
             Assert.True(tree.QuadTreeRoot.isEmptyLeaf);
