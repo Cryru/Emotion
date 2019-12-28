@@ -31,6 +31,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.4.0" />
     <PackageReference Include="NETStandard.Library" Version="2.0.3" />

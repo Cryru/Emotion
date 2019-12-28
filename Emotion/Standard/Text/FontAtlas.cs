@@ -2,8 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using Emotion.Primitives;
+using Emotion.Standard.Image;
+using Emotion.Standard.Image.PNG;
 
 #endregion
 
@@ -25,9 +28,14 @@ namespace Emotion.Standard.Text
         public Vector2 Location { get; set; }
 
         /// <summary>
-        /// The size of the glyph texture within the atlas texture.
+        /// The size of the glyph.
         /// </summary>
         public Vector2 Size { get; set; }
+
+        /// <summary>
+        /// The size of the glyph texture within the atlas texture.
+        /// </summary>
+        public Vector2 UV { get; set; }
 
         /// <summary>
         /// The glyph's scaled advance.
@@ -44,8 +52,6 @@ namespace Emotion.Standard.Text
         /// </summary>
         public float YBearing { get; set; }
 
-        public Glyph g;
-
         public AtlasGlyph(char charIndex, float advance, float xMin, float yBearing)
         {
             CharIndex = charIndex;
@@ -57,13 +63,11 @@ namespace Emotion.Standard.Text
 
         public AtlasGlyph(Glyph fontGlyph, float scale, float ascend)
         {
-            g = fontGlyph;
-
             CharIndex = (char) fontGlyph.CharIndex;
             Advance = MathF.Round(fontGlyph.AdvanceWidth * scale);
             XMin = MathF.Floor(fontGlyph.XMin * scale);
             Rectangle bbox = fontGlyph.GetBBox(scale);
-            YBearing = MathF.Round(bbox.Y + ascend * scale);
+            YBearing = bbox.Y + MathF.Ceiling( ascend * scale);
             Size = fontGlyph.GetDrawBox(scale).Size;
         }
     }
@@ -111,7 +115,14 @@ namespace Emotion.Standard.Text
             Pixels = pixels;
             RasterizedBy = rasterizedBy;
             Scale = scale;
-            FontHeight = MathF.Round(f.Height * scale);
+            FontHeight = MathF.Ceiling(f.Height * scale);
+        }
+
+        public void DebugDump(string fileName)
+        {
+            byte[] bytes = ImageUtil.AToRgba(Pixels);
+            bytes = PngFormat.Encode(bytes, (int) Size.X, (int) Size.Y);
+            File.WriteAllBytes(fileName, bytes);
         }
     }
 }

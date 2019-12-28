@@ -14,7 +14,7 @@ using StbTrueTypeSharp;
 #if FreeType
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using Emotion.Common;
 #endif
 
 #endregion
@@ -145,8 +145,8 @@ namespace Emotion.Standard.Text
                     {
                         Assembly freeTypeSupportAssembly = Assembly.LoadFrom(Path.Combine("Standard", "Text", "Freetype", "Emotion.Standard.FreeType.dll"));
                         MethodInfo initFunc = freeTypeSupportAssembly.GetType("SharpFont.FT").GetMethod("Init");
-                        bool loaded = NativeLibrary.TryLoad(Path.Combine("Standard", "Text", "Freetype", "freetype6"), out _freeTypeLib);
-                        if (loaded)
+                        _freeTypeLib = Engine.Host.LoadLibrary(Path.Combine("Standard", "Text", "Freetype", "freetype6"));
+                        if (_freeTypeLib != IntPtr.Zero)
                         {
                             initFunc?.Invoke(null, new object[] { _freeTypeLib });
                             Type freeTypeWrapperType = freeTypeSupportAssembly.GetType("Emotion.Standard.FreeType.Wrapper");
@@ -399,6 +399,8 @@ namespace Emotion.Standard.Text
             float scale = fontSize / Height;
             var glyphRenders = new List<Task<GlyphRenderer.GlyphCanvas>>();
 
+            const int samples = 1;
+
             for (var i = 0; i < numChars; i++)
             {
                 Glyph g = Glyphs.FirstOrDefault(x => x.CharIndex == firstChar + i);
@@ -411,7 +413,7 @@ namespace Emotion.Standard.Text
                 switch (rasterizer)
                 {
                     case GlyphRasterizer.Emotion:
-                        glyphRenders.Add(Task.Run(() => RenderGlyph(this, g, scale)));
+                        glyphRenders.Add(Task.Run(() => RenderGlyph(this, g, scale, samples)));
                         break;
                     case GlyphRasterizer.StbTrueType:
                         glyphRenders.Add(Task.Run(() => RenderGlyphStb(this, g, scale)));
@@ -426,7 +428,7 @@ namespace Emotion.Standard.Text
 
             // Get rendered canvases.
             GlyphRenderer.GlyphCanvas[] canvases = Task.WhenAll(glyphRenders).Result;
-            var glyphSpacing = 2;
+            const int glyphSpacing = 2;
 
             // The location of the brush within the bitmap.
             var pen = new Vector2(glyphSpacing, glyphSpacing);
@@ -441,7 +443,7 @@ namespace Emotion.Standard.Text
             var atlasObj = new FontAtlas(new Vector2(atlasSize, atlasSize), atlas, rasterizer.ToString(), scale, this);
             var atlasGlyphs = new AtlasGlyph[canvases.Length];
 
-            float atlasRowSpacing = MathF.Ceiling(Height * scale);
+            float atlasRowSpacing = MathF.Ceiling(Height * (scale * samples));
 
             // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < canvases.Length; i++)
@@ -468,6 +470,7 @@ namespace Emotion.Standard.Text
                 }
 
                 atlasGlyphs[i].Location = pen;
+                atlasGlyphs[i].UV = new Vector2(canvases[i].Width, canvases[i].Height);
 
                 // Increment pen. Leave space between glyphs.
                 pen.X += canvases[i].Width + glyphSpacing;
@@ -481,14 +484,14 @@ namespace Emotion.Standard.Text
             return atlasObj;
         }
 
-        private static GlyphRenderer.GlyphCanvas RenderGlyph(Font f, Glyph g, float scale)
+        private static GlyphRenderer.GlyphCanvas RenderGlyph(Font f, Glyph g, float scale, int samples)
         {
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X, (int) atlasGlyph.Size.Y);
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X * samples, (int) atlasGlyph.Size.Y * samples);
 
             // Check if glyph can be rendered, and render it.
             if (g.Vertices != null && g.Vertices.Length != 0)
-                GlyphRenderer.RenderGlyph(canvas, g, scale);
+                GlyphRenderer.RenderGlyph(canvas, g, scale * samples);
 
             return canvas;
         }
@@ -565,7 +568,10 @@ namespace Emotion.Standard.Text
                 dynamic faceSize = _facePropertySize.GetValue(_freeTypeFace);
                 var ascender = (float)faceSize.Metrics.Ascender.ToDouble();
                 float yBearing = ascender - (float)ftGlyph.Metrics.HorizontalBearingY.ToDouble();
-                var glyph = new AtlasGlyph((char)g.CharIndex, advance, minX, yBearing);
+                var glyph = new AtlasGlyph((char) g.CharIndex, advance, minX, yBearing)
+                {
+                    Size = new Vector2(bitmapWidth, bitmapHeight)
+                };
 
                 glyphCanvas = new GlyphRenderer.GlyphCanvas(glyph, bitmapWidth, bitmapHeight);
                 if (bitmapWidth == 0 || bitmapHeight == 0) return glyphCanvas;

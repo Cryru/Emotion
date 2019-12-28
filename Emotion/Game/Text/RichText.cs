@@ -532,7 +532,7 @@ namespace Emotion.Game.Text
             Vector2 drawPos = _layouter.AddLetter(c, out AtlasGlyph g);
 
             Span<VertexData> data = _renderCache.GetData(_fontAtlas.Texture);
-            VertexData.SpriteToVertexData(data, new Vector3(drawPos, 0), g.Size, color, _fontAtlas.Texture, new Rectangle(g.Location, g.Size));
+            VertexData.SpriteToVertexData(data, new Vector3(drawPos, 0), g.Size, color, _fontAtlas.Texture, new Rectangle(g.Location, g.UV));
         }
 
         #endregion

@@ -26,7 +26,8 @@ namespace Tests.Classes
                 "Junction-Bold.otf", // Cff
                 "CaslonOS.otf", // Cff 2 (covers other cases)
                 "1980XX.ttf", // Ttf
-                "LatoWeb-Regular.ttf" // Composite
+                "LatoWeb-Regular.ttf", // Composite
+                "Junction-Bold.otf", // 14 font size
             };
 
             var names = new[]
@@ -34,7 +35,8 @@ namespace Tests.Classes
                 "Junction-Bold",
                 "CaslonOS-Regular",
                 "1980XX",
-                "Lato Regular"
+                "Lato Regular",
+                "Junction-Bold",
             };
 
             var unitsPerEm = new[]
@@ -42,7 +44,8 @@ namespace Tests.Classes
                 1000,
                 1000,
                 1024,
-                2000
+                2000,
+                1000
             };
 
             int[] descender =
@@ -50,7 +53,8 @@ namespace Tests.Classes
                 -250,
                 -360,
                 -128,
-                -426
+                -426,
+                -250
             };
 
             var ascender = new[]
@@ -58,7 +62,8 @@ namespace Tests.Classes
                 750,
                 840,
                 682,
-                1974
+                1974,
+                750
             };
 
             var glyphs = new[]
@@ -66,7 +71,8 @@ namespace Tests.Classes
                 270,
                 279,
                 141,
-                2164
+                2164,
+                270
             };
 
             string[] cachedRender =
@@ -74,8 +80,19 @@ namespace Tests.Classes
                 ResultDb.EmotionCffAtlas,
                 "",
                 ResultDb.EmotionTTAtlas,
-                ResultDb.EmotionCompositeAtlas
+                ResultDb.EmotionCompositeAtlas,
+                ""
             };
+
+            int[] fontSizes =
+            {
+                17,
+                17,
+                17,
+                17,
+                14
+            };
+
 
             for (var i = 0; i < fonts.Length; i++)
             {
@@ -91,8 +108,9 @@ namespace Tests.Classes
                 Assert.True(f.Glyphs.Length == glyphs[i]);
 
                 // Get atlases.
-                FontAtlas emotionAtlas = f.GetAtlas(17);
-                FontAtlas packedAtlas = RenderFontStbPacked(data, 17, emotionAtlas.Size * 2, (int) f.LastCharIndex, f, out StbTrueType.stbtt_fontinfo stbFont);
+                int fontSize = fontSizes[i];
+                FontAtlas emotionAtlas = f.GetAtlas(fontSize);
+                FontAtlas packedAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 2, (int) f.LastCharIndex, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
                 CompareMetricsWithStb(f, stbFont);
@@ -107,7 +125,7 @@ namespace Tests.Classes
                     Assert.Equal(glyph.YBearing, g.Value.YBearing);
                 }
 
-                FontAtlas stbAtlas = f.GetAtlas(17, rasterizer: Font.GlyphRasterizer.StbTrueType);
+                FontAtlas stbAtlas = f.GetAtlas(fontSize, rasterizer: Font.GlyphRasterizer.StbTrueType);
 
                 // Compare renders.
                 byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
@@ -169,13 +187,12 @@ namespace Tests.Classes
                 for (var i = 0; i < cd.Length; ++i)
                 {
                     float yOff = cd[i].yoff;
-                    yOff += ascent * scaleFactor;
-
+                    yOff += MathF.Ceiling(ascent * scaleFactor);
                     var atlasGlyph = new AtlasGlyph((char) i, (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, 10)
                     {
                         Location = new Vector2(cd[i].x0, cd[i].y0),
                         Size = new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0),
-                        YBearing = (int) MathF.Round(yOff) // overwrite
+                        YBearing = (int) MathF.Round(yOff), // overwrite
                     };
                     atlasObj.Glyphs[(char) i] = atlasGlyph;
                 }

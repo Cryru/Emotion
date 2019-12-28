@@ -57,10 +57,10 @@ namespace Emotion.Standard.Text
         public Rectangle GetBBox(float scale)
         {
             return new Rectangle(
-                (float) Math.Floor((double) XMin * scale),
-                (float) Math.Floor((double) -YMax * scale),
-                (float) Math.Ceiling((double) XMax * scale),
-                (float) Math.Ceiling((double) -YMin * scale)
+                MathF.Floor(XMin * scale),
+                MathF.Floor(-YMax * scale),
+                MathF.Ceiling(XMax * scale),
+                MathF.Ceiling(-YMin * scale)
             );
         }
     }

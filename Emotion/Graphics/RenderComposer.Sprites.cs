@@ -130,8 +130,8 @@ namespace Emotion.Graphics
             {
                 Vector2 gPos = layout.AddLetter(c, out AtlasGlyph g);
                 if (g == null) continue;
-                var uv = new Rectangle(g.Location, g.Size);
-                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), uv.Size, color, atlas.Texture, uv);
+                var uv = new Rectangle(g.Location, g.UV);
+                RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
             }
         }
     }
