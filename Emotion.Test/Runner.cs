@@ -123,7 +123,9 @@ namespace Emotion.Test
             // Check for test run id. This signifies whether the runner is linked.
             TestRunId = ArgumentsParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
             TestRunFolder = Path.Join("TestResults", $"{TestRunId}");
-            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References");
+
+            ArgumentsParser.FindArgument(args, "tag=", out string tag);
+            RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References{tag}");
 
             // Check if master runner.
             bool linked = TestRunId != RunnerId.ToString();

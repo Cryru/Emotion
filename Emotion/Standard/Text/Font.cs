@@ -465,7 +465,7 @@ namespace Emotion.Standard.Text
                     {
                         var x = (int) (pen.X + col);
                         var y = (int) (pen.Y + row);
-                        atlas[y * atlasSize + x] = canvases[i].Data[row * canvases[i].Width + col];
+                        atlas[y * atlasSize + x] = canvases[i].Data[row * (canvases[i].Stride) + col];
                     }
                 }
 
@@ -487,11 +487,15 @@ namespace Emotion.Standard.Text
         private static GlyphRenderer.GlyphCanvas RenderGlyph(Font f, Glyph g, float scale, int samples)
         {
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X * samples, (int) atlasGlyph.Size.Y * samples);
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) (atlasGlyph.Size.X + 1) * samples, (int) (atlasGlyph.Size.Y + 1) * samples);
 
             // Check if glyph can be rendered, and render it.
             if (g.Vertices != null && g.Vertices.Length != 0)
                 GlyphRenderer.RenderGlyph(canvas, g, scale * samples);
+
+            // Remove padding.
+            canvas.Width -= 1;
+            canvas.Height -= 1;
 
             return canvas;
         }
@@ -499,7 +503,7 @@ namespace Emotion.Standard.Text
         private static unsafe GlyphRenderer.GlyphCanvas RenderGlyphStb(Font f, Glyph g, float scale)
         {
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
-            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X, (int) atlasGlyph.Size.Y);
+            var canvas = new GlyphRenderer.GlyphCanvas(atlasGlyph, (int) atlasGlyph.Size.X + 1, (int) atlasGlyph.Size.Y + 1);
 
             // Check if glyph can be rendered.
             if (g.Vertices == null || g.Vertices.Length == 0)
@@ -538,6 +542,10 @@ namespace Emotion.Standard.Text
                     StbTrueType.stbtt_Rasterize(&bitmap, 0.35f, vert, vertices.Length, scale, scale, 0, 0, (int) bbox.X, (int) bbox.Y, 1);
                 }
             }
+
+            // Remove padding.
+            canvas.Width -= 1;
+            canvas.Height -= 1;
 
             return canvas;
         }

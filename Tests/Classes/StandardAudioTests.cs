@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
@@ -58,6 +59,10 @@ namespace Tests.Classes
             Assert.True(copy.Length == (int) (money.SoundData.Length * 2 * ratio));
         }
 
+        /// <summary>
+        /// Verifies that converting a stream in segments produces the same results are converting it as a whole.
+        /// This matters because the resampling is different.
+        /// </summary>
         [Test]
         public void StreamConvert()
         {
@@ -68,70 +73,78 @@ namespace Tests.Classes
             Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
             AudioUtil.ConvertFormat(pepsi.Format, format, ref copy);
 
-            var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
-            streamer.SetConvertFormat(format);
-            for (var io = 0; io < 5 - 1; io++)
+            var testTasks = new List<Task>();
+            for (var io = 0; io < 5; io++)
             {
-                var segmentConvert = new List<byte>();
-                int framesGet = new Random().Next(1, 500);
-                Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
-
-                var timedOut = true;
-                DateTime start = DateTime.Now;
-                while (DateTime.Now.Subtract(start).TotalMinutes < 2f) // timeout
+                testTasks.Add(Task.Run(() =>
                 {
-                    var data = new byte[framesGet * format.SampleSize];
-                    var spanData = new Span<byte>(data);
-                    int frameAmount = streamer.GetNextFrames(framesGet, spanData);
-                    if (frameAmount == 0) break;
-                    Assert.True(data.Length >= frameAmount * format.SampleSize);
-                    segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
-                    timedOut = false;
-                }
-                if(timedOut) Engine.Log.Info($"StreamConvert timeout.", CustomMSource.TestRunner);
+                    var streamer = new AudioStreamer(pepsi.Format, pepsi.SoundData);
+                    streamer.SetConvertFormat(format);
+                    var segmentConvert = new List<byte>();
+                    int framesGet = new Random().Next(1, 500);
+                    Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
 
-                Assert.Equal(segmentConvert.Count, copy.Length);
-                for (var i = 0; i < copy.Length; i++)
-                {
-                    Assert.Equal(copy[i], segmentConvert[i]);
-                }
+                    var timedOut = true;
+                    DateTime start = DateTime.Now;
+                    while (DateTime.Now.Subtract(start).TotalMinutes < 2f) // timeout
+                    {
+                        var data = new byte[framesGet * format.SampleSize];
+                        var spanData = new Span<byte>(data);
+                        int frameAmount = streamer.GetNextFrames(framesGet, spanData);
+                        if (frameAmount == 0) break;
+                        Assert.True(data.Length >= frameAmount * format.SampleSize);
+                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
+                        timedOut = false;
+                    }
+                    if(timedOut) Engine.Log.Info($"StreamConvert timeout.", CustomMSource.TestRunner);
 
-                streamer.Reset();
+                    Assert.Equal(segmentConvert.Count, copy.Length);
+                    for (var i = 0; i < copy.Length; i++)
+                    {
+                        Assert.Equal(copy[i], segmentConvert[i]);
+                    }
+                }));
             }
 
-            var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+            Task.WaitAll(testTasks.ToArray());
+            testTasks.Clear();
 
+            var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
             copy = new byte[money.SoundData.Length];
             Array.Copy(money.SoundData, 0, copy, 0, money.SoundData.Length);
             AudioUtil.ConvertFormat(money.Format, format, ref copy);
-            streamer = new AudioStreamer(money.Format, money.SoundData);
-            streamer.SetConvertFormat(format);
 
             for (var io = 0; io < 5; io++)
             {
-                var segmentConvert = new List<byte>();
-                int framesGet = new Random().Next(1, 500);
-                Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
-
-                DateTime start = DateTime.Now;
-                while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
+                testTasks.Add(Task.Run(() =>
                 {
-                    var data = new byte[framesGet * format.SampleSize];
-                    var spanData = new Span<byte>(data);
-                    int frameAmount = streamer.GetNextFrames(framesGet, spanData);
-                    if (frameAmount == 0) break;
-                    Assert.True(data.Length >= frameAmount * format.SampleSize);
-                    segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
-                }
+                    var streamer = new AudioStreamer(money.Format, money.SoundData);
+                    streamer.SetConvertFormat(format);
 
-                Assert.Equal(segmentConvert.Count, copy.Length);
-                for (var i = 0; i < copy.Length; i++)
-                {
-                    Assert.Equal(copy[i], segmentConvert[i]);
-                }
+                    var segmentConvert = new List<byte>();
+                    int framesGet = new Random().Next(1, 500);
+                    Engine.Log.Info($"StreamConvert (Mono) has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
 
-                streamer.Reset();
+                    DateTime start = DateTime.Now;
+                    while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
+                    {
+                        var data = new byte[framesGet * format.SampleSize];
+                        var spanData = new Span<byte>(data);
+                        int frameAmount = streamer.GetNextFrames(framesGet, spanData);
+                        if (frameAmount == 0) break;
+                        Assert.True(data.Length >= frameAmount * format.SampleSize);
+                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
+                    }
+
+                    Assert.Equal(segmentConvert.Count, copy.Length);
+                    for (var i = 0; i < copy.Length; i++)
+                    {
+                        Assert.Equal(copy[i], segmentConvert[i]);
+                    }
+                }));
             }
+
+            Task.WaitAll(testTasks.ToArray());
         }
 
         [Test]

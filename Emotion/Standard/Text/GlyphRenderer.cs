@@ -51,6 +51,7 @@ namespace Emotion.Standard.Text
             public byte[] Data;
             public int Width;
             public int Height;
+            public int Stride { get; private set; }
 
             public GlyphCanvas(AtlasGlyph glyph, int width, int height)
             {
@@ -58,6 +59,7 @@ namespace Emotion.Standard.Text
                 Data = new byte[width * height];
                 Width = width;
                 Height = height;
+                Stride = Width;
             }
         }
 
@@ -67,7 +69,6 @@ namespace Emotion.Standard.Text
             if (canvas.Width == 0 || canvas.Height == 0) return;
 
             GlyphVertex[] vertices = glyph.Vertices;
-            Rectangle bbox = glyph.GetBBox(scale);
 
             var flatnessInPixels = 0.35f;
             Vector2[] windings = FlattenCurves(vertices, flatnessInPixels / scale, out int[] contourLengths);
@@ -134,6 +135,7 @@ namespace Emotion.Standard.Text
                     e[j] = t;
             }
 
+            Rectangle bbox = glyph.GetBBox(scale);
             ActiveEdge active = null;
             {
                 Span<float> scanlineData = new float[129];

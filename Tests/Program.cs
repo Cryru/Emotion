@@ -25,6 +25,7 @@ namespace Tests
             {"tag=Coroutine", null },
             {"tag=StandardAudio", null },
             {"tag=Audio", null },
+            {"tag=StandardText", null },
         };
 
 

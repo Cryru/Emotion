@@ -39,7 +39,7 @@ namespace Emotion.IO
             _loadedAtlases.Clear();
         }
 
-        public DrawableFontAtlas GetAtlas(float fontSize, int firstChar = 0, int numChars = -1)
+        public DrawableFontAtlas GetAtlas(float fontSize, int firstChar = 0, int numChars = -1, bool smooth = true)
         {
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
 
@@ -49,7 +49,7 @@ namespace Emotion.IO
 
             // Load the atlas manually.
             FontAtlas standardAtlas = Font.GetAtlas(fontSize, firstChar, numChars);
-            atlas = new DrawableFontAtlas(standardAtlas);
+            atlas = new DrawableFontAtlas(standardAtlas, smooth);
 
             _loadedAtlases.Add(hash, atlas);
 
@@ -76,12 +76,12 @@ namespace Emotion.IO
         /// </summary>
         public Texture Texture { get; protected set; }
 
-        public DrawableFontAtlas(FontAtlas atlas)
+        public DrawableFontAtlas(FontAtlas atlas, bool smooth = true)
         {
             Atlas = atlas;
             GLThread.ExecuteGLThread(() =>
             {
-                Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels));
+                Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels)) {Smooth = smooth};
                 Texture.TextureMatrix = Matrix4x4.CreateScale(1, -1, 1) * Texture.TextureMatrix;
             });
 
