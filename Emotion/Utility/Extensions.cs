@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Numerics;
+using Emotion.Primitives;
 
 #endregion
 
@@ -28,6 +29,16 @@ namespace Emotion.Utility
         public static Vector2 ToVec2(this Vector3 v)
         {
             return new Vector2(v.X, v.Y);
+        }
+
+        /// <summary>
+        /// Converts a vector4 to a vector3.
+        /// </summary>
+        /// <param name="v">The vector to convert.</param>
+        /// <returns>The Vector4 as a Vector3, with the W unit stripped.</returns>
+        public static Vector3 ToVec3(this Vector4 v)
+        {
+            return new Vector3(v.X, v.Y, v.Z);
         }
     }
 }
