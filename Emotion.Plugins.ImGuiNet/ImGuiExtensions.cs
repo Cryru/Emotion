@@ -23,11 +23,11 @@ namespace Emotion.Plugins.ImGuiNet
 
             Vector2 uvOne = new Vector2(
                 reqUv.X / t.Size.X,
-                reqUv.Y / t.Size.Y * -1
+                reqUv.Y / t.Size.Y
             );
             Vector2 uvTwo = new Vector2(
                 (reqUv.X + reqUv.Size.X) / t.Size.X,
-                (reqUv.Y + reqUv.Size.Y) / t.Size.Y * -1
+                (reqUv.Y + reqUv.Size.Y) / t.Size.Y
             );
 
             return new Tuple<Vector2, Vector2>(uvOne, uvTwo);
