@@ -53,6 +53,8 @@
     <None Remove="Assets\DefaultVert.vert" />
     <None Remove="Assets\GetTextureColor.c" />
     <None Remove="Assets\Shaders\GetTextureSize.c" />
+    <None Remove="Assets\Shaders\SSAA.frag" />
+    <None Remove="Assets\Shaders\SSAA.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,6 +63,8 @@
     <EmbeddedResource Include="Assets\Shaders\DefaultVert.vert" />
     <EmbeddedResource Include="Assets\Shaders\GetTextureColor.c" />
     <EmbeddedResource Include="Assets\Shaders\GetTextureSize.c" />
+    <EmbeddedResource Include="Assets\Shaders\SSAA.frag" />
+    <EmbeddedResource Include="Assets\Shaders\SSAA.xml" />
   </ItemGroup>
 
   <ItemGroup>
