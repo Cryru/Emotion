@@ -56,9 +56,9 @@ namespace Emotion.IO
         /// <returns>The object as an xml string.</returns>
         public static string FromObject(T obj)
         {
-            using var stream = new StringWriter ();
+            using var stream = new MemoryStream ();
             Serializer.Serialize(stream, obj);
-            return stream.ToString();
+            return System.Text.Encoding.UTF8.GetString(stream.ToArray());
         }
     }
 }
