@@ -51,9 +51,14 @@ namespace Emotion.IO
                 return;
             }
 
+            UploadTexture(new Vector2(width, height), pixels, flipped);
+        }
+
+        protected virtual void UploadTexture(Vector2 size, byte[] rgbaPixels, bool flipped)
+        {
             GLThread.ExecuteGLThread(() =>
             {
-                Texture = new Texture(new Vector2(width, height), pixels);
+                Texture = new Texture(size, rgbaPixels);
                 if (flipped) Texture.TextureMatrix = Matrix4x4.CreateScale(1, -1, 1);
             });
         }

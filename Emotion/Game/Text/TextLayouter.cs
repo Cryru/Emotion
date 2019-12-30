@@ -9,15 +9,15 @@ namespace Emotion.Game.Text
 {
     public class TextLayouter
     {
-        private FontAtlas _atlas;
-        private bool _hasZeroGlyph;
-        private Vector2 _pen;
+        public float LineGap { get; set; }
+
+        protected FontAtlas _atlas;
+        protected bool _hasZeroGlyph;
+        protected Vector2 _pen;
 
         public TextLayouter(FontAtlas atlas)
         {
-            _atlas = atlas;
-            _hasZeroGlyph = atlas.Glyphs.ContainsKey((char) 0);
-            _pen = Vector2.Zero;
+            SetAtlas(atlas);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Emotion.Game.Text
         /// <param name="c">The letter to add.</param>
         /// <param name="g">The atlas glyph corresponding to the letter.</param>
         /// <returns>The draw position of the letter.</returns>
-        public Vector2 AddLetter(char c, out AtlasGlyph g)
+        public virtual Vector2 AddLetter(char c, out AtlasGlyph g)
         {
             Vector2 position = GetNextGlyphPosition(c, out Vector2 drawPosition, out g);
             _pen = position;
@@ -98,15 +98,26 @@ namespace Emotion.Game.Text
         public void NewLine()
         {
             _pen.X = 0;
-            _pen.Y += _atlas.FontHeight;
+            _pen.Y += _atlas.FontHeight + LineGap;
         }
 
         /// <summary>
         /// Restart the layouter.
         /// </summary>
-        public void Restart()
+        public virtual void Restart()
         {
             _pen = new Vector2(0, 0);
+        }
+
+        /// <summary>
+        /// Set a new font atlas.
+        /// </summary>
+        /// <param name="atlas">The atlas to set.</param>
+        public void SetAtlas(FontAtlas atlas)
+        {
+            Restart();
+            _atlas = atlas;
+            _hasZeroGlyph = atlas.Glyphs.ContainsKey((char) 0);
         }
 
         /// <summary>

@@ -24,6 +24,11 @@ namespace Emotion.IO
         /// </summary>
         private Dictionary<int, DrawableFontAtlas> _loadedAtlases = new Dictionary<int, DrawableFontAtlas>();
 
+        /// <summary>
+        /// The rasterizer to use for getting atlases.
+        /// </summary>
+        private static Font.GlyphRasterizer _rasterizer = Font.GlyphRasterizer.Emotion;
+
         protected override void CreateInternal(byte[] data)
         {
             Font = new Font(data);
@@ -39,6 +44,11 @@ namespace Emotion.IO
             _loadedAtlases.Clear();
         }
 
+        public static void SetRasterizer(Font.GlyphRasterizer rasterizer)
+        {
+            _rasterizer = rasterizer;
+        }
+
         public DrawableFontAtlas GetAtlas(float fontSize, int firstChar = 0, int numChars = -1, bool smooth = true)
         {
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
@@ -48,7 +58,7 @@ namespace Emotion.IO
             if (found) return atlas;
 
             // Load the atlas manually.
-            FontAtlas standardAtlas = Font.GetAtlas(fontSize, firstChar, numChars);
+            FontAtlas standardAtlas = Font.GetAtlas(fontSize, firstChar, numChars, _rasterizer);
             atlas = new DrawableFontAtlas(standardAtlas, smooth);
 
             _loadedAtlases.Add(hash, atlas);

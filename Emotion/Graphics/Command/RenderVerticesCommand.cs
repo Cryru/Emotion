@@ -32,6 +32,12 @@ namespace Emotion.Graphics.Command
 
         public override void Execute(RenderComposer composer)
         {
+            int neededLength = VerticesUtilization * VertexData.SizeInBytes;
+            if (neededLength > composer.VertexBuffer.Size)
+            {
+                composer.VertexBuffer.Upload(IntPtr.Zero, (uint) neededLength);
+            }
+
             Span<VertexData> vertMapper = composer.VertexBuffer.CreateMapper<VertexData>(0, VerticesUtilization * VertexData.SizeInBytes);
             for (var v = 0; v < VerticesUtilization; v++)
             {

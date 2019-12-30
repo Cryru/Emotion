@@ -28,7 +28,7 @@ namespace Tests.Classes
                 "1980XX.ttf", // Ttf
                 "LatoWeb-Regular.ttf", // Composite
                 "Junction-Bold.otf", // 14 font size
-                "Junction-Bold.otf", // 14 font size
+                "Junction-Bold.otf", // 11 font size
             };
 
             var names = new[]

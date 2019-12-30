@@ -124,11 +124,23 @@ namespace Emotion.Graphics
         public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas)
         {
             if (atlas?.Atlas?.Glyphs == null) return;
+            RenderString(position, color, text, atlas, new TextLayouter(atlas.Atlas));
+        }
 
-            var layout = new TextLayouter(atlas.Atlas);
+        /// <summary>
+        /// Render a string from an atlas.
+        /// </summary>
+        /// <param name="position">The top left position of where to start drawing the string.</param>
+        /// <param name="color">The text color.</param>
+        /// <param name="text">The text itself.</param>
+        /// <param name="atlas">The font atlas to use.</param>
+        /// <param name="layouter">The layouter to use.</param>
+        public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
+        {
+            if (atlas?.Atlas?.Glyphs == null) return;
             foreach (char c in text)
             {
-                Vector2 gPos = layout.AddLetter(c, out AtlasGlyph g);
+                Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);
                 if (g == null) continue;
                 var uv = new Rectangle(g.Location, g.UV);
                 RenderSprite(new Vector3(position.X + gPos.X, position.Y + gPos.Y, position.Z), g.Size, color, atlas.Texture, uv);
