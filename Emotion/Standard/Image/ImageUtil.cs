@@ -1,8 +1,10 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Emotion.Primitives;
 
 #endregion
 
@@ -202,6 +204,37 @@ namespace Emotion.Standard.Image
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Generate a palette from a texture.
+        /// </summary>
+        /// <param name="bgraPixels">The pixels to generate from.</param>
+        /// <param name="colors">The colors in the map.</param>
+        /// <returns>An index based palette map.</returns>
+        public static byte[] GeneratePaletteMap(byte[] bgraPixels, out List<Color> colors)
+        {
+            var paletteMap = new byte[bgraPixels.Length / 4];
+            colors = new List<Color>();
+            for (var i = 0; i < bgraPixels.Length; i += 4)
+            {
+                var c = new Color(
+                    bgraPixels[i + 2],
+                    bgraPixels[i + 1],
+                    bgraPixels[i],
+                    bgraPixels[i + 3]
+                );
+                int index = colors.IndexOf(c);
+                if (index == -1)
+                {
+                    index = colors.Count;
+                    colors.Add(c);
+                }
+
+                paletteMap[i / 4] = (byte) index;
+            }
+
+            return paletteMap;
         }
     }
 }
