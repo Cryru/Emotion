@@ -4,6 +4,7 @@ using Emotion.Utility;
 using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 #endregion
@@ -77,10 +78,22 @@ namespace Emotion.Primitives
         /// <param name="packed">The packed uint.</param>
         public Color(uint packed)
         {
-            R = (byte) (packed >> 0);
+            R = (byte) packed;
             G = (byte) (packed >> 8);
             B = (byte) (packed >> 16);
             A = (byte) (packed >> 24);
+        }
+
+        /// <summary>
+        /// Creates a new color, from a normalized vector4.
+        /// </summary>
+        /// <param name="v">The vector to create a color from.</param>
+        public Color(Vector4 v)
+        {
+            R = (byte) (v.X * 255);
+            G = (byte) (v.Y * 255);
+            B = (byte) (v.Z * 255);
+            A = (byte) (v.W * 255);
         }
 
         #endregion
@@ -272,6 +285,16 @@ namespace Emotion.Primitives
         public uint ToUint()
         {
             return ((uint) A << 24) | ((uint) B << 16) | ((uint) G << 8) | R;
+        }
+
+        /// <summary>
+        /// Create a normalized vec4 from the color.
+        /// </summary>
+        /// <returns>A normalized vec4 from the color.</returns>
+        [Pure]
+        public Vector4 ToVec4()
+        {
+            return new Vector4(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f);
         }
 
         /// <summary>
