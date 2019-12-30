@@ -31,7 +31,7 @@ namespace Emotion.Tools.Windows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            if (_loadingTask != null)
+            if (_loadingTask != null && _loadingTask.Status != TaskStatus.Faulted)
             {
                 ImGui.Text("Loading...");
                 return;
@@ -106,29 +106,37 @@ namespace Emotion.Tools.Windows
 
         public static T ExplorerLoadAsset(string name)
         {
-            // Try to load through the asset loader.
-            AssetSource source = Engine.AssetLoader.GetSource(name);
-            if (source == null)
+            try
             {
-                // Try the file system.
-                if (!File.Exists(name)) return default;
-                var file = new T
+                // Try to load through the asset loader.
+                AssetSource source = Engine.AssetLoader.GetSource(name);
+                if (source == null)
                 {
-                    Name = name
-                };
-                file.Create(File.ReadAllBytes(name));
-                return file;
+                    // Try the file system.
+                    if (!File.Exists(name)) return default;
+                    var file = new T
+                    {
+                        Name = name
+                    };
+                    file.Create(File.ReadAllBytes(name));
+                    return file;
 
-                // Not found
+                    // Not found
+                }
+
+                {
+                    var file = new T
+                    {
+                        Name = name
+                    };
+                    file.Create(source.GetAsset(name));
+                    return file;
+                }
             }
-
+            catch (Exception ex)
             {
-                var file = new T
-                {
-                    Name = name
-                };
-                file.Create(source.GetAsset(name));
-                return file;
+                Engine.Log.Warning($"Couldn't load asset - {ex}", "FileExplorerTool");
+                throw;
             }
         }
     }
