@@ -259,6 +259,7 @@ namespace Emotion.Graphics
                 case ChangeStateCommand _:
                 case FramebufferModificationCommand _:
                 case ModelMatrixModificationCommand _:
+                case ExecCodeCommand _:
                 // We don't know what the sub composer will do, so invalidate batches.
                 case SubComposerCommand _:
                 // If pushing a batch.
