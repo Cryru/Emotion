@@ -147,17 +147,6 @@ namespace Emotion.Test
                 }
             }
 
-            // Check if running only specific tests.
-            if (ArgumentsParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
-
-            // Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
-            if (ArgumentsParser.FindArgument(args, "testOnly", out string _))
-            {
-                Task tests = Task.Run(BeginRun);
-                while (!tests.IsCompleted) TestLoop();
-                return;
-            }
-
             // Set the default engine settings for the test runner.
             Configurator config = engineConfig.SetDebug(true, true, TestLoop).SetLogger(Log);
 
@@ -170,18 +159,34 @@ namespace Emotion.Test
                 _otherConfigs[id](config);
             }
 
+            // Perform light setup.
+            Engine.LightSetup(config);
+
+            // Check if running only specific tests.
+            if (ArgumentsParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
+
+            // Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
+            if (ArgumentsParser.FindArgument(args, "testOnly", out string _))
+            {
+                Task tests = Task.Run(BeginRun);
+                while (!tests.IsCompleted) TestLoop();
+                return;
+            }
+
+            // Perform engine setup.
             Engine.Setup(config);
+
             // Move the camera center in a way that its center is 0,0
             Engine.Renderer.Camera.Position += new Vector3(Engine.Renderer.Camera.WorldToScreen(Vector2.Zero), 0);
             Task.Run(() =>
             {
                 // Wait for the engine to start.
-                while (!Engine.Running && !Engine.Stopped)
+                while (Engine.Status != EngineStatus.Running)
                 {
                 }
 
                 // If crashed.
-                if (Engine.Stopped) return;
+                if (Engine.Status == EngineStatus.Stopped) return;
 
                 // Name the thread.
                 if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Runner Thread";
@@ -191,7 +196,7 @@ namespace Emotion.Test
                 Engine.Quit();
 
                 // Wait for the engine to stop.
-                while (Engine.Running)
+                while (Engine.Status == EngineStatus.Running)
                 {
                 }
             });
@@ -411,8 +416,7 @@ namespace Emotion.Test
         /// <summary>
         /// Used for debugging a specific linked runner.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="args"></param>
+        // ReSharper disable once RedundantAssignment
         public static void RunAsRunner(string text, ref string[] args)
         {
             NoLinkedRunners = true;

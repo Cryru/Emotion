@@ -40,7 +40,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private void LayerThread()
         {
             if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = $"Audio Layer - {Name}";
-            while (_alive && !Engine.Stopped)
+            while (_alive && Engine.Status != EngineStatus.Stopped)
             {
                 // If not playing, wait for it to start playing.
                 if (Status != PlaybackStatus.Playing)

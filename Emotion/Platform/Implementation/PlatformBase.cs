@@ -103,7 +103,18 @@ namespace Emotion.Platform.Implementation
         internal void Setup(Configurator config)
         {
             SetupPlatform(config);
-            if (Window == null) return;
+
+            // Check if the platform initialization was successful.
+            if (Window == null)
+            {
+                Engine.SubmitError(new Exception("Platform couldn't create window."));
+                return;
+            }
+            if (Window.Context == null)
+            {
+                Engine.SubmitError(new Exception("Platform couldn't create context."));
+                return;
+            }
 
             // Bind this window and its context.
             // "There /can/ be only one."

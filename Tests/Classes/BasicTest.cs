@@ -19,8 +19,7 @@ namespace Tests.Classes
         {
             Assert.True(Engine.Host != null);
             Assert.True(Engine.Renderer != null);
-            Assert.True(Engine.Running);
-            Assert.False(Engine.Stopped);
+            Assert.True(Engine.Status == EngineStatus.Running);
         }
 
         [Test]

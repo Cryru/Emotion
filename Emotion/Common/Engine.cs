@@ -10,8 +10,6 @@ using System.Threading;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Platform;
-using Emotion.Platform.Config;
 using Emotion.Platform.Implementation;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
@@ -27,7 +25,7 @@ namespace Emotion.Common
         /// <summary>
         /// The default engine configuration.
         /// </summary>
-        public static Configurator Configuration { get; private set; } = new Configurator();
+        public static Configurator Configuration { get; private set; }
 
         #region Modules
 
@@ -60,25 +58,10 @@ namespace Emotion.Common
 
         #endregion
 
-        #region Flags
-
         /// <summary>
-        /// Whether setting up the engine is complete.
+        /// The status of the engine.
         /// </summary>
-        public static bool SetupComplete { get; set; }
-
-        /// <summary>
-        /// Whether the engine's loop is running.
-        /// </summary>
-        public static bool Running { get; set; }
-
-        /// <summary>
-        /// Whether the engine was stopped.
-        /// The engine cannot recover from this state, and the application must restart.
-        /// </summary>
-        public static bool Stopped { get; set; }
-
-        #endregion
+        public static EngineStatus Status { get; private set; } = EngineStatus.Initial;
 
         /// <summary>
         /// The time you should assume passed between ticks (in milliseconds), for smoothest operation.
@@ -91,8 +74,14 @@ namespace Emotion.Common
         /// </summary>
         public static float TotalTime { get; set; }
 
-        public static void Setup(Configurator configurator = null)
+        /// <summary>
+        /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
+        /// </summary>
+        /// <param name="configurator">Optional engine configuration.</param>
+        public static void LightSetup(Configurator configurator = null)
         {
+            if (Status >= EngineStatus.LightSetup) return;
+
             // Correct the startup directory to the directory of the executable.
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
@@ -100,7 +89,7 @@ namespace Emotion.Common
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
             // If no config provided - use default.
-            if(configurator != null) Configuration = configurator;
+            Configuration = configurator ?? new Configurator();
             Configuration.Lock();
 
             Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
@@ -109,12 +98,23 @@ namespace Emotion.Common
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
-                AppDomain.CurrentDomain.UnhandledException += (e, a) => { SubmitError((Exception) a.ExceptionObject); };
+                AppDomain.CurrentDomain.UnhandledException += (e, a) => { SubmitError((Exception)a.ExceptionObject); };
 
             // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
 
-            // --------- System Setup Complete Beyond This Point ---------
+            Status = EngineStatus.LightSetup;
+        }
+
+        /// <summary>
+        /// Perform engine setup.
+        /// </summary>
+        /// <param name="configurator">An optional engine configuration - will be passed to the light setup.</param>
+        public static void Setup(Configurator configurator = null)
+        {
+            // Call light setup if needed.
+            if (Status < EngineStatus.LightSetup) LightSetup(configurator);
+            if (Status >= EngineStatus.Setup) return;
 
             // Mount assets. This doesn't depend on the platform.
             // Even if it does in the future the platform should add sources to it instead of initializing it.
@@ -122,30 +122,14 @@ namespace Emotion.Common
 
             // Create the platform, window, and graphics context.
             Host = PlatformBase.GetInstanceOfDetected(configurator);
-            
-            // Check if the platform initialization was successful.
             if (Host == null)
             {
-                Stopped = true;
-                Log.Error("Platform couldn't initialize", MessageSource.Engine);
+                SubmitError(new Exception("Platform couldn't initialize."));
                 return;
             }
 
-            if (Host.Window == null)
-            {
-                Stopped = true;
-                SubmitError(new Exception("Platform couldn't create window."));
-                return;
-            }
-
-            if (Host.Window.Context == null)
-            {
-                Stopped = true;
-                SubmitError(new Exception("Platform couldn't create context."));
-                return;
-            }
-
-            if (Stopped) return;
+            // Errors in host initialization can cause this.
+            if (Status == EngineStatus.Stopped) return;
 
             InputManager = new InputManager();
 
@@ -162,21 +146,21 @@ namespace Emotion.Common
                 p.Initialize();
             }
 
-            if (Stopped) return;
-            SetupComplete = true;
+            if (Status == EngineStatus.Stopped) return;
+            Status = EngineStatus.Setup;
         }
 
         public static void Run()
         {
             // Some sanity checks before starting.
-            if (!SetupComplete) return;
+
+            // This will prevent running when stopped (as in a startup error) or not setup.
+            if (Status != EngineStatus.Setup) return;
+
+            // Just to make sure.
             if (Host == null) return;
 
-            // Check if it was stopped before even running.
-            // This indicates an error in the setup.
-            if (Stopped) return;
-
-            Running = true;
+            Status = EngineStatus.Running;
             if (Configuration.DebugMode && Configuration.DebugLoop)
             {
                 Log.Info("Starting debug mode loop...", MessageSource.Engine);
@@ -205,9 +189,9 @@ namespace Emotion.Common
             double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
             double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
 
-            DeltaTime = (float) targetTime;
+            DeltaTime = (float)targetTime;
 
-            while (Running)
+            while (Status == EngineStatus.Running)
             {
 #if SIMULATE_LAG
                 Task.Delay(Helpers.GenerateRandomNumber(0, 16)).Wait();
@@ -263,9 +247,9 @@ namespace Emotion.Common
             double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
             double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
 
-            DeltaTime = (float) targetTime;
+            DeltaTime = (float)targetTime;
 
-            while (Running)
+            while (Status == EngineStatus.Running)
             {
                 // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
                 if (SpecialRenderThread()) break;
@@ -374,10 +358,9 @@ namespace Emotion.Common
 
         public static void Quit()
         {
-            if (Stopped) return;
+            if (Status == EngineStatus.Stopped) return;
 
-            Stopped = true;
-            Running = false;
+            Status = EngineStatus.Stopped;
             Log?.Info("Quitting...", MessageSource.Engine);
 
             // This will close the host if it is open.
