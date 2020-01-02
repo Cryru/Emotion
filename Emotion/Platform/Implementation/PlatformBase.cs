@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Common;
 using Emotion.Platform.Config;
+using Emotion.Platform.Implementation.Null;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
@@ -16,7 +18,7 @@ using OpenGL;
 
 namespace Emotion.Platform.Implementation
 {
-    public abstract class PlatformBase : IDisposable
+    public abstract class PlatformBase
     {
         /// <summary>
         /// Whether the platform is setup.
@@ -73,8 +75,6 @@ namespace Emotion.Platform.Implementation
         /// </summary>
         public ManualResetEvent FocusWait { get; set; } = new ManualResetEvent(true);
 
-        internal PlatformConfig Config;
-
         /// <summary>
         /// The sizes to switch between in debug mode by using ctrl + F1-F9
         /// </summary>
@@ -99,20 +99,10 @@ namespace Emotion.Platform.Implementation
         /// <summary>
         /// Setup the native platform and creates a window.
         /// </summary>
-        /// <param name="conf">Optional configuration for the platform.</param>
-        internal void Setup(PlatformConfig conf = null)
+        /// <param name="config">Configuration for the platform - usually passed from the engine.</param>
+        internal void Setup(Configurator config)
         {
-            // Check if default config, which should always be valid.
-            // If not using the default config, check if it is valid.
-            if (conf == null)
-                Config = new PlatformConfig();
-            else if (!conf.IsValidContext())
-                return;
-            else
-                Config = conf;
-
-            SetupPlatform();
-            Window = CreateWindow();
+            SetupPlatform(config);
             if (Window == null) return;
 
             // Bind this window and its context.
@@ -121,9 +111,8 @@ namespace Emotion.Platform.Implementation
             Gl.BindAPI(Window.Context.GetProcAddress);
             Gl.QueryContextVersion();
 
-            Window.DisplayMode = Config.DisplayMode;
-
-            // Show and focus.
+            // Set display mode, show and focus.
+            Window.DisplayMode = config.InitialDisplayMode;
             Window.WindowState = WindowState.Normal;
 
             // Attach default key behavior.
@@ -196,8 +185,10 @@ namespace Emotion.Platform.Implementation
 
         #region Implementation API
 
-        protected abstract void SetupPlatform();
-        protected abstract Window CreateWindow();
+        /// <summary>
+        /// Platform setup.
+        /// </summary>
+        protected abstract void SetupPlatform(Configurator config);
 
         /// <summary>
         /// Display an error message natively.
@@ -259,12 +250,57 @@ namespace Emotion.Platform.Implementation
         #endregion
 
         /// <summary>
-        /// Dispose of the platform.
+        /// Close the platform.
+        /// This call is meant to notify the platform of a shut-down.
+        /// No calls to the platform should be made afterward.
         /// </summary>
-        public virtual void Dispose()
+        public virtual void Close()
         {
             IsOpen = false;
             Window.Dispose();
+        }
+
+        /// <summary>
+        /// Setup a native platform.
+        /// </summary>
+        /// <param name="engineConfig">The engine configuration.</param>
+        /// <returns>The native platform.</returns>
+        public static PlatformBase GetInstanceOfDetected(Configurator engineConfig)
+        {
+            PlatformBase platform = null;
+
+            // Detect platform.
+            if (engineConfig.PlatformOverride != null)
+            {
+                platform = engineConfig.PlatformOverride;
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Win32
+                platform = new Win32Platform();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // Cocoa
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                // Check for Wayland.
+                if (Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") != null)
+                {
+                }
+            }
+            
+            // If none initialized - fallback to none.
+            if (platform == null)
+            {
+                platform = new NullPlatform();
+            }
+
+            Engine.Log.Info($"Platform is: {platform}", MessageSource.Platform);
+            platform.Setup(engineConfig);
+
+            return platform;
         }
     }
 }

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Emotion.Platform.Config;
+using Emotion.Platform.Implementation;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -164,32 +166,7 @@ namespace Emotion.Common
             return this;
         }
 
-        /// <summary>
-        /// Some kind of title or label displayed on the host.
-        /// On desktop platforms this is the window name.
-        /// </summary>
-        public string HostTitle { get; private set; } = "Untitled";
-
-        /// <summary>
-        /// The starting size of the host. On desktop platforms the host is the window.
-        /// On some platforms this is ignored as the host is either always fullscreen or unresizable.
-        /// </summary>
-        public Vector2 HostSize { get; private set; } = new Vector2(640, 360);
-
-        /// <summary>
-        /// Set starting settings regarding the host.
-        /// Some of these might be ignored depending on the platform.
-        /// </summary>
-        /// <param name="hostSize">The starting size of the host.</param>
-        /// <param name="hostTitle">Some kind of window title.</param>
-        /// <returns>This configurator, for chaining purposes.</returns>
-        public Configurator SetHostSettings(Vector2? hostSize = null, string hostTitle = null)
-        {
-            if (Setup) return this;
-            HostTitle = hostTitle ?? HostTitle;
-            HostSize = hostSize ?? HostSize;
-            return this;
-        }
+        #region Plugins
 
         /// <summary>
         /// List of plugins to load.
@@ -207,5 +184,64 @@ namespace Emotion.Common
             Plugins.Add(plugin);
             return this;
         }
+
+        #endregion
+
+        #region Platform
+
+        /// <summary>
+        /// An override for the engine's platform.
+        /// </summary>
+        public PlatformBase PlatformOverride { get; private set; }
+
+        /// <summary>
+        /// Set the engine's platform. Usually it is auto detected - but on platforms not part
+        /// of the base-Emotion package this might be necessary.
+        /// </summary>
+        /// <param name="platform">The platform to use.</param>
+        /// <returns>This configurator, for chaining purposes.</returns>
+        public Configurator SetPlatform(PlatformBase platform)
+        {
+            if (Setup) return this;
+            PlatformOverride = platform;
+            return this;
+        }
+
+        /// <summary>
+        /// Some kind of title or label displayed on the host.
+        /// On desktop platforms this is the window name.
+        /// </summary>
+        public string HostTitle { get; private set; } = "Untitled";
+
+        /// <summary>
+        /// The starting size of the host. On desktop platforms the host is the window.
+        /// On some platforms this is ignored as the host is either always fullscreen or unresizable.
+        /// </summary>
+        public Vector2 HostSize { get; private set; } = new Vector2(640, 360);
+
+        /// <summary>
+        /// The display mode to start the host in.
+        /// Not all values are valid for all platforms - invalid ones will fallback to the platform default.
+        /// </summary>
+        public DisplayMode InitialDisplayMode { get; private set; } = DisplayMode.Windowed;
+
+        /// <summary>
+        /// Set starting settings regarding the host.
+        /// Some of these might be ignored depending on the platform.
+        /// </summary>
+        /// <param name="hostSize">The starting size of the host.</param>
+        /// <param name="hostTitle">Some kind of window title.</param>
+        /// <param name="displayMode">The initial display mode.</param>
+        /// <returns>This configurator, for chaining purposes.</returns>
+        public Configurator SetHostSettings(Vector2? hostSize = null, string hostTitle = null, DisplayMode displayMode = DisplayMode.Windowed)
+        {
+            if (Setup) return this;
+            HostTitle = hostTitle ?? HostTitle;
+            HostSize = hostSize ?? HostSize;
+            InitialDisplayMode = displayMode;
+            return this;
+        }
+
+        #endregion
     }
 }

@@ -1805,6 +1805,32 @@ namespace WinApi.User32
         STATE_SYSTEM_PRESSED = 0x00000008
     }
 
+    [Flags]
+    public enum ProcessDpiAwareness
+    {
+        ProcessDpiUnaware = 0,
+        ProcessSystemDpiAware = 1,
+        ProcessPerMonitorDpiAware = 2
+    }
+
+    [Flags]
+    public enum DpiAwareness
+    {
+        DpiAwarenessInvalid = -1,
+        DpiAwarenessUnaware = 0,
+        DpiAwarenessSystemAware = 1,
+        DpiAwarenessPerMonitorAware = 2
+    }
+
+    [Flags]
+    public enum DpiAwarenessContext
+    {
+        DpiAwarenessContextUnaware = 16,
+        DpiAwarenessContextSystemAware = 17,
+        DpiAwarenessContextPerMonitorAware = 18,
+        DpiAwarenessContextPerMonitorAwareV2 = 34
+    }
+
     #endregion
 
     #region Singular constants

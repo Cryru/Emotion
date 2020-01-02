@@ -300,28 +300,7 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME)]
         public static extern bool EnableNonClientDpiScaling(IntPtr hWnd);
 
-        public enum ProcessDpiAwareness
-        {
-            ProcessDpiUnaware = 0,
-            ProcessSystemDpiAware = 1,
-            ProcessPerMonitorDpiAware = 2
-        }
 
-        public enum DpiAwareness
-        {
-            DpiAwarenessInvalid = -1,
-            DpiAwarenessUnaware = 0,
-            DpiAwarenessSystemAware = 1,
-            DpiAwarenessPerMonitorAware = 2
-        }
-
-        public enum DpiAwarenessContext
-        {
-            DpiAwarenessContextUnaware = 16,
-            DpiAwarenessContextSystemAware = 17,
-            DpiAwarenessContextPerMonitorAware = 18,
-            DpiAwarenessContextPerMonitorAwareV2 = 34
-        }
 
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setprocessdpiawarenesscontext
@@ -378,6 +357,12 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool DragDetect(IntPtr hwnd, Point point);
 
+        /// <summary>
+        /// Converts the client-area coordinates of a specified point to screen coordinates.
+        /// </summary>
+        /// <param name="hwnd">Handle to the window to use for conversion.</param>
+        /// <param name="point">The point converting.</param>
+        /// <returns></returns>
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool ClientToScreen(IntPtr hwnd, [In] [Out] ref Point point);
 

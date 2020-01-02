@@ -34,7 +34,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         public GalliumGraphicsContext(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
-            PlatformConfig config = _platform.Config;
 
             // Unload old OpenGL, if any.
             IntPtr loadedOpenGl = Kernel32.GetModuleHandle("opengl32.dll");
@@ -66,7 +65,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             _dc = User32.GetDC(windowHandle);
             if (_dc == IntPtr.Zero) Win32Platform.CheckError("WGL: Could not get window dc.", true);
 
-            int pixelFormatIdx = SupportedPixelFormat(_dc, config);
+            int pixelFormatIdx = SupportedPixelFormat(_dc);
             if (pixelFormatIdx == 0) return;
 
             var pfd = new PixelFormatDescriptor();
@@ -93,9 +92,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// Finds the index of the supported pixel format closest to the requested pixel format.
         /// </summary>
         /// <param name="dc">The window's handle.</param>
-        /// <param name="config">The config which contains the requested pixel format.</param>
         /// <returns>The index of the pixel format to use.</returns>
-        private static int SupportedPixelFormat(IntPtr dc, PlatformConfig config)
+        private static int SupportedPixelFormat(IntPtr dc)
         {
             var usableConfigs = new List<FramebufferConfig>();
 
@@ -154,7 +152,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 return 0;
             }
 
-            FramebufferConfig closestConfig = ChoosePixelFormat(config, usableConfigs);
+            FramebufferConfig closestConfig = ChoosePixelFormat(usableConfigs);
             if (closestConfig != null) return closestConfig.Handle;
 
             Engine.Log.Error("Couldn't find suitable pixel format.", MessageSource.WGallium);
@@ -206,7 +204,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             return proc == IntPtr.Zero ? _platform.GetLibrarySymbolPtr(_openGlLibrary, func) : proc;
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             if (_contextHandle == IntPtr.Zero) return;
             _deleteContext(_contextHandle);

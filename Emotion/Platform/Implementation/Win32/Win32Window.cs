@@ -176,7 +176,7 @@ namespace Emotion.Platform.Implementation.Win32
                         break;
                 }
 
-                Context.SetSwapInterval(1);
+                Context.SwapInternal = 1;
             }
         }
 

@@ -50,7 +50,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         public WglGraphicsContext(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
-            PlatformConfig config = _platform.Config;
 
             // Load WGL.
             _openGlLibrary = _platform.LoadLibrary("opengl32.dll");
@@ -126,7 +125,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             // Start creating actual context.
             _dc = User32.GetDC(windowHandle);
             if (_dc == IntPtr.Zero) Win32Platform.CheckError("WGL: Could not get window dc.", true);
-            int pixelFormatIdx = SupportedPixelFormat(_dc, config);
+            int pixelFormatIdx = SupportedPixelFormat(_dc);
             if (pixelFormatIdx == 0) return;
 
             if (Gdi32.DescribePixelFormat(_dc, pixelFormatIdx, (uint) sizeof(PixelFormatDescriptor), ref pfd) == 0)
@@ -141,62 +140,32 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 return;
             }
 
-            // Check for RenderDoc
-            if (Kernel32.GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
-            {
-                Engine.Log.Warning("Detected render doc. Setting window creation to Core Context 3.3", MessageSource.Win32);
-                config.Debug = true;
-                config.MajorVersion = 3;
-                config.MinorVersion = 3;
-                config.Profile = ContextProfile.Core;
-            }
-
-            if (config.ForwardCompatible)
-                if (!arbCreateContext)
-                {
-                    Win32Platform.CheckError("WGL: A forward compatible OpenGL context requested but WGL_ARB_create_context is unavailable", true);
-                    return;
-                }
-
-            if (config.Profile != ContextProfile.Any)
-                if (!arbCreateContextProfile)
-                {
-                    Win32Platform.CheckError("WGL: OpenGL profile requested but WGL_ARB_create_context_profile is unavailable", true);
-                    return;
-                }
-
-            string contextName = $"WGL-OpenGL {config.MajorVersion}.{config.MinorVersion} Profile:{config.Profile} ARB:{arbCreateContext}";
             if (arbCreateContext)
             {
                 WglContextFlags mask = 0;
                 WglContextFlags flags = 0;
                 var attributes = new List<int>();
 
-                if (config.ForwardCompatible)
-                    flags |= WglContextFlags.ForwardCompatibleBitArb;
-
-                switch (config.Profile)
+                // Check for RenderDoc
+                if (Kernel32.GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
                 {
-                    case ContextProfile.Core:
-                        mask |= WglContextFlags.CoreProfileBitArb;
-                        break;
-                    case ContextProfile.Compatibility:
-                        mask |= WglContextFlags.CompatibilityProfileBitArb;
-                        break;
-                }
+                    Engine.Log.Warning("Detected render doc. Setting window creation to Core Context 3.3", MessageSource.Win32);
 
-                if (config.Debug)
-                    flags |= WglContextFlags.DebugBitArb;
-
-                if (config.MajorVersion != 1 || config.MinorVersion != 0)
-                {
                     attributes.Add((int) WglContextAttributes.MajorVersionArb);
-                    attributes.Add(config.MajorVersion);
+                    attributes.Add(3);
 
                     attributes.Add((int) WglContextAttributes.MinorVersionArb);
-                    attributes.Add(config.MinorVersion);
+                    attributes.Add(3);
+
+                    // ArbCreateContextProfile is required to set a profile
+                    if(arbCreateContextProfile)
+                        mask |= WglContextFlags.CoreProfileBitArb;
+
+                    flags |= WglContextFlags.DebugBitArb;
                 }
 
+                // Add flags and mask if any. (there mostly isn't)
+                // Context creation in Wgl is mostly default and trusts(tm) the other side.
                 if (flags != 0)
                 {
                     attributes.Add((int) WglContextAttributes.FlagsArb);
@@ -217,17 +186,16 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                     _contextHandle = createContextAttribs(_dc, IntPtr.Zero, attPtr);
                 }
 
-
-                if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError(contextName, true);
+                if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError("Creating WGL context", true);
             }
             else
             {
                 _contextHandle = createContext(_dc);
-                if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError(contextName, true);
+                if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError("Creating WGL legacy context", true);
             }
 
             Win32Platform.CheckError("Checking if context creation passed.");
-            Engine.Log.Trace($"Requested {contextName} using pixel format id {pixelFormatIdx}", MessageSource.Win32);
+            Engine.Log.Trace($"Requested context using pixel format id {pixelFormatIdx}", MessageSource.Win32);
 
             Valid = true;
         }
@@ -258,9 +226,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// Finds the index of the supported pixel format closest to the requested pixel format.
         /// </summary>
         /// <param name="dc">The window's handle.</param>
-        /// <param name="config">The config which contains the requested pixel format.</param>
         /// <returns>The index of the pixel format to use.</returns>
-        private int SupportedPixelFormat(IntPtr dc, PlatformConfig config)
+        private int SupportedPixelFormat(IntPtr dc)
         {
             var nativeCount = 0;
             var usableConfigs = new List<FramebufferConfig>();
@@ -422,7 +389,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 return 0;
             }
 
-            FramebufferConfig closestConfig = ChoosePixelFormat(config, usableConfigs);
+            FramebufferConfig closestConfig = ChoosePixelFormat(usableConfigs);
             if (closestConfig != null) return closestConfig.Handle;
 
             Engine.Log.Error("Couldn't find suitable pixel format.", MessageSource.Wgl);
@@ -510,7 +477,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             return proc == IntPtr.Zero ? _platform.GetLibrarySymbolPtr(_openGlLibrary, func) : proc;
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             if (_contextHandle == IntPtr.Zero) return;
             _deleteContext(_contextHandle);

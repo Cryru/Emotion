@@ -24,7 +24,10 @@ namespace Emotion.Common
 {
     public static class Engine
     {
-        public static Configurator Configuration { get; private set; }
+        /// <summary>
+        /// The default engine configuration.
+        /// </summary>
+        public static Configurator Configuration { get; private set; } = new Configurator();
 
         #region Modules
 
@@ -97,7 +100,7 @@ namespace Emotion.Common
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
             // If no config provided - use default.
-            Configuration = configurator ?? new Configurator();
+            if(configurator != null) Configuration = configurator;
             Configuration.Lock();
 
             Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
@@ -117,15 +120,9 @@ namespace Emotion.Common
             // Even if it does in the future the platform should add sources to it instead of initializing it.
             AssetLoader = LoadDefaultAssetLoader();
 
-            // Create the window, and graphics context.
-            Host = Loader.Setup(null, new PlatformConfig
-            {
-                MinWidth = (int) Configuration.RenderSize.X,
-                MinHeight = (int) Configuration.RenderSize.Y,
-                Width = (int) Configuration.HostSize.X,
-                Height = (int) Configuration.HostSize.Y,
-                Title = Configuration.HostTitle
-            });
+            // Create the platform, window, and graphics context.
+            Host = PlatformBase.GetInstanceOfDetected(configurator);
+            
             // Check if the platform initialization was successful.
             if (Host == null)
             {
@@ -385,7 +382,7 @@ namespace Emotion.Common
 
             // This will close the host if it is open.
             // No additional cleanup is needed as the program is assumed to be stopping.
-            Host?.Dispose();
+            Host?.Close();
 
             // Flush logs.
             Log?.Dispose();

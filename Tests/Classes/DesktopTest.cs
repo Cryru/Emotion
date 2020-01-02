@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
-using Emotion.Platform;
+using Emotion.Common;
 using Emotion.Platform.Config;
 using Emotion.Platform.Implementation;
 using Emotion.Test;
@@ -18,13 +18,9 @@ namespace Tests.Classes
         [Test]
         public void PlatformTests()
         {
-            PlatformBase plat = Loader.Setup(new InitConfig(),
-                new PlatformConfig
-                {
-                    Width = 320,
-                    Height = 260
-                }
-            );
+            var config = new Configurator();
+            config.SetHostSettings(new Vector2(320, 260));
+            PlatformBase plat = PlatformBase.GetInstanceOfDetected(config);
 
             Assert.True(plat != null);
             Assert.True(plat.Window != null);
@@ -33,7 +29,11 @@ namespace Tests.Classes
             Assert.True(plat.Window.Focused);
 
             var resizes = new List<Vector2>();
-            plat.Window.OnResize.AddListener(t => { resizes.Add(t); return true; });
+            plat.Window.OnResize.AddListener(t =>
+            {
+                resizes.Add(t);
+                return true;
+            });
 
             plat.Window.Position = new Vector2(0, 0);
             Assert.True(plat.Window.Position == new Vector2(0, 0));

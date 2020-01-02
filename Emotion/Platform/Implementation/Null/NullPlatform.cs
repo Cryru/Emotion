@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using Emotion.Common;
 using Emotion.Platform.Input;
 
 #endregion
@@ -19,14 +20,10 @@ namespace Emotion.Platform.Implementation.Null
             return true;
         }
 
-        protected override void SetupPlatform()
+        protected override void SetupPlatform(Configurator config)
         {
             Audio = new NullAudioContext();
-        }
-
-        protected override Window CreateWindow()
-        {
-            return new NullWindow(this);
+            Window = new NullWindow(this);
         }
 
         public override bool GetKeyDown(Key key)

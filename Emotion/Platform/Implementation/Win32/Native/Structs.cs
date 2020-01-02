@@ -1,6 +1,8 @@
 ﻿#region Using
 
+using System;
 using System.Runtime.InteropServices;
+using WinApi.User32;
 
 #endregion
 
@@ -24,6 +26,52 @@ namespace WinApi
         public int Top;
         public int Right;
         public int Bottom;
+
+        /// <summary>
+        /// Get the top left point of the rectangle.
+        /// </summary>
+        /// <returns></returns>
+        public Point LeftTop()
+        {
+            return new Point
+            {
+                X = Left,
+                Y = Top
+            };
+        }
+
+        /// <summary>
+        /// Get the bottom right point of the rectangle.
+        /// </summary>
+        /// <returns></returns>
+        public Point RightBottom()
+        {
+            return new Point
+            {
+                X = Right,
+                Y = Bottom
+            };
+        }
+
+        /// <summary>
+        /// Converts a client-area rectangle to screen coordinates.
+        /// </summary>
+        /// <param name="winInstance">
+        /// Handle to the window whose client coordinates are to be converted.
+        /// This does mean that this rectangle is expected to be within the window.
+        /// </param>
+        public void ClientToScreen(IntPtr winInstance)
+        {
+            Point leftTop = LeftTop();
+            Point rightBottom = RightBottom();
+            User32Methods.ClientToScreen(winInstance, ref leftTop);
+            User32Methods.ClientToScreen(winInstance, ref rightBottom);
+
+            Left = leftTop.X;
+            Top = leftTop.Y;
+            Right = rightBottom.X;
+            Bottom = rightBottom.Y;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
