@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Diagnostics;
-using System.Threading;
 using Emotion.Common;
 using Emotion.Test.Helpers;
 
@@ -40,7 +39,7 @@ namespace Emotion.Test
 
             if (_runnerProcess == null)
             {
-                Runner.Log.Error("Couldn't start linked runner with args {args}", CustomMSource.TestRunner);
+                Engine.Log.Error("Couldn't start linked runner with args {args}", CustomMSource.TestRunner);
                 return;
             }
 
