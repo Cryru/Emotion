@@ -6,7 +6,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Common;
-using Emotion.Platform.Config;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;

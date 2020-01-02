@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
+using Emotion.Utility;
 
 #endregion
 

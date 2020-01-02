@@ -15,6 +15,7 @@ using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
+using Emotion.Utility;
 
 #endregion
 

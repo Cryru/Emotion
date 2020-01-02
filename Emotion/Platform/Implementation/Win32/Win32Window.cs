@@ -3,7 +3,6 @@
 using System;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Platform.Config;
 using Emotion.Standard.Logging;
 using WinApi;
 using WinApi.User32;

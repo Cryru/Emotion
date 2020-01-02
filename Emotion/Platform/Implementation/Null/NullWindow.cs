@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System.Numerics;
-using Emotion.Platform.Config;
 
 #endregion
 

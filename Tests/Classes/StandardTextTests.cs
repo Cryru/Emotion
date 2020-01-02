@@ -8,6 +8,7 @@ using Emotion.Primitives;
 using Emotion.Standard.Image;
 using Emotion.Standard.Text;
 using Emotion.Test;
+using Emotion.Utility;
 using StbTrueTypeSharp;
 using Tests.Results;
 

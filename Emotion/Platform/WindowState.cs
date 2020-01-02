@@ -1,4 +1,4 @@
-﻿namespace Emotion.Platform.Config
+﻿namespace Emotion.Platform
 {
     public enum WindowState
     {

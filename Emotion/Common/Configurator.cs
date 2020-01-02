@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Platform.Config;
+using Emotion.Platform;
 using Emotion.Platform.Implementation;
 using Emotion.Standard.Logging;
 

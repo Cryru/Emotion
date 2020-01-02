@@ -8,7 +8,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Standard.Image
+namespace Emotion.Utility
 {
     public static class ImageUtil
     {

@@ -8,6 +8,7 @@ using Emotion.Standard.Image;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Test;
+using Emotion.Utility;
 using Tests.Results;
 
 namespace Tests.Classes

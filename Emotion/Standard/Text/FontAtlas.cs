@@ -7,6 +7,7 @@ using System.Numerics;
 using Emotion.Primitives;
 using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
+using Emotion.Utility;
 
 #endregion
 

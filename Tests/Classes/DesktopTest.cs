@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
-using Emotion.Platform.Config;
+using Emotion.Platform;
 using Emotion.Platform.Implementation;
 using Emotion.Test;
 

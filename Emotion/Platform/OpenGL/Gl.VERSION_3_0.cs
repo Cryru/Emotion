@@ -9,7 +9,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using Emotion.Platform.Helpers;
+using Emotion.Platform;
+using Emotion.Utility;
 using Khronos;
 
 #endregion

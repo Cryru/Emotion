@@ -5,7 +5,6 @@ using System.Linq;
 using System.Numerics;
 using Emotion.Audio;
 using Emotion.IO;
-using Emotion.Platform.Config;
 
 #endregion
 

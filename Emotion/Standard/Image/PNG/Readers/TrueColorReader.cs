@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using Emotion.Utility;
 
 #endregion
 

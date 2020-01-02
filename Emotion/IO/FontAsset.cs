@@ -7,6 +7,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 using Emotion.Standard.Image;
 using Emotion.Standard.Text;
+using Emotion.Utility;
 
 #endregion
 

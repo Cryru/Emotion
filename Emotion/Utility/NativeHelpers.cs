@@ -2,14 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Emotion.Common;
 
 #endregion
 
-namespace Emotion.Platform.Helpers
+namespace Emotion.Utility
 {
     public static class NativeHelpers
     {
