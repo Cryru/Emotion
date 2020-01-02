@@ -44,7 +44,7 @@ namespace WinApi.Gdi32
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern int GetObject(IntPtr hgdiobj, int cbBuffer, IntPtr lpvObject);
 
         [DllImport(LibraryName, ExactSpelling = true)]
@@ -279,7 +279,7 @@ namespace WinApi.Gdi32
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern bool TextOut(IntPtr hdc, int nXStart, int nYStart,
             string lpString, int cbString);
 

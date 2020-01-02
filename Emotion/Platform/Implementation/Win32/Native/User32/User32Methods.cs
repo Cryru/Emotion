@@ -16,30 +16,30 @@ namespace WinApi.User32
     {
         public const string LIBRARY_NAME = "user32";
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconResource);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadCursor(IntPtr hInstance, string lpCursorName);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadCursor(IntPtr hInstance, IntPtr lpCursorResource);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadImage(IntPtr hInstance, string lpszName, ResourceImageType uType,
             int cxDesired, int cyDesired, LoadResourceFlags fuLoad);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadImage(IntPtr hInstance, IntPtr resourceId, ResourceImageType uType,
             int cxDesired, int cyDesired, LoadResourceFlags fuLoad);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadBitmap(IntPtr hInstance, string lpBitmapName);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadBitmap(IntPtr hInstance, IntPtr resourceId);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
@@ -57,7 +57,7 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern IntPtr MonitorFromWindow(IntPtr hwnd, MonitorFlag dwFlags);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern int DrawText(IntPtr hdc, string lpString, int nCount, [In] ref Rect lpRect,
             uint uFormat);
 
@@ -97,11 +97,11 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern int GetSystemMetrics(SystemMetrics nIndex);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, IntPtr pvParam,
             SystemParamtersInfoFlags fWinIni);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref IntPtr pvParam,
             SystemParamtersInfoFlags fWinIni);
 
@@ -173,7 +173,7 @@ namespace WinApi.User32
         public static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha,
             LayeredWindowAttributeFlag dwFlags);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool WinHelp(IntPtr hWndMain, string lpszHelp, uint uCommand, uint dwData);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
@@ -242,10 +242,10 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern IntPtr GetMenu(IntPtr hwnd);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern MessageBoxResult MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint type);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern MessageBoxResult MessageBoxEx(IntPtr hWnd, string lpText, string lpCaption, uint type,
             ushort wLanguageId);
 
@@ -258,16 +258,16 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern IntPtr GetThreadDesktop(uint threadId);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MonitorInfo lpmi);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MonitorInfoEx lpmi);
 
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-tounicode
         /// </summary>
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern int ToUnicode(
             uint virtualKey,
             uint wScanCode,
@@ -384,16 +384,16 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool GetLastInputInfo(out LastInputInfo plii);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern uint MapVirtualKey(uint uCode, VirtualKeyMapType uMapType);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern uint MapVirtualKey(VirtualKey uCode, VirtualKeyMapType uMapType);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern uint MapVirtualKeyEx(uint uCode, VirtualKeyMapType uMapType, IntPtr dwhkl);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern uint MapVirtualKeyEx(VirtualKey uCode, VirtualKeyMapType uMapType, IntPtr dwhkl);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
@@ -541,7 +541,7 @@ namespace WinApi.User32
         /// If the lpWindowName parameter is not NULL, FindWindow calls the GetWindowText function to retrieve the window name
         /// for comparison. For a description of a potential problem that can arise, see the Remarks for GetWindowText.
         /// </remarks>
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
@@ -550,7 +550,7 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool UpdateWindow(IntPtr hwnd);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateWindowEx(
             WindowExStyles dwExStyle,
             string lpClassName,
@@ -575,7 +575,7 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass,
             string lpszWindow);
 
@@ -607,13 +607,13 @@ namespace WinApi.User32
         public static extern bool SetWindowPos(IntPtr hwnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy,
             WindowPositionFlags flags);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern int GetWindowTextLength(IntPtr hWnd);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool SetWindowText(IntPtr hwnd, string lpString);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
@@ -646,13 +646,13 @@ namespace WinApi.User32
 
         #region Window Class Functions
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern ushort RegisterClassEx([In] ref WindowClassEx lpwcx);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern ushort RegisterClassEx([In] ref WindowClassExBlittable lpwcx);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool UnregisterClass(string lpClassName, IntPtr hInstance);
 
         // This static method is required because Win32 does not support
@@ -664,10 +664,10 @@ namespace WinApi.User32
                 : new IntPtr(GetWindowLong(hwnd, nIndex));
         }
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         private static extern int GetWindowLong(IntPtr hwnd, WindowLongFlags nIndex);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET, EntryPoint = "GetWindowLongPtr")]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode, EntryPoint = "GetWindowLongPtr")]
         private static extern IntPtr GetWindowLongPtr_x64(IntPtr hwnd, WindowLongFlags nIndex);
 
         // This static method is required because Win32 does not support
@@ -679,17 +679,17 @@ namespace WinApi.User32
                 : new IntPtr(SetWindowLong(hwnd, nIndex, dwNewLong.ToInt32()));
         }
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         private static extern int SetWindowLong(IntPtr hwnd, WindowLongFlags nIndex, int dwNewLong);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET, EntryPoint = "SetWindowLongPtr")]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode, EntryPoint = "SetWindowLongPtr")]
         private static extern IntPtr SetWindowLongPtr_x64(IntPtr hwnd, WindowLongFlags nIndex, IntPtr dwNewLong);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool GetClassInfoEx(IntPtr hInstance, string lpClassName,
             out WindowClassExBlittable lpWndClass);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
         public static IntPtr GetClassLongPtr(IntPtr hwnd, int nIndex)
@@ -699,10 +699,10 @@ namespace WinApi.User32
                 : new IntPtr(unchecked((int) GetClassLong(hwnd, nIndex)));
         }
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         private static extern uint GetClassLong(IntPtr hWnd, int nIndex);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET, EntryPoint = "GetClassLongPtr")]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode, EntryPoint = "GetClassLongPtr")]
         private static extern IntPtr GetClassLongPtr_x64(IntPtr hWnd, int nIndex);
 
 
@@ -713,24 +713,24 @@ namespace WinApi.User32
                 : new IntPtr(unchecked((int) SetClassLong(hWnd, nIndex, dwNewLong.ToInt32())));
         }
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         private static extern uint SetClassLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET, EntryPoint = "SetClassLongPtr")]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode, EntryPoint = "SetClassLongPtr")]
         private static extern IntPtr SetClassLongPtr_x64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
         #endregion
 
         #region Window Procedure Functions
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr DefWindowProc(IntPtr hwnd, WM uMsg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr CallWindowProc(WindowProc lpPrevWndFunc, IntPtr hWnd, uint uMsg, IntPtr wParam,
             IntPtr lParam);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint uMsg, IntPtr wParam,
             IntPtr lParam);
 
@@ -738,7 +738,7 @@ namespace WinApi.User32
 
         #region Message Functions
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool PeekMessage(out Message lpMsg, IntPtr hWnd, uint wMsgFilterMin,
             uint wMsgFilterMax, PeekMessageFlags wRemoveMsg);
 
@@ -764,7 +764,7 @@ namespace WinApi.User32
         /// using the keyboard, the application must call IsDialogMessage.For more information, see Dialog Box Keyboard
         /// Interface.
         /// </remarks>
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr DispatchMessage([In] ref Message lpMsg);
 
         /// <summary>
@@ -866,7 +866,7 @@ namespace WinApi.User32
         /// actions available because the application is actually not responding. When in the debugger mode, the system does
         /// not generate a ghost window.
         /// </returns>
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern int GetMessage(out Message lpMsg, IntPtr hwnd, uint wMsgFilterMin,
             uint wMsgFilterMax);
 
@@ -882,13 +882,13 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern bool WaitMessage();
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern IntPtr SendMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool SendNotifyMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
@@ -909,7 +909,7 @@ namespace WinApi.User32
         [DllImport(LIBRARY_NAME, ExactSpelling = true)]
         public static extern uint GetQueueStatus(QueueStatusFlags flags);
 
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool PostThreadMessage(uint threadId, uint msg, IntPtr wParam, IntPtr lParam);
 
         /// <summary>
@@ -991,7 +991,7 @@ namespace WinApi.User32
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-enumdisplaydevicesw
         /// </summary>
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool EnumDisplayDevicesW(
             [MarshalAs(UnmanagedType.LPWStr)] string lpDevice,
             uint iDevNum,
@@ -1002,7 +1002,7 @@ namespace WinApi.User32
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-enumdisplaydevicesw
         /// </summary>
-        [DllImport(LIBRARY_NAME, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LIBRARY_NAME, CharSet = CharSet.Unicode)]
         public static extern bool EnumDisplaySettingsW(
             string lpszDeviceName,
             int iModeNum,

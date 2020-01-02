@@ -52,7 +52,7 @@ namespace WinApi.User32
     /// <summary>
     /// Note: Marshalled
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = Properties.BUILD_CHAR_SET)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct WindowClassEx
     {
         public uint Size;

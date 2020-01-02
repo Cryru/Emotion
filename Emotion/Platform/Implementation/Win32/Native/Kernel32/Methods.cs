@@ -78,10 +78,10 @@ namespace WinApi.Kernel32
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern bool SetStdHandle(uint nStdHandle, IntPtr hHandle);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern bool SetConsoleTitle(string lpConsoleTitle);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern uint GetConsoleTitle(StringBuilder lpConsoleTitle, uint nSize);
 
         [DllImport(LibraryName, ExactSpelling = true)]
@@ -123,20 +123,20 @@ namespace WinApi.Kernel32
 
         #region DLL Methods
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr GetModuleHandle(IntPtr modulePtr);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern bool GetModuleHandleEx(GetModuleHandleFlags dwFlags, string lpModuleName,
             out IntPtr phModule);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadLibrary(string fileName);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadLibraryEx(string fileName, IntPtr hFileReservedAlwaysZero,
             LoadLibraryFlags dwFlags);
 
@@ -146,13 +146,13 @@ namespace WinApi.Kernel32
         [DllImport(LibraryName, CharSet = CharSet.Ansi)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern bool SetDllDirectory(string fileName);
 
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern bool SetDefaultDllDirectories(LibrarySearchFlags directoryFlags);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr AddDllDirectory(string newDirectory);
 
         [DllImport(LibraryName, ExactSpelling = true)]
@@ -162,10 +162,10 @@ namespace WinApi.Kernel32
 
         #region System Information Functions
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern uint GetSystemDirectory(StringBuilder lpBuffer, uint uSize);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern uint GetWindowsDirectory(StringBuilder lpBuffer, uint uSize);
 
         [DllImport(LibraryName, ExactSpelling = true)]
@@ -203,17 +203,17 @@ namespace WinApi.Kernel32
 
         #region File Management Functions
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern FileAttributes GetFileAttributes(string lpFileName);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern bool SetFileAttributes(string lpFileName, FileAttributes dwFileAttributes);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern bool GetFileAttributesEx(string lpFileName, FileAttributeInfoLevel fInfoLevelId,
             out FileAttributeData lpFileInformation);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateFile(string lpFileName,
             uint dwDesiredAccess,
             FileShareMode dwShareMode,
@@ -222,7 +222,7 @@ namespace WinApi.Kernel32
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile);
 
-        [DllImport(LibraryName, CharSet = Properties.BUILD_CHAR_SET)]
+        [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateFile(string lpFileName,
             uint dwDesiredAccess,
             FileShareMode dwShareMode,
