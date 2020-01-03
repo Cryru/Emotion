@@ -59,10 +59,10 @@ namespace Tests.Classes
             Assert.True(playlist[0] == pepsi);
             Assert.True(playlist[1] == money);
             Assert.True(playlist[0] == pepsi);
-            Assert.True(layer.CurrentTrack == pepsi);
+            Assert.True(layer.CurrentTrack.File == pepsi);
 
             ((NullAudioLayer) layer).AdvanceTime((int) MathF.Ceiling(pepsi.Duration));
-            Assert.True(layer.CurrentTrack == money);
+            Assert.True(layer.CurrentTrack.File == money);
 
             nullAudio.RemoveLayer("test");
         }
