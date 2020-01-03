@@ -2,9 +2,8 @@
 
 using Emotion.Common;
 using Emotion.Standard.Audio;
+using Emotion.Standard.Audio.WAV;
 using Emotion.Standard.Logging;
-using System;
-using System.IO;
 
 #endregion
 
@@ -40,9 +39,9 @@ namespace Emotion.IO
             // Check if WAV.
             if (WavFormat.IsWav(data))
             {
-                SoundData = WavFormat.Decode(data, out AudioFormat format, out float duration);
+                SoundData = WavFormat.Decode(data, out AudioFormat format);
                 Format = format;
-                Duration = duration;
+                Duration = format.GetSoundDuration(data.Length);
             }
 
             if (Format != null && SoundData != null) return;

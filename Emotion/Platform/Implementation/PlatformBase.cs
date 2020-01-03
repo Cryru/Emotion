@@ -267,7 +267,8 @@ namespace Emotion.Platform.Implementation
         public virtual void Close()
         {
             IsOpen = false;
-            Window.Dispose();
+            Audio?.Dispose();
+            Window?.Dispose();
         }
 
         /// <summary>

@@ -126,14 +126,16 @@ CimGui and CimGuiNet
  - Dev Mode UI
  - Included native libraries for MacOS, Linux, Windows64
 
-## Optional Dependencies (These will probably be removed later down the line)
-
 StbTrueTypeSharp
  - Provided by [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp)
+ - Used as a fallback to the Emotion renderer. Will probably be removed later down the line
+
+## Optional Dependencies
 
 Emotion.Standard.TrueType (Found in the Plugins folder)
  - Custom wrapper utilizing .NetCore 3.0, based on [SharpFontStandard](https://github.com/jmazouri/SharpFontStandard/)
  - Included native libraries for MacOS, Linux, Windows64
+ - Requires compiling Emotion with the "FreeType" symbol.
 
 ## Inspired Fully, Or In Parts By:
 

@@ -25,7 +25,7 @@ namespace Emotion.Platform.Implementation.Null
 
         public void AdvanceTime(int seconds)
         {
-            var test = new Span<byte>(new byte[seconds * _testFormat.SampleRate * _testFormat.SampleSize]);
+            var test = new Span<byte>(new byte[seconds * _testFormat.SampleRate * _testFormat.FrameSize]);
             GetDataForCurrentTrack(_testFormat, seconds * _testFormat.SampleRate, test);
         }
 

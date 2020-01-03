@@ -49,8 +49,8 @@ namespace Emotion.Tools.Windows
                 ImGui.Text($"Layer {layers[i]}");
 
                 ImGui.PushID(i);
-                ImGui.Text($"Status: {layer.Status}");
-                ImGui.SameLine();
+                ImGui.Text($"Status: {layer.Status}" + (layer.CurrentTrack != null ? $" {MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f}/{layer.CurrentTrack.File.Duration}" : ""));
+                //ImGui.SameLine();
                 float volume = layer.Volume;
                 ImGui.InputFloat("Volume", ref volume);
                 layer.Volume = volume;
@@ -61,7 +61,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.Button("Play Next"))
                     ExecuteOnFile(layer.PlayNext);
                 ImGui.SameLine();
-                if (ImGui.Button("Play Next"))
+                if (ImGui.Button("Quick Play"))
                     ExecuteOnFile(layer.QuickPlay);
 
                 if (ImGui.Button("Resume"))
@@ -73,6 +73,9 @@ namespace Emotion.Tools.Windows
                 if (ImGui.Button("Stop"))
                     layer.Stop();
 
+                if (ImGui.Button("Loop"))
+                    layer.LoopingCurrent = !layer.LoopingCurrent;
+
                 var r = 0;
                 string[] items = layer.Playlist.Select(x => x.Name).ToArray();
                 ImGui.ListBox("Playlist", ref r, items, items.Length);
@@ -80,8 +83,6 @@ namespace Emotion.Tools.Windows
                 ImGui.PopID();
                 ImGui.NewLine();
             }
-
-            ImGui.NewLine();
 
             if(ImGui.Button("Create Layer") && !string.IsNullOrEmpty(_newLayerName))
             {

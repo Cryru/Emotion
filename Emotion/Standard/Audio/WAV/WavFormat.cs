@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region Using
+
+using System;
 using System.IO;
 using System.Text;
 
-namespace Emotion.Standard.Audio
+#endregion
+
+namespace Emotion.Standard.Audio.WAV
 {
     public static class WavFormat
     {
@@ -52,8 +55,8 @@ namespace Emotion.Standard.Audio
             writer.Write(format.IsFloat ? (short) 3 : (short) 1); // 2
             writer.Write((short) format.Channels); // 2
             writer.Write(format.SampleRate); // 4
-            writer.Write(format.SampleRate * format.SampleSize); // 4
-            writer.Write((short) format.SampleSize); // 2
+            writer.Write(format.SampleRate * format.FrameSize); // 4
+            writer.Write((short) format.FrameSize); // 2
             writer.Write((short) format.BitsPerSample); // 2
 
             // Data - 8 + soundLength
@@ -69,9 +72,8 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="wavData">The data to decode.</param>
         /// <param name="format">The audio format.</param>
-        /// <param name="duration">The duration of the sound in seconds.</param>
         /// <returns>The sound data.</returns>
-        public static byte[] Decode(byte[] wavData, out AudioFormat format, out float duration)
+        public static byte[] Decode(byte[] wavData, out AudioFormat format)
         {
             format = new AudioFormat();
 
@@ -134,9 +136,6 @@ namespace Emotion.Standard.Audio
 
             // Read the data.
             byte[] soundData = reader.ReadBytes(dataLength);
-
-            // Calculate duration.
-            duration = soundData.Length / (format.SampleRate * format.Channels * format.BitsPerSample / 8f);
 
             return soundData;
         }

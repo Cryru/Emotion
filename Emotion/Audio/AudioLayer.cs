@@ -35,15 +35,20 @@ namespace Emotion.Audio
         public PlaybackStatus Status { get; protected set; } = PlaybackStatus.NotPlaying;
 
         /// <summary>
+        /// Whether the current track is being looped.
+        /// </summary>
+        public bool LoopingCurrent { get; set; }
+
+        /// <summary>
         /// The track currently playing - if any.
         /// </summary>
-        public AudioAsset CurrentTrack
+        public AudioTrack CurrentTrack
         {
             get
             {
                 lock (_playlist)
                 {
-                    return _currentTrack < 0 || _currentTrack > _playlist.Count - 1 ? null : _playlist[_currentTrack].File;
+                    return _currentTrack < 0 || _currentTrack > _playlist.Count - 1 ? null : _playlist[_currentTrack];
                 }
             }
         }
@@ -57,7 +62,7 @@ namespace Emotion.Audio
         {
             get
             {
-                lock(_playlist)
+                lock (_playlist)
                 {
                     return _playlist.Select(x => x.File).ToArray();
                 }
@@ -66,7 +71,6 @@ namespace Emotion.Audio
 
         protected int _currentTrack = -1;
         protected List<AudioTrack> _playlist = new List<AudioTrack>();
-        protected bool _loopingCurrent;
 
         /// <summary>
         /// Called when the current track loops.
@@ -89,38 +93,62 @@ namespace Emotion.Audio
         #region API
 
         /// <summary>
-        /// Sets the track to be played next in the playlist. If the playlist is empty and the layer isn't paused the track is played immediately.
+        /// Sets the track to be played next in the playlist. If the playlist is empty and the layer isn't paused the track is
+        /// played immediately.
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="track">The track to play next.</param>
+        public void PlayNext(AudioTrack track)
+        {
+            lock (_playlist)
+            {
+                _playlist.Insert(_currentTrack + 1, track);
+                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
+            }
+        }
+
         public void PlayNext(AudioAsset file)
         {
+            PlayNext(new AudioTrack(file));
+        }
+
+        /// <summary>
+        /// Adds the track to the back of the playlist. If the playlist is empty and the layer isn't paused the track is played
+        /// immediately.
+        /// </summary>
+        /// <param name="track">The track to play.</param>
+        public void AddToQueue(AudioTrack track)
+        {
             lock (_playlist)
             {
-                _playlist.Insert(_currentTrack + 1, new AudioTrack(file));
+                _playlist.Add(track);
                 if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
 
-        /// <summary>
-        /// Adds the track to the back of the playlist. If the playlist is empty and the layer isn't paused the track is played immediately.
-        /// </summary>
-        /// <param name="file"></param>
         public void AddToQueue(AudioAsset file)
         {
+            AddToQueue(new AudioTrack(file));
+        }
+
+        /// <summary>
+        /// Stop all previous playback, clear the playlist, and play the provided track.
+        /// This is essentially the same as calling Stop and then PlayNext but causes less state transitions and doesn't involve
+        /// the platform.
+        /// </summary>
+        public void QuickPlay(AudioTrack track)
+        {
             lock (_playlist)
             {
-                _playlist.Add(new AudioTrack(file));
+                _playlist.Clear();
+                _playlist.Add(track);
+                _currentTrack = 0;
                 if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
             }
         }
 
-        /// <summary>
-        /// Sets the currently playing track's loop setting.
-        /// </summary>
-        /// <param name="loop"></param>
-        public void SetLoopCurrent(bool loop)
+        public void QuickPlay(AudioAsset file)
         {
-            _loopingCurrent = loop;
+            QuickPlay(new AudioTrack(file));
         }
 
         /// <summary>
@@ -158,21 +186,6 @@ namespace Emotion.Audio
             }
         }
 
-        /// <summary>
-        /// Stop all previous playback, clear the playlist, and play the provided track.
-        /// This is essentially the same as calling Stop and then PlayNext but causes less state transitions and doesn't involve the platform.
-        /// </summary>
-        public void QuickPlay(AudioAsset file)
-        {
-            lock (_playlist)
-            {
-                _playlist.Clear();
-                _playlist.Add(new AudioTrack(file));
-                _currentTrack = 0;
-                if (Status == PlaybackStatus.NotPlaying) TransitionStatus(PlaybackStatus.Playing);
-            }
-        }
-
         #endregion
 
         #region Stream Logic
@@ -197,16 +210,15 @@ namespace Emotion.Audio
             {
                 currentTrack = _playlist[_currentTrack];
             }
-            AudioStreamerEffects streamer = currentTrack.Streamer;
 
-            if (streamer == null) return 0;
+            if (currentTrack == null) return 0;
 
             // Set the conversion format to the requested one - if it doesn't match.
-            if (!format.Equals(streamer.ConvFormat)) streamer.SetConvertFormat(format);
+            if (!format.Equals(currentTrack.ConvFormat)) currentTrack.SetConvertFormat(format);
 
             // Get frames from the streamer.
-            streamer.Volume = Volume;
-            int framesOutput = streamer.GetNextFrames(framesRequested, dest.Slice(framesOffset * format.SampleSize));
+            currentTrack.Volume = Volume;
+            int framesOutput = currentTrack.GetNextFrames(framesRequested, dest.Slice(framesOffset * format.FrameSize));
 
             // Check if the buffer was filled.
             Debug.Assert(framesOutput <= framesRequested);
@@ -215,9 +227,9 @@ namespace Emotion.Audio
             // If less frames were drawn than the buffer can take - the track is over.
 
             // Check if looping.
-            if (_loopingCurrent)
+            if (LoopingCurrent)
             {
-                streamer.Reset();
+                currentTrack.Reset();
                 OnTrackLoop.Invoke(currentTrack.File);
             }
             // Otherwise, go to next track.
@@ -265,15 +277,13 @@ namespace Emotion.Audio
             if (Status == PlaybackStatus.NotPlaying && newStatus == PlaybackStatus.Playing && _currentTrack == -1)
             {
                 // Check if there is anything in the playlist.
-                if(_playlist.Count == 0)
+                if (_playlist.Count == 0)
                 {
                     Engine.Log.Warning($"Tried to play layer {Name}, but the playlist is empty.", MessageSource.Audio);
                     return;
-                } 
-                else
-                {
-                    _currentTrack = 0;
                 }
+
+                _currentTrack = 0;
             }
 
             InternalStatusChange(Status, newStatus);

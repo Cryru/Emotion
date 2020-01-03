@@ -116,12 +116,12 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// If successful it is added to the devices list.
         /// </summary>
         /// <param name="id">The unique id of the device.</param>
-        private void ParseDevice(string id)
+        private WasApiAudioDevice ParseDevice(string id)
         {
             int error = _enumerator.GetDevice(id, out IMMDevice device);
             if (error != 0) Win32Platform.CheckError($"Couldn't get device of id {id}.", true);
 
-            ParseDevice(device);
+            return ParseDevice(device);
         }
 
         /// <summary>
@@ -129,17 +129,17 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// If successful it is added to the devices list.
         /// </summary>
         /// <param name="device">The device to parse.</param>
-        private void ParseDevice(IMMDevice device)
+        private WasApiAudioDevice ParseDevice(IMMDevice device)
         {
             // Try to get the device unique id.
             int error = device.GetId(out string id);
             if (error != 0)
             {
                 Win32Platform.CheckError("Couldn't retrieve audio device id.");
-                return;
+                return null;
             }
 
-            ParseDevice(device, id);
+            return ParseDevice(device, id);
         }
 
         /// <summary>
@@ -148,9 +148,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         /// </summary>
         /// <param name="device">The device to parse.</param>
         /// <param name="id">The unique id of the device.</param>
-        private void ParseDevice(IMMDevice device, string id)
+        private WasApiAudioDevice ParseDevice(IMMDevice device, string id)
         {
-            if (device == null) return;
+            if (device == null) return null;
 
             string deviceName = $"Unknown Device ({id})";
 
@@ -164,8 +164,11 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             }
 
             // Add to the list.
-            _devices.Add(id, new WasApiAudioDevice(id, deviceName, device));
+            var dev = new WasApiAudioDevice(id, deviceName, device);
+            _devices.Add(id, dev);
             Engine.Log.Trace($"Detected audio device - {deviceName}", MessageSource.Win32);
+
+            return dev;
         }
 
         /// <summary>
@@ -189,22 +192,23 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private void SetDefaultDevice(string id)
         {
             _devices.TryGetValue(id, out WasApiAudioDevice defaultDevice);
-            if (defaultDevice != null)
+            if(defaultDevice == null)
             {
-                // Unset old default.
-                foreach (KeyValuePair<string, WasApiAudioDevice> device in _devices)
-                {
-                    device.Value.Default = false;
-                }
+                // Default audio device was not found in the device list - query for it.
+                defaultDevice = ParseDevice(id);
+                if(defaultDevice == null)
+                    Win32Platform.CheckError("Default audio device is not in device list.", true);
+            }
 
-                defaultDevice.Default = true;
-                DefaultDevice = defaultDevice;
-                Engine.Log.Trace($"Default audio device is: {defaultDevice.Name}.", MessageSource.Win32);
-            }
-            else
+            // Unset old default.
+            foreach (KeyValuePair<string, WasApiAudioDevice> device in _devices)
             {
-                Win32Platform.CheckError("Default audio device is not in device list.");
+                device.Value.Default = false;
             }
+
+            defaultDevice.Default = true;
+            DefaultDevice = defaultDevice;
+            Engine.Log.Trace($"Default audio device is: {defaultDevice.Name}.", MessageSource.Win32);
 
             // Tell all layers about this change.
             lock (_layers)

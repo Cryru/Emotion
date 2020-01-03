@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using Emotion.IO;
 using Emotion.Standard.Audio;
 
@@ -7,16 +8,25 @@ using Emotion.Standard.Audio;
 
 namespace Emotion.Audio
 {
-    public class AudioTrack
+    public class AudioTrack : AudioStreamer
     {
-        public AudioStreamerEffects Streamer { get; }
-
+        public float Volume;
         public AudioAsset File { get; set; }
 
-        public AudioTrack(AudioAsset file)
+        public float Playback
+        {
+            get => Progress * File.Duration;
+        }
+
+        public AudioTrack(AudioAsset file) : base(file.Format, file.SoundData)
         {
             File = file;
-            Streamer = new AudioStreamerEffects(File.Format, File.SoundData);
+        }
+
+        protected override void SetSampleAsFloat(int index, float value, Span<byte> buffer)
+        {
+            value *= Volume;
+            base.SetSampleAsFloat(index, value, buffer);
         }
     }
 }

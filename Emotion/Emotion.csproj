@@ -68,7 +68,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Platform\Helpers\" />
     <Folder Include="Platform\Implementation\Cocoa\" />
     <Folder Include="Platform\Implementation\Wayland\" />
     <Folder Include="Platform\Implementation\X11\" />

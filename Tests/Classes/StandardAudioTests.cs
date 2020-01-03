@@ -88,12 +88,12 @@ namespace Tests.Classes
                     DateTime start = DateTime.Now;
                     while (DateTime.Now.Subtract(start).TotalMinutes < 2f) // timeout
                     {
-                        var data = new byte[framesGet * format.SampleSize];
+                        var data = new byte[framesGet * format.FrameSize];
                         var spanData = new Span<byte>(data);
                         int frameAmount = streamer.GetNextFrames(framesGet, spanData);
                         if (frameAmount == 0) break;
-                        Assert.True(data.Length >= frameAmount * format.SampleSize);
-                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
+                        Assert.True(data.Length >= frameAmount * format.FrameSize);
+                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
                         timedOut = false;
                     }
                     if(timedOut) Engine.Log.Info($"StreamConvert timeout.", CustomMSource.TestRunner);
@@ -128,12 +128,12 @@ namespace Tests.Classes
                     DateTime start = DateTime.Now;
                     while (DateTime.Now.Subtract(start).TotalMinutes < 1f) // timeout
                     {
-                        var data = new byte[framesGet * format.SampleSize];
+                        var data = new byte[framesGet * format.FrameSize];
                         var spanData = new Span<byte>(data);
                         int frameAmount = streamer.GetNextFrames(framesGet, spanData);
                         if (frameAmount == 0) break;
-                        Assert.True(data.Length >= frameAmount * format.SampleSize);
-                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.SampleSize).ToArray());
+                        Assert.True(data.Length >= frameAmount * format.FrameSize);
+                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
                     }
 
                     Assert.Equal(segmentConvert.Count, copy.Length);
@@ -156,7 +156,7 @@ namespace Tests.Classes
             streamer.SetConvertFormat(format);
 
             // Higher to lower.
-            var testData = new byte[format.SampleRate * format.SampleSize];
+            var testData = new byte[format.SampleRate * format.FrameSize];
             var spanData = new Span<byte>(testData);
             streamer.GetNextFrames(format.SampleRate, spanData);
             
