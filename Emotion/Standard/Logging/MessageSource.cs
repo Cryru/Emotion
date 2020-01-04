@@ -4,14 +4,14 @@
     {
         // Engine and modules
         public static string Engine = "Engine";
-        public static string StdErr = "StdErr";
-        public static string Renderer = "Renderer";
+        public static string StdErr = "StdErr"; // Uncaught errors
+        public static string Renderer = "Renderer"; // Sent by the renderer - includes mostly statistics
         public static string GL = "GL"; // Sent by the renderer and graphics related objects.
         public static string ShaderSource = "ShaderSource"; // Sent by the ShaderFactory - is spammy and contains shader source code.
         public static string AssetLoader = "AssetLoader";
         public static string SceneManager = "SceneManager";
         public static string ScriptingEngine = "ScriptingEngine";
-        public static string Platform = "Platform";
+        public static string Platform = "Platform"; // Sent by the base platform logic
         public static string Audio = "Audio";
 
         public static string Debug = "Debug";
@@ -19,6 +19,9 @@
 
         // Specific
         public static string ImagePng = "ImagePng";
+        public static string FontParser = "FontParser";
+
+        // Platform
         public static string Win32 = "Win32";
         public static string Wgl = "Wgl";
         public static string WGallium = "Win32-Gallium";

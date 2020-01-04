@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Emotion.Common;
+using Emotion.Standard.Logging;
 using Emotion.Standard.Utility;
 using StbTrueTypeSharp;
 
@@ -66,11 +68,11 @@ namespace Emotion.Standard.Text.FontTables
 
             if (topDicts.Length > 1)
             {
-                Console.WriteLine($"Font: CFF table has many fonts in 'FontSet' - {topDicts.Length} Only the first will be parsed.");
+                Engine.Log.Warning($"CFF table has many fonts in 'FontSet' - {topDicts.Length} Only the first will be parsed.", MessageSource.FontParser);
             }
             else if (topDicts.Length == 0)
             {
-                Console.WriteLine("Font: CFF table has no fonts in 'FontSet'.");
+                Engine.Log.Warning("CFF table has no fonts in 'FontSet' - broken font?", MessageSource.FontParser);
                 return;
             }
 
@@ -88,7 +90,7 @@ namespace Emotion.Standard.Text.FontTables
 
                 if (fdArrayOffset == 0 || fdSelectOffset == 0)
                 {
-                    Console.WriteLine("Font: Font is marked as a CID font, but FDArray and/or FDSelect is missing.");
+                    Engine.Log.Warning("Font is marked as a CID font, but FDArray and/or FDSelect is missing.", MessageSource.FontParser);
                     return;
                 }
 
@@ -132,7 +134,7 @@ namespace Emotion.Standard.Text.FontTables
             }
             else
             {
-                Console.WriteLine("Font: Missing second private dictionary.");
+                Engine.Log.Warning("Missing second private dictionary.", MessageSource.FontParser);
                 return;
             }
 
@@ -196,7 +198,7 @@ namespace Emotion.Standard.Text.FontTables
             }
             else
             {
-                Console.WriteLine($"Font: Unknown encoding {format}");
+                Engine.Log.Warning($"Unknown font encoding {format}", MessageSource.FontParser);
             }
 
             return encoding;
@@ -257,7 +259,7 @@ namespace Emotion.Standard.Text.FontTables
 
                     break;
                 default:
-                    Console.WriteLine($"Font: Unknown charset format {format}");
+                    Engine.Log.Warning($"Unknown charset format{format}", MessageSource.FontParser);
                     break;
             }
 
@@ -669,7 +671,7 @@ namespace Emotion.Standard.Text.FontTables
             var glyphData = new CffGlyphFactory();
             bool successful = RunCharstring(index, glyphData);
 
-            if (!successful) Console.WriteLine("Font: Couldn't read glyph.");
+            if (!successful) Engine.Log.Warning($"Couldn't read CFF glyff - {index}", MessageSource.FontParser);
 
             return glyphData.Glyph;
         }

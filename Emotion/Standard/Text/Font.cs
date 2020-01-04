@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Emotion.Common;
 using Emotion.Primitives;
+using Emotion.Standard.Logging;
 using Emotion.Standard.Text.FontTables;
 using Emotion.Standard.Utility;
 using StbTrueTypeSharp;
@@ -14,7 +16,6 @@ using StbTrueTypeSharp;
 #if FreeType
 using System.IO;
 using System.Reflection;
-using Emotion.Common;
 #endif
 
 #endregion
@@ -224,7 +225,7 @@ namespace Emotion.Standard.Text
             }
             else
             {
-                Console.WriteLine("Font: head table not found.");
+                Engine.Log.Warning("Font head table not found.", MessageSource.FontParser);
                 return;
             }
 
@@ -240,7 +241,7 @@ namespace Emotion.Standard.Text
             }
             else
             {
-                Console.WriteLine("Font: hhea table not found.");
+                Engine.Log.Warning("Font hhea table not found.", MessageSource.FontParser);
                 return;
             }
 
@@ -260,7 +261,7 @@ namespace Emotion.Standard.Text
             }
             else
             {
-                Console.WriteLine("Font: name table not found.");
+                Engine.Log.Warning("Font name table not found.", MessageSource.FontParser);
                 return;
             }
 
@@ -274,7 +275,7 @@ namespace Emotion.Standard.Text
             }
             else
             {
-                Console.WriteLine("Font: maxp table not found.");
+                Engine.Log.Warning("Font maxp table not found.", MessageSource.FontParser);
                 return;
             }
 
@@ -304,7 +305,7 @@ namespace Emotion.Standard.Text
                 table = GetTable("CFF ");
                 if (table == null)
                 {
-                    Console.WriteLine("Font: Neither glyf nor cff table not found.");
+                    Engine.Log.Warning("Font - neither glyf nor cff table found.", MessageSource.FontParser);
                     return;
                 }
 

@@ -218,7 +218,7 @@ namespace Emotion.Standard.Image.PNG
 
             if (!IsPng(pngData))
             {
-                Console.WriteLine("ImagePng: Image is not png.");
+                Engine.Log.Warning($"Tried to decode a non-png image!", MessageSource.ImagePng);
                 return null;
             }
 
@@ -237,7 +237,7 @@ namespace Emotion.Standard.Image.PNG
             {
                 if (endChunkReached)
                 {
-                    Console.WriteLine("ImagePng: Image did not end with end chunk.");
+                    Engine.Log.Warning("Image did not end with an end chunk...", MessageSource.ImagePng);
                     continue;
                 }
 

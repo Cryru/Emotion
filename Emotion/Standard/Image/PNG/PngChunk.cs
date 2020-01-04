@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using Emotion.Common;
+using Emotion.Standard.Logging;
 using Emotion.Standard.Utility.Zlib;
 
 #endregion
@@ -52,7 +53,7 @@ namespace Emotion.Standard.Image.PNG
             int numBytes = stream.Read(lengthBuffer, 0, 4);
             if (numBytes >= 1 && numBytes <= 3)
             {
-                Console.WriteLine("ImagePng: Chunk length is not valid!");
+                Engine.Log.Warning($"Chunk length {numBytes} is not valid!", MessageSource.ImagePng);
                 return;
             }
 

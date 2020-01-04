@@ -1,6 +1,8 @@
 ﻿#region Using
 
 using System;
+using Emotion.Common;
+using Emotion.Standard.Logging;
 using Emotion.Standard.Utility;
 
 #endregion
@@ -41,7 +43,7 @@ namespace Emotion.Standard.Text.FontTables
             FontRevision = (float) (Math.Round(reader.ReadFloatBE() * 1000) / 1000);
             CheckSumAdjustment = reader.ReadULongBE();
             MagicNumber = reader.ReadULongBE();
-            if (MagicNumber != 0x5F0F3CF5) Console.WriteLine("Font: Font header has wrong magic number.");
+            if (MagicNumber != 0x5F0F3CF5) Engine.Log.Warning($"Font header has wrong magic number - {MagicNumber}.", MessageSource.FontParser);
             Flags = reader.ReadUShortBE();
             UnitsPerEm = reader.ReadUShortBE();
             Created = reader.ReadULongBETimestamp();

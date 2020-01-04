@@ -1,7 +1,8 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
+using Emotion.Common;
+using Emotion.Standard.Logging;
 using Emotion.Standard.Utility;
 
 #endregion
@@ -33,8 +34,7 @@ namespace Emotion.Standard.Text.FontTables
 
             if (Version != 0)
             {
-                Console.WriteLine("Font: CMap table version should be 0.");
-                return;
+                Engine.Log.Warning("CMap table version should be 0.", MessageSource.FontParser);
             }
 
             // The CMap table can contain many sub-tables, each with their own format.
@@ -53,7 +53,7 @@ namespace Emotion.Standard.Text.FontTables
 
             if (tableOffset == -1)
             {
-                Console.WriteLine("Font: No valid CMap sub-tables found.");
+                Engine.Log.Warning("No valid CMap sub-tables found.", MessageSource.FontParser);
                 return;
             }
 
@@ -65,7 +65,7 @@ namespace Emotion.Standard.Text.FontTables
             else if (Format == 4)
                 ReadFormat4(subReader);
             else
-                Console.WriteLine($"Font: Unsupported CMap format - {Format}");
+                Engine.Log.Warning($"Unsupported CMap format - {Format}", MessageSource.FontParser);
         }
 
         /// <summary>
