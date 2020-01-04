@@ -61,7 +61,7 @@ namespace Tests.Classes
             Assert.True(playlist[0] == pepsi);
             Assert.True(layer.CurrentTrack.File == pepsi);
 
-            ((NullAudioLayer) layer).AdvanceTime((int) MathF.Ceiling(pepsi.Duration));
+            ((NullAudioLayer) layer).AdvanceTime((int) MathF.Ceiling(pepsi.Duration) + 1);
             Assert.True(layer.CurrentTrack.File == money);
 
             nullAudio.RemoveLayer("test");
