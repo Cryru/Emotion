@@ -25,7 +25,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
             Title = title;
         }
 
-        public void Render(Vector2 spawnOffset, RenderComposer composer)
+        public virtual void Render(Vector2 spawnOffset, RenderComposer composer)
         {
             ImGui.SetNextWindowPos(spawnOffset, ImGuiCond.Appearing);
             if (CantClose)

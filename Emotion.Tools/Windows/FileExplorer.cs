@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Game;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
@@ -14,11 +15,13 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Windows
 {
-    public class FileExplorer<T> : ImGuiWindow where T : Asset, new()
+    public class FileExplorer<T> : ImGuiModal where T : Asset, new()
     {
         private Action<T> _fileSelected;
         private string _customFile = "";
         private Task _loadingTask;
+
+        private Tree<string, string> _fileSystem;
 
         /// <summary>
         /// Create a file explorer dialog.
@@ -27,6 +30,20 @@ namespace Emotion.Tools.Windows
         public FileExplorer(Action<T> fileSelected) : base($"Pick a [{typeof(T)}]")
         {
             _fileSelected = fileSelected;
+            _fileSystem = new Tree<string, string>();
+            string[] assets = Engine.AssetLoader.AllAssets;
+            foreach (string a in assets)
+            {
+                if (a.Contains('/'))
+                {
+                    string[] folderPath = a.Split('/')[..^1];
+                    _fileSystem.Add(folderPath, a);
+                }
+                else
+                {
+                    _fileSystem.Leaves.Add(a);
+                }
+            }
         }
 
         protected override void RenderContent(RenderComposer composer)
@@ -58,28 +75,32 @@ namespace Emotion.Tools.Windows
                 return;
             }
 
-            // Get all available assets.
-            string[] assets = Engine.AssetLoader.AllAssets;
-            assets = assets.OrderBy(Path.GetDirectoryName).ToArray();
-            string directory = null;
-            var nodeOpen = false;
-            foreach (string asset in assets)
-            {
-                string curDirectory = Path.GetDirectoryName(asset);
-                // If the next asset is from a different directory, swap the tree node.
-                if (curDirectory != directory)
-                {
-                    if (nodeOpen) ImGui.TreePop();
-                    nodeOpen = ImGui.TreeNode(string.IsNullOrEmpty(curDirectory) ? "/" : curDirectory);
-                    directory = curDirectory;
-                }
+            RenderTree(_fileSystem, 0, true);
+        }
 
-                if (!nodeOpen) continue;
-                if (!ImGui.Button(Path.GetFileName(asset))) continue;
+        private void RenderTree(Tree<string, string> tree, int depth, bool skipFold = false)
+        {
+            // Add branches
+            Tree<string, string> current = tree;
+
+            bool open = skipFold || ImGui.TreeNode(string.IsNullOrEmpty(current.Name) ? "/" : current.Name);
+            if (!open) return;
+
+            // Render branches.
+            foreach (Tree<string, string> b in current.Branches)
+            {
+                ImGui.PushID(depth);
+                RenderTree(b, depth++);
+                ImGui.PopID();
+            }
+
+            // Render leaves. (Some LINQ magic here to not render past the clicked button)
+            foreach (string name in current.Leaves.Select(Path.GetFileName).Where(ImGui.Button))
+            {
                 // Load the asset custom so the asset loader's caching doesn't get in the way.
                 _loadingTask = Task.Run(async () =>
                 {
-                    T file = await ExplorerLoadAssetAsync(asset);
+                    T file = await ExplorerLoadAssetAsync(name);
                     if (file == null)
                     {
                         _loadingTask = null;
@@ -89,10 +110,9 @@ namespace Emotion.Tools.Windows
                     _fileSelected?.Invoke(file);
                     Open = false;
                 });
-                return;
             }
 
-            if (nodeOpen) ImGui.TreePop();
+            if(!skipFold) ImGui.TreePop();
         }
 
         public override void Update()
