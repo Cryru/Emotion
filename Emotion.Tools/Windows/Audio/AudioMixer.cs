@@ -49,7 +49,7 @@ namespace Emotion.Tools.Windows
                 ImGui.Text($"Layer {layers[i]}");
 
                 ImGui.PushID(i);
-                ImGui.Text($"Status: {layer.Status}" + (layer.CurrentTrack != null ? $" {MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f}/{layer.CurrentTrack.File.Duration}" : ""));
+                ImGui.Text($"Status: {layer.Status}" + (layer.CurrentTrack != null ? $" {(MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f).ToString("0")}/{layer.CurrentTrack.File.Duration}" : ""));
                 //ImGui.SameLine();
                 float volume = layer.Volume;
                 ImGui.InputFloat("Volume", ref volume);
