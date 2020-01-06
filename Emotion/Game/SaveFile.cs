@@ -7,7 +7,7 @@ using Emotion.Utility;
 
 #endregion
 
-namespace Adfectus.Game
+namespace Emotion.Game
 {
     /// <summary>
     /// A save file.
@@ -43,10 +43,8 @@ namespace Adfectus.Game
             string content = File.ReadAllText(_path);
 
             // Read the file.
-            using (TextReader writer = new StringReader(content))
-            {
-                Content = (T) _serializer.Deserialize(writer);
-            }
+            using TextReader writer = new StringReader(content);
+            Content = (T) _serializer.Deserialize(writer);
         }
 
         /// <summary>
@@ -57,10 +55,8 @@ namespace Adfectus.Game
             // If an old save file exists, back it up.
             if (File.Exists(_path)) File.Copy(_path, _path + ".backup", true);
 
-            using (StreamWriter stream = new StreamWriter(_path))
-            {
-                _serializer.Serialize(stream, Content);
-            }
+            using var stream = new StreamWriter(_path);
+            _serializer.Serialize(stream, Content);
         }
     }
 }
