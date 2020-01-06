@@ -10,7 +10,7 @@ using Tests.Results;
 
 namespace Tests.Classes
 {
-    [Test]
+    [Test("AnimatedTexture", true)]
     public class AnimatedTextureTest
     {
         /// <summary>
@@ -22,7 +22,7 @@ namespace Tests.Classes
         {
             var normalLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
             // Test constructor without starting-ending frame as well. It should set the starting and ending frames to 0-3 as well.
-            var noLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.None, 500);
+            var noLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, 2, 2, AnimationLoopType.None, 500);
             var normalThenReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NormalThenReverse, 500, 0, 3);
             var noLoopReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NoneReverse, 500, 0, 3);
             var reverseLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Reverse, 500);

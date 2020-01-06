@@ -19,13 +19,13 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
     public class FrameOrderWindow : ImGuiWindow
     {
         private AnimationEditor _parent;
-        private LookupAnimatedTexture _anim;
+        private AnimatedTexture _anim;
         private FontAsset _font;
 
         private Vector2 _lastOffset;
         private int _holdingIdx = -1;
 
-        public FrameOrderWindow(AnimationEditor parent, LookupAnimatedTexture anim) : base("Frame Order")
+        public FrameOrderWindow(AnimationEditor parent, AnimatedTexture anim) : base("Frame Order")
         {
             _parent = parent;
             _anim = anim;

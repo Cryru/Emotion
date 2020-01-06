@@ -17,12 +17,12 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
     public class AnchorPlacer : ImGuiWindow
     {
         private AnimationEditor _parent;
-        private LookupAnimatedTexture _anim;
+        private AnimatedTexture _anim;
         private bool _clickPlace;
         private int _clickPlaceIdx;
         private Vector2 _clickPlaceOffset;
 
-        public AnchorPlacer(AnimationEditor parent, LookupAnimatedTexture anim) : base("Anchor Placer")
+        public AnchorPlacer(AnimationEditor parent, AnimatedTexture anim) : base("Anchor Placer")
         {
             _parent = parent;
             _anim = anim;

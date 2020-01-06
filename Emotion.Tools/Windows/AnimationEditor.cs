@@ -26,7 +26,7 @@ namespace Emotion.Tools.Windows
 {
     public class AnimationEditor : ImGuiWindow
     {
-        private AnimatedTextureBase _animation;
+        private AnimatedTexture _animation;
 
         private int _loopType = 1;
         private int _frameTime = 250;
@@ -38,7 +38,7 @@ namespace Emotion.Tools.Windows
 
         private bool _playing = true;
 
-        public Dictionary<string, AnimatedTextureBase> Saved = new Dictionary<string, AnimatedTextureBase>(); // Currently does nothing.
+        public Dictionary<string, AnimatedTexture> Saved = new Dictionary<string, AnimatedTexture>(); // Currently does nothing.
         private string _saveName = "";
         private SavedAnimations _savedAnimationsWindow;
         private string _type;
@@ -90,7 +90,7 @@ namespace Emotion.Tools.Windows
                 var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(f =>
                 {
                     if (f?.Content == null) return;
-                    AnimatedTextureBase anim = f.Content.CreateFrom();
+                    AnimatedTexture anim = f.Content.CreateFrom();
                     _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
                     LoadAnimationData(anim);
                     _saveName = f.Name;
@@ -127,13 +127,6 @@ namespace Emotion.Tools.Windows
             // Editors
             ImGui.InputInt("MS Between Frames", ref _frameTime);
             if (_frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = _frameTime;
-            if (_animation is AnimatedTexture standardAnim)
-            {
-                ImGui.InputFloat2("Frame Size", ref _frameSize);
-                if (_frameSize != standardAnim.FrameSize) standardAnim.FrameSize = _frameSize;
-                ImGui.InputFloat2("Spacing", ref _spacing);
-                if (_spacing != standardAnim.Spacing) standardAnim.Spacing = _spacing;
-            }
 
             ImGui.InputInt("Starting Frame", ref _startFrame);
             if (_startFrame != _animation.StartingFrame) _animation.StartingFrame = _startFrame;
@@ -172,10 +165,10 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Choose Animation File"))
             {
-                var explorer = new FileExplorer<XMLAsset<LookupAnimatedDescription>>(f =>
+                var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(f =>
                 {
                     if (f?.Content == null) return;
-                    AnimatedTextureBase anim = f.Content.CreateFrom();
+                    AnimatedTexture anim = f.Content.CreateFrom();
                     _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
                     LoadAnimationData(anim);
                     _saveName = f.Name;
@@ -186,7 +179,7 @@ namespace Emotion.Tools.Windows
             // File data.
             ImGui.Text($"Current File: {_file?.Name ?? "None"}");
             if (_file == null) return;
-            if (_animation == null) _animation = new LookupAnimatedTexture(_file.Texture, null, (AnimationLoopType) _loopType, _frameTime);
+            if (_animation == null) _animation = new AnimatedTexture(_file.Texture, null, (AnimationLoopType) _loopType, _frameTime);
             if (ImGui.Button("Reload Image")) LoadSpriteSheetFile(FileExplorer<TextureAsset>.ExplorerLoadAsset(_file.Name));
             ImGui.SameLine();
             if (_playing)
@@ -202,7 +195,7 @@ namespace Emotion.Tools.Windows
 
             if (_file == null || _animation == null) return;
 
-            if (!(_animation is LookupAnimatedTexture lookupAnim)) return;
+            if (!(_animation is AnimatedTexture lookupAnim)) return;
 
             // Image data and scale.
             ImGui.Text($"Resolution: {_animation.Texture.Size}");
@@ -221,11 +214,11 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
-                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, (LookupAnimatedTexture) _animation));
+                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, (AnimatedTexture) _animation));
 
             if (ImGui.Button("Order Frames"))
                 if (_orderWindow == null || !_orderWindow.Open)
-                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, (LookupAnimatedTexture) _animation));
+                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, (AnimatedTexture) _animation));
 
             ImGui.InputInt("Starting Frame", ref _startFrame);
             if (_startFrame != _animation.StartingFrame) _animation.StartingFrame = _startFrame;
@@ -289,7 +282,7 @@ namespace Emotion.Tools.Windows
                 if (!outputFile.Contains(".anim")) outputFile += ".anim";
                 if (File.Exists(outputFile)) File.Delete(outputFile);
 
-                AnimationDescriptionBase description = _animation.GetDescription(_file.Name);
+                AnimatedTextureDescription description = _animation.GetDescription(_file.Name);
                 var serializer = new XmlSerializer(description.GetType());
                 FileStream stream = File.OpenWrite(outputFile);
                 serializer.Serialize(stream, description);
@@ -409,7 +402,7 @@ namespace Emotion.Tools.Windows
             return boxes.OrderBy(x => Math.Round((x.Y + x.Height / 2) / 100f)).ThenBy(x => Math.Round((x.X + x.Width / 2) / 100f)).ToArray();
         }
 
-        private void LoadAnimationData(AnimatedTextureBase anim)
+        private void LoadAnimationData(AnimatedTexture anim)
         {
             _startFrame = anim.StartingFrame;
             _endFrame = anim.EndingFrame;
