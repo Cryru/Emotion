@@ -254,81 +254,89 @@ namespace Emotion.Game.Animation
             // Timer.
             if (!(_timePassed >= TimeBetweenFrames)) return;
             _timePassed -= TimeBetweenFrames;
-            NextFrame();
+
+            // Set frame to next frame.
+            CurrentFrameIndex = NextFrame(out bool looped, out bool reversed);
+            if (looped) LoopCount++;
+            _inReverse = reversed;
         }
 
         /// <summary>
         /// Iterate to the next frame.
         /// </summary>
-        private void NextFrame()
+        public virtual int NextFrame(out bool looped, out bool reversed)
         {
+            looped = false;
+            reversed = false;
+
             switch (LoopType)
             {
                 case AnimationLoopType.None:
-                    if (LoopCount > 0) return;
+                    if (LoopCount > 0) return EndingFrame;
                     // If the global frame is the last frame.
                     if (CurrentFrameIndex == EndingFrame)
-                        LoopCount++;
+                    {
+                        looped = true;
+                        return EndingFrame;
+                    }
                     else
-                        CurrentFrameIndex++;
-                    break;
+                    {
+                        return CurrentFrameIndex + 1;
+                    }
+
                 case AnimationLoopType.Normal:
                     // If the global frame is the last frame.
                     if (CurrentFrameIndex == EndingFrame)
                     {
-                        CurrentFrameIndex = StartingFrame;
-                        LoopCount++;
+                        looped = true;
+                        return StartingFrame;
                     }
                     else
                     {
-                        CurrentFrameIndex++;
+                        return CurrentFrameIndex + 1;
                     }
-
-                    break;
                 case AnimationLoopType.NormalThenReverse:
                     // If the global frame is the last frame and going in reverse or the first and not going in reverse.
                     if (CurrentFrameIndex == EndingFrame && !_inReverse ||
                         CurrentFrameIndex == StartingFrame && _inReverse)
                     {
                         // Change the reverse flag.
-                        _inReverse = !_inReverse;
-                        LoopCount++;
+                        reversed = !_inReverse;
+                        looped = true;
 
                         // Depending on the direction set the frame to be the appropriate one.
-                        CurrentFrameIndex =
-                            _inReverse ? EndingFrame - 1 : StartingFrame + 1;
+                        return reversed ? EndingFrame - 1 : StartingFrame + 1;
                     }
                     else
                     {
                         // Modify the current frame depending on the direction we are going in.
                         if (_inReverse)
-                            CurrentFrameIndex--;
-                        else
-                            CurrentFrameIndex++;
+                            return CurrentFrameIndex - 1;
+                        return CurrentFrameIndex + 1;
                     }
-
-                    break;
                 case AnimationLoopType.Reverse:
                     // If the global frame is the first frame.
                     if (CurrentFrameIndex == StartingFrame)
                     {
-                        CurrentFrameIndex = EndingFrame;
-                        LoopCount++;
+                        looped = true;
+                        return EndingFrame;
                     }
                     else
                     {
-                        CurrentFrameIndex--;
+                        return CurrentFrameIndex - 1;
                     }
-
-                    break;
                 case AnimationLoopType.NoneReverse:
-                    if (LoopCount > 0) return;
+                    if (LoopCount > 0) return StartingFrame;
                     // If the global frame is the first frame.
                     if (CurrentFrameIndex == StartingFrame)
-                        LoopCount++;
+                    {
+                        looped = true;
+                        return StartingFrame;
+                    }
                     else
-                        CurrentFrameIndex--;
-                    break;
+                    {
+                        return CurrentFrameIndex - 1;
+                    }
                 default:
                     throw new ArgumentOutOfRangeException();
             }
