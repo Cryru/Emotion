@@ -90,6 +90,14 @@ namespace Emotion.Game.Animation
         }
 
         /// <summary>
+        /// The progress towards the next frame. 0-1
+        /// </summary>
+        public float Progress
+        {
+            get => MathF.Min(1, _timePassed / TimeBetweenFrames);
+        }
+
+        /// <summary>
         /// The number of frames the configured animation has in total. Zero indexed.
         /// </summary>
         public int AnimationFrames
