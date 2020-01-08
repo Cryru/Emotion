@@ -66,11 +66,7 @@ namespace Emotion.Platform.Implementation.Win32
         private WindowProc _wndProcDelegate; // This needs to be assigned so the garbage collector doesn't collect it.
 
         // Input
-        private Key[] _keyCodes = new Key[512];
-        private bool[] _keys;
-        private short[] _scanCodes;
         private string[] _keyNames;
-        private bool[] _mouseKeys = new bool[3];
 
         /// <inheritdoc />
         protected override void SetupPlatform(Configurator config)
@@ -81,7 +77,6 @@ namespace Emotion.Platform.Implementation.Win32
             // Initialize audio - Try to create WasApi - otherwise return the fake context so execution can go on.
             Audio = WasApiAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
 
-            PopulateKeyCodes();
             PopulateKeyNames();
 
             if (IsWindows10CreatorsUpdateOrGreaterWin32)
@@ -224,284 +219,6 @@ namespace Emotion.Platform.Implementation.Win32
             }
         }
 
-        #region Input
-
-        /// <summary>
-        /// Create the map for looking up keycodes.
-        /// </summary>
-        private void PopulateKeyCodes()
-        {
-            _scanCodes = new short[(int) Key.Last];
-
-            for (var i = 0; i < _scanCodes.Length; i++)
-            {
-                _scanCodes[i] = -1;
-            }
-
-            for (var i = 0; i < _keyCodes.Length; i++)
-            {
-                _keyCodes[i] = Key.Unknown;
-            }
-
-            short scanCode;
-
-            _keyCodes[0x00B] = Key.Num0;
-            _keyCodes[0x002] = Key.Num1;
-            _keyCodes[0x003] = Key.Num2;
-            _keyCodes[0x004] = Key.Num3;
-            _keyCodes[0x005] = Key.Num4;
-            _keyCodes[0x006] = Key.Num5;
-            _keyCodes[0x007] = Key.Num6;
-            _keyCodes[0x008] = Key.Num7;
-            _keyCodes[0x009] = Key.Num8;
-            _keyCodes[0x00A] = Key.Num9;
-            _keyCodes[0x01E] = Key.A;
-            _keyCodes[0x030] = Key.B;
-            _keyCodes[0x02E] = Key.C;
-            _keyCodes[0x020] = Key.D;
-            _keyCodes[0x012] = Key.E;
-            _keyCodes[0x021] = Key.F;
-            _keyCodes[0x022] = Key.G;
-            _keyCodes[0x023] = Key.H;
-            _keyCodes[0x017] = Key.I;
-            _keyCodes[0x024] = Key.J;
-            _keyCodes[0x025] = Key.K;
-            _keyCodes[0x026] = Key.L;
-            _keyCodes[0x032] = Key.M;
-            _keyCodes[0x031] = Key.N;
-            _keyCodes[0x018] = Key.O;
-            _keyCodes[0x019] = Key.P;
-            _keyCodes[0x010] = Key.Q;
-            _keyCodes[0x013] = Key.R;
-            _keyCodes[0x01F] = Key.S;
-            _keyCodes[0x014] = Key.T;
-            _keyCodes[0x016] = Key.U;
-            _keyCodes[0x02F] = Key.V;
-            _keyCodes[0x011] = Key.W;
-            _keyCodes[0x02D] = Key.X;
-            _keyCodes[0x015] = Key.Y;
-            _keyCodes[0x02C] = Key.Z;
-
-            _keyCodes[0x028] = Key.Apostrophe;
-            _keyCodes[0x02B] = Key.Backslash;
-            _keyCodes[0x033] = Key.Comma;
-            _keyCodes[0x00D] = Key.Equal;
-            _keyCodes[0x029] = Key.GraveAccent;
-            _keyCodes[0x01A] = Key.LeftBracket;
-            _keyCodes[0x00C] = Key.Minus;
-            _keyCodes[0x034] = Key.Period;
-            _keyCodes[0x01B] = Key.RightBracket;
-            _keyCodes[0x027] = Key.Semicolon;
-            _keyCodes[0x035] = Key.Slash;
-            _keyCodes[0x056] = Key.World2;
-
-            _keyCodes[0x00E] = Key.Backspace;
-            _keyCodes[0x153] = Key.Delete;
-            _keyCodes[0x14F] = Key.End;
-            _keyCodes[0x01C] = Key.Enter;
-            _keyCodes[0x001] = Key.Escape;
-            _keyCodes[0x147] = Key.Home;
-            _keyCodes[0x152] = Key.Insert;
-            _keyCodes[0x15D] = Key.Menu;
-            _keyCodes[0x151] = Key.PageDown;
-            _keyCodes[0x149] = Key.PageUp;
-            _keyCodes[0x045] = Key.Pause;
-            _keyCodes[0x146] = Key.Pause;
-            _keyCodes[0x039] = Key.Space;
-            _keyCodes[0x00F] = Key.Tab;
-            _keyCodes[0x03A] = Key.CapsLock;
-            _keyCodes[0x145] = Key.NumLock;
-            _keyCodes[0x046] = Key.ScrollLock;
-            _keyCodes[0x03B] = Key.F1;
-            _keyCodes[0x03C] = Key.F2;
-            _keyCodes[0x03D] = Key.F3;
-            _keyCodes[0x03E] = Key.F4;
-            _keyCodes[0x03F] = Key.F5;
-            _keyCodes[0x040] = Key.F6;
-            _keyCodes[0x041] = Key.F7;
-            _keyCodes[0x042] = Key.F8;
-            _keyCodes[0x043] = Key.F9;
-            _keyCodes[0x044] = Key.F10;
-            _keyCodes[0x057] = Key.F11;
-            _keyCodes[0x058] = Key.F12;
-            _keyCodes[0x064] = Key.F13;
-            _keyCodes[0x065] = Key.F14;
-            _keyCodes[0x066] = Key.F15;
-            _keyCodes[0x067] = Key.F16;
-            _keyCodes[0x068] = Key.F17;
-            _keyCodes[0x069] = Key.F18;
-            _keyCodes[0x06A] = Key.F19;
-            _keyCodes[0x06B] = Key.F20;
-            _keyCodes[0x06C] = Key.F21;
-            _keyCodes[0x06D] = Key.F22;
-            _keyCodes[0x06E] = Key.F23;
-            _keyCodes[0x076] = Key.F24;
-            _keyCodes[0x038] = Key.LeftAlt;
-            _keyCodes[0x01D] = Key.LeftControl;
-            _keyCodes[0x02A] = Key.LeftShift;
-            _keyCodes[0x15B] = Key.LeftSuper;
-            _keyCodes[0x137] = Key.PrintScreen;
-            _keyCodes[0x138] = Key.RightAlt;
-            _keyCodes[0x11D] = Key.RightControl;
-            _keyCodes[0x036] = Key.RightShift;
-            _keyCodes[0x15C] = Key.RightSuper;
-            _keyCodes[0x150] = Key.Down;
-            _keyCodes[0x14B] = Key.Left;
-            _keyCodes[0x14D] = Key.Right;
-            _keyCodes[0x148] = Key.Up;
-
-            _keyCodes[0x052] = Key.Kp0;
-            _keyCodes[0x04F] = Key.Kp1;
-            _keyCodes[0x050] = Key.Kp2;
-            _keyCodes[0x051] = Key.Kp3;
-            _keyCodes[0x04B] = Key.Kp4;
-            _keyCodes[0x04C] = Key.Kp5;
-            _keyCodes[0x04D] = Key.Kp6;
-            _keyCodes[0x047] = Key.Kp7;
-            _keyCodes[0x048] = Key.Kp8;
-            _keyCodes[0x049] = Key.Kp9;
-            _keyCodes[0x04E] = Key.KpAdd;
-            _keyCodes[0x053] = Key.KpDecimal;
-            _keyCodes[0x135] = Key.KpDivide;
-            _keyCodes[0x11C] = Key.KpEnter;
-            _keyCodes[0x059] = Key.KpEqual;
-            _keyCodes[0x037] = Key.KpMultiply;
-            _keyCodes[0x04A] = Key.KpSubtract;
-
-            for (scanCode = 0; scanCode < 512; scanCode++)
-            {
-                if (_keyCodes[scanCode] > 0)
-                    _scanCodes[(short) _keyCodes[scanCode]] = scanCode;
-            }
-        }
-
-        /// <summary>
-        /// Updates key names according to the current keyboard layout.
-        /// </summary>
-        private void PopulateKeyNames()
-        {
-            var state = new byte[256];
-
-            // Initialize the key names array.
-            _keyNames = new string[_scanCodes.Length];
-            _keys = new bool[_keyNames.Length];
-
-            for (var key = (int) Key.Space; key < (int) Key.Last; key++)
-            {
-                uint vk;
-
-                int scanCode = _scanCodes[key];
-                if (scanCode == -1) continue;
-
-                if (key >= (int) Key.Kp0 && key <= (int) Key.KpAdd)
-                {
-                    uint[] vks =
-                    {
-                        (uint) VirtualKey.NUMPAD0, (uint) VirtualKey.NUMPAD1, (uint) VirtualKey.NUMPAD2, (uint) VirtualKey.NUMPAD3,
-                        (uint) VirtualKey.NUMPAD4, (uint) VirtualKey.NUMPAD5, (uint) VirtualKey.NUMPAD6, (uint) VirtualKey.NUMPAD7,
-                        (uint) VirtualKey.NUMPAD8, (uint) VirtualKey.NUMPAD9, (uint) VirtualKey.DECIMAL, (uint) VirtualKey.DIVIDE,
-                        (uint) VirtualKey.MULTIPLY, (uint) VirtualKey.SUBTRACT, (uint) VirtualKey.ADD
-                    };
-
-                    vk = vks[key - (int) Key.Kp0];
-                }
-                else
-                {
-                    vk = User32.MapVirtualKey((uint) scanCode, VirtualKeyMapType.MAPVK_VSC_TO_VK);
-                }
-
-                var chars = new StringBuilder(16);
-                int length = User32.ToUnicode(vk, (uint) scanCode, state, chars, chars.Capacity, 0);
-                if (length == -1) length = User32.ToUnicode(vk, (uint) scanCode, state, chars, chars.Capacity, 0);
-
-                if (length < 1) continue;
-
-                var keyName = new char[5];
-                Kernel32.WideCharToMultiByte(CodePage.CpUtf8, 0, chars, 1, keyName, keyName.Length, IntPtr.Zero, out bool _);
-
-                _keyNames[key] = NativeHelpers.StringFromNullTerminated(keyName);
-            }
-        }
-
-        private Key TranslateKey(ulong wParam, ulong lParam)
-        {
-            switch (wParam)
-            {
-                // Control keys require special handling.
-                case (uint) VirtualKey.CONTROL when (lParam & 0x01000000) != 0:
-                    return Key.RightControl;
-                case (uint) VirtualKey.CONTROL:
-                {
-                    uint time = User32.GetMessageTime();
-
-                    // HACK: Alt Gr sends Left Ctrl and then Right Alt in close sequence
-                    //       We only want the Right Alt message, so if the next message is
-                    //       Right Alt we ignore this (synthetic) Left Ctrl message
-                    if (!User32.PeekMessage(out Message next, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_NOREMOVE)) return Key.LeftControl;
-                    if (next.Value != WM.KEYDOWN && next.Value != WM.SYSKEYDOWN && next.Value != WM.KEYUP && next.Value != WM.SYSKEYUP) return Key.LeftControl;
-                    if ((uint) next.WParam == (uint) VirtualKey.MENU && ((uint) next.LParam & 0x01000000) != 0 && next.Time == time)
-                        // Next message is Right Alt down so discard this
-                        return Key.Unknown;
-
-                    return Key.LeftControl;
-                }
-                // IME notifies that keys have been filtered by setting the virtual
-                // key-code to VK_PROCESSKEY
-                case (uint) VirtualKey.PROCESSKEY:
-                    return Key.Unknown;
-            }
-
-            int index = NativeHelpers.HiWord(lParam) & 0x1FF;
-            if (index < 0 || index >= _keyCodes.Length) return Key.Unknown;
-            return _keyCodes[index];
-        }
-
-        private void UpdateKeyStatus(Key key, bool down)
-        {
-            var keyIndex = (short) key;
-
-            // If it was down, and still is - then it's held.
-            if (_keys[keyIndex] && down) OnKey.Invoke(key, KeyStatus.Held);
-
-            // If it was down, but no longer is - it was let go.
-            if (_keys[keyIndex] && !down) OnKey.Invoke(key, KeyStatus.Up);
-
-            // If it was up, and now is down - it was pressed.
-            if (!_keys[keyIndex] && down) OnKey.Invoke(key, KeyStatus.Down);
-            _keys[keyIndex] = down;
-        }
-
-        private void UpdateMouseKeyStatus(MouseKey key, bool down)
-        {
-            if (key == MouseKey.Unknown) return;
-            int keyIndex = (short) key - 1;
-            if (keyIndex > _mouseKeys.Length - 1) return;
-
-            // If it was down, but no longer is - it was let go.
-            if (_mouseKeys[keyIndex] && !down) OnMouseKey.Invoke(key, KeyStatus.Up);
-
-            // If it was up, and now is down - it was pressed.
-            if (!_mouseKeys[keyIndex] && down) OnMouseKey.Invoke(key, KeyStatus.Down);
-            _mouseKeys[keyIndex] = down;
-        }
-
-        /// <inheritdoc />
-        public override bool GetKeyDown(Key key)
-        {
-            if (key == Key.Unknown || key == Key.Last) return false;
-            return _keys[(short) key];
-        }
-
-        /// <inheritdoc />
-        public override bool GetMouseKeyDown(MouseKey key)
-        {
-            if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key - 1;
-            return _mouseKeys[keyIndex];
-        }
-
-        #endregion
-
         #region API
 
         /// <inheritdoc />
@@ -517,11 +234,8 @@ namespace Emotion.Platform.Implementation.Win32
         }
 
         /// <inheritdoc />
-        public override bool Update()
+        protected override bool UpdatePlatform()
         {
-            // Check if open.
-            if (!IsOpen) return false;
-
             // Update input.
 
             // NOTE: Shift keys on Windows tend to "stick" when both are pressed as
@@ -551,7 +265,7 @@ namespace Emotion.Platform.Implementation.Win32
             }
 
             // Check if focused.
-            if (!Window.Focused && Engine.Configuration != null && !Engine.Configuration.DebugMode) User32.WaitMessage();
+            if (!IsFocused && Engine.Configuration != null && !Engine.Configuration.DebugMode) User32.WaitMessage();
 
             return true;
         }
@@ -625,21 +339,10 @@ namespace Emotion.Platform.Implementation.Win32
 
                     return IntPtr.Zero;
                 case WM.SETFOCUS:
-                    win.Focused = true;
-                    FocusWait.Set();
-
+                    UpdateFocus(true);
                     return IntPtr.Zero;
                 case WM.KILLFOCUS:
-
-                    // Pull all buttons up.
-                    for (var i = 0; i < _keys.Length; i++)
-                    {
-                        UpdateKeyStatus((Key) i, false);
-                    }
-
-                    win.Focused = false;
-                    FocusWait.Reset();
-
+                    UpdateFocus(false);
                     return IntPtr.Zero;
 
                 case WM.SYSCOMMAND:
@@ -776,7 +479,7 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.MOUSEWHEEL:
 
                     var scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
-                    OnMouseScroll.Invoke(scrollAmount / 120f);
+                    UpdateScroll(scrollAmount / 120f);
 
                     return IntPtr.Zero;
             }
@@ -855,6 +558,89 @@ namespace Emotion.Platform.Implementation.Win32
         }
 
         /// <summary>
+        /// Updates key names according to the current keyboard layout.
+        /// </summary>
+        private void PopulateKeyNames()
+        {
+            var state = new byte[256];
+
+            // Initialize the key names array.
+            _keyNames = new string[_scanCodes.Length];
+
+            for (var key = (int)Key.Space; key < (int)Key.Last; key++)
+            {
+                uint vk;
+
+                int scanCode = _scanCodes[key];
+                if (scanCode == -1) continue;
+
+                if (key >= (int)Key.Kp0 && key <= (int)Key.KpAdd)
+                {
+                    uint[] vks =
+                    {
+                        (uint) VirtualKey.NUMPAD0, (uint) VirtualKey.NUMPAD1, (uint) VirtualKey.NUMPAD2, (uint) VirtualKey.NUMPAD3,
+                        (uint) VirtualKey.NUMPAD4, (uint) VirtualKey.NUMPAD5, (uint) VirtualKey.NUMPAD6, (uint) VirtualKey.NUMPAD7,
+                        (uint) VirtualKey.NUMPAD8, (uint) VirtualKey.NUMPAD9, (uint) VirtualKey.DECIMAL, (uint) VirtualKey.DIVIDE,
+                        (uint) VirtualKey.MULTIPLY, (uint) VirtualKey.SUBTRACT, (uint) VirtualKey.ADD
+                    };
+
+                    vk = vks[key - (int)Key.Kp0];
+                }
+                else
+                {
+                    vk = User32.MapVirtualKey((uint)scanCode, VirtualKeyMapType.MAPVK_VSC_TO_VK);
+                }
+
+                var chars = new StringBuilder(16);
+                int length = User32.ToUnicode(vk, (uint)scanCode, state, chars, chars.Capacity, 0);
+                if (length == -1) length = User32.ToUnicode(vk, (uint)scanCode, state, chars, chars.Capacity, 0);
+
+                if (length < 1) continue;
+
+                var keyName = new char[5];
+                Kernel32.WideCharToMultiByte(CodePage.CpUtf8, 0, chars, 1, keyName, keyName.Length, IntPtr.Zero, out bool _);
+
+                _keyNames[key] = NativeHelpers.StringFromNullTerminated(keyName);
+            }
+        }
+
+        /// <summary>
+        /// Convert wParam and lParam to a key.
+        /// </summary>
+        private Key TranslateKey(ulong wParam, ulong lParam)
+        {
+            switch (wParam)
+            {
+                // Control keys require special handling.
+                case (uint)VirtualKey.CONTROL when (lParam & 0x01000000) != 0:
+                    return Key.RightControl;
+                case (uint)VirtualKey.CONTROL:
+                    {
+                        uint time = User32.GetMessageTime();
+
+                        // HACK: Alt Gr sends Left Ctrl and then Right Alt in close sequence
+                        //       We only want the Right Alt message, so if the next message is
+                        //       Right Alt we ignore this (synthetic) Left Ctrl message
+                        if (!User32.PeekMessage(out Message next, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_NOREMOVE)) return Key.LeftControl;
+                        if (next.Value != WM.KEYDOWN && next.Value != WM.SYSKEYDOWN && next.Value != WM.KEYUP && next.Value != WM.SYSKEYUP) return Key.LeftControl;
+                        if ((uint)next.WParam == (uint)VirtualKey.MENU && ((uint)next.LParam & 0x01000000) != 0 && next.Time == time)
+                            // Next message is Right Alt down so discard this
+                            return Key.Unknown;
+
+                        return Key.LeftControl;
+                    }
+                // IME notifies that keys have been filtered by setting the virtual
+                // key-code to VK_PROCESSKEY
+                case (uint)VirtualKey.PROCESSKEY:
+                    return Key.Unknown;
+            }
+
+            int index = NativeHelpers.HiWord(lParam) & 0x1FF;
+            if (index < 0 || index >= _keyCodes.Length) return Key.Unknown;
+            return _keyCodes[index];
+        }
+
+        /// <summary>
         /// Returns whether the windows version running on is at least the specified one.
         /// </summary>
         private static unsafe bool IsWindowsVersionOrGreaterWin32(int major, int minor, int sp)
@@ -901,7 +687,7 @@ namespace Emotion.Platform.Implementation.Win32
         /// </summary>
         /// <param name="msg">A message to display with the error.</param>
         /// <param name="sureError">Whether you are sure an error occured.</param>
-        internal static void CheckError(string msg, bool sureError = false)
+        public static void CheckError(string msg, bool sureError = false)
         {
             uint errorCheck = Kernel32.GetLastError();
             if (errorCheck == 0 && !sureError) return;

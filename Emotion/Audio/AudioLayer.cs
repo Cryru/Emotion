@@ -203,7 +203,7 @@ namespace Emotion.Audio
             if (_currentTrack < 0 || _currentTrack > playlistCount - 1) return 0;
 
             // Pause if window is not focused.
-            if (Engine.Host != null && Engine.Host.Window != null && !Engine.Host.Window.Focused && !Engine.Configuration.DebugMode) Engine.Host.FocusWait.WaitOne();
+            if (Engine.Host != null && !Engine.Host.IsFocused) Engine.Host.FocusWait.WaitOne();
 
             AudioTrack currentTrack;
             lock (_playlist)

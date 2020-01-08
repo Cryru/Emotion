@@ -496,7 +496,7 @@ namespace Emotion.Graphics
             currentShader.SetUniformFloat("iTime", Engine.TotalTime / 1000f);
             currentShader.SetUniformVector3("iResolution", new Vector3(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0));
             currentShader.SetUniformVector4("iMouse",
-                new Vector4(Engine.Host.MousePosition, Engine.Host.GetMouseKeyDown(MouseKey.Left) ? 1 : 0, Engine.Host.GetMouseKeyDown(MouseKey.Right) ? 1 : 0));
+                new Vector4(Engine.Host.MousePosition, Engine.Host.IsMouseKeyDown(MouseKey.Left) ? 1 : 0, Engine.Host.IsMouseKeyDown(MouseKey.Right) ? 1 : 0));
         }
 
         /// <summary>

@@ -13,6 +13,7 @@
         public static string ScriptingEngine = "ScriptingEngine";
         public static string Platform = "Platform"; // Sent by the base platform logic
         public static string Audio = "Audio";
+        public static string Input = "Input";
 
         public static string Debug = "Debug";
         public static string Other = "Other";

@@ -49,7 +49,7 @@ namespace Emotion.Common
         /// <summary>
         /// The legacy input manager.
         /// </summary>
-        public static InputManager InputManager { get; private set; }
+        public static IInputManager InputManager { get; private set; }
 
         /// <summary>
         /// Module which manages loading and unloading of scenes.
@@ -127,11 +127,10 @@ namespace Emotion.Common
                 SubmitError(new Exception("Platform couldn't initialize."));
                 return;
             }
+            InputManager = Host;
 
             // Errors in host initialization can cause this.
             if (Status == EngineStatus.Stopped) return;
-
-            InputManager = new InputManager();
 
             // Now that the context is created, the renderer can be created.
             GLThread.BindThread();
@@ -326,7 +325,6 @@ namespace Emotion.Common
             TotalTime += DeltaTime;
 
             Renderer.Update();
-            InputManager.Update();
             SceneManager.Update();
 
             // Update plugins.

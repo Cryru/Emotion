@@ -75,7 +75,7 @@ namespace Emotion.Standard.Logging
         public void Trace(string message, string source)
         {
             // todo until filtering is introduced.
-            if (source == MessageSource.ShaderSource) return;
+            if (source == MessageSource.ShaderSource || source == MessageSource.Input) return;
 
             Log(MessageType.Trace, source, message);
         }

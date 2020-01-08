@@ -15,7 +15,7 @@ namespace Emotion.Platform.Implementation.Null
             Console.WriteLine($"NullPlatform MessageBox: {message}");
         }
 
-        public override bool Update()
+        protected override bool UpdatePlatform()
         {
             return true;
         }
@@ -24,16 +24,6 @@ namespace Emotion.Platform.Implementation.Null
         {
             Audio = new NullAudioContext();
             Window = new NullWindow(this);
-        }
-
-        public override bool GetKeyDown(Key key)
-        {
-            return false;
-        }
-
-        public override bool GetMouseKeyDown(MouseKey key)
-        {
-            return false;
         }
 
         public override IntPtr LoadLibrary(string path)

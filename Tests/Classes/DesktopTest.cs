@@ -26,7 +26,7 @@ namespace Tests.Classes
             Assert.True(plat.Window != null);
             Assert.True(plat.Window.Context != null);
             Assert.True(plat.Window.Size == new Vector2(320, 260));
-            Assert.True(plat.Window.Focused);
+            Assert.True(plat.IsFocused);
 
             var resizes = new List<Vector2>();
             plat.Window.OnResize.AddListener(t =>
@@ -43,17 +43,17 @@ namespace Tests.Classes
             Assert.True(plat.Window.Size == new Vector2(960, 540));
 
             plat.Window.WindowState = WindowState.Minimized;
-            Assert.True(!plat.Window.Focused);
+            Assert.True(!plat.IsFocused);
 
             plat.Window.WindowState = WindowState.Maximized;
             Assert.True(plat.Window.Size.X == plat.Monitors[0].Width);
-            Assert.True(plat.Window.Focused);
+            Assert.True(plat.IsFocused);
 
             plat.Window.WindowState = WindowState.Minimized;
-            Assert.True(!plat.Window.Focused);
+            Assert.True(!plat.IsFocused);
 
             plat.Window.WindowState = WindowState.Normal;
-            Assert.True(plat.Window.Focused);
+            Assert.True(plat.IsFocused);
 
             // Check that the on resize function was called correctly and with the correct sizes.
             Assert.True(resizes.Count == 3);

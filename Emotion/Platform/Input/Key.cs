@@ -3,22 +3,19 @@
     /// <summary>
     /// Keyboard keys.
     /// These key codes are inspired by the _USB HID Usage Tables v1.12_ (p. 53-60),
-    /// but re-arranged to map to 7-bit ASCII for printable keys (function keys are
-    /// put in the 256+ range).
+    /// but re-arranged to map to 7-bit ASCII for printable keys (function keys are put in the 256+ range).
     /// The naming of the key codes follow these rules:
     /// - The US keyboard layout is used
-    /// - Names of printable alpha-numeric characters are used (e.g. "A", "R",
-    /// "3", etc.)
-    /// - For non-alphanumeric characters, Unicode:ish names are used (e.g.
-    /// "COMMA", "LEFT_SQUARE_BRACKET", etc.). Note that some names do not
-    /// correspond to the Unicode standard (usually for brevity)
+    /// - Names of printable alpha-numeric characters are used (e.g. "A", "R", "3", etc.)
+    /// - For non-alphanumeric characters, Unicode:ish names are used (e.g. "COMMA", "LEFT_SQUARE_BRACKET", etc.). 
+    /// Note that some names do not correspond to the Unicode standard (usually for brevity)
     /// - Keys that lack a clear US mapping are named "WORLD_x"
-    /// - For non-printable keys, custom names are used (e.g. "F4",
-    /// "BACKSPACE", etc.)
+    /// - For non-printable keys, custom names are used (e.g. "F4", "BACKSPACE", etc.)
     /// </summary>
     public enum Key : short
     {
         Unknown = -1,
+
         Space = 32,
         Apostrophe = 39, // '
         Comma = 44, // ,
@@ -115,6 +112,8 @@
         F23 = 312,
         F24 = 313,
         F25 = 314,
+
+        // Keypad
         Kp0 = 320,
         Kp1 = 321,
         Kp2 = 322,
@@ -132,6 +131,8 @@
         KpAdd = 334,
         KpEnter = 335,
         KpEqual = 336,
+
+        // System
         LeftShift = 340,
         LeftControl = 341,
         LeftAlt = 342,
@@ -140,7 +141,9 @@
         RightControl = 345,
         RightAlt = 346,
         RightSuper = 347,
-        Menu = 348,
+        Menu = 348, // Windows key
+
+
         Last = 349
     }
 }
