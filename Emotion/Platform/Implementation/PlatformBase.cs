@@ -480,7 +480,7 @@ namespace Emotion.Platform.Implementation
         public bool IsKeyDown(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            short idx = (short)key;
+            var idx = (short)key;
             return _keys[idx] && _keysPrevious[idx];
         }
 
@@ -488,7 +488,7 @@ namespace Emotion.Platform.Implementation
         public bool IsKeyHeld(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            short idx = (short)key;
+            var idx = (short)key;
             return _keys[idx] && _keysPrevious[idx];
         }
 
@@ -496,7 +496,7 @@ namespace Emotion.Platform.Implementation
         public bool IsKeyUp(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            short idx = (short)key;
+            var idx = (short)key;
             return !_keys[idx] && _keysPrevious[idx];
         }
 

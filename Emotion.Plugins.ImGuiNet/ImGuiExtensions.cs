@@ -21,11 +21,11 @@ namespace Emotion.Plugins.ImGuiNet
             else
                 reqUv = (Rectangle) uv;
 
-            Vector2 uvOne = new Vector2(
+            var uvOne = new Vector2(
                 reqUv.X / t.Size.X,
                 reqUv.Y / t.Size.Y
             );
-            Vector2 uvTwo = new Vector2(
+            var uvTwo = new Vector2(
                 (reqUv.X + reqUv.Size.X) / t.Size.X,
                 (reqUv.Y + reqUv.Size.Y) / t.Size.Y
             );
