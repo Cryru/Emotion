@@ -207,9 +207,9 @@ namespace Emotion.Plugins.ImGuiNet
             }
 
             // Apply all key inputs.
-            for (var i = (int) Key.Unknown; i < (int) Key.Last; i++)
+            for (var i = 0; i < (int) Key.Last; i++)
             {
-                io.KeysDown[i] = Engine.InputManager.IsKeyHeld((Key) i);
+                io.KeysDown[i] = Engine.InputManager.IsKeyDown((Key) i);
             }
         }
 
