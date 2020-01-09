@@ -207,19 +207,9 @@ namespace Emotion.Plugins.ImGuiNet
             }
 
             // Apply all key inputs.
-            IEnumerable<Key> downKeys = Engine.InputManager.GetAllKeysHeld();
-            var allKeys = (Key[]) Enum.GetValues(typeof(Key));
-
-            foreach (Key key in allKeys)
+            for (var i = (int) Key.Unknown; i < (int) Key.Last; i++)
             {
-                if (key == Key.Unknown) continue;
-                io.KeysDown[(int) key] = false;
-            }
-
-            foreach (Key key in downKeys)
-            {
-                if (key == Key.Unknown) continue;
-                io.KeysDown[(int) key] = true;
+                io.KeysDown[i] = Engine.InputManager.IsKeyHeld((Key) i);
             }
         }
 

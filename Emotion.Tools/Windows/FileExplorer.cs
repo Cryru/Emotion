@@ -95,7 +95,7 @@ namespace Emotion.Tools.Windows
             }
 
             // Render leaves. (Some LINQ magic here to not render past the clicked button)
-            foreach (string name in current.Leaves.Select(Path.GetFileName).Where(ImGui.Button))
+            foreach (string name in current.Leaves.Where(name => ImGui.Button(Path.GetFileName(name))))
             {
                 // Load the asset custom so the asset loader's caching doesn't get in the way.
                 _loadingTask = Task.Run(async () =>
