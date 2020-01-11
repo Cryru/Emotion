@@ -302,6 +302,116 @@ namespace Emotion.Graphics
             PushCommand(command);
         }
 
+         /// <summary>
+        /// Render a circle outline.
+        /// </summary>
+        /// <param name="position">
+        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
+        /// with "useCenter"
+        /// </param>
+        /// <param name="radius">The circle radius.</param>
+        /// <param name="color">The circle color.</param>
+        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
+        /// <param name="circleDetail">How detailed the circle should be.</param>
+        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
+        {
+            // Add the circle's model matrix.
+            PushModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
+
+            float fX = 0;
+            float fY = 0;
+            float pX = 0;
+            float pY = 0;
+
+            // Generate points.
+            for (uint i = 0; i < circleDetail; i++)
+            {
+                var angle = (float) (i * 2 * Math.PI / circleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
+
+                if (i == 0)
+                {
+                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + x, radius + y, 0), color);
+                    fX = x;
+                    fY = y;
+                }
+                else if (i == circleDetail - 1)
+                {
+                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                }
+                else
+                {
+                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                }
+
+                pX = x;
+                pY = y;
+            }
+
+            // Remove the model matrix.
+            PopModelMatrix();
+        }
+
+        /// <summary>
+        /// Render a circle.
+        /// </summary>
+        /// <param name="position">
+        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
+        /// with "useCenter"
+        /// </param>
+        /// <param name="radius">The circle radius.</param>
+        /// <param name="color">The circle color.</param>
+        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
+        /// <param name="circleDetail">How detailed the circle should be.</param>
+        public void RenderCircle(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
+        {
+            // Add the circle's model matrix.
+            PushModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
+
+            float pX = 0;
+            float pY = 0;
+            float fX = 0;
+            float fY = 0;
+
+            var vertices = new List<Vector3>();
+
+            // Generate points.
+            for (uint i = 0; i < circleDetail; i++)
+            {
+                var angle = (float) (i * 2 * Math.PI / circleDetail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius;
+                float y = (float) Math.Sin(angle) * radius;
+
+                vertices.Add(new Vector3(radius + pX, radius + pY, 0));
+                vertices.Add(new Vector3(radius + x, radius + y, 0));
+                vertices.Add(new Vector3(radius, radius, 0));
+                vertices.Add(new Vector3(radius, radius, 0));
+
+                if (i == 0)
+                {
+                    fX = x;
+                    fY = y;
+                }
+                else if (i == circleDetail - 1)
+                {
+                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
+                    vertices.Add(new Vector3(radius + fX, radius + fY, 0));
+                    vertices.Add(new Vector3(radius, radius, 0));
+                    vertices.Add(new Vector3(radius, radius, 0));
+                }
+
+                pX = x;
+                pY = y;
+            }
+
+            RenderVertices(vertices, color);
+
+            // Remove the model matrix.
+            PopModelMatrix();
+        }
+
         /// <summary>
         /// Render a composer.
         /// </summary>
