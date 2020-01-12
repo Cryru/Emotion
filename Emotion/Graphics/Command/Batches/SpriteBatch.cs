@@ -106,6 +106,26 @@ namespace Emotion.Graphics.Command.Batches
             return data;
         }
 
+        /// <summary>
+        /// Get the batched sprite at the specific index.
+        /// Changes to the returned object will modify the sprite itself.
+        /// To change the texture request a binding from AddTextureBinding()
+        /// To clear unused texture bindings call RemapTextures().
+        /// </summary>
+        /// <param name="index">The index of the batched sprite.</param>
+        /// <returns>The sprite at that index or null if invalid.</returns>
+        public override unsafe Span<VertexData> GetSpriteAt(int index)
+        {
+            if (index < 0 || index * 4 >= _mappedTo) return null;
+
+            // Mark state as dirty.
+            _upload = true;
+
+            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable once RedundantCast
+            return new Span<VertexData>((void*) &((byte*) _batchedVertices)[index * 4 * _structByteSize], 4);
+        }
+
         /// <inheritdoc />
         public override void Execute(RenderComposer composer)
         {
@@ -144,26 +164,6 @@ namespace Emotion.Graphics.Command.Batches
             }
 
             Draw(vao);
-        }
-
-        /// <summary>
-        /// Get the batched sprite at the specific index.
-        /// Changes to the returned object will modify the sprite itself.
-        /// To change the texture request a binding from AddTextureBinding()
-        /// To clear unused texture bindings call RemapTextures().
-        /// </summary>
-        /// <param name="index">The index of the batched sprite.</param>
-        /// <returns>The sprite at that index or null if invalid.</returns>
-        public unsafe Span<VertexData> GetSpriteAt(int index)
-        {
-            if (index < 0 || index * 4 >= _mappedTo) return null;
-
-            // Mark state as dirty.
-            _upload = true;
-
-            // ReSharper disable once PossibleNullReferenceException
-            // ReSharper disable once RedundantCast
-            return new Span<VertexData>((void*) &((VertexData*) _batchedVertices)[index * 4], 4);
         }
 
         /// <summary>

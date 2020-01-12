@@ -40,11 +40,7 @@ namespace Emotion.Graphics.Command.Batches
             _memoryPage = IntPtr.Zero;
         }
 
-        /// <summary>
-        /// Returns the data within the batch to map a sprite into, and adds the provided texture to the texture mapping.
-        /// </summary>
-        /// <param name="texture">The texture to bind.</param>
-        /// <returns>he data inside the batch to be filled.</returns>
+        /// <inheritdoc />
         public override unsafe Span<VertexData> GetData(Texture texture)
         {
             // Check if already full (or have no owner - that should never happen).
@@ -79,6 +75,18 @@ namespace Emotion.Graphics.Command.Batches
             if (memoryLeft < _spriteByteSize || _mappedTo + 4 > Engine.Renderer.MaxIndices) Full = true;
 
             return data;
+        }
+
+        /// <inheritdoc />
+        public override unsafe Span<VertexData> GetSpriteAt(int idx)
+        {
+            if (BatchedSprites < idx) return null;
+            // ReSharper disable once ConvertIfStatementToReturnStatement
+            if (_memoryPage == IntPtr.Zero) return null;
+
+            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable once RedundantCast
+            return new Span<VertexData>((void*) &((byte*) _memoryPage)[idx * 4 * _structByteSize], 4);
         }
 
         /// <inheritdoc />

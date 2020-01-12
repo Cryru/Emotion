@@ -19,10 +19,23 @@ namespace Emotion.Graphics.Command.Batches
     public abstract class SpriteBatchBase : RecyclableCommand
     {
         /// <summary>
+        /// The length of sprites batched. Zero indexed.
+        /// </summary>
+        public int BatchedSprites
+        {
+            get => _mappedTo / 4;
+        }
+
+        /// <summary>
         /// Whether the batch is full.
         /// This happens when the maximum indices are met, or the maximum textures.
         /// </summary>
         public bool Full { get; protected set; }
+
+        /// <summary>
+        /// The number of vertices in use from _batchedVertices.
+        /// </summary>
+        protected int _mappedTo;
     }
 
     /// <summary>
@@ -43,11 +56,6 @@ namespace Emotion.Graphics.Command.Batches
         protected int _textureSlotUtilization;
 
         #endregion
-
-        /// <summary>
-        /// The number of vertices in use from _batchedVertices.
-        /// </summary>
-        protected int _mappedTo;
 
         /// <summary>
         /// The index to start rendering from.
@@ -91,6 +99,15 @@ namespace Emotion.Graphics.Command.Batches
         /// <param name="texture">The texture to bind.</param>
         /// <returns>he data inside the batch to be filled.</returns>
         public abstract Span<T> GetData(Texture texture);
+
+        /// <summary>
+        /// Returns the data associated with the specified batched sprite.
+        /// Invalid indices will return null. Modifying the texture pointer will not cause
+        /// the internal texture mapping to change. Take care.
+        /// </summary>
+        /// <param name="idx">The index of the sprite to return.</param>
+        /// <returns>The vertices of the sprite under the specified index.</returns>
+        public abstract Span<T> GetSpriteAt(int idx);
 
         /// <summary>
         /// Set the render range for the batch. By default the whole batch is rendered.
