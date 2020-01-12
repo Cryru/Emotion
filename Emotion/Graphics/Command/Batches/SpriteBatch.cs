@@ -1,11 +1,9 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 
 #endregion
@@ -15,7 +13,7 @@ namespace Emotion.Graphics.Command.Batches
     /// <summary>
     /// Batch which owns it's own CPU memory, and optionally GPU memory.
     /// </summary>
-    public class SpriteBatch : SpriteBatchBase<VertexData>
+    public class SpriteBatch<T> : SpriteBatchBase<T>
     {
         #region Own CPU Memory
 
@@ -64,15 +62,16 @@ namespace Emotion.Graphics.Command.Batches
         }
 
         /// <inheritdoc />
-        public override unsafe Span<VertexData> GetData(Texture texture)
+        public override unsafe Span<T> GetData(Texture texture, out int texturePointer)
         {
+            texturePointer = -1;
+
             // Check if already full.
             if (Full) return null;
 
             // Check if the texture exists in the binding for this batch.
             // This will also add the texture to this batch.
             // If there is no space the fullness check above will be true - fullness checks are always in advance.
-            int texturePointer = -1;
             if (texture != null) AddTextureBinding(texture.Pointer, out texturePointer);
 
             // Check if enough data.
@@ -88,14 +87,8 @@ namespace Emotion.Graphics.Command.Batches
             // Get the data.
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            var data = new Span<VertexData>((void*) &((byte*) _batchedVertices)[_mappedTo * _structByteSize], 4);
+            var data = new Span<T>((void*) &((byte*) _batchedVertices)[_mappedTo * _structByteSize], 4);
             _mappedTo += 4;
-
-            // Set the Tid.
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i].Tid = texturePointer;
-            }
 
             // Check if one more sprite can fit. Each sprite is 4 vertices.
             if (_mappedTo + 4 > Engine.Renderer.MaxIndices) Full = true;
@@ -114,7 +107,7 @@ namespace Emotion.Graphics.Command.Batches
         /// </summary>
         /// <param name="index">The index of the batched sprite.</param>
         /// <returns>The sprite at that index or null if invalid.</returns>
-        public override unsafe Span<VertexData> GetSpriteAt(int index)
+        public override unsafe Span<T> GetSpriteAt(int index)
         {
             if (index < 0 || index * 4 >= _mappedTo) return null;
 
@@ -123,7 +116,7 @@ namespace Emotion.Graphics.Command.Batches
 
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            return new Span<VertexData>((void*) &((byte*) _batchedVertices)[index * 4 * _structByteSize], 4);
+            return new Span<T>((void*) &((byte*) _batchedVertices)[index * 4 * _structByteSize], 4);
         }
 
         /// <inheritdoc />
@@ -139,7 +132,7 @@ namespace Emotion.Graphics.Command.Batches
                 if (_vbo == null)
                 {
                     _vbo = new VertexBuffer();
-                    _vao = new VertexArrayObject<VertexData>(_vbo, IndexBuffer.QuadIbo);
+                    _vao = new VertexArrayObject<T>(_vbo, IndexBuffer.QuadIbo);
                 }
 
                 vbo = _vbo;
@@ -151,7 +144,7 @@ namespace Emotion.Graphics.Command.Batches
                 composer.VaoCache.TryGetValue(_structType, out vao);
                 if (vao == null)
                 {
-                    vao = new VertexArrayObject<VertexData>(vbo);
+                    vao = new VertexArrayObject<T>(vbo);
                     composer.VaoCache.Add(_structType, vao);
                 }
             }
@@ -169,45 +162,9 @@ namespace Emotion.Graphics.Command.Batches
         /// <summary>
         /// Remaps all textures in the current binding, removing unused bindings.
         /// </summary>
-        public unsafe void RemapTextures()
+        public virtual void RemapTextures()
         {
-            var binding = new uint[_textureBinding.Length];
-            Array.Copy(_textureBinding, 0, binding, 0, _textureBinding.Length);
-
-            _textureSlotUtilization = 0;
-            var data = new Span<VertexData>((void*) _batchedVertices, _mappedTo);
-            for (var i = 0; i < data.Length; i++)
-            {
-                ref VertexData cur = ref data[i];
-
-                // Check if any texture.
-                if (cur.Tid == -1) continue;
-
-                Debug.Assert(cur.Tid >= 0 && cur.Tid < binding.Length);
-
-                // Get texture pointer.
-                uint oldBindingPtr = binding[(int) cur.Tid];
-
-                // Find within new binding.
-                int newIdx = -1;
-                for (var b = 0; b < _textureSlotUtilization; b++)
-                {
-                    if (_textureBinding[b] == oldBindingPtr) newIdx = b;
-                }
-
-                // If not found - add it.
-                if (newIdx == -1)
-                {
-                    _textureBinding[_textureSlotUtilization] = oldBindingPtr;
-                    newIdx = _textureSlotUtilization;
-                    _textureSlotUtilization++;
-
-                    Debug.Assert(_textureSlotUtilization < _textureBinding.Length);
-                }
-
-                // Amend vertex.
-                cur.Tid = newIdx;
-            }
+            throw new NotImplementedException("ReMapTextures is not implemented in the base SpriteBatch as it's unknown where the texture is stored.");
         }
 
         /// <inheritdoc />

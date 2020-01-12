@@ -2,17 +2,21 @@
 
 using System;
 using Emotion.Common;
-using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 
 #endregion
 
 namespace Emotion.Graphics.Command.Batches
 {
+    public interface ISharedMemorySpriteBatch
+    {
+        void SetOwner(RenderComposer owner);
+    }
+
     /// <summary>
     /// Batch which shared GPU and CPU memory with the composer who owns it.
     /// </summary>
-    public class SharedMemorySpriteBatch : SpriteBatchBase<VertexData>
+    public class SharedMemorySpriteBatch<T> : SpriteBatchBase<T>, ISharedMemorySpriteBatch
     {
         public SharedMemorySpriteBatch()
         {
@@ -41,15 +45,16 @@ namespace Emotion.Graphics.Command.Batches
         }
 
         /// <inheritdoc />
-        public override unsafe Span<VertexData> GetData(Texture texture)
+        public override unsafe Span<T> GetData(Texture texture, out int texturePointer)
         {
+            texturePointer = -1;
+
             // Check if already full (or have no owner - that should never happen).
             if (Full || _owner == null) return null;
 
             // Check if the texture exists in the binding for this batch.
             // This will also add the texture to this batch.
             // If there is no space the fullness check above will be true - fullness checks are always in advance.
-            int texturePointer = -1;
             if (texture != null) AddTextureBinding(texture.Pointer, out texturePointer);
 
             // Check if have memory.
@@ -59,14 +64,8 @@ namespace Emotion.Graphics.Command.Batches
             // Get the data.
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            var data = new Span<VertexData>((void*) &((byte*) _memoryPage)[_mappedTo * _structByteSize], 4);
+            var data = new Span<T>((void*) &((byte*) _memoryPage)[_mappedTo * _structByteSize], 4);
             _mappedTo += 4;
-
-            // Set the Tid.
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i].Tid = texturePointer;
-            }
 
             // Mark memory as used.
             int memoryLeft = _owner.MemoryPool.MarkUsed(_spriteByteSize);
@@ -78,7 +77,7 @@ namespace Emotion.Graphics.Command.Batches
         }
 
         /// <inheritdoc />
-        public override unsafe Span<VertexData> GetSpriteAt(int idx)
+        public override unsafe Span<T> GetSpriteAt(int idx)
         {
             if (BatchedSprites < idx) return null;
             // ReSharper disable once ConvertIfStatementToReturnStatement
@@ -86,7 +85,7 @@ namespace Emotion.Graphics.Command.Batches
 
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            return new Span<VertexData>((void*) &((byte*) _memoryPage)[idx * 4 * _structByteSize], 4);
+            return new Span<T>((void*) &((byte*) _memoryPage)[idx * 4 * _structByteSize], 4);
         }
 
         /// <inheritdoc />

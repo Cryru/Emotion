@@ -11,11 +11,11 @@ namespace Emotion.Graphics.Command.Batches
     /// Sorts batched sprites by their Z position.
     /// Used for semi-opaque sprites.
     /// </summary>
-    public class SortedSpriteBatch : SpriteBatch
+    public class SortedSpriteBatch : SharedMemorySpriteBatch<VertexData>
     {
         public override unsafe void Process(RenderComposer composer)
         {
-            var data = new Span<VertexDataSprite>((void*) _batchedVertices, _mappedTo / 4);
+            var data = new Span<VertexDataSprite>((void*) _memoryPage, _mappedTo / 4);
 
             // Temp sort until https://github.com/dotnet/corefx/issues/15329 reaches us.
             QuickSort(data, 0, data.Length - 1);

@@ -195,7 +195,7 @@ namespace Emotion.Graphics
             var batch = (VertexDataBatch) _spriteBatchFactory.GetObject();
 
             // If using shared memory, link to the composer.
-            if (batch is SharedMemorySpriteBatch sharedMemoryBatch)
+            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch)
             {
                 sharedMemoryBatch.SetOwner(this);
             }
@@ -232,7 +232,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RestoreSpriteBatchType()
         {
-            SetSpriteBatchType<SharedMemorySpriteBatch>();
+            SetSpriteBatchType<VertexDataShaderMemorySpriteBatch>();
         }
 
         #endregion

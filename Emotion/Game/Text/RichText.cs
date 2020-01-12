@@ -95,7 +95,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The render cache of the entire text.
         /// </summary>
-        protected SpriteBatch _renderCache { get; set; }
+        protected SpriteBatch<VertexData> _renderCache { get; set; }
 
         /// <summary>
         /// The text layouter.
@@ -157,7 +157,7 @@ namespace Emotion.Game.Text
             FontAtlas = fontAtlas;
 
             _layouter = new TextLayouter(fontAtlas.Atlas);
-            _renderCache = new SpriteBatch(true);
+            _renderCache = new SpriteBatch<VertexData>(true);
         }
 
         /// <summary>

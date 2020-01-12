@@ -97,8 +97,19 @@ namespace Emotion.Graphics.Command.Batches
         /// Returns the data within the batch to map a sprite into, and adds the provided texture to the texture mapping.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
+        /// <param name="texturePointer">The texture point within the batch's texture binding.</param>
         /// <returns>he data inside the batch to be filled.</returns>
-        public abstract Span<T> GetData(Texture texture);
+        public abstract Span<T> GetData(Texture texture, out int texturePointer);
+
+        /// <summary>
+        /// Returns the data within the batch to map a sprite into, and adds the provided texture to the texture mapping.
+        /// </summary>
+        /// <param name="texture">The texture to bind.</param>
+        /// <returns>he data inside the batch to be filled.</returns>
+        public virtual Span<T> GetData(Texture texture)
+        {
+            return GetData(texture, out int _);
+        }
 
         /// <summary>
         /// Returns the data associated with the specified batched sprite.
@@ -108,6 +119,7 @@ namespace Emotion.Graphics.Command.Batches
         /// <param name="idx">The index of the sprite to return.</param>
         /// <returns>The vertices of the sprite under the specified index.</returns>
         public abstract Span<T> GetSpriteAt(int idx);
+
 
         /// <summary>
         /// Set the render range for the batch. By default the whole batch is rendered.
