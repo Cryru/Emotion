@@ -104,7 +104,7 @@ namespace Tests.Classes
             }).WaitOne();
         }
 
-        public class TestCustomBatch : SpriteBatch
+        public class TestCustomBatch : VertexDataSpriteBatch
         {
             public override unsafe void Process(RenderComposer c)
             {
