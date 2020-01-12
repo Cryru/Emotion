@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Primitives;
@@ -39,7 +40,12 @@ namespace Emotion.Graphics.Objects
         public Texture Texture { get; set; }
 
         /// <summary>
-        /// The framebuffer's viewport.
+        /// Depth texture of the frame buffer. Optional - depending on constructor.
+        /// </summary>
+        public Texture DepthTexture { get; set; }
+
+        /// <summary>
+        /// The frame buffer's viewport.
         /// </summary>
         public Rectangle Viewport { get; set; }
 
@@ -63,10 +69,13 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Create a new frame buffer.
         /// </summary>
-        /// <param name="texture">The texture to use for this frame buffer. The framebuffer's size is inferred from it.</param>
+        /// <param name="texture">The texture to use for this frame buffer. The frame buffer's size is inferred from it.</param>
+        /// <param name="depthTexture">The depth texture. Should be the same size as the texture. If stencil is attached this is also the stencil texture. Optional.</param>
         /// <param name="attachStencil">Whether to attach a stencil attachment.</param>
-        public FrameBuffer(Texture texture, bool attachStencil = false)
+        public FrameBuffer(Texture texture, Texture depthTexture = null, bool attachStencil = false)
         {
+            Debug.Assert(depthTexture == null || texture.Size == depthTexture.Size);
+
             Texture = texture;
             Size = texture.Size;
             Pointer = Gl.GenFramebuffer();
@@ -76,13 +85,17 @@ namespace Emotion.Graphics.Objects
 
             // Attach the texture to the frame buffer.
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, texture.Pointer, 0);
+
+            // Attach depth texture (if any)
+            FramebufferAttachment attachment = attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
+            if(depthTexture != null) Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
+
             // Attach color components.
             Gl.DrawBuffers(_modes);
 
             // Create render buffer. This is the object that holds the depth and stencil attachments.
             RenderBuffer = Gl.GenRenderbuffer();
             InternalFormat internalFormat = attachStencil ? InternalFormat.Depth24Stencil8 : InternalFormat.DepthComponent24;
-            FramebufferAttachment attachment = attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
             Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RenderBuffer);
             Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int) Size.X, (int) Size.Y);
             Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, RenderBuffer);
@@ -97,6 +110,15 @@ namespace Emotion.Graphics.Objects
 
             // Restore bindings and so on.
             Engine.Renderer?.EnsureRenderTarget();
+        }
+
+        public FrameBuffer(Texture texture) : this(texture, null)
+        {
+
+        }
+
+        public FrameBuffer(Texture texture, bool attachStencil = false) : this(texture, null, attachStencil)
+        {
         }
 
         public void Bind()
