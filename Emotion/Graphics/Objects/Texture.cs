@@ -88,6 +88,7 @@ namespace Emotion.Graphics.Objects
         private bool _smooth;
         private InternalFormat _internalFormat;
         private PixelFormat _pixelFormat;
+        private PixelType _pixelType;
 
         /// <summary>
         /// Create a new empty texture.
@@ -132,7 +133,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="data">The data to upload.</param>
         /// <param name="internalFormat">The internal format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelFormat">The pixel format of the texture. If null the format which was last used is taken.</param>
-        public void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null)
+        public void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType pixelType = PixelType.UnsignedByte)
         {
             Size = size;
 
@@ -145,14 +146,15 @@ namespace Emotion.Graphics.Objects
             else
                 _pixelFormat = (PixelFormat) pixelFormat;
 
+            _pixelType = pixelType;
 
             EnsureBound(Pointer);
             if (data == null)
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    PixelType.UnsignedByte, IntPtr.Zero);
+                    _pixelType, IntPtr.Zero);
             else
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    PixelType.UnsignedByte, data);
+                    _pixelType, data);
 
             Gl.GenerateMipmap(TextureTarget.Texture2d);
         }

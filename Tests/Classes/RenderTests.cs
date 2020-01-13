@@ -5,7 +5,9 @@ using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Game.Tiled;
 using Emotion.Graphics;
+using Emotion.Graphics.Command;
 using Emotion.Graphics.Command.Batches;
+using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Test;
@@ -183,6 +185,43 @@ namespace Tests.Classes
             }).WaitOne();
 
             tileMap.Reset("", "");
+        }
+
+        /// <summary>
+        /// Tests reading the FrameBuffer's depth texture, and using it to copy the depth over to the draw buffer.
+        /// </summary>
+        [Test]
+        public void TestDepthFromOtherFrameBuffer()
+        {
+            Runner.ExecuteAsLoop(_ =>
+            {
+                var testBuffer = new FrameBuffer(new Texture(Engine.Renderer.DrawBuffer.Size), new Texture(Engine.Renderer.DrawBuffer.Size));
+                var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/DepthTest.xml");
+
+                RenderComposer composer = Engine.Renderer.StartFrame();
+                composer.RenderTo(testBuffer);
+                composer.ClearFrameBuffer();
+                composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), Color.Green);
+                composer.RenderTo(null);
+
+                composer.SetUseViewMatrix(false);
+                composer.SetShader(shader.Shader);
+                composer.PushCommand(new ExecCodeCommand
+                {
+                    Func = () => { Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1); }
+                });
+                composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
+                composer.SetShader();
+                composer.SetUseViewMatrix(true);
+
+                composer.RenderSprite(new Vector3(20, 20, 15), new Vector2(100, 100), Color.Blue);
+                composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.Red);
+
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.TestDepthFromOtherFrameBuffer);
+
+                testBuffer.Dispose();
+            }).WaitOne();
         }
     }
 }

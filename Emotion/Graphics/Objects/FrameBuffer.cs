@@ -88,17 +88,25 @@ namespace Emotion.Graphics.Objects
 
             // Attach depth texture (if any)
             FramebufferAttachment attachment = attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
-            if(depthTexture != null) Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
+            InternalFormat internalFormat = attachStencil ? InternalFormat.Depth24Stencil8 : InternalFormat.DepthComponent24;
+            if (depthTexture != null)
+            {
+                // Use a depth texture to hold the depth attachment.
+                Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
+                depthTexture.Upload(texture.Size, null, internalFormat, PixelFormat.DepthComponent, PixelType.Float);
+                DepthTexture = depthTexture;
+            }
+            else
+            {
+                // Create render buffer. This is the object that holds the depth and stencil attachments.
+                RenderBuffer = Gl.GenRenderbuffer();
+                Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RenderBuffer);
+                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int)Size.X, (int)Size.Y);
+                Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, RenderBuffer);
+            }
 
             // Attach color components.
             Gl.DrawBuffers(_modes);
-
-            // Create render buffer. This is the object that holds the depth and stencil attachments.
-            RenderBuffer = Gl.GenRenderbuffer();
-            InternalFormat internalFormat = attachStencil ? InternalFormat.Depth24Stencil8 : InternalFormat.DepthComponent24;
-            Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RenderBuffer);
-            Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int) Size.X, (int) Size.Y);
-            Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, RenderBuffer);
 
             // Check status.
             FramebufferStatus status = Engine.Renderer.Dsa ? Gl.CheckNamedFramebufferStatus(Pointer, FramebufferTarget.Framebuffer) : Gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
