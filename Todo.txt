@@ -1,3 +1,6 @@
+IO
+	- "Relative to" support for things like the shaders which reference other assets.
+	- #include "" instead of // for shaders which loads from assets.
 DataBuffer.CreateMapper
 	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
 Commands
