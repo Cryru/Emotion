@@ -91,6 +91,14 @@ namespace Emotion.Graphics.Objects
         private PixelType _pixelType;
 
         /// <summary>
+        /// Create a new uninitialized texture.
+        /// </summary>
+        public Texture()
+        {
+            Pointer = Gl.GenTexture();
+        }
+
+        /// <summary>
         /// Create a new empty texture.
         /// </summary>
         /// <param name="size">The size of the texture.</param>
@@ -98,12 +106,9 @@ namespace Emotion.Graphics.Objects
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
         public Texture(Vector2 size, bool smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Bgra)
+            PixelFormat pixelFormat = PixelFormat.Bgra) : this()
         {
-            Pointer = Gl.GenTexture();
-
             Upload(size, null, internalFormat, pixelFormat);
-
             Smooth = smooth;
         }
 
@@ -116,12 +121,9 @@ namespace Emotion.Graphics.Objects
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
         public Texture(Vector2 size, byte[] data, bool smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Bgra)
+            PixelFormat pixelFormat = PixelFormat.Bgra) : this()
         {
-            Pointer = Gl.GenTexture();
-
             Upload(size, data, internalFormat, pixelFormat);
-
             Smooth = smooth;
         }
 

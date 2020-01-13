@@ -74,8 +74,6 @@ namespace Emotion.Graphics.Objects
         /// <param name="attachStencil">Whether to attach a stencil attachment.</param>
         public FrameBuffer(Texture texture, Texture depthTexture = null, bool attachStencil = false)
         {
-            Debug.Assert(depthTexture == null || texture.Size == depthTexture.Size);
-
             Texture = texture;
             Size = texture.Size;
             Pointer = Gl.GenFramebuffer();
@@ -92,9 +90,9 @@ namespace Emotion.Graphics.Objects
             if (depthTexture != null)
             {
                 // Use a depth texture to hold the depth attachment.
-                Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
                 depthTexture.Upload(texture.Size, null, internalFormat, PixelFormat.DepthComponent, PixelType.Float);
                 DepthTexture = depthTexture;
+                Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
             }
             else
             {
@@ -165,7 +163,12 @@ namespace Emotion.Graphics.Objects
 
             Texture.Dispose();
             Gl.DeleteFramebuffers(Pointer);
-            Gl.DeleteRenderbuffers(RenderBuffer);
+            if (DepthTexture != null)
+            {
+                DepthTexture.Dispose();
+                DepthTexture = null;
+            }
+            if(RenderBuffer != 0) Gl.DeleteRenderbuffers(RenderBuffer);
             Texture = null;
             Pointer = 0;
             RenderBuffer = 0;
