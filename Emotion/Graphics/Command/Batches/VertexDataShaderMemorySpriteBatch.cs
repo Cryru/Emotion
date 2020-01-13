@@ -14,6 +14,7 @@ namespace Emotion.Graphics.Command.Batches
         public override Span<VertexData> GetData(Texture texture, out int texturePointer)
         {
             Span<VertexData> data = base.GetData(texture, out texturePointer);
+            if (data == null) return null;
 
             // Set the Tid.
             for (var i = 0; i < data.Length; i++)

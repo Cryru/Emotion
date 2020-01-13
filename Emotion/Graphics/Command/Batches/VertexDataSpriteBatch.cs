@@ -12,9 +12,16 @@ namespace Emotion.Graphics.Command.Batches
     public class VertexDataSpriteBatch : SpriteBatch<VertexData>
     {
         /// <inheritdoc />
+        public VertexDataSpriteBatch(bool ownGraphicsMemory = false) : base(ownGraphicsMemory)
+        {
+
+        }
+
+        /// <inheritdoc />
         public override Span<VertexData> GetData(Texture texture, out int texturePointer)
         {
             Span<VertexData> data = base.GetData(texture, out texturePointer);
+            if (data == null) return null;
 
             // Set the Tid.
             for (var i = 0; i < data.Length; i++)
