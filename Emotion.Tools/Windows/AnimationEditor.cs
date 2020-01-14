@@ -392,7 +392,7 @@ namespace Emotion.Tools.Windows
                 {
                     if (i == j) continue;
 
-                    if (!boxes[i].Intersects(boxes[j])) continue;
+                    if (!boxes[i].IntersectsInclusive(boxes[j])) continue;
                     boxes[i] = Rectangle.Union(boxes[i], boxes[j]);
                     boxes.RemoveAt(j);
                     goto restart;

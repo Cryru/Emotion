@@ -257,6 +257,19 @@ namespace Emotion.Primitives
                    Top < r2.Bottom;
         }
 
+        public bool IntersectsInclusive(Vector2 v2)
+        {
+            return IntersectsInclusive(new Rectangle(v2, Vector2.One));
+        }
+
+        public bool IntersectsInclusive(Rectangle r2)
+        {
+            return r2.Left <= Right &&
+                   Left <= r2.Right &&
+                   r2.Top <= Bottom &&
+                   Top <= r2.Bottom;
+        }
+
         #endregion
 
         // Taken from Nez and Modified
