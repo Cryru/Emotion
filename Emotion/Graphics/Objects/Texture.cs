@@ -135,6 +135,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="data">The data to upload.</param>
         /// <param name="internalFormat">The internal format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelFormat">The pixel format of the texture. If null the format which was last used is taken.</param>
+        /// <param name="pixelType">The data type of individual pixel components.</param>
         public void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType pixelType = PixelType.UnsignedByte)
         {
             Size = size;
@@ -158,7 +159,11 @@ namespace Emotion.Graphics.Objects
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
                     _pixelType, data);
 
-            Gl.GenerateMipmap(TextureTarget.Texture2d);
+            // Doesn't work if the format is compressed - but how do we find out which formats are compressed?
+            if (_pixelType != PixelType.UnsignedInt248)
+            {
+                Gl.GenerateMipmap(TextureTarget.Texture2d);
+            }
         }
 
         /// <summary>
