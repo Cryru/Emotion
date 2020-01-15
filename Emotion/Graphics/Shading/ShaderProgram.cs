@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Text;
 using Emotion.Common;
 using Emotion.Common.Threading;
+using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using OpenGL;
@@ -117,7 +118,7 @@ namespace Emotion.Graphics.Shading
             // Set default uniforms - this requires binding, so save the currently bound.
             uint previouslyBound = Bound;
             EnsureBound(Pointer);
-            SetUniformIntArray("textures", Enumerable.Range(0, 15).ToArray());
+            SetUniformIntArray("textures", Enumerable.Range(0, Texture.Bound.Length).ToArray());
             SetUniformFloat("time", 0);
             EnsureBound(previouslyBound);
         }
