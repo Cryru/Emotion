@@ -11212,7 +11212,16 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_ARB_vertex_type_2_10_10_10_rev", Api = "gl|glcore")]
         [RequiredByFeature("GL_EXT_texture_type_2_10_10_10_REV", Api = "gles2")]
-        UnsignedInt2101010Rev = Gl.UNSIGNED_INT_2_10_10_10_REV
+        UnsignedInt2101010Rev = Gl.UNSIGNED_INT_2_10_10_10_REV,
+
+        [RequiredByFeature("GL_VERSION_3_0")]
+        [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
+        [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
+        [RequiredByFeature("GL_EXT_packed_depth_stencil")]
+        [RequiredByFeature("GL_NV_packed_depth_stencil")]
+        [RequiredByFeature("GL_ANGLE_depth_texture", Api = "gles2")]
+        [RequiredByFeature("GL_OES_packed_depth_stencil", Api = "gles1|gles2")]
+        UnsignedInt248 = Gl.UNSIGNED_INT_24_8
     }
 
     /// <summary>
