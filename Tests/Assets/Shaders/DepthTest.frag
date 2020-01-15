@@ -14,7 +14,6 @@ flat in int Tid;
  
 out vec4 fragColor; 
 in vec4 gl_FragCoord;
-out float gl_FragDepth;
 
 //GetTextureColor
  
