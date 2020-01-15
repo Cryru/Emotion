@@ -179,8 +179,7 @@ namespace Emotion.Graphics
 
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
             ScreenBuffer = new FrameBuffer(0, Engine.Host.Window.Size);
-            DrawBuffer = new FrameBuffer(new Texture(Engine.Configuration.RenderSize), true);
-            _bufferStack.Push(DrawBuffer);
+            CreateDrawbuffer(Engine.Configuration.RenderSize);
 
             // Create the blit state command for copying the draw buffer to the screen buffer.
             _blitState = RenderState.Default();
@@ -216,6 +215,17 @@ namespace Emotion.Graphics
 
         #region Event Handles and Sizing
 
+        private void CreateDrawbuffer(Vector2 size)
+        {
+            if (DrawBuffer != null && DrawBuffer.Size == size) return;
+
+            DrawBuffer?.Dispose();
+            DrawBuffer = new FrameBuffer(new Texture(size), true);
+
+            _bufferStack.Clear();
+            _bufferStack.Push(DrawBuffer);
+        }
+
         /// <summary>
         /// Is called when the host is resized - in full scale mode.
         /// </summary>
@@ -234,14 +244,7 @@ namespace Emotion.Graphics
             ScreenBuffer.Size = size;
 
             // Recreate draw buffer.
-            if (DrawBuffer.Size != size)
-            {
-                DrawBuffer.Dispose();
-                DrawBuffer = new FrameBuffer(new Texture(size), true);
-                _bufferStack.Clear();
-                _bufferStack.Push(DrawBuffer);
-            }
-
+            CreateDrawbuffer(size);
             Camera?.RecreateMatrix();
 
             return true;
@@ -406,19 +409,27 @@ namespace Emotion.Graphics
         /// <param name="clear">If enabling stencil testing the stencil buffer is cleared.</param>
         public void SetStencil(bool stencil, bool clear = true)
         {
+            // Set the stencil test to it's default state - don't write to it.
+            void StencilStateDefault()
+            {
+                Gl.StencilMask(0x00);
+                Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
+                Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
+            }
+
             if (stencil)
             {
                 Gl.Enable(EnableCap.StencilTest);
 
-                if (clear)
-                {
-                    Gl.StencilMask(0xFF);
-                    Gl.Clear(ClearBufferMask.StencilBufferBit);
-                }
+                if (!clear) return;
+                Gl.StencilMask(0xFF);
+                Gl.Clear(ClearBufferMask.StencilBufferBit);
+                StencilStateDefault();
             }
             else
             {
                 Gl.Disable(EnableCap.StencilTest);
+                StencilStateDefault(); // Some drivers don't understand that off means off
             }
 
             CurrentState.StencilTest = stencil;

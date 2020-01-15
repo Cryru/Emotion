@@ -260,6 +260,7 @@ namespace Emotion.Graphics
                 case FramebufferModificationCommand _:
                 case ModelMatrixModificationCommand _:
                 case ExecCodeCommand _:
+                case StencilStateCommand _:
                 // We don't know what the sub composer will do, so invalidate batches.
                 case SubComposerCommand _:
                 // If pushing a batch.
@@ -452,6 +453,65 @@ namespace Emotion.Graphics
                 StencilTest = stencil
             };
             PushCommand(stateChange);
+        }
+
+        /// <summary>
+        /// Enables writing to the stencil buffer.
+        /// Anything drawn after this call will have the specified value within the stencil buffer.
+        /// By default the 0xFF value is written.
+        /// </summary>
+        public void StencilStartDraw(int value = 0xFF)
+        {
+            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
+            stencilStateChange.Func = OpenGL.StencilFunction.Always;
+            stencilStateChange.Mask = 0xFF;
+            stencilStateChange.Threshold = value;
+            PushCommand(stencilStateChange);
+        }
+
+        /// <summary>
+        /// Stops writing to the stencil buffer.
+        /// Drawing after this call will not affect the stencil buffer.
+        /// This is the default stencil state.
+        /// </summary>
+        public void StencilStopDraw()
+        {
+            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
+            stencilStateChange.Func = OpenGL.StencilFunction.Always;
+            stencilStateChange.Mask = 0x00;
+            stencilStateChange.Threshold = 0xFF;
+            PushCommand(stencilStateChange);
+        }
+
+        /// <summary>
+        /// Rendering after this call will not draw where the stencil buffer is smaller than the threshold value.
+        /// This is 0xFF by default - matching the default of StencilStartDraw
+        /// </summary>
+        public void StencilCutOutFrom(int threshold = 0xFF)
+        {
+            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
+            stencilStateChange.Func = OpenGL.StencilFunction.Greater;
+            stencilStateChange.Mask = 0x00;
+            stencilStateChange.Threshold = threshold;
+            PushCommand(stencilStateChange);
+        }
+
+        public void StencilFillIn(int threshold = 0xFF)
+        {
+            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
+            stencilStateChange.Func = OpenGL.StencilFunction.Greater;
+            stencilStateChange.Mask = 0xFF;
+            stencilStateChange.Threshold = threshold;
+            PushCommand(stencilStateChange);
+        }
+
+        public void StencilMask(int filter = 0xFF)
+        {
+            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
+            stencilStateChange.Func = OpenGL.StencilFunction.Less;
+            stencilStateChange.Mask = 0x00;
+            stencilStateChange.Threshold = filter;
+            PushCommand(stencilStateChange);
         }
 
         /// <summary>
