@@ -30,9 +30,16 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private IntPtr _dc;
         private Win32Platform _platform;
 
+        [DllImport("msvcrt")]
+        public static extern int _putenv_s(string e, string v);
+
         public GalliumGraphicsContext(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
+
+            // This is how you request a context version from MESA - lol
+            // This needs to be pinvoked as Environment.SetEnvironmentVariable doesn't affect native getenv calls.
+            _putenv_s("MESA_GL_VERSION_OVERRIDE", "3.3FC");
 
             // Unload old OpenGL, if any.
             IntPtr loadedOpenGl = Kernel32.GetModuleHandle("opengl32.dll");
@@ -56,7 +63,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             var createContext = _platform.GetFunctionByName<WglFunctions.WglCreateContext>(_openGlLibrary, "wglCreateContext");
             _deleteContext = _platform.GetFunctionByName<WglFunctions.WglDeleteContext>(_openGlLibrary, "wglDeleteContext");
             _getProcAddress = _platform.GetFunctionByName<WglFunctions.WglGetProcAddress>(_openGlLibrary, "wglGetProcAddress");
-            _makeCurrent = _platform.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
             _makeCurrent = _platform.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
             _swapIntervalExt = NativeHelpers.GetFunctionByPtr<WglFunctions.SwapInternalExt>(_getProcAddress("wglSwapIntervalEXT"));
 
