@@ -90,7 +90,7 @@ namespace Emotion.Graphics.Objects
             if (depthTexture != null)
             {
                 // Use a depth texture to hold the depth attachment.
-                depthTexture.Upload(texture.Size, null, internalFormat, PixelFormat.DepthComponent, PixelType.Float);
+                depthTexture.Upload(texture.Size, null, internalFormat, attachStencil ? PixelFormat.DepthStencil : PixelFormat.DepthComponent, attachStencil ? PixelType.UnsignedInt248 : PixelType.Float);
                 DepthTexture = depthTexture;
                 Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
             }
