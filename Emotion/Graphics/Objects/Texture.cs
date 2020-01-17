@@ -109,7 +109,7 @@ namespace Emotion.Graphics.Objects
             PixelFormat pixelFormat = PixelFormat.Bgra) : this()
         {
             Upload(size, null, internalFormat, pixelFormat);
-            Smooth = smooth;
+            _smooth = smooth;
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Emotion.Graphics.Objects
             PixelFormat pixelFormat = PixelFormat.Bgra) : this()
         {
             Upload(size, data, internalFormat, pixelFormat);
-            Smooth = smooth;
+            _smooth = smooth;
         }
 
         /// <summary>
@@ -159,11 +159,8 @@ namespace Emotion.Graphics.Objects
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
                     _pixelType, data);
 
-            // Doesn't work if the format is compressed - but how do we find out which formats are compressed?
-            if (_pixelType != PixelType.UnsignedInt248)
-            {
-                Gl.GenerateMipmap(TextureTarget.Texture2d);
-            }
+            Smooth = _smooth;
+            Tile = _tile;
         }
 
         /// <summary>
