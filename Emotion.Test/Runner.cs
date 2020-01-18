@@ -372,10 +372,10 @@ namespace Emotion.Test
                 if (!string.IsNullOrEmpty(errorOutput))
                 {
                     error = true;
-                    anyError = "ERR";
+                    anyError = "ERR ";
                 }
 
-                results.Add($"LR{linked.Id} ({linked.Args}) {result} {anyError} ({linked.TimeElapsed})ms");
+                results.Add($"LR{linked.Id} ({linked.Args}) {result} {anyError}{linked.TimeElapsed}ms");
 
                 Engine.Log.Info($"LR{linked.Id} exited with code {exitCode}.", CustomMSource.TestRunner);
                 Engine.Log.Info($"Dumping log from LR{linked.Id}\n{output}", CustomMSource.TestRunner);
