@@ -389,10 +389,13 @@ namespace Emotion.Platform.Implementation
             IsFocused = focused;
             if (focused)
             {
+                Engine.Log.Info("Focus regained.", MessageSource.Platform);
                 FocusWait.Set();
             }
             else
             {
+                Engine.Log.Info("Focus lost.", MessageSource.Platform);
+
                 // Pull all buttons up.
                 for (var i = 0; i < _keys.Length; i++)
                 {
@@ -434,8 +437,7 @@ namespace Emotion.Platform.Implementation
         public bool Update()
         {
             // Check if open.
-            if (!IsOpen) return false;
-            return UpdatePlatform();
+            return IsOpen && UpdatePlatform();
         }
 
         protected abstract bool UpdatePlatform();
