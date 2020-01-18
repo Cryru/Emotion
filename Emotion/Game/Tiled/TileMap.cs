@@ -98,7 +98,6 @@ namespace Emotion.Game.Tiled
         /// <param name="tileSetFolder">The path to the folder containing the tilesets. No slash needed at the end.</param>
         public TileMap(Vector3 position, OtherAsset mapFile, string tileSetFolder) : this(position, Vector2.Zero, mapFile, tileSetFolder)
         {
-
         }
 
         /// <summary>
@@ -188,7 +187,7 @@ namespace Emotion.Game.Tiled
             CacheAnimatedTiles();
 
             // Set default size if none set.
-            if ((Width == 0 && Height == 0) || resetSize) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            if (Width == 0 && Height == 0 || resetSize) Size = new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
 
             // Set loading flag.
             _loaded = true;
@@ -335,7 +334,7 @@ namespace Emotion.Game.Tiled
             for (var t = 0; t < TiledMap.Tilesets.Count; t++)
             {
                 if (t <= 0 || !(tId < TiledMap.Tilesets[t].FirstGid + TiledMap.Tilesets[t].TileCount)) continue;
-                tileSet = t; 
+                tileSet = t;
                 return tId - TiledMap.Tilesets[t].FirstGid;
             }
 
@@ -403,7 +402,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The two dimensional coordinate equivalent of the one dimensional coordinate provided.</returns>
         public Vector2 GetTile2DFromTile1D(int coordinate, int layer = 0)
         {
-            return new Vector2(TiledMap.Layers[layer].Tiles[coordinate].X, TiledMap.Layers[layer].Tiles[coordinate].Y);
+            TmxLayer tileLayer = TiledMap.Layers[layer];
+            return coordinate >= tileLayer.Tiles.Count ? Vector2.Zero : new Vector2(tileLayer.Tiles[coordinate].X, tileLayer.Tiles[coordinate].Y);
         }
 
         /// <summary>
