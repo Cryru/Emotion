@@ -92,7 +92,11 @@ namespace Emotion.Platform.Implementation
         /// <param name="config">Configuration for the platform - usually passed from the engine.</param>
         internal void Setup(Configurator config)
         {
-            OnMouseScroll.AddListener(scroll => { _mouseScrollAccum += scroll; return true; });
+            OnMouseScroll.AddListener(scroll =>
+            {
+                _mouseScrollAccum += scroll;
+                return true;
+            });
             PopulateKeyCodes();
 
             SetupPlatform(config);
@@ -103,6 +107,7 @@ namespace Emotion.Platform.Implementation
                 Engine.SubmitError(new Exception("Platform couldn't create window."));
                 return;
             }
+
             if (Window.Context == null)
             {
                 Engine.SubmitError(new Exception("Platform couldn't create context."));
@@ -147,10 +152,7 @@ namespace Emotion.Platform.Implementation
 
             bool alt = IsKeyHeld(Key.LeftAlt) || IsKeyHeld(Key.RightAlt);
 
-            if (key == Key.Enter && state == KeyStatus.Down && alt && Window != null)
-            {
-                Window.DisplayMode = Window.DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
-            }
+            if (key == Key.Enter && state == KeyStatus.Down && alt && Window != null) Window.DisplayMode = Window.DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
 
             return true;
         }
@@ -161,7 +163,7 @@ namespace Emotion.Platform.Implementation
         private void PopulateKeyCodes()
         {
             _keyCodes = new Key[512];
-            _scanCodes = new short[(int)Key.Last];
+            _scanCodes = new short[(int) Key.Last];
             _keys = new bool[_scanCodes.Length];
             _keysPrevious = new bool[_scanCodes.Length];
 
@@ -303,7 +305,7 @@ namespace Emotion.Platform.Implementation
             for (scanCode = 0; scanCode < 512; scanCode++)
             {
                 if (_keyCodes[scanCode] > 0)
-                    _scanCodes[(short)_keyCodes[scanCode]] = scanCode;
+                    _scanCodes[(short) _keyCodes[scanCode]] = scanCode;
             }
         }
 
@@ -346,7 +348,7 @@ namespace Emotion.Platform.Implementation
 
         protected void UpdateKeyStatus(Key key, bool down)
         {
-            var keyIndex = (short)key;
+            var keyIndex = (short) key;
 
             // If it was down, and still is - then it's held.
             if (_keys[keyIndex] && down) OnKey.Invoke(key, KeyStatus.Held);
@@ -362,7 +364,7 @@ namespace Emotion.Platform.Implementation
         protected void UpdateMouseKeyStatus(MouseKey key, bool down)
         {
             if (key == MouseKey.Unknown) return;
-            int keyIndex = (short)key - 1;
+            int keyIndex = (short) key - 1;
             if (keyIndex > _mouseKeys.Length - 1) return;
 
             // If it was down, but no longer is - it was let go.
@@ -382,7 +384,7 @@ namespace Emotion.Platform.Implementation
         protected void UpdateFocus(bool focused)
         {
             IsFocused = focused;
-            if(focused)
+            if (focused)
             {
                 FocusWait.Set();
             }
@@ -391,10 +393,15 @@ namespace Emotion.Platform.Implementation
                 // Pull all buttons up.
                 for (var i = 0; i < _keys.Length; i++)
                 {
-                    UpdateKeyStatus((Key)i, false);
+                    UpdateKeyStatus((Key) i, false);
                 }
 
-                if(!Engine.Configuration.DebugMode) FocusWait.Reset();
+                for (var i = 1; i <= _mouseKeys.Length; i++)
+                {
+                    UpdateMouseKeyStatus((MouseKey) i, false);
+                }
+
+                if (!Engine.Configuration.DebugMode) FocusWait.Reset();
             }
 
             OnFocusChanged.Invoke(IsFocused);
@@ -452,6 +459,7 @@ namespace Emotion.Platform.Implementation
             {
                 _keysPrevious[i] = _keys[i];
             }
+
             for (var i = 0; i < _mouseKeys.Length; i++)
             {
                 _mouseKeysPrevious[i] = _mouseKeys[i];
@@ -480,15 +488,15 @@ namespace Emotion.Platform.Implementation
         public bool IsKeyDown(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            var idx = (short)key;
-            return _keys[idx] && _keysPrevious[idx];
+            var idx = (short) key;
+            return _keys[idx] && !_keysPrevious[idx];
         }
 
         /// <inheritdoc />
         public bool IsKeyHeld(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            var idx = (short)key;
+            var idx = (short) key;
             return _keys[idx] && _keysPrevious[idx];
         }
 
@@ -496,7 +504,7 @@ namespace Emotion.Platform.Implementation
         public bool IsKeyUp(Key key)
         {
             if (key == Key.Unknown || key == Key.Last) return false;
-            var idx = (short)key;
+            var idx = (short) key;
             return !_keys[idx] && _keysPrevious[idx];
         }
 
@@ -504,7 +512,7 @@ namespace Emotion.Platform.Implementation
         public bool IsMouseKeyDown(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short)key - 1;
+            int keyIndex = (short) key - 1;
             return _mouseKeys[keyIndex] && !_mouseKeysPrevious[keyIndex];
         }
 
@@ -512,7 +520,7 @@ namespace Emotion.Platform.Implementation
         public bool IsMouseKeyHeld(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short)key - 1;
+            int keyIndex = (short) key - 1;
             return _mouseKeys[keyIndex] && _mouseKeysPrevious[keyIndex];
         }
 
@@ -520,7 +528,7 @@ namespace Emotion.Platform.Implementation
         public bool IsMouseKeyUp(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short)key - 1;
+            int keyIndex = (short) key - 1;
             return !_mouseKeys[keyIndex] && _mouseKeysPrevious[keyIndex];
         }
 
@@ -533,7 +541,7 @@ namespace Emotion.Platform.Implementation
         /// <inheritdoc />
         public IEnumerable<Key> GetAllKeysDown()
         {
-            return _keys.Where((x, i) => x && !_keysPrevious[i]).Select((x, i) => (Key)i);
+            return _keys.Where((x, i) => x && !_keysPrevious[i]).Select((x, i) => (Key) i);
         }
 
         /// <inheritdoc />
@@ -599,10 +607,7 @@ namespace Emotion.Platform.Implementation
             PlatformBase platform = null;
 
             // Detect platform.
-            if (engineConfig.PlatformOverride != null)
-            {
-                platform = engineConfig.PlatformOverride;
-            }
+            if (engineConfig.PlatformOverride != null) platform = engineConfig.PlatformOverride;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Win32
@@ -619,12 +624,9 @@ namespace Emotion.Platform.Implementation
                 {
                 }
             }
-            
+
             // If none initialized - fallback to none.
-            if (platform == null)
-            {
-                platform = new NullPlatform();
-            }
+            if (platform == null) platform = new NullPlatform();
 
             Engine.Log.Info($"Platform is: {platform}", MessageSource.Platform);
             platform.Setup(engineConfig);
