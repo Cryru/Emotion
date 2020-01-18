@@ -58,7 +58,6 @@ Meta
 	- Autobuild nuget package, with version patching, and commit hash patching
 Input
 	- Controller Support (Wherever possible)
-	- Sometimes mouse down is not reported correctly by IsMouseKeyDown. The events are correct, but something else is causing this. Most easily reproducible after going into full screen (or moving the window). Could be Win32.
 Engine
 	- Custom loop support - will be needed for some platforms
 	- Configurator granularity - set host size without setting other host settings, for example

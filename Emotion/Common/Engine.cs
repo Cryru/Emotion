@@ -324,6 +324,7 @@ namespace Emotion.Common
 #endif
             TotalTime += DeltaTime;
 
+            Host.UpdateInput();
             Renderer.Update();
             SceneManager.Update();
 

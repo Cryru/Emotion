@@ -167,6 +167,9 @@ namespace Emotion.Platform.Implementation
             _keys = new bool[_scanCodes.Length];
             _keysPrevious = new bool[_scanCodes.Length];
 
+            _keysIM = new bool[_scanCodes.Length];
+            _keysPreviousIM = new bool[_scanCodes.Length];
+
             for (var i = 0; i < _scanCodes.Length; i++)
             {
                 _scanCodes[i] = -1;
@@ -432,7 +435,6 @@ namespace Emotion.Platform.Implementation
         {
             // Check if open.
             if (!IsOpen) return false;
-            UpdateInput();
             return UpdatePlatform();
         }
 
@@ -452,17 +454,25 @@ namespace Emotion.Platform.Implementation
         protected float _mouseScrollThisFrame;
         protected float _mouseScrollAccum;
 
-        private void UpdateInput()
+        // Immediate-mode input
+        protected bool[] _keysIM;
+        protected bool[] _keysPreviousIM;
+        protected bool[] _mouseKeysIM = new bool[3];
+        protected bool[] _mouseKeysPreviousIM = new bool[3];
+
+        public void UpdateInput()
         {
             // Transfer key status to previous.
-            for (var i = 0; i < _keys.Length; i++)
+            for (var i = 0; i < _keysIM.Length; i++)
             {
-                _keysPrevious[i] = _keys[i];
+                _keysPreviousIM[i] = _keysIM[i];
+                _keysIM[i] = _keys[i];
             }
 
             for (var i = 0; i < _mouseKeys.Length; i++)
             {
-                _mouseKeysPrevious[i] = _mouseKeys[i];
+                _mouseKeysPreviousIM[i] = _mouseKeysIM[i];
+                _mouseKeysIM[i] = _mouseKeys[i];
             }
 
             _mouseScrollThisFrame = _mouseScroll;
@@ -489,7 +499,7 @@ namespace Emotion.Platform.Implementation
         {
             if (key == Key.Unknown || key == Key.Last) return false;
             var idx = (short) key;
-            return _keys[idx] && !_keysPrevious[idx];
+            return _keysIM[idx] && !_keysPreviousIM[idx];
         }
 
         /// <inheritdoc />
@@ -497,7 +507,7 @@ namespace Emotion.Platform.Implementation
         {
             if (key == Key.Unknown || key == Key.Last) return false;
             var idx = (short) key;
-            return _keys[idx] && _keysPrevious[idx];
+            return _keysIM[idx] && _keysPreviousIM[idx];
         }
 
         /// <inheritdoc />
@@ -505,7 +515,7 @@ namespace Emotion.Platform.Implementation
         {
             if (key == Key.Unknown || key == Key.Last) return false;
             var idx = (short) key;
-            return !_keys[idx] && _keysPrevious[idx];
+            return !_keysIM[idx] && _keysPreviousIM[idx];
         }
 
         /// <inheritdoc />
@@ -513,7 +523,7 @@ namespace Emotion.Platform.Implementation
         {
             if (key == MouseKey.Unknown) return false;
             int keyIndex = (short) key - 1;
-            return _mouseKeys[keyIndex] && !_mouseKeysPrevious[keyIndex];
+            return _mouseKeysIM[keyIndex] && !_mouseKeysPreviousIM[keyIndex];
         }
 
         /// <inheritdoc />
@@ -521,7 +531,7 @@ namespace Emotion.Platform.Implementation
         {
             if (key == MouseKey.Unknown) return false;
             int keyIndex = (short) key - 1;
-            return _mouseKeys[keyIndex] && _mouseKeysPrevious[keyIndex];
+            return _mouseKeysIM[keyIndex] && _mouseKeysPreviousIM[keyIndex];
         }
 
         /// <inheritdoc />
@@ -529,19 +539,19 @@ namespace Emotion.Platform.Implementation
         {
             if (key == MouseKey.Unknown) return false;
             int keyIndex = (short) key - 1;
-            return !_mouseKeys[keyIndex] && _mouseKeysPrevious[keyIndex];
+            return !_mouseKeysIM[keyIndex] && _mouseKeysPreviousIM[keyIndex];
         }
 
         /// <inheritdoc />
         public IEnumerable<Key> GetAllKeysHeld()
         {
-            return _keys.Where((x, i) => x && _keysPrevious[i]).Select((x, i) => (Key) i);
+            return _keys.Where((x, i) => x && _keysPreviousIM[i]).Select((x, i) => (Key) i);
         }
 
         /// <inheritdoc />
         public IEnumerable<Key> GetAllKeysDown()
         {
-            return _keys.Where((x, i) => x && !_keysPrevious[i]).Select((x, i) => (Key) i);
+            return _keys.Where((x, i) => x && !_keysPreviousIM[i]).Select((x, i) => (Key) i);
         }
 
         /// <inheritdoc />
