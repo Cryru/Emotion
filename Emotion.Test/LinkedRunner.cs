@@ -20,11 +20,20 @@ namespace Emotion.Test
         /// </summary>
         public string Args { get; private set; }
 
+        /// <summary>
+        /// How long the runner has been running for / ran for. In milliseconds.
+        /// </summary>
+        public long TimeElapsed
+        {
+            get => _time.ElapsedMilliseconds;
+        }
+
         private Process _parentProcess = Process.GetCurrentProcess();
 
         private Process _runnerProcess;
         private string _output;
         private string _errorOutput;
+        private Stopwatch _time = new Stopwatch();
 
         public LinkedRunner(string args)
         {
@@ -36,6 +45,7 @@ namespace Emotion.Test
             prep.RedirectStandardOutput = true;
             prep.RedirectStandardError = true;
             _runnerProcess = Process.Start(prep);
+            _time.Start();
 
             if (_runnerProcess == null)
             {
@@ -66,6 +76,7 @@ namespace Emotion.Test
             bool exited = _runnerProcess.WaitForExit(1000 * 60 * 5);
             output = _output;
             errorOutput = _errorOutput;
+            _time.Stop();
             return exited ? _runnerProcess.ExitCode : 99999;
         }
     }

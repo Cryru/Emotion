@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
-using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
@@ -46,10 +45,9 @@ namespace Emotion.Test
 
         /// <summary>
         /// Other runners to run. and the arguments to run them with.
-        /// 
         /// testOnly - Means that the engine will not be initialized. Used for running unit tests which don't depend on the engine.
-        /// tag - Means that only tests with this tag will be run. If the tests are set to "tagOnly" that means that they will be run only if filtered by tag.
-        /// 
+        /// tag - Means that only tests with this tag will be run. If the tests are set to "tagOnly" that means that they will be
+        /// run only if filtered by tag.
         /// The function argument can be used to specify a different engine config.
         /// </summary>
         private static Dictionary<string, Action<Configurator>> _otherConfigs;
@@ -143,21 +141,19 @@ namespace Emotion.Test
             Engine.LightSetup(config);
 
             // Run linked runners (if the master).
-            if(linked)
+            if (linked)
             {
                 log.Info($"I am a linked runner with arguments {string.Join(" ", args)}", CustomMSource.TestRunner);
-            } 
+            }
             else
             {
                 // Spawn linked runners
                 if (!NoLinkedRunners)
-                {
                     // Spawn a runner for each runtime config.
                     foreach ((string arg, Action<Configurator> _) in _otherConfigs)
                     {
                         _linkedRunners.Add(new LinkedRunner(arg));
                     }
-                }
             }
 
             // Check if running only specific tests.
@@ -247,7 +243,7 @@ namespace Emotion.Test
         {
             // Find all test classes.
             Assembly entryAssembly = Assembly.GetEntryAssembly();
-            if(entryAssembly == null) return;
+            if (entryAssembly == null) return;
             Type[] testClasses = entryAssembly.GetTypes().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray();
 
             // Find all test functions in these classes.
@@ -255,7 +251,7 @@ namespace Emotion.Test
             foreach (Type classType in testClasses)
             {
                 // Check if filtering by tag.
-                var t = (TestAttribute)classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
+                var t = (TestAttribute) classType.GetCustomAttributes(typeof(TestAttribute), true).FirstOrDefault();
                 if (!string.IsNullOrEmpty(TestTag) && t?.Tag != TestTag)
                 {
 #if TEST_DEBUG
@@ -286,9 +282,9 @@ namespace Emotion.Test
             foreach (MethodInfo func in tests)
             {
                 // Create an instance of the test class.
-                if(currentClass != func.DeclaringType)
+                if (currentClass != func.DeclaringType)
                 {
-                    if(currentClass != null) Engine.Log.Info($"Test class {currentClass} completed in {classTimer}ms!", CustomMSource.TestRunner);
+                    if (currentClass != null) Engine.Log.Info($"Test class {currentClass} completed in {classTimer}ms!", CustomMSource.TestRunner);
                     currentClass = func.DeclaringType;
                     if (currentClass == null) throw new Exception($"Declaring type of function {func.Name} is missing.");
                     currentClassInstance = Activator.CreateInstance(currentClass);
@@ -323,6 +319,7 @@ namespace Emotion.Test
                         Engine.Log.Error($"{ex.InnerException.Message}", CustomMSource.TestRunner);
                         continue;
                     }
+
                     Engine.Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
                     Debug.Assert(false);
                 }
@@ -336,8 +333,9 @@ namespace Emotion.Test
             // If not the master - then nothing else to do.
             if (TestRunId != RunnerId.ToString()) return;
 
-            var results = new List<string> { $"Master: Test completed: {tests.Count - failedTests}/{tests.Count}!" };
+            var results = new List<string> {$"Master: Test completed: {tests.Count - failedTests}/{tests.Count}!"};
             int totalTests = tests.Count;
+            var error = false;
 
             // Wait for linked runners to exit.
             foreach (LinkedRunner linked in _linkedRunners)
@@ -350,8 +348,8 @@ namespace Emotion.Test
 
                 // Try to find the test completed line.
                 Match match = _testCompletedRegex.Match(output);
+                var result = "";
                 if (match.Success)
-                {
                     try
                     {
                         int testsSuccess = int.Parse(match.Groups[1].Value);
@@ -361,17 +359,23 @@ namespace Emotion.Test
                         failedTests += failed;
                         totalTests += testsRun;
 
-                        results.Add($"LR{linked.Id} ({linked.Args}) {match.Groups[0].Value} {(!string.IsNullOrEmpty(errorOutput) ? "ERR" : "")}");
+                        result = match.Groups[0].Value;
                     }
                     catch (Exception)
                     {
                         Engine.Log.Info($"Couldn't read tests completed from LR{linked.Id}.", CustomMSource.TestRunner);
                     }
-                }
                 else
+                    result = "<Unknown>/<Unknown>";
+
+                var anyError = "";
+                if (!string.IsNullOrEmpty(errorOutput))
                 {
-                    results.Add($"LR{linked.Id} ({linked.Args}) <Unknown>/<Unknown> {(!string.IsNullOrEmpty(errorOutput) ? "ERR" : "")}");
+                    error = true;
+                    anyError = "ERR";
                 }
+
+                results.Add($"LR{linked.Id} ({linked.Args}) {result} {anyError} ({linked.TimeElapsed})ms");
 
                 Engine.Log.Info($"LR{linked.Id} exited with code {exitCode}.", CustomMSource.TestRunner);
                 Engine.Log.Info($"Dumping log from LR{linked.Id}\n{output}", CustomMSource.TestRunner);
@@ -379,7 +383,7 @@ namespace Emotion.Test
             }
 
             // Post final results.
-            Engine.Log.Info($"Final test results: {totalTests - failedTests}/{totalTests}!", CustomMSource.TestRunner);
+            Engine.Log.Info($"Final test results: {totalTests - failedTests}/{totalTests} {(error ? "Errors found!" : "")}!", CustomMSource.TestRunner);
             foreach (string r in results)
             {
                 Engine.Log.Info($"     {r}", CustomMSource.TestRunner);
@@ -464,7 +468,7 @@ namespace Emotion.Test
         public static void VerifyImages(string compareName, byte[] originalImage, byte[] comparisonImage, Vector2 comparisonSize)
         {
             // Runner reference image folders should be created only for runners who verify images.
-            if(!_runnerFolderCreated)
+            if (!_runnerFolderCreated)
             {
                 Directory.CreateDirectory(RunnerReferenceImageFolder);
                 _runnerFolderCreated = true;
@@ -518,10 +522,7 @@ namespace Emotion.Test
             }
 
             // Assert derivation is not higher than tolerable. This is not done using the Emotion.Test assert so it doesn't stop the test from continuing.
-            if (derivedPixelPercentage > PixelDerivationTolerance)
-            {
-                throw new ImageDerivationException($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.");
-            }
+            if (derivedPixelPercentage > PixelDerivationTolerance) throw new ImageDerivationException($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.");
             Engine.Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
         }
 
@@ -594,9 +595,7 @@ namespace Emotion.Test
                 {
                     if (r == 0 && g == 0 && b == 0 && a == 0
                         && newImage[i] == 0 && newImage[i + 1] == 0 && newImage[i + 2] == 0 && newImage[i + 3] == 0)
-                    {
                         emptyPixels++;
-                    }
                 }
             }
 
