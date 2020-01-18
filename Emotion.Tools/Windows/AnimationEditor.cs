@@ -165,23 +165,30 @@ namespace Emotion.Tools.Windows
                 if (!outputFile.Contains(".anim")) outputFile += ".anim";
                 if (File.Exists(outputFile)) File.Delete(outputFile);
 
-                FileStream stream = File.OpenWrite(outputFile);
-                XmlSerializer serializer;
-                if (_animController != null)
+                try
                 {
-                    AnimationControllerDescription controllerDesc = _animController.GetDescription(_spriteSheetTexture.Name);
-                    serializer = new XmlSerializer(controllerDesc.GetType());
-                    serializer.Serialize(stream, controllerDesc);
-                }
-                else
-                {
-                    AnimatedTextureDescription animDesc = _animation.GetDescription(_spriteSheetTexture.Name);
-                    serializer = new XmlSerializer(animDesc.GetType());
-                    serializer.Serialize(stream, animDesc);
-                }
+                    FileStream stream = File.OpenWrite(outputFile);
+                    XmlSerializer serializer;
+                    if (_animController != null)
+                    {
+                        AnimationControllerDescription controllerDesc = _animController.GetDescription(_spriteSheetTexture.Name);
+                        serializer = new XmlSerializer(controllerDesc.GetType());
+                        serializer.Serialize(stream, controllerDesc);
+                    }
+                    else
+                    {
+                        AnimatedTextureDescription animDesc = _animation.GetDescription(_spriteSheetTexture.Name);
+                        serializer = new XmlSerializer(animDesc.GetType());
+                        serializer.Serialize(stream, animDesc);
+                    }
 
-                stream.Flush();
-                stream.Close();
+                    stream.Flush();
+                    stream.Close();
+                }
+                catch (Exception ex)
+                {
+                    Engine.Log.Error(ex);
+                }
             }
         }
 
@@ -227,10 +234,8 @@ namespace Emotion.Tools.Windows
             {
                 ImGui.Text("Animations");
                 ImGui.PushID("animList");
-                for (var i = 0; i < _animController.Animations.Length; i++)
+                foreach (AnimationController.Node n in _animController.Animations)
                 {
-                    AnimationController.Node n = _animController.Animations[i];
-
                     if (n == _animController.CurrentAnimation)
                     {
                         ImGui.Text(n.Name);
@@ -258,7 +263,11 @@ namespace Emotion.Tools.Windows
                 ImGui.SameLine();
                 if (ImGui.Button("Rename"))
                 {
-                    var newName = new StringInputModal(s => { _animController.CurrentAnimation.Name = s; },
+                    var newName = new StringInputModal(s =>
+                        {
+                            _animController.CurrentAnimation.Name = s;
+                            _animController.Reindex();
+                        },
                         $"New name for {_animController.CurrentAnimation.Name}");
                     Parent.AddWindow(newName);
                 }
@@ -302,6 +311,7 @@ namespace Emotion.Tools.Windows
 
                 if (modified)
                 {
+                    _animController.SetAnimation(cur.Name);
                 }
             }
         }
@@ -331,16 +341,16 @@ namespace Emotion.Tools.Windows
             AnimatedTexture anim = f.Content.CreateFrom();
             _spriteSheetTexture = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
             _animation = anim;
-            _animController = new AnimationController(_animation);
+            _animController = null;
             _saveName = f.Name;
         }
 
         private void LoadAnimationController(XMLAsset<AnimationControllerDescription> f)
         {
             if (f?.Content == null) return;
-            AnimationController anim = f.Content.CreateFrom();
+            _animController = f.Content.CreateFrom();
             _spriteSheetTexture = Engine.AssetLoader.Get<TextureAsset>(f.Content.AnimTex.SpriteSheetName);
-            _animation = anim.AnimTex;
+            _animation = _animController.AnimTex;
             _saveName = f.Name;
         }
 

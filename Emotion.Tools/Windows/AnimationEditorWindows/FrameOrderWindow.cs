@@ -34,20 +34,14 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
         public override void Update()
         {
-           // if(ImGuiNetPlugin.Focused) return;
+            if(!_parent.Open) Open = false;
 
             if (Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Right))
             {
                 _holdingIdx = -1;
             }
 
-            if (Engine.InputManager.IsKeyDown(Platform.Input.Key.Space))
-            {
-                Engine.Log.Error("Spoice!", "");
-            }
-
             if (!Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Left)) return;
-            Engine.Log.Error("Click!", "");
             Vector2 mousePos = Engine.Host.MousePosition;
             for (var i = 0; i < _anim.Frames.Length; i++)
             {
