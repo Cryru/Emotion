@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Emotion.Test": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

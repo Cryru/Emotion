@@ -1,0 +1,67 @@
+IO
+	- "Relative to" support for things like the shaders which reference other assets.
+	- #include "" instead of // for shaders which loads from assets.
+DataBuffer.CreateMapper
+	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
+Commands
+	- Merge state changing commands one after another into one.
+GL
+	- Investigate why the VertexArrayObject binding cache doesn't work. Maybe VertexArrayBinding isn't the right value?
+	- Some kind of shared cache buffer for commands rather than the pool which exists now.
+Rendering
+	- Add tests for state changes
+	- Add tests for various batch stuff
+	- Uniform blocks (UBO) for syncing shaders
+	- When the barch memory is dirty, don't upload all of it. Just the part that's updated. Replace "_upload" will some kind of min-max indices.
+Standard.Image
+	- Implement ByteWriter and use it to encode the images.
+	- JPEG Support
+	- Add tests for image encoding
+Logging
+	- Filtering
+	- Shaking off dependencies
+	- Hooking up a network loggers for certain levels (errors) and sources (engine, game)
+Standard.Text
+	- Improve the CFF dictionary parsing with a class with annotations instead of the dictionary hell happening there.
+	- WOFF table parsing (and whatever else is needed for it to be supported)
+	- Kern table and kerning
+	- FDSelect array CFF subr. (No font found which does this.)
+	- LTag parsing (couldn't find such font)
+	- Cff fonts without a CMap (couldn't find such font)
+	- GSub table
+	- GPos table
+	- FVar table
+	- Meta table
+	- Improve Glyf glyph parsing. Currently it cannot be multi-threaded because of the composite parts. Maybe it should be done in two passes.
+	- Long Term: Implement the FreeType rasterizer.
+	- Glyf: No contour error handling
+	- RenderGlyph, "e" variable resizing is not really needed.
+	- There are some weird artifacts when rendering certain glyphs. This can be reproduced with a size 39 of the Junction-Regular font.
+	- Add tests for MeasureString and fix broken stuff there.
+	- Test out the subsampling of the stb rasterizer.
+Emotion.Test
+	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
+	- Test functions which are run at the start and end of a class.
+	- Use a custom loop rather than the FrameByFrame hack.
+Documentation
+	- Finish the documentation :D
+Game Logic
+	- UI with scaling and some kind of event capturing/focus system
+	- Add RichText tests
+Platform
+	- Mac
+	- Linux
+	- Android
+	- Web
+Meta
+	- Nuget Package
+	- Autobuild nuget package, with version patching, and commit hash patching
+Input
+	- Controller Support (Wherever possible)
+Engine
+	- Custom loop support - will be needed for some platforms
+	- Configurator granularity - set host size without setting other host settings, for example
+Emotion.Game
+	- Bound box for the tile map - used to calculate only visible tiles and map only them.
+Tools
+	- FileExplorer extension matching per asset type (don't show those who don't match)

@@ -1,0 +1,5 @@
+<ShaderDescription>
+  <Frag>Shaders/DefaultFrag.frag</Frag>
+  <Vert>Shaders/DefaultVert.vert</Vert>
+  <Fallback>Shaders/CompatShader.xml</Fallback>
+</ShaderDescription>
