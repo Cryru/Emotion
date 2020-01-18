@@ -457,8 +457,7 @@ namespace Emotion.Platform.Implementation.Win32
                         if (keyDown) nonePressed = false;
                     }
 
-                    if (nonePressed)
-                        User32.SetCapture(win.Handle);
+                    if (nonePressed) User32.SetCapture(win.Handle);
 
                     UpdateMouseKeyStatus(mouseKey, buttonDown);
 
@@ -468,8 +467,7 @@ namespace Emotion.Platform.Implementation.Win32
                         if (keyDown) nonePressed = false;
                     }
 
-                    if (nonePressed)
-                        User32.ReleaseCapture();
+                    if (nonePressed) User32.ReleaseCapture();
 
                     if (msg == WM.XBUTTONDOWN || msg == WM.XBUTTONUP)
                         return (IntPtr) 1;
@@ -567,14 +565,14 @@ namespace Emotion.Platform.Implementation.Win32
             // Initialize the key names array.
             _keyNames = new string[_scanCodes.Length];
 
-            for (var key = (int)Key.Space; key < (int)Key.Last; key++)
+            for (var key = (int) Key.Space; key < (int) Key.Last; key++)
             {
                 uint vk;
 
                 int scanCode = _scanCodes[key];
                 if (scanCode == -1) continue;
 
-                if (key >= (int)Key.Kp0 && key <= (int)Key.KpAdd)
+                if (key >= (int) Key.Kp0 && key <= (int) Key.KpAdd)
                 {
                     uint[] vks =
                     {
@@ -584,16 +582,16 @@ namespace Emotion.Platform.Implementation.Win32
                         (uint) VirtualKey.MULTIPLY, (uint) VirtualKey.SUBTRACT, (uint) VirtualKey.ADD
                     };
 
-                    vk = vks[key - (int)Key.Kp0];
+                    vk = vks[key - (int) Key.Kp0];
                 }
                 else
                 {
-                    vk = User32.MapVirtualKey((uint)scanCode, VirtualKeyMapType.MAPVK_VSC_TO_VK);
+                    vk = User32.MapVirtualKey((uint) scanCode, VirtualKeyMapType.MAPVK_VSC_TO_VK);
                 }
 
                 var chars = new StringBuilder(16);
-                int length = User32.ToUnicode(vk, (uint)scanCode, state, chars, chars.Capacity, 0);
-                if (length == -1) length = User32.ToUnicode(vk, (uint)scanCode, state, chars, chars.Capacity, 0);
+                int length = User32.ToUnicode(vk, (uint) scanCode, state, chars, chars.Capacity, 0);
+                if (length == -1) length = User32.ToUnicode(vk, (uint) scanCode, state, chars, chars.Capacity, 0);
 
                 if (length < 1) continue;
 
@@ -612,26 +610,26 @@ namespace Emotion.Platform.Implementation.Win32
             switch (wParam)
             {
                 // Control keys require special handling.
-                case (uint)VirtualKey.CONTROL when (lParam & 0x01000000) != 0:
+                case (uint) VirtualKey.CONTROL when (lParam & 0x01000000) != 0:
                     return Key.RightControl;
-                case (uint)VirtualKey.CONTROL:
-                    {
-                        uint time = User32.GetMessageTime();
+                case (uint) VirtualKey.CONTROL:
+                {
+                    uint time = User32.GetMessageTime();
 
-                        // HACK: Alt Gr sends Left Ctrl and then Right Alt in close sequence
-                        //       We only want the Right Alt message, so if the next message is
-                        //       Right Alt we ignore this (synthetic) Left Ctrl message
-                        if (!User32.PeekMessage(out Message next, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_NOREMOVE)) return Key.LeftControl;
-                        if (next.Value != WM.KEYDOWN && next.Value != WM.SYSKEYDOWN && next.Value != WM.KEYUP && next.Value != WM.SYSKEYUP) return Key.LeftControl;
-                        if ((uint)next.WParam == (uint)VirtualKey.MENU && ((uint)next.LParam & 0x01000000) != 0 && next.Time == time)
-                            // Next message is Right Alt down so discard this
-                            return Key.Unknown;
+                    // HACK: Alt Gr sends Left Ctrl and then Right Alt in close sequence
+                    //       We only want the Right Alt message, so if the next message is
+                    //       Right Alt we ignore this (synthetic) Left Ctrl message
+                    if (!User32.PeekMessage(out Message next, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_NOREMOVE)) return Key.LeftControl;
+                    if (next.Value != WM.KEYDOWN && next.Value != WM.SYSKEYDOWN && next.Value != WM.KEYUP && next.Value != WM.SYSKEYUP) return Key.LeftControl;
+                    if ((uint) next.WParam == (uint) VirtualKey.MENU && ((uint) next.LParam & 0x01000000) != 0 && next.Time == time)
+                        // Next message is Right Alt down so discard this
+                        return Key.Unknown;
 
-                        return Key.LeftControl;
-                    }
+                    return Key.LeftControl;
+                }
                 // IME notifies that keys have been filtered by setting the virtual
                 // key-code to VK_PROCESSKEY
-                case (uint)VirtualKey.PROCESSKEY:
+                case (uint) VirtualKey.PROCESSKEY:
                     return Key.Unknown;
             }
 
