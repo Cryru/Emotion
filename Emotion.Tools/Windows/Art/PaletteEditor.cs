@@ -13,6 +13,7 @@ using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using Emotion.Standard.Image;
+using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;

@@ -13,7 +13,7 @@ using ImGuiNET;
 
 #endregion
 
-namespace Emotion.Tools.Windows
+namespace Emotion.Tools.Windows.HelpWindows
 {
     public class FileExplorer<T> : ImGuiModal where T : Asset, new()
     {

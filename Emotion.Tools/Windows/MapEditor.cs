@@ -8,6 +8,7 @@ using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet.Windowing;
+using Emotion.Tools.Windows.HelpWindows;
 using ImGuiNET;
 
 #endregion

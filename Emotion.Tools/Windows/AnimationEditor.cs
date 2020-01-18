@@ -14,8 +14,8 @@ using Emotion.IO;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
-using Emotion.Standard.Image;
 using Emotion.Tools.Windows.AnimationEditorWindows;
+using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;
@@ -26,21 +26,10 @@ namespace Emotion.Tools.Windows
 {
     public class AnimationEditor : ImGuiWindow
     {
-        private AnimatedTexture _animation;
-
-        private int _loopType = 1;
-        private int _frameTime = 250;
-        private int _startFrame;
-        private int _endFrame = -1;
-
-        private int _scale = 1;
-        private TextureAsset _file;
-
+        public int Scale = 1;
         private bool _playing = true;
 
-        public Dictionary<string, AnimatedTexture> Saved = new Dictionary<string, AnimatedTexture>(); // Currently does nothing.
         private string _saveName = "";
-        private SavedAnimations _savedAnimationsWindow;
         private string _type;
 
         // Standard only.
@@ -52,59 +41,66 @@ namespace Emotion.Tools.Windows
         private FrameOrderWindow _orderWindow;
         private bool _mirrored;
 
+        // Files
+        private TextureAsset _spriteSheetTexture;
+        private AnimatedTexture _animation;
+        protected AnimationController _animController;
+
         public AnimationEditor() : base("Animation Editor")
         {
         }
 
         protected override void RenderContent(RenderComposer composer)
         {
-            switch (_type)
+            if (ImGui.Button("New From Image"))
             {
-                case null:
+                var explorer = new FileExplorer<TextureAsset>(LoadSpriteSheetFile);
+                Parent.AddWindow(explorer);
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Open AnimatedTexture"))
+            {
+                var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(LoadAnimatedTexture);
+                Parent.AddWindow(explorer);
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Open AnimationController"))
+            {
+                var explorer = new FileExplorer<XMLAsset<AnimationControllerDescription>>(LoadAnimationController);
+                Parent.AddWindow(explorer);
+            }
+
+            if (_spriteSheetTexture == null) return;
+            if (_animation == null)
+            {
+                ImGui.Text("How are the frames contained in your spritesheet?");
+
+                if (ImGui.Button("Grid"))
                 {
-                    if (ImGui.Button("Standard")) _type = "standard";
-                    ImGui.SameLine();
-                    if (ImGui.Button("Lookup")) _type = "lookup";
-                    break;
+                    var win = new GridSettingsWindow(this, (fs, s) => { _animation = new AnimatedTexture(_spriteSheetTexture.Texture, fs, s, AnimationLoopType.Normal, 1000); },
+                        (r, c) => { _animation = new AnimatedTexture(_spriteSheetTexture.Texture, c, r, AnimationLoopType.Normal, 1000); });
+                    Parent.AddWindow(win);
                 }
-                case "standard":
-                    RenderContentStandard();
-                    break;
-                case "lookup":
-                    RenderContentLookup(composer);
-                    break;
-            }
-        }
 
-        private void RenderContentStandard()
-        {
-            // File selection.
-            if (ImGui.Button("Choose SpriteSheet File"))
-            {
-                var explorer = new FileExplorer<TextureAsset>(LoadSpriteSheetFile);
-                Parent.AddWindow(explorer);
-            }
+                ImGui.SameLine();
 
-            if (ImGui.Button("Choose Animation File"))
-            {
-                var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(f =>
+                if (ImGui.Button("Auto Detect Frames"))
                 {
-                    if (f?.Content == null) return;
-                    AnimatedTexture anim = f.Content.CreateFrom();
-                    _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
-                    LoadAnimationData(anim);
-                    _saveName = f.Name;
-                });
-                Parent.AddWindow(explorer);
+                    Rectangle[] frames = AutoDetectFrames(_spriteSheetTexture.Texture);
+                    _animation = new AnimatedTexture(_spriteSheetTexture.Texture, frames, AnimationLoopType.Normal, 1000);
+                }
+
+                return;
             }
 
-            // File data.
-            ImGui.Text($"Current File: {_file?.Name ?? "None"}");
-            if (_file == null) return;
-            if (_animation == null) _animation = new AnimatedTexture(_file.Texture, _frameSize, (AnimationLoopType) _loopType, _frameTime);
+            ImGui.Text($"Current File: {_saveName ?? "None"}");
+            ImGui.Text($"Texture File: {_spriteSheetTexture.Name} / Resolution: {_spriteSheetTexture.Texture.Size}");
 
-            if (ImGui.Button("Reload Image")) LoadSpriteSheetFile(FileExplorer<TextureAsset>.ExplorerLoadAsset(_file.Name));
-            ImGui.SameLine();
+            if (ImGui.Button("Reload Image")) LoadSpriteSheetFile(FileExplorer<TextureAsset>.ExplorerLoadAsset(_spriteSheetTexture.Name));
             if (_playing)
             {
                 if (ImGui.Button("Pause"))
@@ -116,120 +112,20 @@ namespace Emotion.Tools.Windows
                     _playing = true;
             }
 
-            if (_file == null || _animation == null) return;
-
-            // Image data and scale.
-            (Vector2 uv1, Vector2 uv2) = _animation.Texture.GetImGuiUV(_animation.CurrentFrame);
-            ImGui.Image(new IntPtr(_animation.Texture.Pointer), _animation.CurrentFrame.Size * _scale, uv1, uv2);
-            ImGui.Text($"Resolution: {_animation.Texture.Size}");
-            ImGui.InputInt("Display Scale", ref _scale);
-
-            // Editors
-            ImGui.InputInt("MS Between Frames", ref _frameTime);
-            if (_frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = _frameTime;
-
-            ImGui.InputInt("Starting Frame", ref _startFrame);
-            if (_startFrame != _animation.StartingFrame) _animation.StartingFrame = _startFrame;
-            ImGui.InputInt("Ending Frame", ref _endFrame);
-            if (_endFrame != _animation.EndingFrame) _animation.EndingFrame = _endFrame;
-            ImGui.Combo("Loop Type", ref _loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
-            if ((AnimationLoopType) _loopType != _animation.LoopType) _animation.LoopType = (AnimationLoopType) _loopType;
-
-            // Frames.
-            ImGui.Text($"Current Frame: {_animation.CurrentFrameIndex + 1}/{_animation.AnimationFrames + 1}");
-
-            for (var i = 0; i < _animation.TotalFrames; i++)
-            {
-                if (i != 0 && i % 5 != 0) ImGui.SameLine(0, 5);
-
-                bool current = _animation.CurrentFrameIndex == i;
-
-                Rectangle frameBounds = _animation.GetFrameBounds(i);
-                (Vector2 u1, Vector2 u2) = _animation.Texture.GetImGuiUV(frameBounds);
-
-                ImGui.Image(new IntPtr(_animation.Texture.Pointer), _frameSize / 2f, u1, u2, Vector4.One,
-                    current ? new Vector4(1, 0, 0, 1) : Vector4.Zero);
-            }
-
-            RenderSaveSection();
-        }
-
-        private void RenderContentLookup(RenderComposer composer)
-        {
-            // File selection.
-            if (ImGui.Button("Choose SpriteSheet File"))
-            {
-                var explorer = new FileExplorer<TextureAsset>(LoadSpriteSheetFile);
-                Parent.AddWindow(explorer);
-            }
-
-            if (ImGui.Button("Choose Animation File"))
-            {
-                var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(f =>
-                {
-                    if (f?.Content == null) return;
-                    AnimatedTexture anim = f.Content.CreateFrom();
-                    _file = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
-                    LoadAnimationData(anim);
-                    _saveName = f.Name;
-                });
-                Parent.AddWindow(explorer);
-            }
-
-            // File data.
-            ImGui.Text($"Current File: {_file?.Name ?? "None"}");
-            if (_file == null) return;
-            if (_animation == null) _animation = new AnimatedTexture(_file.Texture, null, (AnimationLoopType) _loopType, _frameTime);
-            if (ImGui.Button("Reload Image")) LoadSpriteSheetFile(FileExplorer<TextureAsset>.ExplorerLoadAsset(_file.Name));
+            ImGui.InputInt("Display Scale", ref Scale);
             ImGui.SameLine();
-            if (_playing)
-            {
-                if (ImGui.Button("Pause"))
-                    _playing = false;
-            }
-            else
-            {
-                if (ImGui.Button("Play"))
-                    _playing = true;
-            }
-
-            if (_file == null || _animation == null) return;
-
-            if (!(_animation is AnimatedTexture lookupAnim)) return;
-
-            // Image data and scale.
-            ImGui.Text($"Resolution: {_animation.Texture.Size}");
-            ImGui.InputInt("Display Scale", ref _scale);
-
-            // Editors
-            ImGui.InputInt("MS Between Frames", ref _frameTime);
-            if (_frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = _frameTime;
-            if (ImGui.Button("Auto Detect Frames"))
-            {
-                lookupAnim.Frames = AutoDetectLookup();
-            }
-
-            ImGui.SameLine();
-            ImGui.Text("<- Will override frames and order.");
+            if (ImGui.Button("Mirror")) _mirrored = !_mirrored;
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
-                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, (AnimatedTexture) _animation));
+                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, _animation));
 
             if (ImGui.Button("Order Frames"))
                 if (_orderWindow == null || !_orderWindow.Open)
-                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, (AnimatedTexture) _animation));
+                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, _animation));
 
-            ImGui.InputInt("Starting Frame", ref _startFrame);
-            if (_startFrame != _animation.StartingFrame) _animation.StartingFrame = _startFrame;
-            ImGui.InputInt("Ending Frame", ref _endFrame);
-            if (_endFrame != _animation.EndingFrame) _animation.EndingFrame = _endFrame;
-            ImGui.Combo("Loop Type", ref _loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
-            if ((AnimationLoopType) _loopType != _animation.LoopType) _animation.LoopType = (AnimationLoopType) _loopType;
-
-            // Frames and info.
             ImGui.Text($"Current Frame: {_animation.CurrentFrameIndex + 1}/{_animation.AnimationFrames + 1}");
-            ImGui.Text($"Current Anchor: {(lookupAnim.Anchors.Length > 0 ? lookupAnim.Anchors[_animation.CurrentFrameIndex].ToString() : "Unknown")}");
+            ImGui.Text($"Current Anchor: {(_animation.Anchors.Length > 0 ? _animation.Anchors[_animation.CurrentFrameIndex].ToString() : "Unknown")}");
 
             for (var i = 0; i <= _animation.TotalFrames; i++)
             {
@@ -244,16 +140,10 @@ namespace Emotion.Tools.Windows
                     current ? new Vector4(1, 0, 0, 1) : Vector4.Zero);
             }
 
-            if (ImGui.Button("Mirror"))
-            {
-                _mirrored = !_mirrored;
-            }
+            RenderCurrentAnimationSettings();
 
             RenderSaveSection();
-
-            var offset = new Vector2(100, 100);
-            if (lookupAnim.Anchors.Length > 0) offset += lookupAnim.Anchors[lookupAnim.CurrentFrameIndex] * _scale;
-            composer.RenderSprite(new Vector3(offset, 1), _animation.CurrentFrame.Size * _scale, Color.White, _animation.Texture, _animation.CurrentFrame, _mirrored);
+            RenderAnimation(composer);
         }
 
         private void RenderSaveSection()
@@ -269,26 +159,150 @@ namespace Emotion.Tools.Windows
             }
             else
             {
-                if (ImGui.Button("Save"))
-                {
-                    Saved.Add(_saveName, _animation.Copy());
-                    _saveName = "";
-                    if (_savedAnimationsWindow == null) Parent.AddWindow(_savedAnimationsWindow = new SavedAnimations(this));
-                }
-
                 ImGui.SameLine();
                 if (!ImGui.Button("SaveToFile")) return;
                 string outputFile = Helpers.CrossPlatformPath("./Assets/" + _saveName);
                 if (!outputFile.Contains(".anim")) outputFile += ".anim";
                 if (File.Exists(outputFile)) File.Delete(outputFile);
 
-                AnimatedTextureDescription description = _animation.GetDescription(_file.Name);
-                var serializer = new XmlSerializer(description.GetType());
                 FileStream stream = File.OpenWrite(outputFile);
-                serializer.Serialize(stream, description);
+                XmlSerializer serializer;
+                if (_animController != null)
+                {
+                    AnimationControllerDescription controllerDesc = _animController.GetDescription(_spriteSheetTexture.Name);
+                    serializer = new XmlSerializer(controllerDesc.GetType());
+                    serializer.Serialize(stream, controllerDesc);
+                }
+                else
+                {
+                    AnimatedTextureDescription animDesc = _animation.GetDescription(_spriteSheetTexture.Name);
+                    serializer = new XmlSerializer(animDesc.GetType());
+                    serializer.Serialize(stream, animDesc);
+                }
+
                 stream.Flush();
                 stream.Close();
-                _saveName = "";
+            }
+        }
+
+        private void RenderAnimation(RenderComposer composer)
+        {
+            var offset = new Vector2(100, 100);
+            if (_animation.Anchors.Length > 0) offset += _animation.Anchors[_animation.CurrentFrameIndex] * Scale;
+            composer.RenderSprite(new Vector3(offset, 1), _animation.CurrentFrame.Size * Scale, Color.White, _animation.Texture, _animation.CurrentFrame, _mirrored);
+        }
+
+        private void RenderCurrentAnimationSettings()
+        {
+            if (_animController == null)
+            {
+                if (ImGui.Button("Create Controller"))
+                {
+                    _animController = new AnimationController(_animation);
+                    _animController.AddAnimation(new AnimationController.Node("Default")
+                    {
+                        EndingFrame = _animation.EndingFrame,
+                        StartingFrame = _animation.StartingFrame,
+                        LoopType = _animation.LoopType
+                    });
+                }
+
+                int frameTime = _animation.TimeBetweenFrames;
+                ImGui.InputInt("MS Between Frames", ref frameTime);
+                if (frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = frameTime;
+
+                int startingFrame = _animation.StartingFrame;
+                ImGui.InputInt("Starting Frame", ref startingFrame);
+                if (startingFrame != _animation.StartingFrame) _animation.StartingFrame = startingFrame;
+
+                int endingFrame = _animation.EndingFrame;
+                ImGui.InputInt("Ending Frame", ref endingFrame);
+                if (endingFrame != _animation.EndingFrame) _animation.EndingFrame = endingFrame;
+
+                var loopType = (int) _animation.LoopType;
+                ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
+                if ((AnimationLoopType) loopType != _animation.LoopType) _animation.LoopType = (AnimationLoopType) loopType;
+            }
+            else
+            {
+                ImGui.Text("Animations");
+                ImGui.PushID("animList");
+                for (var i = 0; i < _animController.Animations.Length; i++)
+                {
+                    AnimationController.Node n = _animController.Animations[i];
+
+                    if (n == _animController.CurrentAnimation)
+                    {
+                        ImGui.Text(n.Name);
+                    }
+                    else
+                    {
+                        if (ImGui.Button(n.Name)) _animController.SetAnimation(n.Name);
+                    }
+                }
+
+                if (ImGui.Button("Create"))
+                {
+                    var newNode = new AnimationController.Node("NewAnim");
+                    _animController.AddAnimation(newNode);
+                }
+
+                ImGui.SameLine();
+                if (_animController.CurrentAnimation == null)
+                {
+                    ImGui.PopID();
+                    return;
+                }
+
+                if (ImGui.Button("Remove")) _animController.RemoveAnimation(_animController.CurrentAnimation.Name);
+                ImGui.SameLine();
+                if (ImGui.Button("Rename"))
+                {
+                    var newName = new StringInputModal(s => { _animController.CurrentAnimation.Name = s; },
+                        $"New name for {_animController.CurrentAnimation.Name}");
+                    Parent.AddWindow(newName);
+                }
+
+                ImGui.PopID();
+
+                AnimationController.Node cur = _animController.CurrentAnimation;
+                var modified = false;
+
+                int frameTime = cur.TimeBetweenFrames;
+                ImGui.InputInt("MS Between Frames", ref frameTime);
+                if (frameTime != cur.TimeBetweenFrames)
+                {
+                    cur.TimeBetweenFrames = frameTime;
+                    modified = true;
+                }
+
+                int startingFrame = cur.StartingFrame;
+                ImGui.InputInt("Starting Frame", ref startingFrame);
+                if (startingFrame != cur.StartingFrame)
+                {
+                    cur.StartingFrame = startingFrame;
+                    modified = true;
+                }
+
+                int endingFrame = cur.EndingFrame;
+                ImGui.InputInt("Ending Frame", ref endingFrame);
+                if (endingFrame != cur.EndingFrame)
+                {
+                    cur.EndingFrame = endingFrame;
+                    modified = true;
+                }
+
+                var loopType = (int) cur.LoopType;
+                ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
+                if ((AnimationLoopType) loopType != cur.LoopType)
+                {
+                    cur.LoopType = (AnimationLoopType) loopType;
+                    modified = true;
+                }
+
+                if (modified)
+                {
+                }
             }
         }
 
@@ -298,22 +312,49 @@ namespace Emotion.Tools.Windows
                 _animation?.Update(Engine.DeltaTime);
         }
 
-        #region Helpers
+        #region IO
 
         private void LoadSpriteSheetFile(TextureAsset f)
         {
             if (f?.Texture == null) return;
-            _file?.Dispose();
-            _file = f;
+            _spriteSheetTexture?.Dispose();
+            _spriteSheetTexture = f;
+
+            _animation = null;
+            _animController = null;
         }
 
-        private unsafe Rectangle[] AutoDetectLookup()
+        private void LoadAnimatedTexture(XMLAsset<AnimatedTextureDescription> f)
         {
-            var pixels = new byte[(int) (_file.Texture.Size.X * _file.Texture.Size.Y * 4)];
+            if (f?.Content == null) return;
+
+            AnimatedTexture anim = f.Content.CreateFrom();
+            _spriteSheetTexture = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
+            _animation = anim;
+            _animController = new AnimationController(_animation);
+            _saveName = f.Name;
+        }
+
+        private void LoadAnimationController(XMLAsset<AnimationControllerDescription> f)
+        {
+            if (f?.Content == null) return;
+            AnimationController anim = f.Content.CreateFrom();
+            _spriteSheetTexture = Engine.AssetLoader.Get<TextureAsset>(f.Content.AnimTex.SpriteSheetName);
+            _animation = anim.AnimTex;
+            _saveName = f.Name;
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private static unsafe Rectangle[] AutoDetectFrames(Texture tex)
+        {
+            var pixels = new byte[(int) (tex.Size.X * tex.Size.Y * 4)];
 
             fixed (void* p = &pixels[0])
             {
-                Texture.EnsureBound(_file.Texture.Pointer);
+                Texture.EnsureBound(tex.Pointer);
                 Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Rgba, PixelType.UnsignedByte, new IntPtr(p));
             }
 
@@ -328,11 +369,11 @@ namespace Emotion.Tools.Windows
             var boxes = new List<Rectangle>();
 
             // First pass - identify box start positions.
-            for (var y = 0; y < _file.Texture.Size.Y; y++)
+            for (var y = 0; y < tex.Size.Y; y++)
             {
-                for (var x = 0; x < _file.Texture.Size.X; x++)
+                for (var x = 0; x < tex.Size.X; x++)
                 {
-                    byte current = pixels[(int) (y * _file.Texture.Size.X + x)];
+                    byte current = pixels[(int) (y * tex.Size.X + x)];
 
                     // Check if the current one is filled.
                     if (current != 1) continue;
@@ -341,11 +382,11 @@ namespace Emotion.Tools.Windows
                     var size = new Vector2();
                     var width = 0;
                     // Find the next non full. This is the width.
-                    for (int yy = y; yy < _file.Texture.Size.Y; yy++)
+                    for (int yy = y; yy < tex.Size.Y; yy++)
                     {
-                        for (int xx = x; xx < _file.Texture.Size.X; xx++)
+                        for (int xx = x; xx < tex.Size.X; xx++)
                         {
-                            byte curLook = pixels[(int) (yy * _file.Texture.Size.X + xx)];
+                            byte curLook = pixels[(int) (yy * tex.Size.X + xx)];
                             if (curLook == 0)
                             {
                                 if (width > size.X) size.X = width;
@@ -362,18 +403,18 @@ namespace Emotion.Tools.Windows
                     step2:
                     // Now go down from the start until we find a non-full.
                     var heightLeft = 0;
-                    for (int yy = y; yy < _file.Texture.Size.Y; yy++)
+                    for (int yy = y; yy < tex.Size.Y; yy++)
                     {
-                        byte curLook = pixels[(int) (yy * _file.Texture.Size.X + x)];
+                        byte curLook = pixels[(int) (yy * tex.Size.X + x)];
                         if (curLook == 0) break;
                         heightLeft++;
                     }
 
                     // Now go down from the end until we find a non-full.
                     var heightRight = 0;
-                    for (int yy = y; yy < _file.Texture.Size.Y; yy++)
+                    for (int yy = y; yy < tex.Size.Y; yy++)
                     {
-                        byte curLook = pixels[(int) (yy * _file.Texture.Size.X + (x + size.X - 1))];
+                        byte curLook = pixels[(int) (yy * tex.Size.X + (x + size.X - 1))];
                         if (curLook == 0) break;
                         heightRight++;
                     }
@@ -400,15 +441,6 @@ namespace Emotion.Tools.Windows
             }
 
             return boxes.OrderBy(x => Math.Round((x.Y + x.Height / 2) / 100f)).ThenBy(x => Math.Round((x.X + x.Width / 2) / 100f)).ToArray();
-        }
-
-        private void LoadAnimationData(AnimatedTexture anim)
-        {
-            _startFrame = anim.StartingFrame;
-            _endFrame = anim.EndingFrame;
-            _loopType = (int) anim.LoopType;
-            _frameTime = anim.TimeBetweenFrames;
-            _animation = anim;
         }
 
         #endregion

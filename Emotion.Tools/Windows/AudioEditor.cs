@@ -12,6 +12,7 @@ using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Audio.WAV;
+using Emotion.Tools.Windows.HelpWindows;
 using ImGuiNET;
 
 #endregion

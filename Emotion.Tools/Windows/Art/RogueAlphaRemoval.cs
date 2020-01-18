@@ -6,6 +6,7 @@ using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Standard.Image.PNG;
+using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;

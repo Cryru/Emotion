@@ -34,19 +34,28 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
         public override void Update()
         {
-            if(ImGuiNetPlugin.Focused) return;
+           // if(ImGuiNetPlugin.Focused) return;
 
             if (Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Right))
             {
                 _holdingIdx = -1;
             }
-            
+
+            if (Engine.InputManager.IsKeyDown(Platform.Input.Key.Space))
+            {
+                Engine.Log.Error("Spoice!", "");
+            }
+
             if (!Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Left)) return;
+            Engine.Log.Error("Click!", "");
             Vector2 mousePos = Engine.Host.MousePosition;
             for (var i = 0; i < _anim.Frames.Length; i++)
             {
                 Rectangle clickCapture = _anim.Frames[i];
+                clickCapture.Location *= _parent.Scale;
                 clickCapture.Location += _lastOffset;
+
+                clickCapture.Size *= _parent.Scale;
                 if (!clickCapture.Intersects(mousePos)) continue;
                 if (_holdingIdx == -1)
                 {
@@ -67,11 +76,11 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             Vector2 offset = ImGui.GetWindowPos();
             offset.Y += ImGui.GetWindowHeight();
             _lastOffset = offset;
-            composer.RenderSprite(new Vector3(offset, 0), _anim.Texture.Size, Color.White, _anim.Texture);
+            composer.RenderSprite(new Vector3(offset, 0), _anim.Texture.Size * _parent.Scale, Color.White, _anim.Texture);
             for (var i = 0; i < _anim.Frames.Length; i++)
             {
-                composer.RenderOutline(new Vector3(offset + _anim.Frames[i].Position, 1), _anim.Frames[i].Size, Color.Red);
-                composer.RenderString(new Vector3(offset + _anim.Frames[i].Position, 1), Color.Red, i.ToString(), _font.GetAtlas(15));
+                composer.RenderOutline(new Vector3(offset + _anim.Frames[i].Position * _parent.Scale, 1), _anim.Frames[i].Size * _parent.Scale, _holdingIdx == i ? Color.Green : Color.Red);
+                composer.RenderString(new Vector3(offset + _anim.Frames[i].Position * _parent.Scale, 1), Color.Red, i.ToString(), _font.GetAtlas(15 * _parent.Scale));
             }
 
             ImGui.Text(_holdingIdx == -1 ? "Click on a rectangle to change it's position." : $"Select new position for frame {_holdingIdx}!");
