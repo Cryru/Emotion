@@ -1,4 +1,0 @@
-﻿<ShaderDescription>
-  <Vert>Shaders/NotAnActualShader.glsl</Vert>
-  <Frag>Shaders/NotAnActualShader.glsl</Frag>
-</ShaderDescription>

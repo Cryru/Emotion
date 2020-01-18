@@ -1,3 +1,0 @@
-*.command text eol=lf
-
-Tools/* linguist-vendored=false
