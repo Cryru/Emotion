@@ -189,7 +189,7 @@ namespace Emotion.Plugins.ImGuiNet
             io.MouseDown[0] = Engine.InputManager.IsMouseKeyDown(MouseKey.Left) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Left);
             io.MouseDown[1] = Engine.InputManager.IsMouseKeyDown(MouseKey.Right) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Right);
             io.MouseDown[2] = Engine.InputManager.IsMouseKeyDown(MouseKey.Middle) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Middle);
-            io.MouseWheel = Engine.InputManager.GetMouseScrollRelative();
+            io.MouseWheel = -Engine.InputManager.GetMouseScrollRelative();
 
             io.KeyCtrl = KeyDownOrHeld(Key.LeftControl) || KeyDownOrHeld(Key.RightControl);
             io.KeyAlt = KeyDownOrHeld(Key.LeftAlt) || KeyDownOrHeld(Key.RightAlt);
