@@ -423,7 +423,7 @@ namespace Emotion.Graphics
 
                 if (!clear) return;
                 Gl.StencilMask(0xFF);
-                Gl.Clear(ClearBufferMask.StencilBufferBit);
+                ClearStencil();
                 StencilStateDefault();
             }
             else
@@ -485,6 +485,22 @@ namespace Emotion.Graphics
         public void Clear()
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+        }
+
+        /// <summary>
+        /// Clear only the depth buffer of the currently bound frame buffer.
+        /// </summary>
+        public void ClearDepth()
+        {
+            Gl.Clear(ClearBufferMask.DepthBufferBit);
+        }
+
+        /// <summary>
+        /// Clear only the stencil buffer of the currently bound frame buffer.
+        /// </summary>
+        public void ClearStencil()
+        {
+            Gl.Clear(ClearBufferMask.StencilBufferBit);
         }
 
         #endregion

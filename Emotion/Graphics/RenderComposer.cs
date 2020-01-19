@@ -455,6 +455,8 @@ namespace Emotion.Graphics
             PushCommand(stateChange);
         }
 
+        #region Stencil States
+
         /// <summary>
         /// Enables writing to the stencil buffer.
         /// Anything drawn after this call will have the specified value within the stencil buffer.
@@ -496,6 +498,9 @@ namespace Emotion.Graphics
             PushCommand(stencilStateChange);
         }
 
+        /// <summary>
+        /// Opposite of StencilCutOutFrom. Only where the value is set will there be drawn.
+        /// </summary>
         public void StencilFillIn(int threshold = 0xFF)
         {
             var stencilStateChange = GetRenderCommand<StencilStateCommand>();
@@ -513,6 +518,8 @@ namespace Emotion.Graphics
             stencilStateChange.Threshold = filter;
             PushCommand(stencilStateChange);
         }
+
+        #endregion
 
         /// <summary>
         /// Set whether to use the view matrix.
@@ -625,6 +632,16 @@ namespace Emotion.Graphics
         {
             var command = GetRenderCommand<ExecCodeCommand>();
             command.Func = Engine.Renderer.Clear;
+            PushCommand(command);
+        }
+
+        /// <summary>
+        /// Clears the depth buffer of the currently bound frame buffer.
+        /// </summary>
+        public void ClearDepth()
+        {
+            var command = GetRenderCommand<ExecCodeCommand>();
+            command.Func = Engine.Renderer.ClearDepth;
             PushCommand(command);
         }
 
