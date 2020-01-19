@@ -75,14 +75,14 @@ namespace Emotion.Graphics.Objects
         public FrameBuffer(Texture texture, Texture depthTexture = null, bool attachStencil = false)
         {
             Texture = texture;
-            Size = texture.Size;
+            Size = texture?.Size ?? depthTexture?.Size ?? Vector2.Zero;
             Pointer = Gl.GenFramebuffer();
             Viewport = new Rectangle(0, 0, Size);
 
             EnsureBound(Pointer);
 
             // Attach the texture to the frame buffer.
-            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, texture.Pointer, 0);
+            if(texture != null) Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, texture.Pointer, 0);
 
             // Attach depth texture (if any)
             FramebufferAttachment attachment = attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
@@ -90,7 +90,7 @@ namespace Emotion.Graphics.Objects
             if (depthTexture != null)
             {
                 // Use a depth texture to hold the depth attachment.
-                depthTexture.Upload(texture.Size, null, internalFormat, attachStencil ? PixelFormat.DepthStencil : PixelFormat.DepthComponent, attachStencil ? PixelType.UnsignedInt248 : PixelType.Float);
+                depthTexture.Upload(Size, null, internalFormat, attachStencil ? PixelFormat.DepthStencil : PixelFormat.DepthComponent, attachStencil ? PixelType.UnsignedInt248 : PixelType.Float);
                 DepthTexture = depthTexture;
                 Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, depthTexture.Pointer, 0);
             }
@@ -130,6 +130,7 @@ namespace Emotion.Graphics.Objects
         public void Bind()
         {
             EnsureBound(Pointer);
+            if (Texture == null && Pointer != 0) Gl.DrawBuffer(DrawBufferMode.None);
             Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
         }
 
@@ -161,7 +162,7 @@ namespace Emotion.Graphics.Objects
             if (Pointer == 0 || Engine.Host == null) return;
             if (Bound == Pointer) Bound = 0;
 
-            Texture.Dispose();
+            Texture?.Dispose();
             Gl.DeleteFramebuffers(Pointer);
             if (DepthTexture != null)
             {
