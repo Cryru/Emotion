@@ -160,7 +160,7 @@ namespace Emotion.Graphics.Command.Batches
         /// <param name="pointer">The texture pointer to add.</param>
         /// <param name="bindingPointer">The pointer to the internal binding.</param>
         /// <returns>Whether the texture was added.</returns>
-        public bool AddTextureBinding(uint pointer, out int bindingPointer)
+        public virtual bool AddTextureBinding(uint pointer, out int bindingPointer)
         {
             bindingPointer = -1;
 
@@ -201,7 +201,7 @@ namespace Emotion.Graphics.Command.Batches
         /// <summary>
         /// Bind the textures in use.
         /// </summary>
-        public void BindTextures()
+        public virtual void BindTextures()
         {
             Debug.Assert(GLThread.IsGLThread());
 
