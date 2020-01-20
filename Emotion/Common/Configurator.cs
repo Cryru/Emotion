@@ -149,8 +149,8 @@ namespace Emotion.Common
 
         /// <summary>
         /// The desired tps and fps.
-        /// 60 by default, if set to 0 or below, the loop will run as fast as possible.
-        /// You usually don't want that as it means it will have an uneven delta time.
+        /// 60 by default.
+        /// You usually don't want this to be unbound as it means it will have an uneven delta time.
         /// </summary>
         public uint DesiredStep { get; private set; } = 60;
 

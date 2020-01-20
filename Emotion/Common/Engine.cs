@@ -54,6 +54,11 @@ namespace Emotion.Common
         /// </summary>
         public static SceneManager SceneManager { get; private set; }
 
+        /// <summary>
+        /// The audio context of the platform. A redirect of Host.Audio.
+        /// </summary>
+        public static AudioContext Audio { get; private set; }
+
         #endregion
 
         /// <summary>
@@ -117,7 +122,7 @@ namespace Emotion.Common
             // Mount default assets. The platform should add it's own specific sources and stores.
             AssetLoader = LoadDefaultAssetLoader();
 
-            // Create the platform, window, and graphics context.
+            // Create the platform, window, audio, and graphics context.
             Host = PlatformBase.GetInstanceOfDetected(configurator);
             if (Host == null)
             {
@@ -125,6 +130,7 @@ namespace Emotion.Common
                 return;
             }
             InputManager = Host;
+            Audio = Host.Audio;
 
             // Errors in host initialization can cause this.
             if (Status == EngineStatus.Stopped) return;
@@ -134,6 +140,7 @@ namespace Emotion.Common
             Renderer = new Renderer();
             Renderer.Setup();
 
+            // Now "game-mode" modules can be created.
             SceneManager = new SceneManager();
 
             // Setup plugins.
