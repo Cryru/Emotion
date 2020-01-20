@@ -38,7 +38,6 @@ namespace Tests.Classes
                 // Force the screen buffer to be screenshot.
                 Engine.Renderer.ScreenBuffer.Bind();
                 Runner.VerifyScreenshot(ResultDb.TestFullScale);
-                
             }).WaitOne();
         }
 
@@ -61,7 +60,6 @@ namespace Tests.Classes
                 // Force the screen buffer to be screenshot.
                 Engine.Renderer.ScreenBuffer.Bind();
                 Runner.VerifyScreenshot(ResultDb.TestFullScaleInteger);
-
             }).WaitOne();
         }
     }

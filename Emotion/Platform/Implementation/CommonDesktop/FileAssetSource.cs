@@ -4,11 +4,12 @@ using System;
 using System.IO;
 using System.Linq;
 using Emotion.Common;
+using Emotion.IO;
 using Emotion.Standard.Logging;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.Platform.Implementation.CommonDesktop
 {
     /// <inheritdoc />
     public class FileAssetSource : AssetSource
@@ -29,8 +30,12 @@ namespace Emotion.IO
 
             // Check if folder exists.
             if (!Directory.Exists(Folder)) Directory.CreateDirectory(Folder);
+            PopulateInternalManifest();
+        }
 
-            // Populate internal manifest.
+        protected void PopulateInternalManifest()
+        {
+            InternalManifest.Clear();
             string[] files = Directory.GetFiles(Folder, "*", SearchOption.AllDirectories);
             files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x), x));
         }
@@ -73,9 +78,14 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="filePath">The file path to convert.</param>
         /// <returns>The engine path corresponding to the specified file path.</returns>
-        private string FilePathToEnginePath(string filePath)
+        protected virtual string FilePathToEnginePath(string filePath)
         {
             return AssetLoader.NameToEngineName(filePath.Replace(Folder + Path.DirectorySeparatorChar, ""));
+        }
+
+        public override string ToString()
+        {
+            return $".Net System.IO @ ./{Folder}";
         }
     }
 }

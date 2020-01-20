@@ -18,12 +18,13 @@ using WinApi.Kernel32;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
+using Emotion.Platform.Implementation.CommonDesktop;
 
 #endregion
 
 namespace Emotion.Platform.Implementation.Win32
 {
-    public class Win32Platform : PlatformBase
+    public class Win32Platform : DesktopPlatform
     {
         public static bool IsWindows7OrGreater { get; private set; }
         public static bool IsWindows8OrGreater { get; private set; }

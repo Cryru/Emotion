@@ -3,7 +3,9 @@
 using System.IO;
 using System.Linq;
 using Emotion.Common;
+using Emotion.Game;
 using Emotion.IO;
+using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Test;
 
 #endregion
@@ -74,7 +76,7 @@ namespace Tests.Classes
             // Refresh the file which the tests edit.
             File.WriteAllText($"OtherAssets{Path.DirectorySeparatorChar}LoremIpsum.txt", "Lorem ipsum");
 
-            var customLoader = new AssetLoader(new AssetSource[] { new FileAssetSource("OtherAssets") });
+            var customLoader = new AssetLoader(new AssetSource[] {new FileAssetSource("OtherAssets")});
             var loremIpsum = customLoader.Get<TextAsset>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
@@ -86,7 +88,7 @@ namespace Tests.Classes
 
             // Loading a file which exists both embedded and file.
             // In this case the file loader will load the file, and the embedded file won't be considered a part of the main manifest.
-            var conflictLoader = new AssetLoader(new AssetSource[] { new FileAssetSource("OtherAssets"), new EmbeddedAssetSource(typeof(AssetTest).Assembly, "OtherAssets") });
+            var conflictLoader = new AssetLoader(new AssetSource[] {new FileAssetSource("OtherAssets"), new EmbeddedAssetSource(typeof(AssetTest).Assembly, "OtherAssets")});
             loremIpsum = conflictLoader.Get<TextAsset>("LoremIpsum.txt");
 
             // Assert the file loaded properly.
@@ -113,8 +115,38 @@ namespace Tests.Classes
             // Creating an asset loader with a non existent root directory should create that directory.
             if (Directory.Exists("NewDir")) Directory.Delete("NewDir");
             Assert.False(Directory.Exists("NewDir"));
-            var noDirectory = new AssetLoader(new AssetSource[] { new FileAssetSource("NewDir") });
+            var noDirectory = new AssetLoader(new AssetSource[] {new FileAssetSource("NewDir")});
             Assert.True(Directory.Exists("NewDir"));
+        }
+
+        public class TestStorage
+        {
+            public string Text { get; set; }
+        }
+
+        /// <summary>
+        /// Asset store
+        /// </summary>
+        [Test]
+        public void AssetStorage()
+        {
+            var save = Engine.AssetLoader.Get<SaveFile<TestStorage>>("saveFile.save");
+            Assert.True(save == null);
+
+            string saveFilePath = "Player/saveFile.save";
+            var saveFile = new SaveFile<TestStorage>("Player/saveFile.save");
+            Assert.True(File.Exists(Path.Join("./Player", "saveFile.save")));
+
+            saveFile.Content.Text = "Wassaa";
+            saveFile.Save();
+
+            // It will now exist!
+            save = Engine.AssetLoader.Get<SaveFile<TestStorage>>("Player/saveFile.save");
+            Assert.Equal(save.Content.Text, saveFile.Content.Text);
+            Engine.AssetLoader.Destroy(saveFilePath);
+
+            saveFile.Save();
+            Assert.True(File.Exists(Path.Join("./Player", "saveFile.save.backup")));
         }
     }
 }

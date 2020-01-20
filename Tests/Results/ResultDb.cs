@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Utility;
 
@@ -23,7 +22,7 @@ namespace Tests.Results
         public static string Bmp256ColorDecode = "Bmp256ColorDecode";
         public static string PngDecode = "PngDecode";
         public static string PngDecodeInterlaced = "PngDecodeInterlaced";
-        public static string EmotionTTAtlas = "EmotionTTAtlas";
+        public static string EmotionTtAtlas = "EmotionTTAtlas";
         public static string EmotionCffAtlas = "EmotionCffAtlas";
 
         public static string EmotionCompositeAtlas = "EmotionCompositeAtlas";
@@ -64,7 +63,7 @@ namespace Tests.Results
         {
             string folderName = Path.Join("Assets", "CachedResults");
 
-            if(!Directory.Exists(folderName)) return;
+            if (!Directory.Exists(folderName)) return;
 
             string[] files = Directory.GetFiles(folderName);
 

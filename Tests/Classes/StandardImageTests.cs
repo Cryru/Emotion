@@ -1,15 +1,18 @@
-﻿using System.IO;
+﻿#region Using
+
+using System.IO;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
-using Emotion.Standard.Image;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Test;
 using Emotion.Utility;
 using Tests.Results;
+
+#endregion
 
 namespace Tests.Classes
 {

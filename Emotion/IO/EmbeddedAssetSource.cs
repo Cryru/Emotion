@@ -104,5 +104,10 @@ namespace Emotion.IO
 
             return withoutExtension.Replace('.', '/') + extension;
         }
+
+        public override string ToString()
+        {
+            return $"EmbeddedSource [{Assembly.GetName().Name}] @ ./{Folder}";
+        }
     }
 }
