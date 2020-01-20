@@ -246,6 +246,8 @@ namespace Emotion.Graphics
             {
                 Scale -= (IntScale - 1);
                 size /= IntScale;
+                size.X = (int) size.X;
+                size.Y = (int) size.Y;
                 IntScale = 1;
             }
 
