@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime;
 using System.Threading.Tasks;
 using Emotion.Common;
-using Emotion.IO;
 using Emotion.Standard.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -17,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 #endregion
 
-namespace Emotion.Scripting
+namespace Emotion.Plugins.CSharpScripting
 {
     /// <summary>
     /// A C# scripting engine using Roslyn.

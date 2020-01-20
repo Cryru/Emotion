@@ -5,7 +5,7 @@ using System.Runtime.Loader;
 
 #endregion
 
-namespace Emotion.Scripting
+namespace Emotion.Plugins.CSharpScripting
 {
     public class ScriptAssemblyContext : AssemblyLoadContext
     {

@@ -44,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Emotion.Plugins.CSharpScripting\Emotion.Plugins.CSharpScripting.csproj" />
     <ProjectReference Include="..\Emotion.Test\Emotion.Test.csproj" />
   </ItemGroup>
 

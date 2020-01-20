@@ -2,13 +2,12 @@
 
 using System.IO;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Text;
-using Emotion.Scripting;
+using Emotion.IO;
 
 #endregion
 
-namespace Emotion.IO
+namespace Emotion.Plugins.CSharpScripting
 {
     public class CSharpScriptAsset : Asset
     {
