@@ -24,11 +24,10 @@ namespace Tests
             {
                 "tag=Assets", c =>
                 {
-                    if (Directory.Exists("Player"))
-                    {
-                        Directory.Delete("Player", true);
-                        Directory.CreateDirectory("Player");
-                    }
+                    // Cleanup for storage tests.
+                    if (!Directory.Exists("Player")) return;
+                    Directory.Delete("Player", true);
+                    Directory.CreateDirectory("Player");
                 }
             },
             {"tag=Scripting", null},
@@ -42,7 +41,6 @@ namespace Tests
 
         private static void Main(string[] args)
         {
-            Runner.RunAsRunner("tag=Assets", ref args);
             ResultDb.LoadCache();
             Runner.RunTests(
                 new Configurator()
