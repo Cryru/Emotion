@@ -242,9 +242,9 @@ namespace Emotion.Graphics
             ScreenBuffer.Viewport = new Rectangle(0, 0, size);
             ScreenBuffer.Size = size;
 
-            if (Engine.Configuration.IntScaleBlit || CompatibilityMode)
+            if (Engine.Configuration.IntScaleBlit)
             {
-                Scale -= (IntScale - 1);
+                Scale -= IntScale - 1;
                 size /= IntScale;
                 size.X = (int) size.X;
                 size.Y = (int) size.Y;

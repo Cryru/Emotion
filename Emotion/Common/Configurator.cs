@@ -139,7 +139,7 @@ namespace Emotion.Common
         /// automatically when drawing to the screen buffer. This means your IntScale will always be 1 - but it
         /// also reduces the resolution you can work with outside of integer scaling (as in non-pixel art, UI etc.)
         ///
-        /// This is off by default - except on the software renderer, and it is a huge performance boost - at the cost
+        /// This is off by default, but it is a huge performance boost - at the cost
         /// of very little in games which do not use scaling a lot.
         ///
         /// Applies only to full scale.
