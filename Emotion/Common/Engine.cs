@@ -10,11 +10,9 @@ using System.Threading;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Platform.Implementation;
+using Emotion.Platform;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
-
-//using Emotion.Native;
 
 #endregion
 

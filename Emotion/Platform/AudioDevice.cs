@@ -1,4 +1,4 @@
-﻿namespace Emotion.Platform.Implementation
+﻿namespace Emotion.Platform
 {
     public class AudioDevice
     {
