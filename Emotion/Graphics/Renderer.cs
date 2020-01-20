@@ -235,13 +235,21 @@ namespace Emotion.Graphics
             Vector2 baseRes = Engine.Configuration.RenderSize;
             Vector2 ratio = size / baseRes;
             Scale = MathF.Min(ratio.X, ratio.Y);
-
             IntScale = (int) MathF.Floor((size.X + size.Y) / (baseRes.X + baseRes.Y));
 
             // Set viewport.
             Gl.Viewport(0, 0, (int) size.X, (int) size.Y);
             ScreenBuffer.Viewport = new Rectangle(0, 0, size);
             ScreenBuffer.Size = size;
+
+            if (Engine.Configuration.IntScaleBlit || CompatibilityMode)
+            {
+                Scale -= (IntScale - 1);
+                size /= IntScale;
+                IntScale = 1;
+            }
+
+            Engine.Log.Info($"Resized host - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
 
             // Recreate draw buffer.
             CreateDrawbuffer(size);
