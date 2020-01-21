@@ -27,6 +27,9 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 // If new - add to the internal manifest.
                 InternalManifest.TryAdd(name, filePath);
 
+            // Create missing directories.
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
             FileStream stream = File.Open(filePath, FileMode.Create);
             stream.Write(data, 0, data.Length);
             stream.Dispose();
