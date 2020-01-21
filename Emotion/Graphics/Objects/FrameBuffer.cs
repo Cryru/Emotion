@@ -118,6 +118,10 @@ namespace Emotion.Graphics.Objects
             Engine.Renderer?.EnsureRenderTarget();
         }
 
+        public FrameBuffer(Texture texture) : this(texture, null)
+        {
+        }
+
         public FrameBuffer(Texture texture, bool attachStencil = false) : this(texture, null, attachStencil)
         {
         }
