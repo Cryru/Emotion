@@ -326,5 +326,33 @@ namespace OpenGL
         }
 
         #endregion
+
+        /// <summary>
+        /// Convert a pixel type enum to the number of bytes that type contains.
+        /// </summary>
+        /// <param name="pixelType">The pixel type to get the byte count of.</param>
+        /// <returns>The number of bytes that pixel type contains.</returns>
+        public static byte PixelTypeToByteCount(PixelType pixelType)
+        {
+            switch(pixelType)
+            {
+                case PixelType.UnsignedByte:
+                case PixelType.Byte: 
+                    return 1;
+                case PixelType.Double:
+                    return 8;
+                case PixelType.UnsignedInt248: 
+                case PixelType.Int:
+                case PixelType.UnsignedInt:
+                case PixelType.Float:
+                    return 4;
+                case PixelType.UnsignedShort:
+                case PixelType.Short:
+                case PixelType.HalfFloat: 
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
     }
 }

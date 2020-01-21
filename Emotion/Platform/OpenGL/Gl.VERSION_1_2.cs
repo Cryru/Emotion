@@ -439,18 +439,6 @@ namespace OpenGL
         public const int LIGHT_MODEL_COLOR_CONTROL = 0x81F8;
 
         /// <summary>
-        /// [GL] Value of GL_SINGLE_COLOR symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_EXT_separate_specular_color")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SINGLE_COLOR = 0x81F9;
-
-        /// <summary>
-        /// [GL] Value of GL_SEPARATE_SPECULAR_COLOR symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_EXT_separate_specular_color")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SEPARATE_SPECULAR_COLOR = 0x81FA;
-
-        /// <summary>
         ///     <para>
         ///     [GL2.1] Gl.Get: params returns two values, the smallest and largest supported sizes for aliased points.
         ///     </para>

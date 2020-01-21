@@ -10,42 +10,6 @@ using Khronos;
 namespace OpenGL
 {
     /// <summary>
-    /// Strongly typed enumeration AccumOp.
-    /// </summary>
-    public enum AccumOp
-    {
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Accum = Gl.ACCUM,
-
-        /// <summary>
-        /// Strongly typed for value GL_LOAD.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Load = Gl.LOAD,
-
-        /// <summary>
-        /// Strongly typed for value GL_RETURN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Return = Gl.RETURN,
-
-        /// <summary>
-        /// Strongly typed for value GL_MULT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Mult = Gl.MULT,
-
-        /// <summary>
-        /// Strongly typed for value GL_ADD.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Add = Gl.ADD
-    }
-
-    /// <summary>
     /// Strongly typed enumeration AlphaFunction.
     /// </summary>
     public enum AlphaFunction
@@ -191,158 +155,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_4_3")] [RequiredByFeature("GL_ARB_compute_shader", Api = "gl|glcore")]
         AtomicCounterBufferReferencedByComputeShader = Gl.ATOMIC_COUNTER_BUFFER_REFERENCED_BY_COMPUTE_SHADER
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration AttribMask.
-    /// </summary>
-    [Flags]
-    public enum AttribMask : uint
-    {
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM_BUFFER_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumBufferBit = Gl.ACCUM_BUFFER_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALL_ATTRIB_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AllAttribBits = Gl.ALL_ATTRIB_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_BUFFER_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        ColorBufferBit = Gl.COLOR_BUFFER_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentBit = Gl.CURRENT_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_DEPTH_BUFFER_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        DepthBufferBit = Gl.DEPTH_BUFFER_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_ENABLE_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        EnableBit = Gl.ENABLE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_EVAL_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        EvalBit = Gl.EVAL_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogBit = Gl.FOG_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_HINT_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        HintBit = Gl.HINT_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHTING_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightingBit = Gl.LIGHTING_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineBit = Gl.LINE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIST_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ListBit = Gl.LIST_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_MULTISAMPLE_BIT, GL_MULTISAMPLE_BIT_3DFX, GL_MULTISAMPLE_BIT_ARB, GL_MULTISAMPLE_BIT_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_ARB_multisample")]
-        [RequiredByFeature("GL_EXT_multisample")]
-        [RequiredByFeature("GL_3DFX_multisample")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        MultisampleBit = Gl.MULTISAMPLE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MODE_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelModeBit = Gl.PIXEL_MODE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointBit = Gl.POINT_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_POLYGON_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PolygonBit = Gl.POLYGON_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_POLYGON_STIPPLE_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PolygonStippleBit = Gl.POLYGON_STIPPLE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_SCISSOR_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ScissorBit = Gl.SCISSOR_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_STENCIL_BUFFER_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        StencilBufferBit = Gl.STENCIL_BUFFER_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureBit = Gl.TEXTURE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_TRANSFORM_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TransformBit = Gl.TRANSFORM_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_VIEWPORT_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ViewportBit = Gl.VIEWPORT_BIT
     }
 
     /// <summary>
@@ -787,12 +599,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_3")] [RequiredByFeature("GL_ARB_blend_func_extended", Api = "gl|glcore")] [RequiredByFeature("GL_EXT_blend_func_extended", Api = "gles2")]
         Src1Color = Gl.SRC1_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_SRC1_ALPHA.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        Source1Alpha = Gl.SOURCE1_ALPHA
     }
 
     /// <summary>
@@ -1353,12 +1159,6 @@ namespace OpenGL
     public enum ClearBufferMask : uint
     {
         /// <summary>
-        /// Strongly typed for value GL_ACCUM_BUFFER_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumBufferBit = Gl.ACCUM_BUFFER_BIT,
-
-        /// <summary>
         /// Strongly typed for value GL_COLOR_BUFFER_BIT.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -1384,31 +1184,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         StencilBufferBit = Gl.STENCIL_BUFFER_BIT
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration ClientAttribMask.
-    /// </summary>
-    [Flags]
-    public enum ClientAttribMask : uint
-    {
-        /// <summary>
-        /// Strongly typed for value GL_CLIENT_ALL_ATTRIB_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ClientAllAttribBits = Gl.CLIENT_ALL_ATTRIB_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIENT_PIXEL_STORE_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ClientPixelStoreBit = Gl.CLIENT_PIXEL_STORE_BIT,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIENT_VERTEX_ARRAY_BIT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ClientVertexArrayBit = Gl.CLIENT_VERTEX_ARRAY_BIT
     }
 
     /// <summary>
@@ -1459,28 +1234,10 @@ namespace OpenGL
         ClipDistance0 = Gl.CLIP_DISTANCE0,
 
         /// <summary>
-        /// Strongly typed for value GL_CLIP_DISTANCE0, GL_CLIP_PLANE0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane0 = Gl.CLIP_PLANE0,
-
-        /// <summary>
         /// Strongly typed for value GL_CLIP_DISTANCE1, GL_CLIP_PLANE1.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         ClipDistance1 = Gl.CLIP_DISTANCE1,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_DISTANCE1, GL_CLIP_PLANE1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane1 = Gl.CLIP_PLANE1,
 
         /// <summary>
         /// Strongly typed for value GL_CLIP_DISTANCE2, GL_CLIP_PLANE2.
@@ -1489,28 +1246,10 @@ namespace OpenGL
         ClipDistance2 = Gl.CLIP_DISTANCE2,
 
         /// <summary>
-        /// Strongly typed for value GL_CLIP_DISTANCE2, GL_CLIP_PLANE2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane2 = Gl.CLIP_PLANE2,
-
-        /// <summary>
         /// Strongly typed for value GL_CLIP_DISTANCE3, GL_CLIP_PLANE3.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         ClipDistance3 = Gl.CLIP_DISTANCE3,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_DISTANCE3, GL_CLIP_PLANE3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane3 = Gl.CLIP_PLANE3,
 
         /// <summary>
         /// Strongly typed for value GL_CLIP_DISTANCE4, GL_CLIP_PLANE4.
@@ -1519,28 +1258,10 @@ namespace OpenGL
         ClipDistance4 = Gl.CLIP_DISTANCE4,
 
         /// <summary>
-        /// Strongly typed for value GL_CLIP_DISTANCE4, GL_CLIP_PLANE4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane4 = Gl.CLIP_PLANE4,
-
-        /// <summary>
         /// Strongly typed for value GL_CLIP_DISTANCE5, GL_CLIP_PLANE5.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         ClipDistance5 = Gl.CLIP_DISTANCE5,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_DISTANCE5, GL_CLIP_PLANE5.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane5 = Gl.CLIP_PLANE5,
 
         /// <summary>
         /// Strongly typed for value GL_CLIP_DISTANCE6.
@@ -1956,42 +1677,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         FrontAndBack = Gl.FRONT_AND_BACK
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration ColorMaterialParameter.
-    /// </summary>
-    public enum ColorMaterialParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_AMBIENT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Ambient = Gl.AMBIENT,
-
-        /// <summary>
-        /// Strongly typed for value GL_AMBIENT_AND_DIFFUSE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        AmbientAndDiffuse = Gl.AMBIENT_AND_DIFFUSE,
-
-        /// <summary>
-        /// Strongly typed for value GL_DIFFUSE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Diffuse = Gl.DIFFUSE,
-
-        /// <summary>
-        /// Strongly typed for value GL_EMISSION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Emission = Gl.EMISSION,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPECULAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Specular = Gl.SPECULAR
     }
 
     /// <summary>
@@ -2519,30 +2204,6 @@ namespace OpenGL
     public enum DrawBufferMode
     {
         /// <summary>
-        /// Strongly typed for value GL_AUX0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux0 = Gl.AUX0,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux1 = Gl.AUX1,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux2 = Gl.AUX2,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux3 = Gl.AUX3,
-
-        /// <summary>
         /// Strongly typed for value GL_BACK.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -2658,18 +2319,6 @@ namespace OpenGL
     public enum EnableCap
     {
         /// <summary>
-        /// Strongly typed for value GL_ALPHA_TEST.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_QCOM_alpha_test", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaTest = Gl.ALPHA_TEST,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUTO_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AutoNormal = Gl.AUTO_NORMAL,
-
-        /// <summary>
         /// Strongly typed for value GL_BLEND.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -2683,26 +2332,8 @@ namespace OpenGL
         /// <summary>
         /// Strongly typed for value GL_CLIP_PLANE0, GL_CLIP_DISTANCE0.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane0 = Gl.CLIP_PLANE0,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE0, GL_CLIP_DISTANCE0.
-        /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         ClipDistance0 = Gl.CLIP_DISTANCE0,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE1, GL_CLIP_DISTANCE1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane1 = Gl.CLIP_PLANE1,
 
         /// <summary>
         /// Strongly typed for value GL_CLIP_PLANE1, GL_CLIP_DISTANCE1.
@@ -2713,26 +2344,8 @@ namespace OpenGL
         /// <summary>
         /// Strongly typed for value GL_CLIP_PLANE2, GL_CLIP_DISTANCE2.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane2 = Gl.CLIP_PLANE2,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE2, GL_CLIP_DISTANCE2.
-        /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         ClipDistance2 = Gl.CLIP_DISTANCE2,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE3, GL_CLIP_DISTANCE3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane3 = Gl.CLIP_PLANE3,
 
         /// <summary>
         /// Strongly typed for value GL_CLIP_PLANE3, GL_CLIP_DISTANCE3.
@@ -2743,26 +2356,8 @@ namespace OpenGL
         /// <summary>
         /// Strongly typed for value GL_CLIP_PLANE4, GL_CLIP_DISTANCE4.
         /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane4 = Gl.CLIP_PLANE4,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE4, GL_CLIP_DISTANCE4.
-        /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         ClipDistance4 = Gl.CLIP_DISTANCE4,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE5, GL_CLIP_DISTANCE5.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane5 = Gl.CLIP_PLANE5,
 
         /// <summary>
         /// Strongly typed for value GL_CLIP_PLANE5, GL_CLIP_DISTANCE5.
@@ -2793,12 +2388,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         ColorLogicOp = Gl.COLOR_LOGIC_OP,
-
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_MATERIAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorMaterial = Gl.COLOR_MATERIAL,
 
         /// <summary>
         /// Strongly typed for value GL_CULL_FACE.
@@ -2834,12 +2423,6 @@ namespace OpenGL
         EdgeFlagArray = Gl.EDGE_FLAG_ARRAY,
 
         /// <summary>
-        /// Strongly typed for value GL_FOG.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_NV_register_combiners")] [RemovedByFeature("GL_VERSION_3_2")]
-        Fog = Gl.FOG,
-
-        /// <summary>
         /// Strongly typed for value GL_INDEX_ARRAY.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
@@ -2852,178 +2435,10 @@ namespace OpenGL
         IndexLogicOp = Gl.INDEX_LOGIC_OP,
 
         /// <summary>
-        /// Strongly typed for value GL_LIGHT0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light0 = Gl.LIGHT0,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light1 = Gl.LIGHT1,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light2 = Gl.LIGHT2,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light3 = Gl.LIGHT3,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light4 = Gl.LIGHT4,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT5.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light5 = Gl.LIGHT5,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT6.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light6 = Gl.LIGHT6,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT7.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light7 = Gl.LIGHT7,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHTING.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Lighting = Gl.LIGHTING,
-
-        /// <summary>
         /// Strongly typed for value GL_LINE_SMOOTH.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         LineSmooth = Gl.LINE_SMOOTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_STIPPLE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineStipple = Gl.LINE_STIPPLE,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_COLOR_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Color4 = Gl.MAP1_COLOR_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Index = Gl.MAP1_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Normal = Gl.MAP1_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord1 = Gl.MAP1_TEXTURE_COORD_1,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord2 = Gl.MAP1_TEXTURE_COORD_2,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord3 = Gl.MAP1_TEXTURE_COORD_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord4 = Gl.MAP1_TEXTURE_COORD_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_VERTEX_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Vertex3 = Gl.MAP1_VERTEX_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_VERTEX_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Vertex4 = Gl.MAP1_VERTEX_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_COLOR_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Color4 = Gl.MAP2_COLOR_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Index = Gl.MAP2_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Normal = Gl.MAP2_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord1 = Gl.MAP2_TEXTURE_COORD_1,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord2 = Gl.MAP2_TEXTURE_COORD_2,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord3 = Gl.MAP2_TEXTURE_COORD_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord4 = Gl.MAP2_TEXTURE_COORD_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_VERTEX_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Vertex3 = Gl.MAP2_VERTEX_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_VERTEX_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Vertex4 = Gl.MAP2_VERTEX_4,
 
         /// <summary>
         /// Strongly typed for value GL_MULTISAMPLE_SGIS.
@@ -3037,22 +2452,10 @@ namespace OpenGL
         Multisample = Gl.MULTISAMPLE,
 
         /// <summary>
-        /// Strongly typed for value GL_NORMALIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Normalize = Gl.NORMALIZE,
-
-        /// <summary>
         /// Strongly typed for value GL_NORMAL_ARRAY.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
         NormalArray = Gl.NORMAL_ARRAY,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_SMOOTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointSmooth = Gl.POINT_SMOOTH,
 
         /// <summary>
         /// Strongly typed for value GL_POLYGON_OFFSET_FILL.
@@ -3079,12 +2482,6 @@ namespace OpenGL
         /// Strongly typed for value GL_POLYGON_SMOOTH.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")] PolygonSmooth = Gl.POLYGON_SMOOTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_POLYGON_STIPPLE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PolygonStipple = Gl.POLYGON_STIPPLE,
 
         /// <summary>
         /// Strongly typed for value GL_RESCALE_NORMAL_EXT.
@@ -3157,30 +2554,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
         TextureCoordArray = Gl.TEXTURE_COORD_ARRAY,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_Q.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenQ = Gl.TEXTURE_GEN_Q,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenR = Gl.TEXTURE_GEN_R,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_S.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenS = Gl.TEXTURE_GEN_S,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_T.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenT = Gl.TEXTURE_GEN_T,
 
         /// <summary>
         /// Strongly typed for value GL_VERTEX_ARRAY.
@@ -3315,91 +2688,6 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration FeedBackToken.
-    /// </summary>
-    public enum FeedBackToken
-    {
-        /// <summary>
-        /// Strongly typed for value GL_BITMAP_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        BitmapToken = Gl.BITMAP_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_COPY_PIXEL_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CopyPixelToken = Gl.COPY_PIXEL_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_DRAW_PIXEL_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        DrawPixelToken = Gl.DRAW_PIXEL_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_RESET_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineResetToken = Gl.LINE_RESET_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineToken = Gl.LINE_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_PASS_THROUGH_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PassThroughToken = Gl.PASS_THROUGH_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointToken = Gl.POINT_TOKEN,
-
-        /// <summary>
-        /// Strongly typed for value GL_POLYGON_TOKEN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PolygonToken = Gl.POLYGON_TOKEN
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration FeedbackType.
-    /// </summary>
-    public enum FeedbackType
-    {
-        /// <summary>
-        /// Strongly typed for value GL_2D.
-        /// </summary>
-        _2d = Gl._2D,
-
-        /// <summary>
-        /// Strongly typed for value GL_3D.
-        /// </summary>
-        _3d = Gl._3D,
-
-        /// <summary>
-        /// Strongly typed for value GL_3D_COLOR.
-        /// </summary>
-        _3dColor = Gl._3D_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_3D_COLOR_TEXTURE.
-        /// </summary>
-        _3dColorTexture = Gl._3D_COLOR_TEXTURE,
-
-        /// <summary>
-        /// Strongly typed for value GL_4D_COLOR_TEXTURE.
-        /// </summary>
-        _4dColorTexture = Gl._4D_COLOR_TEXTURE
-    }
-
-    /// <summary>
     /// Strongly typed enumeration FogCoordinatePointerType.
     /// </summary>
     public enum FogCoordinatePointerType
@@ -3428,18 +2716,6 @@ namespace OpenGL
     public enum FogMode
     {
         /// <summary>
-        /// Strongly typed for value GL_EXP.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Exp = Gl.EXP,
-
-        /// <summary>
-        /// Strongly typed for value GL_EXP2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Exp2 = Gl.EXP2,
-
-        /// <summary>
         /// Strongly typed for value GL_LINEAR.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -3447,90 +2723,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         Linear = Gl.LINEAR
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration FogParameter.
-    /// </summary>
-    public enum FogParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_FOG_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogColor = Gl.FOG_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_DENSITY.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogDensity = Gl.FOG_DENSITY,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_END.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogEnd = Gl.FOG_END,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogIndex = Gl.FOG_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogMode = Gl.FOG_MODE,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_START.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogStart = Gl.FOG_START
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration FogPName.
-    /// </summary>
-    public enum FogPName
-    {
-        /// <summary>
-        /// Strongly typed for value GL_FOG_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogMode = Gl.FOG_MODE,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_DENSITY.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogDensity = Gl.FOG_DENSITY,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_START.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogStart = Gl.FOG_START,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_END.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogEnd = Gl.FOG_END,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogIndex = Gl.FOG_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_COORD_SRC.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogCoordinateSource = Gl.FOG_COORDINATE_SOURCE
     }
 
     /// <summary>
@@ -4304,130 +3496,10 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration GetMapQuery.
-    /// </summary>
-    public enum GetMapQuery
-    {
-        /// <summary>
-        /// Strongly typed for value GL_COEFF.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Coeff = Gl.COEFF,
-
-        /// <summary>
-        /// Strongly typed for value GL_DOMAIN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Domain = Gl.DOMAIN,
-
-        /// <summary>
-        /// Strongly typed for value GL_ORDER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Order = Gl.ORDER
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration GetPixelMap.
-    /// </summary>
-    public enum GetPixelMap
-    {
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_A_TO_A.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapAToA = Gl.PIXEL_MAP_A_TO_A,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_B_TO_B.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapBToB = Gl.PIXEL_MAP_B_TO_B,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_G_TO_G.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapGToG = Gl.PIXEL_MAP_G_TO_G,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_A.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToA = Gl.PIXEL_MAP_I_TO_A,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_B.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToB = Gl.PIXEL_MAP_I_TO_B,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_G.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToG = Gl.PIXEL_MAP_I_TO_G,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_I.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToI = Gl.PIXEL_MAP_I_TO_I,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToR = Gl.PIXEL_MAP_I_TO_R,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_R_TO_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapRToR = Gl.PIXEL_MAP_R_TO_R,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_S_TO_S.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapSToS = Gl.PIXEL_MAP_S_TO_S
-    }
-
-    /// <summary>
     /// Strongly typed enumeration GetPName.
     /// </summary>
     public enum GetPName
     {
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM_ALPHA_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumAlphaBits = Gl.ACCUM_ALPHA_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM_BLUE_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumBlueBits = Gl.ACCUM_BLUE_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM_CLEAR_VALUE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumClearValue = Gl.ACCUM_CLEAR_VALUE,
-
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM_GREEN_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumGreenBits = Gl.ACCUM_GREEN_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_ACCUM_RED_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AccumRedBits = Gl.ACCUM_RED_BITS,
-
         /// <summary>
         /// Strongly typed for value GL_ACTIVE_TEXTURE.
         /// </summary>
@@ -4458,46 +3530,6 @@ namespace OpenGL
         AliasedPointSizeRange = Gl.ALIASED_POINT_SIZE_RANGE,
 
         /// <summary>
-        /// Strongly typed for value GL_ALPHA_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaBias = Gl.ALPHA_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaBits = Gl.ALPHA_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaScale = Gl.ALPHA_SCALE,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_TEST, GL_ALPHA_TEST_QCOM.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_QCOM_alpha_test", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaTest = Gl.ALPHA_TEST,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_TEST_FUNC, GL_ALPHA_TEST_FUNC_QCOM.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_QCOM_alpha_test", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaTestFunc = Gl.ALPHA_TEST_FUNC,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_TEST_REF, GL_ALPHA_TEST_REF_QCOM.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_QCOM_alpha_test", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaTestRef = Gl.ALPHA_TEST_REF,
-
-        /// <summary>
         /// Strongly typed for value GL_ARRAY_BUFFER_BINDING.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_5")]
@@ -4506,24 +3538,6 @@ namespace OpenGL
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         [RequiredByFeature("GL_ARB_vertex_buffer_object")]
         ArrayBufferBinding = Gl.ARRAY_BUFFER_BINDING,
-
-        /// <summary>
-        /// Strongly typed for value GL_ATTRIB_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AttribStackDepth = Gl.ATTRIB_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUTO_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AutoNormal = Gl.AUTO_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX_BUFFERS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AuxBuffers = Gl.AUX_BUFFERS,
 
         /// <summary>
         /// Strongly typed for value GL_BLEND.
@@ -4631,86 +3645,10 @@ namespace OpenGL
         BlendSrcRgb = Gl.BLEND_SRC_RGB,
 
         /// <summary>
-        /// Strongly typed for value GL_BLUE_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        BlueBias = Gl.BLUE_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_BLUE_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        BlueBits = Gl.BLUE_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_BLUE_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        BlueScale = Gl.BLUE_SCALE,
-
-        /// <summary>
         /// Strongly typed for value GL_CLIENT_ATTRIB_STACK_DEPTH.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
         ClientAttribStackDepth = Gl.CLIENT_ATTRIB_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane0 = Gl.CLIP_PLANE0,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane1 = Gl.CLIP_PLANE1,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane2 = Gl.CLIP_PLANE2,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane3 = Gl.CLIP_PLANE3,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane4 = Gl.CLIP_PLANE4,
-
-        /// <summary>
-        /// Strongly typed for value GL_CLIP_PLANE5.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        ClipPlane5 = Gl.CLIP_PLANE5,
 
         /// <summary>
         /// Strongly typed for value GL_COLOR_ARRAY.
@@ -4750,24 +3688,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         ColorLogicOp = Gl.COLOR_LOGIC_OP,
-
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_MATERIAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorMaterial = Gl.COLOR_MATERIAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_MATERIAL_FACE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorMaterialFace = Gl.COLOR_MATERIAL_FACE,
-
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_MATERIAL_PARAMETER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorMaterialParameter = Gl.COLOR_MATERIAL_PARAMETER,
 
         /// <summary>
         /// Strongly typed for value GL_COLOR_WRITEMASK.
@@ -4815,70 +3735,10 @@ namespace OpenGL
         CullFaceMode = Gl.CULL_FACE_MODE,
 
         /// <summary>
-        /// Strongly typed for value GL_CURRENT_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentColor = Gl.CURRENT_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentIndex = Gl.CURRENT_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentNormal = Gl.CURRENT_NORMAL,
-
-        /// <summary>
         /// Strongly typed for value GL_CURRENT_PROGRAM.
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_0")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         CurrentProgram = Gl.CURRENT_PROGRAM,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_RASTER_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentRasterColor = Gl.CURRENT_RASTER_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_RASTER_DISTANCE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentRasterDistance = Gl.CURRENT_RASTER_DISTANCE,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_RASTER_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentRasterIndex = Gl.CURRENT_RASTER_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_RASTER_POSITION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentRasterPosition = Gl.CURRENT_RASTER_POSITION,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_RASTER_POSITION_VALID.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentRasterPositionValid = Gl.CURRENT_RASTER_POSITION_VALID,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_RASTER_TEXTURE_COORDS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentRasterTextureCoords = Gl.CURRENT_RASTER_TEXTURE_COORDS,
-
-        /// <summary>
-        /// Strongly typed for value GL_CURRENT_TEXTURE_COORDS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        CurrentTextureCoords = Gl.CURRENT_TEXTURE_COORDS,
 
         /// <summary>
         /// Strongly typed for value GL_DEBUG_GROUP_STACK_DEPTH.
@@ -4888,22 +3748,6 @@ namespace OpenGL
         [RequiredByFeature("GL_KHR_debug", Api = "gl|glcore|gles1|gles2")]
         [RequiredByFeature("GL_KHR_debug", Api = "gl|glcore|gles1|gles2")]
         DebugGroupStackDepth = Gl.DEBUG_GROUP_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_DEPTH_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        DepthBias = Gl.DEPTH_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_DEPTH_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        DepthBits = Gl.DEPTH_BITS,
 
         /// <summary>
         /// Strongly typed for value GL_DEPTH_CLEAR_VALUE.
@@ -4934,12 +3778,6 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_viewport_array", Api = "gles2")]
         [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
         DepthRange = Gl.DEPTH_RANGE,
-
-        /// <summary>
-        /// Strongly typed for value GL_DEPTH_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        DepthScale = Gl.DEPTH_SCALE,
 
         /// <summary>
         /// Strongly typed for value GL_DEPTH_TEST.
@@ -4998,12 +3836,6 @@ namespace OpenGL
         DrawFramebufferBinding = Gl.DRAW_FRAMEBUFFER_BINDING,
 
         /// <summary>
-        /// Strongly typed for value GL_EDGE_FLAG.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        EdgeFlag = Gl.EDGE_FLAG,
-
-        /// <summary>
         /// Strongly typed for value GL_EDGE_FLAG_ARRAY.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
@@ -5038,54 +3870,6 @@ namespace OpenGL
         FeedbackBufferType = Gl.FEEDBACK_BUFFER_TYPE,
 
         /// <summary>
-        /// Strongly typed for value GL_FOG.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_NV_register_combiners")] [RemovedByFeature("GL_VERSION_3_2")]
-        Fog = Gl.FOG,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogColor = Gl.FOG_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_DENSITY.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogDensity = Gl.FOG_DENSITY,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_END.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogEnd = Gl.FOG_END,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_HINT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogHint = Gl.FOG_HINT,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogIndex = Gl.FOG_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogMode = Gl.FOG_MODE,
-
-        /// <summary>
-        /// Strongly typed for value GL_FOG_START.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogStart = Gl.FOG_START,
-
-        /// <summary>
         /// Strongly typed for value GL_FRAGMENT_SHADER_DERIVATIVE_HINT.
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_0")]
@@ -5113,28 +3897,6 @@ namespace OpenGL
         [RequiredByFeature("GL_SGIS_generate_mipmap")]
         [RemovedByFeature("GL_VERSION_3_2")]
         GenerateMipmapHint = Gl.GENERATE_MIPMAP_HINT,
-
-        /// <summary>
-        /// Strongly typed for value GL_GREEN_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        GreenBias = Gl.GREEN_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_GREEN_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        GreenBits = Gl.GREEN_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_GREEN_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        GreenScale = Gl.GREEN_SCALE,
 
         /// <summary>
         /// Strongly typed for value GL_IMPLEMENTATION_COLOR_READ_FORMAT.
@@ -5175,52 +3937,10 @@ namespace OpenGL
         IndexArrayType = Gl.INDEX_ARRAY_TYPE,
 
         /// <summary>
-        /// Strongly typed for value GL_INDEX_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexBits = Gl.INDEX_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_CLEAR_VALUE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexClearValue = Gl.INDEX_CLEAR_VALUE,
-
-        /// <summary>
         /// Strongly typed for value GL_INDEX_LOGIC_OP, GL_LOGIC_OP.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
         IndexLogicOp = Gl.INDEX_LOGIC_OP,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_LOGIC_OP, GL_LOGIC_OP.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LogicOp = Gl.LOGIC_OP,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexMode = Gl.INDEX_MODE,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_OFFSET.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexOffset = Gl.INDEX_OFFSET,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_SHIFT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexShift = Gl.INDEX_SHIFT,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_WRITEMASK.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexWritemask = Gl.INDEX_WRITEMASK,
 
         /// <summary>
         /// Strongly typed for value GL_LAYER_PROVOKING_VERTEX.
@@ -5233,82 +3953,10 @@ namespace OpenGL
         LayerProvokingVertex = Gl.LAYER_PROVOKING_VERTEX,
 
         /// <summary>
-        /// Strongly typed for value GL_LIGHT0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light0 = Gl.LIGHT0,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light1 = Gl.LIGHT1,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light2 = Gl.LIGHT2,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light3 = Gl.LIGHT3,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light4 = Gl.LIGHT4,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT5.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light5 = Gl.LIGHT5,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT6.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light6 = Gl.LIGHT6,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT7.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light7 = Gl.LIGHT7,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHTING.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Lighting = Gl.LIGHTING,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_AMBIENT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelAmbient = Gl.LIGHT_MODEL_AMBIENT,
-
-        /// <summary>
         /// Strongly typed for value GL_LIGHT_MODEL_COLOR_CONTROL.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_EXT_separate_specular_color")] [RemovedByFeature("GL_VERSION_3_2")]
         LightModelColorControl = Gl.LIGHT_MODEL_COLOR_CONTROL,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_LOCAL_VIEWER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelLocalViewer = Gl.LIGHT_MODEL_LOCAL_VIEWER,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_TWO_SIDE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelTwoSide = Gl.LIGHT_MODEL_TWO_SIDE,
 
         /// <summary>
         /// Strongly typed for value GL_LINE_SMOOTH.
@@ -5321,24 +3969,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         LineSmoothHint = Gl.LINE_SMOOTH_HINT,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_STIPPLE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineStipple = Gl.LINE_STIPPLE,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_STIPPLE_PATTERN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineStipplePattern = Gl.LINE_STIPPLE_PATTERN,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINE_STIPPLE_REPEAT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LineStippleRepeat = Gl.LINE_STIPPLE_REPEAT,
 
         /// <summary>
         /// Strongly typed for value GL_LINE_WIDTH.
@@ -5360,24 +3990,6 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")] LineWidthRange = Gl.LINE_WIDTH_RANGE,
 
         /// <summary>
-        /// Strongly typed for value GL_LIST_BASE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ListBase = Gl.LIST_BASE,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIST_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ListIndex = Gl.LIST_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIST_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ListMode = Gl.LIST_MODE,
-
-        /// <summary>
         /// Strongly typed for value GL_LOGIC_OP_MODE.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -5388,156 +4000,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         MajorVersion = Gl.MAJOR_VERSION,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_COLOR_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Color4 = Gl.MAP1_COLOR_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_GRID_DOMAIN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1GridDomain = Gl.MAP1_GRID_DOMAIN,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_GRID_SEGMENTS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1GridSegments = Gl.MAP1_GRID_SEGMENTS,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Index = Gl.MAP1_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Normal = Gl.MAP1_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord1 = Gl.MAP1_TEXTURE_COORD_1,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord2 = Gl.MAP1_TEXTURE_COORD_2,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord3 = Gl.MAP1_TEXTURE_COORD_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord4 = Gl.MAP1_TEXTURE_COORD_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_VERTEX_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Vertex3 = Gl.MAP1_VERTEX_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_VERTEX_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Vertex4 = Gl.MAP1_VERTEX_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_COLOR_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Color4 = Gl.MAP2_COLOR_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_GRID_DOMAIN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2GridDomain = Gl.MAP2_GRID_DOMAIN,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_GRID_SEGMENTS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2GridSegments = Gl.MAP2_GRID_SEGMENTS,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Index = Gl.MAP2_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Normal = Gl.MAP2_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord1 = Gl.MAP2_TEXTURE_COORD_1,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord2 = Gl.MAP2_TEXTURE_COORD_2,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord3 = Gl.MAP2_TEXTURE_COORD_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord4 = Gl.MAP2_TEXTURE_COORD_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_VERTEX_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Vertex3 = Gl.MAP2_VERTEX_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_VERTEX_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Vertex4 = Gl.MAP2_VERTEX_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MapColor = Gl.MAP_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP_STENCIL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MapStencil = Gl.MAP_STENCIL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MATRIX_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        MatrixMode = Gl.MATRIX_MODE,
 
         /// <summary>
         /// Strongly typed for value GL_MAX_3D_TEXTURE_SIZE, GL_MAX_3D_TEXTURE_SIZE_EXT.
@@ -5556,15 +4018,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_APPLE_clip_distance", Api = "gles2")]
         MaxClipDistances = Gl.MAX_CLIP_DISTANCES,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_CLIP_DISTANCES, GL_MAX_CLIP_PLANES.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        MaxClipPlanes = Gl.MAX_CLIP_PLANES,
 
         /// <summary>
         /// Strongly typed for value GL_MAX_COLOR_TEXTURE_SAMPLES.
@@ -5742,12 +4195,6 @@ namespace OpenGL
         MaxElementIndex = Gl.MAX_ELEMENT_INDEX,
 
         /// <summary>
-        /// Strongly typed for value GL_MAX_EVAL_ORDER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxEvalOrder = Gl.MAX_EVAL_ORDER,
-
-        /// <summary>
         /// Strongly typed for value GL_MAX_FRAGMENT_ATOMIC_COUNTERS.
         /// </summary>
         [RequiredByFeature("GL_VERSION_4_2")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_ARB_shader_atomic_counters", Api = "gl|glcore")]
@@ -5880,46 +4327,10 @@ namespace OpenGL
         MaxLabelLength = Gl.MAX_LABEL_LENGTH,
 
         /// <summary>
-        /// Strongly typed for value GL_MAX_LIGHTS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxLights = Gl.MAX_LIGHTS,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_LIST_NESTING.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxListNesting = Gl.MAX_LIST_NESTING,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_MODELVIEW_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxModelviewStackDepth = Gl.MAX_MODELVIEW_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_NAME_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxNameStackDepth = Gl.MAX_NAME_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_PIXEL_MAP_TABLE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxPixelMapTable = Gl.MAX_PIXEL_MAP_TABLE,
-
-        /// <summary>
         /// Strongly typed for value GL_MAX_PROGRAM_TEXEL_OFFSET.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4")] [RequiredByFeature("GL_NV_gpu_program4")]
         MaxProgramTexelOffset = Gl.MAX_PROGRAM_TEXEL_OFFSET,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_PROJECTION_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxProjectionStackDepth = Gl.MAX_PROJECTION_STACK_DEPTH,
 
         /// <summary>
         /// Strongly typed for value GL_MAX_RECTANGLE_TEXTURE_SIZE.
@@ -6038,12 +4449,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         MaxTextureSize = Gl.MAX_TEXTURE_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAX_TEXTURE_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        MaxTextureStackDepth = Gl.MAX_TEXTURE_STACK_DEPTH,
 
         /// <summary>
         /// Strongly typed for value GL_MAX_UNIFORM_BLOCK_SIZE.
@@ -6186,18 +4591,6 @@ namespace OpenGL
         MinProgramTexelOffset = Gl.MIN_PROGRAM_TEXEL_OFFSET,
 
         /// <summary>
-        /// Strongly typed for value GL_MODELVIEW0_MATRIX_EXT, GL_MODELVIEW_MATRIX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ModelviewMatrix = Gl.MODELVIEW_MATRIX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MODELVIEW0_STACK_DEPTH_EXT, GL_MODELVIEW_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ModelviewStackDepth = Gl.MODELVIEW_STACK_DEPTH,
-
-        /// <summary>
         /// Strongly typed for value GL_MULTISAMPLE_SGIS.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_3")]
@@ -6207,18 +4600,6 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_multisampled_compatibility", Api = "gles2")]
         [RequiredByFeature("GL_SGIS_multisample")]
         Multisample = Gl.MULTISAMPLE,
-
-        /// <summary>
-        /// Strongly typed for value GL_NAME_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        NameStackDepth = Gl.NAME_STACK_DEPTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_NORMALIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Normalize = Gl.NORMALIZE,
 
         /// <summary>
         /// Strongly typed for value GL_NORMAL_ARRAY.
@@ -6320,72 +4701,6 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")] PackSwapBytes = Gl.PACK_SWAP_BYTES,
 
         /// <summary>
-        /// Strongly typed for value GL_PERSPECTIVE_CORRECTION_HINT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        PerspectiveCorrectionHint = Gl.PERSPECTIVE_CORRECTION_HINT,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_A_TO_A_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapAToASize = Gl.PIXEL_MAP_A_TO_A_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_B_TO_B_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapBToBSize = Gl.PIXEL_MAP_B_TO_B_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_G_TO_G_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapGToGSize = Gl.PIXEL_MAP_G_TO_G_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_A_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToASize = Gl.PIXEL_MAP_I_TO_A_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_B_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToBSize = Gl.PIXEL_MAP_I_TO_B_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_G_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToGSize = Gl.PIXEL_MAP_I_TO_G_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_I_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToISize = Gl.PIXEL_MAP_I_TO_I_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_R_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToRSize = Gl.PIXEL_MAP_I_TO_R_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_R_TO_R_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapRToRSize = Gl.PIXEL_MAP_R_TO_R_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_S_TO_S_SIZE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapSToSSize = Gl.PIXEL_MAP_S_TO_S_SIZE,
-
-        /// <summary>
         /// Strongly typed for value GL_PIXEL_PACK_BUFFER_BINDING.
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_1")]
@@ -6454,18 +4769,6 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")] PointSizeRange = Gl.POINT_SIZE_RANGE,
 
         /// <summary>
-        /// Strongly typed for value GL_POINT_SMOOTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointSmooth = Gl.POINT_SMOOTH,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_SMOOTH_HINT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointSmoothHint = Gl.POINT_SMOOTH_HINT,
-
-        /// <summary>
         /// Strongly typed for value GL_POLYGON_MODE.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
@@ -6522,12 +4825,6 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_0")] PolygonSmoothHint = Gl.POLYGON_SMOOTH_HINT,
 
         /// <summary>
-        /// Strongly typed for value GL_POLYGON_STIPPLE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PolygonStipple = Gl.POLYGON_STIPPLE,
-
-        /// <summary>
         /// Strongly typed for value GL_PRIMITIVE_RESTART_INDEX.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_1")] PrimitiveRestartIndex = Gl.PRIMITIVE_RESTART_INDEX,
@@ -6556,18 +4853,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_0")] [RequiredByFeature("GL_ARB_vertex_program")] [RequiredByFeature("GL_ARB_vertex_shader")] [RequiredByFeature("GL_NV_vertex_program")]
         VertexProgramPointSize = Gl.VERTEX_PROGRAM_POINT_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_PROJECTION_MATRIX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ProjectionMatrix = Gl.PROJECTION_MATRIX,
-
-        /// <summary>
-        /// Strongly typed for value GL_PROJECTION_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ProjectionStackDepth = Gl.PROJECTION_STACK_DEPTH,
 
         /// <summary>
         /// Strongly typed for value GL_PROVOKING_VERTEX.
@@ -6600,28 +4885,6 @@ namespace OpenGL
         ReadFramebufferBinding = Gl.READ_FRAMEBUFFER_BINDING,
 
         /// <summary>
-        /// Strongly typed for value GL_RED_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        RedBias = Gl.RED_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_RED_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        RedBits = Gl.RED_BITS,
-
-        /// <summary>
-        /// Strongly typed for value GL_RED_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        RedScale = Gl.RED_SCALE,
-
-        /// <summary>
         /// Strongly typed for value GL_RENDERBUFFER_BINDING.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")]
@@ -6633,22 +4896,10 @@ namespace OpenGL
         RenderbufferBinding = Gl.RENDERBUFFER_BINDING,
 
         /// <summary>
-        /// Strongly typed for value GL_RENDER_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        RenderMode = Gl.RENDER_MODE,
-
-        /// <summary>
         /// Strongly typed for value GL_RESCALE_NORMAL_EXT.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_rescale_normal")] [RemovedByFeature("GL_VERSION_3_2")]
         RescaleNormal = Gl.RESCALE_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_RGBA_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        RgbaMode = Gl.RGBA_MODE,
 
         /// <summary>
         /// Strongly typed for value GL_SAMPLER_BINDING.
@@ -6774,12 +5025,6 @@ namespace OpenGL
         ShaderStorageBufferStart = Gl.SHADER_STORAGE_BUFFER_START,
 
         /// <summary>
-        /// Strongly typed for value GL_SHADE_MODEL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ShadeModel = Gl.SHADE_MODEL,
-
-        /// <summary>
         /// Strongly typed for value GL_STENCIL_BACK_FAIL.
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_0")]
@@ -6832,16 +5077,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_0")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         StencilBackWritemask = Gl.STENCIL_BACK_WRITEMASK,
-
-        /// <summary>
-        /// Strongly typed for value GL_STENCIL_BITS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        StencilBits = Gl.STENCIL_BITS,
 
         /// <summary>
         /// Strongly typed for value GL_STENCIL_CLEAR_VALUE.
@@ -7106,42 +5341,6 @@ namespace OpenGL
         TextureCoordArrayType = Gl.TEXTURE_COORD_ARRAY_TYPE,
 
         /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_Q.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenQ = Gl.TEXTURE_GEN_Q,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenR = Gl.TEXTURE_GEN_R,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_S.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenS = Gl.TEXTURE_GEN_S,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_T.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenT = Gl.TEXTURE_GEN_T,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_MATRIX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureMatrix = Gl.TEXTURE_MATRIX,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_STACK_DEPTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureStackDepth = Gl.TEXTURE_STACK_DEPTH,
-
-        /// <summary>
         /// Strongly typed for value GL_TIMESTAMP.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_3")] [RequiredByFeature("GL_ARB_timer_query", Api = "gl|glcore")] [RequiredByFeature("GL_EXT_disjoint_timer_query", Api = "gles2")]
@@ -7337,18 +5536,6 @@ namespace OpenGL
         ViewportSubpixelBits = Gl.VIEWPORT_SUBPIXEL_BITS,
 
         /// <summary>
-        /// Strongly typed for value GL_ZOOM_X.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ZoomX = Gl.ZOOM_X,
-
-        /// <summary>
-        /// Strongly typed for value GL_ZOOM_Y.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ZoomY = Gl.ZOOM_Y,
-
-        /// <summary>
         /// Strongly typed for value GL_NUM_SHADING_LANGUAGE_VERSIONS.
         /// </summary>
         [RequiredByFeature("GL_VERSION_4_3")] NumShadingLanguageVersions = Gl.NUM_SHADING_LANGUAGE_VERSIONS
@@ -7359,54 +5546,6 @@ namespace OpenGL
     /// </summary>
     public enum GetPointervPName
     {
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_ARRAY_POINTER, GL_COLOR_ARRAY_POINTER_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorArrayPointer = Gl.COLOR_ARRAY_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_EDGE_FLAG_ARRAY_POINTER, GL_EDGE_FLAG_ARRAY_POINTER_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
-        EdgeFlagArrayPointer = Gl.EDGE_FLAG_ARRAY_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_FEEDBACK_BUFFER_POINTER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FeedbackBufferPointer = Gl.FEEDBACK_BUFFER_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_ARRAY_POINTER, GL_INDEX_ARRAY_POINTER_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexArrayPointer = Gl.INDEX_ARRAY_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_NORMAL_ARRAY_POINTER, GL_NORMAL_ARRAY_POINTER_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
-        NormalArrayPointer = Gl.NORMAL_ARRAY_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_SELECTION_BUFFER_POINTER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        SelectionBufferPointer = Gl.SELECTION_BUFFER_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_COORD_ARRAY_POINTER, GL_TEXTURE_COORD_ARRAY_POINTER_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureCoordArrayPointer = Gl.TEXTURE_COORD_ARRAY_POINTER,
-
-        /// <summary>
-        /// Strongly typed for value GL_VERTEX_ARRAY_POINTER, GL_VERTEX_ARRAY_POINTER_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
-        VertexArrayPointer = Gl.VERTEX_ARRAY_POINTER,
-
         /// <summary>
         /// Strongly typed for value GL_DEBUG_CALLBACK_FUNCTION.
         /// </summary>
@@ -7458,12 +5597,6 @@ namespace OpenGL
         TextureBlueSize = Gl.TEXTURE_BLUE_SIZE,
 
         /// <summary>
-        /// Strongly typed for value GL_TEXTURE_BORDER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureBorder = Gl.TEXTURE_BORDER,
-
-        /// <summary>
         /// Strongly typed for value GL_TEXTURE_BORDER_COLOR, GL_TEXTURE_BORDER_COLOR_NV.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -7472,12 +5605,6 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_texture_border_clamp", Api = "gles2")]
         [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
         TextureBorderColor = Gl.TEXTURE_BORDER_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_COMPONENTS, GL_TEXTURE_INTERNAL_FORMAT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureComponents = Gl.TEXTURE_COMPONENTS,
 
         /// <summary>
         /// Strongly typed for value GL_TEXTURE_COMPONENTS, GL_TEXTURE_INTERNAL_FORMAT.
@@ -7698,12 +5825,6 @@ namespace OpenGL
     public enum HintTarget
     {
         /// <summary>
-        /// Strongly typed for value GL_FOG_HINT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        FogHint = Gl.FOG_HINT,
-
-        /// <summary>
         /// Strongly typed for value GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_FRAGMENT_SHADER_DERIVATIVE_HINT_ARB,
         /// GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES.
         /// </summary>
@@ -7729,18 +5850,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         LineSmoothHint = Gl.LINE_SMOOTH_HINT,
-
-        /// <summary>
-        /// Strongly typed for value GL_PERSPECTIVE_CORRECTION_HINT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        PerspectiveCorrectionHint = Gl.PERSPECTIVE_CORRECTION_HINT,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_SMOOTH_HINT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointSmoothHint = Gl.POINT_SMOOTH_HINT,
 
         /// <summary>
         /// Strongly typed for value GL_POLYGON_SMOOTH_HINT.
@@ -7800,225 +5909,15 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration InterleavedArrayFormat.
-    /// </summary>
-    public enum InterleavedArrayFormat
-    {
-        /// <summary>
-        /// Strongly typed for value GL_C3F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        C3FV3F = Gl.C3F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_C4F_N3F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        C4FN3FV3F = Gl.C4F_N3F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_C4UB_V2F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        C4UbV2F = Gl.C4UB_V2F,
-
-        /// <summary>
-        /// Strongly typed for value GL_C4UB_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        C4UbV3F = Gl.C4UB_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_N3F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        N3FV3F = Gl.N3F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T2F_C3F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T2FC3FV3F = Gl.T2F_C3F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T2F_C4F_N3F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T2FC4FN3FV3F = Gl.T2F_C4F_N3F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T2F_C4UB_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T2FC4UbV3F = Gl.T2F_C4UB_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T2F_N3F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T2FN3FV3F = Gl.T2F_N3F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T2F_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T2FV3F = Gl.T2F_V3F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T4F_C4F_N3F_V4F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T4FC4FN3FV4F = Gl.T4F_C4F_N3F_V4F,
-
-        /// <summary>
-        /// Strongly typed for value GL_T4F_V4F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        T4FV4F = Gl.T4F_V4F,
-
-        /// <summary>
-        /// Strongly typed for value GL_V2F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        V2F = Gl.V2F,
-
-        /// <summary>
-        /// Strongly typed for value GL_V3F.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
-        V3F = Gl.V3F
-    }
-
-    /// <summary>
     /// Strongly typed enumeration InternalFormat.
     /// </summary>
     public enum InternalFormat
     {
         /// <summary>
-        /// Strongly typed for value GL_ALPHA12.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Alpha12 = Gl.ALPHA12,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA16.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Alpha16 = Gl.ALPHA16,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Alpha4 = Gl.ALPHA4,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA8.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")]
-        [RequiredByFeature("GL_EXT_texture")]
-        [RequiredByFeature("GL_EXT_texture_storage", Api = "gles1|gles2")]
-        [RequiredByFeature("GL_OES_required_internalformat", Api = "gles1|gles2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        Alpha8 = Gl.ALPHA8,
-
-        /// <summary>
         /// Strongly typed for value GL_INTENSITY.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
         Intensity = Gl.INTENSITY,
-
-        /// <summary>
-        /// Strongly typed for value GL_INTENSITY12.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Intensity12 = Gl.INTENSITY12,
-
-        /// <summary>
-        /// Strongly typed for value GL_INTENSITY16.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Intensity16 = Gl.INTENSITY16,
-
-        /// <summary>
-        /// Strongly typed for value GL_INTENSITY4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Intensity4 = Gl.INTENSITY4,
-
-        /// <summary>
-        /// Strongly typed for value GL_INTENSITY8.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Intensity8 = Gl.INTENSITY8,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE12.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance12 = Gl.LUMINANCE12,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE12_ALPHA12.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance12Alpha12 = Gl.LUMINANCE12_ALPHA12,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE12_ALPHA4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance12Alpha4 = Gl.LUMINANCE12_ALPHA4,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE16.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance16 = Gl.LUMINANCE16,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE16_ALPHA16.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance16Alpha16 = Gl.LUMINANCE16_ALPHA16,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance4 = Gl.LUMINANCE4,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE4_ALPHA4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RequiredByFeature("GL_OES_required_internalformat", Api = "gles1|gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance4Alpha4 = Gl.LUMINANCE4_ALPHA4,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE6_ALPHA2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance6Alpha2 = Gl.LUMINANCE6_ALPHA2,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE8.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")]
-        [RequiredByFeature("GL_EXT_texture")]
-        [RequiredByFeature("GL_EXT_texture_storage", Api = "gles1|gles2")]
-        [RequiredByFeature("GL_OES_required_internalformat", Api = "gles1|gles2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance8 = Gl.LUMINANCE8,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE8_ALPHA8.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_1")]
-        [RequiredByFeature("GL_EXT_texture")]
-        [RequiredByFeature("GL_EXT_texture_storage", Api = "gles1|gles2")]
-        [RequiredByFeature("GL_OES_required_internalformat", Api = "gles1|gles2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance8Alpha8 = Gl.LUMINANCE8_ALPHA8,
 
         /// <summary>
         /// Strongly typed for value GL_RED, GL_RED_EXT.
@@ -9205,238 +7104,10 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration LightEnvModeSGIX.
-    /// </summary>
-    public enum LightEnvModeSgix
-    {
-        /// <summary>
-        /// Strongly typed for value GL_ADD.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Add = Gl.ADD,
-
-        /// <summary>
-        /// Strongly typed for value GL_MODULATE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Modulate = Gl.MODULATE,
-
-        /// <summary>
-        /// Strongly typed for value GL_REPLACE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        Replace = Gl.REPLACE
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration LightModelColorControl.
-    /// </summary>
-    public enum LightModelColorControl
-    {
-        /// <summary>
-        /// Strongly typed for value GL_SEPARATE_SPECULAR_COLOR, GL_SEPARATE_SPECULAR_COLOR_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_EXT_separate_specular_color")] [RemovedByFeature("GL_VERSION_3_2")]
-        SeparateSpecularColor = Gl.SEPARATE_SPECULAR_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_SINGLE_COLOR, GL_SINGLE_COLOR_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_EXT_separate_specular_color")] [RemovedByFeature("GL_VERSION_3_2")]
-        SingleColor = Gl.SINGLE_COLOR
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration LightModelParameter.
-    /// </summary>
-    public enum LightModelParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_AMBIENT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelAmbient = Gl.LIGHT_MODEL_AMBIENT,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_COLOR_CONTROL, GL_LIGHT_MODEL_COLOR_CONTROL_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_EXT_separate_specular_color")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelColorControl = Gl.LIGHT_MODEL_COLOR_CONTROL,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_LOCAL_VIEWER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelLocalViewer = Gl.LIGHT_MODEL_LOCAL_VIEWER,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT_MODEL_TWO_SIDE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        LightModelTwoSide = Gl.LIGHT_MODEL_TWO_SIDE
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration LightName.
-    /// </summary>
-    public enum LightName
-    {
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light0 = Gl.LIGHT0,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light1 = Gl.LIGHT1,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light2 = Gl.LIGHT2,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light3 = Gl.LIGHT3,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light4 = Gl.LIGHT4,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT5.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light5 = Gl.LIGHT5,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT6.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light6 = Gl.LIGHT6,
-
-        /// <summary>
-        /// Strongly typed for value GL_LIGHT7.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Light7 = Gl.LIGHT7
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration LightParameter.
-    /// </summary>
-    public enum LightParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_AMBIENT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Ambient = Gl.AMBIENT,
-
-        /// <summary>
-        /// Strongly typed for value GL_CONSTANT_ATTENUATION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        ConstantAttenuation = Gl.CONSTANT_ATTENUATION,
-
-        /// <summary>
-        /// Strongly typed for value GL_DIFFUSE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Diffuse = Gl.DIFFUSE,
-
-        /// <summary>
-        /// Strongly typed for value GL_LINEAR_ATTENUATION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        LinearAttenuation = Gl.LINEAR_ATTENUATION,
-
-        /// <summary>
-        /// Strongly typed for value GL_POSITION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Position = Gl.POSITION,
-
-        /// <summary>
-        /// Strongly typed for value GL_QUADRATIC_ATTENUATION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        QuadraticAttenuation = Gl.QUADRATIC_ATTENUATION,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPECULAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Specular = Gl.SPECULAR,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPOT_CUTOFF.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        SpotCutoff = Gl.SPOT_CUTOFF,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPOT_DIRECTION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        SpotDirection = Gl.SPOT_DIRECTION,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPOT_EXPONENT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        SpotExponent = Gl.SPOT_EXPONENT
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration ListMode.
-    /// </summary>
-    public enum ListMode
-    {
-        /// <summary>
-        /// Strongly typed for value GL_COMPILE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Compile = Gl.COMPILE,
-
-        /// <summary>
-        /// Strongly typed for value GL_COMPILE_AND_EXECUTE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        CompileAndExecute = Gl.COMPILE_AND_EXECUTE
-    }
-
-    /// <summary>
     /// Strongly typed enumeration ListNameType.
     /// </summary>
     public enum ListNameType
     {
-        /// <summary>
-        /// Strongly typed for value GL_2_BYTES.
-        /// </summary>
-        _2Bytes = Gl._2_BYTES,
-
-        /// <summary>
-        /// Strongly typed for value GL_3_BYTES.
-        /// </summary>
-        _3Bytes = Gl._3_BYTES,
-
-        /// <summary>
-        /// Strongly typed for value GL_4_BYTES.
-        /// </summary>
-        _4Bytes = Gl._4_BYTES,
-
         /// <summary>
         /// Strongly typed for value GL_BYTE.
         /// </summary>
@@ -9718,144 +7389,6 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration MapQuery.
-    /// </summary>
-    public enum MapQuery
-    {
-        /// <summary>
-        /// Strongly typed for value GL_COEFF.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Coeff = Gl.COEFF,
-
-        /// <summary>
-        /// Strongly typed for value GL_ORDER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Order = Gl.ORDER,
-
-        /// <summary>
-        /// Strongly typed for value GL_DOMAIN.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Domain = Gl.DOMAIN
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration MapTarget.
-    /// </summary>
-    public enum MapTarget
-    {
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_COLOR_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Color4 = Gl.MAP1_COLOR_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Index = Gl.MAP1_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Normal = Gl.MAP1_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord1 = Gl.MAP1_TEXTURE_COORD_1,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord2 = Gl.MAP1_TEXTURE_COORD_2,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord3 = Gl.MAP1_TEXTURE_COORD_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_TEXTURE_COORD_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1TextureCoord4 = Gl.MAP1_TEXTURE_COORD_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_VERTEX_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Vertex3 = Gl.MAP1_VERTEX_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP1_VERTEX_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map1Vertex4 = Gl.MAP1_VERTEX_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_COLOR_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Color4 = Gl.MAP2_COLOR_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Index = Gl.MAP2_INDEX,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_NORMAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Normal = Gl.MAP2_NORMAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord1 = Gl.MAP2_TEXTURE_COORD_1,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord2 = Gl.MAP2_TEXTURE_COORD_2,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord3 = Gl.MAP2_TEXTURE_COORD_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_TEXTURE_COORD_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2TextureCoord4 = Gl.MAP2_TEXTURE_COORD_4,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_VERTEX_3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Vertex3 = Gl.MAP2_VERTEX_3,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP2_VERTEX_4.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Map2Vertex4 = Gl.MAP2_VERTEX_4
-    }
-
-    /// <summary>
     /// Strongly typed enumeration MaterialFace.
     /// </summary>
     public enum MaterialFace
@@ -9888,81 +7421,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         FrontAndBack = Gl.FRONT_AND_BACK
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration MaterialParameter.
-    /// </summary>
-    public enum MaterialParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_AMBIENT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Ambient = Gl.AMBIENT,
-
-        /// <summary>
-        /// Strongly typed for value GL_AMBIENT_AND_DIFFUSE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        AmbientAndDiffuse = Gl.AMBIENT_AND_DIFFUSE,
-
-        /// <summary>
-        /// Strongly typed for value GL_COLOR_INDEXES.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorIndexes = Gl.COLOR_INDEXES,
-
-        /// <summary>
-        /// Strongly typed for value GL_DIFFUSE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Diffuse = Gl.DIFFUSE,
-
-        /// <summary>
-        /// Strongly typed for value GL_EMISSION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Emission = Gl.EMISSION,
-
-        /// <summary>
-        /// Strongly typed for value GL_SHININESS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Shininess = Gl.SHININESS,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPECULAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Specular = Gl.SPECULAR
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration MatrixMode.
-    /// </summary>
-    public enum MatrixMode
-    {
-        /// <summary>
-        /// Strongly typed for value GL_MODELVIEW, GL_MODELVIEW0_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Modelview = Gl.MODELVIEW,
-
-        /// <summary>
-        /// Strongly typed for value GL_PROJECTION.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Projection = Gl.PROJECTION,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        Texture = Gl.TEXTURE
     }
 
     /// <summary>
@@ -10345,23 +7803,6 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration PathColor.
-    /// </summary>
-    public enum PathColor
-    {
-        /// <summary>
-        /// Strongly typed for value GL_PRIMARY_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        PrimaryColor = Gl.PRIMARY_COLOR
-    }
-
-    /// <summary>
     /// Strongly typed enumeration PathFillMode.
     /// </summary>
     public enum PathFillMode
@@ -10413,29 +7854,6 @@ namespace OpenGL
         [RequiredByFeature("GL_NV_register_combiners")]
         [RequiredByFeature("GL_OES_framebuffer_object", Api = "gles1")]
         None = Gl.NONE,
-
-        /// <summary>
-        /// Strongly typed for value GL_EYE_LINEAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        EyeLinear = Gl.EYE_LINEAR,
-
-        /// <summary>
-        /// Strongly typed for value GL_OBJECT_LINEAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        ObjectLinear = Gl.OBJECT_LINEAR,
-
-        /// <summary>
-        /// Strongly typed for value GL_CONSTANT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        Constant = Gl.CONSTANT
     }
 
     /// <summary>
@@ -10587,12 +8005,6 @@ namespace OpenGL
         BlueInteger = Gl.BLUE_INTEGER,
 
         /// <summary>
-        /// Strongly typed for value GL_COLOR_INDEX.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ColorIndex = Gl.COLOR_INDEX,
-
-        /// <summary>
         /// Strongly typed for value GL_DEPTH_COMPONENT.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -10627,18 +8039,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_EXT_texture_integer")]
         GreenInteger = Gl.GREEN_INTEGER,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance = Gl.LUMINANCE,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE_ALPHA.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        LuminanceAlpha = Gl.LUMINANCE_ALPHA,
 
         /// <summary>
         /// Strongly typed for value GL_RED, GL_RED_EXT.
@@ -10735,72 +8135,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ANGLE_depth_texture", Api = "gles2")]
         [RequiredByFeature("GL_OES_depth_texture", Api = "gles2")]
         UnsignedShort = Gl.UNSIGNED_SHORT
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration PixelMap.
-    /// </summary>
-    public enum PixelMap
-    {
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_A_TO_A.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapAToA = Gl.PIXEL_MAP_A_TO_A,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_B_TO_B.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapBToB = Gl.PIXEL_MAP_B_TO_B,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_G_TO_G.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapGToG = Gl.PIXEL_MAP_G_TO_G,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_A.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToA = Gl.PIXEL_MAP_I_TO_A,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_B.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToB = Gl.PIXEL_MAP_I_TO_B,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_G.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToG = Gl.PIXEL_MAP_I_TO_G,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_I.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToI = Gl.PIXEL_MAP_I_TO_I,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_I_TO_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapIToR = Gl.PIXEL_MAP_I_TO_R,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_R_TO_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapRToR = Gl.PIXEL_MAP_R_TO_R,
-
-        /// <summary>
-        /// Strongly typed for value GL_PIXEL_MAP_S_TO_S.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        PixelMapSToS = Gl.PIXEL_MAP_S_TO_S
     }
 
     /// <summary>
@@ -10913,18 +8247,6 @@ namespace OpenGL
     public enum PixelTexGenMode
     {
         /// <summary>
-        /// Strongly typed for value GL_LUMINANCE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        Luminance = Gl.LUMINANCE,
-
-        /// <summary>
-        /// Strongly typed for value GL_LUMINANCE_ALPHA.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        LuminanceAlpha = Gl.LUMINANCE_ALPHA,
-
-        /// <summary>
         /// Strongly typed for value GL_NONE.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -10957,106 +8279,10 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration PixelTransferParameter.
-    /// </summary>
-    public enum PixelTransferParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaBias = Gl.ALPHA_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_ALPHA_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        AlphaScale = Gl.ALPHA_SCALE,
-
-        /// <summary>
-        /// Strongly typed for value GL_BLUE_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        BlueBias = Gl.BLUE_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_BLUE_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        BlueScale = Gl.BLUE_SCALE,
-
-        /// <summary>
-        /// Strongly typed for value GL_DEPTH_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        DepthBias = Gl.DEPTH_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_DEPTH_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        DepthScale = Gl.DEPTH_SCALE,
-
-        /// <summary>
-        /// Strongly typed for value GL_GREEN_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        GreenBias = Gl.GREEN_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_GREEN_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        GreenScale = Gl.GREEN_SCALE,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_OFFSET.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexOffset = Gl.INDEX_OFFSET,
-
-        /// <summary>
-        /// Strongly typed for value GL_INDEX_SHIFT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        IndexShift = Gl.INDEX_SHIFT,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MapColor = Gl.MAP_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_MAP_STENCIL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        MapStencil = Gl.MAP_STENCIL,
-
-        /// <summary>
-        /// Strongly typed for value GL_RED_BIAS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        RedBias = Gl.RED_BIAS,
-
-        /// <summary>
-        /// Strongly typed for value GL_RED_SCALE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        RedScale = Gl.RED_SCALE
-    }
-
-    /// <summary>
     /// Strongly typed enumeration PixelType.
     /// </summary>
     public enum PixelType
     {
-        /// <summary>
-        /// Strongly typed for value GL_BITMAP.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Bitmap = Gl.BITMAP,
-
         /// <summary>
         /// Strongly typed for value GL_BYTE.
         /// </summary>
@@ -11225,52 +8451,6 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration PointParameterNameSGIS.
-    /// </summary>
-    public enum PointParameterNameSgis
-    {
-        /// <summary>
-        /// Strongly typed for value GL_DISTANCE_ATTENUATION_EXT, GL_DISTANCE_ATTENUATION_SGIS, GL_POINT_DISTANCE_ATTENUATION,
-        /// GL_POINT_DISTANCE_ATTENUATION_ARB.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ARB_point_parameters")] [RemovedByFeature("GL_VERSION_3_2")]
-        PointDistanceAttenuation = Gl.POINT_DISTANCE_ATTENUATION,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_FADE_THRESHOLD_SIZE, GL_POINT_FADE_THRESHOLD_SIZE_ARB,
-        /// GL_POINT_FADE_THRESHOLD_SIZE_EXT, GL_POINT_FADE_THRESHOLD_SIZE_SGIS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_point_parameters")]
-        [RequiredByFeature("GL_EXT_point_parameters")]
-        [RequiredByFeature("GL_SGIS_point_parameters")]
-        PointFadeThresholdSize = Gl.POINT_FADE_THRESHOLD_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_SIZE_MAX, GL_POINT_SIZE_MAX_ARB, GL_POINT_SIZE_MAX_EXT, GL_POINT_SIZE_MAX_SGIS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_point_parameters")]
-        [RequiredByFeature("GL_EXT_point_parameters")]
-        [RequiredByFeature("GL_SGIS_point_parameters")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        PointSizeMax = Gl.POINT_SIZE_MAX,
-
-        /// <summary>
-        /// Strongly typed for value GL_POINT_SIZE_MIN, GL_POINT_SIZE_MIN_ARB, GL_POINT_SIZE_MIN_EXT, GL_POINT_SIZE_MIN_SGIS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_point_parameters")]
-        [RequiredByFeature("GL_EXT_point_parameters")]
-        [RequiredByFeature("GL_SGIS_point_parameters")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        PointSizeMin = Gl.POINT_SIZE_MIN
-    }
-
-    /// <summary>
     /// Strongly typed enumeration PolygonMode.
     /// </summary>
     public enum PolygonMode
@@ -11429,30 +8609,6 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         Points = Gl.POINTS,
-
-        /// <summary>
-        /// Strongly typed for value GL_POLYGON.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Polygon = Gl.POLYGON,
-
-        /// <summary>
-        /// Strongly typed for value GL_QUADS, GL_QUADS_EXT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_4_0")]
-        [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
-        [RequiredByFeature("GL_ARB_tessellation_shader", Api = "gl|glcore")]
-        [RequiredByFeature("GL_EXT_tessellation_shader", Api = "gles2")]
-        [RequiredByFeature("GL_OES_tessellation_shader", Api = "gles2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        Quads = Gl.QUADS,
-
-        /// <summary>
-        /// Strongly typed for value GL_QUAD_STRIP.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        QuadStrip = Gl.QUAD_STRIP,
 
         /// <summary>
         /// Strongly typed for value GL_TRIANGLES.
@@ -11979,30 +9135,6 @@ namespace OpenGL
     public enum ReadBufferMode
     {
         /// <summary>
-        /// Strongly typed for value GL_AUX0.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux0 = Gl.AUX0,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX1.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux1 = Gl.AUX1,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX2.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux2 = Gl.AUX2,
-
-        /// <summary>
-        /// Strongly typed for value GL_AUX3.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Aux3 = Gl.AUX3,
-
-        /// <summary>
         /// Strongly typed for value GL_BACK.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]
@@ -12481,30 +9613,6 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration RenderingMode.
-    /// </summary>
-    public enum RenderingMode
-    {
-        /// <summary>
-        /// Strongly typed for value GL_FEEDBACK.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Feedback = Gl.FEEDBACK,
-
-        /// <summary>
-        /// Strongly typed for value GL_RENDER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Render = Gl.RENDER,
-
-        /// <summary>
-        /// Strongly typed for value GL_SELECT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Select = Gl.SELECT
-    }
-
-    /// <summary>
     /// Strongly typed enumeration SamplerParameterName.
     /// </summary>
     public enum SamplerParameterName
@@ -12675,24 +9783,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_2_0")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [RequiredByFeature("GL_ARB_fragment_shader")]
         FragmentShader = Gl.FRAGMENT_SHADER
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration ShadingModel.
-    /// </summary>
-    public enum ShadingModel
-    {
-        /// <summary>
-        /// Strongly typed for value GL_FLAT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Flat = Gl.FLAT,
-
-        /// <summary>
-        /// Strongly typed for value GL_SMOOTH.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Smooth = Gl.SMOOTH
     }
 
     /// <summary>
@@ -13139,149 +10229,6 @@ namespace OpenGL
     }
 
     /// <summary>
-    /// Strongly typed enumeration TextureCoordName.
-    /// </summary>
-    public enum TextureCoordName
-    {
-        /// <summary>
-        /// Strongly typed for value GL_S.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        S = Gl.S,
-
-        /// <summary>
-        /// Strongly typed for value GL_T.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        T = Gl.T,
-
-        /// <summary>
-        /// Strongly typed for value GL_R.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        R = Gl.R,
-
-        /// <summary>
-        /// Strongly typed for value GL_Q.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Q = Gl.Q
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration TextureEnvMode.
-    /// </summary>
-    public enum TextureEnvMode
-    {
-        /// <summary>
-        /// Strongly typed for value GL_ADD.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Add = Gl.ADD,
-
-        /// <summary>
-        /// Strongly typed for value GL_BLEND.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
-        [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2")]
-        [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
-        Blend = Gl.BLEND,
-
-        /// <summary>
-        /// Strongly typed for value GL_DECAL.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Decal = Gl.DECAL,
-
-        /// <summary>
-        /// Strongly typed for value GL_MODULATE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        Modulate = Gl.MODULATE
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration TextureEnvParameter.
-    /// </summary>
-    public enum TextureEnvParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_ENV_COLOR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureEnvColor = Gl.TEXTURE_ENV_COLOR,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_ENV_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureEnvMode = Gl.TEXTURE_ENV_MODE
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration TextureEnvTarget.
-    /// </summary>
-    public enum TextureEnvTarget
-    {
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_ENV.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureEnv = Gl.TEXTURE_ENV
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration TextureGenMode.
-    /// </summary>
-    public enum TextureGenMode
-    {
-        /// <summary>
-        /// Strongly typed for value GL_EYE_LINEAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        EyeLinear = Gl.EYE_LINEAR,
-
-        /// <summary>
-        /// Strongly typed for value GL_OBJECT_LINEAR.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        ObjectLinear = Gl.OBJECT_LINEAR,
-
-        /// <summary>
-        /// Strongly typed for value GL_SPHERE_MAP.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        SphereMap = Gl.SPHERE_MAP
-    }
-
-    /// <summary>
-    /// Strongly typed enumeration TextureGenParameter.
-    /// </summary>
-    public enum TextureGenParameter
-    {
-        /// <summary>
-        /// Strongly typed for value GL_EYE_PLANE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_fog_distance")] [RemovedByFeature("GL_VERSION_3_2")]
-        EyePlane = Gl.EYE_PLANE,
-
-        /// <summary>
-        /// Strongly typed for value GL_OBJECT_PLANE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        ObjectPlane = Gl.OBJECT_PLANE,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_GEN_MODE.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_OES_texture_cube_map", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureGenMode = Gl.TEXTURE_GEN_MODE
-    }
-
-    /// <summary>
     /// Strongly typed enumeration TextureMagFilter.
     /// </summary>
     public enum TextureMagFilter
@@ -13538,18 +10485,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_EXT_texture")]
         TextureBlueSize = Gl.TEXTURE_BLUE_SIZE,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_BORDER.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureBorder = Gl.TEXTURE_BORDER,
-
-        /// <summary>
-        /// Strongly typed for value GL_TEXTURE_COMPONENTS, GL_TEXTURE_INTERNAL_FORMAT.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        TextureComponents = Gl.TEXTURE_COMPONENTS,
 
         /// <summary>
         /// Strongly typed for value GL_TEXTURE_COMPONENTS, GL_TEXTURE_INTERNAL_FORMAT.
@@ -14164,12 +11099,6 @@ namespace OpenGL
     /// </summary>
     public enum TextureWrapMode
     {
-        /// <summary>
-        /// Strongly typed for value GL_CLAMP.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-        Clamp = Gl.CLAMP,
-
         /// <summary>
         /// Strongly typed for value GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER_ARB, GL_CLAMP_TO_BORDER_NV, GL_CLAMP_TO_BORDER_SGIS.
         /// </summary>

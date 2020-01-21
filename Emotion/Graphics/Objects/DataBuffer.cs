@@ -292,7 +292,7 @@ namespace Emotion.Graphics.Objects
 
                 bool foundBindingName = Enum.TryParse($"{type}Binding", true, out GetPName bindingName);
                 if (!foundBindingName) Engine.Log.Warning($"Couldn't find binding name for data buffer of type {type}", MessageSource.GL);
-                Gl.GetInteger(bindingName, out uint actualBound);
+                Gl.GetInteger(bindingName, out int actualBound);
                 if (actualBound != pointer)
                     Engine.Log.Error($"Assumed bound data buffer of type {type} was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;

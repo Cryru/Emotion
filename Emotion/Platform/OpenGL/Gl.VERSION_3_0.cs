@@ -1709,24 +1709,6 @@ namespace OpenGL
         public const int MAX_SAMPLES = 0x8D57;
 
         /// <summary>
-        /// [GL] Value of GL_INDEX symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int INDEX = 0x8222;
-
-        /// <summary>
-        /// [GL] Value of GL_TEXTURE_LUMINANCE_TYPE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_texture_float")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int TEXTURE_LUMINANCE_TYPE = 0x8C14;
-
-        /// <summary>
-        /// [GL] Value of GL_TEXTURE_INTENSITY_TYPE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_texture_float")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int TEXTURE_INTENSITY_TYPE = 0x8C15;
-
-        /// <summary>
         /// [GL] Value of GL_FRAMEBUFFER_SRGB symbol.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")]
@@ -2013,24 +1995,6 @@ namespace OpenGL
         [RequiredByFeature("GL_APPLE_vertex_array_object")]
         [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2")]
         public const int VERTEX_ARRAY_BINDING = 0x85B5;
-
-        /// <summary>
-        /// [GL] Value of GL_CLAMP_VERTEX_COLOR symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_color_buffer_float")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int CLAMP_VERTEX_COLOR = 0x891A;
-
-        /// <summary>
-        /// [GL] Value of GL_CLAMP_FRAGMENT_COLOR symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_color_buffer_float")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int CLAMP_FRAGMENT_COLOR = 0x891B;
-
-        /// <summary>
-        /// [GL] Value of GL_ALPHA_INTEGER symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_EXT_texture_integer")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int ALPHA_INTEGER = 0x8D97;
 
         /// <summary>
         ///     <para>

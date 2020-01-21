@@ -785,72 +785,6 @@ namespace OpenGL
         public const int TRANSPOSE_COLOR_MATRIX = 0x84E6;
 
         /// <summary>
-        /// [GL] Value of GL_MULTISAMPLE_BIT symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_ARB_multisample")]
-        [RequiredByFeature("GL_EXT_multisample")]
-        [RequiredByFeature("GL_3DFX_multisample")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const uint MULTISAMPLE_BIT = 0x20000000;
-
-        /// <summary>
-        /// [GL] Value of GL_NORMAL_MAP symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_ARB_texture_cube_map")]
-        [RequiredByFeature("GL_EXT_texture_cube_map")]
-        [RequiredByFeature("GL_NV_texgen_reflection")]
-        [RequiredByFeature("GL_OES_texture_cube_map", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int NORMAL_MAP = 0x8511;
-
-        /// <summary>
-        /// [GL] Value of GL_REFLECTION_MAP symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_ARB_texture_cube_map")]
-        [RequiredByFeature("GL_EXT_texture_cube_map")]
-        [RequiredByFeature("GL_NV_texgen_reflection")]
-        [RequiredByFeature("GL_OES_texture_cube_map", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int REFLECTION_MAP = 0x8512;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPRESSED_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPRESSED_ALPHA = 0x84E9;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPRESSED_LUMINANCE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPRESSED_LUMINANCE = 0x84EA;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPRESSED_LUMINANCE_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPRESSED_LUMINANCE_ALPHA = 0x84EB;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPRESSED_INTENSITY symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPRESSED_INTENSITY = 0x84EC;
-
-        /// <summary>
-        /// [GL] Value of GL_COMBINE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMBINE = 0x8570;
-
-        /// <summary>
         /// [GL2.1|GLES1.1] Gl.GetTexEnv: params returns a single symbolic constant value representing the current RGB combine
         /// mode.
         /// The initial value is Gl.MODULATE.
@@ -872,42 +806,6 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture_env_combine")]
         [RemovedByFeature("GL_VERSION_3_2")]
         public const int COMBINE_ALPHA = 0x8572;
-
-        /// <summary>
-        /// [GL] Value of GL_SOURCE0_RGB symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SOURCE0_RGB = 0x8580;
-
-        /// <summary>
-        /// [GL] Value of GL_SOURCE1_RGB symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SOURCE1_RGB = 0x8581;
-
-        /// <summary>
-        /// [GL] Value of GL_SOURCE2_RGB symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SOURCE2_RGB = 0x8582;
-
-        /// <summary>
-        /// [GL] Value of GL_SOURCE0_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SOURCE0_ALPHA = 0x8588;
-
-        /// <summary>
-        /// [GL] Value of GL_SOURCE1_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SOURCE1_ALPHA = 0x8589;
-
-        /// <summary>
-        /// [GL] Value of GL_SOURCE2_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RequiredByFeature("GL_EXT_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SOURCE2_ALPHA = 0x858A;
 
         /// <summary>
         /// [GL2.1|GLES1.1] Gl.GetTexEnv: params returns a single symbolic constant value representing the texture combiner zero's
@@ -986,80 +884,6 @@ namespace OpenGL
         [RequiredByFeature("GL_EXT_texture_env_combine")]
         [RemovedByFeature("GL_VERSION_3_2")]
         public const int RGB_SCALE = 0x8573;
-
-        /// <summary>
-        /// [GL] Value of GL_ADD_SIGNED symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int ADD_SIGNED = 0x8574;
-
-        /// <summary>
-        /// [GL] Value of GL_INTERPOLATE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int INTERPOLATE = 0x8575;
-
-        /// <summary>
-        /// [GL] Value of GL_SUBTRACT symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ARB_texture_env_combine")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SUBTRACT = 0x84E7;
-
-        /// <summary>
-        /// [GL] Value of GL_CONSTANT symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int CONSTANT = 0x8576;
-
-        /// <summary>
-        /// [GL] Value of GL_PRIMARY_COLOR symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_NV_path_rendering", Api = "gl|glcore|gles2")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int PRIMARY_COLOR = 0x8577;
-
-        /// <summary>
-        /// [GL] Value of GL_PREVIOUS symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_combine")]
-        [RequiredByFeature("GL_EXT_texture_env_combine")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int PREVIOUS = 0x8578;
-
-        /// <summary>
-        /// [GL] Value of GL_DOT3_RGB symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ARB_texture_env_dot3")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int DOT3_RGB = 0x86AE;
-
-        /// <summary>
-        /// [GL] Value of GL_DOT3_RGBA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")]
-        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-        [RequiredByFeature("GL_ARB_texture_env_dot3")]
-        [RequiredByFeature("GL_IMG_texture_env_enhanced_fixed_function", Api = "gles1")]
-        [RemovedByFeature("GL_VERSION_3_2")]
-        public const int DOT3_RGBA = 0x86AF;
 
         /// <summary>
         ///     <para>

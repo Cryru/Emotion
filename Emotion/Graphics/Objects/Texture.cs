@@ -84,11 +84,23 @@ namespace Emotion.Graphics.Objects
             }
         }
 
+        /// <summary>
+        /// The format in which the texture is stored internally - this is the format shader should expect to work with.
+        /// </summary>
+        public InternalFormat InternalFormat { get; private set; }
+
+        /// <summary>
+        /// The source format in which the texture's pixels were uploaded.
+        /// </summary>
+        public PixelFormat PixelFormat { get; private set; }
+
+        /// <summary>
+        /// The source pixel type of the texture's pixels.
+        /// </summary>
+        public PixelType PixelType { get; private set; }
+
         private bool _tile = true;
         private bool _smooth;
-        private InternalFormat _internalFormat;
-        private PixelFormat _pixelFormat;
-        private PixelType _pixelType;
 
         /// <summary>
         /// Create a new uninitialized texture.
@@ -141,23 +153,23 @@ namespace Emotion.Graphics.Objects
             Size = size;
 
             if (internalFormat == null)
-                internalFormat = _internalFormat;
+                internalFormat = InternalFormat;
             else
-                _internalFormat = (InternalFormat) internalFormat;
+                InternalFormat = (InternalFormat) internalFormat;
             if (pixelFormat == null)
-                pixelFormat = _pixelFormat;
+                pixelFormat = PixelFormat;
             else
-                _pixelFormat = (PixelFormat) pixelFormat;
+                PixelFormat = (PixelFormat) pixelFormat;
 
-            _pixelType = pixelType;
+            PixelType = pixelType;
 
             EnsureBound(Pointer);
             if (data == null)
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    _pixelType, IntPtr.Zero);
+                    PixelType, IntPtr.Zero);
             else
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    _pixelType, data);
+                    PixelType, data);
 
             Smooth = _smooth;
             Tile = _tile;
@@ -177,7 +189,7 @@ namespace Emotion.Graphics.Objects
                 if (!Engine.Configuration.DebugMode) return;
 
                 Gl.ActiveTexture(TextureUnit.Texture0 + (int) slot);
-                Gl.GetInteger(GetPName.TextureBinding2d, out uint actualBound);
+                Gl.GetInteger(GetPName.TextureBinding2d, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed texture bound to slot {slot} was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }

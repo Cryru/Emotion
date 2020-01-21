@@ -153,42 +153,6 @@ namespace OpenGL
         public const int CURRENT_RASTER_SECONDARY_COLOR = 0x845F;
 
         /// <summary>
-        /// [GL] Value of GL_SLUMINANCE_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_1")] [RequiredByFeature("GL_EXT_texture_sRGB")] [RequiredByFeature("GL_NV_sRGB_formats", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SLUMINANCE_ALPHA = 0x8C44;
-
-        /// <summary>
-        /// [GL] Value of GL_SLUMINANCE8_ALPHA8 symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_1")] [RequiredByFeature("GL_EXT_texture_sRGB")] [RequiredByFeature("GL_NV_sRGB_formats", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SLUMINANCE8_ALPHA8 = 0x8C45;
-
-        /// <summary>
-        /// [GL] Value of GL_SLUMINANCE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_1")] [RequiredByFeature("GL_EXT_texture_sRGB")] [RequiredByFeature("GL_NV_sRGB_formats", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SLUMINANCE = 0x8C46;
-
-        /// <summary>
-        /// [GL] Value of GL_SLUMINANCE8 symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_1")] [RequiredByFeature("GL_EXT_texture_sRGB")] [RequiredByFeature("GL_NV_sRGB_formats", Api = "gles2")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SLUMINANCE8 = 0x8C47;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPRESSED_SLUMINANCE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_1")] [RequiredByFeature("GL_EXT_texture_sRGB")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPRESSED_SLUMINANCE = 0x8C4A;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPRESSED_SLUMINANCE_ALPHA symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_1")] [RequiredByFeature("GL_EXT_texture_sRGB")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPRESSED_SLUMINANCE_ALPHA = 0x8C4B;
-
-        /// <summary>
         ///     <para>
         ///     [GL4|GLES3.2] glUniformMatrix2x3fv: Specify the value of a uniform variable for the current program object
         ///     </para>

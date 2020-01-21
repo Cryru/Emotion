@@ -127,6 +127,9 @@ namespace Emotion.Graphics.Objects
         {
         }
 
+        /// <summary>
+        /// Bind the framebuffer. Also sets the current viewport to the frame buffer's viewport.
+        /// </summary>
         public void Bind()
         {
             EnsureBound(Pointer);
@@ -138,7 +141,7 @@ namespace Emotion.Graphics.Objects
         /// Ensures the provided pointer is the currently bound framebuffer.
         /// </summary>
         /// <param name="pointer">The pointer to ensure is bound.</param>
-        public static void EnsureBound(uint pointer)
+        private static void EnsureBound(uint pointer)
         {
             // Check if it is already bound.
             if (Bound == pointer && pointer != 0)
@@ -146,7 +149,7 @@ namespace Emotion.Graphics.Objects
                 // If in debug mode, verify this with OpenGL.
                 if (!Engine.Configuration.DebugMode) return;
 
-                Gl.GetInteger(GetPName.DrawFramebufferBinding, out uint actualBound);
+                Gl.GetInteger(GetPName.DrawFramebufferBinding, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed frame buffer was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }
