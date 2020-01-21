@@ -138,6 +138,34 @@ namespace Emotion.Graphics.Objects
         }
 
         /// <summary>
+        /// Sample data from the framebuffer.
+        /// </summary>
+        /// <param name="rect">The rectangle to sample data from in viewport coordinates.</param>
+        /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
+        public unsafe byte[] Sample(Rectangle rect, ref byte[] data)
+        {
+            Debug.Assert(Viewport.Contains(rect));
+            
+            Bind();
+            fixed (byte* pixelBuffer = &data[0])
+            {
+                Gl.ReadPixels((int)rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, Texture.PixelFormat, Texture.PixelType, (IntPtr) pixelBuffer);
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// Sample data from the framebuffer.
+        /// </summary>
+        /// <param name="rect">The rectangle to sample data from in viewport coordinates.</param>
+        public byte[] Sample(Rectangle rect)
+        {
+            var data = new byte[(int) ((rect.Width - rect.X) * (rect.Height - rect.Y)) * Gl.PixelTypeToByteCount(Texture.PixelType)];
+            return Sample(rect, ref data);
+        }
+
+        /// <summary>
         /// Ensures the provided pointer is the currently bound framebuffer.
         /// </summary>
         /// <param name="pointer">The pointer to ensure is bound.</param>
