@@ -118,11 +118,6 @@ namespace Emotion.Graphics.Objects
             Engine.Renderer?.EnsureRenderTarget();
         }
 
-        public FrameBuffer(Texture texture) : this(texture, null)
-        {
-
-        }
-
         public FrameBuffer(Texture texture, bool attachStencil = false) : this(texture, null, attachStencil)
         {
         }
@@ -161,7 +156,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="rect">The rectangle to sample data from in viewport coordinates.</param>
         public byte[] Sample(Rectangle rect)
         {
-            var data = new byte[(int) ((rect.Width - rect.X) * (rect.Height - rect.Y)) * Gl.PixelTypeToByteCount(Texture.PixelType)];
+            var data = new byte[(int) ((rect.Width - rect.X) * (rect.Height - rect.Y)) * Gl.PixelTypeToByteCount(Texture.PixelType) * Gl.PixelTypeToComponentCount(Texture.PixelFormat)];
             return Sample(rect, ref data);
         }
 

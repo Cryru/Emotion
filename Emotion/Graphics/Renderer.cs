@@ -614,26 +614,5 @@ namespace Emotion.Graphics
         }
 
         #endregion
-
-        #region Helpers
-
-        /// <summary>
-        /// Returns what is currently drawn on the screen as a byte array of pixels in the RGBA format.
-        /// </summary>
-        /// <returns></returns>
-        public unsafe byte[] GetScreenshot(out Vector2 size)
-        {
-            size = CurrentTarget.Viewport.Size;
-            var screenshotBuffer = new byte[(int) CurrentTarget.Viewport.Width * (int) CurrentTarget.Viewport.Height * 4];
-            fixed (byte* pixelBuffer = &screenshotBuffer[0])
-            {
-                Gl.ReadPixels((int) CurrentTarget.Viewport.X, (int) CurrentTarget.Viewport.Y, (int) CurrentTarget.Viewport.Width, (int) CurrentTarget.Viewport.Height, PixelFormat.Bgra,
-                    PixelType.UnsignedByte, (IntPtr) pixelBuffer);
-            }
-
-            return screenshotBuffer;
-        }
-
-        #endregion
     }
 }
