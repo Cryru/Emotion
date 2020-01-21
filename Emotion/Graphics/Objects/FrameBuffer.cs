@@ -139,12 +139,12 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Sample data from the framebuffer.
         /// </summary>
-        /// <param name="rect">The rectangle to sample data from in viewport coordinates.</param>
+        /// <param name="rect">The rectangle to sample data from in. Top left origin.</param>
         /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
         public unsafe byte[] Sample(Rectangle rect, ref byte[] data)
         {
             Debug.Assert(Viewport.Contains(rect));
-            
+            rect = new Rectangle(rect.X, rect.Y + (Size.Y - rect.Height), rect.Width, rect.Height);
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
@@ -157,10 +157,10 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Sample data from the framebuffer.
         /// </summary>
-        /// <param name="rect">The rectangle to sample data from in viewport coordinates.</param>
+        /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
         public byte[] Sample(Rectangle rect)
         {
-            var data = new byte[(int) ((rect.Width - rect.X) * (rect.Height - rect.Y)) * Gl.PixelTypeToByteCount(Texture.PixelType) * Gl.PixelTypeToComponentCount(Texture.PixelFormat)];
+            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(Texture.PixelType) * Gl.PixelTypeToComponentCount(Texture.PixelFormat)];
             return Sample(rect, ref data);
         }
 
