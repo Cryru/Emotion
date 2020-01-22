@@ -13,17 +13,19 @@ namespace Emotion.Graphics.Command
     public class FramebufferModificationCommand : RecyclableCommand
     {
         public FrameBuffer Buffer;
+        public bool RebindPrevious = true;
 
         public override void Execute(RenderComposer _)
         {
             if (Buffer != null)
                 Engine.Renderer.PushFramebuffer(Buffer);
             else
-                Engine.Renderer.PopFramebuffer();
+                Engine.Renderer.PopFramebuffer(RebindPrevious);
         }
 
         public override void Recycle()
         {
+            RebindPrevious = true;
         }
     }
 }

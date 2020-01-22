@@ -581,7 +581,7 @@ namespace Emotion.Graphics
         /// Pop off a render target off of the top of the target stack, meaning the one before it will be used for subsequent
         /// drawing.
         /// </summary>
-        internal void PopFramebuffer()
+        internal void PopFramebuffer(bool rebindPrevious = true)
         {
             if (_bufferStack.Count == 1)
             {
@@ -590,7 +590,7 @@ namespace Emotion.Graphics
             }
 
             _bufferStack.Pop();
-            EnsureRenderTarget();
+            if(rebindPrevious) EnsureRenderTarget();
         }
 
         /// <summary>
