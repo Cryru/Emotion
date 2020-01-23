@@ -4,7 +4,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Standard.Image.PNG.Readers;
 using Emotion.Standard.Logging;
 using Emotion.Standard.Utility.Zlib;
@@ -218,7 +220,7 @@ namespace Emotion.Standard.Image.PNG
 
             if (!IsPng(pngData))
             {
-                Engine.Log.Warning($"Tried to decode a non-png image!", MessageSource.ImagePng);
+                Engine.Log.Warning("Tried to decode a non-png image!", MessageSource.ImagePng);
                 return null;
             }
 
@@ -285,6 +287,8 @@ namespace Emotion.Standard.Image.PNG
                 }
             }
 
+            stream.Dispose();
+
             // Determine color reader to use.
             PngColorTypeInformation colorTypeInformation = ColorTypes[fileHeader.ColorType];
             if (colorTypeInformation == null) return null;
@@ -294,49 +298,50 @@ namespace Emotion.Standard.Image.PNG
             var bytesPerPixel = 1;
             if (fileHeader.BitDepth >= 8) bytesPerPixel = colorTypeInformation.ChannelsPerColor * fileHeader.BitDepth / 8;
 
-            // Parse data into pixels.
+            // Decompress data.
             dataStream.Position = 0;
             byte[] data = ZlibStreamUtility.Decompress(dataStream);
+
+            // Parse into pixels.
             var pixels = new byte[fileHeader.Width * fileHeader.Height * 4];
             if (fileHeader.InterlaceMethod == 1)
                 ParseInterlaced(data, fileHeader, bytesPerPixel, colorReader, pixels);
             else
-                Parse(data, fileHeader, bytesPerPixel, colorReader, pixels);
+                Parse(data, fileHeader, bytesPerPixel, colorReader, pixels).Wait();
 
             return pixels;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Parse(byte[] data, PngFileHeader fileHeader, int bytesPerPixel, IColorReader reader, byte[] pixels)
+        private static async Task Parse(byte[] data, PngFileHeader fileHeader, int bytesPerPixel, IColorReader reader, byte[] pixels)
         {
-            var r = new Span<byte>(data);
-
             // Find the scan line length.
-            int scanlineLength = GetScanlineLength(fileHeader.Width, fileHeader) + 1;
+            int scanlineLength = GetScanlineLength(fileHeader.Width, fileHeader);
+            int scanLineCount = data.Length / scanlineLength;
+            int scanlineLengthWithMeta = scanlineLength + 1;
 
-            Span<byte> prevRowData = null;
-            var readOffset = 0;
-
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var i = 0; i < data.Length / scanlineLength; i++)
+            await ParallelWork.FastLoops(scanLineCount, (start, end) =>
             {
-                // Early out for invalid data.
-                if (data.Length - readOffset < scanlineLength) break;
+                // Calculate properties to be used for all iterations.
+                Span<byte> prevRowData = start == 0 ? null : new Span<byte>(data, scanlineLengthWithMeta * (start - 1), scanlineLength);
+                int readOffset = scanlineLengthWithMeta * start;
 
-                Span<byte> rowData = r.Slice(readOffset, scanlineLength);
-                int filter = rowData[0];
-                rowData = rowData.Slice(1);
-                readOffset += scanlineLength;
-
-                // Apply filter to the whole row.
-                for (var column = 0; column < rowData.Length; column++)
+                for (int i = start; i < end; i++)
                 {
-                    rowData[column] = ApplyFilter(rowData, prevRowData, filter, column, bytesPerPixel);
-                }
+                    var rowData = new Span<byte>(data, readOffset + 1, scanlineLength);
+                    int filter = data[readOffset];
+                    readOffset += scanlineLengthWithMeta;
 
-                reader.ReadScanline(rowData, pixels, fileHeader, i);
-                prevRowData = rowData;
-            }
+                    // Apply filter to the whole row.
+                    for (var column = 0; column < rowData.Length; column++)
+                    {
+                        rowData[column] = ApplyFilter(rowData, prevRowData, filter, column, bytesPerPixel);
+                    }
+
+                    reader.ReadScanline(rowData, pixels, fileHeader, i);
+                    prevRowData = rowData;
+                }
+            });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
