@@ -55,7 +55,13 @@ namespace Emotion.Standard.Text.FontTables
                     if (numberOfContours > 0)
                         ResolveTtfGlyph(numberOfContours, glyphData, current);
                     // Composite
-                    else if (numberOfContours == -1) compositeGlyphParse.Add(new CompositeGlyphRequest(glyphData, current));
+                    else if (numberOfContours == -1)
+                    {
+                        lock (compositeGlyphParse)
+                        {
+                            compositeGlyphParse.Add(new CompositeGlyphRequest(glyphData, current));
+                        }
+                    }
                     // 0 is an invalid value.
                 }
             }).Wait();

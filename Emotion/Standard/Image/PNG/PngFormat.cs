@@ -307,41 +307,39 @@ namespace Emotion.Standard.Image.PNG
             if (fileHeader.InterlaceMethod == 1)
                 ParseInterlaced(data, fileHeader, bytesPerPixel, colorReader, pixels);
             else
-                Parse(data, fileHeader, bytesPerPixel, colorReader, pixels).Wait();
+                Parse(data, fileHeader, bytesPerPixel, colorReader, pixels);
 
             return pixels;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static async Task Parse(byte[] data, PngFileHeader fileHeader, int bytesPerPixel, IColorReader reader, byte[] pixels)
+        private static void Parse(byte[] data, PngFileHeader fileHeader, int bytesPerPixel, IColorReader reader, byte[] pixels)
         {
-            // Find the scan line length.
-            int scanlineLength = GetScanlineLength(fileHeader.Width, fileHeader);
+            //Find the scan line length.
+            int scanlineLength = GetScanlineLength(fileHeader.Width, fileHeader) + 1;
             int scanLineCount = data.Length / scanlineLength;
-            int scanlineLengthWithMeta = scanlineLength + 1;
 
-            await ParallelWork.FastLoops(scanLineCount, (start, end) =>
+            for (var i = 0; i < scanLineCount; i++)
             {
-                // Calculate properties to be used for all iterations.
-                Span<byte> prevRowData = start == 0 ? null : new Span<byte>(data, scanlineLengthWithMeta * (start - 1), scanlineLength);
-                int readOffset = scanlineLengthWithMeta * start;
+                // Where to start reading from in this scan line.
+                int rowStart = i * scanlineLength;
 
-                for (int i = start; i < end; i++)
+                // Early out for invalid data.
+                if (data.Length - rowStart < scanlineLength) break;
+
+                Span<byte> prevRowData = i == 0 ? null : new Span<byte>(data, ((i - 1) * (scanlineLength)) + 1, scanlineLength - 1);
+                var rowData = new Span<byte>(data, (rowStart) + 1, scanlineLength - 1);
+
+                int filter = data[rowStart];
+
+                // Apply filter to the whole row.
+                for (var column = 0; column < rowData.Length; column++)
                 {
-                    var rowData = new Span<byte>(data, readOffset + 1, scanlineLength);
-                    int filter = data[readOffset];
-                    readOffset += scanlineLengthWithMeta;
-
-                    // Apply filter to the whole row.
-                    for (var column = 0; column < rowData.Length; column++)
-                    {
-                        rowData[column] = ApplyFilter(rowData, prevRowData, filter, column, bytesPerPixel);
-                    }
-
-                    reader.ReadScanline(rowData, pixels, fileHeader, i);
-                    prevRowData = rowData;
+                    rowData[column] = ApplyFilter(rowData, prevRowData, filter, column, bytesPerPixel);
                 }
-            });
+
+                reader.ReadScanline(rowData, pixels, fileHeader, i);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
