@@ -65,14 +65,14 @@ namespace Emotion.Platform.Implementation.Win32
                 int height = r.Bottom - r.Top;
 
                 // Center on the monitor.
-                Monitor primary = _platform.Monitors.Count > 0 ? _platform.Monitors[0] : null;
-                if (primary == null)
+                Monitor monitor = _platform.GetMonitorOfWindow(this);
+                if (monitor == null)
                 {
                     Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
                     return;
                 }
 
-                Vector2 center = new Vector2(primary.Width, primary.Height) / 2 - new Vector2(width, height) / 2;
+                Vector2 center = new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
 
                 User32.SetWindowPos(Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
                     (int) center.X + r.Left,
@@ -126,8 +126,9 @@ namespace Emotion.Platform.Implementation.Win32
                 if (value == _mode) return;
                 _mode = value;
 
-                Monitor primary = _platform.Monitors.Count > 0 ? _platform.Monitors[0] : null;
-                if (primary == null)
+                // Get the monitor
+                Monitor monitor =  _platform.GetMonitorOfWindow(this);
+                if (monitor == null)
                 {
                     Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
                     return;
@@ -147,7 +148,7 @@ namespace Emotion.Platform.Implementation.Win32
                         }
 
                         // Center window on screen. (This will also apply the SetWindowLongPtr changes, and remove the topmost status when exiting out of fullscreen)
-                        Position = primary.Position + (new Vector2(primary.Width, primary.Height) / 2 - Size / 2);
+                        Position = monitor.Position + (new Vector2(monitor.Width, monitor.Height) / 2 - Size / 2);
 
                         break;
                     case DisplayMode.Fullscreen:
@@ -162,15 +163,15 @@ namespace Emotion.Platform.Implementation.Win32
 
                         bool successful = User32.SetWindowPos(
                             Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
-                            (int)primary.Position.X, (int)primary.Position.Y,
-                            primary.Width - (int)primary.Position.X, primary.Height - (int)primary.Position.X,
+                            (int)monitor.Position.X, (int)monitor.Position.Y,
+                            monitor.Width - (int)monitor.Position.X, monitor.Height - (int)monitor.Position.X,
                             WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOCOPYBITS | WindowPositionFlags.SWP_FRAMECHANGED
                         );
                         if (!successful)
                             Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window rect.", true);
 
                         // Center cursor on screen/window.
-                        User32.SetCursorPos(primary.Width / 2, primary.Height / 2);
+                        User32.SetCursorPos(monitor.Width / 2, monitor.Height / 2);
 
                         break;
                 }

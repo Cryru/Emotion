@@ -10,6 +10,7 @@ using Emotion.Common;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
+using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
 using OpenGL;
@@ -347,6 +348,26 @@ namespace Emotion.Platform
                 if (Window != null && Window.DisplayMode == DisplayMode.Fullscreen && Monitors.Count > 0)
                     Window.DisplayMode = DisplayMode.Windowed;
             }
+        }
+        
+        /// <summary>
+        /// Returns the monitor the window is on, or the primary monitor if undetermined.
+        /// </summary>
+        /// <param name="win">The window checked.</param>
+        /// <returns>The monitor the window is on.</returns>
+        internal Monitor GetMonitorOfWindow(Window win)
+        {
+            if(Monitors.Count == 0) return null;
+
+            var rect = new Rectangle(win.Position, win.Size);
+            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+            foreach (Monitor monitor in Monitors)
+            {
+                var monitorRect = new Rectangle(monitor.Position.X, monitor.Position.Y, monitor.Width, monitor.Height);
+                if (monitorRect.Contains(rect)) return monitor;
+            }
+
+            return Monitors[0];
         }
 
         protected void UpdateKeyStatus(Key key, bool down)
