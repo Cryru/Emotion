@@ -1,10 +1,10 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Standard.Image.PNG.Readers;
@@ -315,30 +315,64 @@ namespace Emotion.Standard.Image.PNG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Parse(byte[] data, PngFileHeader fileHeader, int bytesPerPixel, IColorReader reader, byte[] pixels)
         {
-            //Find the scan line length.
+            // Find the scan line length.
             int scanlineLength = GetScanlineLength(fileHeader.Width, fileHeader) + 1;
             int scanLineCount = data.Length / scanlineLength;
 
-            for (var i = 0; i < scanLineCount; i++)
+            // Run through all scanlines.
+            var cannotParallel = new List<int>();
+            ParallelWork.FastLoops(scanLineCount, (start, end) =>
             {
-                // Where to start reading from in this scan line.
-                int rowStart = i * scanlineLength;
+                int readOffset = start * scanlineLength;
+                for (int i = start; i < end; i++)
+                {
+                    // Early out for invalid data.
+                    if (data.Length - readOffset < scanlineLength) break;
 
-                // Early out for invalid data.
-                if (data.Length - rowStart < scanlineLength) break;
+                    // Get the current scanline.
+                    var rowData = new Span<byte>(data, readOffset + 1, scanlineLength - 1);
+                    int filter = data[readOffset];
+                    readOffset += scanlineLength;
 
-                Span<byte> prevRowData = i == 0 ? null : new Span<byte>(data, ((i - 1) * (scanlineLength)) + 1, scanlineLength - 1);
-                var rowData = new Span<byte>(data, (rowStart) + 1, scanlineLength - 1);
+                    // Check if it has a filter.
+                    // PNG filters require the previous row.
+                    // We can't do those in parallel.
+                    if (filter != 0)
+                    {
+                        lock (cannotParallel)
+                        {
+                            cannotParallel.Add(i);
+                        }
 
-                int filter = data[rowStart];
+                        continue;
+                    }
+
+                    reader.ReadScanline(rowData, pixels, fileHeader, i);
+                }
+            }).Wait();
+
+            if (cannotParallel.Count == 0) return;
+
+            // Run scanlines which couldn't be parallel processed.
+            if (scanLineCount >= 2000) Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without that, it will load faster.", MessageSource.ImagePng);
+            cannotParallel.Sort();
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < cannotParallel.Count; i++)
+            {
+                int idx = cannotParallel[i];
+
+                int rowStart = idx * scanlineLength;
+                Span<byte> prevRowData = idx == 0 ? null : new Span<byte>(data, (idx - 1) * scanlineLength + 1, scanlineLength - 1);
+                var rowData = new Span<byte>(data, rowStart + 1, scanlineLength - 1);
 
                 // Apply filter to the whole row.
+                int filter = data[rowStart];
                 for (var column = 0; column < rowData.Length; column++)
                 {
                     rowData[column] = ApplyFilter(rowData, prevRowData, filter, column, bytesPerPixel);
                 }
 
-                reader.ReadScanline(rowData, pixels, fileHeader, i);
+                reader.ReadScanline(rowData, pixels, fileHeader, idx);
             }
         }
 
@@ -447,7 +481,7 @@ namespace Emotion.Standard.Image.PNG
                 4 => (byte) (pixel + PaethPredicator(previousPixel, pixelAbove, upperLeft)),
 
                 // No filter, or unknown.
-                _ => pixel,
+                _ => pixel
             };
             // ReSharper enable InvalidXmlDocComment
         }
