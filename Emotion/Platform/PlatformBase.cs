@@ -342,11 +342,7 @@ namespace Emotion.Platform
                 Engine.Log.Info($"Disconnected monitor {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
 
                 Monitors.Remove(monitor);
-
-                // Exit fullscreen mode as it may have been fullscreen on this monitor.
-                // This will cause a recenter on the primary monitor.
-                if (Window != null && Window.DisplayMode == DisplayMode.Fullscreen && Monitors.Count > 0)
-                    Window.DisplayMode = DisplayMode.Windowed;
+                Window.UpdateDisplayMode();
             }
         }
         

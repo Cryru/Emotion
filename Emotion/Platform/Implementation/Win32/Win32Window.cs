@@ -126,57 +126,11 @@ namespace Emotion.Platform.Implementation.Win32
                 if (value == _mode) return;
                 _mode = value;
 
-                // Get the monitor
-                Monitor monitor =  _platform.GetMonitorOfWindow(this);
-                if (monitor == null)
-                {
-                    Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
-                    return;
-                }
+                if (_mode == DisplayMode.Fullscreen)
+                    // Save window size for when exiting fullscreen.
+                    _windowModeSize = Size;
 
-                switch (_mode)
-                {
-                    case DisplayMode.Windowed:
-                        WindowStyles style = DetermineWindowStyle(this);
-                        IntPtr res = User32.SetWindowLongPtr(Handle, WindowLongFlags.GWL_STYLE, (IntPtr) style);
-                        if (res == IntPtr.Zero) Win32Platform.CheckError("Couldn't change display mode to windowed.", true);
-
-                        if (_windowModeSize != null)
-                        {
-                            Size = (Vector2) _windowModeSize;
-                            _windowModeSize = null;
-                        }
-
-                        // Center window on screen. (This will also apply the SetWindowLongPtr changes, and remove the topmost status when exiting out of fullscreen)
-                        Position = monitor.Position + (new Vector2(monitor.Width, monitor.Height) / 2 - Size / 2);
-
-                        break;
-                    case DisplayMode.Fullscreen:
-                        _windowModeSize = Size;
-
-                        IntPtr resp = User32.SetWindowLongPtr(Handle, WindowLongFlags.GWL_STYLE, (IntPtr) FULLSCREEN_STYLE);
-                        if (resp == IntPtr.Zero)
-                        {
-                            Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window style.", true);
-                            return;
-                        }
-
-                        bool successful = User32.SetWindowPos(
-                            Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
-                            (int)monitor.Position.X, (int)monitor.Position.Y,
-                            monitor.Width, monitor.Height,
-                            WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOCOPYBITS | WindowPositionFlags.SWP_FRAMECHANGED
-                        );
-                        if (!successful)
-                            Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window rect.", true);
-
-                        // Center cursor on screen/window.
-                        User32.SetCursorPos((int) (monitor.Position.X + monitor.Width / 2), (int) (monitor.Position.Y + monitor.Height / 2));
-
-                        break;
-                }
-
-                Context.SwapInternal = 1;
+                UpdateDisplayMode();
             }
         }
 
@@ -189,10 +143,65 @@ namespace Emotion.Platform.Implementation.Win32
             Context = context;
         }
 
+        internal override void UpdateDisplayMode()
+        {
+            // Get the monitor
+            Monitor monitor = _platform.GetMonitorOfWindow(this);
+            if (monitor == null)
+            {
+                Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
+                return;
+            }
+
+            switch (_mode)
+            {
+                case DisplayMode.Windowed:
+                    WindowStyles style = DetermineWindowStyle(this);
+                    IntPtr res = User32.SetWindowLongPtr(Handle, WindowLongFlags.GWL_STYLE, (IntPtr) style);
+                    if (res == IntPtr.Zero) Win32Platform.CheckError("Couldn't change display mode to windowed.", true);
+
+                    if (_windowModeSize != null)
+                    {
+                        Size = (Vector2) _windowModeSize;
+                        _windowModeSize = null;
+                    }
+
+                    // Center window on screen. (This will also apply the SetWindowLongPtr changes, and remove the topmost status when exiting out of fullscreen)
+                    Position = monitor.Position + (new Vector2(monitor.Width, monitor.Height) / 2 - Size / 2);
+
+                    break;
+                case DisplayMode.Fullscreen:
+                    IntPtr resp = User32.SetWindowLongPtr(Handle, WindowLongFlags.GWL_STYLE, (IntPtr) FULLSCREEN_STYLE);
+                    if (resp == IntPtr.Zero)
+                    {
+                        Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window style.", true);
+                        return;
+                    }
+
+                    bool successful = User32.SetWindowPos(
+                        Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
+                        (int) monitor.Position.X, (int) monitor.Position.Y,
+                        monitor.Width, monitor.Height,
+                        WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOCOPYBITS | WindowPositionFlags.SWP_FRAMECHANGED
+                    );
+                    if (!successful)
+                        Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window rect.", true);
+
+                    // Center cursor on screen/window.
+                    User32.SetCursorPos((int) (monitor.Position.X + monitor.Width / 2), (int) (monitor.Position.Y + monitor.Height / 2));
+
+                    break;
+            }
+
+            Context.SwapInternal = 1;
+        }
+
         #region Window Native Helpers
 
         // Default styles.
-        public const WindowStyles DEFAULT_WINDOW_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_SYSMENU | WindowStyles.WS_MINIMIZEBOX | WindowStyles.WS_CAPTION | WindowStyles.WS_MAXIMIZEBOX;
+        public const WindowStyles DEFAULT_WINDOW_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_SYSMENU | WindowStyles.WS_MINIMIZEBOX | WindowStyles.WS_CAPTION |
+                                                         WindowStyles.WS_MAXIMIZEBOX;
+
         public const WindowExStyles DEFAULT_WINDOW_STYLE_EX = WindowExStyles.WS_EX_APPWINDOW; // Things like "always top" can be configured here.
         public const WindowStyles FULLSCREEN_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_VISIBLE | WindowStyles.WS_OVERLAPPED;
 

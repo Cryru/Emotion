@@ -57,6 +57,8 @@ namespace Emotion.Platform
             _platform = platform;
         }
 
+        internal abstract void UpdateDisplayMode();
+
         #region Cleanup
 
         public virtual void Dispose()

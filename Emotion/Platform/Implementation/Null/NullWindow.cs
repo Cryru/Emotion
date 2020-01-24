@@ -16,5 +16,10 @@ namespace Emotion.Platform.Implementation.Null
         internal NullWindow(PlatformBase platform) : base(platform)
         {
         }
+
+        internal override void UpdateDisplayMode()
+        {
+            
+        }
     }
 }
