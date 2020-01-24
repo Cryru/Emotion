@@ -364,7 +364,7 @@ namespace Emotion.Platform
             foreach (Monitor monitor in Monitors)
             {
                 var monitorRect = new Rectangle(monitor.Position.X, monitor.Position.Y, monitor.Width, monitor.Height);
-                if (monitorRect.Contains(rect)) return monitor;
+                if (monitorRect.Contains(rect) || monitorRect.Intersects(rect)) return monitor;
             }
 
             return Monitors[0];

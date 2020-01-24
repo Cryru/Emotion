@@ -72,7 +72,7 @@ namespace Emotion.Platform.Implementation.Win32
                     return;
                 }
 
-                Vector2 center = new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
+                Vector2 center = monitor.Position + new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
 
                 User32.SetWindowPos(Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
                     (int) center.X + r.Left,
@@ -164,14 +164,14 @@ namespace Emotion.Platform.Implementation.Win32
                         bool successful = User32.SetWindowPos(
                             Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
                             (int)monitor.Position.X, (int)monitor.Position.Y,
-                            monitor.Width - (int)monitor.Position.X, monitor.Height - (int)monitor.Position.X,
+                            monitor.Width, monitor.Height,
                             WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOCOPYBITS | WindowPositionFlags.SWP_FRAMECHANGED
                         );
                         if (!successful)
                             Win32Platform.CheckError("Couldn't change display mode to fullscreen, couldn't apply window rect.", true);
 
                         // Center cursor on screen/window.
-                        User32.SetCursorPos(monitor.Width / 2, monitor.Height / 2);
+                        User32.SetCursorPos((int) (monitor.Position.X + monitor.Width / 2), (int) (monitor.Position.Y + monitor.Height / 2));
 
                         break;
                 }
