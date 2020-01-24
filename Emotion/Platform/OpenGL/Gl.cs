@@ -26,15 +26,6 @@ namespace OpenGL
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public partial class Gl : KhronosApi
     {
-        #region Constructors
-
-        /// <summary>
-        /// Eventual exception raised during Gl initialization.
-        /// </summary>
-        internal static Exception InitializationException;
-
-        #endregion
-
         #region Versions, Extensions and Limits
 
         /// <summary>
@@ -184,10 +175,10 @@ namespace OpenGL
         public static KhronosVersion QueryVersionExternal(Func<string, IntPtr> procLoadFunction)
         {
             IntPtr func = procLoadFunction("glGetString");
-            if(func == IntPtr.Zero) return null;
+            if (func == IntPtr.Zero) return null;
 
             var getString = Marshal.GetDelegateForFunctionPointer<Delegates.glGetString>(func);
-            IntPtr ptr = getString((int) StringName.Version);
+            IntPtr ptr = getString((int)StringName.Version);
             string str = NativeHelpers.StringFromPtr(ptr);
             return KhronosVersion.Parse(str);
         }
@@ -326,5 +317,67 @@ namespace OpenGL
         }
 
         #endregion
+
+        /// <summary>
+        /// Convert a pixel type enum to the number of bytes that type contains.
+        /// </summary>
+        /// <param name="pixelType">The pixel type to get the byte count of.</param>
+        /// <returns>The number of bytes that pixel type contains.</returns>
+        public static byte PixelTypeToByteCount(PixelType pixelType)
+        {
+            switch (pixelType)
+            {
+                case PixelType.UnsignedByte:
+                case PixelType.Byte:
+                    return 1;
+                case PixelType.Double:
+                    return 8;
+                case PixelType.UnsignedInt248:
+                case PixelType.Int:
+                case PixelType.UnsignedInt:
+                case PixelType.Float:
+                    return 4;
+                case PixelType.UnsignedShort:
+                case PixelType.Short:
+                case PixelType.HalfFloat:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the amount of components in the pixel format.
+        /// </summary>
+        /// <param name="pixelFormat">The pixel format to get the components of.</param>
+        /// <returns>How many components the pixel format has.</returns>
+        public static byte PixelTypeToComponentCount(PixelFormat pixelFormat)
+        {
+            switch (pixelFormat)
+            {
+                case PixelFormat.Bgra:
+                case PixelFormat.Rgba:
+                case PixelFormat.BgraInteger:
+                case PixelFormat.RgbaInteger:
+                    return 4;
+                case PixelFormat.Red:
+                case PixelFormat.Green:
+                case PixelFormat.Blue:
+                case PixelFormat.Alpha:
+                case PixelFormat.RedInteger:
+                case PixelFormat.GreenInteger:
+                case PixelFormat.BlueInteger:
+                    return 1;
+                case PixelFormat.DepthStencil:
+                case PixelFormat.DepthComponent:
+                    return 1;
+                case PixelFormat.Rgb:
+                case PixelFormat.RgbInteger:
+                case PixelFormat.Bgr:
+                    return 3;
+                default:
+                    return 0;
+            }
+        }
     }
 }

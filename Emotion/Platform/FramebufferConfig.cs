@@ -1,4 +1,4 @@
-﻿namespace Emotion.Platform.Implementation
+﻿namespace Emotion.Platform
 {
     /// <summary>
     /// Describes framebuffers and their properties.

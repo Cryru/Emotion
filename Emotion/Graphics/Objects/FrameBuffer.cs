@@ -120,13 +120,15 @@ namespace Emotion.Graphics.Objects
 
         public FrameBuffer(Texture texture) : this(texture, null)
         {
-
         }
 
         public FrameBuffer(Texture texture, bool attachStencil = false) : this(texture, null, attachStencil)
         {
         }
 
+        /// <summary>
+        /// Bind the framebuffer. Also sets the current viewport to the frame buffer's viewport.
+        /// </summary>
         public void Bind()
         {
             EnsureBound(Pointer);
@@ -135,10 +137,38 @@ namespace Emotion.Graphics.Objects
         }
 
         /// <summary>
+        /// Sample data from the framebuffer.
+        /// </summary>
+        /// <param name="rect">The rectangle to sample data from in. Top left origin.</param>
+        /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
+        public unsafe byte[] Sample(Rectangle rect, ref byte[] data)
+        {
+            Debug.Assert(Viewport.Contains(rect));
+            rect = new Rectangle(rect.X, rect.Y + (Size.Y - rect.Height), rect.Width, rect.Height);
+            Bind();
+            fixed (byte* pixelBuffer = &data[0])
+            {
+                Gl.ReadPixels((int)rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, Texture.PixelFormat, Texture.PixelType, (IntPtr) pixelBuffer);
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// Sample data from the framebuffer.
+        /// </summary>
+        /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
+        public byte[] Sample(Rectangle rect)
+        {
+            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(Texture.PixelType) * Gl.PixelTypeToComponentCount(Texture.PixelFormat)];
+            return Sample(rect, ref data);
+        }
+
+        /// <summary>
         /// Ensures the provided pointer is the currently bound framebuffer.
         /// </summary>
         /// <param name="pointer">The pointer to ensure is bound.</param>
-        public static void EnsureBound(uint pointer)
+        private static void EnsureBound(uint pointer)
         {
             // Check if it is already bound.
             if (Bound == pointer && pointer != 0)
@@ -146,7 +176,7 @@ namespace Emotion.Graphics.Objects
                 // If in debug mode, verify this with OpenGL.
                 if (!Engine.Configuration.DebugMode) return;
 
-                Gl.GetInteger(GetPName.DrawFramebufferBinding, out uint actualBound);
+                Gl.GetInteger(GetPName.DrawFramebufferBinding, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed frame buffer was {pointer} but it was {actualBound}.", MessageSource.GL);
                 return;
             }

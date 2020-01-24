@@ -366,18 +366,6 @@ namespace OpenGL
         public const int SECONDARY_COLOR_ARRAY_BUFFER_BINDING = 0x889C;
 
         /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_5")] [RequiredByFeature("GL_ARB_vertex_buffer_object")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE_ARRAY_BUFFER_BINDING = 0x889D;
-
-        /// <summary>
-        /// [GL] Value of GL_WEIGHT_ARRAY_BUFFER_BINDING symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_5")] [RequiredByFeature("GL_ARB_vertex_buffer_object")] [RequiredByFeature("GL_OES_matrix_palette", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int WEIGHT_ARRAY_BUFFER_BINDING = 0x889E;
-
-        /// <summary>
         ///     <para>
         ///     [GL4|GLES3.2] glGenQueries: generate query object names
         ///     </para>

@@ -1,9 +1,10 @@
 ﻿#region Using
 
 using System;
-using System.IO;
-using System.Xml.Serialization;
-using Emotion.Utility;
+using System.Text;
+using Emotion.Common;
+using Emotion.IO;
+using Emotion.Standard.Logging;
 
 #endregion
 
@@ -13,15 +14,14 @@ namespace Emotion.Game
     /// A save file.
     /// </summary>
     /// <typeparam name="T">The model for the save file.</typeparam>
-    public class SaveFile<T>
+    public class SaveFile<T> : XMLAsset<T>
     {
         /// <summary>
-        /// The content of the file.
+        /// This is the constructor used by the AssetLoader.
         /// </summary>
-        public T Content { get; set; }
-
-        private XmlSerializer _serializer;
-        private string _path;
+        public SaveFile()
+        {
+        }
 
         /// <summary>
         /// Create a new save file.
@@ -29,34 +29,21 @@ namespace Emotion.Game
         /// <param name="filePath">The path to the save file.</param>
         public SaveFile(string filePath)
         {
-            _serializer = new XmlSerializer(typeof(T));
-            _path = Helpers.CrossPlatformPath(filePath);
+            Name = filePath;
 
-            // Check if the file exists. If it doesn't - create it.
-            if (!File.Exists(_path))
-            {
-                Content = Activator.CreateInstance<T>();
-                Save();
-                return;
-            }
-
-            string content = File.ReadAllText(_path);
-
-            // Read the file.
-            using TextReader writer = new StringReader(content);
-            Content = (T) _serializer.Deserialize(writer);
+            // If the file doesn't exist - create it.
+            if (Engine.AssetLoader.Exists(Name)) return;
+            Content = Activator.CreateInstance<T>();
+            Save();
         }
 
         /// <summary>
-        /// Save the save file to the disk.
+        /// Save the save file to the asset store.
         /// </summary>
         public void Save()
         {
-            // If an old save file exists, back it up.
-            if (File.Exists(_path)) File.Copy(_path, _path + ".backup", true);
-
-            using var stream = new StreamWriter(_path);
-            _serializer.Serialize(stream, Content);
+            string data = FromObject(Content);
+            if (!Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), Name)) Engine.Log.Warning($"Couldn't save file {Name}.", MessageSource.Other);
         }
     }
 }

@@ -10,11 +10,9 @@ using System.Threading;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Platform.Implementation;
+using Emotion.Platform;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
-
-//using Emotion.Native;
 
 #endregion
 
@@ -55,6 +53,11 @@ namespace Emotion.Common
         /// Module which manages loading and unloading of scenes.
         /// </summary>
         public static SceneManager SceneManager { get; private set; }
+
+        /// <summary>
+        /// The audio context of the platform. A redirect of Host.Audio.
+        /// </summary>
+        public static AudioContext Audio { get; private set; }
 
         #endregion
 
@@ -116,11 +119,10 @@ namespace Emotion.Common
             if (Status < EngineStatus.LightSetup) LightSetup(configurator);
             if (Status >= EngineStatus.Setup) return;
 
-            // Mount assets. This doesn't depend on the platform.
-            // Even if it does in the future the platform should add sources to it instead of initializing it.
+            // Mount default assets. The platform should add it's own specific sources and stores.
             AssetLoader = LoadDefaultAssetLoader();
 
-            // Create the platform, window, and graphics context.
+            // Create the platform, window, audio, and graphics context.
             Host = PlatformBase.GetInstanceOfDetected(configurator);
             if (Host == null)
             {
@@ -128,6 +130,7 @@ namespace Emotion.Common
                 return;
             }
             InputManager = Host;
+            Audio = Host.Audio;
 
             // Errors in host initialization can cause this.
             if (Status == EngineStatus.Stopped) return;
@@ -137,6 +140,7 @@ namespace Emotion.Common
             Renderer = new Renderer();
             Renderer.Setup();
 
+            // Now "game-mode" modules can be created.
             SceneManager = new SceneManager();
 
             // Setup plugins.
@@ -398,9 +402,6 @@ namespace Emotion.Common
             {
                 loader.AddSource(new EmbeddedAssetSource(assembly, "Assets"));
             }
-
-            // Add file system source.
-            loader.AddSource(new FileAssetSource("Assets"));
 
             return loader;
         }

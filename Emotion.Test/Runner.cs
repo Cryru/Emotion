@@ -434,7 +434,8 @@ namespace Emotion.Test
         public static void VerifyScreenshot(string renderId)
         {
             // Take a screenshot to compare to the expected image. Assume the sizes are the same.
-            byte[] screenshot = Engine.Renderer.GetScreenshot(out Vector2 screenShotSize);
+            byte[] screenshot = Engine.Renderer.DrawBuffer.Sample(Engine.Renderer.DrawBuffer.Viewport);
+            Vector2 screenShotSize = Engine.Renderer.DrawBuffer.Viewport.Size;
             VerifyCachedRender(renderId, screenshot, screenShotSize);
         }
 

@@ -7,7 +7,7 @@ using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Platform.Implementation
+namespace Emotion.Platform
 {
     /// <summary>
     /// Manages input from a mouse and keyboard, regardless of whether they are physical or virtual.

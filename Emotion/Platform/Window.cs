@@ -6,7 +6,7 @@ using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Platform.Implementation
+namespace Emotion.Platform
 {
     /// <summary>
     /// Whatever the representation of a window on the native platform is.

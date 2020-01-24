@@ -235,13 +235,23 @@ namespace Emotion.Graphics
             Vector2 baseRes = Engine.Configuration.RenderSize;
             Vector2 ratio = size / baseRes;
             Scale = MathF.Min(ratio.X, ratio.Y);
-
             IntScale = (int) MathF.Floor((size.X + size.Y) / (baseRes.X + baseRes.Y));
 
             // Set viewport.
             Gl.Viewport(0, 0, (int) size.X, (int) size.Y);
             ScreenBuffer.Viewport = new Rectangle(0, 0, size);
             ScreenBuffer.Size = size;
+
+            if (Engine.Configuration.IntScaleBlit)
+            {
+                Scale -= IntScale - 1;
+                size /= IntScale;
+                size.X = (int) size.X;
+                size.Y = (int) size.Y;
+                IntScale = 1;
+            }
+
+            Engine.Log.Info($"Resized host - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
 
             // Recreate draw buffer.
             CreateDrawbuffer(size);
@@ -571,7 +581,7 @@ namespace Emotion.Graphics
         /// Pop off a render target off of the top of the target stack, meaning the one before it will be used for subsequent
         /// drawing.
         /// </summary>
-        internal void PopFramebuffer()
+        internal void PopFramebuffer(bool rebindPrevious = true)
         {
             if (_bufferStack.Count == 1)
             {
@@ -580,7 +590,7 @@ namespace Emotion.Graphics
             }
 
             _bufferStack.Pop();
-            EnsureRenderTarget();
+            if(rebindPrevious) EnsureRenderTarget();
         }
 
         /// <summary>
@@ -601,27 +611,6 @@ namespace Emotion.Graphics
         {
             _matrixStack.Pop();
             SyncModelMatrix();
-        }
-
-        #endregion
-
-        #region Helpers
-
-        /// <summary>
-        /// Returns what is currently drawn on the screen as a byte array of pixels in the RGBA format.
-        /// </summary>
-        /// <returns></returns>
-        public unsafe byte[] GetScreenshot(out Vector2 size)
-        {
-            size = CurrentTarget.Viewport.Size;
-            var screenshotBuffer = new byte[(int) CurrentTarget.Viewport.Width * (int) CurrentTarget.Viewport.Height * 4];
-            fixed (byte* pixelBuffer = &screenshotBuffer[0])
-            {
-                Gl.ReadPixels((int) CurrentTarget.Viewport.X, (int) CurrentTarget.Viewport.Y, (int) CurrentTarget.Viewport.Width, (int) CurrentTarget.Viewport.Height, PixelFormat.Bgra,
-                    PixelType.UnsignedByte, (IntPtr) pixelBuffer);
-            }
-
-            return screenshotBuffer;
         }
 
         #endregion

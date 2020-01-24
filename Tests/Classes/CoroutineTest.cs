@@ -1,11 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
-using System.Threading.Tasks;
-using Emotion.Common;
 using Emotion.Game.Time.Routines;
-using Emotion.IO;
-using Emotion.Scripting;
 using Emotion.Test;
 
 // ReSharper disable AccessToModifiedClosure
@@ -22,20 +18,24 @@ namespace Tests.Classes
         private class WaitForTestTime : IRoutineWaiter
         {
             private int _waitTime;
+
             public WaitForTestTime(int time)
             {
                 _waitTime = time;
             }
 
-            public bool Finished { get => _time > _waitTime; }
+            public bool Finished
+            {
+                get => _time > _waitTime;
+            }
+
             public void Update()
             {
-                
             }
         }
+
         public static void ProgressTime(int seconds)
         {
-
         }
 
         public static IEnumerator TimeTestRoutine()

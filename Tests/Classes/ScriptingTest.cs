@@ -1,8 +1,7 @@
 ﻿#region Using
 
 using Emotion.Common;
-using Emotion.IO;
-using Emotion.Scripting;
+using Emotion.Plugins.CSharpScripting;
 using Emotion.Test;
 
 #endregion

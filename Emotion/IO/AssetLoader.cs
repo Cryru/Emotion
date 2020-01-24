@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace Emotion.IO
 
         protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
         protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
+        protected ConcurrentDictionary<string, IAssetStore> _storage = new ConcurrentDictionary<string, IAssetStore>();
 
         /// <summary>
         /// List of all loaded assets from all sources.
@@ -70,6 +72,28 @@ namespace Emotion.IO
                 // Note: Old versions of Emotion didn't overwrite assets.
                 //_manifest.AddOrUpdate(NameToEngineName(asset), source, (_,__) => source);
             }
+
+            Engine.Log.Info($"Mounted asset source '{source}' containing {sourceManifest.Length} assets.", MessageSource.AssetLoader);
+        }
+
+        /// <summary>
+        /// Add a store to the asset loader.
+        /// Conflicting asset names are overwritten by whichever was added first.
+        /// </summary>
+        /// <param name="store">A new store to load and save assets from.</param>
+        public void AddStore(AssetSource store)
+        {
+            if (!(store is IAssetStore storeCast))
+            {
+                Engine.Log.Warning($"Tried to mount an asset store which isn't a store - {store}.", MessageSource.AssetLoader);
+                return;
+            }
+
+            // Stores are also sources.
+            AddSource(store);
+
+            _storage.TryAdd(NameToEngineName(storeCast.Folder), storeCast);
+            Engine.Log.Info($"Mounted asset store '{store}' at {storeCast.Folder}.", MessageSource.AssetLoader);
         }
 
         #region Assets
@@ -131,6 +155,45 @@ namespace Emotion.IO
             _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
             return (T) asset;
+        }
+
+        /// <summary>
+        /// Store an asset.
+        /// </summary>
+        /// <param name="asset">The asset data to store.</param>
+        /// <param name="name">The engine name to store it under.</param>
+        /// <returns>Whether the file was saved.</returns>
+        public bool Save(byte[] asset, string name)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+
+            // Convert to engine name.
+            name = NameToEngineName(name);
+
+            // Find a store which matches the name folder.
+            string folder = name.Substring(0, name.IndexOf('/'));
+
+            bool found = _storage.TryGetValue(folder, out IAssetStore store);
+            if (!found)
+            {
+                Engine.Log.Warning($"Tried to store asset {name} but there's no store to service folder {folder}.", MessageSource.AssetLoader);
+                return false;
+            }
+
+            // Store the asset.
+            try
+            {
+                store.SaveAsset(asset, name);
+
+                // If it didn't exist until now - add it to the internal manifest.
+                if (!Exists(name)) _manifest.TryAdd(name, (AssetSource) store);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Engine.Log.Error(new Exception($"Couldn't store asset - {name}", ex));
+                return false;
+            }
         }
 
         /// <summary>

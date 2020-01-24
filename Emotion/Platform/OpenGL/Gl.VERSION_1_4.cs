@@ -369,54 +369,6 @@ namespace OpenGL
         public const int GENERATE_MIPMAP_HINT = 0x8192;
 
         /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE_SOURCE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE_SOURCE = 0x8450;
-
-        /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE = 0x8451;
-
-        /// <summary>
-        /// [GL] Value of GL_FRAGMENT_DEPTH symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RequiredByFeature("GL_EXT_light_texture")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FRAGMENT_DEPTH = 0x8452;
-
-        /// <summary>
-        /// [GL] Value of GL_CURRENT_FOG_COORDINATE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int CURRENT_FOG_COORDINATE = 0x8453;
-
-        /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE_ARRAY_TYPE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE_ARRAY_TYPE = 0x8454;
-
-        /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE_ARRAY_STRIDE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE_ARRAY_STRIDE = 0x8455;
-
-        /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE_ARRAY_POINTER symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE_ARRAY_POINTER = 0x8456;
-
-        /// <summary>
-        /// [GL] Value of GL_FOG_COORDINATE_ARRAY symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int FOG_COORDINATE_ARRAY = 0x8457;
-
-        /// <summary>
         ///     <para>
         ///     [GL2.1] Gl.Enable: If enabled and no fragment shader is active, add the secondary color value to the computed
         ///     fragment
@@ -462,12 +414,6 @@ namespace OpenGL
         public const int SECONDARY_COLOR_ARRAY_STRIDE = 0x845C;
 
         /// <summary>
-        /// [GL] Value of GL_SECONDARY_COLOR_ARRAY_POINTER symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_secondary_color")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int SECONDARY_COLOR_ARRAY_POINTER = 0x845D;
-
-        /// <summary>
         ///     <para>
         ///     [GL2.1] Gl.EnableClientState: If enabled, the secondary color array is enabled for writing and used during
         ///     rendering
@@ -484,12 +430,6 @@ namespace OpenGL
         public const int SECONDARY_COLOR_ARRAY = 0x845E;
 
         /// <summary>
-        /// [GL] Value of GL_TEXTURE_FILTER_CONTROL symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_texture_lod_bias", Api = "gl|gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int TEXTURE_FILTER_CONTROL = 0x8500;
-
-        /// <summary>
         ///     <para>
         ///     [GL2.1] Gl.GetTexParameter: Returns a single-valued texture format indicating how the depth values should be
         ///     converted
@@ -504,12 +444,6 @@ namespace OpenGL
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ARB_depth_texture")] [RemovedByFeature("GL_VERSION_3_2")]
         public const int DEPTH_TEXTURE_MODE = 0x884B;
-
-        /// <summary>
-        /// [GL] Value of GL_COMPARE_R_TO_TEXTURE symbol (DEPRECATED).
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_ARB_shadow")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int COMPARE_R_TO_TEXTURE = 0x884E;
 
         /// <summary>
         /// [GL4|GLES3.2] Gl.Get: data returns four values, the red, green, blue, and alpha values which are the components of the

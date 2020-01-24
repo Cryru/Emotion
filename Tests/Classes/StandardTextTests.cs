@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Primitives;
-using Emotion.Standard.Image;
 using Emotion.Standard.Text;
 using Emotion.Test;
 using Emotion.Utility;
@@ -29,7 +28,7 @@ namespace Tests.Classes
                 "1980XX.ttf", // Ttf
                 "LatoWeb-Regular.ttf", // Composite
                 "Junction-Bold.otf", // 14 font size
-                "Junction-Bold.otf", // 11 font size
+                "Junction-Bold.otf" // 11 font size
             };
 
             var names = new[]
@@ -39,7 +38,7 @@ namespace Tests.Classes
                 "1980XX",
                 "Lato Regular",
                 "Junction-Bold",
-                "Junction-Bold",
+                "Junction-Bold"
             };
 
             var unitsPerEm = new[]
@@ -49,7 +48,7 @@ namespace Tests.Classes
                 1024,
                 2000,
                 1000,
-                1000,
+                1000
             };
 
             int[] descender =
@@ -59,7 +58,7 @@ namespace Tests.Classes
                 -128,
                 -426,
                 -250,
-                -250,
+                -250
             };
 
             var ascender = new[]
@@ -69,7 +68,7 @@ namespace Tests.Classes
                 682,
                 1974,
                 750,
-                750,
+                750
             };
 
             var glyphs = new[]
@@ -79,17 +78,17 @@ namespace Tests.Classes
                 141,
                 2164,
                 270,
-                270,
+                270
             };
 
             string[] cachedRender =
             {
                 ResultDb.EmotionCffAtlas,
                 "",
-                ResultDb.EmotionTTAtlas,
+                ResultDb.EmotionTtAtlas,
                 ResultDb.EmotionCompositeAtlas,
                 "",
-                "",
+                ""
             };
 
             int[] fontSizes =
@@ -99,7 +98,7 @@ namespace Tests.Classes
                 17,
                 17,
                 14,
-                11,
+                11
             };
 
             for (var i = 0; i < fonts.Length; i++)
@@ -201,7 +200,7 @@ namespace Tests.Classes
                     {
                         Location = new Vector2(cd[i].x0, cd[i].y0),
                         Size = new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0),
-                        YBearing = (int) MathF.Round(yOff), // overwrite
+                        YBearing = (int) MathF.Round(yOff) // overwrite
                     };
                     atlasObj.Glyphs[(char) i] = atlasGlyph;
                 }

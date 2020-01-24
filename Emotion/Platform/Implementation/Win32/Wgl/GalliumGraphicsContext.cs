@@ -38,7 +38,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             _platform = platform;
 
             // This is how you request a context version from MESA - lol
-            // This needs to be pinvoked as Environment.SetEnvironmentVariable doesn't affect native getenv calls.
+            // This needs to be pInvoked as Environment.SetEnvironmentVariable doesn't affect native getenv calls.
             _putenv_s("MESA_GL_VERSION_OVERRIDE", "3.3FC");
 
             // Unload old OpenGL, if any.

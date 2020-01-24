@@ -3,6 +3,8 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using Emotion.Common;
+using Emotion.Standard.Logging;
 
 #endregion
 
@@ -64,11 +66,6 @@ namespace Emotion.Standard.Utility.Zlib
 
         public static byte[] Decompress(Stream stream)
         {
-            // The DICT dictionary identifier identifying the used dictionary.
-
-            // The preset dictionary.
-            bool fdict;
-
             // Read the zlib header : http://tools.ietf.org/html/rfc1950
             // CMF(Compression Method and flags)
             // This byte is divided into a 4 - bit compression method and a 
@@ -84,29 +81,22 @@ namespace Emotion.Standard.Utility.Zlib
             int flag = stream.ReadByte();
             if (cmf == -1 || flag == -1) return null;
 
-            if ((cmf & 0x0f) != 8) throw new Exception($"Bad compression method for ZLIB header: cmf={cmf}");
-
-            // CINFO is the base-2 logarithm of the LZ77 window size, minus eight.
-            // int cinfo = ((cmf & (0xf0)) >> 8);
-            fdict = (flag & 32) != 0;
-
-            if (fdict)
+            if ((cmf & 0x0f) != 8)
             {
-                // The DICT dictionary identifier identifying the used dictionary.
-                var dictId = new byte[4];
-
-                for (var i = 0; i < 4; i++)
-                {
-                    // We consume but don't use this.
-                    dictId[i] = (byte) stream.ReadByte();
-                }
+                Engine.Log.Warning($"Bad compression method for ZLIB header: cmf={cmf}", MessageSource.Other);
+                return null;
+            }
+            if ((flag & 32) != 0)
+            {
+                // The dictionary is 4 bytes long
+                stream.Position += 4;
             }
 
-            // Initialize the deflate Stream.
+            // Decompress using the .Net deflate stream
             using var str = new MemoryStream();
-            using var deflateStream = new DeflateStream(stream, CompressionMode.Decompress, true);
+            using var deflateStream = new DeflateStream(stream, CompressionMode.Decompress);
             deflateStream.CopyTo(str);
-            deflateStream.Close();
+            deflateStream.Flush();
 
             return str.ToArray();
         }

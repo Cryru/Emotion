@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Test;
@@ -19,14 +20,22 @@ namespace Tests
             {"tag=FullScale", c => c.SetRenderSize(new Vector2(320, 180))},
             //{"marginScale", c => c.SetRenderSize(null, false, false)},
             //{"marginScaleInteger", c => c.SetRenderSize(null, true, false)},
-            {"tag=EmotionDesktop testOnly", null },
-            {"tag=Assets", null },
-            {"tag=Scripting", null },
-            {"tag=Coroutine", null },
-            {"tag=StandardAudio", null },
-            {"tag=Audio", null },
-            {"tag=StandardText", null },
-            {"tag=AnimatedTexture", null }
+            {"tag=EmotionDesktop testOnly", null},
+            {
+                "tag=Assets", c =>
+                {
+                    // Cleanup for storage tests.
+                    if (!Directory.Exists("Player")) return;
+                    Directory.Delete("Player", true);
+                    Directory.CreateDirectory("Player");
+                }
+            },
+            {"tag=Scripting", null},
+            {"tag=Coroutine", null},
+            {"tag=StandardAudio", null},
+            {"tag=Audio", null},
+            {"tag=StandardText", null},
+            {"tag=AnimatedTexture", null}
         };
 
 
@@ -35,9 +44,9 @@ namespace Tests
             ResultDb.LoadCache();
             Runner.RunTests(
                 new Configurator()
-                .SetHostSettings(new Vector2(640, 360)) // The resolution is set like that because it is the resolution of the render references.
-                .SetRenderSize(fullScale: false),
-            args, _otherConfigs, ResultDb.CachedResults);
+                    .SetHostSettings(new Vector2(640, 360)) // The resolution is set like that because it is the resolution of the render references.
+                    .SetRenderSize(fullScale: false),
+                args, _otherConfigs, ResultDb.CachedResults);
         }
     }
 }

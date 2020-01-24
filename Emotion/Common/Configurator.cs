@@ -135,22 +135,35 @@ namespace Emotion.Common
         public bool RendererCompatMode { get; private set; }
 
         /// <summary>
+        /// If enabled the DrawBuffer will only scale between 1-1.99 and the integer scaling will be performed
+        /// automatically when drawing to the screen buffer. This means your IntScale will always be 1 - but it
+        /// also reduces the resolution you can work with outside of integer scaling (as in non-pixel art, UI etc.)
+        ///
+        /// This is off by default, but it is a huge performance boost - at the cost
+        /// of very little in games which do not use scaling a lot.
+        ///
+        /// Applies only to full scale.
+        /// </summary>
+        public bool IntScaleBlit { get; private set; }
+
+        /// <summary>
         /// Other settings related to the Renderer.
         /// These shouldn't need to be modified by the user and are here for debugging or testing purposes.
         /// </summary>
         /// <param name="rendererCompatMode">Whether to run the renderer in compatibility mode.</param>
+        /// <param name="intScaleBlit">Whether to blit integerly.</param>
         /// <returns>This configurator, for chaining purposes.</returns>
-        public Configurator SetRenderSettings(bool rendererCompatMode)
+        public Configurator SetRenderSettings(bool rendererCompatMode = false, bool intScaleBlit = false)
         {
             if (Setup) return this;
             RendererCompatMode = rendererCompatMode;
+            IntScaleBlit = intScaleBlit;
             return this;
         }
 
         /// <summary>
-        /// The desired tps and fps.
-        /// 60 by default, if set to 0 or below, the loop will run as fast as possible.
-        /// You usually don't want that as it means it will have an uneven delta time.
+        /// The desired tps and fps. 60 by default.
+        /// You usually don't want this to be unlimited as that will cause uneven delta time and hiccups.
         /// </summary>
         public uint DesiredStep { get; private set; } = 60;
 

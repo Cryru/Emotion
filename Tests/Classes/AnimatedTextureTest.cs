@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Animation;
@@ -7,6 +9,8 @@ using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Test;
 using Tests.Results;
+
+#endregion
 
 namespace Tests.Classes
 {
@@ -23,7 +27,8 @@ namespace Tests.Classes
             var normalLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
             // Test constructor without starting-ending frame as well. It should set the starting and ending frames to 0-3 as well.
             var noLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, 2, 2, AnimationLoopType.None, 500);
-            var normalThenReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NormalThenReverse, 500, 0, 3);
+            var normalThenReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NormalThenReverse, 500,
+                0, 3);
             var noLoopReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NoneReverse, 500, 0, 3);
             var reverseLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Reverse, 500);
 
@@ -84,10 +89,7 @@ namespace Tests.Classes
             Assert.Equal(500, reverseLoop.TimeBetweenFrames);
 
             // Capture starting frames.
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest1);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest1); });
             Assert.Equal(0, normalLoop.CurrentFrameIndex);
             Assert.Equal(0, noLoop.CurrentFrameIndex);
             Assert.Equal(0, normalThenReverse.CurrentFrameIndex);
@@ -97,10 +99,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest2);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest2); });
             Assert.Equal(1, normalLoop.CurrentFrameIndex);
             Assert.Equal(1, noLoop.CurrentFrameIndex);
             Assert.Equal(1, normalThenReverse.CurrentFrameIndex);
@@ -110,10 +109,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest3);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest3); });
             Assert.Equal(2, normalLoop.CurrentFrameIndex);
             Assert.Equal(2, noLoop.CurrentFrameIndex);
             Assert.Equal(2, normalThenReverse.CurrentFrameIndex);
@@ -123,10 +119,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest4);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest4); });
             Assert.Equal(3, normalLoop.CurrentFrameIndex);
             Assert.Equal(3, noLoop.CurrentFrameIndex);
             Assert.Equal(3, normalThenReverse.CurrentFrameIndex);
@@ -136,10 +129,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest5);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest5); });
             Assert.Equal(0, normalLoop.CurrentFrameIndex);
             Assert.Equal(3, noLoop.CurrentFrameIndex);
             Assert.Equal(2, normalThenReverse.CurrentFrameIndex);
@@ -149,10 +139,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest6);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest6); });
             Assert.Equal(1, normalLoop.CurrentFrameIndex);
             Assert.Equal(3, noLoop.CurrentFrameIndex);
             Assert.Equal(1, normalThenReverse.CurrentFrameIndex);
@@ -236,10 +223,7 @@ namespace Tests.Classes
             Assert.Equal(0, reverseLoop.LoopCount);
 
             // Check if matching starting capture.
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest1);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest1); });
             Assert.Equal(0, normalLoop.CurrentFrameIndex);
             Assert.Equal(0, noLoop.CurrentFrameIndex);
             Assert.Equal(0, normalThenReverse.CurrentFrameIndex);
@@ -263,7 +247,8 @@ namespace Tests.Classes
             // The size of the frame is larger than the image itself.
             var wrongFrameSize = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(125, 50), AnimationLoopType.Normal, 500, 0, 3);
             // Test the auto starting-ending frame constructor working with invalid frame sizes.
-            var wrongFrameSizeAltConstructor = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(125, 50), AnimationLoopType.Normal, 500);
+            var wrongFrameSizeAltConstructor =
+                new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(125, 50), AnimationLoopType.Normal, 500);
             var frameChange = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
 
             void DrawFrame(Action end)
@@ -335,10 +320,7 @@ namespace Tests.Classes
             Assert.Equal(500, frameChange.TimeBetweenFrames);
 
             // Capture starting frames.
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest7);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest7); });
             Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
             Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
             Assert.Equal(0, frameChange.CurrentFrameIndex);
@@ -346,10 +328,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest8);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest8); });
             Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
             Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
             Assert.Equal(1, frameChange.CurrentFrameIndex);
@@ -366,10 +345,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest9);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest9); });
             Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
             Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
             Assert.Equal(3, frameChange.CurrentFrameIndex);
@@ -386,10 +362,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest9);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest9); });
             Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
             Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
             Assert.Equal(3, frameChange.CurrentFrameIndex);
@@ -397,10 +370,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest8);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest8); });
             Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
             Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
             Assert.Equal(1, frameChange.CurrentFrameIndex);
@@ -408,10 +378,7 @@ namespace Tests.Classes
             // Move 500 ms into the future, as the frames are specified to change every 500ms.
             AdvanceAnimation(500);
 
-            DrawFrame(() =>
-            {
-                Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest10);
-            });
+            DrawFrame(() => { Runner.VerifyScreenshot(ResultDb.AnimatedTextureTest10); });
             Assert.Equal(0, wrongFrameSize.CurrentFrameIndex);
             Assert.Equal(0, wrongFrameSizeAltConstructor.CurrentFrameIndex);
             Assert.Equal(2, frameChange.CurrentFrameIndex);

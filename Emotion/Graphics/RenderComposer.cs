@@ -626,6 +626,30 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Render to a frame buffer, but clear all its attachments first.
+        /// </summary>
+        /// <param name="buffer">The buffer to render to. If set to null will revert to the previous buffer, in which case the buffer will not be cleared.</param>
+        public void RenderToAndClear(FrameBuffer buffer)
+        {
+            var command = GetRenderCommand<FramebufferModificationCommand>();
+            command.Buffer = buffer;
+            PushCommand(command);
+
+            if (buffer != null) ClearFrameBuffer();
+        }
+
+        /// <summary>
+        /// Works like RenderTo(null) but doesn't rebind the previous target. Used for swapping between targets.
+        /// </summary>
+        public void RenderTargetPop()
+        {
+            var command = GetRenderCommand<FramebufferModificationCommand>();
+            command.Buffer = null;
+            command.RebindPrevious = false;
+            PushCommand(command);
+        }
+
+        /// <summary>
         /// Clears the frame buffer currently being rendered to.
         /// </summary>
         public void ClearFrameBuffer()

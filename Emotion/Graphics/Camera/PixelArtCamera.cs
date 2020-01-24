@@ -27,8 +27,8 @@ namespace Emotion.Graphics.Camera
         /// <inheritdoc />
         public override void RecreateMatrix()
         {
-            int iX = (int)X;
-            int iY = (int)Y;
+            var iX = (int)X;
+            var iY = (int)Y;
 
             Vector2 targetSize = Engine.Configuration.RenderSize;
             Vector2 currentSize = Engine.Renderer.DrawBuffer.Size;

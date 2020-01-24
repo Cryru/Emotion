@@ -4,6 +4,10 @@ using Khronos;
 
 #endregion
 
+// ReSharper disable InheritdocConsiderUsage
+// ReSharper disable SwitchStatementMissingSomeCases
+// ReSharper disable RedundantIfElseBlock
+// ReSharper disable once CheckNamespace
 namespace OpenGL
 {
     public partial class Gl
@@ -13,46 +17,6 @@ namespace OpenGL
         /// </summary>
         public sealed partial class Limits
         {
-            /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value, the maximum recursion depth allowed during display-list traversal. The value
-            /// must be at least 64. See Gl.CallList.
-            /// </summary>
-            [Limit(MAX_LIST_NESTING)] [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxListNesting;
-
-            /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value, the maximum equation order supported by 1D and 2D evaluators. The value must
-            /// be at least 8. See Gl.Map1 and Gl.Map2.
-            /// </summary>
-            [Limit(MAX_EVAL_ORDER)] [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxEvalOrder;
-
-            /// <summary>
-            /// [GL2.1|GLES1.1] Gl.Get: params returns one value, the maximum number of lights. The value must be at least 8. See
-            /// Gl.Light.
-            /// </summary>
-            [Limit(MAX_LIGHTS)] [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxLights;
-
-            /// <summary>
-            ///     <para>
-            ///     [GL2.1] Gl.Get: params returns one value, the maximum number of application-defined clipping planes. The value must
-            ///     be
-            ///     at least 6. See Gl.ClipPlane.
-            ///     </para>
-            ///     <para>
-            ///     [GLES1.1] Gl.Get: params returns one value, the maximum number of application defined clipping planes. The value
-            ///     must be
-            ///     at least Gl.. See Gl.ClipPlane.
-            ///     </para>
-            /// </summary>
-            [Limit(MAX_CLIP_PLANES)]
-            [RequiredByFeature("GL_VERSION_1_0")]
-            [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-            [RequiredByFeature("GL_IMG_user_clip_plane", Api = "gles1")]
-            [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxClipPlanes;
-
             /// <summary>
             /// [GL4] Gl.Get: data returns one value, the maximum number of application-defined clipping distances. The value must be
             /// at
@@ -79,50 +43,6 @@ namespace OpenGL
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             public int MaxTextureSize;
-
-            /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value, the maximum supported size of a Gl.PixelMap lookup table. The value must be
-            /// at
-            /// least 32. See Gl.PixelMap.
-            /// </summary>
-            [Limit(MAX_PIXEL_MAP_TABLE)] [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxPixelMapTable;
-
-            /// <summary>
-            ///     <para>
-            ///     [GL2.1] Gl.Get: params returns one value, the maximum supported depth of the modelview matrix stack. The value must
-            ///     be
-            ///     at least 32. See Gl.PushMatrix.
-            ///     </para>
-            ///     <para>
-            ///     [GLES1.1] Gl.Get: params returns one value, the maximum supported depth of the modelview matrix stack. The value
-            ///     must be
-            ///     at least Gl.. See Gl.PushMatrix.
-            ///     </para>
-            /// </summary>
-            [Limit(MAX_MODELVIEW_STACK_DEPTH)] [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxModelviewStackDepth;
-
-            /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value, the maximum supported depth of the selection name stack. The value must be at
-            /// least 64. See Gl.PushName.
-            /// </summary>
-            [Limit(MAX_NAME_STACK_DEPTH)] [RequiredByFeature("GL_VERSION_1_0")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxNameStackDepth;
-
-            /// <summary>
-            /// [GL2.1|GLES1.1] Gl.Get: params returns one value, the maximum supported depth of the projection matrix stack. The value
-            /// must be at least 2. See Gl.PushMatrix.
-            /// </summary>
-            [Limit(MAX_PROJECTION_STACK_DEPTH)] [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxProjectionStackDepth;
-
-            /// <summary>
-            /// [GL2.1|GLES1.1] Gl.Get: params returns one value, the maximum supported depth of the texture matrix stack. The value
-            /// must be at least 2. See Gl.PushMatrix.
-            /// </summary>
-            [Limit(MAX_TEXTURE_STACK_DEPTH)] [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxTextureStackDepth;
 
             /// <summary>
             /// [GL4|GLES3.2] Gl.Get: data returns two values: the maximum supported width and height of the viewport. These must be at

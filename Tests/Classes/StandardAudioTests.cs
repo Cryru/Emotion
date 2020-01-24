@@ -96,7 +96,8 @@ namespace Tests.Classes
                         segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
                         timedOut = false;
                     }
-                    if(timedOut) Engine.Log.Info($"StreamConvert timeout.", CustomMSource.TestRunner);
+
+                    if (timedOut) Engine.Log.Info("StreamConvert timeout.", CustomMSource.TestRunner);
 
                     Assert.Equal(segmentConvert.Count, copy.Length);
                     for (var i = 0; i < copy.Length; i++)
@@ -159,7 +160,7 @@ namespace Tests.Classes
             var testData = new byte[format.SampleRate * format.FrameSize];
             var spanData = new Span<byte>(testData);
             streamer.GetNextFrames(format.SampleRate, spanData);
-            
+
             format = new AudioFormat(8, true, 1, 12000);
             streamer.SetConvertFormat(format);
             streamer.GetNextFrames(format.SampleRate, spanData);

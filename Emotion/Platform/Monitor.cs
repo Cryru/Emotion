@@ -4,7 +4,7 @@ using System.Numerics;
 
 #endregion
 
-namespace Emotion.Platform.Implementation
+namespace Emotion.Platform
 {
     public abstract class Monitor
     {

@@ -88,7 +88,8 @@ namespace Tests.Classes
         [Test]
         public void ShaderBrokenLoad()
         {
-            var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BrokenShader.xml");;
+            var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BrokenShader.xml");
+            ;
 
             Runner.ExecuteAsLoop(_ =>
             {
@@ -120,7 +121,8 @@ namespace Tests.Classes
         [Test]
         public void ShaderFallback()
         {
-            var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BrokenShaderWithFallback.xml");;
+            var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BrokenShaderWithFallback.xml");
+            ;
 
             Runner.ExecuteAsLoop(_ =>
             {
