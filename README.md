@@ -1,6 +1,8 @@
 # Emotion
 <img src="EmotionLogo.png" width="128px" />
 
+![CI-Windows](https://github.com/Cryru/Emotion/workflows/CI-Windows/badge.svg?branch=master)
+
 ## What is it?
 
 Emotion is a cross-platform 2D oriented game engine written in C#. Its goal is to have *no native* dependencies and be truly portable (apart from the platform specific code of course). The core principle is that making games as a programmer should be about coding. Not about drag and drop interfaces and navigating menus, nor wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
