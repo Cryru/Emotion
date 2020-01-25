@@ -388,6 +388,11 @@ namespace Emotion.Test
             {
                 Engine.Log.Info($"     {r}", CustomMSource.TestRunner);
             }
+
+            if (error || failedTests > 0)
+            {
+                Environment.Exit(1);
+            }
         }
 
         /// <summary>
