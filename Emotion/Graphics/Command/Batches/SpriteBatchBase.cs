@@ -105,7 +105,7 @@ namespace Emotion.Graphics.Command.Batches
         /// Returns the data within the batch to map a sprite into, and adds the provided texture to the texture mapping.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
-        /// <returns>he data inside the batch to be filled.</returns>
+        /// <returns>The data inside the batch to be filled.</returns>
         public virtual Span<T> GetData(Texture texture)
         {
             return GetData(texture, out int _);
