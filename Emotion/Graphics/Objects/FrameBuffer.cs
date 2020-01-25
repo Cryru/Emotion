@@ -143,8 +143,10 @@ namespace Emotion.Graphics.Objects
         /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
         public unsafe byte[] Sample(Rectangle rect, ref byte[] data)
         {
-            Debug.Assert(Viewport.Contains(rect));
-            rect = new Rectangle(rect.X, rect.Y + (Size.Y - rect.Height), rect.Width, rect.Height);
+            if(!Viewport.Contains(rect)) return data;
+
+            //Debug.Assert(Viewport.Contains(rect));
+            rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
