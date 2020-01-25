@@ -37,6 +37,7 @@ namespace Emotion.Platform
 
         /// <summary>
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
+        /// Therefore it is in screen coordinates which change with the size of the Engine.Renderer.ScreenBuffer.
         /// </summary>
         Vector2 MousePosition { get; }
 

@@ -115,6 +115,17 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Render a rectangle outline.
+        /// </summary>
+        /// <param name="rect">The rectangle to outline.</param>
+        /// <param name="color">The color of the lines.</param>
+        /// <param name="thickness">How thick the line should be.</param>
+        public void RenderOutline(Rectangle rect, Color color, float thickness = 1)
+        {
+            RenderOutline(new Vector3(rect.Position, 0), rect.Size, color, thickness);
+        }
+
+        /// <summary>
         /// Render a string from an atlas.
         /// </summary>
         /// <param name="position">The top left position of where to start drawing the string.</param>

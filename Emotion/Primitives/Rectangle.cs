@@ -181,12 +181,12 @@ namespace Emotion.Primitives
 
         public bool Contains(float x, float y)
         {
-            return X <= x && x < X + Width && Y <= y && y < Y + Height;
+            return X <= x && x <= X + Width && Y <= y && y <= Y + Height;
         }
 
         public bool Contains(Vector2 value)
         {
-            return X <= value.X && value.X < X + Width && Y <= value.Y && value.Y < Y + Height;
+            return X <= value.X && value.X <= X + Width && Y <= value.Y && value.Y <= Y + Height;
         }
 
         public bool Contains(Rectangle value)

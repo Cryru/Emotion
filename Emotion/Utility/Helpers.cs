@@ -91,7 +91,7 @@ namespace Emotion.Utility
             if (Engine.InputManager.IsKeyHeld(Key.S)) dir.Y += 1;
             if (Engine.InputManager.IsKeyHeld(Key.D)) dir.X += 1;
 
-            dir *= new Vector2(speed, speed);
+            dir *= new Vector2(speed, speed) * Engine.DeltaTime;
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
         }
     }

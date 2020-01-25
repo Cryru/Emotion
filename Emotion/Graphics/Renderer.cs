@@ -135,8 +135,9 @@ namespace Emotion.Graphics
         #region Properties
 
         /// <summary>
-        /// The current scale. If not in FullScale mode then this is always one.
+        /// The ratio between the current DrawBuffer resolution and RenderSize.
         /// Cannot fall below 1 as the RenderSize is the minimum size.
+        /// If not in FullScale mode then this is always one.
         /// </summary>
         public float Scale { get; private set; } = 1;
 
