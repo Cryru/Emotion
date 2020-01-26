@@ -21,10 +21,72 @@ using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 
 namespace Emotion.Platform.Implementation.Win32.Wgl
 {
+#pragma warning disable 649 // Uninitialized field
+#pragma warning disable 0169 // Unused field
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0051 // Unused field
+    public struct RenderDocAPI
+    {
+        private IntPtr _getAPIVersion;
+
+        private IntPtr _setCaptureOptionU32;
+        private IntPtr _setCaptureOptionF32;
+
+        private IntPtr _getCaptureOptionU32;
+        private IntPtr _getCaptureOptionF32;
+
+        private IntPtr _setFocusToggleKeys;
+        private IntPtr _setCaptureKeys;
+
+        private IntPtr _getOverlayBits;
+        private IntPtr _maskOverlayBits;
+
+        private IntPtr _shutdown;
+        private IntPtr _unloadCrashHandler;
+
+        private IntPtr _setCaptureFilePathTemplate;
+        private IntPtr _getCaptureFilePathTemplate;
+
+        private IntPtr _getNumCaptures;
+        private IntPtr _getCapture;
+
+        private IntPtr _triggerCapture;
+
+        private IntPtr _isTargetControlConnected;
+        private IntPtr _launchReplayUI;
+
+        private IntPtr _setActiveWindow;
+
+        public IntPtr _startFrameCapture;
+        private IntPtr _isFrameCapturing;
+
+        private IntPtr _endFrameCapture;
+
+        private IntPtr _triggerMultiFrameCapture;
+
+        public void StartCapture()
+        {
+            if(_startFrameCapture == IntPtr.Zero) return;
+            Marshal.GetDelegateForFunctionPointer<CaptureFunc>(_startFrameCapture)(IntPtr.Zero, IntPtr.Zero);
+        }
+
+        public void EndCapture()
+        {
+            if(_endFrameCapture == IntPtr.Zero) return;
+            Marshal.GetDelegateForFunctionPointer<CaptureFunc>(_endFrameCapture)(IntPtr.Zero, IntPtr.Zero);
+        }
+
+        public delegate void CaptureFunc(IntPtr device, IntPtr window);
+    }
+#pragma warning restore 649
+#pragma warning restore 0169
+#pragma warning restore IDE0044
+#pragma warning restore IDE0051
+
     public sealed unsafe class WglGraphicsContext : GraphicsContext
     {
         private IntPtr _openGlLibrary;
-        private const int FLAG_NUMBER_PIXEL_FORMATS_ARB = 0x2000;
+        private const int FlagNumberPixelFormatsArb = 0x2000;
 
         private WglFunctions.WglDeleteContext _deleteContext;
         private WglFunctions.WglGetProcAddress _getProcAddress;
@@ -45,6 +107,9 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private IntPtr _contextHandle;
         private IntPtr _dc;
         private Win32Platform _platform;
+
+        private delegate int RenderDocGetApi(int version, void* api);
+        public RenderDocAPI RenderDoc;
 
         public WglGraphicsContext(IntPtr windowHandle, Win32Platform platform)
         {
@@ -146,7 +211,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 var attributes = new List<int>();
 
                 // Check for RenderDoc
-                if (Kernel32.GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
+                IntPtr renderDocModule = Kernel32.GetModuleHandle("renderdoc.dll");
+                if (renderDocModule != IntPtr.Zero)
                 {
                     Engine.Log.Warning("Detected render doc. Setting window creation to Core Context 3.3", MessageSource.Win32);
 
@@ -161,6 +227,20 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                         mask |= WglContextFlags.CoreProfileBitArb;
 
                     flags |= WglContextFlags.DebugBitArb;
+
+                    // Get a handle to the RenderDoc API
+                    IntPtr api = Kernel32.GetProcAddress(renderDocModule, "RENDERDOC_GetAPI");
+                    if (api != IntPtr.Zero)
+                    {
+                        var getApiFunc = Marshal.GetDelegateForFunctionPointer<RenderDocGetApi>(api);
+                        void* apiPointers;
+                        int ret = getApiFunc(10102, &apiPointers);
+                        if (ret == 1)
+                        {
+                            Debug.Assert(ret == 1);
+                            RenderDoc = Marshal.PtrToStructure<RenderDocAPI>((IntPtr) apiPointers);
+                        }
+                    }
                 }
 
                 // Add flags and mask if any. (there mostly isn't)
@@ -236,7 +316,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             {
                 if (_getPixelFormatAttribivArb == null) throw new Exception("WGL: Unsupported graphics context, getPixelFormatAttribivArb is missing!");
 
-                int nPf = FLAG_NUMBER_PIXEL_FORMATS_ARB;
+                int nPf = FlagNumberPixelFormatsArb;
                 if (!_getPixelFormatAttribivArb(dc, 1, 0, 1, &nPf, &nativeCount))
                 {
                     Win32Platform.CheckError("WGL: Failed to retrieve pixel format attribute.", true);

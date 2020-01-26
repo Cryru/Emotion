@@ -13,6 +13,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives;
 using Emotion.Standard.Utility;
+using OpenGL;
 using VertexDataBatch = Emotion.Graphics.Command.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
 #endregion
@@ -522,6 +523,27 @@ namespace Emotion.Graphics
         #endregion
 
         /// <summary>
+        /// Toggle whether to render to the color buffer.
+        /// </summary>
+        /// <param name="renderColor">Whether to render to the color buffer.</param>
+        public void ToggleRenderColor(bool renderColor)
+        {
+            var codeFunc = GetRenderCommand<ExecCodeCommand>();
+            codeFunc.Func = () =>
+            {
+                if (renderColor)
+                {
+                    Gl.ColorMask(true, true, true, true);
+                }
+                else
+                {
+                    Gl.ColorMask(false, false, false, false);
+                }
+            };
+            PushCommand(codeFunc);
+        }
+
+        /// <summary>
         /// Set whether to use the view matrix.
         /// </summary>
         /// <param name="viewMatrix">Whether to use the view matrix.</param>
@@ -667,6 +689,18 @@ namespace Emotion.Graphics
             var command = GetRenderCommand<ExecCodeCommand>();
             command.Func = Engine.Renderer.ClearDepth;
             PushCommand(command);
+        }
+
+        /// <summary>
+        /// Clears the stencil buffer of the currently bound frame buffer.
+        /// This will also reset the stencil state to "StencilStopDraw"
+        /// </summary>
+        public void ClearStencil()
+        {
+            var command = GetRenderCommand<ExecCodeCommand>();
+            command.Func = Engine.Renderer.ClearStencil;
+            PushCommand(command);
+            StencilStopDraw();
         }
 
         /// <summary>

@@ -433,7 +433,6 @@ namespace Emotion.Graphics
                 Gl.Enable(EnableCap.StencilTest);
 
                 if (!clear) return;
-                Gl.StencilMask(0xFF);
                 ClearStencil();
                 StencilStateDefault();
             }
@@ -511,6 +510,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearStencil()
         {
+            Gl.StencilMask(0xFF);
             Gl.Clear(ClearBufferMask.StencilBufferBit);
         }
 

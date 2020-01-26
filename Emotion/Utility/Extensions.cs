@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Primitives;
 
@@ -32,6 +33,16 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Converts a vector2 to a vector3.
+        /// </summary>
+        /// <param name="v">The vector to convert.</param>
+        /// <returns>The Vector2 as a Vector3, with the Z unit added.</returns>
+        public static Vector3 ToVec3(this Vector2 v, float z = 0)
+        {
+            return new Vector3(v.X, v.Y, z);
+        }
+
+        /// <summary>
         /// Converts a vector4 to a vector3.
         /// </summary>
         /// <param name="v">The vector to convert.</param>
@@ -39,6 +50,43 @@ namespace Emotion.Utility
         public static Vector3 ToVec3(this Vector4 v)
         {
             return new Vector3(v.X, v.Y, v.Z);
+        }
+
+        public static Vector3 Floor(this Vector3 v)
+        {
+            v.X = MathF.Floor(v.X);
+            v.Y = MathF.Floor(v.Y);
+            v.Z = MathF.Floor(v.Z);
+            return v;
+        }
+
+        public static Vector2 Floor(this Vector2 v)
+        {
+            v.X = MathF.Floor(v.X);
+            v.Y = MathF.Floor(v.Y);
+            return v;
+        }
+
+        public static Vector3 Ceiling(this Vector3 v)
+        {
+            v.X = MathF.Ceiling(v.X);
+            v.Y = MathF.Ceiling(v.Y);
+            v.Z = MathF.Ceiling(v.Z);
+            return v;
+        }
+
+        public static Vector2 Ceiling(this Vector2 v)
+        {
+            v.X = MathF.Ceiling(v.X);
+            v.Y = MathF.Ceiling(v.Y);
+            return v;
+        }
+
+        public static Vector2 RoundClosest(this Vector2 v)
+        {
+            v.X = MathF.Floor(v.X + 0.5f);
+            v.Y = MathF.Floor(v.Y + 0.5f);
+            return v;
         }
     }
 }
