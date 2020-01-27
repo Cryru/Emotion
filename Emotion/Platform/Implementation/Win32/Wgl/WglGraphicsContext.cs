@@ -536,7 +536,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 }
 
                 if (dwmComposition)
-                    for (var i = 0; i < SwapInternal; i++)
+                    for (var i = 0; i < SwapInterval; i++)
                     {
                         DwmApi.DwmFlush();
                     }

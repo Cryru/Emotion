@@ -78,6 +78,11 @@ namespace Emotion.Common
         public static float TotalTime { get; set; }
 
         /// <summary>
+        /// Whether the GPU driver has forced v-sync.
+        /// </summary>
+        public static bool ForcedVSync { get; private set; }
+
+        /// <summary>
         /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
         /// </summary>
         /// <param name="configurator">Optional engine configuration.</param>
@@ -101,7 +106,7 @@ namespace Emotion.Common
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
-                AppDomain.CurrentDomain.UnhandledException += (e, a) => { SubmitError((Exception)a.ExceptionObject); };
+                AppDomain.CurrentDomain.UnhandledException += (e, a) => { SubmitError((Exception) a.ExceptionObject); };
 
             // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
@@ -129,6 +134,7 @@ namespace Emotion.Common
                 SubmitError(new Exception("Platform couldn't initialize."));
                 return;
             }
+
             InputManager = Host;
             Audio = Host.Audio;
 
@@ -180,6 +186,8 @@ namespace Emotion.Common
 
         private static void Loop()
         {
+            DetectVSync();
+
             uint desiredStep = Configuration.DesiredStep;
             if (desiredStep == 0) desiredStep = 60;
 
@@ -192,7 +200,7 @@ namespace Emotion.Common
             double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
             double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
 
-            DeltaTime = (float)targetTime;
+            DeltaTime = (float) targetTime;
 
             while (Status == EngineStatus.Running)
             {
@@ -236,6 +244,39 @@ namespace Emotion.Common
 
         #region Main Loop Variants
 
+        private static void DetectVSync()
+        {
+            var timer = new Stopwatch();
+
+            // Detect VSync (yes I know)
+            // Because life is unfair and we cannot have nice things in order to detect
+            // whether the GPU lord has enforced VSync on us (not that we can do anything about it)
+            // we have to swap buffers around while messing with the settings and see if it
+            // changes anything. If it doesn't - it means VSync is either forced on or off.
+            const int jitLoops = 5;
+            const int loopCount = 15;
+            var timings = new double[(loopCount - jitLoops) * 2];
+            Host.Window.Context.SwapInterval = 0;
+            for (var i = 0; i < timings.Length + jitLoops; i++)
+            {
+                timer.Restart();
+                Host.Window.Context.SwapBuffers();
+                // Run a couple of loops to get the JIT warmed up.
+                if (i >= jitLoops)
+                    timings[i - jitLoops] = timer.ElapsedMilliseconds;
+                // Alright, now turn v-sync on.
+                if (i == loopCount - 1)
+                    Host.Window.Context.SwapInterval = 1;
+            }
+
+            double averageTimeOff = timings.Take(loopCount - jitLoops).Sum() / (timings.Length / 2);
+            double averageTimeOn = timings.Skip(loopCount - jitLoops).Sum() / (timings.Length / 2);
+            ForcedVSync = Math.Abs(averageTimeOff - averageTimeOn) <= 1;
+
+            // Restore settings.
+            Host.Window.Context.SwapInterval = Configuration.VSync ? 1 : 0;
+        }
+
         private static void DebugModeLoop()
         {
             uint desiredStep = Configuration.DesiredStep;
@@ -250,7 +291,7 @@ namespace Emotion.Common
             double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
             double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
 
-            DeltaTime = (float)targetTime;
+            DeltaTime = (float) targetTime;
 
             while (Status == EngineStatus.Running)
             {

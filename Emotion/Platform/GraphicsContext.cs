@@ -17,12 +17,11 @@ namespace Emotion.Platform
         /// <summary>
         /// How many monitor refreshes to wait before flushing the buffer. This is vertical sync.
         /// </summary>
-        public int SwapInternal
+        public int SwapInterval
         {
             get => _swapInterval;
             set
             {
-                if (value == _swapInterval) return;
                 _swapInterval = value;
                 SetSwapIntervalPlatform(_swapInterval);
             }

@@ -147,17 +147,24 @@ namespace Emotion.Common
         public bool IntScaleBlit { get; private set; }
 
         /// <summary>
+        /// Whether to use v-sync. On by default.
+        /// </summary>
+        public bool VSync { get; private set; } = true;
+
+        /// <summary>
         /// Other settings related to the Renderer.
         /// These shouldn't need to be modified by the user and are here for debugging or testing purposes.
         /// </summary>
         /// <param name="rendererCompatMode">Whether to run the renderer in compatibility mode.</param>
         /// <param name="intScaleBlit">Whether to blit integerly.</param>
+        /// <param name="vSync">Whether to use v-sync.</param>
         /// <returns>This configurator, for chaining purposes.</returns>
-        public Configurator SetRenderSettings(bool rendererCompatMode = false, bool intScaleBlit = false)
+        public Configurator SetRenderSettings(bool rendererCompatMode = false, bool intScaleBlit = false, bool vSync = true)
         {
             if (Setup) return this;
             RendererCompatMode = rendererCompatMode;
             IntScaleBlit = intScaleBlit;
+            VSync = vSync;
             return this;
         }
 
