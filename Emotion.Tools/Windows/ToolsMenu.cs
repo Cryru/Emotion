@@ -33,6 +33,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.MenuItem("Animation Editor")) manager.AddWindow(new AnimationEditor());
                 if (ImGui.MenuItem("Rogue Alpha Remover")) manager.AddWindow(new RogueAlphaRemoval());
                 if (ImGui.MenuItem("Palette Editor")) manager.AddWindow(new PaletteEditor());
+                if (ImGui.MenuItem("Font Preview")) manager.AddWindow(new FontEditor());
                 ImGui.EndMenu();
             }
 

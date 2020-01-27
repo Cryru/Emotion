@@ -618,7 +618,8 @@ namespace Emotion.Standard.Text
             foreach ((uint key, uint value) in indexMap)
             {
                 Glyph glyph = glyphs[value];
-                glyph.Name = glyphNames[(int) value];
+                if(glyphNames != null)
+                    glyph.Name = glyphNames[(int) value];
                 glyph.MapIndex = value;
                 glyph.CharIndex = key;
                 glyphsReorder.Add(glyph);

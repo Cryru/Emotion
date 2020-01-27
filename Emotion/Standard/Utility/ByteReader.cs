@@ -51,7 +51,7 @@ namespace Emotion.Standard.Utility
             }
             else
             {
-                Debug.Assert(startPos + length < Data.Length);
+                Debug.Assert(startPos + length <= Data.Length);
                 b.Data = Data.Slice(startPos, length);
             }
 
