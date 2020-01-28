@@ -81,6 +81,17 @@ namespace Emotion.Standard.Utility
         }
 
         /// <summary>
+        /// Read a signed byte.
+        /// </summary>
+        /// <returns>The read signed byte.</returns>
+        public sbyte ReadSByte()
+        {
+            var b = (sbyte) Data.Span[Position];
+            Position++;
+            return b;
+        }
+
+        /// <summary>
         /// Read an unsigned int of a variable size.
         /// 1 to 4 bytes are supported.
         /// </summary>

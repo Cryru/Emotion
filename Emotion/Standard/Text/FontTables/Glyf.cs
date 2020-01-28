@@ -42,7 +42,12 @@ namespace Emotion.Standard.Text.FontTables
                     int glyphOffset = locaOffsets[i];
                     int nextOffset = locaOffsets[i + 1];
 
-                    if (glyphOffset == nextOffset || glyphOffset >= reader.Data.Length) continue;
+                    // No data for glyph.
+                    if (glyphOffset == nextOffset || glyphOffset >= reader.Data.Length)
+                    {
+                        current.Vertices = new GlyphVertex[0];
+                        continue;
+                    }
 
                     ByteReader glyphData = reader.Branch(glyphOffset, true);
                     int numberOfContours = glyphData.ReadShortBE();
@@ -50,7 +55,6 @@ namespace Emotion.Standard.Text.FontTables
                     current.YMin = glyphData.ReadShortBE();
                     current.XMax = glyphData.ReadShortBE();
                     current.YMax = glyphData.ReadShortBE();
-
                     // Non-composite
                     if (numberOfContours > 0)
                         ResolveTtfGlyph(numberOfContours, glyphData, current);
@@ -206,8 +210,8 @@ namespace Emotion.Standard.Text.FontTables
                             verticesProcessed.Add(new GlyphVertex
                             {
                                 TypeFlag = VertexTypeFlag.Curve,
-                                X = x,
-                                Y = y,
+                                X = (short)((cx + x) >> 1),
+                                Y = (short)((cy + y) >> 1),
                                 Cx = cx,
                                 Cy = cy
                             });
@@ -222,8 +226,8 @@ namespace Emotion.Standard.Text.FontTables
                             verticesProcessed.Add(new GlyphVertex
                             {
                                 TypeFlag = VertexTypeFlag.Curve,
-                                X = (short) ((cx + x) >> 1),
-                                Y = (short) ((cy + y) >> 1),
+                                X = (short) x,
+                                Y = (short) y,
                                 Cx = cx,
                                 Cy = cy
                             });
@@ -249,8 +253,7 @@ namespace Emotion.Standard.Text.FontTables
         private static void ResolveCompositeTtfGlyph(ByteReader reader, Glyph glyph, Glyph[] glyphs)
         {
             var more = true;
-            var numVertices = 0;
-            GlyphVertex[] vertices = null;
+            var vertices = new List<GlyphVertex>();
             while (more)
             {
                 var mtx = new float[6];
@@ -261,6 +264,7 @@ namespace Emotion.Standard.Text.FontTables
                 mtx[4] = 0;
                 mtx[5] = 0;
                 var flags = (ushort) reader.ReadShortBE();
+                // The glyph index of the composite part.
                 var gidx = (ushort) reader.ReadShortBE();
                 if ((flags & 2) != 0)
                 {
@@ -271,8 +275,8 @@ namespace Emotion.Standard.Text.FontTables
                     }
                     else
                     {
-                        mtx[4] = reader.ReadByte();
-                        mtx[5] = reader.ReadByte();
+                        mtx[4] = reader.ReadSByte();
+                        mtx[5] = reader.ReadSByte();
                     }
                 }
 
@@ -295,46 +299,33 @@ namespace Emotion.Standard.Text.FontTables
                     mtx[3] = reader.ReadShortBE() / 16384.0f;
                 }
 
+                more = (flags & (1 << 5)) != 0;
+
                 var m = (float) Math.Sqrt(mtx[0] * mtx[0] + mtx[1] * mtx[1]);
                 var n = (float) Math.Sqrt(mtx[2] * mtx[2] + mtx[3] * mtx[3]);
+
+                Debug.Assert(gidx < glyphs.Length, "Composite glyph is trying to fetch a non-existent component glyph.");
                 Glyph comp = glyphs[gidx];
-                if (comp?.Vertices != null && comp.Vertices.Length > 0)
+                if (comp.Vertices.Length <= 0) continue;
+
+                // Copy vertices from the composite part.
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (var i = 0; i < comp.Vertices.Length; ++i)
                 {
-                    // ReSharper disable once ForCanBeConvertedToForeach
-                    for (var i = 0; i < comp.Vertices.Length; ++i)
-                    {
-                        GlyphVertex v = comp.Vertices[i];
-                        short x = v.X;
-                        short y = v.Y;
-                        v.X = (short) (m * (mtx[0] * x + mtx[2] * y + mtx[4]));
-                        v.Y = (short) (n * (mtx[1] * x + mtx[3] * y + mtx[5]));
-                        x = v.Cx;
-                        y = v.Cy;
-                        v.Cx = (short) (m * (mtx[0] * x + mtx[2] * y + mtx[4]));
-                        v.Cy = (short) (n * (mtx[1] * x + mtx[3] * y + mtx[5]));
-                    }
-
-                    var tmp = new GlyphVertex[numVertices + comp.Vertices.Length];
-
-                    if (vertices != null && numVertices != 0)
-                        for (var j = 0; j < numVertices; j++)
-                        {
-                            tmp[j] = vertices[j];
-                        }
-
-                    for (var j = 0; j < comp.Vertices.Length; j++)
-                    {
-                        tmp[j + numVertices] = comp.Vertices[j];
-                    }
-
-                    vertices = tmp;
-                    numVertices += comp.Vertices.Length;
+                    GlyphVertex v = comp.Vertices[i];
+                    short x = v.X;
+                    short y = v.Y;
+                    v.X = (short) (m * (mtx[0] * x + mtx[2] * y + mtx[4]));
+                    v.Y = (short) (n * (mtx[1] * x + mtx[3] * y + mtx[5]));
+                    x = v.Cx;
+                    y = v.Cy;
+                    v.Cx = (short) (m * (mtx[0] * x + mtx[2] * y + mtx[4]));
+                    v.Cy = (short) (n * (mtx[1] * x + mtx[3] * y + mtx[5]));
+                    vertices.Add(v);
                 }
-
-                more = (flags & (1 << 5)) != 0;
             }
 
-            glyph.Vertices = vertices;
+            glyph.Vertices = vertices.ToArray();
         }
 
         #region Helpers

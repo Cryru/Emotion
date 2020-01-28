@@ -277,6 +277,21 @@ namespace Tests.Classes
                 StbTrueType.stbrp_rect rect = rects[glyph.CharIndex];
                 Assert.Equal(rect.w, drawBox.Width);
                 Assert.Equal(rect.h, drawBox.Height);
+
+                StbTrueType.stbtt_vertex* vertices;
+                int verticesNum = StbTrueType.stbtt_GetGlyphShape(stbFont, (int)glyph.MapIndex, &vertices);
+
+                Assert.Equal(verticesNum, glyph.Vertices.Length);
+                for (var i = 0; i < glyph.Vertices.Length; i++)
+                {
+                    GlyphVertex vertex = glyph.Vertices[i];
+                    StbTrueType.stbtt_vertex stbVertex = vertices[i];
+                    Assert.Equal(stbVertex.x, vertex.X);
+                    Assert.Equal(stbVertex.y, vertex.Y);
+                    Assert.Equal(stbVertex.cx, vertex.Cx);
+                    Assert.Equal(stbVertex.cy, vertex.Cy);
+                    Assert.Equal(stbVertex.type, vertex.Flags);
+                }
             }
         }
 

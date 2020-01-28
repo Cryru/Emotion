@@ -516,7 +516,7 @@ namespace Emotion.Standard.Text
             contourLengths = new int[polygonCount];
             if (polygonCount == 0)
             {
-                Debug.Assert(false, "No polygons found!");
+                // No polygons found. This is actually a valid case. Fonts amirite?
                 return null;
             }
 
