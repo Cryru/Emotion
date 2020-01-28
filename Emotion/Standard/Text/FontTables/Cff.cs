@@ -1060,7 +1060,7 @@ namespace Emotion.Standard.Text.FontTables
                                 dx6 = dy6 = s[10];
                                 dx = dx1 + dx2 + dx3 + dx4 + dx5;
                                 float dy = dy1 + dy2 + dy3 + dy4 + dy5;
-                                if (CRuntime.fabs(dx) > CRuntime.fabs(dy))
+                                if (MathF.Abs(dx) > MathF.Abs(dy))
                                     dy6 = -dy;
                                 else
                                     dx6 = -dx;
@@ -1101,7 +1101,7 @@ namespace Emotion.Standard.Text.FontTables
             return false;
         }
 
-        public uint ReadCffInt(ByteReader r)
+        public static uint ReadCffInt(ByteReader r)
         {
             int b0 = r.ReadByte();
             if (b0 >= 32 && b0 <= 246)
