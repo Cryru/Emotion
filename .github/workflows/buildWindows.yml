@@ -25,6 +25,7 @@ jobs:
         ls .
         .\Tests.exe
     - name: Upload Test Artifact
+      if: always()
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
