@@ -9,8 +9,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@master
-    - name: net core 3.0
-      run: choco install dotnetcore-sdk
     - name: Build Everything
       run: |
         dotnet build

@@ -84,9 +84,9 @@ namespace Tests.Classes
                     int framesGet = new Random().Next(1, 500);
                     Engine.Log.Info($"StreamConvert has chosen {framesGet} for its poll size.", CustomMSource.TestRunner);
 
-                    var timedOut = true;
+                    var minutesTimeout = 2;
                     DateTime start = DateTime.Now;
-                    while (DateTime.Now.Subtract(start).TotalMinutes < 2f) // timeout
+                    while (DateTime.Now.Subtract(start).TotalMinutes < minutesTimeout) // timeout
                     {
                         var data = new byte[framesGet * format.FrameSize];
                         var spanData = new Span<byte>(data);
@@ -94,10 +94,9 @@ namespace Tests.Classes
                         if (frameAmount == 0) break;
                         Assert.True(data.Length >= frameAmount * format.FrameSize);
                         segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
-                        timedOut = false;
                     }
 
-                    if (timedOut) Engine.Log.Info("StreamConvert timeout.", CustomMSource.TestRunner);
+                    if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", CustomMSource.TestRunner);
 
                     Assert.Equal(segmentConvert.Count, copy.Length);
                     for (var i = 0; i < copy.Length; i++)
