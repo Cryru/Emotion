@@ -25,7 +25,13 @@ namespace Emotion.ExecTest
 
         private static void Main(string[] args)
         {
-            Engine.Setup(new Configurator().SetDebug(true).AddPlugin(new ImGuiNetPlugin()));
+            var config = new Configurator
+            {
+                DebugMode = true
+            };
+            config.AddPlugin(new ImGuiNetPlugin());
+
+            Engine.Setup(config);
             Engine.SceneManager.SetScene(new Program());
             Engine.Host.OnKey.AddListener((key, status) =>
             {

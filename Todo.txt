@@ -5,14 +5,15 @@ DataBuffer.CreateMapper
 	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
 Commands
 	- Merge state changing commands one after another into one.
+	- Some kind of shared cache buffer for commands rather than the pool which exists now.
+	- Maybe get rid of commands?
 GL
 	- Investigate why the VertexArrayObject binding cache doesn't work. Maybe VertexArrayBinding isn't the right value?
-	- Some kind of shared cache buffer for commands rather than the pool which exists now.
 Rendering
 	- Add tests for state changes
 	- Add tests for various batch stuff
 	- Uniform blocks (UBO) for syncing shaders
-	- When the barch memory is dirty, don't upload all of it. Just the part that's updated. Replace "_upload" will some kind of min-max indices.
+	- When the batch memory is dirty, don't upload all of it. Just the part that's updated. Replace "_upload" will some kind of min-max indices.
 Standard.Image
 	- Implement ByteWriter and use it to encode the images.
 	- JPEG Support
@@ -42,7 +43,6 @@ Standard.Text
 Emotion.Test
 	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
 	- Test functions which are run at the start and end of a class.
-	- Use a custom loop rather than the FrameByFrame hack.
 Documentation
 	- Finish the documentation :D
 Game Logic
@@ -58,9 +58,6 @@ Meta
 	- Autobuild nuget package, with version patching, and commit hash patching
 Input
 	- Controller Support (Wherever possible)
-Engine
-	- Custom loop support - will be needed for some platforms
-	- Configurator granularity - set host size without setting other host settings, for example
 Emotion.Game
 	- Bound box for the tile map - used to calculate only visible tiles and map only them.
 Tools

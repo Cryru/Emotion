@@ -16,10 +16,10 @@ namespace Tests
     {
         private static Dictionary<string, Action<Configurator>> _otherConfigs = new Dictionary<string, Action<Configurator>>
         {
-            {"compat", c => c.SetRenderSettings(true)},
-            {"tag=FullScale", c => c.SetRenderSize(new Vector2(320, 180))},
-            //{"marginScale", c => c.SetRenderSize(null, false, false)},
-            //{"marginScaleInteger", c => c.SetRenderSize(null, true, false)},
+            {"compat", c => { c.RendererCompatMode = true; }},
+            {
+                "tag=ResizeTest", c => { c.RenderSize = new Vector2(320, 180); }
+            },
             {"tag=EmotionDesktop testOnly", null},
             {
                 "tag=Assets", c =>
@@ -42,11 +42,13 @@ namespace Tests
         private static void Main(string[] args)
         {
             ResultDb.LoadCache();
-            Runner.RunTests(
-                new Configurator()
-                    .SetHostSettings(new Vector2(640, 360)) // The resolution is set like that because it is the resolution of the render references.
-                    .SetRenderSize(fullScale: false),
-                args, _otherConfigs, ResultDb.CachedResults);
+            var config = new Configurator
+            {
+                HostSize = new Vector2(640, 360),
+                RenderSize = new Vector2(640, 360)
+            };
+
+            Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
         }
     }
 }

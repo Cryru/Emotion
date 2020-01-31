@@ -1,21 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.1</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   <ItemGroup>
     <None Update="Standard\Text\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -30,11 +31,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="NETStandard.Library" Version="2.0.3" />
     <PackageReference Include="Serilog" Version="2.8.0" />
@@ -44,7 +43,6 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="TiledSharp" Version="1.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="Assets\DefaultFrag.frag" />
     <None Remove="Assets\DefaultShader.xml" />
@@ -56,7 +54,6 @@
     <None Remove="Assets\Shaders\SSAA.frag" />
     <None Remove="Assets\Shaders\SSAA.xml" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="Assets\Shaders\Blur.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -72,11 +69,9 @@
     <EmbeddedResource Include="Assets\Shaders\SSAA.frag" />
     <EmbeddedResource Include="Assets\Shaders\SSAA.xml" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Platform\Implementation\Cocoa\" />
     <Folder Include="Platform\Implementation\Wayland\" />
     <Folder Include="Platform\Implementation\X11\" />
   </ItemGroup>
-
 </Project>

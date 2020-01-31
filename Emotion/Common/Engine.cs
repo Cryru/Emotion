@@ -78,11 +78,6 @@ namespace Emotion.Common
         public static float TotalTime { get; set; }
 
         /// <summary>
-        /// Whether the GPU driver has forced v-sync.
-        /// </summary>
-        public static bool ForcedVSync { get; private set; }
-
-        /// <summary>
         /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
         /// </summary>
         /// <param name="configurator">Optional engine configuration.</param>
@@ -98,7 +93,6 @@ namespace Emotion.Common
 
             // If no config provided - use default.
             Configuration = configurator ?? new Configurator();
-            Configuration.Lock();
 
             Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
             Log.Info("Emotion V0.0.0", MessageSource.Engine);
@@ -170,25 +164,26 @@ namespace Emotion.Common
             if (Host == null) return;
 
             Status = EngineStatus.Running;
-            if (Configuration.DebugMode && Configuration.DebugLoop)
+            if (Configuration.LoopFactory == null)
             {
-                Log.Info("Starting debug mode loop...", MessageSource.Engine);
-                DebugModeLoop();
-            }
-            else
-            {
-                Log.Info("Starting loop...", MessageSource.Engine);
-                Loop();
+                Log.Info("Using default loop.", MessageSource.Engine);
+                Configuration.LoopFactory = DefaultMainLoop;
             }
 
-            Quit();
+            Log.Info("Starting loop...", MessageSource.Engine);
+            Configuration.LoopFactory(RunTick, RunFrame);
         }
 
-        private static void Loop()
+        /// <summary>
+        /// The default main loop.
+        /// For more information on how the timing of the loop works ->
+        /// https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
+        /// </summary>
+        public static void DefaultMainLoop(Action tick, Action frame)
         {
             DetectVSync();
 
-            uint desiredStep = Configuration.DesiredStep;
+            byte desiredStep = Configuration.DesiredStep;
             if (desiredStep == 0) desiredStep = 60;
 
             // Setup tick time trackers.
@@ -197,18 +192,31 @@ namespace Emotion.Common
             double accumulator = 0f;
             double lastTick = 0f;
 
-            double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
-            double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
+            // Fuzzy time tracking, as no system has that kind of perfect timing.
+            double targetTimeFuzzyLower = 1000d / (desiredStep - 1);
+            double targetTimeFuzzyUpper = 1000d / (desiredStep + 1);
 
             DeltaTime = (float) targetTime;
+
+            // Tracks slow updates to switch the desired step.
+            const byte sampleSize = 100;
+            const float loopSwapCooldown = 1000 * 10;
+            byte currentSampleIdx = 0;
+            float averageUpdates = 0;
+            float lastUpdateTimeStamp = 0;
 
             while (Status == EngineStatus.Running)
             {
 #if SIMULATE_LAG
                 Task.Delay(Helpers.GenerateRandomNumber(0, 16)).Wait();
 #endif
-                // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
-                if (SpecialRenderThread()) break;
+                // Run the host events, and check whether it is closing.
+                if (!Host.Update())
+                {
+                    Log?.Info("Host was closed.", MessageSource.Engine);
+                    break;
+                }
+
                 double curTime = timer.ElapsedMilliseconds;
                 double deltaTime = curTime - lastTick;
                 lastTick = curTime;
@@ -220,32 +228,111 @@ namespace Emotion.Common
                 accumulator += deltaTime;
 
                 // Update as many times as needed.
-                var updates = 0;
+                byte updates = 0;
                 var updated = false;
                 while (accumulator > targetTimeFuzzyUpper)
                 {
-                    RunTick();
+                    tick();
                     accumulator -= targetTime;
                     updated = true;
 
                     if (accumulator < targetTimeFuzzyLower - targetTime) accumulator = 0;
                     updates++;
                     // Max updates are 5 - to prevent large spikes.
-                    // This does somewhat break the simulation - but these shouldn't happen expect as a last resort.
+                    // This does somewhat break the simulation - but these shouldn't happen except as a last resort.
                     if (updates <= 5) continue;
                     accumulator = 0;
                     break;
                 }
 
+                // Don't check for loop speed up, slow down if loading, not focused, or a loop speed swap occured recently.
+                if (Configuration.VariableLoopSpeed && !SceneManager.Loading && Host.IsFocused && TotalTime - lastUpdateTimeStamp > loopSwapCooldown)
+                {
+                    // Sample the current update count.
+                    averageUpdates += updates;
+                    currentSampleIdx++;
+                    // If enough sample are gathered, average them.
+                    if (currentSampleIdx == sampleSize)
+                    {
+                        averageUpdates /= sampleSize;
+                        byte speedDirection = 0;
+
+                        // If churning out less than one update per cycle that means we're running fast, if
+                        // we are having to update twice per cycle that means we're running slow.
+                        if (averageUpdates < 1)
+                            speedDirection = 1;
+                        else if (averageUpdates > 2)
+                            speedDirection = 2;
+
+                        // Check if any differences in the direction are needed.
+                        if (speedDirection != 0)
+                        {
+                            byte newLoopStep = 0;
+
+                            // If going up...
+                            if (speedDirection == 1)
+                            {
+                                // If currently at the desired step, that means we're going faster - this is impossible if vSync is on.
+                                if (desiredStep == Configuration.DesiredStep)
+                                {
+                                    if (Configuration.ScaleStepUp && !(Renderer.ForcedVSync || Renderer.VSync))
+                                    {
+                                        // Go at twice the speed.
+                                        newLoopStep = (byte) (desiredStep * 2);
+                                    }
+                                }
+                                // If going slower than the desired step, this means we're recovering from a slowdown.
+                                else if (desiredStep < Configuration.DesiredStep)
+                                {
+                                    newLoopStep = Configuration.DesiredStep;
+                                }
+                            }
+                            else
+                            // If going down...
+                            {
+                                // Don't go slower than that.
+                                if (desiredStep > Configuration.DesiredStep / 4)
+                                {
+                                    // Go twice as slow.
+                                    newLoopStep = (byte) (desiredStep / 2);
+                                }
+                            }
+                            
+                            // Apply changes if any.
+                            if (newLoopStep != 0)
+                            {
+                                desiredStep = newLoopStep;
+                                targetTime = 1000f / desiredStep;
+                                targetTimeFuzzyLower = 1000f / (desiredStep - 1);
+                                targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
+                                DeltaTime = (float) targetTime;
+
+                                Log.Info($"Loop speed swapped to {desiredStep} because average updates are {averageUpdates}.", MessageSource.Engine);
+                            }
+                        }
+
+                        lastUpdateTimeStamp = TotalTime;
+                        currentSampleIdx = 0;
+                        averageUpdates = 0;
+                    }
+                }
+
                 if (!Host.IsOpen) break;
-                if (updated) RunFrame();
+
+                // If vSync is on, only render if updated because we don't want to be throttled by the buffer swap.
+                if (updated) frame();
             }
+
+            Quit();
         }
 
-        #region Main Loop Variants
+        #region Loop Parts
 
         private static void DetectVSync()
         {
+            // Check if a host is available.
+            if (Host == null || !Host.IsOpen) return;
+
             var timer = new Stopwatch();
 
             // Detect VSync (yes I know)
@@ -271,87 +358,10 @@ namespace Emotion.Common
 
             double averageTimeOff = timings.Take(loopCount - jitLoops).Sum() / (timings.Length / 2);
             double averageTimeOn = timings.Skip(loopCount - jitLoops).Sum() / (timings.Length / 2);
-            ForcedVSync = Math.Abs(averageTimeOff - averageTimeOn) <= 1;
+            Renderer.ForcedVSync = Math.Abs(averageTimeOff - averageTimeOn) <= 1;
 
             // Restore settings.
-            Host.Window.Context.SwapInterval = Configuration.VSync ? 1 : 0;
-        }
-
-        private static void DebugModeLoop()
-        {
-            uint desiredStep = Configuration.DesiredStep;
-            if (desiredStep == 0) desiredStep = 60;
-
-            // Setup tick time trackers.
-            Stopwatch timer = Stopwatch.StartNew();
-            double targetTime = 1000f / desiredStep;
-            double accumulator = 0f;
-            double lastTick = 0f;
-
-            double targetTimeFuzzyLower = 1000f / (desiredStep - 1);
-            double targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
-
-            DeltaTime = (float) targetTime;
-
-            while (Status == EngineStatus.Running)
-            {
-                // For more information on how the timing of the loop works -> https://medium.com/@tglaiel/how-to-make-your-game-run-at-60fps-24c61210fe75
-                if (SpecialRenderThread()) break;
-
-                double curTime = timer.ElapsedMilliseconds;
-                double deltaTime = curTime - lastTick;
-                lastTick = curTime;
-
-                // Snap delta.
-                if (Math.Abs(targetTime - deltaTime) <= 1) deltaTime = targetTime;
-
-                // Add to the accumulator.
-                accumulator += deltaTime;
-
-                // Update as many times as needed.
-                var updated = false;
-                while (accumulator > targetTimeFuzzyUpper)
-                {
-                    // If the function exists, test whether to run the frame.
-                    var runFrame = true;
-                    if (Configuration.FrameByFrame != null) runFrame = Configuration.FrameByFrame();
-                    if (runFrame)
-                    {
-                        RunTick();
-                        updated = true;
-                    }
-
-                    accumulator -= targetTime;
-                    if (accumulator < targetTimeFuzzyLower - targetTime) accumulator = 0;
-                }
-
-                if (!Host.IsOpen) break;
-                if (updated) RunFrame();
-            }
-        }
-
-        #endregion
-
-        #region Main Loop Parts
-
-        /// <summary>
-        /// Performs special operations that must be performed on the render thread - but are not part of it.
-        /// </summary>
-        /// <returns>Whether the loop should finish.</returns>
-        private static bool SpecialRenderThread()
-        {
-            // Run the host events, and check whether it is closing.
-            bool open = Host.Update();
-            if (!open)
-            {
-                Log?.Info("Host was closed.", MessageSource.Engine);
-                return true;
-            }
-
-            // Run the GLThread queued commands.
-            GLThread.Run();
-
-            return false;
+            Renderer.ApplySettings();
         }
 
         private static void RunTick()
@@ -388,6 +398,9 @@ namespace Emotion.Common
 
         private static void RunFrame()
         {
+            // Run the GLThread queued commands.
+            GLThread.Run();
+
             RenderComposer composer = Renderer.StartFrame();
             SceneManager.Draw(composer);
             Renderer.EndFrame();

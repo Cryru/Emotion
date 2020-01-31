@@ -192,8 +192,6 @@ namespace Emotion.Platform.Implementation.Win32
 
                     break;
             }
-
-            Context.SwapInterval = Engine.Configuration == null || Engine.Configuration.VSync ? 1 : 0;
         }
 
         #region Window Native Helpers

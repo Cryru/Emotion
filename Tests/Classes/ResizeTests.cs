@@ -15,8 +15,8 @@ namespace Tests.Classes
     /// <summary>
     /// Tests concerning the scaling of the rendered content, when in full scale mode.
     /// </summary>
-    [Test("FullScale", true)]
-    public class FullScalingTests
+    [Test("ResizeTest", true)]
+    public class ResizeTests
     {
         [Test]
         public void TestFullScale()

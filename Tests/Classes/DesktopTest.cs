@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Platform;
-using Emotion.Platform.Implementation;
 using Emotion.Test;
 
 #endregion
@@ -18,8 +17,11 @@ namespace Tests.Classes
         [Test]
         public void PlatformTests()
         {
-            var config = new Configurator();
-            config.SetHostSettings(new Vector2(320, 260));
+            var config = new Configurator
+            {
+                HostSize = new Vector2(320, 260)
+            };
+
             PlatformBase plat = PlatformBase.GetInstanceOfDetected(config);
 
             Assert.True(plat != null);

@@ -39,9 +39,10 @@ namespace Emotion.Tools.Windows
             _updateIdx++;
             if (_updateIdx > _updateTracker.Length - 1) _updateIdx = 0;
             _updatesPerFrame = 0;
-            ImGui.PlotLines("DeltaTime", ref _dtTracker[0], _dtTracker.Length, 0, "", 0, 30);
-            ImGui.PlotLines("Updates", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
+            ImGui.PlotLines("Actual DeltaTime", ref _dtTracker[0], _dtTracker.Length, 0, "", 0, 30);
+            ImGui.PlotLines("Update Count", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
+            ImGui.Text($"Reported DeltaTime {Engine.DeltaTime}");
 
             _fpsTracker++;
         }

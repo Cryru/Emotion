@@ -24,7 +24,14 @@ namespace Emotion.Tools
 
         private static void Main()
         {
-            Engine.Setup(new Configurator().AddPlugin(new ImGuiNetPlugin()).SetDebug(true).SetHostSettings(new Vector2(1280, 720)));
+            var config = new Configurator
+            {
+                DebugMode = true,
+                HostSize = new Vector2(1280, 720)
+            };
+            config.AddPlugin(new ImGuiNetPlugin());
+
+            Engine.Setup(config);
             Engine.SceneManager.SetScene(new Program());
             Engine.Run();
         }

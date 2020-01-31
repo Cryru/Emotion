@@ -65,7 +65,8 @@ namespace Emotion.Graphics
 
         /// <summary>
         /// Shared memory pool.
-        /// Page size is 2 mb - which is close to the data the maximum number of sprites that can be drawn in one batch using the VertexData struct.
+        /// Page size is 2 mb - which is close to the data the maximum number of sprites that can be drawn in one batch using the
+        /// VertexData struct.
         /// </summary>
         public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 2);
 
@@ -196,10 +197,7 @@ namespace Emotion.Graphics
             var batch = (VertexDataBatch) _spriteBatchFactory.GetObject();
 
             // If using shared memory, link to the composer.
-            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch)
-            {
-                sharedMemoryBatch.SetOwner(this);
-            }
+            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch) sharedMemoryBatch.SetOwner(this);
 
             PushCommand(batch);
             ActiveQuadBatch = batch;
@@ -304,7 +302,7 @@ namespace Emotion.Graphics
             PushCommand(command);
         }
 
-         /// <summary>
+        /// <summary>
         /// Render a circle outline.
         /// </summary>
         /// <param name="position">
@@ -466,7 +464,7 @@ namespace Emotion.Graphics
         public void StencilStartDraw(int value = 0xFF)
         {
             var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = OpenGL.StencilFunction.Always;
+            stencilStateChange.Func = StencilFunction.Always;
             stencilStateChange.Mask = 0xFF;
             stencilStateChange.Threshold = value;
             PushCommand(stencilStateChange);
@@ -480,7 +478,7 @@ namespace Emotion.Graphics
         public void StencilStopDraw()
         {
             var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = OpenGL.StencilFunction.Always;
+            stencilStateChange.Func = StencilFunction.Always;
             stencilStateChange.Mask = 0x00;
             stencilStateChange.Threshold = 0xFF;
             PushCommand(stencilStateChange);
@@ -493,7 +491,7 @@ namespace Emotion.Graphics
         public void StencilCutOutFrom(int threshold = 0xFF)
         {
             var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = OpenGL.StencilFunction.Greater;
+            stencilStateChange.Func = StencilFunction.Greater;
             stencilStateChange.Mask = 0x00;
             stencilStateChange.Threshold = threshold;
             PushCommand(stencilStateChange);
@@ -505,7 +503,7 @@ namespace Emotion.Graphics
         public void StencilFillIn(int threshold = 0xFF)
         {
             var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = OpenGL.StencilFunction.Greater;
+            stencilStateChange.Func = StencilFunction.Greater;
             stencilStateChange.Mask = 0xFF;
             stencilStateChange.Threshold = threshold;
             PushCommand(stencilStateChange);
@@ -514,7 +512,7 @@ namespace Emotion.Graphics
         public void StencilMask(int filter = 0xFF)
         {
             var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = OpenGL.StencilFunction.Less;
+            stencilStateChange.Func = StencilFunction.Less;
             stencilStateChange.Mask = 0x00;
             stencilStateChange.Threshold = filter;
             PushCommand(stencilStateChange);
@@ -532,13 +530,9 @@ namespace Emotion.Graphics
             codeFunc.Func = () =>
             {
                 if (renderColor)
-                {
                     Gl.ColorMask(true, true, true, true);
-                }
                 else
-                {
                     Gl.ColorMask(false, false, false, false);
-                }
             };
             PushCommand(codeFunc);
         }
@@ -650,7 +644,10 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render to a frame buffer, but clear all its attachments first.
         /// </summary>
-        /// <param name="buffer">The buffer to render to. If set to null will revert to the previous buffer, in which case the buffer will not be cleared.</param>
+        /// <param name="buffer">
+        /// The buffer to render to. If set to null will revert to the previous buffer, in which case the
+        /// buffer will not be cleared.
+        /// </param>
         public void RenderToAndClear(FrameBuffer buffer)
         {
             var command = GetRenderCommand<FramebufferModificationCommand>();

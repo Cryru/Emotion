@@ -21,11 +21,50 @@ namespace Emotion.Graphics
 {
     /// <summary>
     /// The renderer module doesn't actually perform rendering (that is done by the RenderComposer commands)
-    /// but instead manages the process and its lifecycles.
+    /// but instead manages states and the rendering lifecycle.
     /// </summary>
     public sealed class Renderer
     {
+        #region Settings
+
+        /// <summary>
+        /// How detailed drawn circles should be. Updates instantly. Default is 30.
+        /// </summary>
+        public int CircleDetail { get; set; } = 30;
+
+        /// <summary>
+        /// Whether v-sync is enabled. On some platforms this is forced on - check using the ForcedVSync flag. On by default.
+        /// </summary>
+        public bool VSync
+        {
+            get => ForcedVSync || _vSync;
+            set
+            {
+                _vSync = value;
+                GLThread.ExecuteGLThreadAsync(ApplySettings);
+            }
+        }
+
+        private bool _vSync = true;
+
+        /// <summary>
+        /// The positive cut off of the camera.
+        /// </summary>
+        public float FarZ = 100;
+
+        /// <summary>
+        /// The negative cut off of the camera.
+        /// </summary>
+        public float NearZ = -100;
+
+        #endregion
+
         #region Flags
+
+        /// <summary>
+        /// Whether v-sync is forced by the platform or driver.
+        /// </summary>
+        public bool ForcedVSync { get; internal set; }
 
         /// <summary>
         /// Whether the renderer is running in compatibility mode, falling back to older features.
@@ -39,31 +78,16 @@ namespace Emotion.Graphics
         public bool Dsa { get; private set; }
 
         /// <summary>
-        /// How detailed drawn circles should be. Updates instantly. Default is 30.
-        /// </summary>
-        public int CircleDetail { get; set; } = 30;
-
-        /// <summary>
         /// The maximum textures that can be mapped in one StreamBuffer and/or shader. If more than the allowed textures are mapped
         /// an exception is
         /// raised.
         /// </summary>
-        public int TextureArrayLimit { get; set; } = 16;
+        public int TextureArrayLimit { get; private set; } = 16;
 
         /// <summary>
         /// The maximum number of indices in the default Ibo buffers.
         /// </summary>
         public uint MaxIndices { get; internal set; } = ushort.MaxValue;
-
-        /// <summary>
-        /// The positive cut off of the camera.
-        /// </summary>
-        public float FarZ = 100;
-
-        /// <summary>
-        /// The negative cut off of the camera.
-        /// </summary>
-        public float NearZ = -100;
 
         #endregion
 
@@ -162,6 +186,7 @@ namespace Emotion.Graphics
             // Set flags.
             CompatibilityMode = Engine.Configuration.RendererCompatMode || Gl.CurrentRenderer.Contains("llvmpipe");
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
+            TextureArrayLimit = Gl.CurrentLimits.MaxTextureUnits;
 
             // Create default indices.
             IndexBuffer.CreateDefaultIndexBuffers();
@@ -196,10 +221,10 @@ namespace Emotion.Graphics
             };
 
             // Decide on scaling mode.
-            if (Engine.Configuration.FullScale)
+            if (Engine.Configuration.ScaleBlackBars)
             {
-                Engine.Host.Window.OnResize.AddListener(HostResizedFullScale);
-                HostResizedFullScale(Engine.Host.Window.Size);
+                Engine.Host.Window.OnResize.AddListener(HostResizedBlackBars);
+                HostResizedBlackBars(Engine.Host.Window.Size);
             }
             else
             {
@@ -216,6 +241,14 @@ namespace Emotion.Graphics
 
         #region Event Handles and Sizing
 
+        /// <summary>
+        /// Apply rendering settings.
+        /// </summary>
+        public void ApplySettings()
+        {
+            Engine.Host.Window.Context.SwapInterval = _vSync ? 1 : 0;
+        }
+
         private void CreateDrawbuffer(Vector2 size)
         {
             if (DrawBuffer != null && DrawBuffer.Size == size) return;
@@ -228,9 +261,9 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
-        /// Is called when the host is resized - in full scale mode.
+        /// Recreate the drawbuffer when the host is resized.
         /// </summary>
-        internal bool HostResizedFullScale(Vector2 size)
+        internal bool HostResized(Vector2 size)
         {
             // Recalculate scale.
             Vector2 baseRes = Engine.Configuration.RenderSize;
@@ -243,7 +276,7 @@ namespace Emotion.Graphics
             ScreenBuffer.Viewport = new Rectangle(0, 0, size);
             ScreenBuffer.Size = size;
 
-            if (Engine.Configuration.IntScaleBlit)
+            if (Engine.Configuration.IntScaleDrawBuffer)
             {
                 Scale -= IntScale - 1;
                 size /= IntScale;
@@ -258,13 +291,15 @@ namespace Emotion.Graphics
             CreateDrawbuffer(size);
             Camera?.RecreateMatrix();
 
+            ApplySettings();
+
             return true;
         }
 
         /// <summary>
-        /// Is called when the host is resized.
+        /// Recalculate the draw buffer when the host is resized, using black bars.
         /// </summary>
-        internal bool HostResized(Vector2 size)
+        internal bool HostResizedBlackBars(Vector2 size)
         {
             // Calculate borderbox / pillarbox.
             float targetAspectRatio = DrawBuffer.Size.X / DrawBuffer.Size.Y;
@@ -278,7 +313,7 @@ namespace Emotion.Graphics
                 width = (int) (height * targetAspectRatio + 0.5f);
             }
 
-            if (Engine.Configuration.IntegerScale)
+            if (Engine.Configuration.IntScaleDrawBuffer)
             {
                 var xIntScale = (float) Math.Floor(width / DrawBuffer.Size.X);
                 var yIntScale = (float) Math.Floor(height / DrawBuffer.Size.Y);
@@ -292,6 +327,8 @@ namespace Emotion.Graphics
             // Set viewport.
             ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
             ScreenBuffer.Size = size;
+
+            ApplySettings();
 
             return true;
         }

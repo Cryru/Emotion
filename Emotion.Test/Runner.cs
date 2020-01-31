@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
@@ -126,7 +127,10 @@ namespace Emotion.Test
             LoggingProvider log = new TestRunnerLogger(RunnerId.ToString(), linked, Path.Join(TestRunFolder, "Logs"));
 
             // Set the default engine settings for the test runner.
-            Configurator config = engineConfig.SetDebug(true, true, TestLoop).SetLogger(log);
+            Configurator config = engineConfig;
+            config.DebugMode = true;
+            config.LoopFactory = TestLoop;
+            config.Logger = log;
 
             // Check if a custom engine config is to be loaded. This check is a bit elaborate since the config params are merged with the linked params.
             string argsJoined = string.Join(" ", args);
@@ -163,7 +167,7 @@ namespace Emotion.Test
             if (ArgumentsParser.FindArgument(args, "testOnly", out string _))
             {
                 Task tests = Task.Run(BeginRun);
-                while (!tests.IsCompleted) TestLoop();
+                while (!tests.IsCompleted) TestLoopUpdate();
                 return;
             }
 
@@ -195,48 +199,6 @@ namespace Emotion.Test
                 }
             });
             Engine.Run();
-        }
-
-        private static bool TestLoop()
-        {
-            try
-            {
-                // Check if a tick substitute is found.
-                if (_loopAction != null)
-                {
-                    try
-                    {
-                        _loopAction.Invoke(Engine.DeltaTime);
-                    }
-                    catch (Exception ex)
-                    {
-                        _loopException = ex;
-                    }
-
-                    _loopCounter--;
-
-                    if (_loopCounter > 0) return false;
-                    _loopAction = null;
-
-                    // Release the lock.
-                    lock (_loopWaiter)
-                    {
-                        _loopWaiter?.Set();
-                        _loopWaiter = null;
-                    }
-                }
-
-                // Check if running loops.
-                if (_loopCounter <= 0) return false;
-                _loopCounter--;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Engine.Log.Error($"Test runner encountered error in loop - {ex}", MessageSource.Other);
-                Debug.Assert(false);
-                return false;
-            }
         }
 
         private static void BeginRun()
@@ -389,9 +351,70 @@ namespace Emotion.Test
                 Engine.Log.Info($"     {r}", CustomMSource.TestRunner);
             }
 
-            if (error || failedTests > 0)
+            if (error || failedTests > 0) Environment.Exit(1);
+        }
+
+        #region Loop
+
+        private static void TestLoop(Action tick, Action frame)
+        {
+            while (Engine.Status == EngineStatus.Running)
             {
-                Environment.Exit(1);
+                if (!Engine.Host.Update()) break;
+                Engine.DeltaTime = 0;
+
+                GLThread.Run();
+                bool run = TestLoopUpdate();
+
+                if (!run) continue;
+                Engine.DeltaTime = 16;
+                tick();
+                frame();
+                Engine.TotalTime += 16;
+            }
+
+            Engine.Quit();
+        }
+
+        private static bool TestLoopUpdate()
+        {
+            try
+            {
+                // Check if a tick substitute is found.
+                if (_loopAction != null)
+                {
+                    try
+                    {
+                        _loopAction.Invoke(Engine.DeltaTime);
+                    }
+                    catch (Exception ex)
+                    {
+                        _loopException = ex;
+                    }
+
+                    _loopCounter--;
+
+                    if (_loopCounter > 0) return false;
+                    _loopAction = null;
+
+                    // Release the lock.
+                    lock (_loopWaiter)
+                    {
+                        _loopWaiter?.Set();
+                        _loopWaiter = null;
+                    }
+                }
+
+                // Check if running loops.
+                if (_loopCounter <= 0) return false;
+                _loopCounter--;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Engine.Log.Error($"Test runner encountered error in loop - {ex}", MessageSource.Other);
+                Debug.Assert(false);
+                return false;
             }
         }
 
@@ -429,6 +452,8 @@ namespace Emotion.Test
             NoLinkedRunners = true;
             args = text.Split(" ");
         }
+
+        #endregion
 
         #region Image Comparison
 

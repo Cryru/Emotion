@@ -20,6 +20,14 @@ namespace Emotion.Scenography
         #region Properties
 
         /// <summary>
+        /// Whether currently loading.
+        /// </summary>
+        public bool Loading
+        {
+            get => Current == LoadingScreen;
+        }
+
+        /// <summary>
         /// The current scene. If a scene is loading this is the loading scene.
         /// </summary>
         public IScene Current { get; private set; }
