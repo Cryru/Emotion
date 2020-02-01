@@ -519,9 +519,7 @@ namespace Emotion.Test
             }
 
             // We want to store the comparison image for possible manual comparison.
-            string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
-            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(comparisonImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y);
-            File.WriteAllBytes(filePath, file);
+            SaveReferenceImage(fileName, comparisonSize, comparisonImage);
 
             // Check if the original image is missing, in which case we just store the comparison image.
             if (originalImage == null) return;
@@ -555,6 +553,25 @@ namespace Emotion.Test
             // Assert derivation is not higher than tolerable. This is not done using the Emotion.Test assert so it doesn't stop the test from continuing.
             if (derivedPixelPercentage > PixelDerivationTolerance) throw new ImageDerivationException($"          Failed derivation check. Derivation is {derivedPixelPercentage}%.");
             Engine.Log.Info($"          Derivation is {derivedPixelPercentage}%.", CustomMSource.TestRunner);
+        }
+
+        /// <summary>
+        /// Save an image for reference.
+        /// </summary>
+        /// <param name="fileName">The image name.</param>
+        /// <param name="size">The image size.</param>
+        /// <param name="pixels">The image pixels.</param>
+        public static void SaveReferenceImage(string fileName, Vector2 size, byte[] pixels)
+        {
+            if (!_runnerFolderCreated)
+            {
+                Directory.CreateDirectory(RunnerReferenceImageFolder);
+                _runnerFolderCreated = true;
+            }
+
+            string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
+            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(pixels, (int) size.Y), (int) size.X, (int) size.Y);
+            File.WriteAllBytes(filePath, file);
         }
 
         /// <summary>

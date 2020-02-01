@@ -378,6 +378,7 @@ namespace Emotion.Common
             }
 #endif
             TotalTime += DeltaTime;
+            if (TotalTime == float.MaxValue) TotalTime = 0;
 
             Host.UpdateInput();
             Renderer.Update();
