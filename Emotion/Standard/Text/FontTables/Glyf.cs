@@ -306,7 +306,7 @@ namespace Emotion.Standard.Text.FontTables
 
                 Debug.Assert(gidx < glyphs.Length, "Composite glyph is trying to fetch a non-existent component glyph.");
                 Glyph comp = glyphs[gidx];
-                if (comp.Vertices.Length <= 0) continue;
+                if (comp.Vertices == null || comp.Vertices.Length <= 0) continue;
 
                 // Copy vertices from the composite part.
                 // ReSharper disable once ForCanBeConvertedToForeach

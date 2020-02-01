@@ -117,26 +117,26 @@ namespace Tests.Classes
                 // Get atlases.
                 int fontSize = fontSizes[i];
                 FontAtlas emotionAtlas = f.GetAtlas(fontSize);
-                FontAtlas packedAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 2, (int) f.LastCharIndex, f, out StbTrueType.stbtt_fontinfo stbFont);
+                FontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 2, (int) f.LastCharIndex, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
-                CompareMetricsWithStb(f, stbFont);
+                CompareMetricsWithStb(f, stbFont, emotionAtlas.Scale);
 
                 // Compare render metrics.
                 foreach (KeyValuePair<char, AtlasGlyph> g in emotionAtlas.Glyphs)
                 {
-                    AtlasGlyph glyph = packedAtlas.Glyphs[g.Key];
+                    AtlasGlyph glyph = packedStbAtlas.Glyphs[g.Key];
                     Assert.Equal(glyph.Advance, g.Value.Advance);
                     Assert.Equal(glyph.XMin, g.Value.XMin);
                     Assert.Equal(glyph.Size, g.Value.Size);
                     Assert.Equal(glyph.YBearing, g.Value.YBearing);
                 }
 
-                FontAtlas stbAtlas = f.GetAtlas(fontSize, rasterizer: Font.GlyphRasterizer.StbTrueType);
-
                 // Compare renders.
+                FontAtlas stbAtlas = f.GetAtlas(fontSize, rasterizer: Font.GlyphRasterizer.StbTrueType);
                 byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
-                // todo: Investigate removal - renders have drifted.
+                // todo: Investigate removal - the two layout their glyphs differently within the atlas.
+                //Runner.SaveReferenceImage($"Original - {fonts[i]} - {fontSizes[i]}.png", emotionAtlas.Size, emotionAtlasRgba);
                 //Runner.VerifyImages($"CompareFont - {fonts[i]} - {fontSizes[i]}",
                 //    emotionAtlasRgba,
                 //    ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
@@ -224,7 +224,7 @@ namespace Tests.Classes
             return font;
         }
 
-        public static unsafe void CompareMetricsWithStb(Font f, StbTrueType.stbtt_fontinfo stbFont)
+        public static unsafe void CompareMetricsWithStb(Font f, StbTrueType.stbtt_fontinfo stbFont, float scale)
         {
             var pc = new StbTrueType.stbtt_pack_context();
             StbTrueType.stbtt_PackBegin(pc, (byte*) 0, 512, 512, 512, 1, null);
@@ -239,7 +239,7 @@ namespace Tests.Classes
                     array_of_unicode_codepoints = null,
                     num_chars = (int) f.LastCharIndex + 1,
                     chardata_for_range = charDataPtr,
-                    font_size = f.Height
+                    font_size = scale * f.Height
                 };
 
                 rects = new StbTrueType.stbrp_rect[f.LastCharIndex + 1];
@@ -263,17 +263,17 @@ namespace Tests.Classes
                 var maxX = 0;
                 var minY = 0;
                 var maxY = 0;
-                StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, (int) glyph.CharIndex, 1, 1, 0, 0, &minX, &minY, &maxX, &maxY);
+                StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, (int) glyph.CharIndex, scale, scale, 0, 0, &minX, &minY, &maxX, &maxY);
 
-                Rectangle bbox = glyph.GetBBox(1f);
+                Rectangle bbox = glyph.GetBBox(scale);
 
                 Assert.Equal(minX, bbox.X);
                 Assert.Equal(minY, bbox.Y);
                 Assert.Equal(maxX, bbox.Width);
                 Assert.Equal(maxY, bbox.Height);
 
-                Rectangle drawBox = glyph.GetDrawBox(1f);
-                drawBox.Size += Vector2.One;
+                Rectangle drawBox = glyph.GetDrawBox(scale);
+                drawBox.Size += Vector2.One; // Add padding from stb
                 StbTrueType.stbrp_rect rect = rects[glyph.CharIndex];
                 Assert.Equal(rect.w, drawBox.Width);
                 Assert.Equal(rect.h, drawBox.Height);

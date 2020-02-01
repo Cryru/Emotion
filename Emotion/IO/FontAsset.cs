@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
-using Emotion.Standard.Image;
 using Emotion.Standard.Text;
 using Emotion.Utility;
 
@@ -89,7 +88,11 @@ namespace Emotion.IO
 
         public DrawableFontAtlas(FontAtlas atlas, bool smooth = true)
         {
+            // Invalid font, no glyphs, etc.
+            if (atlas == null) return;
+
             Atlas = atlas;
+
             GLThread.ExecuteGLThread(() =>
             {
                 Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels)) {Smooth = smooth};
