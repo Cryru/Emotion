@@ -88,5 +88,21 @@ namespace Emotion.Utility
             v.Y = MathF.Floor(v.Y + 0.5f);
             return v;
         }
+
+        public static T[] AddToArray<T>(this T[] array, T element)
+        {
+            Array.Resize(ref array, array.Length + 1);
+            array[^1] = element;
+            return array;
+        }
+
+        public static int IndexOf<T>(this T[] array, T element)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                if(array[i].Equals(element)) return i;
+            }
+            return -1;
+        }
     }
 }
