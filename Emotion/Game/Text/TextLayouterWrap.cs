@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Emotion.Primitives;
 using Emotion.Standard.Text;
 
 #endregion
@@ -15,7 +14,9 @@ namespace Emotion.Game.Text
     /// </summary>
     public class TextLayouterWrap : TextLayouter
     {
-        private int _counter = 0;
+        public float NeededHeight { get; private set; }
+
+        private int _counter;
         private List<int> _newLineIndices = new List<int>();
 
         public TextLayouterWrap(FontAtlas atlas) : base(atlas)
@@ -27,6 +28,7 @@ namespace Emotion.Game.Text
             var currentLine = "";
             var breakSkipMode = false;
             int breakSkipModeLimit = -1;
+            float lineHeight = _atlas.FontHeight;
 
             // Loop through the text.
             for (var i = 0; i < text.Length; i++)
@@ -68,19 +70,22 @@ namespace Emotion.Game.Text
                     breakSkipModeLimit = i + textToBreak.Length;
                 }
 
+                // Get the largest height.
+                if (textSize.Y > lineHeight) lineHeight = textSize.Y;
+
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
                 if (textSize.X > bounds.X || text[i] == '\n')
                 {
                     // Push new line.
-                    //wrapResult.Add(currentLine);
-                    _newLineIndices.Add(i);
+                    NeededHeight += lineHeight + LineGap;
+                    lineHeight = _atlas.FontHeight;
+                    if(text[i] != '\n') _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
                     currentLine = "";
 
                     // If the current character is a new line break retroactively push it on the last line, and continue without adding it to the current line.
                     if (text[i] == '\n' && _newLineIndices.Count > 0)
                     {
-                        _newLineIndices[_newLineIndices.Count - 1] += 1;
-                        //wrapResult[wrapResult.Count - 1] += '\n';
+                        _newLineIndices[^1] += 1;
                         continue;
                     }
                 }
@@ -90,8 +95,7 @@ namespace Emotion.Game.Text
             }
 
             // If there is text left push in on a new line.
-            //if (!string.IsNullOrEmpty(currentLine))
-                //wrapResult.Add(currentLine);
+            NeededHeight += lineHeight + LineGap;
         }
 
         /// <summary>
@@ -116,6 +120,7 @@ namespace Emotion.Game.Text
             base.Restart();
             _newLineIndices.Clear();
             _counter = 0;
+            NeededHeight = 0;
         }
     }
 }
