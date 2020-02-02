@@ -159,6 +159,8 @@ namespace Emotion.Plugins.ImGuiNet
             };
 
             Engine.Host.OnTextInput.AddListener(c => { _textInput.Add(c); return true; });
+            Engine.Host.OnKey.AddListener((_, __) => !Focused);
+            Engine.Host.OnMouseKey.AddListener((_, __) => !Focused);
 
             Initialized = true;
         }
@@ -209,7 +211,7 @@ namespace Emotion.Plugins.ImGuiNet
             // Apply all key inputs.
             for (var i = 0; i < (int) Key.Last; i++)
             {
-                io.KeysDown[i] = Engine.InputManager.IsKeyDown((Key) i);
+                io.KeysDown[i] = Engine.InputManager.IsKeyHeld((Key) i);
             }
         }
 

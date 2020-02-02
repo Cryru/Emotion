@@ -24,7 +24,7 @@ namespace Emotion.Utility
         {
             lock (_listeners)
             {
-                for (int i = _listeners.Count - 1; i >= 0; i--)
+                for (var i = 0; i < _listeners.Count; i++)
                 {
                     if(!_listeners[i](t, t2)) break;
                 }
@@ -70,7 +70,7 @@ namespace Emotion.Utility
         {
             lock (_listeners)
             {
-                for (int i = _listeners.Count - 1; i >= 0; i--)
+                for (var i = 0; i < _listeners.Count; i++)
                 {
                     if(!_listeners[i](t)) break;
                 }
@@ -115,7 +115,7 @@ namespace Emotion.Utility
         {
             lock (_listeners)
             {
-                for (int i = _listeners.Count - 1; i >= 0; i--)
+                for (var i = 0; i < _listeners.Count; i++)
                 {
                     if(!_listeners[i]()) break;
                 }
