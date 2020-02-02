@@ -49,7 +49,7 @@ namespace Emotion.IO
             _rasterizer = rasterizer;
         }
 
-        public DrawableFontAtlas GetAtlas(float fontSize, int firstChar = 0, int numChars = -1, bool smooth = true)
+        public DrawableFontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, bool smooth = true)
         {
             int hash = $"{fontSize}-{firstChar}-{numChars}".GetHashCode();
 

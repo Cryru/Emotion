@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,6 +12,7 @@ using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.Text.FontTables;
 using Emotion.Standard.Utility;
+using Emotion.Utility;
 using StbTrueTypeSharp;
 
 #if FreeType
@@ -78,9 +80,14 @@ namespace Emotion.Standard.Text
         public Glyph[] Glyphs;
 
         /// <summary>
+        /// The character index of the first glyph.
+        /// </summary>
+        public uint FirstCharIndex { get; protected set; }
+
+        /// <summary>
         /// The largest character index found in the font.
         /// </summary>
-        public uint LastCharIndex;
+        public uint LastCharIndex { get; protected set; }
 
         /// <summary>
         /// The font's ascender minus its descender. Is used as the distance between lines and is regarded as the safe space.
@@ -354,9 +361,20 @@ namespace Emotion.Standard.Text
 
             // Calculate last char index.
             LastCharIndex = Glyphs.Max(x => x.CharIndex);
+            Array.Sort(Glyphs, _comparer); // todo: Check if all parse paths have them sorted. Some do.
+            FirstCharIndex = Glyphs[0].CharIndex;
 
             Valid = true;
         }
+
+        private static GlyphCompare _comparer = new GlyphCompare();
+        private class GlyphCompare : Comparer<Glyph>
+        {
+            public override int Compare(Glyph x, Glyph y)
+            {
+                return (int) x.CharIndex - (int) y.CharIndex;
+            }
+        } 
 
         #region Atlas Rasterization
 
@@ -391,9 +409,10 @@ namespace Emotion.Standard.Text
 #endif
         }
 
-        public FontAtlas GetAtlas(float fontSize, int firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
+        public FontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
         {
             if (Glyphs == null || Glyphs.Length == 0) return null;
+            if (firstChar < FirstCharIndex) firstChar = FirstCharIndex;
             if (numChars == -1) numChars = (int) (LastCharIndex - firstChar);
 
             // The scale to render at.
@@ -402,13 +421,17 @@ namespace Emotion.Standard.Text
 
             const int samples = 1;
 
-            for (var i = 0; i < numChars; i++)
+            // Go through all glyphs who are assumed to be ordered by char index.
+            // Start from the requested first index and go until the processed char index is either above the
+            // start plus the size, or we run out of glyphs.
+            uint glyphIndex = 0;
+            uint lastCharIndex = firstChar;
+            while (lastCharIndex <= firstChar + numChars)
             {
-                Glyph g = Glyphs.FirstOrDefault(x => x.CharIndex == firstChar + i);
-
-                // Check if glyph was found.
-                if (g == null)
-                    continue;
+                // Verify that the index is valid.
+                if (glyphIndex >= Glyphs.Length) break;
+                Glyph g = Glyphs[glyphIndex];
+                lastCharIndex = g.CharIndex;
 
                 // Start rendering this glyph.
                 switch (rasterizer)
@@ -425,6 +448,8 @@ namespace Emotion.Standard.Text
                         break;
 #endif
                 }
+
+                glyphIndex++;
             }
 
             // Get rendered canvases.
