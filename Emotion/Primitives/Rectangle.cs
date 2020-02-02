@@ -179,6 +179,15 @@ namespace Emotion.Primitives
             return a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
         }
 
+        public static Rectangle operator *(Rectangle a, float f)
+        {
+            a.X *= f;
+            a.Y *= f;
+            a.Width *= f;
+            a.Height *= f;
+            return a;
+        }
+
         public bool Contains(float x, float y)
         {
             return X <= x && x <= X + Width && Y <= y && y <= Y + Height;

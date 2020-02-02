@@ -51,7 +51,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The size of the transform.
         /// </summary>
-        public Vector2 Size
+        public virtual Vector2 Size
         {
             get => new Vector2(Width, Height);
             set
