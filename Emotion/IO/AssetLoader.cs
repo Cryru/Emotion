@@ -171,13 +171,22 @@ namespace Emotion.IO
             name = NameToEngineName(name);
 
             // Find a store which matches the name folder.
-            string folder = name.Substring(0, name.IndexOf('/'));
-
-            bool found = _storage.TryGetValue(folder, out IAssetStore store);
-            if (!found)
+            IAssetStore store;
+            int folderIndex = name.IndexOf('/');
+            if (folderIndex == -1)
             {
-                Engine.Log.Warning($"Tried to store asset {name} but there's no store to service folder {folder}.", MessageSource.AssetLoader);
-                return false;
+                store = _storage.First().Value;
+                name = $"{store.Folder}/{name}";
+            }
+            else
+            {
+                string folder = name.Substring(0, folderIndex);
+                bool found = _storage.TryGetValue(folder, out store);
+                if (!found)
+                {
+                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service folder {folder}.", MessageSource.AssetLoader);
+                    return false;
+                }
             }
 
             // Store the asset.

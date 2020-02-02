@@ -28,7 +28,15 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 InternalManifest.TryAdd(name, filePath);
 
             // Create missing directories.
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            string directoryName = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directoryName))
+            {
+                Directory.CreateDirectory(directoryName);
+            }
+            else
+            {
+                filePath = Path.Join($"{Folder}", filePath);
+            }
 
             FileStream stream = File.Open(filePath, FileMode.Create);
             stream.Write(data, 0, data.Length);
