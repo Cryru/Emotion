@@ -41,13 +41,14 @@ namespace Emotion.Standard.Text.FontTables
             // We're only interested in a "platform 0" (Unicode format) and "platform 3" (Windows format) table.
             NumTables = reader.ReadUShortBE();
             int tableOffset = -1;
-            for (int i = NumTables - 1; i >= 0; i -= 1)
+            for (var i = 0; i < NumTables; i += 1)
             {
                 ushort platformId = reader.ReadUShortBE();
                 ushort encodingId = reader.ReadUShortBE();
+                var offset = (int) reader.ReadULongBE();
                 if ((platformId != 3 || encodingId != 0 && encodingId != 1 && encodingId != 10) &&
                     (platformId != 0 || encodingId != 0 && encodingId != 1 && encodingId != 2 && encodingId != 3 && encodingId != 4)) continue;
-                tableOffset = (int) reader.ReadULongBE();
+                tableOffset = offset;
                 break;
             }
 

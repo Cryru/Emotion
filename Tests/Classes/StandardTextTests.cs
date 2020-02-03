@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using Emotion.Primitives;
 using Emotion.Standard.Text;
@@ -76,7 +77,7 @@ namespace Tests.Classes
                 270,
                 279,
                 141,
-                2164,
+                2165, // 2164, but Emotion adds a fake-space char.
                 270,
                 270
             };

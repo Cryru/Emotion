@@ -304,7 +304,8 @@ namespace Emotion.Standard.Text
                 {
                     var cMap = new CMap(r.Branch(cmapTable.Offset, true, cmapTable.Length));
                     var post = new Post(r.Branch(postTable.Offset, true, postTable.Length));
-                    AddGlyphNames(ref Glyphs, cMap.GlyphIndexMap, post.Names);
+                    if(cMap.GlyphIndexMap != null)
+                        AddGlyphNames(ref Glyphs, cMap.GlyphIndexMap, post.Names);
                 }
             }
             else
@@ -364,6 +365,51 @@ namespace Emotion.Standard.Text
             Array.Sort(Glyphs, _comparer); // todo: Check if all parse paths have them sorted. Some do.
             FirstCharIndex = Glyphs[0].CharIndex;
 
+            // Check if a space glyph exists, and if not add one.
+            var hasSpace = false;
+            var nonBreakingSpaceIndex = 0;
+            var spaceIndex = 0;
+            for (var i = 0; i < Glyphs.Length; i++)
+            {
+                Glyph g = Glyphs[i];
+
+                // If a space character is found, all is well.
+                if (g.CharIndex == ' ')
+                {
+                    hasSpace = true;
+                    break;
+                }
+
+                // If no space is found, we can synthesize one from the non-breaking space char - 160.
+                if (g.CharIndex == 160)
+                {
+                    nonBreakingSpaceIndex = i;
+                    break;
+                }
+
+                // Find where the space should go.
+                if (g.CharIndex < ' ')
+                {
+                    spaceIndex++;
+                }
+            }
+
+            if (!hasSpace)
+            {
+                Engine.Log.Warning("Font didn't have a space glyph.", MessageSource.FontParser);
+                var fakeSpace = new Glyph
+                {
+                    Name = "fake-space",
+                    CharIndex = ' ',
+                    MapIndex = Glyphs[nonBreakingSpaceIndex].MapIndex,
+                    AdvanceWidth = Glyphs[nonBreakingSpaceIndex].AdvanceWidth,
+                    Vertices = new GlyphVertex[0]
+                };
+                List<Glyph> asList = Glyphs.ToList();
+                asList.Insert(spaceIndex, fakeSpace);
+                Glyphs = asList.ToArray();
+            }
+
             Valid = true;
         }
 
@@ -372,6 +418,7 @@ namespace Emotion.Standard.Text
         {
             public override int Compare(Glyph x, Glyph y)
             {
+                if (x == null || y == null) return 0;
                 return (int) x.CharIndex - (int) y.CharIndex;
             }
         } 
@@ -637,10 +684,8 @@ namespace Emotion.Standard.Text
         /// <param name="glyphNames">The glyph names read from the postscript table.</param>
         private static void AddGlyphNames(ref Glyph[] glyphs, Dictionary<uint, uint> glyphIndexMap, IReadOnlyList<string> glyphNames)
         {
-            Dictionary<uint, uint> indexMap = glyphIndexMap;
-
             var glyphsReorder = new List<Glyph>();
-            foreach ((uint key, uint value) in indexMap)
+            foreach ((uint key, uint value) in glyphIndexMap)
             {
                 Glyph glyph = glyphs[value];
                 if(glyphNames != null)
