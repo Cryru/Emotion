@@ -370,7 +370,6 @@ namespace Emotion.Test
                 Engine.DeltaTime = 16;
                 tick();
                 frame();
-                Engine.TotalTime += 16;
             }
 
             Engine.Quit();

@@ -109,9 +109,8 @@ To build just clone and build using Visual Studio 2019 or higher. It shouldn't t
 
 ## Projects Used
 
-.NetCore 3.0
+.NetCore 3.1
  - System.Numerics (Data Structures)
- - Roslyn (C# Scripting)
 
 TiledSharp
  - Support for .tmx files.
@@ -124,15 +123,20 @@ Serilog
  - Used for logging.
  - [Website](https://serilog.net/)
 
-CimGui and CimGuiNet
- - Dev Mode UI
- - Included native libraries for MacOS, Linux, Windows64
-
 StbTrueTypeSharp
  - Provided by [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp)
  - Used as a fallback to the Emotion renderer. Will probably be removed later down the line
 
 ## Optional Dependencies
+
+Emotion.Plugins.CSharpScripting
+ - Uses Roslyn
+ - Allows you to easily write scripts in C#
+
+Emotion.Plugins.ImGuiNet
+ - Uses CimGui and CimGuiNet
+ - Dev Mode UI
+ - Included native libraries for MacOS, Linux, Windows64
 
 Emotion.Standard.TrueType (Found in the Plugins folder)
  - Custom wrapper utilizing .NetCore 3.0, based on [SharpFontStandard](https://github.com/jmazouri/SharpFontStandard/)
