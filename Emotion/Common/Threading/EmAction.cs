@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Emotion.Game.Time.Routines;
 
 #endregion
 
@@ -12,7 +13,7 @@ namespace Emotion.Common.Threading
     /// A token object used to await and chain actions.
     /// This is used rather than the default C# Task because it gives you control over which thread it will execute on.
     /// </summary>
-    public class EmAction : INotifyCompletion
+    public class EmAction : INotifyCompletion, IRoutineWaiter
     {
         private Action _contAction;
         private Action _actionToExec;
@@ -116,6 +117,17 @@ namespace Emotion.Common.Threading
 
         public void GetResult()
         {
+        }
+
+        #endregion
+
+        #region Coroutine Waiter
+
+        public bool Finished { get => _ran; }
+
+        public void Update()
+        {
+
         }
 
         #endregion
