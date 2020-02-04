@@ -58,6 +58,12 @@ namespace Emotion.Common
         /// </summary>
         public bool ScaleBlackBars { get; set; }
 
+        /// <summary>
+        /// Whether to render to a draw buffer before blitting to the screen buffer.
+        /// Disabling this is a performance gain.
+        /// </summary>
+        public bool UseIntermediaryBuffer { get; set; }
+
         #endregion
 
         #region Loop

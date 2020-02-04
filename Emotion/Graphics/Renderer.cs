@@ -251,6 +251,14 @@ namespace Emotion.Graphics
 
         private void CreateDrawbuffer(Vector2 size)
         {
+            if (!Engine.Configuration.UseIntermediaryBuffer)
+            {
+                DrawBuffer = new FrameBuffer(0, size);
+                _bufferStack.Clear();
+                _bufferStack.Push(DrawBuffer);
+                return;
+            }
+
             if (DrawBuffer != null && DrawBuffer.Size == size) return;
 
             DrawBuffer?.Dispose();
@@ -381,10 +389,13 @@ namespace Emotion.Graphics
             ScreenBuffer.Bind();
             Clear();
 
-            // Clear the draw buffer.
-            // No need to call EnsureRenderTarget as the DrawBuffer should be the only one in the stack here.
-            DrawBuffer.Bind();
-            Clear();
+            if (Engine.Configuration.UseIntermediaryBuffer)
+            {
+                // Clear the draw buffer.
+                // No need to call EnsureRenderTarget as the DrawBuffer should be the only one in the stack here.
+                DrawBuffer.Bind();
+                Clear();
+            }
 
             // Check if a render target was forgotten.
             if (_bufferStack.Count > 1)
@@ -402,11 +413,14 @@ namespace Emotion.Graphics
             // Check if running on the GL Thread.
             Debug.Assert(GLThread.IsGLThread());
 
-            // Push a blit from the draw buffer to the screen buffer.
-            _composer.SetState(_blitState);
-            _composer.RenderTo(ScreenBuffer);
-            _composer.RenderSprite(Vector3.Zero, ScreenBuffer.Size, Color.White, DrawBuffer.Texture);
-            _composer.RenderTo(null);
+            if (Engine.Configuration.UseIntermediaryBuffer)
+            {
+                // Push a blit from the draw buffer to the screen buffer.
+                _composer.SetState(_blitState);
+                _composer.RenderTo(ScreenBuffer);
+                _composer.RenderSprite(Vector3.Zero, ScreenBuffer.Size, Color.White, DrawBuffer.Texture);
+                _composer.RenderTo(null);
+            }
 
             _composer.Process();
             _composer.Execute();

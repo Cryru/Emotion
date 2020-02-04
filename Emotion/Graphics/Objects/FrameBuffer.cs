@@ -145,12 +145,11 @@ namespace Emotion.Graphics.Objects
         {
             if(!Viewport.Contains(rect)) return data;
 
-            //Debug.Assert(Viewport.Contains(rect));
             rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
-                Gl.ReadPixels((int)rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, Texture.PixelFormat, Texture.PixelType, (IntPtr) pixelBuffer);
+                Gl.ReadPixels((int)rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, Texture?.PixelFormat ?? PixelFormat.Bgra, Texture?.PixelType ?? PixelType.UnsignedByte, (IntPtr) pixelBuffer);
             }
 
             return data;
@@ -162,7 +161,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
         public byte[] Sample(Rectangle rect)
         {
-            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(Texture.PixelType) * Gl.PixelTypeToComponentCount(Texture.PixelFormat)];
+            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(Texture?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelTypeToComponentCount(Texture?.PixelFormat ?? PixelFormat.Bgra)];
             return Sample(rect, ref data);
         }
 
