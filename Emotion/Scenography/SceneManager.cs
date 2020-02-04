@@ -183,11 +183,13 @@ namespace Emotion.Scenography
         }
 
         /// <summary>
-        /// Queues the scene to be swapped to on the next tick and returns the old one (which is the current one).
+        /// Swaps the current scene and returns the old one (which is the current one).
+        /// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene.
+        /// This also won't unload the old scene.
         /// </summary>
         /// <param name="toSwapTo">The scene to swap to.</param>
         /// <returns>The previously active scene (the current one).</returns>
-        private IScene SwapActive(IScene toSwapTo)
+        public IScene SwapActive(IScene toSwapTo)
         {
             lock (_swapMutex)
             {
