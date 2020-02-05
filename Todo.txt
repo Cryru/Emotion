@@ -1,6 +1,5 @@
 IO
 	- "Relative to" support for things like the shaders which reference other assets.
-	- #include "" instead of // for shaders which loads from assets.
 DataBuffer.CreateMapper
 	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
 Commands
@@ -34,9 +33,7 @@ Standard.Text
 	- FVar table
 	- Meta table
 	- Long Term: Implement the FreeType rasterizer.
-	- Glyf: No contour error handling
 	- RenderGlyph, "e" variable resizing is not really needed.
-	- There are some weird artifacts when rendering certain glyphs. This can be reproduced with a size 39 of the Junction-Regular font.
 	- Add tests for MeasureString and fix broken stuff there.
 	- Test out the subsampling of the stb rasterizer.
 	- Implement the custom renderer you've been thinking of, wink
