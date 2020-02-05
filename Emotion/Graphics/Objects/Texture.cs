@@ -19,7 +19,7 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The bound textures.
         /// </summary>
-        public static uint[] Bound = new uint[10];
+        public static uint[] Bound = new uint[Engine.Renderer.TextureArrayLimit];
 
         /// <summary>
         /// The OpenGL pointer to this Texture.

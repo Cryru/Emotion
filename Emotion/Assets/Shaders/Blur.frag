@@ -1,10 +1,6 @@
 #version v 
  
-#ifdef GL_ES 
-precision highp float; 
-#endif 
- 
-uniform sampler2D textures[16]; 
+uniform sampler2D textures[TEXTURE_COUNT];
 uniform vec3 iResolution; // viewport resolution (in pixels)
  
 // Comes in from the vertex shader. 
@@ -14,8 +10,8 @@ flat in int Tid;
  
 out vec4 fragColor; 
 
-//GetTextureColor
-//GetTextureSize
+#using "Shaders/getTextureColor.c"
+#using "Shaders/getTextureSize.c"
 
 // https://github.com/Jam3/glsl-fast-gaussian-blur
 vec4 blur9(int image, vec2 uv, vec2 resolution, vec2 direction) {

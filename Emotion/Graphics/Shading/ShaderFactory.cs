@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Logging;
@@ -25,51 +26,11 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         private static Dictionary<string, Func<string[], string[]>> _shaderConfigurations = new Dictionary<string, Func<string[], string[]>>
         {
-            {"default", s => s},
-            {"CompatTextureColor", s => AddPreprocessorConstant(s, "CompatTextureColor")},
+            {"default", s => s },
+            {"CompatTextureIndex", s => ApplyIndexUnwrap(AddPreprocessorConstant(s, "CompatTextureIndex"))},
             {"AttribLocationExtension", s => AddExtensionConstant(s, "GL_ARB_explicit_attrib_location")},
-            {"CompatTextureColor&AttribLocationExtension", s => AddExtensionConstant(AddPreprocessorConstant(s, "CompatTextureColor"), "GL_ARB_explicit_attrib_location")}
+            {"CompatTextureIndex&AttribLocationExtension", s => ApplyIndexUnwrap(AddExtensionConstant(AddPreprocessorConstant(s, "CompatTextureIndex"), "GL_ARB_explicit_attrib_location"))}
         };
-
-        /// <summary>
-        /// Functions to be put in the shader.
-        /// </summary>
-        private static Dictionary<string, TextAsset> _shaderParts = new Dictionary<string, TextAsset>();
-
-        static ShaderFactory()
-        {
-            // Make sure the asset loader is setup.
-            if (Engine.AssetLoader == null) return;
-
-            var getTextureColor = Engine.AssetLoader.Get<TextAsset>("Shaders/GetTextureColor.c");
-            if (getTextureColor == null)
-            {
-                Engine.SubmitError(new Exception("Couldn't load default shader parts - GetTextureColor."));
-                return;
-            }
-
-            _shaderParts.Add("GetTextureColor", getTextureColor);
-
-            var getTextureSize = Engine.AssetLoader.Get<TextAsset>("Shaders/GetTextureSize.c");
-            if (getTextureSize == null)
-            {
-                Engine.SubmitError(new Exception("Couldn't load default shader parts - GetTextureSize."));
-                return;
-            }
-
-            _shaderParts.Add("GetTextureSize", getTextureSize);
-        }
-
-        /// <summary>
-        /// Add a custom shader part to the shader preprocessor.
-        /// Instances of "//key" will be replaced by the content of the text asset.
-        /// </summary>
-        /// <param name="key">The key to replace.</param>
-        /// <param name="text">The text to replace it with.</param>
-        public static void AddShaderPart(string key, TextAsset text)
-        {
-            _shaderParts.Add(key, text);
-        }
 
         /// <summary>
         /// Create the default shader.
@@ -160,10 +121,7 @@ namespace Emotion.Graphics.Shading
             // Add version tag and preprocess the source.
             preprocessed = Preprocess(preprocessed);
 
-            if (Engine.Configuration.DebugMode)
-            {
-                WarningsCheck(preprocessed);
-            }
+            if (Engine.Configuration.DebugMode) WarningsCheck(preprocessed);
 
             // Find a configuration which will compile the shader.
             foreach (KeyValuePair<string, Func<string[], string[]>> configuration in _shaderConfigurations)
@@ -208,55 +166,86 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="source">The shader source code.</param>
         /// <returns>The preprocessed shader code.</returns>
-        private static string[] Preprocess(string[] source)
+        private static string[] Preprocess(IEnumerable<string> source)
         {
-            source[0] = $"#version {Gl.CurrentShadingVersion.VersionId}\n";
-
-            for (var i = 1; i < source.Length; i++)
+            var code = new List<string>(source)
             {
-                // Remove user's version tag.
-                if (source[i].Contains("#version")) source[i] = "\n";
+                [0] = $"#version {Gl.CurrentShadingVersion.VersionId}\n"
+            };
 
-                // Inject texture parts.
-                foreach (var part in _shaderParts)
+            // Version string is required.
+
+            // Defines
+            code.Insert(1, $"#define TEXTURE_COUNT {Engine.Renderer.TextureArrayLimit}\n");
+
+            // GLES support
+            code.Insert(2, "#ifdef GL_ES\n");
+            code.Insert(3, "precision highp float;\n");
+            code.Insert(4, "#endif\n");
+
+            for (var i = 4; i < code.Count; i++)
+            {
+                // Legacy texture length definition.
+                if (code[i].Trim() == "uniform sampler2D textures[16];") code[i] = "uniform sampler2D textures[TEXTURE_COUNT];";
+
+                // Resolve file dependencies.
+                // This will break with circular dependencies and co-dependencies - sooo don't do that.
+                if (code[i].StartsWith("#using \""))
                 {
-                    if (source[i].Contains($"//{part.Key}"))
-                    {
-                        source[i] = Helpers.NormalizeNewLines(part.Value.Content);
-                        break;
-                    }
+                    string line = code[i].Trim();
+                    string file = line.Replace("#using \"", "");
+                    file = file.Substring(0, file.Length - 1);
+
+                    code[i] = ResolveShaderDependency(file);
                 }
 
-                source[i] = source[i].Trim() + "\n";
+                // Old using
+                if (code[i].StartsWith("//GetTextureColor")) code[i] = ResolveShaderDependency("Shaders/GetTextureColor.c");
+                if (code[i].StartsWith("//GetTextureSize")) code[i] = ResolveShaderDependency("Shaders/GetTextureSize.c");
+
+                code[i] = code[i].Trim() + "\n";
             }
 
-            return source;
+            return code.ToArray();
+        }
+
+        /// <summary>
+        /// Resolves file dependencies in shaders.
+        /// </summary>
+        private static string ResolveShaderDependency(string file)
+        {
+            var loadedFile = Engine.AssetLoader.Get<TextAsset>(file);
+            if (loadedFile == null) return "";
+            return Helpers.NormalizeNewLines(loadedFile.Content);
         }
 
         /// <summary>
         /// Used in Debug Mode to generate more telling warnings from a preprocessed shader source.
         /// </summary>
         /// <param name="source">The shader source.</param>
-        private static void WarningsCheck(string[] source)
+        private static void WarningsCheck(IReadOnlyList<string> source)
         {
-            for (var i = 0; i < source.Length; i++)
+            for (var i = 0; i < source.Count; i++)
             {
-                // Check if version exists.
-                if (i == 0 && source[i][0] != '#')
-                {
-                    Engine.Log.Warning($"The first character is the shader is not '#' but is {source[i][0]}.", MessageSource.Debug);
-                }
+                string line = source[i].Trim();
 
-                if (i == 0 && !source[i].Contains("#version "))
-                {
-                    Engine.Log.Warning($"The shader is missing the version tag.", MessageSource.Debug);
-                }
+                // Check if version exists.
+                if (i == 0 && source[i][0] != '#') Engine.Log.Warning($"The first character is the shader is not '#' but is {source[i][0]}.", MessageSource.Debug);
+
+                if (i == 0 && !line.Contains("#version ")) Engine.Log.Warning("The shader is missing the version tag.", MessageSource.Debug);
 
                 // Legacy warnings.
-                if (source[i].Contains("float Tid"))
-                {
-                    Engine.Log.Warning($"The shader defines the 'Tid' uniform as float, which is how it used to be. Newer versions of Emotion expect it to be a 'flat in int'.", MessageSource.Debug);
-                }
+                if (line.Contains("float Tid"))
+                    Engine.Log.Warning("The shader defines the 'Tid' uniform as float, which is how it used to be. Newer versions of Emotion expect it to be a 'flat in int'.", MessageSource.Debug);
+
+                if (line.Contains("//GetTextureColor"))
+                    Engine.Log.Warning("You are using an old 'using' statement to import Shaders/GetTextureColor.c please use `#using \"Shaders/getTextureColor.c\"` instead.", MessageSource.Debug);
+
+                if (line.Contains("//GetTextureSize"))
+                    Engine.Log.Warning("You are using an old 'using' statement to import Shaders/GetTextureSize.c please use `#using \"Shaders/getTextureSize.c\"` instead.", MessageSource.Debug);
+
+                if (line.Contains("uniform sampler2D textures[16];"))
+                    Engine.Log.Warning("You are declaring your textures array as a static size of 16 - please use `uniform sampler2D textures[TEXTURE_COUNT];` instead.", MessageSource.Debug);
             }
         }
 
@@ -272,6 +261,52 @@ namespace Emotion.Graphics.Shading
         {
             source[0] = $"{source[0]}#extension {extension} : require\n";
             return source;
+        }
+
+        #endregion
+
+        #region Index Unwrapping CodeGen
+
+        private static Regex _indexUnwrapRegex = new Regex("(\\/\\/TEXTURE_INDEX_UNWRAP)([\\s\\S]*?)(\\/\\/END)", RegexOptions.Multiline);
+
+        /// <summary>
+        /// Horrible code-gen.
+        /// Used to generate indexing unwraps.
+        /// </summary>
+        private static string[] ApplyIndexUnwrap(string[] lines)
+        {
+            for (var i = 0; i < lines.Length; i++)
+            {
+                Match match = _indexUnwrapRegex.Match(lines[i]);
+                while (match.Success && match.Groups.Count == 4)
+                {
+                    Group code = match.Groups[2];
+                    string unwrapped = UnwrapIndex(Engine.Renderer.TextureArrayLimit, code.Value.Trim());
+                    lines[i] = lines[i].Substring(0, match.Index) + unwrapped + lines[i].Substring(match.Index + match.Length);
+                    match = match.NextMatch();
+                }
+            }
+
+            return lines;
+        }
+
+        /// <summary>
+        /// Old OpenGL doesn't support indexing arrays.
+        /// This means that we must unwrap them into if checks.
+        /// </summary>
+        private static string UnwrapIndex(int length, string code)
+        {
+            var unwrapped = new List<string>();
+            for (var i = 0; i < length; i++)
+            {
+                unwrapped.Add(i == 0 ? $"if(value == {i})" : $"else if(value == {i})");
+
+                unwrapped.Add("{");
+                unwrapped.Add(code.Replace("value", $"{i}"));
+                unwrapped.Add("}");
+            }
+
+            return string.Join("\n", unwrapped);
         }
 
         #endregion
