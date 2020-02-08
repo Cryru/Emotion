@@ -1,6 +1,8 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -22,7 +24,8 @@ namespace Emotion.Common.Threading
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task FastLoops(int arraySize, Action<int, int> function)
         {
-            // Early out
+            // Early out and optimization case.
+            if(arraySize == 0) return Task.CompletedTask;
             if (arraySize <= Environment.ProcessorCount)
             {
                 return Task.Run(() => function(0, arraySize));
@@ -39,7 +42,7 @@ namespace Emotion.Common.Threading
                 // Add the left over amount to the last task.
                 if (t == tasks.Length - 1) arrayEnd += leftOver;
 
-                tasks[t] = new Task(() => function(arrayStart, arrayEnd), TaskCreationOptions.LongRunning);
+                tasks[t] = new Task(() => function(arrayStart, arrayEnd));
                 tasks[t].Start();
             }
 
