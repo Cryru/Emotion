@@ -176,8 +176,8 @@ namespace Emotion.Game.Tiled
             {
                 string tilesetFile = tileset.Image.Source;
                 // Cut out the last slash if any.
-                if (tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/'));
-                if (tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\'));
+                if (tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/') + 1);
+                if (tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\') + 1);
 
                 var temp = Engine.AssetLoader.Get<TextureAsset>(tileSetFolder + tilesetFile);
                 Tilesets.Add(temp);
@@ -327,13 +327,14 @@ namespace Emotion.Game.Tiled
             tileSet = -1;
             if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
 
-            //Get the GID of the tile.
+            // Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
+            if (tId == 0) return -1;
 
             // Find the id of tile within the tileset.
             for (var t = 0; t < TiledMap.Tilesets.Count; t++)
             {
-                if (t <= 0 || !(tId < TiledMap.Tilesets[t].FirstGid + TiledMap.Tilesets[t].TileCount)) continue;
+                if (tId > TiledMap.Tilesets[t].FirstGid + TiledMap.Tilesets[t].TileCount) continue;
                 tileSet = t;
                 return tId - TiledMap.Tilesets[t].FirstGid;
             }
