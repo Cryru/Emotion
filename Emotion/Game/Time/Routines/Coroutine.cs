@@ -7,7 +7,9 @@ using System.Collections;
 namespace Emotion.Game.Time.Routines
 {
     /// <summary>
-    /// An object representing a coroutine.
+    /// An object representing a coroutine
+    /// created by the CoroutineManager to keep track of your routine.
+    /// To create a coroutine make a function which returns an IEnumerator.
     /// </summary>
     public sealed class Coroutine : IRoutineWaiter
     {

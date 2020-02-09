@@ -25,7 +25,6 @@ namespace Emotion.Game.Time.Routines
 
         public void Update()
         {
-            
         }
     }
 }

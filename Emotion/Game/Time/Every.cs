@@ -6,8 +6,18 @@ using System;
 
 namespace Emotion.Game.Time
 {
-    internal class Every : TimerInstance
+    public class Every : ITimer
     {
+        public float Progress
+        {
+            get => _timePassed / _delay;
+        }
+
+        public float CountProgress
+        {
+            get => _count < 0 ? 0 : _currentCount / _count;
+        }
+
         private float _timePassed;
         private int _currentCount;
 
@@ -24,9 +34,7 @@ namespace Emotion.Game.Time
             _after = after;
         }
 
-        #region Inheritance
-
-        internal override void TimerLogic(float timePassed)
+        public void Update(float timePassed)
         {
             _timePassed += timePassed;
 
@@ -34,26 +42,37 @@ namespace Emotion.Game.Time
             {
                 timePassed -= _delay;
 
-                // Increment count and call function.
-                _function?.Invoke();
-                _currentCount++;
+                CallFunc();
 
                 // Check if the current count is sufficient.
-                if (_currentCount >= _count && _count > 0)
-                {
-                    // Invoke ending logic.
-                    _after?.Invoke();
-                    Kill();
-                }
+                if (_currentCount >= _count && _count > 0) _after?.Invoke();
             }
         }
 
-        protected override void End()
+        public void End()
         {
-            _function = null;
-            _after = null;
+            if (_count > 0)
+                for (int i = _currentCount; i <= _count; i++)
+                {
+                    CallFunc();
+                }
+
+            _after?.Invoke();
         }
 
-        #endregion
+        public void Restart()
+        {
+            _currentCount = 0;
+            _timePassed = 0;
+        }
+
+        /// <summary>
+        /// Increment count and call callback.
+        /// </summary>
+        private void CallFunc()
+        {
+            _function?.Invoke();
+            _currentCount++;
+        }
     }
 }

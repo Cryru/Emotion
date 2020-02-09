@@ -64,6 +64,23 @@ namespace Emotion.Primitives
         #region Higher Properties
 
         /// <summary>
+        /// The position within 2D space.
+        /// </summary>
+        public Vector2 Position2
+        {
+            get => new Vector2(X, Y);
+            set
+            {
+                if (X == value.X && Y == value.Y) return;
+
+                X = value.X;
+                Y = value.Y;
+
+                OnMove?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        /// <summary>
         /// The position within 3D space.
         /// </summary>
         public Vector3 Position

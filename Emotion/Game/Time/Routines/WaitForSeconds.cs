@@ -1,36 +1,17 @@
-﻿using Emotion.Common;
-
-namespace Emotion.Game.Time.Routines
+﻿namespace Emotion.Game.Time.Routines
 {
-    /// <inheritdoc />
-    public sealed class WaitForSeconds : IRoutineWaiter
+    /// <summary>
+    /// Wrapper over <see cref="Emotion.Game.Time.After" />.
+    /// This exists to parrot the class in Unity.
+    /// </summary>
+    public sealed class WaitForSeconds : After
     {
-        /// <summary>
-        /// The time to wait for.
-        /// </summary>
-        public float Time { get; private set; }
-
-        /// <inheritdoc />
-        public bool Finished
-        {
-            get => _timer >= Time;
-        }
-
-        private float _timer;
-
         /// <summary>
         /// Create a new time waiter.
         /// </summary>
         /// <param name="seconds">The number of seconds to wait for.</param>
-        public WaitForSeconds(float seconds)
+        public WaitForSeconds(float seconds) : base(seconds * 1000)
         {
-            Time = seconds * 1000;
-        }
-
-        /// <inheritdoc />
-        public void Update()
-        {
-            _timer += Engine.DeltaTime;
         }
     }
 }
