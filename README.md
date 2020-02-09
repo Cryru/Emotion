@@ -104,13 +104,13 @@ Currently supported:
 
 ## Building and Using
 
-To use the engine just include the "Emotion" nuget package to your project.
-To build just clone and build using Visual Studio 2019 or higher. It shouldn't take more than that.
+Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
 
 ## Projects Used
 
-.NetCore 3.1
+.NetCore 3.1 and .Net Standard 2.1
  - System.Numerics (Data Structures)
+ - System.Xml.XmlSerializer (XMLAsset class)
 
 TiledSharp
  - Support for .tmx files.
@@ -119,13 +119,12 @@ OpenGL.Net (https://github.com/luca-piccioni/OpenGL.Net)
  - Used as a wrapper for OpenGL.
  - Heavily forked, stripped down, and modified.
 
-Serilog
+Serilog (https://serilog.net/)
  - Used for logging.
- - [Website](https://serilog.net/)
 
 StbTrueTypeSharp
  - Provided by [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp)
- - Used as a fallback to the Emotion renderer. Will probably be removed later down the line
+ - Used as a fallback to the Emotion text renderer. Will probably be removed later down the line
 
 ## Optional Dependencies
 

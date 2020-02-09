@@ -17,6 +17,7 @@ Standard.Image
 	- Implement ByteWriter and use it to encode the images.
 	- JPEG Support
 	- Add tests for image encoding
+	- Would be nice to have to provide some sort of PixelFormat to Encode, Decode. Currently only BGRA is passed around.
 Logging
 	- Filtering
 	- Shaking off dependencies
@@ -39,6 +40,7 @@ Standard.Text
 	- Implement the custom renderer you've been thinking of, wink
 Emotion.Test
 	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
+	- The current max derivation % is 400 instead of 100
 	- Test functions which are run at the start and end of a class.
 Documentation
 	- Finish the documentation :D
