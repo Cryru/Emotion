@@ -84,8 +84,7 @@ namespace Emotion.Graphics
 
         /// <summary>
         /// The maximum textures that can be mapped in one StreamBuffer and/or shader. If more than the allowed textures are mapped
-        /// an exception is
-        /// raised.
+        /// an exception is raised.
         /// </summary>
         public int TextureArrayLimit { get; private set; } = 16;
 
@@ -513,7 +512,7 @@ namespace Emotion.Graphics
             if (blend)
             {
                 Gl.Enable(EnableCap.Blend);
-                Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                Gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha, BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
             }
             else
             {
