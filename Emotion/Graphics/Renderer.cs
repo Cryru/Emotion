@@ -266,10 +266,23 @@ namespace Emotion.Graphics
                 return;
             }
 
-            if (DrawBuffer != null && DrawBuffer.Size == size) return;
-
-            DrawBuffer?.Dispose();
-            DrawBuffer = new FrameBuffer(new Texture(size), true);
+            if (DrawBuffer == null)
+            {
+                DrawBuffer = new FrameBuffer(new Texture(size), true);
+            }
+            else if (DrawBuffer.Size == size)
+            {
+                return;
+            }
+            else if (DrawBuffer.Texture.Size.X >= size.X && DrawBuffer.Texture.Size.Y >= size.Y)
+            {
+                DrawBuffer.Size = size;
+            }
+            else
+            {
+                DrawBuffer?.Dispose();
+                DrawBuffer = new FrameBuffer(new Texture(size), true);
+            }
 
             _bufferStack.Clear();
             _bufferStack.Push(DrawBuffer);

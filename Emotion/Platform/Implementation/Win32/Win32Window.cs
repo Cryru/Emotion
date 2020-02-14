@@ -198,7 +198,7 @@ namespace Emotion.Platform.Implementation.Win32
 
         // Default styles.
         public const WindowStyles DEFAULT_WINDOW_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_SYSMENU | WindowStyles.WS_MINIMIZEBOX | WindowStyles.WS_CAPTION |
-                                                         WindowStyles.WS_MAXIMIZEBOX;
+                                                         WindowStyles.WS_MAXIMIZEBOX | WindowStyles.WS_THICKFRAME;
 
         public const WindowExStyles DEFAULT_WINDOW_STYLE_EX = WindowExStyles.WS_EX_APPWINDOW; // Things like "always top" can be configured here.
         public const WindowStyles FULLSCREEN_STYLE = WindowStyles.WS_CLIPSIBLINGS | WindowStyles.WS_CLIPCHILDREN | WindowStyles.WS_VISIBLE | WindowStyles.WS_OVERLAPPED;
