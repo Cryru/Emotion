@@ -162,8 +162,8 @@ namespace Emotion.Graphics.Batches
             // Render specified range.
             var startIndex = (IntPtr) (_startIndex * sizeof(ushort));
             uint length = _endIndex - _startIndex ?? (uint) (_mappedTo / 4) * 6 - _startIndex;
-            Debug.Assert((uint) _mappedTo <= Engine.Renderer.MaxIndices);
-            Debug.Assert((uint) startIndex + length <= Engine.Renderer.MaxIndices * 6);
+            Debug.Assert((uint) _mappedTo <= RenderComposer.MAX_INDICES);
+            Debug.Assert((uint) startIndex + length <= RenderComposer.MAX_INDICES * 6);
             Gl.DrawElements(PrimitiveType.Triangles, (int) length, DrawElementsType.UnsignedShort, startIndex);
         }
 

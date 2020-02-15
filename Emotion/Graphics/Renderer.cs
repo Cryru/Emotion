@@ -7,29 +7,23 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using Emotion.Standard.Utility;
 using OpenGL;
+using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
 namespace Emotion.Graphics
 {
-    /// <summary>
-    /// The renderer module doesn't actually perform rendering (that is done by the RenderComposer commands)
-    /// but instead manages states and the rendering lifecycle.
-    /// </summary>
-    public sealed class Renderer
+    public sealed partial class RenderComposer
     {
         #region Settings
-
-        /// <summary>
-        /// How detailed drawn circles should be. Updates instantly. Default is 30.
-        /// </summary>
-        public int CircleDetail { get; set; } = 30;
 
         /// <summary>
         /// Whether v-sync is enabled. On some platforms this is forced on - check using the ForcedVSync flag. On by default.
@@ -55,6 +49,11 @@ namespace Emotion.Graphics
         /// The negative cut off of the camera.
         /// </summary>
         public float NearZ = -100;
+
+        /// <summary>
+        /// The maximum number of indices in the default Ibo buffers.
+        /// </summary>
+        public const uint MAX_INDICES = ushort.MaxValue;
 
         #endregion
 
@@ -87,11 +86,6 @@ namespace Emotion.Graphics
         /// </summary>
         public int TextureArrayLimit { get; private set; } = 16;
 
-        /// <summary>
-        /// The maximum number of indices in the default Ibo buffers.
-        /// </summary>
-        public uint MaxIndices { get; internal set; } = ushort.MaxValue;
-
         #endregion
 
         #region Objects
@@ -100,11 +94,6 @@ namespace Emotion.Graphics
         /// A representation of the screen's frame buffer.
         /// </summary>
         public FrameBuffer ScreenBuffer { get; private set; }
-
-        /// <summary>
-        /// The frame buffer rendering is done to, before it is flushed to the screen buffer.
-        /// </summary>
-        public FrameBuffer DrawBuffer { get; private set; }
 
         /// <summary>
         /// The camera active in the scene.
@@ -123,10 +112,46 @@ namespace Emotion.Graphics
         private TransformationStack _matrixStack = new TransformationStack();
 
         /// <summary>
-        /// The main composer used for "immediate mode" like drawing.
+        /// The vertex data batch currently active.
         /// </summary>
-        private RenderComposer _composer;
+        public VertexDataBatch ActiveQuadBatch { get; private set; }
 
+        /// <summary>
+        /// The common vertex buffer of this composer. Used if the command doesn't care about creating its own.
+        /// Do not use outside of command execution.
+        /// </summary>
+        public VertexBuffer VertexBuffer;
+
+        /// <summary>
+        /// A common VertexData VAO. As that is the most commonly used structure.
+        /// VaoCache[typeof(VertexData)] will also return this object.
+        /// </summary>
+        public VertexArrayObject CommonVao;
+
+        /// <summary>
+        /// Cached VAOs per structure type. These are all bound to the common VBO.
+        /// </summary>
+        public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
+
+        /// <summary>
+        /// Shared memory pool.
+        /// Page size is 2 mb - which is close to the data the maximum number of sprites that can be drawn in one batch using the
+        /// VertexData struct.
+        /// </summary>
+        public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 2);
+
+        #endregion
+
+        #region Intermediary Buffer Functionality
+
+        /// <summary>
+        /// The frame buffer rendering is done to, before it is flushed to the screen buffer.
+        /// </summary>
+        public FrameBuffer DrawBuffer { get; private set; }
+
+        /// <summary>
+        /// The state in which the intermediary buffer will be drawn to the screen buffer.
+        /// </summary>
         private RenderState _blitState;
 
         #endregion
@@ -137,8 +162,6 @@ namespace Emotion.Graphics
         /// The current drawing state. Don't modify directly!
         /// </summary>
         public RenderState CurrentState { get; private set; } = new RenderState();
-
-        private bool _viewMatrix = true;
 
         /// <summary>
         /// The current frame buffer.
@@ -175,6 +198,9 @@ namespace Emotion.Graphics
 
         #endregion
 
+        /// <summary>
+        /// Is run by the engine when the main renderer is created.
+        /// </summary>
         internal void Setup()
         {
             // Check if running on the GL Thread.
@@ -233,8 +259,21 @@ namespace Emotion.Graphics
             // Put in a default camera.
             Camera = new PixelArtCamera(Vector3.Zero);
 
-            // Initialize the default composer.
-            _composer = new RenderComposer();
+            CreateGraphicsMemory();
+        }
+
+        /// <summary>
+        /// Creates the CommonVao, VertexBuffer, and VaoCache
+        /// </summary>
+        public void CreateGraphicsMemory()
+        {
+            Debug.Assert(GLThread.IsGLThread());
+
+            VertexBuffer = new VertexBuffer((uint) (MAX_INDICES * VertexData.SizeInBytes));
+            CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
+            VaoCache.Add(typeof(VertexData), CommonVao);
+
+            SetDefaultSpriteBatch();
         }
 
         #region Event Handles and Sizing
@@ -391,25 +430,25 @@ namespace Emotion.Graphics
             }
 
             // Reset to the default state.
-            _composer.SetState(RenderState.Default, true);
+            SetState(RenderState.Default, true);
 
             // Clear the screen.
             ScreenBuffer.Bind();
-            Clear();
+            ClearFrameBuffer();
 
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
                 // Clear the draw buffer.
                 // No need to call EnsureRenderTarget as the DrawBuffer should be the only one in the stack here.
                 DrawBuffer.Bind();
-                Clear();
+                ClearFrameBuffer();
             }
 
             // Check if a render target was forgotten.
             if (_bufferStack.Count > 1)
                 Debug.Assert(false);
 
-            return _composer;
+            return this;
         }
 
         /// <summary>
@@ -424,13 +463,13 @@ namespace Emotion.Graphics
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
                 // Push a blit from the draw buffer to the screen buffer.
-                _composer.SetState(_blitState);
-                _composer.RenderTo(ScreenBuffer);
-                _composer.RenderSprite(Vector3.Zero, ScreenBuffer.Size, Color.White, DrawBuffer.Texture);
-                _composer.RenderTo(null);
+                SetState(_blitState);
+                RenderTo(ScreenBuffer);
+                RenderSprite(Vector3.Zero, ScreenBuffer.Size, Color.White, DrawBuffer.Texture);
+                RenderTo(null);
             }
 
-            _composer.InvalidateStateBatches();
+            InvalidateStateBatches();
         }
 
         public void Update()
@@ -438,141 +477,6 @@ namespace Emotion.Graphics
             // Update the camera
             Camera.Update();
         }
-
-        #region State Control
-
-        /// <summary>
-        /// Set whether to use view matrix. Automatically sync to the current shader.
-        /// </summary>
-        /// <param name="matrix">Whether to use the view matrix.</param>
-        public void SetViewMatrix(bool matrix)
-        {
-            _viewMatrix = matrix;
-            CurrentState.ViewMatrix = matrix;
-            SyncViewMatrix();
-        }
-
-        /// <summary>
-        /// Set whether to use depth testing.
-        /// </summary>
-        /// <param name="depth">Whether to use depth testing.</param>
-        public void SetDepth(bool depth)
-        {
-            if (depth)
-            {
-                Gl.Enable(EnableCap.DepthTest);
-                Gl.DepthFunc(DepthFunction.Lequal);
-            }
-            else
-            {
-                Gl.Disable(EnableCap.DepthTest);
-            }
-
-            CurrentState.DepthTest = depth;
-        }
-
-        /// <summary>
-        /// Whether to use stencil testing.
-        /// </summary>
-        /// <param name="stencil">Whether to use stencil testing.</param>
-        /// <param name="clear">If enabling stencil testing the stencil buffer is cleared.</param>
-        public void SetStencil(bool stencil, bool clear = true)
-        {
-            // Set the stencil test to it's default state - don't write to it.
-            void StencilStateDefault()
-            {
-                Gl.StencilMask(0x00);
-                Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
-                Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
-            }
-
-            if (stencil)
-            {
-                Gl.Enable(EnableCap.StencilTest);
-
-                if (!clear) return;
-                ClearStencil();
-                StencilStateDefault();
-            }
-            else
-            {
-                Gl.Disable(EnableCap.StencilTest);
-                StencilStateDefault(); // Some drivers don't understand that off means off
-            }
-
-            CurrentState.StencilTest = stencil;
-        }
-
-        /// <summary>
-        /// Whether to use (Src,1-Src) alpha blending.
-        /// </summary>
-        /// <param name="blend">Whether to use (Src,1-Src) alpha blending.</param>
-        public void SetBlending(bool blend)
-        {
-            if (blend)
-            {
-                Gl.Enable(EnableCap.Blend);
-                Gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha, BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
-            }
-            else
-            {
-                Gl.Disable(EnableCap.Blend);
-            }
-
-            CurrentState.AlphaBlending = blend;
-        }
-
-        /// <summary>
-        /// Set the clip box to use, if any.
-        /// </summary>
-        /// <param name="clip">The clip box to use.</param>
-        public void SetClip(Rectangle? clip)
-        {
-            if (clip == null)
-            {
-                Gl.Disable(EnableCap.ScissorTest);
-            }
-            else
-            {
-                Gl.Enable(EnableCap.ScissorTest);
-                Rectangle c = clip.Value;
-                Gl.Scissor((int) c.X, (int) (CurrentTarget.Size.Y - c.Height - c.Y), (int) c.Width, (int) c.Height);
-            }
-
-            CurrentState.ClipRect = clip;
-        }
-
-        #endregion
-
-        #region API
-
-        /// <summary>
-        /// Clear whatever is on the currently bound frame buffer.
-        /// This is affected by the scissor if any.
-        /// </summary>
-        public void Clear()
-        {
-            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-        }
-
-        /// <summary>
-        /// Clear only the depth buffer of the currently bound frame buffer.
-        /// </summary>
-        public void ClearDepth()
-        {
-            Gl.Clear(ClearBufferMask.DepthBufferBit);
-        }
-
-        /// <summary>
-        /// Clear only the stencil buffer of the currently bound frame buffer.
-        /// </summary>
-        public void ClearStencil()
-        {
-            Gl.StencilMask(0xFF);
-            Gl.Clear(ClearBufferMask.StencilBufferBit);
-        }
-
-        #endregion
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
 
@@ -610,7 +514,7 @@ namespace Emotion.Graphics
         /// </summary>
         private void SyncViewMatrix()
         {
-            Matrix4x4 viewMat = _viewMatrix ? Camera.ViewMatrix : Matrix4x4.Identity;
+            Matrix4x4 viewMat = Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault() ? Camera.ViewMatrix : Matrix4x4.Identity;
             CurrentState.Shader.SetUniformMatrix4("viewMatrix", viewMat);
         }
 
@@ -649,27 +553,7 @@ namespace Emotion.Graphics
             }
 
             _bufferStack.Pop();
-            if(rebindPrevious) EnsureRenderTarget();
-        }
-
-        /// <summary>
-        /// Push a matrix on top of the model matrix stack.
-        /// </summary>
-        /// <param name="matrix">The matrix to add.</param>
-        /// <param name="multiply">Whether to multiply the new matrix by the previous matrix.</param>
-        internal void PushModelMatrix(Matrix4x4 matrix, bool multiply = true)
-        {
-            _matrixStack.Push(matrix, multiply);
-            SyncModelMatrix();
-        }
-
-        /// <summary>
-        /// Remove the top matrix from the model matrix stack.
-        /// </summary>
-        internal void PopModelMatrix()
-        {
-            _matrixStack.Pop();
-            SyncModelMatrix();
+            if (rebindPrevious) EnsureRenderTarget();
         }
 
         #endregion

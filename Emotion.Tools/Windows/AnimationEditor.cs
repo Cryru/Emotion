@@ -30,7 +30,6 @@ namespace Emotion.Tools.Windows
         private bool _playing = true;
 
         private string _saveName = "";
-        private string _type;
 
         // Standard only.
         private Vector2 _frameSize = Vector2.Zero;

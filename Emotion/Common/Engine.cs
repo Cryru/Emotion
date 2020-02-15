@@ -42,7 +42,7 @@ namespace Emotion.Common
         /// <summary>
         /// Handles rendering.
         /// </summary>
-        public static Renderer Renderer { get; private set; }
+        public static RenderComposer Renderer { get; private set; }
 
         /// <summary>
         /// The legacy input manager.
@@ -137,7 +137,7 @@ namespace Emotion.Common
 
             // Now that the context is created, the renderer can be created.
             GLThread.BindThread();
-            Renderer = new Renderer();
+            Renderer = new RenderComposer();
             Renderer.Setup();
 
             // Now "game-mode" modules can be created.
@@ -402,8 +402,8 @@ namespace Emotion.Common
             // Run the GLThread queued commands.
             GLThread.Run();
 
-            RenderComposer composer = Renderer.StartFrame();
-            SceneManager.Draw(composer);
+            Renderer.StartFrame();
+            SceneManager.Draw(Renderer);
             Renderer.EndFrame();
             Host.Window.Context.SwapBuffers();
 #if TIMING_DEBUG

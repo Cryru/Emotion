@@ -79,7 +79,7 @@ namespace Emotion.Graphics.Batches
             {
                 // When resizing, go for a buffer twice as big as what's needed.
                 // The "fullness" check in PushSprite will ensure that the needed data isn't larger than what the default IBOs can batch at once.
-                var resizeAmount = (int) Math.Min(_size * 2, Engine.Renderer.MaxIndices);
+                var resizeAmount = (int) Math.Min(_size * 2, RenderComposer.MAX_INDICES);
                 _batchedVertices = Marshal.ReAllocHGlobal(_batchedVertices, (IntPtr) (resizeAmount * _structByteSize));
                 _size = resizeAmount;
             }
@@ -91,7 +91,7 @@ namespace Emotion.Graphics.Batches
             _mappedTo += 4;
 
             // Check if one more sprite can fit. Each sprite is 4 vertices.
-            if (_mappedTo + 4 > Engine.Renderer.MaxIndices) Full = true;
+            if (_mappedTo + 4 > RenderComposer.MAX_INDICES) Full = true;
 
             // New data will need to be uploaded.
             _upload = true;

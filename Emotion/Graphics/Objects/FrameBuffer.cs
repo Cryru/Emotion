@@ -112,7 +112,7 @@ namespace Emotion.Graphics.Objects
 
             // Clear the target.
             EnsureBound(Pointer);
-            Engine.Renderer.Clear();
+            Engine.Renderer.ClearFrameBuffer();
 
             // Restore bindings and so on.
             Engine.Renderer?.EnsureRenderTarget();

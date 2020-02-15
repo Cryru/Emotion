@@ -71,7 +71,7 @@ namespace Emotion.Graphics.Batches
             int memoryLeft = _owner.MarkUsed(_spriteByteSize);
 
             // Check if one more sprite can fit, both in memory and in the IBO. Each sprite is 4 vertices.
-            if (memoryLeft < _spriteByteSize || _mappedTo + 4 > Engine.Renderer.MaxIndices) Full = true;
+            if (memoryLeft < _spriteByteSize || _mappedTo + 4 > RenderComposer.MAX_INDICES) Full = true;
 
             return data;
         }

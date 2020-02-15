@@ -143,8 +143,8 @@ namespace Emotion.Plugins.ImGuiNet
             io.Fonts.ClearTexData();
 
             // Setup the stream buffer which will render the gui.
-            IBO = new IndexBuffer(Engine.Renderer.MaxIndices * sizeof(ushort), BufferUsage.DynamicDraw);
-            VBO = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * 4 * sizeof(ImDrawVert)));
+            IBO = new IndexBuffer(RenderComposer.MAX_INDICES * sizeof(ushort), BufferUsage.DynamicDraw);
+            VBO = new VertexBuffer((uint) (RenderComposer.MAX_INDICES * 4 * sizeof(ImDrawVert)));
             VAO = new VertexArrayObject<EmImGuiVertex>(VBO, IBO);
 
 
@@ -261,7 +261,7 @@ namespace Emotion.Plugins.ImGuiNet
                     Texture.EnsureBound((uint) currentCommandList.TextureId);
 
                     // Set the clip rect.
-                    Engine.Renderer.SetClip(new Rectangle(
+                    composer.SetClipRect(new Rectangle(
                         currentCommandList.ClipRect.X * ImGuiScale,
                         currentCommandList.ClipRect.Y * ImGuiScale,
                         (currentCommandList.ClipRect.Z - currentCommandList.ClipRect.X) * ImGuiScale,

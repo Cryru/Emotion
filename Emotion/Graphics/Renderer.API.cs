@@ -2,17 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Common.Threading;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Command.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives;
-using Emotion.Standard.Utility;
 using OpenGL;
 using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
@@ -22,57 +19,6 @@ namespace Emotion.Graphics
 {
     public sealed partial class RenderComposer
     {
-        /// <summary>
-        /// The quad batch currently active.
-        /// </summary>
-        public VertexDataBatch ActiveQuadBatch { get; private set; }
-
-        /// <summary>
-        /// The common vertex buffer of this composer. Used if the command doesn't care about creating its own.
-        /// Do not use outside of command execution.
-        /// </summary>
-        public VertexBuffer VertexBuffer;
-
-        /// <summary>
-        /// A common VertexData VAO. As that is the most commonly used structure.
-        /// VaoCache[typeof(VertexData)] will also return this object.
-        /// </summary>
-        public VertexArrayObject CommonVao;
-
-        /// <summary>
-        /// Cached VAOs per structure type. These are all bound to the common VBO.
-        /// </summary>
-        public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
-
-        /// <summary>
-        /// Shared memory pool.
-        /// Page size is 2 mb - which is close to the data the maximum number of sprites that can be drawn in one batch using the
-        /// VertexData struct.
-        /// </summary>
-        public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 2);
-
-        /// <summary>
-        /// Create a new RenderComposer to manage render commands.
-        /// </summary>
-        /// <param name="ownGraphicsMemory">
-        /// Whether the composer will own graphics memory.
-        /// If set to false the CommonVao, VertexBuffer, and VaoCache will be uninitialized.
-        /// Beware that some commands require them.
-        /// </param>
-        public RenderComposer(bool ownGraphicsMemory = true)
-        {
-            Debug.Assert(GLThread.IsGLThread());
-
-            // Create graphics objects if needed.
-            if (!ownGraphicsMemory || VertexBuffer != null) return;
-
-            VertexBuffer = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * VertexData.SizeInBytes));
-            CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
-            VaoCache.Add(typeof(VertexData), CommonVao);
-
-            SetDefaultSpriteBatch();
-        }
-
         #region Batching
 
         /// <summary>
@@ -80,11 +26,8 @@ namespace Emotion.Graphics
         /// </summary>
         public VertexDataBatch GetBatch()
         {
-            if (ActiveQuadBatch.Full)
-            {
-                InvalidateStateBatches();
-            }
-            
+            if (ActiveQuadBatch.Full) InvalidateStateBatches();
+
             return ActiveQuadBatch;
         }
 
@@ -150,18 +93,16 @@ namespace Emotion.Graphics
             InvalidateStateBatches();
 
             int neededLength = vertices.Length * VertexData.SizeInBytes;
-            if (neededLength > VertexBuffer.Size)
-            {
-                VertexBuffer.Upload(IntPtr.Zero, (uint) neededLength);
-            }
+            if (neededLength > VertexBuffer.Size) VertexBuffer.Upload(IntPtr.Zero, (uint) neededLength);
 
             Span<VertexData> vertMapper = VertexBuffer.CreateMapper<VertexData>(0, vertices.Length * VertexData.SizeInBytes);
             for (var v = 0; v < vertices.Length; v++)
             {
                 vertMapper[v].Vertex = vertices[v];
-                vertMapper[v].Color = v >= colors.Length ? (colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint()) : colors[v].ToUint();
+                vertMapper[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint() : colors[v].ToUint();
                 vertMapper[v].Tid = -1;
             }
+
             VertexBuffer.FinishMapping();
             VertexArrayObject.EnsureBound(CommonVao);
             IndexBuffer.EnsureBound(IndexBuffer.SequentialIbo.Pointer);
@@ -199,7 +140,31 @@ namespace Emotion.Graphics
         public void SetStencilTest(bool stencil)
         {
             InvalidateStateBatches();
-            Engine.Renderer.SetStencil(stencil);
+
+            // Set the stencil test to it's default state - don't write to it.
+
+            if (stencil)
+            {
+                Gl.Enable(EnableCap.StencilTest);
+
+                // Clear after enabling.
+                ClearStencil();
+                StencilStateDefault();
+            }
+            else
+            {
+                Gl.Disable(EnableCap.StencilTest);
+                StencilStateDefault(); // Some drivers don't understand that off means off
+            }
+
+            Engine.Renderer.CurrentState.StencilTest = stencil;
+        }
+
+        private static void StencilStateDefault()
+        {
+            Gl.StencilMask(0x00);
+            Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
+            Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
         }
 
         #region Stencil States
@@ -212,7 +177,7 @@ namespace Emotion.Graphics
         public void StencilStartDraw(int value = 0xFF)
         {
             InvalidateStateBatches();
-            Gl.StencilMask(0xFF); 
+            Gl.StencilMask(0xFF);
             Gl.StencilFunc(StencilFunction.Always, value, 0xFF);
         }
 
@@ -224,7 +189,7 @@ namespace Emotion.Graphics
         public void StencilStopDraw()
         {
             InvalidateStateBatches();
-            Gl.StencilMask(0x00); 
+            Gl.StencilMask(0x00);
             Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
         }
 
@@ -235,7 +200,7 @@ namespace Emotion.Graphics
         public void StencilCutOutFrom(int threshold = 0xFF)
         {
             InvalidateStateBatches();
-            Gl.StencilMask(0x00); 
+            Gl.StencilMask(0x00);
             Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
         }
 
@@ -245,14 +210,14 @@ namespace Emotion.Graphics
         public void StencilFillIn(int threshold = 0xFF)
         {
             InvalidateStateBatches();
-            Gl.StencilMask(0xFF); 
+            Gl.StencilMask(0xFF);
             Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
         }
 
         public void StencilMask(int filter = 0xFF)
         {
             InvalidateStateBatches();
-            Gl.StencilMask(0x00); 
+            Gl.StencilMask(0x00);
             Gl.StencilFunc(StencilFunction.Less, filter, 0xFF);
         }
 
@@ -278,17 +243,30 @@ namespace Emotion.Graphics
         public void SetUseViewMatrix(bool viewMatrix)
         {
             InvalidateStateBatches();
-            Engine.Renderer.SetViewMatrix(viewMatrix);
+            CurrentState.ViewMatrix = viewMatrix;
+            SyncViewMatrix();
         }
 
         /// <summary>
-        /// Set whether to use alpha blending.
+        /// Set whether to use (Src,1-Src,1,1-Src) alpha blending.
+        /// This causes transparent objects to blend their colors.
         /// </summary>
         /// <param name="alphaBlend">Whether to use alpha blending.</param>
         public void SetAlphaBlend(bool alphaBlend)
         {
             InvalidateStateBatches();
-            Engine.Renderer.SetBlending(alphaBlend);
+
+            if (alphaBlend)
+            {
+                Gl.Enable(EnableCap.Blend);
+                Gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha, BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
+            }
+            else
+            {
+                Gl.Disable(EnableCap.Blend);
+            }
+
+            Engine.Renderer.CurrentState.AlphaBlending = alphaBlend;
         }
 
         /// <summary>
@@ -298,7 +276,18 @@ namespace Emotion.Graphics
         public void SetDepthTest(bool depth)
         {
             InvalidateStateBatches();
-            Engine.Renderer.SetDepth(depth);
+
+            if (depth)
+            {
+                Gl.Enable(EnableCap.DepthTest);
+                Gl.DepthFunc(DepthFunction.Lequal);
+            }
+            else
+            {
+                Gl.Disable(EnableCap.DepthTest);
+            }
+
+            Engine.Renderer.CurrentState.DepthTest = depth;
         }
 
         /// <summary>
@@ -319,11 +308,23 @@ namespace Emotion.Graphics
         /// <summary>
         /// Whether, and where to clip.
         /// </summary>
-        /// <param name="rect">The rectangle to clip outside of.</param>
-        public void SetClipRect(Rectangle? rect)
+        /// <param name="clip">The rectangle to clip outside of.</param>
+        public void SetClipRect(Rectangle? clip)
         {
             InvalidateStateBatches();
-            Engine.Renderer.SetClip(rect);
+
+            if (clip == null)
+            {
+                Gl.Disable(EnableCap.ScissorTest);
+            }
+            else
+            {
+                Gl.Enable(EnableCap.ScissorTest);
+                Rectangle c = clip.Value;
+                Gl.Scissor((int) c.X, (int) (Engine.Renderer.CurrentTarget.Size.Y - c.Height - c.Y), (int) c.Width, (int) c.Height);
+            }
+
+            Engine.Renderer.CurrentState.ClipRect = clip;
         }
 
         /// <summary>
@@ -343,11 +344,11 @@ namespace Emotion.Graphics
                 Engine.Renderer.SyncShader();
             }
 
-            if (newState.DepthTest != null && (force || newState.DepthTest != Engine.Renderer.CurrentState.DepthTest)) Engine.Renderer.SetDepth((bool) newState.DepthTest);
-            if (newState.StencilTest != null && (force || newState.StencilTest != Engine.Renderer.CurrentState.StencilTest)) Engine.Renderer.SetStencil((bool) newState.StencilTest);
-            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != Engine.Renderer.CurrentState.AlphaBlending)) Engine.Renderer.SetBlending((bool) newState.AlphaBlending);
-            if (newState.ViewMatrix != null && (force || newState.ViewMatrix != Engine.Renderer.CurrentState.ViewMatrix)) Engine.Renderer.SetViewMatrix((bool) newState.ViewMatrix);
-            if (force || newState.ClipRect != Engine.Renderer.CurrentState.ClipRect) Engine.Renderer.SetClip(newState.ClipRect);
+            if (newState.DepthTest != null && (force || newState.DepthTest != Engine.Renderer.CurrentState.DepthTest)) SetDepthTest((bool) newState.DepthTest);
+            if (newState.StencilTest != null && (force || newState.StencilTest != Engine.Renderer.CurrentState.StencilTest)) SetStencilTest((bool) newState.StencilTest);
+            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != Engine.Renderer.CurrentState.AlphaBlending)) SetAlphaBlend((bool) newState.AlphaBlending);
+            if (newState.ViewMatrix != null && (force || newState.ViewMatrix != Engine.Renderer.CurrentState.ViewMatrix)) SetUseViewMatrix((bool) newState.ViewMatrix);
+            if (force || newState.ClipRect != Engine.Renderer.CurrentState.ClipRect) SetClipRect(newState.ClipRect);
         }
 
         /// <summary>
@@ -362,7 +363,7 @@ namespace Emotion.Graphics
             else
                 Engine.Renderer.PopFramebuffer();
         }
-        
+
         /// <summary>
         /// Works like RenderTo(null) but doesn't rebind the previous target. Used for swapping between targets.
         /// </summary>
@@ -373,12 +374,13 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
-        /// Clears the frame buffer currently being rendered to.
+        /// Clear whatever is on the currently bound frame buffer.
+        /// This is affected by the scissor if any.
         /// </summary>
         public void ClearFrameBuffer()
         {
             InvalidateStateBatches();
-            Engine.Renderer.Clear();
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
         /// <summary>
@@ -387,7 +389,7 @@ namespace Emotion.Graphics
         public void ClearDepth()
         {
             InvalidateStateBatches();
-            Engine.Renderer.ClearDepth();
+            Gl.Clear(ClearBufferMask.DepthBufferBit);
         }
 
         /// <summary>
@@ -397,7 +399,7 @@ namespace Emotion.Graphics
         public void ClearStencil()
         {
             InvalidateStateBatches();
-            Engine.Renderer.ClearStencil();
+            Gl.Clear(ClearBufferMask.StencilBufferBit);
             StencilStopDraw();
         }
 
@@ -409,7 +411,8 @@ namespace Emotion.Graphics
         public void PushModelMatrix(Matrix4x4 matrix, bool multiply = true)
         {
             InvalidateStateBatches();
-            Engine.Renderer.PushModelMatrix(matrix, multiply);
+            _matrixStack.Push(matrix, multiply);
+            SyncModelMatrix();
         }
 
         /// <summary>
@@ -418,7 +421,8 @@ namespace Emotion.Graphics
         public void PopModelMatrix()
         {
             InvalidateStateBatches();
-            Engine.Renderer.PopModelMatrix();
+            _matrixStack.Pop();
+            SyncModelMatrix();
         }
 
         #endregion
