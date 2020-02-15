@@ -1,11 +1,10 @@
 ﻿#region Using
 
 using System.Collections.Generic;
-using System.IO;
-using System.Xml.Serialization;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
+using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -35,7 +34,10 @@ namespace Emotion.IO
         /// <summary>
         /// The description of the shader. Legacy property, redirect to Content.
         /// </summary>
-        public ShaderDescription Description { get => Content; }
+        public ShaderDescription Description
+        {
+            get => Content;
+        }
 
         /// <summary>
         /// Whether using the fallback shader.
@@ -64,19 +66,16 @@ namespace Emotion.IO
             Engine.Host.OnKey.AddListener((k, s) =>
             {
                 // The reload shaders shortcut is Ctrl + R
-                if (k != Platform.Input.Key.R || s != Platform.Input.KeyStatus.Down || !Engine.InputManager.IsKeyHeld(Platform.Input.Key.LeftControl)) return true;
+                if (k != Key.R || s != KeyStatus.Down || !Engine.InputManager.IsKeyHeld(Key.LeftControl)) return true;
 
                 for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)
                 {
                     if (_activeShaderAssets[i].Disposed)
-                    {
                         _activeShaderAssets.RemoveAt(i);
-                    }
                     else
-                    {
                         _activeShaderAssets[i].ReloadShader();
-                    }
                 }
+
                 return true;
             });
         }
@@ -116,7 +115,7 @@ namespace Emotion.IO
                 vertShader = Engine.AssetLoader.Get<TextAsset>(Content.Vert);
                 ownVert = true;
             }
-            
+
             if (vertShader == null)
             {
                 vertShader = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
@@ -141,11 +140,8 @@ namespace Emotion.IO
             Engine.Log.Info($"Creating shader asset - v:{vertShader.Name}, f:{fragShader.Name}", MessageSource.AssetLoader);
 
             // Create the shader, or at least try to.
-            GLThread.ExecuteGLThread(() =>
-            {
-                Shader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content);
-            });
-            
+            GLThread.ExecuteGLThread(() => { Shader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content); });
+
             // Free text assets as they are no longer needed.
             if (ownVert) Engine.AssetLoader.Destroy(vertShader.Name);
             if (ownFrag) Engine.AssetLoader.Destroy(fragShader.Name);
@@ -182,10 +178,7 @@ namespace Emotion.IO
 
         protected override void DisposeInternal()
         {
-            if (!IsFallback)
-            {
-                Shader.Dispose();
-            }
+            if (!IsFallback) Shader.Dispose();
         }
     }
 }

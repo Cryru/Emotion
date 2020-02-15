@@ -1,13 +1,11 @@
 ﻿#region Using
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using OpenGL;
@@ -113,7 +111,7 @@ namespace Emotion.Graphics.Shading
             else
                 Valid = true;
 
-            if(!Valid) return;
+            if (!Valid) return;
 
             // Set default uniforms - this requires binding, so save the currently bound.
             uint previouslyBound = Bound;

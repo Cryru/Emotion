@@ -47,7 +47,6 @@ namespace Emotion.Common
         /// also reduces the resolution you can work with outside of integer scaling (as in non-pixel art, UI etc.)
         /// This is off by default, but it is a huge performance boost - at the cost
         /// of very little in games which do not use scaling a lot.
-        /// 
         /// If scale black bars is enabled this will cause it to scale integerly only.
         /// </summary>
         public bool IntScaleDrawBuffer { get; set; }
@@ -74,7 +73,6 @@ namespace Emotion.Common
         /// If the game is running too slowly it may be throttled to half of this value, in which case your DeltaTime will be
         /// doubled.
         /// If the game is running fast (and it is possible to do so) your DeltaTime will be half of this.
-        ///
         /// This setting applies only if using the default loop.
         /// </summary>
         public byte DesiredStep { get; set; } = 60;
@@ -83,7 +81,6 @@ namespace Emotion.Common
         /// Whether to scale the step up if the game is running fast enough. This causes more frequent updates with smaller
         /// DeltaTime increments.
         /// If VSync is on this is not possible.
-        ///
         /// This setting applies only if using the default loop.
         /// </summary>
         public bool ScaleStepUp { get; set; } = true;
@@ -92,7 +89,6 @@ namespace Emotion.Common
         /// Whether to scale the loop speed between double the desired step and 4 times as slow as the desired step.
         /// This is on by default, but so is VSync so the loop will only scale downward.
         /// If this is disabled ScaleStepUp is ignored.
-        ///
         /// This setting applies only if using the default loop.
         /// </summary>
         public bool VariableLoopSpeed { get; set; } = true;

@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Concurrent;
-using System.Linq;
-
 #endregion
 
 namespace Emotion.IO

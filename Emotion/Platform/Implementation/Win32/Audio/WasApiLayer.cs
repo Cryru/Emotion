@@ -89,7 +89,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 catch (COMException ex)
                 {
                     // Audio device has disappeared or whatever.
-                    if ((uint)ex.ErrorCode == 0x88890004) 
+                    if ((uint) ex.ErrorCode == 0x88890004)
                     {
                         _updateDevice = true;
                         continue;

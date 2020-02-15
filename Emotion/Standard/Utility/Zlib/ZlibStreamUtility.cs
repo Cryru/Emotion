@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.IO;
 using System.IO.Compression;
 using Emotion.Common;
@@ -86,11 +85,10 @@ namespace Emotion.Standard.Utility.Zlib
                 Engine.Log.Warning($"Bad compression method for ZLIB header: cmf={cmf}", MessageSource.Other);
                 return null;
             }
+
             if ((flag & 32) != 0)
-            {
                 // The dictionary is 4 bytes long
                 stream.Position += 4;
-            }
 
             // Decompress using the .Net deflate stream
             using var str = new MemoryStream();

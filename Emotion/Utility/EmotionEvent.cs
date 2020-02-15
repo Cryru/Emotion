@@ -10,7 +10,6 @@ namespace Emotion.Utility
     /// <summary>
     /// Custom event implementation which handles propagation.
     /// </summary>
-
     public class EmotionEvent<T, T2>
     {
         private List<Func<T, T2, bool>> _listeners = new List<Func<T, T2, bool>>();
@@ -26,7 +25,7 @@ namespace Emotion.Utility
             {
                 for (var i = 0; i < _listeners.Count; i++)
                 {
-                    if(!_listeners[i](t, t2)) break;
+                    if (!_listeners[i](t, t2)) break;
                 }
             }
         }
@@ -72,7 +71,7 @@ namespace Emotion.Utility
             {
                 for (var i = 0; i < _listeners.Count; i++)
                 {
-                    if(!_listeners[i](t)) break;
+                    if (!_listeners[i](t)) break;
                 }
             }
         }
@@ -117,7 +116,7 @@ namespace Emotion.Utility
             {
                 for (var i = 0; i < _listeners.Count; i++)
                 {
-                    if(!_listeners[i]()) break;
+                    if (!_listeners[i]()) break;
                 }
             }
         }

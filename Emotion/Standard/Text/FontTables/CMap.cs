@@ -32,10 +32,7 @@ namespace Emotion.Standard.Text.FontTables
         {
             Version = reader.ReadUShortBE();
 
-            if (Version != 0)
-            {
-                Engine.Log.Warning("CMap table version should be 0.", MessageSource.FontParser);
-            }
+            if (Version != 0) Engine.Log.Warning("CMap table version should be 0.", MessageSource.FontParser);
 
             // The CMap table can contain many sub-tables, each with their own format.
             // We're only interested in a "platform 0" (Unicode format) and "platform 3" (Windows format) table.

@@ -515,10 +515,8 @@ namespace Emotion.Standard.Text
             int polygonCount = vertices.Count(t => t.TypeFlag == VertexTypeFlag.Move);
             contourLengths = new int[polygonCount];
             if (polygonCount == 0)
-            {
                 // No polygons found. This is actually a valid case. Fonts amirite?
                 return null;
-            }
 
             var points = new List<Vector2>();
             var start = 0;

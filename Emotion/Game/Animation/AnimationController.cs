@@ -27,7 +27,6 @@ namespace Emotion.Game.Animation
 
             public Node()
             {
-
             }
 
             public Node(string name)

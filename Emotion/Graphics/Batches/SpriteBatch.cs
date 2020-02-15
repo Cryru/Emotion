@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 

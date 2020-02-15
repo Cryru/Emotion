@@ -6,7 +6,6 @@ using System.Diagnostics;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 using Emotion.Standard.Utility;
-using StbTrueTypeSharp;
 
 #endregion
 

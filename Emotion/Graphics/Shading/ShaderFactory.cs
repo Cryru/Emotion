@@ -26,7 +26,7 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         private static Dictionary<string, Func<string[], string[]>> _shaderConfigurations = new Dictionary<string, Func<string[], string[]>>
         {
-            {"default", s => s },
+            {"default", s => s},
             {"CompatTextureIndex", s => ApplyIndexUnwrap(AddPreprocessorConstant(s, "CompatTextureIndex"))},
             {"AttribLocationExtension", s => AddExtensionConstant(s, "GL_ARB_explicit_attrib_location")},
             {"CompatTextureIndex&AttribLocationExtension", s => ApplyIndexUnwrap(AddExtensionConstant(AddPreprocessorConstant(s, "CompatTextureIndex"), "GL_ARB_explicit_attrib_location"))}

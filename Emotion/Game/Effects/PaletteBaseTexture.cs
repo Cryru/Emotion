@@ -2,7 +2,6 @@
 
 using System.Numerics;
 using Emotion.IO;
-using Emotion.Standard.Image;
 using Emotion.Utility;
 
 #endregion

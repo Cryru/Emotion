@@ -47,6 +47,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private Win32Platform _platform;
 
         private delegate int RenderDocGetApi(int version, void* api);
+
         public RenderDocAPI RenderDoc;
 
         public WglGraphicsContext(IntPtr windowHandle, Win32Platform platform)
@@ -77,7 +78,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             pfd.CColorBits = 24;
 
             if (!Gdi32.SetPixelFormat(dc, Gdi32.ChoosePixelFormat(dc, ref pfd), ref pfd)) Win32Platform.CheckError("WGL: Could not set pixel format on dummy context.", true);
-            
+
             // Establish dummy context.
             IntPtr rc = createContext(dc);
             if (rc == IntPtr.Zero) Win32Platform.CheckError("WGL: Could not create dummy context.", true);
@@ -161,7 +162,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                     attributes.Add(3);
 
                     // ArbCreateContextProfile is required to set a profile
-                    if(arbCreateContextProfile)
+                    if (arbCreateContextProfile)
                         mask |= WglContextFlags.CoreProfileBitArb;
 
                     flags |= WglContextFlags.DebugBitArb;

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Primitives;
-using Emotion.Standard.Image;
 using Emotion.Standard.Image.PNG;
 using Emotion.Utility;
 
@@ -68,7 +67,7 @@ namespace Emotion.Standard.Text
             Advance = MathF.Round(fontGlyph.AdvanceWidth * scale);
             XMin = MathF.Floor(fontGlyph.XMin * scale);
             Rectangle bbox = fontGlyph.GetBBox(scale);
-            YBearing = bbox.Y + MathF.Ceiling( ascend * scale);
+            YBearing = bbox.Y + MathF.Ceiling(ascend * scale);
             Size = fontGlyph.GetDrawBox(scale).Size;
         }
     }

@@ -3,7 +3,6 @@
 using System.Numerics;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Standard.Text;
 
 #endregion
 
@@ -146,8 +145,8 @@ namespace Emotion.Game.Text
             if (_characterEffectIndex == 0) return;
 
             // Draw the buffer.
-            if (!EffectFinished) _renderCache.SetRenderRange(0, (uint)_characterEffectIndex);
-            else _renderCache.SetRenderRange(0, (uint)_textStripped.Length);
+            if (!EffectFinished) _renderCache.SetRenderRange(0, (uint) _characterEffectIndex);
+            else _renderCache.SetRenderRange(0, (uint) _textStripped.Length);
 
             _renderCache.Render(composer);
         }

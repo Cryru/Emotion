@@ -223,8 +223,9 @@ namespace WinApi.ComBaseApi.COM
                                 throw new NotSupportedException("PropVariant VT_BOOL must be either -1 or 0");
                         }
                     case 64: // VarEnum.VT_FILETIME WIN32 Filetime
-                        return DateTime.FromFileTime((((long)filetime.dwHighDateTime) << 32) + filetime.dwLowDateTime);
+                        return DateTime.FromFileTime(((long) filetime.dwHighDateTime << 32) + filetime.dwLowDateTime);
                 }
+
                 throw new NotImplementedException("PropVariant " + ve);
             }
         }

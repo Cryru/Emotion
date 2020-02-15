@@ -301,7 +301,6 @@ namespace WinApi.User32
         public static extern bool EnableNonClientDpiScaling(IntPtr hWnd);
 
 
-
         /// <summary>
         /// https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setprocessdpiawarenesscontext
         /// </summary>

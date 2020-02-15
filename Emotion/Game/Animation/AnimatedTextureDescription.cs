@@ -25,7 +25,7 @@ namespace Emotion.Game.Animation
         public AnimatedTexture CreateFrom()
         {
             var t = Engine.AssetLoader.Get<TextureAsset>(SpriteSheetName);
-            return t == null ? null : new AnimatedTexture(t.Texture, Frames, LoopType, TimeBetweenFrames, StartingFrame, EndingFrame) { Anchors = Anchors };
+            return t == null ? null : new AnimatedTexture(t.Texture, Frames, LoopType, TimeBetweenFrames, StartingFrame, EndingFrame) {Anchors = Anchors};
         }
     }
 }

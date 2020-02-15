@@ -1,8 +1,4 @@
-﻿#region Using
-
-#endregion
-
-namespace Emotion.Primitives
+﻿namespace Emotion.Primitives
 {
     public interface IRecyclable
     {

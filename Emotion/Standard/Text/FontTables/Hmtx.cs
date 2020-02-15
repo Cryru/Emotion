@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Linq;
 using Emotion.Standard.Utility;
 
 #endregion
@@ -47,13 +46,9 @@ namespace Emotion.Standard.Text.FontTables
                     var extraMetric = (int) (glyph.MapIndex - (numberOfHMetrics + 1));
 
                     if (extraMetric >= 0 && extraMetric < extraMetrics.Length)
-                    {
                         glyph.LeftSideBearing = extraMetrics[extraMetric];
-                    }
                     else
-                    {
                         glyph.LeftSideBearing = 0;
-                    }
                 }
             }
         }

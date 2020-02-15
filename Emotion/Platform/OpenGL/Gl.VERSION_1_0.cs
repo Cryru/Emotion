@@ -3599,7 +3599,7 @@ namespace OpenGL
             data = default;
             unsafe
             {
-                fixed(bool* refDataPtr = &data[0])
+                fixed (bool* refDataPtr = &data[0])
                 {
                     Delegates.pglGetBooleanv((int) pname, (byte*) refDataPtr);
                 }
@@ -3743,9 +3743,9 @@ namespace OpenGL
             data = default;
             unsafe
             {
-                fixed(double* refDataPtr = &data[0])
+                fixed (double* refDataPtr = &data[0])
                 {
-                    Delegates.pglGetDoublev((int) pname, (double*) refDataPtr);
+                    Delegates.pglGetDoublev((int) pname, refDataPtr);
                 }
             }
 
@@ -3936,9 +3936,9 @@ namespace OpenGL
             data = default;
             unsafe
             {
-                fixed(float* refDataPtr = &data[0])
+                fixed (float* refDataPtr = &data[0])
                 {
-                    Delegates.pglGetFloatv((int) pname, (float*) refDataPtr);
+                    Delegates.pglGetFloatv((int) pname, refDataPtr);
                 }
             }
 
@@ -4110,9 +4110,9 @@ namespace OpenGL
             data = default;
             unsafe
             {
-                fixed(int* refDataPtr = &data[0])
+                fixed (int* refDataPtr = &data[0])
                 {
-                    Delegates.pglGetIntegerv((int) pname, (int*) refDataPtr);
+                    Delegates.pglGetIntegerv((int) pname, refDataPtr);
                 }
             }
 
@@ -4129,9 +4129,9 @@ namespace OpenGL
             data = default;
             unsafe
             {
-                fixed(int* refDataPtr = &data)
+                fixed (int* refDataPtr = &data)
                 {
-                    Delegates.pglGetIntegerv((int) pname, (int*) refDataPtr);
+                    Delegates.pglGetIntegerv((int) pname, refDataPtr);
                 }
             }
 

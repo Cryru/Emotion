@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Emotion.Audio;
-using Emotion.IO;
 
 #endregion
 
@@ -43,7 +41,7 @@ namespace Emotion.Platform.Implementation.Null
         public override void RemoveLayer(string layerName)
         {
             AudioLayer layer = GetLayer(layerName);
-            if(layer == null) return;
+            if (layer == null) return;
 
             layer.Stop();
             layer.Dispose();

@@ -7,7 +7,7 @@
     /// The naming of the key codes follow these rules:
     /// - The US keyboard layout is used
     /// - Names of printable alpha-numeric characters are used (e.g. "A", "R", "3", etc.)
-    /// - For non-alphanumeric characters, Unicode:ish names are used (e.g. "COMMA", "LEFT_SQUARE_BRACKET", etc.). 
+    /// - For non-alphanumeric characters, Unicode:ish names are used (e.g. "COMMA", "LEFT_SQUARE_BRACKET", etc.).
     /// Note that some names do not correspond to the Unicode standard (usually for brevity)
     /// - Keys that lack a clear US mapping are named "WORLD_x"
     /// - For non-printable keys, custom names are used (e.g. "F4", "BACKSPACE", etc.)

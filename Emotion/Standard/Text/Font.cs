@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +11,6 @@ using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.Text.FontTables;
 using Emotion.Standard.Utility;
-using Emotion.Utility;
 using StbTrueTypeSharp;
 
 #if FreeType
@@ -304,7 +302,7 @@ namespace Emotion.Standard.Text
                 {
                     var cMap = new CMap(r.Branch(cmapTable.Offset, true, cmapTable.Length));
                     var post = new Post(r.Branch(postTable.Offset, true, postTable.Length));
-                    if(cMap.GlyphIndexMap != null)
+                    if (cMap.GlyphIndexMap != null)
                         AddGlyphNames(ref Glyphs, cMap.GlyphIndexMap, post.Names);
                 }
             }
@@ -388,10 +386,7 @@ namespace Emotion.Standard.Text
                 }
 
                 // Find where the space should go.
-                if (g.CharIndex < ' ')
-                {
-                    spaceIndex++;
-                }
+                if (g.CharIndex < ' ') spaceIndex++;
             }
 
             if (!hasSpace)
@@ -414,6 +409,7 @@ namespace Emotion.Standard.Text
         }
 
         private static GlyphCompare _comparer = new GlyphCompare();
+
         private class GlyphCompare : Comparer<Glyph>
         {
             public override int Compare(Glyph x, Glyph y)
@@ -421,7 +417,7 @@ namespace Emotion.Standard.Text
                 if (x == null || y == null) return 0;
                 return (int) x.CharIndex - (int) y.CharIndex;
             }
-        } 
+        }
 
         #region Atlas Rasterization
 
@@ -538,7 +534,7 @@ namespace Emotion.Standard.Text
                     {
                         var x = (int) (pen.X + col);
                         var y = (int) (pen.Y + row);
-                        atlas[y * atlasSize + x] = canvases[i].Data[row * (canvases[i].Stride) + col];
+                        atlas[y * atlasSize + x] = canvases[i].Data[row * canvases[i].Stride + col];
                     }
                 }
 
@@ -688,7 +684,7 @@ namespace Emotion.Standard.Text
             foreach ((uint key, uint value) in glyphIndexMap)
             {
                 Glyph glyph = glyphs[value];
-                if(glyphNames != null)
+                if (glyphNames != null)
                     glyph.Name = glyphNames[(int) value];
                 glyph.MapIndex = value;
                 glyph.CharIndex = key;

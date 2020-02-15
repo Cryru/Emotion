@@ -2,12 +2,9 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Xml.Serialization;
 using Emotion.Common;
-using Emotion.Common.Threading;
-using Emotion.Game.Animation;
-using Emotion.Graphics.Shading;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -35,9 +32,9 @@ namespace Emotion.IO
             {
                 // Deserialize the xml type.
                 using var stream = new MemoryStream(data);
-                Content = (T)Serializer.Deserialize(stream);
-            } 
-            catch(Exception ex)
+                Content = (T) Serializer.Deserialize(stream);
+            }
+            catch (Exception ex)
             {
                 Engine.Log.Error(new Exception($"Couldn't parse XML asset of type {GetType()}!", ex));
             }
@@ -45,7 +42,6 @@ namespace Emotion.IO
 
         protected override void DisposeInternal()
         {
-
         }
 
         /// <summary>
@@ -56,9 +52,9 @@ namespace Emotion.IO
         /// <returns>The object as an xml string.</returns>
         public static string FromObject(T obj)
         {
-            using var stream = new MemoryStream ();
+            using var stream = new MemoryStream();
             Serializer.Serialize(stream, obj);
-            return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+            return Encoding.UTF8.GetString(stream.ToArray());
         }
     }
 }

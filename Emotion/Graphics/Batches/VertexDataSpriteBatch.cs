@@ -14,7 +14,6 @@ namespace Emotion.Graphics.Batches
         /// <inheritdoc />
         public VertexDataSpriteBatch(bool ownGraphicsMemory = false) : base(ownGraphicsMemory)
         {
-
         }
 
         /// <inheritdoc />

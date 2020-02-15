@@ -1,11 +1,10 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -66,7 +65,7 @@ namespace Emotion.Game.Effects
         /// <returns>A horizontal texture containing the specified palette.</returns>
         public Texture GetTextureForPalette(string paletteName)
         {
-            if (string.Equals(paletteName, "default", System.StringComparison.OrdinalIgnoreCase)) return BaseTexture.Texture;
+            if (string.Equals(paletteName, "default", StringComparison.OrdinalIgnoreCase)) return BaseTexture.Texture;
 
             Palette p = Content.GetPalette(paletteName);
             if (p == null) return null;

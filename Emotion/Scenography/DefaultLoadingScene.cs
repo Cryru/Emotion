@@ -1,4 +1,8 @@
-﻿using Emotion.Graphics;
+﻿#region Using
+
+using Emotion.Graphics;
+
+#endregion
 
 namespace Emotion.Scenography
 {

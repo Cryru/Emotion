@@ -618,7 +618,7 @@ namespace WinApi.ComBaseApi.COM
 
         public bool Equals(WaveFormat obj)
         {
-            if(obj == null) return false;
+            if (obj == null) return false;
             return obj.Channels == Channels && SampleRate == obj.SampleRate && BitsPerSample == obj.BitsPerSample && IsFloat() == obj.IsFloat();
         }
 
@@ -631,9 +631,9 @@ namespace WinApi.ComBaseApi.COM
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 2)]
     public class WaveFormatExtensible : WaveFormat
     {
-        short wValidBitsPerSample; // bits of precision, or is wSamplesPerBlock if wBitsPerSample==0
-        int dwChannelMask; // which channels are present in stream
-        Guid subFormat;
+        private short wValidBitsPerSample; // bits of precision, or is wSamplesPerBlock if wBitsPerSample==0
+        private int dwChannelMask; // which channels are present in stream
+        private Guid subFormat;
 
         private static Guid floatGuid = new Guid("00000003-0000-0010-8000-00aa00389b71");
 

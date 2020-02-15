@@ -2,8 +2,6 @@
 
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Primitives;
-using Emotion.Utility;
 
 #endregion
 
@@ -27,8 +25,8 @@ namespace Emotion.Graphics.Camera
         /// <inheritdoc />
         public override void RecreateMatrix()
         {
-            var iX = (int)X;
-            var iY = (int)Y;
+            var iX = (int) X;
+            var iY = (int) Y;
 
             Vector2 targetSize = Engine.Configuration.RenderSize;
             Vector2 currentSize = Engine.Renderer.DrawBuffer.Size;

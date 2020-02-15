@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Linq;
 using System.Numerics;
 
 #endregion

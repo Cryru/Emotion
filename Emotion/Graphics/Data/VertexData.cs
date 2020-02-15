@@ -56,7 +56,8 @@ namespace Emotion.Graphics.Data
         /// <param name="flipX">Whether to flip the texture horizontally.</param>
         /// <param name="flipY">Whether to flip the texture vertically.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SpriteToVertexData(Span<VertexData> vertices, Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
+        public static void SpriteToVertexData(Span<VertexData> vertices, Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false,
+            bool flipY = false)
         {
             vertices[0].Vertex = position;
             vertices[1].Vertex = new Vector3(position.X + size.X, position.Y, position.Z);

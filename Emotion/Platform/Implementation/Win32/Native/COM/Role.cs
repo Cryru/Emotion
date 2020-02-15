@@ -2,6 +2,7 @@
 // ReSharper disable once CheckNamespace
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
+
 namespace WinApi.ComBaseApi.COM
 {
     /// <summary>

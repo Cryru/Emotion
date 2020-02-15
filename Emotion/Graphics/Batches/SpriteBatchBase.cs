@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;

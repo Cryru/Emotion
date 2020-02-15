@@ -1,11 +1,11 @@
 ﻿#region Using
 
-using Emotion.Utility;
 using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Emotion.Utility;
 
 #endregion
 
@@ -160,10 +160,10 @@ namespace Emotion.Primitives
         {
             amount = Maths.Clamp(amount, 0, 1);
             return new Color(
-                (byte)Maths.Lerp(value1.R, value2.R, amount),
-                (byte)Maths.Lerp(value1.G, value2.G, amount),
-                (byte)Maths.Lerp(value1.B, value2.B, amount),
-                (byte)Maths.Lerp(value1.A, value2.A, amount));
+                (byte) Maths.Lerp(value1.R, value2.R, amount),
+                (byte) Maths.Lerp(value1.G, value2.G, amount),
+                (byte) Maths.Lerp(value1.B, value2.B, amount),
+                (byte) Maths.Lerp(value1.A, value2.A, amount));
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 
 using System;
 using Emotion.Common;
-using Emotion.Platform.Input;
 
 #endregion
 

@@ -23,6 +23,7 @@ namespace Emotion.Game.Animation
             {
                 anim.AddAnimation(n);
             }
+
             return anim;
         }
     }

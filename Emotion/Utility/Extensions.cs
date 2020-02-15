@@ -2,7 +2,6 @@
 
 using System;
 using System.Numerics;
-using Emotion.Primitives;
 
 #endregion
 
@@ -100,8 +99,9 @@ namespace Emotion.Utility
         {
             for (var i = 0; i < array.Length; i++)
             {
-                if(array[i].Equals(element)) return i;
+                if (array[i].Equals(element)) return i;
             }
+
             return -1;
         }
     }

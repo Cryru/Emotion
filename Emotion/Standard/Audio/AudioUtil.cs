@@ -272,13 +272,13 @@ namespace Emotion.Standard.Audio
         {
             if (srcFormat.Channels != dstFormat.Channels)
             {
-                Engine.Log.Warning($"Cannot resample between formats with different channel count!", MessageSource.Audio);
+                Engine.Log.Warning("Cannot resample between formats with different channel count!", MessageSource.Audio);
                 return;
             }
 
             int channels = srcFormat.Channels;
 
-            float resampleRatio = ((float) dstFormat.SampleRate / srcFormat.SampleRate);
+            float resampleRatio = (float) dstFormat.SampleRate / srcFormat.SampleRate;
             var dstLength = (int) (data.Length * resampleRatio);
             var samples = new Span<float>(new float[dstLength]);
             double dx = (double) (data.Length / channels) / (dstLength / channels);
@@ -291,7 +291,7 @@ namespace Emotion.Standard.Audio
             int wndWidth = quality * 2;
 
             double x = 0;
-            for (var i = 0; i < dstLength; i+= channels)
+            for (var i = 0; i < dstLength; i += channels)
             {
                 for (var c = 0; c < channels; c++)
                 {
@@ -313,6 +313,7 @@ namespace Emotion.Standard.Audio
 
                     samples[i + c] = MathF.Min(MathF.Max(-1, (float) rY), 1);
                 }
+
                 x += dx;
             }
 

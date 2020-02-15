@@ -1,13 +1,9 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Emotion.Audio;
 using Emotion.Common;
-using Emotion.IO;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
@@ -192,11 +188,11 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private void SetDefaultDevice(string id)
         {
             _devices.TryGetValue(id, out WasApiAudioDevice defaultDevice);
-            if(defaultDevice == null)
+            if (defaultDevice == null)
             {
                 // Default audio device was not found in the device list - query for it.
                 defaultDevice = ParseDevice(id);
-                if(defaultDevice == null)
+                if (defaultDevice == null)
                     Win32Platform.CheckError("Default audio device is not in device list.", true);
             }
 
@@ -253,7 +249,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         public override void RemoveLayer(string layerName)
         {
             var layer = (WasApiLayer) GetLayer(layerName);
-            if(layer == null) return;
+            if (layer == null) return;
 
             layer.Stop();
             layer.Dispose();

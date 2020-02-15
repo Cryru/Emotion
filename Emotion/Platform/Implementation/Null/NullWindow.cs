@@ -19,7 +19,6 @@ namespace Emotion.Platform.Implementation.Null
 
         internal override void UpdateDisplayMode()
         {
-            
         }
     }
 }

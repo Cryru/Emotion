@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using Emotion.Common;
 using Emotion.Graphics.Objects;
 using Emotion.Standard.Utility;
 
@@ -109,7 +108,7 @@ namespace Emotion.Graphics.Batches
         public override void Dispose()
         {
             Recycle();
-            _owner = null;    
+            _owner = null;
         }
     }
 }

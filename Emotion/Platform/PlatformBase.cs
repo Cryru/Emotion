@@ -345,7 +345,7 @@ namespace Emotion.Platform
                 Window.UpdateDisplayMode();
             }
         }
-        
+
         /// <summary>
         /// Returns the monitor the window is on, or the primary monitor if undetermined.
         /// </summary>
@@ -353,7 +353,7 @@ namespace Emotion.Platform
         /// <returns>The monitor the window is on.</returns>
         internal Monitor GetMonitorOfWindow(Window win)
         {
-            if(Monitors.Count == 0) return null;
+            if (Monitors.Count == 0) return null;
 
             var rect = new Rectangle(win.Position, win.Size);
             // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator

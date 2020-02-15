@@ -149,16 +149,13 @@ namespace Emotion.Game.Text
                 {
                     sizeSoFar.X += g.Advance;
 
-                    if (g.YBearing > largestBearing)
-                    {
-                        largestBearing = g.YBearing;
-                    }
+                    if (g.YBearing > largestBearing) largestBearing = g.YBearing;
                 }
             }
 
             sizeSoFar.Y -= largestBearing;
 
-            if(largestLine != 0)
+            if (largestLine != 0)
                 sizeSoFar.X = largestLine;
             return sizeSoFar;
         }

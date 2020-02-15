@@ -100,10 +100,7 @@ namespace Emotion.Common.Threading
         public void Wait()
         {
             // Create a mutex if needed.
-            if (_mutex == null && !Finished)
-            {
-                _mutex = new ManualResetEvent(false);
-            }
+            if (_mutex == null && !Finished) _mutex = new ManualResetEvent(false);
 
             _mutex?.WaitOne();
         }

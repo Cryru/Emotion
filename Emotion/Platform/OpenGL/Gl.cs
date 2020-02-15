@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
-using Emotion.Platform;
 using Emotion.Utility;
 using Khronos;
 
@@ -171,14 +170,17 @@ namespace OpenGL
         /// Query the OpenGL version without binding the API.
         /// </summary>
         /// <param name="procLoadFunction">The function OpenGL functions will be loaded through (in this case glGetString only).</param>
-        /// <returns>It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this thread.</returns>
+        /// <returns>
+        /// It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this
+        /// thread.
+        /// </returns>
         public static KhronosVersion QueryVersionExternal(Func<string, IntPtr> procLoadFunction)
         {
             IntPtr func = procLoadFunction("glGetString");
             if (func == IntPtr.Zero) return null;
 
             var getString = Marshal.GetDelegateForFunctionPointer<Delegates.glGetString>(func);
-            IntPtr ptr = getString((int)StringName.Version);
+            IntPtr ptr = getString((int) StringName.Version);
             string str = NativeHelpers.StringFromPtr(ptr);
             return KhronosVersion.Parse(str);
         }

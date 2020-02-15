@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -25,11 +23,8 @@ namespace Emotion.Common.Threading
         public static Task FastLoops(int arraySize, Action<int, int> function)
         {
             // Early out and optimization case.
-            if(arraySize == 0) return Task.CompletedTask;
-            if (arraySize <= Environment.ProcessorCount)
-            {
-                return Task.Run(() => function(0, arraySize));
-            }
+            if (arraySize == 0) return Task.CompletedTask;
+            if (arraySize <= Environment.ProcessorCount) return Task.Run(() => function(0, arraySize));
 
             var tasks = new Task[Environment.ProcessorCount];
             int perTask = arraySize / tasks.Length;

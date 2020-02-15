@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Primitives;
@@ -70,7 +69,10 @@ namespace Emotion.Graphics.Objects
         /// Create a new frame buffer.
         /// </summary>
         /// <param name="texture">The texture to use for this frame buffer. The frame buffer's size is inferred from it.</param>
-        /// <param name="depthTexture">The depth texture. Should be the same size as the texture. If stencil is attached this is also the stencil texture. Optional.</param>
+        /// <param name="depthTexture">
+        /// The depth texture. Should be the same size as the texture. If stencil is attached this is
+        /// also the stencil texture. Optional.
+        /// </param>
         /// <param name="attachStencil">Whether to attach a stencil attachment.</param>
         public FrameBuffer(Texture texture, Texture depthTexture = null, bool attachStencil = false)
         {
@@ -82,7 +84,7 @@ namespace Emotion.Graphics.Objects
             EnsureBound(Pointer);
 
             // Attach the texture to the frame buffer.
-            if(texture != null) Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, texture.Pointer, 0);
+            if (texture != null) Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, texture.Pointer, 0);
 
             // Attach depth texture (if any)
             FramebufferAttachment attachment = attachStencil ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
@@ -99,7 +101,7 @@ namespace Emotion.Graphics.Objects
                 // Create render buffer. This is the object that holds the depth and stencil attachments.
                 RenderBuffer = Gl.GenRenderbuffer();
                 Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RenderBuffer);
-                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int)Size.X, (int)Size.Y);
+                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (int) Size.X, (int) Size.Y);
                 Gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, RenderBuffer);
             }
 
@@ -143,13 +145,14 @@ namespace Emotion.Graphics.Objects
         /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
         public unsafe byte[] Sample(Rectangle rect, ref byte[] data)
         {
-            if(!Viewport.Contains(rect)) return data;
+            if (!Viewport.Contains(rect)) return data;
 
             rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
-                Gl.ReadPixels((int)rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, Texture?.PixelFormat ?? PixelFormat.Bgra, Texture?.PixelType ?? PixelType.UnsignedByte, (IntPtr) pixelBuffer);
+                Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, Texture?.PixelFormat ?? PixelFormat.Bgra, Texture?.PixelType ?? PixelType.UnsignedByte,
+                    (IntPtr) pixelBuffer);
             }
 
             return data;
@@ -161,7 +164,8 @@ namespace Emotion.Graphics.Objects
         /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
         public byte[] Sample(Rectangle rect)
         {
-            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(Texture?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelTypeToComponentCount(Texture?.PixelFormat ?? PixelFormat.Bgra)];
+            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(Texture?.PixelType ?? PixelType.UnsignedByte) *
+                                Gl.PixelTypeToComponentCount(Texture?.PixelFormat ?? PixelFormat.Bgra)];
             return Sample(rect, ref data);
         }
 
@@ -200,7 +204,8 @@ namespace Emotion.Graphics.Objects
                 DepthTexture.Dispose();
                 DepthTexture = null;
             }
-            if(RenderBuffer != 0) Gl.DeleteRenderbuffers(RenderBuffer);
+
+            if (RenderBuffer != 0) Gl.DeleteRenderbuffers(RenderBuffer);
             Texture = null;
             Pointer = 0;
             RenderBuffer = 0;

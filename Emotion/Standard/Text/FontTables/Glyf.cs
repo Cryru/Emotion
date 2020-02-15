@@ -60,12 +60,11 @@ namespace Emotion.Standard.Text.FontTables
                         ResolveTtfGlyph(numberOfContours, glyphData, current);
                     // Composite
                     else if (numberOfContours == -1)
-                    {
                         lock (compositeGlyphParse)
                         {
                             compositeGlyphParse.Add(new CompositeGlyphRequest(glyphData, current));
                         }
-                    }
+
                     // 0 is an invalid value.
                 }
             }).Wait();
@@ -210,8 +209,8 @@ namespace Emotion.Standard.Text.FontTables
                             verticesProcessed.Add(new GlyphVertex
                             {
                                 TypeFlag = VertexTypeFlag.Curve,
-                                X = (short)((cx + x) >> 1),
-                                Y = (short)((cy + y) >> 1),
+                                X = (short) ((cx + x) >> 1),
+                                Y = (short) ((cy + y) >> 1),
                                 Cx = cx,
                                 Cy = cy
                             });
@@ -226,8 +225,8 @@ namespace Emotion.Standard.Text.FontTables
                             verticesProcessed.Add(new GlyphVertex
                             {
                                 TypeFlag = VertexTypeFlag.Curve,
-                                X = (short) x,
-                                Y = (short) y,
+                                X = x,
+                                Y = y,
                                 Cx = cx,
                                 Cy = cy
                             });

@@ -222,7 +222,7 @@ namespace Emotion.Graphics.Objects
         }
 
         /// <summary>
-        /// Get a portion of the buffer's memory as pointer to it, allowing you to map data. 
+        /// Get a portion of the buffer's memory as pointer to it, allowing you to map data.
         /// When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
         /// </summary>
         /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>

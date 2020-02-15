@@ -276,10 +276,8 @@ namespace Emotion.Common
                                 if (desiredStep == Configuration.DesiredStep)
                                 {
                                     if (Configuration.ScaleStepUp && !(Renderer.ForcedVSync || Renderer.VSync))
-                                    {
                                         // Go at twice the speed.
                                         newLoopStep = (byte) (desiredStep * 2);
-                                    }
                                 }
                                 // If going slower than the desired step, this means we're recovering from a slowdown.
                                 else if (desiredStep < Configuration.DesiredStep)
@@ -288,16 +286,14 @@ namespace Emotion.Common
                                 }
                             }
                             else
-                            // If going down...
+                                // If going down...
                             {
                                 // Don't go slower than that.
                                 if (desiredStep > Configuration.DesiredStep / 4)
-                                {
                                     // Go twice as slow.
                                     newLoopStep = (byte) (desiredStep / 2);
-                                }
                             }
-                            
+
                             // Apply changes if any.
                             if (newLoopStep != 0)
                             {

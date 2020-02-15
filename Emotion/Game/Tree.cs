@@ -12,7 +12,7 @@ namespace Emotion.Game
     /// </summary>
     /// <typeparam name="T">The data type representing the branch names.</typeparam>
     /// <typeparam name="T2">The data type representing the leaf values.</typeparam>
-    public class Tree<T, T2>  
+    public class Tree<T, T2>
     {
         public T Name { get; set; }
         public List<T2> Leaves { get; set; } = new List<T2>();

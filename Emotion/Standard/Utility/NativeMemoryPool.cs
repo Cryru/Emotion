@@ -1,7 +1,11 @@
-﻿using System;
+﻿#region Using
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+
+#endregion
 
 namespace Emotion.Standard.Utility
 {
@@ -35,10 +39,7 @@ namespace Emotion.Standard.Utility
             Debug.Assert(minSize <= _pageSize);
 
             // Check if there's a current buffer.
-            if (_currentBuffer >= _pages.Count)
-            {
-                CreatePage();
-            }
+            if (_currentBuffer >= _pages.Count) CreatePage();
 
             // Check if there is enough space in the current buffer.
             if (_pageSize - _memoryUsed < minSize)
@@ -85,6 +86,7 @@ namespace Emotion.Standard.Utility
             {
                 Marshal.FreeHGlobal(p);
             }
+
             _pages.Clear();
         }
 
