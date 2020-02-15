@@ -3,14 +3,15 @@
 using System;
 using Emotion.Common;
 using Emotion.Graphics.Objects;
+using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Graphics.Command.Batches
+namespace Emotion.Graphics.Batches
 {
     public interface ISharedMemorySpriteBatch
     {
-        void SetOwner(RenderComposer owner);
+        void SetOwner(NativeMemoryPool owner);
     }
 
     /// <summary>
@@ -23,15 +24,15 @@ namespace Emotion.Graphics.Command.Batches
             _spriteByteSize = _structByteSize * 4;
         }
 
-        protected RenderComposer _owner;
+        protected NativeMemoryPool _owner;
         protected IntPtr _memoryPage;
         protected int _spriteByteSize;
 
         /// <summary>
-        /// Set the owning render composer.
+        /// Set the pool which owns this batch's memory.
         /// </summary>
         /// <param name="owner">The render composer who owns this batch.</param>
-        public void SetOwner(RenderComposer owner)
+        public void SetOwner(NativeMemoryPool owner)
         {
             _owner = owner;
         }
@@ -40,7 +41,6 @@ namespace Emotion.Graphics.Command.Batches
         public override void Recycle()
         {
             base.Recycle();
-            _owner = null;
             _memoryPage = IntPtr.Zero;
         }
 
@@ -59,7 +59,7 @@ namespace Emotion.Graphics.Command.Batches
 
             // Check if have memory.
             if (_memoryPage == IntPtr.Zero)
-                _memoryPage = _owner.MemoryPool.GetMemory(_spriteByteSize);
+                _memoryPage = _owner.GetMemory(_spriteByteSize);
 
             // Get the data.
             // ReSharper disable once PossibleNullReferenceException
@@ -68,7 +68,7 @@ namespace Emotion.Graphics.Command.Batches
             _mappedTo += 4;
 
             // Mark memory as used.
-            int memoryLeft = _owner.MemoryPool.MarkUsed(_spriteByteSize);
+            int memoryLeft = _owner.MarkUsed(_spriteByteSize);
 
             // Check if one more sprite can fit, both in memory and in the IBO. Each sprite is 4 vertices.
             if (memoryLeft < _spriteByteSize || _mappedTo + 4 > Engine.Renderer.MaxIndices) Full = true;
@@ -89,7 +89,7 @@ namespace Emotion.Graphics.Command.Batches
         }
 
         /// <inheritdoc />
-        public override void Execute(RenderComposer composer)
+        public override void Render(RenderComposer composer)
         {
             // If nothing mapped - or no memory (which shouldn't happen), do nothing.
             if (_mappedTo == 0 || _memoryPage == IntPtr.Zero) return;
@@ -103,6 +103,13 @@ namespace Emotion.Graphics.Command.Batches
 
             // Draw.
             Draw(vao);
+        }
+
+        /// <inheritdoc />
+        public override void Dispose()
+        {
+            Recycle();
+            _owner = null;    
         }
     }
 }

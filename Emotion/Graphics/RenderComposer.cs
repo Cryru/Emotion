@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
-using Emotion.Graphics.Command;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Command.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -14,7 +14,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Primitives;
 using Emotion.Standard.Utility;
 using OpenGL;
-using VertexDataBatch = Emotion.Graphics.Command.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
+using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
@@ -22,29 +22,10 @@ namespace Emotion.Graphics
 {
     public sealed partial class RenderComposer
     {
-        private const int RENDER_COMMAND_INITIAL_SIZE = 16;
-
         /// <summary>
         /// The quad batch currently active.
         /// </summary>
-        public VertexDataBatch ActiveQuadBatch;
-
-        /// <summary>
-        /// Whether the composer has processed all of its commands.
-        /// </summary>
-        public bool Processed;
-
-        /// <summary>
-        /// Current list of pushed render commands.
-        /// </summary>
-        internal List<RenderCommand> RenderCommands = new List<RenderCommand>(RENDER_COMMAND_INITIAL_SIZE);
-
-        /// <summary>
-        /// Handles recycling of different recyclable command types.
-        /// </summary>
-        private Dictionary<Type, CommandRecycler> _commandCache = new Dictionary<Type, CommandRecycler>();
-
-        #region Common Objects
+        public VertexDataBatch ActiveQuadBatch { get; private set; }
 
         /// <summary>
         /// The common vertex buffer of this composer. Used if the command doesn't care about creating its own.
@@ -70,18 +51,6 @@ namespace Emotion.Graphics
         /// </summary>
         public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 2);
 
-        #endregion
-
-        /// <summary>
-        /// The factory for the currently active batch.
-        /// </summary>
-        private CommandRecycler _spriteBatchFactory;
-
-        /// <summary>
-        /// Whether to create GL objects if missing.
-        /// </summary>
-        private bool _createGl;
-
         /// <summary>
         /// Create a new RenderComposer to manage render commands.
         /// </summary>
@@ -92,95 +61,16 @@ namespace Emotion.Graphics
         /// </param>
         public RenderComposer(bool ownGraphicsMemory = true)
         {
-            _createGl = ownGraphicsMemory;
-            Reset();
-        }
-
-        /// <summary>
-        /// Process all render commands in the composer, preparing them for rendering.
-        /// </summary>
-        public void Process()
-        {
             Debug.Assert(GLThread.IsGLThread());
 
             // Create graphics objects if needed.
-            if (_createGl && VertexBuffer == null)
-            {
-                VertexBuffer = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * VertexData.SizeInBytes));
-                CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
-                VaoCache.Add(typeof(VertexData), CommonVao);
-            }
+            if (!ownGraphicsMemory || VertexBuffer != null) return;
 
-            if (Processed) return;
+            VertexBuffer = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * VertexData.SizeInBytes));
+            CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
+            VaoCache.Add(typeof(VertexData), CommonVao);
 
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var c = 0; c < RenderCommands.Count; c++)
-            {
-                RenderCommands[c].Process(this);
-            }
-
-            Processed = true;
-        }
-
-        /// <summary>
-        /// Execute all render commands in the composer.
-        /// </summary>
-        public void Execute()
-        {
-            Debug.Assert(GLThread.IsGLThread());
-            Debug.Assert(Processed);
-
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var c = 0; c < RenderCommands.Count; c++)
-            {
-                RenderCommands[c].Execute(this);
-            }
-        }
-
-        /// <summary>
-        /// Reset the render composer.
-        /// </summary>
-        public void Reset()
-        {
-            // Reset batch state.
-            RestoreSpriteBatchType();
-
-            // Clear old commands.
-            RenderCommands.Clear();
-
-            // Reset the memory pool.
-            MemoryPool.Reset();
-
-            foreach (KeyValuePair<Type, CommandRecycler> recycler in _commandCache)
-            {
-                recycler.Value.Reset();
-            }
-        }
-
-        /// <summary>
-        /// Get a recycled render command of the specified type.
-        /// </summary>
-        /// <typeparam name="T">The type of command to return.</typeparam>
-        /// <returns>A recycled, ready to use instance of the specified command type.</returns>
-        public T GetRenderCommand<T>() where T : RecyclableCommand, new()
-        {
-            CommandRecycler<T> recycler = GetRenderCommandRecycler<T>();
-            return (T) recycler.GetObject();
-        }
-
-        /// <summary>
-        /// Gets the recycling factory of the specified render command.
-        /// </summary>
-        /// <typeparam name="T">The command whose recycler to return.</typeparam>
-        /// <returns>The recycling factory of the specified render command..</returns>
-        public CommandRecycler<T> GetRenderCommandRecycler<T>() where T : RecyclableCommand, new()
-        {
-            Type type = typeof(T);
-            if (_commandCache.ContainsKey(type)) return (CommandRecycler<T>) _commandCache[type];
-
-            var newRecycler = new CommandRecycler<T>();
-            _commandCache.Add(type, newRecycler);
-            return newRecycler;
+            SetDefaultSpriteBatch();
         }
 
         #region Batching
@@ -188,86 +78,57 @@ namespace Emotion.Graphics
         /// <summary>
         /// Returns the current batch, or creates a new one if none.
         /// </summary>
-        /// <returns></returns>
         public VertexDataBatch GetBatch()
         {
-            if (ActiveQuadBatch != null && !ActiveQuadBatch.Full) return ActiveQuadBatch;
-
-            // Create new batch if there is no active one, or it is full.
-            var batch = (VertexDataBatch) _spriteBatchFactory.GetObject();
-
-            // If using shared memory, link to the composer.
-            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch) sharedMemoryBatch.SetOwner(this);
-
-            PushCommand(batch);
-            ActiveQuadBatch = batch;
-
+            if (ActiveQuadBatch.Full)
+            {
+                InvalidateStateBatches();
+            }
+            
             return ActiveQuadBatch;
         }
 
         /// <summary>
-        /// Invalidates current render batches.
+        /// Invalidates the current batch - flushing it to the current buffer.
         /// This should be done when the state changes in some way because calls afterwards will differ from those before and
         /// cannot be batched.
         /// </summary>
         public void InvalidateStateBatches()
         {
-            ActiveQuadBatch = null;
+            if (ActiveQuadBatch == null || ActiveQuadBatch.BatchedSprites == 0) return;
+            ActiveQuadBatch.Render(this);
+            ActiveQuadBatch.Recycle();
+            MemoryPool.Reset();
         }
 
         /// <summary>
-        /// Set the type of the sprite batch. This will invalidate the current batch and create a batch of this type.
-        /// Subsequent batches until the end of the frame will be of this type.
+        /// Set a custom sprite batch as the current batch.
+        /// This will flush the old batch.
         /// </summary>
-        /// <typeparam name="T">The type of batch.</typeparam>
-        public void SetSpriteBatchType<T>() where T : VertexDataBatch, new()
+        /// <param name="batch">The batch to set as current.</param>
+        public void SetSpriteBatch(VertexDataBatch batch)
         {
             InvalidateStateBatches();
-            _spriteBatchFactory = GetRenderCommandRecycler<T>();
+
+            // If using shared memory, link to the composer.
+            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch) sharedMemoryBatch.SetOwner(MemoryPool);
+
+            ActiveQuadBatch = batch;
         }
 
         /// <summary>
-        /// Restore to the default batch type.
+        /// The default sprite batch factory method.
         /// </summary>
-        public void RestoreSpriteBatchType()
+        public void SetDefaultSpriteBatch()
         {
-            SetSpriteBatchType<VertexDataShaderMemorySpriteBatch>();
+            InvalidateStateBatches();
+
+            var defaultBatch = new VertexDataSharedMemorySpriteBatch();
+            defaultBatch.SetOwner(MemoryPool);
+            ActiveQuadBatch = defaultBatch;
         }
 
         #endregion
-
-        /// <summary>
-        /// Push a render command to the composer.
-        /// </summary>
-        /// <param name="command">The command to push.</param>
-        /// <param name="_">Legacy</param>
-        public void PushCommand(RenderCommand command, bool _ = false)
-        {
-            if (command == null) return;
-
-            Processed = false;
-
-            RenderCommands.Add(command);
-
-            // Command post processing.
-            switch (command)
-            {
-                // Changing the state invalidates the batches.
-                // Drawing vertices too, as they will be drawn by a different VBO and IBO.
-                case RenderVerticesCommand _:
-                case ChangeStateCommand _:
-                case FramebufferModificationCommand _:
-                case ModelMatrixModificationCommand _:
-                case ExecCodeCommand _:
-                case StencilStateCommand _:
-                // We don't know what the sub composer will do, so invalidate batches.
-                case SubComposerCommand _:
-                // If pushing a batch.
-                case SpriteBatchBase _:
-                    InvalidateStateBatches();
-                    break;
-            }
-        }
 
         /// <summary>
         /// Render arbitrary vertices. Clockwise order is expected.
@@ -286,143 +147,25 @@ namespace Emotion.Graphics
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
         public void RenderVertices(Vector3[] vertices, params Color[] colors)
         {
-            var command = GetRenderCommand<RenderVerticesCommand>();
+            InvalidateStateBatches();
 
-            for (var i = 0; i < vertices.Length; i++)
+            int neededLength = vertices.Length * VertexData.SizeInBytes;
+            if (neededLength > VertexBuffer.Size)
             {
-                uint c;
-                if (i >= colors.Length)
-                    c = colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint();
-                else
-                    c = colors[i].ToUint();
-
-                command.AddVertex(new VertexData {Vertex = vertices[i], Color = c, Tid = -1});
+                VertexBuffer.Upload(IntPtr.Zero, (uint) neededLength);
             }
 
-            PushCommand(command);
-        }
-
-        /// <summary>
-        /// Render a circle outline.
-        /// </summary>
-        /// <param name="position">
-        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
-        /// with "useCenter"
-        /// </param>
-        /// <param name="radius">The circle radius.</param>
-        /// <param name="color">The circle color.</param>
-        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
-        /// <param name="circleDetail">How detailed the circle should be.</param>
-        public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
-        {
-            // Add the circle's model matrix.
-            PushModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
-
-            float fX = 0;
-            float fY = 0;
-            float pX = 0;
-            float pY = 0;
-
-            // Generate points.
-            for (uint i = 0; i < circleDetail; i++)
+            Span<VertexData> vertMapper = VertexBuffer.CreateMapper<VertexData>(0, vertices.Length * VertexData.SizeInBytes);
+            for (var v = 0; v < vertices.Length; v++)
             {
-                var angle = (float) (i * 2 * Math.PI / circleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
-
-                if (i == 0)
-                {
-                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + x, radius + y, 0), color);
-                    fX = x;
-                    fY = y;
-                }
-                else if (i == circleDetail - 1)
-                {
-                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
-                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
-                }
-                else
-                {
-                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
-                }
-
-                pX = x;
-                pY = y;
+                vertMapper[v].Vertex = vertices[v];
+                vertMapper[v].Color = v >= colors.Length ? (colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint()) : colors[v].ToUint();
+                vertMapper[v].Tid = -1;
             }
-
-            // Remove the model matrix.
-            PopModelMatrix();
-        }
-
-        /// <summary>
-        /// Render a circle.
-        /// </summary>
-        /// <param name="position">
-        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
-        /// with "useCenter"
-        /// </param>
-        /// <param name="radius">The circle radius.</param>
-        /// <param name="color">The circle color.</param>
-        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
-        /// <param name="circleDetail">How detailed the circle should be.</param>
-        public void RenderCircle(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
-        {
-            // Add the circle's model matrix.
-            PushModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
-
-            float pX = 0;
-            float pY = 0;
-            float fX = 0;
-            float fY = 0;
-
-            var vertices = new List<Vector3>();
-
-            // Generate points.
-            for (uint i = 0; i < circleDetail; i++)
-            {
-                var angle = (float) (i * 2 * Math.PI / circleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
-
-                vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                vertices.Add(new Vector3(radius + x, radius + y, 0));
-                vertices.Add(new Vector3(radius, radius, 0));
-                vertices.Add(new Vector3(radius, radius, 0));
-
-                if (i == 0)
-                {
-                    fX = x;
-                    fY = y;
-                }
-                else if (i == circleDetail - 1)
-                {
-                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                    vertices.Add(new Vector3(radius + fX, radius + fY, 0));
-                    vertices.Add(new Vector3(radius, radius, 0));
-                    vertices.Add(new Vector3(radius, radius, 0));
-                }
-
-                pX = x;
-                pY = y;
-            }
-
-            RenderVertices(vertices, color);
-
-            // Remove the model matrix.
-            PopModelMatrix();
-        }
-
-        /// <summary>
-        /// Render a composer.
-        /// </summary>
-        /// <param name="composer">The composer to render.</param>
-        public void AddSubComposer(RenderComposer composer)
-        {
-            if (composer == this) return;
-
-            var command = GetRenderCommand<SubComposerCommand>();
-            command.Composer = composer;
-            PushCommand(command);
+            VertexBuffer.FinishMapping();
+            VertexArrayObject.EnsureBound(CommonVao);
+            IndexBuffer.EnsureBound(IndexBuffer.SequentialIbo.Pointer);
+            Gl.DrawElements(PrimitiveType.TriangleFan, vertices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
         }
 
         /// <summary>
@@ -437,6 +180,15 @@ namespace Emotion.Graphics
             PopModelMatrix();
         }
 
+        /// <summary>
+        /// Render a renderable object.
+        /// </summary>
+        /// <param name="renderable">The renderable to render.</param>
+        public void Render(IRenderable renderable)
+        {
+            renderable.Render(this);
+        }
+
         #region State Changes
 
         /// <summary>
@@ -446,12 +198,8 @@ namespace Emotion.Graphics
         /// <param name="stencil">Whether to enable or disable stencil testing.</param>
         public void SetStencilTest(bool stencil)
         {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = new RenderState
-            {
-                StencilTest = stencil
-            };
-            PushCommand(stateChange);
+            InvalidateStateBatches();
+            Engine.Renderer.SetStencil(stencil);
         }
 
         #region Stencil States
@@ -463,11 +211,9 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilStartDraw(int value = 0xFF)
         {
-            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = StencilFunction.Always;
-            stencilStateChange.Mask = 0xFF;
-            stencilStateChange.Threshold = value;
-            PushCommand(stencilStateChange);
+            InvalidateStateBatches();
+            Gl.StencilMask(0xFF); 
+            Gl.StencilFunc(StencilFunction.Always, value, 0xFF);
         }
 
         /// <summary>
@@ -477,11 +223,9 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilStopDraw()
         {
-            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = StencilFunction.Always;
-            stencilStateChange.Mask = 0x00;
-            stencilStateChange.Threshold = 0xFF;
-            PushCommand(stencilStateChange);
+            InvalidateStateBatches();
+            Gl.StencilMask(0x00); 
+            Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
         }
 
         /// <summary>
@@ -490,11 +234,9 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilCutOutFrom(int threshold = 0xFF)
         {
-            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = StencilFunction.Greater;
-            stencilStateChange.Mask = 0x00;
-            stencilStateChange.Threshold = threshold;
-            PushCommand(stencilStateChange);
+            InvalidateStateBatches();
+            Gl.StencilMask(0x00); 
+            Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
         }
 
         /// <summary>
@@ -502,20 +244,16 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilFillIn(int threshold = 0xFF)
         {
-            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = StencilFunction.Greater;
-            stencilStateChange.Mask = 0xFF;
-            stencilStateChange.Threshold = threshold;
-            PushCommand(stencilStateChange);
+            InvalidateStateBatches();
+            Gl.StencilMask(0xFF); 
+            Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
         }
 
         public void StencilMask(int filter = 0xFF)
         {
-            var stencilStateChange = GetRenderCommand<StencilStateCommand>();
-            stencilStateChange.Func = StencilFunction.Less;
-            stencilStateChange.Mask = 0x00;
-            stencilStateChange.Threshold = filter;
-            PushCommand(stencilStateChange);
+            InvalidateStateBatches();
+            Gl.StencilMask(0x00); 
+            Gl.StencilFunc(StencilFunction.Less, filter, 0xFF);
         }
 
         #endregion
@@ -526,15 +264,11 @@ namespace Emotion.Graphics
         /// <param name="renderColor">Whether to render to the color buffer.</param>
         public void ToggleRenderColor(bool renderColor)
         {
-            var codeFunc = GetRenderCommand<ExecCodeCommand>();
-            codeFunc.Func = () =>
-            {
-                if (renderColor)
-                    Gl.ColorMask(true, true, true, true);
-                else
-                    Gl.ColorMask(false, false, false, false);
-            };
-            PushCommand(codeFunc);
+            InvalidateStateBatches();
+            if (renderColor)
+                Gl.ColorMask(true, true, true, true);
+            else
+                Gl.ColorMask(false, false, false, false);
         }
 
         /// <summary>
@@ -543,12 +277,8 @@ namespace Emotion.Graphics
         /// <param name="viewMatrix">Whether to use the view matrix.</param>
         public void SetUseViewMatrix(bool viewMatrix)
         {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = new RenderState
-            {
-                ViewMatrix = viewMatrix
-            };
-            PushCommand(stateChange);
+            InvalidateStateBatches();
+            Engine.Renderer.SetViewMatrix(viewMatrix);
         }
 
         /// <summary>
@@ -557,12 +287,8 @@ namespace Emotion.Graphics
         /// <param name="alphaBlend">Whether to use alpha blending.</param>
         public void SetAlphaBlend(bool alphaBlend)
         {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = new RenderState
-            {
-                AlphaBlending = alphaBlend
-            };
-            PushCommand(stateChange);
+            InvalidateStateBatches();
+            Engine.Renderer.SetBlending(alphaBlend);
         }
 
         /// <summary>
@@ -571,38 +297,23 @@ namespace Emotion.Graphics
         /// <param name="depth">Whether to use depth testing.</param>
         public void SetDepthTest(bool depth)
         {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = new RenderState
-            {
-                DepthTest = depth
-            };
-            PushCommand(stateChange);
+            InvalidateStateBatches();
+            Engine.Renderer.SetDepth(depth);
         }
 
         /// <summary>
         /// Set the current shader.
         /// </summary>
         /// <param name="shader">The shader to set as current.</param>
-        /// <param name="onSet">A function to call once the shader is bound. You can upload uniforms and such in here.</param>
-        public void SetShader(ShaderProgram shader, Action onSet)
+        public ShaderProgram SetShader(ShaderProgram shader = null)
         {
-            SetShader(shader, s => onSet?.Invoke());
-        }
+            InvalidateStateBatches();
+            shader ??= ShaderFactory.DefaultProgram;
+            ShaderProgram.EnsureBound(shader.Pointer);
+            Engine.Renderer.CurrentState.Shader = shader;
+            Engine.Renderer.SyncShader();
 
-        /// <summary>
-        /// Set the current shader.
-        /// </summary>
-        /// <param name="shader">The shader to set as current.</param>
-        /// <param name="onSet">A function to call once the shader is bound. You can upload uniforms and such in here.</param>
-        public void SetShader(ShaderProgram shader = null, Action<ShaderProgram> onSet = null)
-        {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = new RenderState
-            {
-                Shader = shader ?? ShaderFactory.DefaultProgram
-            };
-            stateChange.ShaderOnSet = onSet;
-            PushCommand(stateChange);
+            return shader;
         }
 
         /// <summary>
@@ -611,23 +322,32 @@ namespace Emotion.Graphics
         /// <param name="rect">The rectangle to clip outside of.</param>
         public void SetClipRect(Rectangle? rect)
         {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = new RenderState
-            {
-                ClipRect = rect
-            };
-            PushCommand(stateChange);
+            InvalidateStateBatches();
+            Engine.Renderer.SetClip(rect);
         }
 
         /// <summary>
         /// Set a new state.
         /// </summary>
         /// <param name="newState">The state to set.</param>
-        public void SetState(RenderState newState)
+        /// <param name="force">Whether to set it regardless of the previous state.</param>
+        public void SetState(RenderState newState, bool force = false)
         {
-            var stateChange = GetRenderCommand<ChangeStateCommand>();
-            stateChange.State = newState;
-            PushCommand(stateChange);
+            InvalidateStateBatches();
+
+            // Check which state changes should apply, by checking which were set and which differ from the current.
+            if (newState.Shader != null && (force || newState.Shader != Engine.Renderer.CurrentState.Shader))
+            {
+                ShaderProgram.EnsureBound(newState.Shader.Pointer);
+                Engine.Renderer.CurrentState.Shader = newState.Shader;
+                Engine.Renderer.SyncShader();
+            }
+
+            if (newState.DepthTest != null && (force || newState.DepthTest != Engine.Renderer.CurrentState.DepthTest)) Engine.Renderer.SetDepth((bool) newState.DepthTest);
+            if (newState.StencilTest != null && (force || newState.StencilTest != Engine.Renderer.CurrentState.StencilTest)) Engine.Renderer.SetStencil((bool) newState.StencilTest);
+            if (newState.AlphaBlending != null && (force || newState.AlphaBlending != Engine.Renderer.CurrentState.AlphaBlending)) Engine.Renderer.SetBlending((bool) newState.AlphaBlending);
+            if (newState.ViewMatrix != null && (force || newState.ViewMatrix != Engine.Renderer.CurrentState.ViewMatrix)) Engine.Renderer.SetViewMatrix((bool) newState.ViewMatrix);
+            if (force || newState.ClipRect != Engine.Renderer.CurrentState.ClipRect) Engine.Renderer.SetClip(newState.ClipRect);
         }
 
         /// <summary>
@@ -636,36 +356,20 @@ namespace Emotion.Graphics
         /// <param name="buffer">The buffer to render to. If set to null will revert to the previous buffer.</param>
         public void RenderTo(FrameBuffer buffer)
         {
-            var command = GetRenderCommand<FramebufferModificationCommand>();
-            command.Buffer = buffer;
-            PushCommand(command);
+            InvalidateStateBatches();
+            if (buffer != null)
+                Engine.Renderer.PushFramebuffer(buffer);
+            else
+                Engine.Renderer.PopFramebuffer();
         }
-
-        /// <summary>
-        /// Render to a frame buffer, but clear all its attachments first.
-        /// </summary>
-        /// <param name="buffer">
-        /// The buffer to render to. If set to null will revert to the previous buffer, in which case the
-        /// buffer will not be cleared.
-        /// </param>
-        public void RenderToAndClear(FrameBuffer buffer)
-        {
-            var command = GetRenderCommand<FramebufferModificationCommand>();
-            command.Buffer = buffer;
-            PushCommand(command);
-
-            if (buffer != null) ClearFrameBuffer();
-        }
-
+        
         /// <summary>
         /// Works like RenderTo(null) but doesn't rebind the previous target. Used for swapping between targets.
         /// </summary>
         public void RenderTargetPop()
         {
-            var command = GetRenderCommand<FramebufferModificationCommand>();
-            command.Buffer = null;
-            command.RebindPrevious = false;
-            PushCommand(command);
+            InvalidateStateBatches();
+            Engine.Renderer.PopFramebuffer();
         }
 
         /// <summary>
@@ -673,9 +377,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearFrameBuffer()
         {
-            var command = GetRenderCommand<ExecCodeCommand>();
-            command.Func = Engine.Renderer.Clear;
-            PushCommand(command);
+            InvalidateStateBatches();
+            Engine.Renderer.Clear();
         }
 
         /// <summary>
@@ -683,9 +386,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearDepth()
         {
-            var command = GetRenderCommand<ExecCodeCommand>();
-            command.Func = Engine.Renderer.ClearDepth;
-            PushCommand(command);
+            InvalidateStateBatches();
+            Engine.Renderer.ClearDepth();
         }
 
         /// <summary>
@@ -694,9 +396,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearStencil()
         {
-            var command = GetRenderCommand<ExecCodeCommand>();
-            command.Func = Engine.Renderer.ClearStencil;
-            PushCommand(command);
+            InvalidateStateBatches();
+            Engine.Renderer.ClearStencil();
             StencilStopDraw();
         }
 
@@ -707,10 +408,8 @@ namespace Emotion.Graphics
         /// <param name="multiply">Whether to multiply the new matrix by the previous matrix.</param>
         public void PushModelMatrix(Matrix4x4 matrix, bool multiply = true)
         {
-            var command = GetRenderCommand<ModelMatrixModificationCommand>();
-            command.Matrix = matrix;
-            command.Multiply = multiply;
-            PushCommand(command);
+            InvalidateStateBatches();
+            Engine.Renderer.PushModelMatrix(matrix, multiply);
         }
 
         /// <summary>
@@ -718,28 +417,10 @@ namespace Emotion.Graphics
         /// </summary>
         public void PopModelMatrix()
         {
-            var command = GetRenderCommand<ModelMatrixModificationCommand>();
-            command.Matrix = null;
-            PushCommand(command);
+            InvalidateStateBatches();
+            Engine.Renderer.PopModelMatrix();
         }
 
         #endregion
-
-        public void Dispose()
-        {
-            VertexBuffer.Dispose();
-
-            foreach (KeyValuePair<Type, VertexArrayObject> vao in VaoCache)
-            {
-                vao.Value.Dispose();
-            }
-
-            MemoryPool.Dispose();
-
-            foreach (KeyValuePair<Type, CommandRecycler> recycler in _commandCache)
-            {
-                recycler.Value.Dispose();
-            }
-        }
     }
 }

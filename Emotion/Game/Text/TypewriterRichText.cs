@@ -149,7 +149,7 @@ namespace Emotion.Game.Text
             if (!EffectFinished) _renderCache.SetRenderRange(0, (uint)_characterEffectIndex);
             else _renderCache.SetRenderRange(0, (uint)_textStripped.Length);
 
-            composer.PushCommand(_renderCache);
+            _renderCache.Render(composer);
         }
 
         #endregion

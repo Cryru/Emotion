@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 
@@ -8,7 +9,7 @@ using Emotion.Graphics.Objects;
 
 namespace Emotion.Graphics.Command.Batches
 {
-    public class VertexDataShaderMemorySpriteBatch : SharedMemorySpriteBatch<VertexData>
+    public class VertexDataSharedMemorySpriteBatch : SharedMemorySpriteBatch<VertexData>
     {
         /// <inheritdoc />
         public override Span<VertexData> GetData(Texture texture, out int texturePointer)

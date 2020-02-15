@@ -7,7 +7,7 @@ using Emotion.Graphics.Objects;
 
 #endregion
 
-namespace Emotion.Graphics.Command.Batches
+namespace Emotion.Graphics.Batches
 {
     public class VertexDataSpriteBatch : SpriteBatch<VertexData>
     {

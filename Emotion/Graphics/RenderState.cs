@@ -20,18 +20,15 @@ namespace Emotion.Graphics
         /// <summary>
         /// A default state.
         /// </summary>
-        public static RenderState Default()
+        public static RenderState Default = new RenderState
         {
-            return new RenderState
-            {
-                DepthTest = true,
-                StencilTest = false,
-                ClipRect = null,
-                AlphaBlending = true,
-                Shader = ShaderFactory.DefaultProgram,
-                ViewMatrix = true
-            };
-        }
+            DepthTest = true,
+            StencilTest = false,
+            ClipRect = null,
+            AlphaBlending = true,
+            Shader = ShaderFactory.DefaultProgram,
+            ViewMatrix = true
+        };
 
         /// <summary>
         /// Clone the state.

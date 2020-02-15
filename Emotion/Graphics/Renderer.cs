@@ -7,7 +7,6 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Camera;
-using Emotion.Graphics.Command;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
@@ -129,7 +128,6 @@ namespace Emotion.Graphics
         private RenderComposer _composer;
 
         private RenderState _blitState;
-        private ChangeStateCommand _defaultStateCommand;
 
         #endregion
 
@@ -215,17 +213,10 @@ namespace Emotion.Graphics
             CreateDrawbuffer(Engine.Configuration.RenderSize);
 
             // Create the blit state command for copying the draw buffer to the screen buffer.
-            _blitState = RenderState.Default();
+            _blitState = RenderState.Default.Clone();
             _blitState.AlphaBlending = false;
             _blitState.DepthTest = false;
             _blitState.ViewMatrix = false;
-
-            // Create the command for resetting the state at the start of the frame.
-            _defaultStateCommand = new ChangeStateCommand
-            {
-                State = RenderState.Default(),
-                Force = true
-            };
 
             // Decide on scaling mode.
             if (Engine.Configuration.ScaleBlackBars)
@@ -399,11 +390,8 @@ namespace Emotion.Graphics
                 Texture.Bound[i] = 0;
             }
 
-            // Reset the main composer.
-            _composer.Reset();
-
             // Reset to the default state.
-            _defaultStateCommand.Execute(_composer);
+            _composer.SetState(RenderState.Default, true);
 
             // Clear the screen.
             ScreenBuffer.Bind();
@@ -442,8 +430,7 @@ namespace Emotion.Graphics
                 _composer.RenderTo(null);
             }
 
-            _composer.Process();
-            _composer.Execute();
+            _composer.InvalidateStateBatches();
         }
 
         public void Update()

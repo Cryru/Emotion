@@ -6,17 +6,18 @@ using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
+using Emotion.Primitives;
 using OpenGL;
 
 #endregion
 
-namespace Emotion.Graphics.Command.Batches
+namespace Emotion.Graphics.Batches
 {
     /// <summary>
     /// Batch which handles batching sprites to be drawn together.
     /// Up to 16 textures and around 16k sprites can be batched at once.
     /// </summary>
-    public abstract class SpriteBatchBase : RecyclableCommand
+    public abstract class SpriteBatchBase : IRecyclable, IRenderable, IDisposable
     {
         /// <summary>
         /// The length of sprites batched. Zero indexed.
@@ -36,6 +37,23 @@ namespace Emotion.Graphics.Command.Batches
         /// The number of vertices in use from _batchedVertices.
         /// </summary>
         protected int _mappedTo;
+
+        /// <summary>
+        /// Recycle the batch, clearing all batched sprites and textures.
+        /// Graphics objects are reused if possible.
+        /// </summary>
+        public abstract void Recycle();
+
+        /// <summary>
+        /// Render the batch.
+        /// </summary>
+        /// <param name="c">The composer initiating the render.</param>
+        public abstract void Render(RenderComposer c);
+
+        /// <summary>
+        /// Free resources.
+        /// </summary>
+        public abstract void Dispose();
     }
 
     /// <summary>
@@ -80,10 +98,7 @@ namespace Emotion.Graphics.Command.Batches
             _structByteSize = Marshal.SizeOf<T>();
         }
 
-        /// <summary>
-        /// Recycle the batch, clearing all batched sprites and textures.
-        /// Graphics objects are reused if possible.
-        /// </summary>
+        /// <inheritdoc />
         public override void Recycle()
         {
             Full = false;

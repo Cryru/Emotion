@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Emotion.Graphics;
-using Emotion.Graphics.Command.Batches;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -447,9 +447,7 @@ namespace Emotion.Game.Text
                 _updateRenderCache = false;
             }
 
-            composer.PushModelMatrix(ModelMatrix);
-            composer.PushCommand(_renderCache);
-            composer.PopModelMatrix();
+            _renderCache.Render(composer);
         }
 
         /// <summary>

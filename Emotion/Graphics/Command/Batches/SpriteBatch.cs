@@ -8,7 +8,7 @@ using Emotion.Graphics.Objects;
 
 #endregion
 
-namespace Emotion.Graphics.Command.Batches
+namespace Emotion.Graphics.Batches
 {
     /// <summary>
     /// Batch which owns it's own CPU memory, and optionally GPU memory.
@@ -120,7 +120,7 @@ namespace Emotion.Graphics.Command.Batches
         }
 
         /// <inheritdoc />
-        public override void Execute(RenderComposer composer)
+        public override void Render(RenderComposer composer)
         {
             if (_mappedTo == 0) return;
 

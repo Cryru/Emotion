@@ -1,9 +1,10 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Game.Text;
-using Emotion.Graphics.Command.Batches;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
@@ -33,6 +34,7 @@ namespace Emotion.Graphics
         {
             SpriteBatchBase<VertexData> batch = GetBatch();
             Span<VertexData> vertices = batch.GetData(texture);
+            Debug.Assert(vertices.Length >= 4);
             VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
         }
 

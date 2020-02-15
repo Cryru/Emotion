@@ -8,11 +8,11 @@ using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics;
-using Emotion.Graphics.Command;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform.Input;
+using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using ImGuiNET;
 using OpenGL;
@@ -56,16 +56,15 @@ namespace Emotion.Plugins.ImGuiNet
         /// <summary>
         /// The state in which ImGui is drawn.
         /// </summary>
-        private static ChangeStateCommand _imGuiState;
+        private static RenderState _imGuiState;
 
         #endregion
 
         #region Objects
 
-        /// <summary>
-        /// The command which will be used to render imgui.
-        /// </summary>
-        public static ImGuiDrawCommand Command;
+        public static VertexBuffer VBO;
+        public static IndexBuffer IBO;
+        public static VertexArrayObject VAO;
 
         /// <summary>
         /// The texture of the imgui font.
@@ -88,14 +87,11 @@ namespace Emotion.Plugins.ImGuiNet
                 return;
             }
 
-            _imGuiState = new ChangeStateCommand
+            _imGuiState = new RenderState
             {
-                State = new RenderState
-                {
-                    DepthTest = false,
-                    ViewMatrix = false,
-                    Shader = ShaderFactory.DefaultProgram
-                }
+                DepthTest = false,
+                ViewMatrix = false,
+                Shader = ShaderFactory.DefaultProgram
             };
 
             // Create the ImGui context.
@@ -147,18 +143,16 @@ namespace Emotion.Plugins.ImGuiNet
             io.Fonts.ClearTexData();
 
             // Setup the stream buffer which will render the gui.
-            var ibo = new IndexBuffer(Engine.Renderer.MaxIndices * sizeof(ushort), BufferUsage.DynamicDraw);
-            var vbo = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * 4 * sizeof(ImDrawVert)));
-            VertexArrayObject vao = new VertexArrayObject<EmImGuiVertex>(vbo, ibo);
+            IBO = new IndexBuffer(Engine.Renderer.MaxIndices * sizeof(ushort), BufferUsage.DynamicDraw);
+            VBO = new VertexBuffer((uint) (Engine.Renderer.MaxIndices * 4 * sizeof(ImDrawVert)));
+            VAO = new VertexArrayObject<EmImGuiVertex>(VBO, IBO);
 
-            Command = new ImGuiDrawCommand
+
+            Engine.Host.OnTextInput.AddListener(c =>
             {
-                IBO = ibo,
-                VBO = vbo,
-                VAO = vao
-            };
-
-            Engine.Host.OnTextInput.AddListener(c => { _textInput.Add(c); return true; });
+                _textInput.Add(c);
+                return true;
+            });
             Engine.Host.OnKey.AddListener((_, __) => !Focused);
             Engine.Host.OnMouseKey.AddListener((_, __) => !Focused);
 
@@ -215,11 +209,81 @@ namespace Emotion.Plugins.ImGuiNet
             }
         }
 
-        public static void RenderUI(RenderComposer composer)
+        public static unsafe void RenderUI(RenderComposer composer)
         {
             composer.PushModelMatrix(Matrix4x4.CreateScale(ImGuiScale));
-            composer.PushCommand(_imGuiState);
-            composer.PushCommand(Command);
+            composer.SetState(_imGuiState);
+
+            // Get render data from imgui.
+            ImGui.Render();
+            ImDrawDataPtr drawPointer = ImGui.GetDrawData();
+            ImGuiIOPtr io = ImGui.GetIO();
+
+            // Copy vertices and indices.
+            uint vtxOffset = 0;
+            uint idxOffset = 0;
+            VertexArrayObject.EnsureBound(VAO);
+
+            for (var i = 0; i < drawPointer.CmdListsCount; i++)
+            {
+                ImDrawListPtr drawList = drawPointer.CmdListsRange[i];
+
+                // Check if any command lists.
+                if (drawList.CmdBuffer.Size == 0) continue;
+
+                // Copy vertex and index buffers to the stream buffer.
+                var vtxSize = (uint) (drawList.VtxBuffer.Size * sizeof(ImDrawVert));
+                uint idxSize = (uint) drawList.IdxBuffer.Size * sizeof(ushort);
+
+                // Upload.
+                VBO.UploadPartial(drawList.VtxBuffer.Data, vtxSize, vtxOffset);
+                IBO.UploadPartial(drawList.IdxBuffer.Data, idxSize, idxOffset);
+
+                // Increment the offset trackers.
+                vtxOffset += vtxSize;
+                idxOffset += idxSize;
+            }
+
+            drawPointer.ScaleClipRects(io.DisplayFramebufferScale);
+
+            // Go through command lists and render.
+            uint offset = 0;
+            uint indicesOffset = 0;
+            for (var i = 0; i < drawPointer.CmdListsCount; i++)
+            {
+                // Get the current draw list.
+                ImDrawListPtr drawList = drawPointer.CmdListsRange[i];
+
+                for (var cmdList = 0; cmdList < drawList.CmdBuffer.Size; cmdList++)
+                {
+                    ImDrawCmdPtr currentCommandList = drawList.CmdBuffer[cmdList];
+
+                    Texture.EnsureBound((uint) currentCommandList.TextureId);
+
+                    // Set the clip rect.
+                    Engine.Renderer.SetClip(new Rectangle(
+                        currentCommandList.ClipRect.X * ImGuiScale,
+                        currentCommandList.ClipRect.Y * ImGuiScale,
+                        (currentCommandList.ClipRect.Z - currentCommandList.ClipRect.X) * ImGuiScale,
+                        (currentCommandList.ClipRect.W - currentCommandList.ClipRect.Y) * ImGuiScale
+                    ));
+
+                    // Set the draw range of this specific command, and draw it.
+                    Gl.DrawElementsBaseVertex(
+                        PrimitiveType.Triangles,
+                        (int) currentCommandList.ElemCount,
+                        DrawElementsType.UnsignedShort,
+                        (IntPtr) (offset * sizeof(ushort)),
+                        (int) indicesOffset
+                    );
+
+                    // Set drawing offset.
+                    offset += currentCommandList.ElemCount;
+                }
+
+                indicesOffset += (uint) drawList.VtxBuffer.Size;
+            }
+
             composer.PopModelMatrix();
 
             // No need to restore state, as this should be rendered last and is also used in developer mode only.

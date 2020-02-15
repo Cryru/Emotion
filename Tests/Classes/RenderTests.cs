@@ -5,8 +5,7 @@ using Emotion.Common;
 using Emotion.Game.Text;
 using Emotion.Game.Tiled;
 using Emotion.Graphics;
-using Emotion.Graphics.Command;
-using Emotion.Graphics.Command.Batches;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
@@ -47,7 +46,7 @@ namespace Tests.Classes
         public void RenderRichText()
         {
             var asset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
-            var testRich = new RichText(new Vector3(10, 10, 0), new Vector2(100, 100), asset.GetAtlas(20));
+            var testRich = new RichText(new Vector3(20, 20, 0), new Vector2(100, 100), asset.GetAtlas(20));
             testRich.SetText("The quick brown fox jumps over the <color=255-0-0>lazy</> dog.\n123456789!@#$%^&*(0");
 
             Runner.ExecuteAsLoop(_ =>
@@ -129,7 +128,7 @@ namespace Tests.Classes
                 // Set a background so invalid alpha can be seen
                 composer.RenderSprite(new Vector3(0, 0, -1), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
 
-                composer.SetSpriteBatchType<SortedSpriteBatch>();
+                composer.SetSpriteBatch(new SortedSpriteBatch());
 
                 for (var i = 0; i < 50; i++)
                 {
@@ -162,7 +161,7 @@ namespace Tests.Classes
                 composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 20, 1), Color.Blue, "This is test text", fontAsset.GetAtlas(20));
                 composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 0, 0), new Vector2(200, 100), Color.Black);
 
-                composer.RestoreSpriteBatchType();
+                composer.SetDefaultSpriteBatch();
 
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.ComposerRenderSorted);
@@ -178,7 +177,7 @@ namespace Tests.Classes
             {
                 RenderComposer composer = Engine.Renderer.StartFrame();
 
-                tileMap.Render(composer);
+                composer.Render(tileMap);
 
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.TilemapRender);
@@ -206,10 +205,7 @@ namespace Tests.Classes
 
                 composer.SetUseViewMatrix(false);
                 composer.SetShader(shader.Shader);
-                composer.PushCommand(new ExecCodeCommand
-                {
-                    Func = () => { Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1); }
-                });
+                Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
                 composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
                 composer.SetShader();
                 composer.SetUseViewMatrix(true);
