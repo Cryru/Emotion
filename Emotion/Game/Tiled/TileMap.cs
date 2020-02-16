@@ -427,18 +427,30 @@ namespace Emotion.Game.Tiled
 
             if (tsId > 0) tsOffset -= TiledMap.Tilesets[tsId].FirstGid - 1;
             tsOffset -= 1;
+
+            return GetUVFromTileImageIdAndTileset(tsOffset, tsId);
+        }
+
+        /// <summary>
+        /// Returns the UV of the specified tid in the specified tileset.
+        /// </summary>
+        /// <param name="tId">The texture id to parse.</param>
+        /// <param name="tsId">The tileset id containing the texture id.</param>
+        /// <returns>The UV of the tid within the tsId.</returns>
+        public Rectangle GetUVFromTileImageIdAndTileset(int tId, int tsId)
+        {
             TmxTileset ts = TiledMap.Tilesets[tsId];
 
             // Check if the current tileset has animated tiles.
             if (ts.Tiles.Count > 0)
-                foreach (AnimatedTile cachedTile in _animatedTiles.Where(cachedTile => cachedTile.Id == tsOffset))
+                foreach (AnimatedTile cachedTile in _animatedTiles.Where(cachedTile => cachedTile.Id == tId))
                 {
-                    tsOffset = cachedTile.FrameId;
+                    tId = cachedTile.FrameId;
                 }
 
             // Get tile image properties.
-            int tiColumn = tsOffset % (ts.Columns ?? 0);
-            var tiRow = (int) (tsOffset / (double) (ts.Columns ?? 0));
+            int tiColumn = tId % (ts.Columns ?? 0);
+            var tiRow = (int) (tId / (double) (ts.Columns ?? 0));
             var tiRect = new Rectangle(ts.TileWidth * tiColumn, ts.TileHeight * tiRow, ts.TileWidth, ts.TileHeight);
 
             // Add margins and spacing.
