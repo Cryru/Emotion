@@ -234,15 +234,16 @@ namespace Emotion.Graphics
 
             ShaderProgram.EnsureBound(ShaderFactory.DefaultProgram.Pointer);
 
-            // Create a representation of the screen buffer, and the buffer which will be drawn to.
-            ScreenBuffer = new FrameBuffer(0, Engine.Host.Window.Size);
-            CreateDrawbuffer(Engine.Configuration.RenderSize);
-
             // Create the blit state command for copying the draw buffer to the screen buffer.
             _blitState = RenderState.Default.Clone();
             _blitState.AlphaBlending = false;
             _blitState.DepthTest = false;
             _blitState.ViewMatrix = false;
+
+            // Create a representation of the screen buffer, and the buffer which will be drawn to.
+            ScreenBuffer = new FrameBuffer(0, Engine.Host.Window.Size);
+            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, Engine.Configuration.RenderSize) : new FrameBuffer(new Texture(Engine.Configuration.RenderSize), true);
+            _bufferStack.Push(DrawBuffer);
 
             // Decide on scaling mode.
             if (Engine.Configuration.ScaleBlackBars)
@@ -286,38 +287,6 @@ namespace Emotion.Graphics
             Engine.Host.Window.Context.SwapInterval = _vSync ? 1 : 0;
         }
 
-        private void CreateDrawbuffer(Vector2 size)
-        {
-            if (!Engine.Configuration.UseIntermediaryBuffer)
-            {
-                DrawBuffer = new FrameBuffer(0, size);
-                _bufferStack.Clear();
-                _bufferStack.Push(DrawBuffer);
-                return;
-            }
-
-            if (DrawBuffer == null)
-            {
-                DrawBuffer = new FrameBuffer(new Texture(size), true);
-            }
-            else if (DrawBuffer.Size == size)
-            {
-                return;
-            }
-            else if (DrawBuffer.Texture.Size.X >= size.X && DrawBuffer.Texture.Size.Y >= size.Y)
-            {
-                DrawBuffer.Size = size;
-            }
-            else
-            {
-                DrawBuffer?.Dispose();
-                DrawBuffer = new FrameBuffer(new Texture(size), true);
-            }
-
-            _bufferStack.Clear();
-            _bufferStack.Push(DrawBuffer);
-        }
-
         /// <summary>
         /// Recreate the drawbuffer when the host is resized.
         /// </summary>
@@ -346,9 +315,17 @@ namespace Emotion.Graphics
             Engine.Log.Info($"Resized host - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
 
             // Recreate draw buffer.
-            CreateDrawbuffer(size);
-            Camera?.RecreateMatrix();
+            if (!Engine.Configuration.UseIntermediaryBuffer)
+            {
+                DrawBuffer.Size = size;
+                DrawBuffer.Viewport = new Rectangle(0, 0, size);
+            }
+            else
+            {
+                DrawBuffer.Resize(size);
+            }
 
+            Camera?.RecreateMatrix();
             ApplySettings();
 
             return true;

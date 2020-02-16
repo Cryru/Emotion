@@ -97,7 +97,7 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The source pixel type of the texture's pixels.
         /// </summary>
-        public PixelType PixelType { get; private set; }
+        public PixelType PixelType { get; private set; } = PixelType.UnsignedByte;
 
         private bool _tile = true;
         private bool _smooth;
@@ -148,7 +148,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="internalFormat">The internal format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelFormat">The pixel format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelType">The data type of individual pixel components.</param>
-        public void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType pixelType = PixelType.UnsignedByte)
+        public void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType? pixelType = null)
         {
             Size = size;
 
@@ -160,16 +160,18 @@ namespace Emotion.Graphics.Objects
                 pixelFormat = PixelFormat;
             else
                 PixelFormat = (PixelFormat) pixelFormat;
-
-            PixelType = pixelType;
+            if (pixelType == null)
+                pixelType = PixelType;
+            else
+                PixelType = (PixelType) pixelType;
 
             EnsureBound(Pointer);
             if (data == null)
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    PixelType, IntPtr.Zero);
+                    (PixelType) pixelType, IntPtr.Zero);
             else
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,
-                    PixelType, data);
+                    (PixelType) pixelType, data);
 
             Smooth = _smooth;
             Tile = _tile;
