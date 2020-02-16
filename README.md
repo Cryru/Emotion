@@ -119,7 +119,7 @@ OpenGL.Net (https://github.com/luca-piccioni/OpenGL.Net)
  - Used as a wrapper for OpenGL.
  - Heavily forked, stripped down, and modified.
 
-Serilog (https://serilog.net/)
+Serilog (https://github.com/serilog/serilog)
  - Used for logging.
 
 StbTrueTypeSharp

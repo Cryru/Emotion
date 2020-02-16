@@ -1,18 +1,14 @@
 IO
 	- "Relative to" support for things like the shaders which reference other assets.
 DataBuffer.CreateMapper
-	- Only the data that needs mapping should be downloaded from the GPU. Currently the whole range is being downloaded. Additionally maybe internally it should be held in a byte span.
-Commands
-	- Merge state changing commands one after another into one.
-	- Some kind of shared cache buffer for commands rather than the pool which exists now.
-	- Maybe get rid of commands?
+	- Currently a CPU copy of the data is required to ensure minimal data transfer. Can this be worked around?
 GL
 	- Investigate why the VertexArrayObject binding cache doesn't work. Maybe VertexArrayBinding isn't the right value?
 Rendering
 	- Add tests for state changes
 	- Add tests for various batch stuff
-	- Uniform blocks (UBO) for syncing shaders
-	- When the batch memory is dirty, don't upload all of it. Just the part that's updated. Replace "_upload" will some kind of min-max indices.
+	- Uniform blocks (UBO) for syncing shaders. Also some kind of CPU based system to reduce so many unnecessary syncing
+	- Does color have to be uploaded for every sprite's vertex? Most of the time they won't differ per sprite, and most of the time it is white.
 Standard.Image
 	- Implement ByteWriter and use it to encode the images.
 	- JPEG Support
@@ -20,7 +16,7 @@ Standard.Image
 	- Would be nice to have to provide some sort of PixelFormat to Encode, Decode. Currently only BGRA is passed around.
 Logging
 	- Filtering
-	- Shaking off dependencies
+	- Shaking off dependencies - make own logger.
 	- Hooking up a network loggers for certain levels (errors) and sources (engine, game)
 Standard.Text
 	- Improve the CFF dictionary parsing with a class with annotations instead of the dictionary hell happening there.
@@ -42,6 +38,7 @@ Emotion.Test
 	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
 	- The current max derivation % is 400 instead of 100
 	- Test functions which are run at the start and end of a class.
+	- Taking screenshots of the game currently requires the intermediary buffer to be turned on, as there is no place for the test framework to hook before swap buffers.
 Documentation
 	- Finish the documentation :D
 Game Logic
@@ -61,3 +58,4 @@ Emotion.Game
 	- Bound box for the tile map - used to calculate only visible tiles and map only them.
 Tools
 	- FileExplorer extension matching per asset type (don't show those who don't match)
+	- Modals are reported to not center on 4k screens.
