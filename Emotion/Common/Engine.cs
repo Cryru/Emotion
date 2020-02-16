@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Emotion.Common.Threading;
+using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Platform;
@@ -58,6 +59,11 @@ namespace Emotion.Common
         /// The audio context of the platform. A redirect of Host.Audio.
         /// </summary>
         public static AudioContext Audio { get; private set; }
+
+        /// <summary>
+        /// The global coroutine manager.
+        /// </summary>
+        public static CoroutineManager CoroutineManager { get; private set; } = new CoroutineManager();
 
         #endregion
 
@@ -378,6 +384,7 @@ namespace Emotion.Common
 
             Host.UpdateInput();
             Renderer.Update();
+            CoroutineManager.Update();
             SceneManager.Update();
 
             // Update plugins.

@@ -58,9 +58,9 @@ namespace Tests.Classes
             flag.Switch = true;
         }
 
-        public static IEnumerator SubroutineTestRoutine(RoutineSwitch flag, CoroutineManager manager)
+        public static IEnumerator SubroutineTestRoutine(RoutineSwitch flag)
         {
-            yield return manager.StartCoroutine(LoopTestRoutine(flag));
+            yield return LoopTestRoutine(flag);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Tests.Classes
 
             // Start a time waiting routine.
             var switchFlag = new RoutineSwitch();
-            Coroutine routineHandle = manager.StartCoroutine(SubroutineTestRoutine(switchFlag, manager));
+            Coroutine routineHandle = manager.StartCoroutine(SubroutineTestRoutine(switchFlag));
 
             // One routine should be running.
             Assert.Equal(1, manager.Count);

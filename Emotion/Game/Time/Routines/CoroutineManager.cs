@@ -90,8 +90,17 @@ namespace Emotion.Game.Time.Routines
                     object currentYield = current.Enumerator?.Current;
                     if (incremented == true)
                     {
-                        // Check if a delay, and add it as the routine's delay.
-                        if (currentYield is IRoutineWaiter routineDelay) current.Waiter = routineDelay;
+                        switch (currentYield)
+                        {
+                            // Check if a delay, and add it as the routine's delay.
+                            case IRoutineWaiter routineDelay:
+                                current.Waiter = routineDelay;
+                                break;
+                            // Check if adding a subroutine.
+                            case IEnumerator subroutine:
+                                current.Waiter = StartCoroutine(subroutine);
+                                break;
+                        }
 
                         // If the delay is some other object it will delay execution by one loop.
                     }
