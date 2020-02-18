@@ -45,7 +45,7 @@ namespace Tests.Classes
 
         public static IEnumerator TimeTestRoutineTwoIncrements(RoutineSwitch flag)
         {
-            yield return null;
+            yield return false;
             yield return new WaitForTestTime(1);
             flag.Switch = true;
             yield return new WaitForTestTime(1);
@@ -53,8 +53,8 @@ namespace Tests.Classes
 
         public static IEnumerator LoopTestRoutine(RoutineSwitch flag)
         {
-            yield return null;
-            yield return null;
+            yield return false;
+            yield return false;
             flag.Switch = true;
         }
 

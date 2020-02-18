@@ -29,7 +29,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// List of running routines.
         /// </summary>
-        private List<Coroutine> _runningRoutines = new List<Coroutine>();
+        private readonly List<Coroutine> _runningRoutines = new List<Coroutine>();
 
         /// <summary>
         /// Start a new coroutine.
@@ -88,7 +88,7 @@ namespace Emotion.Game.Time.Routines
                     // Increment the routine.
                     bool? incremented = current.Enumerator?.MoveNext();
                     object currentYield = current.Enumerator?.Current;
-                    if (incremented == true)
+                    if (incremented == true && currentYield != null)
                     {
                         switch (currentYield)
                         {
