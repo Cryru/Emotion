@@ -23,28 +23,28 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 {
     public sealed unsafe class WglGraphicsContext : GraphicsContext
     {
-        private IntPtr _openGlLibrary;
+        private readonly IntPtr _openGlLibrary;
         private const int FlagNumberPixelFormatsArb = 0x2000;
 
-        private WglFunctions.WglDeleteContext _deleteContext;
-        private WglFunctions.WglGetProcAddress _getProcAddress;
-        private WglFunctions.WglGetCurrentDc _getCurrentDc;
-        private WglFunctions.WglGetCurrentContext _getCurrentContext;
-        private WglFunctions.WglMakeCurrent _makeCurrent;
-        private WglFunctions.GetExtensionsStringExt _getExtensionsStringExt;
-        private WglFunctions.GetExtensionsStringArb _getExtensionsStringArb;
-        private WglFunctions.SwapInternalExt _swapIntervalExt;
-        private WglFunctions.GetPixelFormatAttributes _getPixelFormatAttribivArb;
+        private readonly WglFunctions.WglDeleteContext _deleteContext;
+        private readonly WglFunctions.WglGetProcAddress _getProcAddress;
+        private readonly WglFunctions.WglGetCurrentDc _getCurrentDc;
+        private readonly WglFunctions.WglGetCurrentContext _getCurrentContext;
+        private readonly WglFunctions.WglMakeCurrent _makeCurrent;
+        private readonly WglFunctions.GetExtensionsStringExt _getExtensionsStringExt;
+        private readonly WglFunctions.GetExtensionsStringArb _getExtensionsStringArb;
+        private readonly WglFunctions.SwapInternalExt _swapIntervalExt;
+        private readonly WglFunctions.GetPixelFormatAttributes _getPixelFormatAttribivArb;
 
         private string[] _wglExtensions;
-        private bool _arbMultisample;
-        private bool _arbFramebufferSRgb;
-        private bool _extFramebufferSRgb;
-        private bool _arbPixelFormat;
+        private readonly bool _arbMultisample;
+        private readonly bool _arbFramebufferSRgb;
+        private readonly bool _extFramebufferSRgb;
+        private readonly bool _arbPixelFormat;
 
-        private IntPtr _contextHandle;
-        private IntPtr _dc;
-        private Win32Platform _platform;
+        private readonly IntPtr _contextHandle;
+        private readonly IntPtr _dc;
+        private readonly Win32Platform _platform;
 
         private delegate int RenderDocGetApi(int version, void* api);
 

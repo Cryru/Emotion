@@ -21,12 +21,12 @@ namespace Emotion.Game.Time
         private float _timePassed;
         private int _currentCount;
 
-        private float _delay;
-        private Action _function;
-        private int _count;
-        private Action _after;
+        private readonly float _delay;
+        private readonly Action _function;
+        private readonly int _count;
+        private readonly Action _after;
 
-        internal Every(float delay, Action function, int count = -1, Action after = null)
+        public Every(float delay, Action function, int count = -1, Action after = null)
         {
             _delay = delay;
             _function = function;

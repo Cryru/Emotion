@@ -261,21 +261,12 @@ namespace Emotion.Utility
             double sCubed = s * s * s;
             double sSquared = s * s;
 
-            switch (amount)
+            result = amount switch
             {
-                case 0f:
-                    result = value1;
-                    break;
-                case 1f:
-                    result = value2;
-                    break;
-                default:
-                    result = (2 * v1 - 2 * v2 + t2 + t1) * sCubed +
-                             (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared +
-                             t1 * s +
-                             v1;
-                    break;
-            }
+                0f => value1,
+                1f => value2,
+                _ => ((2 * v1 - 2 * v2 + t2 + t1) * sCubed + (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared + t1 * s + v1)
+            };
 
             return (float) result;
         }

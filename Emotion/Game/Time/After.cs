@@ -15,9 +15,9 @@ namespace Emotion.Game.Time
             get => _timePassed / _delay;
         }
 
-        private float _timePassed;
-        private float _delay;
-        private Action _function;
+        protected float _timePassed;
+        protected float _delay;
+        protected Action _function;
 
         public After(float delay, Action function = null)
         {
@@ -25,7 +25,7 @@ namespace Emotion.Game.Time
             _function = function;
         }
 
-        public void Update(float timePassed)
+        public virtual void Update(float timePassed)
         {
             if (Finished) return;
 
@@ -33,14 +33,14 @@ namespace Emotion.Game.Time
             if (_timePassed >= _delay) End();
         }
 
-        public void End()
+        public virtual void End()
         {
             _timePassed = _delay;
             _function?.Invoke();
             Finished = true;
         }
 
-        public void Restart()
+        public virtual void Restart()
         {
             _timePassed = 0;
             Finished = false;
@@ -48,7 +48,7 @@ namespace Emotion.Game.Time
 
         #region Routine Waiter API
 
-        public bool Finished { get; private set; }
+        public bool Finished { get; protected set; }
 
         public void Update()
         {
