@@ -379,34 +379,30 @@ namespace Emotion.Test
         {
             try
             {
-                // Check if a tick substitute is found.
-                if (_loopAction != null)
+                // Check running loops.
+                if (_loopAction == null) return true;
+
+                try
                 {
-                    try
-                    {
-                        _loopAction.Invoke(Engine.DeltaTime);
-                    }
-                    catch (Exception ex)
-                    {
-                        _loopException = ex;
-                    }
-
-                    _loopCounter--;
-
-                    if (_loopCounter > 0) return false;
-                    _loopAction = null;
-
-                    // Release the lock.
-                    lock (_loopWaiter)
-                    {
-                        _loopWaiter?.Set();
-                        _loopWaiter = null;
-                    }
+                    _loopAction.Invoke(Engine.DeltaTime);
+                }
+                catch (Exception ex)
+                {
+                    _loopException = ex;
                 }
 
-                // Check if running loops.
-                if (_loopCounter <= 0) return false;
                 _loopCounter--;
+                int counterThisTick = _loopCounter;
+
+                if (counterThisTick > 0) return false;
+                if(counterThisTick == 0) _loopAction = null;
+
+                // Release the lock.
+                lock (_loopWaiter)
+                {
+                    _loopWaiter?.Set();
+                    if(counterThisTick == 0) _loopWaiter = null;
+                }
                 return true;
             }
             catch (Exception ex)
@@ -439,7 +435,7 @@ namespace Emotion.Test
         /// <param name="count">The number of times to run the loop.</param>
         public static void RunLoop(int count = 1)
         {
-            _loopCounter = count;
+            ExecuteAsLoop((f) => { }, count).WaitOne();
         }
 
         /// <summary>
