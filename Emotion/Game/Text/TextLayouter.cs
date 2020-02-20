@@ -49,7 +49,7 @@ namespace Emotion.Game.Text
             if (c == '\n')
             {
                 result.X = 0;
-                result.Y += _atlas.FontHeight;
+                result.Y += _atlas.FontHeight + LineGap;
             }
             else
             {
