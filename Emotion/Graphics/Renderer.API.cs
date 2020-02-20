@@ -399,6 +399,7 @@ namespace Emotion.Graphics
         public void ClearStencil()
         {
             InvalidateStateBatches();
+            StencilStartDraw();
             Gl.Clear(ClearBufferMask.StencilBufferBit);
             StencilStopDraw();
         }
