@@ -296,7 +296,7 @@ namespace Emotion.Graphics
             Vector2 baseRes = Engine.Configuration.RenderSize;
             Vector2 ratio = size / baseRes;
             Scale = MathF.Min(ratio.X, ratio.Y);
-            IntScale = (int) MathF.Floor((size.X + size.Y) / (baseRes.X + baseRes.Y));
+            IntScale = (int) MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
 
             // Set viewport.
             Gl.Viewport(0, 0, (int) size.X, (int) size.Y);
