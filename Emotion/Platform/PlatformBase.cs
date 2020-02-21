@@ -149,6 +149,7 @@ namespace Emotion.Platform
                     Engine.Log.Info($"Set window size to {chosenSize}", MessageSource.Platform);
                     return false;
                 }
+                if (key == Key.Pause && state == KeyStatus.Down) PerfProfiler.ProfileNextFrame();
             }
 
             bool alt = IsKeyHeld(Key.LeftAlt) || IsKeyHeld(Key.RightAlt);

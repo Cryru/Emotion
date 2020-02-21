@@ -39,9 +39,11 @@ namespace Emotion.Graphics
         public void InvalidateStateBatches()
         {
             if (ActiveQuadBatch == null || ActiveQuadBatch.BatchedSprites == 0) return;
+            PerfProfiler.Start($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites");
             ActiveQuadBatch.Render(this);
             ActiveQuadBatch.Recycle();
             MemoryPool.Reset();
+            PerfProfiler.Stop();
         }
 
         /// <summary>

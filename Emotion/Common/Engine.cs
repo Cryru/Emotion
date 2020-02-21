@@ -401,17 +401,34 @@ namespace Emotion.Common
 
         private static void RunFrame()
         {
-            // Run the GLThread queued commands.
-            GLThread.Run();
+            PerfProfiler.FrameStart();
 
+            // Run the GLThread queued commands.
+            PerfProfiler.Start("GLThread.Run");
+            GLThread.Run();
+            PerfProfiler.Stop();
+
+            PerfProfiler.Start("StartFrame");
             Renderer.StartFrame();
+            PerfProfiler.Stop();
+
+            PerfProfiler.Start("Scene.Draw");
             SceneManager.Draw(Renderer);
+            PerfProfiler.Stop();
+
+            PerfProfiler.Start("EndFrame");
             Renderer.EndFrame();
+            PerfProfiler.Stop();
+
+            PerfProfiler.Start("BufferSwap");
             Host.Window.Context.SwapBuffers();
+            PerfProfiler.Stop();
 #if TIMING_DEBUG
             _frameId++;
             Console.Write(_curUpdateC);
 #endif
+
+            PerfProfiler.FrameEnd();
         }
 
         #endregion
