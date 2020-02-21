@@ -4,6 +4,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Emotion.Common;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Utility;
@@ -109,10 +110,10 @@ namespace Emotion.Graphics.Data
             Vector2 nnUV = new Vector2(uvRect.X, uvYp) / texture.Size;
 
             // Add a small epsilon to prevent the wrong UVs from being sampled.
-            npUV = new Vector2(npUV.X - Maths.EPSILON, npUV.Y + Maths.EPSILON);
-            ppUV = new Vector2(ppUV.X + Maths.EPSILON, ppUV.Y + Maths.EPSILON);
-            pnUV = new Vector2(pnUV.X - Maths.EPSILON, pnUV.Y - Maths.EPSILON);
-            nnUV = new Vector2(nnUV.X + Maths.EPSILON, nnUV.Y - Maths.EPSILON);
+            npUV = new Vector2(npUV.X + Maths.EPSILON, npUV.Y - Maths.EPSILON);
+            ppUV = new Vector2(ppUV.X - Maths.EPSILON, ppUV.Y - Maths.EPSILON);
+            pnUV = new Vector2(pnUV.X - Maths.EPSILON, pnUV.Y + Maths.EPSILON);
+            nnUV = new Vector2(nnUV.X + Maths.EPSILON, nnUV.Y + Maths.EPSILON);
 
             // Same order as vertices.
             vertices[0].UV = npUV;
