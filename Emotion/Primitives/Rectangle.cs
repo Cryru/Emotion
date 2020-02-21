@@ -140,6 +140,11 @@ namespace Emotion.Primitives
             }
         }
 
+        public float Diagonal
+        {
+            get => MathF.Sqrt(MathF.Pow(Width, 2) + MathF.Pow(Height, 2));
+        }
+
         #endregion
 
         #region Constructors
