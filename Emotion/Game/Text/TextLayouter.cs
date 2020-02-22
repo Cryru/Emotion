@@ -123,6 +123,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// Measure the provided string with the loaded atlas.
         /// Does not modify the pen position.
+        /// The size returned is not the actual render size of the text, but it can be used to coordinate it.
         /// </summary>
         public Vector2 MeasureString(string text)
         {
@@ -149,7 +150,7 @@ namespace Emotion.Game.Text
                 if (g == null) continue;
 
                 sizeSoFar.X += g.Advance;
-                float verticalSize = g.Size.Y + g.YBearing;
+                float verticalSize = g.Size.Y + g.YBearing + g.YMin;
                 if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
             }
 

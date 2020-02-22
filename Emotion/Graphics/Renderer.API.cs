@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics.Batches;
-using Emotion.Graphics.Command.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;

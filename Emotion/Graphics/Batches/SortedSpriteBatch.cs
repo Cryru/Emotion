@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using Emotion.Graphics.Command.Batches;
 using Emotion.Graphics.Data;
 
 #endregion

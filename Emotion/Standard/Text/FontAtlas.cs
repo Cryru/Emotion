@@ -48,6 +48,11 @@ namespace Emotion.Standard.Text
         public float XMin { get; set; }
 
         /// <summary>
+        /// The size below the origin.
+        /// </summary>
+        public float YMin { get; set; }
+
+        /// <summary>
         /// The glyph's scaled YBearing, which is the font's scaled ascend minus the glyph's scaled YMax.
         /// </summary>
         public float YBearing { get; set; }
@@ -68,6 +73,7 @@ namespace Emotion.Standard.Text
             XMin = MathF.Floor(fontGlyph.XMin * scale);
             Rectangle bbox = fontGlyph.GetBBox(scale);
             YBearing = bbox.Y + MathF.Ceiling(ascend * scale);
+            YMin = MathF.Floor(fontGlyph.YMin * scale);
             Size = fontGlyph.GetDrawBox(scale).Size;
         }
     }
