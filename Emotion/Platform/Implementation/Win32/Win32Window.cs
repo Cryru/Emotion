@@ -48,43 +48,6 @@ namespace Emotion.Platform.Implementation.Win32
         }
 
         /// <inheritdoc />
-        public override Vector2 Size
-        {
-            get
-            {
-                User32.GetClientRect(Handle, out Rect rect);
-                return new Vector2(rect.Right, rect.Bottom);
-            }
-            set
-            {
-                if (DisplayMode != DisplayMode.Windowed) return;
-
-                // Scale the rect, and set it.
-                Rect r = GetFullWindowRect((int) value.X, (int) value.Y);
-                int width = r.Right - r.Left;
-                int height = r.Bottom - r.Top;
-
-                // Center on the monitor.
-                Monitor monitor = _platform.GetMonitorOfWindow(this);
-                if (monitor == null)
-                {
-                    Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
-                    return;
-                }
-
-                Vector2 center = monitor.Position + new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
-
-                User32.SetWindowPos(Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
-                    (int) center.X + r.Left,
-                    (int) center.Y + r.Top,
-                    r.Right - r.Left,
-                    r.Bottom - r.Top,
-                    WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_SHOWWINDOW
-                );
-            }
-        }
-
-        /// <inheritdoc />
         public override WindowState WindowState
         {
             get
@@ -141,6 +104,38 @@ namespace Emotion.Platform.Implementation.Win32
         {
             Handle = handle;
             Context = context;
+        }
+
+        protected override void SetSize(Vector2 value)
+        {
+            // Scale the rect, and set it.
+            Rect r = GetFullWindowRect((int) value.X, (int) value.Y);
+            int width = r.Right - r.Left;
+            int height = r.Bottom - r.Top;
+
+            // Center on the monitor.
+            Monitor monitor = _platform.GetMonitorOfWindow(this);
+            if (monitor == null)
+            {
+                Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
+                return;
+            }
+
+            Vector2 center = monitor.Position + new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
+
+            User32.SetWindowPos(Handle, (IntPtr) HwndZOrder.HWND_NOTOPMOST,
+                (int) center.X + r.Left,
+                (int) center.Y + r.Top,
+                r.Right - r.Left,
+                r.Bottom - r.Top,
+                WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_SHOWWINDOW
+            );
+        }
+
+        protected override Vector2 GetSize()
+        {
+            User32.GetClientRect(Handle, out Rect rect);
+            return new Vector2(rect.Right, rect.Bottom);
         }
 
         internal override void UpdateDisplayMode()

@@ -37,9 +37,21 @@ namespace Emotion.Platform
         public abstract Vector2 Position { get; set; }
 
         /// <summary>
-        /// The size of the window in pixels.
+        /// The size of the window in pixels. The size must be an even number on both axes.
         /// </summary>
-        public abstract Vector2 Size { get; set; }
+        public Vector2 Size
+        {
+            get => GetSize();
+            set
+            {
+                if (DisplayMode != DisplayMode.Windowed) return;
+
+                Vector2 val = value.Floor();
+                if (val.X % 2 != 0) val.X++;
+                if (val.Y % 2 != 0) val.Y++;
+                SetSize(val);
+            }
+        }
 
         /// <summary>
         /// The platform which created this window.
@@ -58,6 +70,8 @@ namespace Emotion.Platform
         }
 
         internal abstract void UpdateDisplayMode();
+        protected abstract Vector2 GetSize();
+        protected abstract void SetSize(Vector2 size);
 
         #region Cleanup
 
