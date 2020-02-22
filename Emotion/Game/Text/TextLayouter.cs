@@ -126,9 +126,9 @@ namespace Emotion.Game.Text
         /// </summary>
         public Vector2 MeasureString(string text)
         {
-            var sizeSoFar = new Vector2(0, _atlas.FontHeight);
+            var sizeSoFar = new Vector2(0, 0);
             float largestLine = 0;
-            float largestBearing = 0;
+            float tallestOnLine = 0;
             for (var i = 0; i < text.Length; i++)
             {
                 char c = text[i];
@@ -137,7 +137,8 @@ namespace Emotion.Game.Text
                 if (c == '\n')
                 {
                     if (sizeSoFar.X > largestLine) largestLine = sizeSoFar.X;
-                    largestBearing = 0;
+                    sizeSoFar.Y += tallestOnLine;
+                    tallestOnLine = 0;
                 }
 
                 // Spaces on the end of lines are not counted.
@@ -145,15 +146,14 @@ namespace Emotion.Game.Text
 
                 Vector2 pos = GetNextGlyphPosition(sizeSoFar, c, out Vector2 _, out AtlasGlyph g);
                 sizeSoFar = pos;
-                if (g != null)
-                {
-                    sizeSoFar.X += g.Advance;
+                if (g == null) continue;
 
-                    if (g.YBearing > largestBearing) largestBearing = g.YBearing;
-                }
+                sizeSoFar.X += g.Advance;
+                float verticalSize = g.Size.Y + g.YBearing;
+                if (verticalSize > tallestOnLine) tallestOnLine = verticalSize;
             }
 
-            sizeSoFar.Y -= largestBearing;
+            sizeSoFar.Y += tallestOnLine;
 
             if (largestLine != 0)
                 sizeSoFar.X = largestLine;
