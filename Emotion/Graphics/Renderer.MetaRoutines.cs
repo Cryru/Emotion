@@ -112,8 +112,8 @@ namespace Emotion.Graphics
                 else if (i == circleDetail - 1)
                 {
                     vertices.Add(new Vector3(radius + pX, radius + pY, 0));
+                    vertices.Add(new Vector3(radius + x, radius + y, 0));
                     vertices.Add(new Vector3(radius + fX, radius + fY, 0));
-                    vertices.Add(new Vector3(radius, radius, 0));
                     vertices.Add(new Vector3(radius, radius, 0));
                 }
 
