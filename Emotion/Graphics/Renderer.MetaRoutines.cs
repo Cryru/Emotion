@@ -99,22 +99,27 @@ namespace Emotion.Graphics
                 float x = (float) Math.Cos(angle) * radius;
                 float y = (float) Math.Sin(angle) * radius;
 
-                vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                vertices.Add(new Vector3(radius + x, radius + y, 0));
-                vertices.Add(new Vector3(radius, radius, 0));
-                vertices.Add(new Vector3(radius, radius, 0));
-
-                if (i == 0)
+                if (i < circleDetail - 1)
                 {
-                    fX = x;
-                    fY = y;
+                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
+                    vertices.Add(new Vector3(radius + x, radius + y, 0));
+                    vertices.Add(new Vector3(radius, radius, 0));
+                    vertices.Add(new Vector3(radius, radius, 0));
                 }
-                else if (i == circleDetail - 1)
+                else
                 {
+                    // when @ second-to-last segment -> Draw the last 2 triangles @ once, skipping last iter of loop
                     vertices.Add(new Vector3(radius + pX, radius + pY, 0));
                     vertices.Add(new Vector3(radius + x, radius + y, 0));
                     vertices.Add(new Vector3(radius + fX, radius + fY, 0));
                     vertices.Add(new Vector3(radius, radius, 0));
+                    break;
+                }
+                
+                if (i == 0)
+                {
+                    fX = x;
+                    fY = y;
                 }
 
                 pX = x;
