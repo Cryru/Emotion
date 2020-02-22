@@ -4,7 +4,6 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Common;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Utility;
