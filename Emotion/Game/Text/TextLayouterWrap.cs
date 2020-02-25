@@ -14,6 +14,7 @@ namespace Emotion.Game.Text
     /// </summary>
     public class TextLayouterWrap : TextLayouter
     {
+        public float NeededWidth { get; private set; }
         public float NeededHeight { get; private set; }
 
         private int _counter;
@@ -29,6 +30,7 @@ namespace Emotion.Game.Text
             var breakSkipMode = false;
             int breakSkipModeLimit = -1;
             float lineHeight = _atlas.FontHeight;
+            float longestLine = 0;
 
             // Loop through the text.
             for (var i = 0; i < text.Length; i++)
@@ -78,6 +80,7 @@ namespace Emotion.Game.Text
                 {
                     // Push new line.
                     NeededHeight += lineHeight + LineGap;
+                    if(textSize.X > longestLine) longestLine = textSize.X;
                     lineHeight = _atlas.FontHeight;
                     if (text[i] != '\n') _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
                     currentLine = "";
@@ -99,6 +102,9 @@ namespace Emotion.Game.Text
 
             // If there is text left push in on a new line.
             NeededHeight += lineHeight + LineGap;
+            float lastLine = MeasureString(currentLine).X;
+            if (lastLine > longestLine) longestLine = lastLine;
+            NeededWidth = longestLine;
         }
 
         /// <summary>
