@@ -15,7 +15,7 @@ namespace Emotion.Graphics.Batches
     {
         public override unsafe void Render(RenderComposer composer)
         {
-            var data = new Span<VertexDataSprite>((void*) _memoryPage, _mappedTo / 4);
+            var data = new Span<VertexDataSprite>((void*) _memoryPtr, _mappedTo / 4);
 
             // Temp sort until https://github.com/dotnet/corefx/issues/15329 reaches us.
             QuickSort(data, 0, data.Length - 1);

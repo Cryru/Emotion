@@ -14,7 +14,6 @@ using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
-using Emotion.Standard.Utility;
 using OpenGL;
 using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
@@ -133,13 +132,6 @@ namespace Emotion.Graphics
         /// Cached VAOs per structure type. These are all bound to the common VBO.
         /// </summary>
         public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
-
-        /// <summary>
-        /// Shared memory pool.
-        /// Page size is 2 mb - which is close to the data the maximum number of sprites that can be drawn in one batch using the
-        /// VertexData struct.
-        /// </summary>
-        public NativeMemoryPool MemoryPool = new NativeMemoryPool(1000 * 1000 * 2);
 
         #endregion
 

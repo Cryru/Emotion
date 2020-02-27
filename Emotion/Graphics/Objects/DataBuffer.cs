@@ -162,7 +162,7 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Start mapping the memory of the buffer.
         /// </summary>
-        public unsafe void StartMapping()
+        public unsafe void StartMapping(int byteOffset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
         {
             if (_mapping)
             {
@@ -176,14 +176,16 @@ namespace Emotion.Graphics.Objects
                 return;
             }
 
+            if (length == 0) length = Size;
+
             if (Engine.Renderer.Dsa)
             {
-                _mappingPtr = (byte*) Gl.MapNamedBufferRange(Pointer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
+                _mappingPtr = (byte*) Gl.MapNamedBufferRange(Pointer, (IntPtr) byteOffset, length, mask);
             }
             else
             {
                 EnsureBound(Pointer, Type);
-                _mappingPtr = (byte*) Gl.MapBufferRange(Type, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
+                _mappingPtr = (byte*) Gl.MapBufferRange(Type, (IntPtr) byteOffset, length, mask);
             }
 
             if ((IntPtr) _mappingPtr == IntPtr.Zero)
@@ -226,15 +228,15 @@ namespace Emotion.Graphics.Objects
         /// When finished mapping you should invoke <see cref="FinishMapping" /> to flush the data to the GPU.
         /// </summary>
         /// <param name="offset">Offset for the mapping region from the beginning of the buffer - in bytes.</param>
+        /// <param name="length">The length to map in bytes.</param>
+        /// <param name="mask">The mapping access params.</param>
         /// <returns>A mapper used to map data in the buffer.</returns>
-        public unsafe byte* CreateUnsafeMapper(int offset = 0)
+        public unsafe byte* CreateUnsafeMapper(int offset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
         {
             EnsureBound(Pointer, Type);
 
-            if (!_mapping) StartMapping();
-            if (!_mapping) return null;
-
-            return &_mappingPtr[offset];
+            if (!_mapping) StartMapping(offset, length, mask);
+            return !_mapping ? null : _mappingPtr;
         }
 
         /// <summary>
@@ -258,6 +260,27 @@ namespace Emotion.Graphics.Objects
             }
 
             _mapping = false;
+        }
+
+        /// <summary>
+        /// Flush a part of the buffer data being mapped.
+        /// Requires for the mapper to have been created with "BufferAccessMask.MapFlushExplicitBit"
+        /// </summary>
+        /// <param name="offset">The starting byte range to flush from.</param>
+        /// <param name="length">The length of the range to flush.</param>
+        public void FinishMappingRange(int offset, uint length)
+        {
+            if (!_mapping) return;
+
+            if (Engine.Renderer.Dsa)
+            {
+                Gl.FlushMappedNamedBufferRange(Pointer, (IntPtr) offset, length);
+            }
+            else
+            {
+                EnsureBound(Pointer, Type);
+                Gl.FlushMappedBufferRange(Type, (IntPtr)offset, length);
+            }
         }
 
         #endregion

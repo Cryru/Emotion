@@ -2,7 +2,7 @@
 
 using System;
 using Emotion.Graphics.Objects;
-using Emotion.Standard.Utility;
+using OpenGL;
 
 #endregion
 
@@ -10,11 +10,11 @@ namespace Emotion.Graphics.Batches
 {
     public interface ISharedMemorySpriteBatch
     {
-        void SetOwner(NativeMemoryPool owner);
+        void SetMemory(VertexBuffer owner);
     }
 
     /// <summary>
-    /// Batch which shared GPU and CPU memory with the composer who owns it.
+    /// Batch which doesn't own neither GPU nor CPU memory.
     /// </summary>
     public class SharedMemorySpriteBatch<T> : SpriteBatchBase<T>, ISharedMemorySpriteBatch
     {
@@ -23,24 +23,24 @@ namespace Emotion.Graphics.Batches
             _spriteByteSize = _structByteSize * 4;
         }
 
-        protected NativeMemoryPool _owner;
-        protected IntPtr _memoryPage;
+        protected VertexBuffer _vbo;
+        protected IntPtr _memoryPtr;
         protected int _spriteByteSize;
 
         /// <summary>
-        /// Set the pool which owns this batch's memory.
+        /// Set the vbo which owns this batch's memory.
         /// </summary>
-        /// <param name="owner">The render composer who owns this batch.</param>
-        public void SetOwner(NativeMemoryPool owner)
+        /// <param name="owner">The vbp who owns this batch's memory.</param>
+        public void SetMemory(VertexBuffer owner)
         {
-            _owner = owner;
+            _vbo = owner;
         }
 
         /// <inheritdoc />
         public override void Recycle()
         {
             base.Recycle();
-            _memoryPage = IntPtr.Zero;
+            _memoryPtr = IntPtr.Zero;
         }
 
         /// <inheritdoc />
@@ -49,7 +49,7 @@ namespace Emotion.Graphics.Batches
             texturePointer = -1;
 
             // Check if already full (or have no owner - that should never happen).
-            if (Full || _owner == null) return null;
+            if (Full || _vbo == null) return null;
 
             // Check if the texture exists in the binding for this batch.
             // This will also add the texture to this batch.
@@ -57,17 +57,19 @@ namespace Emotion.Graphics.Batches
             if (texture != null) AddTextureBinding(texture.Pointer, out texturePointer);
 
             // Check if have memory.
-            if (_memoryPage == IntPtr.Zero)
-                _memoryPage = _owner.GetMemory(_spriteByteSize);
+            if (_memoryPtr == IntPtr.Zero)
+                _memoryPtr = (IntPtr) _vbo.CreateUnsafeMapper(0, 0,
+                    BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateBufferBit | BufferAccessMask.MapFlushExplicitBit
+                );
 
             // Get the data.
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            var data = new Span<T>((void*) &((byte*) _memoryPage)[_mappedTo * _structByteSize], 4);
+            var data = new Span<T>((void*) &((byte*) _memoryPtr)[_mappedTo * _structByteSize], 4);
             _mappedTo += 4;
 
             // Mark memory as used.
-            int memoryLeft = _owner.MarkUsed(_spriteByteSize);
+            var memoryLeft = (uint) (_vbo.Size - _mappedTo * _structByteSize);
 
             // Check if one more sprite can fit, both in memory and in the IBO. Each sprite is 4 vertices.
             if (memoryLeft < _spriteByteSize || _mappedTo + 4 > RenderComposer.MAX_INDICES) Full = true;
@@ -80,25 +82,25 @@ namespace Emotion.Graphics.Batches
         {
             if (BatchedSprites < idx) return null;
             // ReSharper disable once ConvertIfStatementToReturnStatement
-            if (_memoryPage == IntPtr.Zero) return null;
+            if (_memoryPtr == IntPtr.Zero) return null;
 
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
-            return new Span<T>((void*) &((byte*) _memoryPage)[idx * 4 * _structByteSize], 4);
+            return new Span<T>((void*) &((byte*) _memoryPtr)[idx * 4 * _structByteSize], 4);
         }
 
         /// <inheritdoc />
         public override void Render(RenderComposer composer)
         {
             // If nothing mapped - or no memory (which shouldn't happen), do nothing.
-            if (_mappedTo == 0 || _memoryPage == IntPtr.Zero) return;
+            if (_mappedTo == 0 || _memoryPtr == IntPtr.Zero) return;
 
             // Get the right graphics objects to use for the drawing.
-            VertexBuffer vbo = composer.VertexBuffer;
             VertexArrayObject vao = composer.CommonVao;
 
             // Upload the data if needed.
-            vbo.Upload(_memoryPage, (uint) (_mappedTo * _structByteSize));
+            _vbo.FinishMappingRange(0, (uint) (_mappedTo * _structByteSize));
+            _vbo.FinishMapping();
 
             // Draw.
             Draw(vao);
@@ -108,7 +110,7 @@ namespace Emotion.Graphics.Batches
         public override void Dispose()
         {
             Recycle();
-            _owner = null;
+            _vbo = null;
         }
     }
 }
