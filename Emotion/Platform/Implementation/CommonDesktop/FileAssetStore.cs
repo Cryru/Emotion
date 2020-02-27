@@ -16,16 +16,20 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         }
 
         /// <inheritdoc />
-        public void SaveAsset(byte[] data, string name)
+        public void SaveAsset(byte[] data, string name, bool backup)
         {
             string filePath = EnginePathToFilePath(name);
 
-            // Backup old - if any.
-            if (File.Exists(filePath))
-                File.Copy(filePath, filePath + ".backup", true);
-            else
+            if (!File.Exists(filePath))
+            {
                 // If new - add to the internal manifest.
                 InternalManifest.TryAdd(name, filePath);
+            }
+            else if(backup)
+            {
+                // Backup old - if any.
+                File.Copy(filePath, filePath + ".backup", true);
+            }
 
             // Create missing directories.
             string directoryName = Path.GetDirectoryName(filePath);

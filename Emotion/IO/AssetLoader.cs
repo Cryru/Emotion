@@ -162,8 +162,9 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="asset">The asset data to store.</param>
         /// <param name="name">The engine name to store it under.</param>
+        /// <param name="backup">Whether to backup the old file if any.</param>
         /// <returns>Whether the file was saved.</returns>
-        public bool Save(byte[] asset, string name)
+        public bool Save(byte[] asset, string name, bool backup = true)
         {
             if (string.IsNullOrEmpty(name)) return false;
 
@@ -192,7 +193,7 @@ namespace Emotion.IO
             // Store the asset.
             try
             {
-                store.SaveAsset(asset, name);
+                store.SaveAsset(asset, name, backup);
 
                 // If it didn't exist until now - add it to the internal manifest.
                 if (!Exists(name)) _manifest.TryAdd(name, (AssetSource) store);

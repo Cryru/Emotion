@@ -16,6 +16,7 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="data">The data to save.</param>
         /// <param name="name">The engine name of the asset.</param>
-        void SaveAsset(byte[] data, string name);
+        /// <param name="backup">Whether to backup the old asset if any.</param>
+        void SaveAsset(byte[] data, string name, bool backup);
     }
 }
