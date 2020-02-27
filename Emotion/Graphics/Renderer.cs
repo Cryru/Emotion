@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Camera;
@@ -390,6 +391,7 @@ namespace Emotion.Graphics
         /// Called at the start of the frame.
         /// Prepares the renderer for rendering.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RenderComposer StartFrame()
         {
             // Check if running on the GL Thread.
@@ -432,6 +434,7 @@ namespace Emotion.Graphics
         /// Called at the end of the frame.
         /// Flushes everything and performs the actual rendering.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EndFrame()
         {
             // Check if running on the GL Thread.

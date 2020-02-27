@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
@@ -73,6 +74,7 @@ namespace Emotion.Scenography
         /// <summary>
         /// Run the scene drawing code.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Draw(RenderComposer composer)
         {
             Current.Draw(composer);
@@ -145,7 +147,7 @@ namespace Emotion.Scenography
 
         #region Helpers
 
-        private void Load(IScene scene)
+        private static void Load(IScene scene)
         {
             try
             {

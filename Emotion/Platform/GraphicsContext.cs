@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -39,6 +40,7 @@ namespace Emotion.Platform
         /// <summary>
         /// Swap the buffers on the active window.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public abstract void SwapBuffers();
 
         /// <summary>
