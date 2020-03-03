@@ -225,10 +225,16 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             string extensions = null;
 
             if (_getExtensionsStringArb != null)
-                extensions = _getExtensionsStringArb(_getCurrentDc());
+            {
+                char* str = _getExtensionsStringArb(_getCurrentDc());   
+                extensions = NativeHelpers.StringFromPtr((IntPtr) str);
+            }
 
             if (extensions == null && _getExtensionsStringExt != null)
-                extensions = _getExtensionsStringExt();
+            {
+                char* str = _getExtensionsStringExt();
+                extensions = NativeHelpers.StringFromPtr((IntPtr) str);
+            }
 
             if (extensions == null) return;
 
