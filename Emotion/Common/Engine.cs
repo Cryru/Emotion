@@ -103,6 +103,9 @@ namespace Emotion.Common
             Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
             Log.Info("Emotion V0.0.0", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
+            Log.Info($" CPU Cores: {Environment.ProcessorCount}", MessageSource.Engine);
+            Log.Info($" x64: {Environment.Is64BitOperatingSystem}", MessageSource.Engine);
+            Log.Info($" Runtime: {Environment.Version}", MessageSource.Engine);
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
