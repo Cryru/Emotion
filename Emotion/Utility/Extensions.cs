@@ -88,6 +88,16 @@ namespace Emotion.Utility
             return v;
         }
 
+        public static bool LargerOrEqual(this Vector2 v, Vector2 comp)
+        {
+            return v.X >= comp.X && v.Y >= comp.Y;
+        }
+
+        public static bool SmallerOrEqual(this Vector2 v, Vector2 comp)
+        {
+            return v.X <= comp.X && v.Y <= comp.Y;
+        }
+
         public static T[] AddToArray<T>(this T[] array, T element)
         {
             Array.Resize(ref array, array.Length + 1);
