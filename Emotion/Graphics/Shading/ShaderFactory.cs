@@ -56,23 +56,18 @@ namespace Emotion.Graphics.Shading
         public static ShaderProgram CreateShader(string vertShaderSource, string fragShaderSource)
         {
             uint vertShader = Gl.CreateShader(ShaderType.VertexShader);
-            uint fragShader = Gl.CreateShader(ShaderType.FragmentShader);
-
-            Engine.Log.Info("Compiling vert shader...", MessageSource.Renderer);
             bool vertCompiled = TryCompile(vertShaderSource, vertShader, out string configVert);
-            Engine.Log.Info("Compiling frag shader...", MessageSource.Renderer);
+            if(!vertCompiled)  Engine.Log.Warning("Vert shader compilation failed.", MessageSource.Renderer);
+
+            uint fragShader = Gl.CreateShader(ShaderType.FragmentShader);
             bool fragCompiled = TryCompile(fragShaderSource, fragShader, out string configFrag);
+            if(!fragCompiled) Engine.Log.Warning("Frag shader compilation failed.", MessageSource.Renderer);
 
             // Try to compile with shader configurations.
             if (!vertCompiled || !fragCompiled)
             {
-                if (DefaultProgram == null)
-                {
-                    Engine.Log.Warning("Couldn't compile default shader.", MessageSource.Renderer);
-                    return null;
-                }
-
-                Engine.Log.Warning("Couldn't compile shader.", MessageSource.Renderer);
+                if (DefaultProgram != null) return null;
+                Engine.Log.Warning("Couldn't compile default shader.", MessageSource.Renderer);
                 return null;
             }
 
@@ -126,8 +121,6 @@ namespace Emotion.Graphics.Shading
             // Find a configuration which will compile the shader.
             foreach (KeyValuePair<string, Func<string[], string[]>> configuration in _shaderConfigurations)
             {
-                Engine.Log.Trace($"Attempting shader compilation with config - {configuration.Key}...", MessageSource.Renderer);
-
                 // Apply configuration.
                 var attempt = new string[preprocessed.Length];
                 Array.Copy(preprocessed, 0, attempt, 0, preprocessed.Length);
@@ -150,7 +143,11 @@ namespace Emotion.Graphics.Shading
 
                 // Check if the shader compiled successfully, if not 0 is returned.
                 Gl.GetShader(shaderId, ShaderParameterName.CompileStatus, out int status);
-                if (status != 1) continue;
+                if (status != 1)
+                {
+                    Engine.Log.Trace($"Shader compilation with config - {configuration.Key} failed.", MessageSource.Renderer);
+                    continue;
+                }
                 config = configuration.Key;
                 return true;
             }
