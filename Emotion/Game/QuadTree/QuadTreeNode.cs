@@ -229,7 +229,6 @@ namespace Emotion.Game.QuadTree
             }
         }
 
-
         private void CleanUpwards()
         {
             if (TopLeftChild != null)
@@ -251,7 +250,6 @@ namespace Emotion.Game.QuadTree
                     Parent.CleanUpwards();
             }
         }
-
 
         /// <summary>
         /// Clears the QuadTree of all objects, including any objects living in its children.
@@ -347,11 +345,10 @@ namespace Emotion.Game.QuadTree
         /// <param name="searchRect">The rectangle to find objects in.</param>
         internal List<T> GetObjects(Rectangle searchRect)
         {
-            List<T> results = new List<T>();
+            var results = new List<T>();
             GetObjects(searchRect, ref results);
             return results;
         }
-
 
         /// <summary>
         /// Get the objects in this tree that intersect with the specified rectangle.
@@ -371,8 +368,11 @@ namespace Emotion.Game.QuadTree
             {
                 // Otherwise, if the quad isn't fully contained, only add objects that intersect with the search rectangle
                 if (_objects != null)
-                    foreach (QuadTreeObject<T> obj in _objects)
+                    // ReSharper disable once ForCanBeConvertedToForeach
+                    // ReSharper disable once LoopCanBeConvertedToQuery
+                    for (var i = 0; i < _objects.Count; i++)
                     {
+                        QuadTreeObject<T> obj = _objects[i];
                         if (searchRect.Intersects(obj.Data.Bounds))
                             results.Add(obj.Data);
                     }
@@ -395,8 +395,11 @@ namespace Emotion.Game.QuadTree
         {
             // If this Quad has objects, add them
             if (_objects != null)
-                foreach (QuadTreeObject<T> obj in _objects)
+                // ReSharper disable once ForCanBeConvertedToForeach
+                // ReSharper disable once LoopCanBeConvertedToQuery
+                for (var i = 0; i < _objects.Count; i++)
                 {
+                    QuadTreeObject<T> obj = _objects[i];
                     results.Add(obj.Data);
                 }
 
