@@ -45,6 +45,7 @@ Currently supported:
   - Nvidia GeForce 1050
   - Intel UHD Graphics 620
   - Nvidia GeForce 940MX
+  - AMD Radeon HD 5700 Series
 - Windows 7 x86
   - Intel 4 Series Express (using Mesa)
 
