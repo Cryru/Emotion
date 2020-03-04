@@ -33,7 +33,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         [DllImport("msvcrt")]
         public static extern int _putenv_s(string e, string v);
 
-        public GalliumGraphicsContext(IntPtr windowHandle, Win32Platform platform)
+        public void Init(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
 
@@ -44,21 +44,26 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             // Unload old OpenGL, if any.
             IntPtr loadedOpenGl = Kernel32.GetModuleHandle("opengl32.dll");
             var counter = 0;
-            if (loadedOpenGl != IntPtr.Zero) Engine.Log.Info("OpenGL32.dll is already loaded. Attempting to unload...", MessageSource.Win32);
+            if (loadedOpenGl != IntPtr.Zero) Engine.Log.Info("OpenGL32.dll is already loaded. Attempting to unload...", MessageSource.WGallium);
             while (loadedOpenGl != IntPtr.Zero)
             {
                 Kernel32.FreeLibrary(loadedOpenGl);
                 loadedOpenGl = Kernel32.GetModuleHandle("opengl32.dll");
                 counter++;
-                if (counter >= 100)
-                    throw new Exception("Couldn't unload the loaded OpenGL32.dll. Gallium context couldn't be created.");
+                if (counter < 100) continue;
+                Engine.Log.Error("Couldn't unload the loaded OpenGL32.dll. Gallium context couldn't be created.", MessageSource.WGallium);
+                return;
             }
 
-            if (counter > 0) Engine.Log.Info($"OpenGL32.dll was unloaded after {counter} attempts.", MessageSource.Win32);
+            if (counter > 0) Engine.Log.Info($"OpenGL32.dll was unloaded after {counter} attempts.", MessageSource.WGallium);
 
             // Load library.
             _openGlLibrary = _platform.LoadLibrary("mesa\\opengl32.dll");
-            if (_openGlLibrary == IntPtr.Zero) throw new Exception("mesa\\opengl32.dll not found.");
+            if (_openGlLibrary == IntPtr.Zero)
+            {
+                Engine.Log.Error("mesa\\opengl32.dll not found.", MessageSource.WGallium);
+                return;
+            }
 
             var createContext = _platform.GetFunctionByName<WglFunctions.WglCreateContext>(_openGlLibrary, "wglCreateContext");
             _deleteContext = _platform.GetFunctionByName<WglFunctions.WglDeleteContext>(_openGlLibrary, "wglDeleteContext");

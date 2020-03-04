@@ -23,40 +23,44 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 {
     public sealed unsafe class WglGraphicsContext : GraphicsContext
     {
-        private readonly IntPtr _openGlLibrary;
+        private IntPtr _openGlLibrary;
         private const int FlagNumberPixelFormatsArb = 0x2000;
 
-        private readonly WglFunctions.WglDeleteContext _deleteContext;
-        private readonly WglFunctions.WglGetProcAddress _getProcAddress;
-        private readonly WglFunctions.WglGetCurrentDc _getCurrentDc;
-        private readonly WglFunctions.WglGetCurrentContext _getCurrentContext;
-        private readonly WglFunctions.WglMakeCurrent _makeCurrent;
-        private readonly WglFunctions.GetExtensionsStringExt _getExtensionsStringExt;
-        private readonly WglFunctions.GetExtensionsStringArb _getExtensionsStringArb;
-        private readonly WglFunctions.SwapInternalExt _swapIntervalExt;
-        private readonly WglFunctions.GetPixelFormatAttributes _getPixelFormatAttribivArb;
+        private WglFunctions.WglDeleteContext _deleteContext;
+        private WglFunctions.WglGetProcAddress _getProcAddress;
+        private WglFunctions.WglGetCurrentDc _getCurrentDc;
+        private WglFunctions.WglGetCurrentContext _getCurrentContext;
+        private WglFunctions.WglMakeCurrent _makeCurrent;
+        private WglFunctions.GetExtensionsStringExt _getExtensionsStringExt;
+        private WglFunctions.GetExtensionsStringArb _getExtensionsStringArb;
+        private WglFunctions.SwapInternalExt _swapIntervalExt;
+        private WglFunctions.GetPixelFormatAttributes _getPixelFormatAttribivArb;
 
         private string[] _wglExtensions;
-        private readonly bool _arbMultisample;
-        private readonly bool _arbFramebufferSRgb;
-        private readonly bool _extFramebufferSRgb;
-        private readonly bool _arbPixelFormat;
+        private bool _arbMultisample;
+        private bool _arbFramebufferSRgb;
+        private bool _extFramebufferSRgb;
+        private bool _arbPixelFormat;
 
-        private readonly IntPtr _contextHandle;
-        private readonly IntPtr _dc;
-        private readonly Win32Platform _platform;
+        private IntPtr _contextHandle;
+        private IntPtr _dc;
+        private Win32Platform _platform;
 
         private delegate int RenderDocGetApi(int version, void* api);
 
         public RenderDocAPI RenderDoc;
 
-        public WglGraphicsContext(IntPtr windowHandle, Win32Platform platform)
+        public void Init(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
 
             // Load WGL.
             _openGlLibrary = _platform.LoadLibrary("opengl32.dll");
-            if (_openGlLibrary == IntPtr.Zero) throw new Exception("opengl32.dll not found.");
+            if (_openGlLibrary == IntPtr.Zero)
+            {
+                Engine.Log.Error("opengl32.dll not found.", MessageSource.WGallium);
+                return;
+            }
 
             var createContext = _platform.GetFunctionByName<WglFunctions.WglCreateContext>(_openGlLibrary, "wglCreateContext");
             _deleteContext = _platform.GetFunctionByName<WglFunctions.WglDeleteContext>(_openGlLibrary, "wglDeleteContext");
@@ -85,7 +89,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             if (!_makeCurrent(dc, rc))
             {
                 _deleteContext(rc);
-                Win32Platform.CheckError("WGL: Could not make dummy context current.", true);
+                Win32Platform.CheckError("Could not make dummy context current.", true);
                 return;
             }
 
@@ -96,13 +100,16 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 if (glGetString.Major < 3)
                 {
                     _deleteContext(rc);
-                    throw new Exception("WGL: Support is lower than 3.0");
+                    Engine.Log.Error("Wgl support is lower than 3.0", MessageSource.Wgl);
+                    return;
                 }
             }
             else
             {
-                Engine.Log.Warning("WGL: Couldn't verify context version.", MessageSource.Wgl);
+                Engine.Log.Warning("Couldn't verify context version.", MessageSource.Wgl);
             }
+
+            Engine.Log.Trace("Loaded functions.", MessageSource.Wgl);
 
             // Functions must be loaded first as they're needed to retrieve the extension string that tells us whether the functions are supported
             _getExtensionsStringExt = NativeHelpers.GetFunctionByPtr<WglFunctions.GetExtensionsStringExt>(_getProcAddress("wglGetExtensionsStringEXT"));
@@ -113,17 +120,15 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
             WglGetSupportedExtensions();
             _arbMultisample = WglSupportedExtension("WGL_ARB_multisample");
-            _arbMultisample = WglSupportedExtension("WGL_ARB_multisample");
             _arbFramebufferSRgb = WglSupportedExtension("WGL_ARB_framebuffer_sRGB");
             _extFramebufferSRgb = WglSupportedExtension("WGL_EXT_framebuffer_sRGB");
             bool arbCreateContext = WglSupportedExtension("WGL_ARB_create_context");
             bool arbCreateContextProfile = WglSupportedExtension("WGL_ARB_create_context_profile");
             _arbPixelFormat = WglSupportedExtension("WGL_ARB_pixel_format");
 
-            Engine.Log.Trace($"ARB Pixel Format: {_arbPixelFormat}", MessageSource.Win32);
-
             // Dispose of dummy context.
             _deleteContext(rc);
+            Engine.Log.Trace("Extensions loaded.", MessageSource.Wgl);
 
             // Start creating actual context.
             _dc = User32.GetDC(windowHandle);
@@ -143,6 +148,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 return;
             }
 
+            Engine.Log.Trace($"Context ARB: {arbCreateContext}", MessageSource.Wgl);
             if (arbCreateContext)
             {
                 WglContextFlags mask = 0;
@@ -213,8 +219,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             }
 
             Win32Platform.CheckError("Checking if context creation passed.");
-            Engine.Log.Trace($"Requested context using pixel format id {pixelFormatIdx}", MessageSource.Win32);
-
+            Engine.Log.Trace("WGL context created.", MessageSource.Wgl);
             Valid = true;
         }
 
@@ -223,21 +228,9 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private void WglGetSupportedExtensions()
         {
             string extensions = null;
-
-            if (_getExtensionsStringArb != null)
-            {
-                char* str = _getExtensionsStringArb(_getCurrentDc());   
-                extensions = NativeHelpers.StringFromPtr((IntPtr) str);
-            }
-
-            if (extensions == null && _getExtensionsStringExt != null)
-            {
-                char* str = _getExtensionsStringExt();
-                extensions = NativeHelpers.StringFromPtr((IntPtr) str);
-            }
-
+            if (_getExtensionsStringArb != null) extensions = NativeHelpers.StringFromPtr(_getExtensionsStringArb(_getCurrentDc()));
+            if (extensions == null && _getExtensionsStringExt != null) extensions = NativeHelpers.StringFromPtr(_getExtensionsStringExt());
             if (extensions == null) return;
-
             _wglExtensions = extensions.Split(' ');
         }
 

@@ -331,7 +331,7 @@ namespace Emotion.Platform
         {
             if (connected)
             {
-                Engine.Log.Info($"Connected monitor {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
+                Engine.Log.Info($"Detected monitor - {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
 
                 if (first)
                 {
@@ -349,7 +349,7 @@ namespace Emotion.Platform
             }
             else
             {
-                Engine.Log.Info($"Disconnected monitor {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
+                Engine.Log.Info($"Disconnected monitor - {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
 
                 Monitors.Remove(monitor);
                 Window.UpdateDisplayMode();

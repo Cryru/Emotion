@@ -202,6 +202,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                 device.Value.Default = false;
             }
 
+            if (defaultDevice == null) return;
+
             defaultDevice.Default = true;
             DefaultDevice = defaultDevice;
             Engine.Log.Trace($"Default audio device is: {defaultDevice.Name}.", MessageSource.Win32);
@@ -224,7 +226,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             lock (_layers)
             {
                 names = new string[_layers.Count];
-                for (int i = 0; i < _layers.Count; i++)
+                for (var i = 0; i < _layers.Count; i++)
                 {
                     names[i] = _layers[i].Name;
                 }

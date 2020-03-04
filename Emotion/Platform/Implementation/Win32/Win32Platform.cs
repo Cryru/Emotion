@@ -77,6 +77,7 @@ namespace Emotion.Platform.Implementation.Win32
 
             // Initialize audio - Try to create WasApi - otherwise return the fake context so execution can go on.
             Audio = WasApiAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
+            Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
 
             PopulateKeyNames();
 
@@ -90,6 +91,7 @@ namespace Emotion.Platform.Implementation.Win32
             RegisterWindowClass();
             CreateHelperWindow();
             PollMonitors();
+            Engine.Log.Trace("Platform init complete.", MessageSource.Win32);
 
             var windowInitialSize = new Rect
             {
@@ -99,7 +101,6 @@ namespace Emotion.Platform.Implementation.Win32
             Win32Window.GetFullWindowRect(Win32Window.DEFAULT_WINDOW_STYLE, Win32Window.DEFAULT_WINDOW_STYLE_EX, DEFAULT_DPI, ref windowInitialSize);
             int initialWidth = windowInitialSize.Right - windowInitialSize.Left;
             int initialHeight = windowInitialSize.Bottom - windowInitialSize.Top;
-
             IntPtr handle = User32.CreateWindowEx(
                 Win32Window.DEFAULT_WINDOW_STYLE_EX,
                 CLASS_NAME,
@@ -118,28 +119,34 @@ namespace Emotion.Platform.Implementation.Win32
                 return;
             }
 
+            Engine.Log.Trace("Window created.", MessageSource.Win32);
+
             // Create graphics context - OpenGL.
             GraphicsContext context = null;
             try
             {
-                context = new WglGraphicsContext(handle, this);
+                var wgl = new WglGraphicsContext();
+                wgl.Init(handle, this);
+                if (wgl.Valid) context = wgl;
             }
             catch (Exception ex)
             {
                 Engine.Log.Warning($"Couldn't create WGL context, falling back to MESA if possible.\n{ex}", MessageSource.Win32);
             }
 
-            if (context == null || !context.Valid)
+            if (context == null)
                 try
                 {
-                    context = new GalliumGraphicsContext(handle, this);
+                    var gallium = new GalliumGraphicsContext();
+                    gallium.Init(handle, this);
+                    if (gallium.Valid) context = gallium;
                 }
                 catch (Exception ex)
                 {
                     Engine.SubmitError(new Exception("Couldn't create MESA context.", ex));
                 }
 
-            if (context == null || !context.Valid)
+            if (context == null)
             {
                 Engine.SubmitError(new Exception("Couldn't create graphics context!"));
                 return;

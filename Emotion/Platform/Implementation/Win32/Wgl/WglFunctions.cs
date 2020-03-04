@@ -20,9 +20,9 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
         public delegate bool WglMakeCurrent(IntPtr hdc, IntPtr context);
 
-        public delegate char* GetExtensionsStringExt();
+        public delegate IntPtr GetExtensionsStringExt();
 
-        public delegate char* GetExtensionsStringArb(IntPtr hdc);
+        public delegate IntPtr GetExtensionsStringArb(IntPtr hdc);
 
         public delegate IntPtr CreateContextAttribs(IntPtr hdc, IntPtr context, int* a);
 
