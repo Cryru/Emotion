@@ -99,6 +99,8 @@ namespace Emotion.Audio
         /// <param name="track">The track to play next.</param>
         public void PlayNext(AudioTrack track)
         {
+            if(!MarkTrack(track)) return;
+
             lock (_playlist)
             {
                 _playlist.Insert(_currentTrack + 1, track);
@@ -118,6 +120,8 @@ namespace Emotion.Audio
         /// <param name="track">The track to play.</param>
         public void AddToQueue(AudioTrack track)
         {
+            if(!MarkTrack(track)) return;
+
             lock (_playlist)
             {
                 _playlist.Add(track);
@@ -137,6 +141,8 @@ namespace Emotion.Audio
         /// </summary>
         public void QuickPlay(AudioTrack track)
         {
+            if(!MarkTrack(track)) return;
+
             lock (_playlist)
             {
                 _playlist.Clear();
@@ -291,6 +297,17 @@ namespace Emotion.Audio
 
             // If no longer playing, reset the current track.
             if (newStatus == PlaybackStatus.NotPlaying) _currentTrack = -1;
+        }
+
+        private static bool MarkTrack(AudioTrack track)
+        {
+            if (track.HasLayer)
+            {
+                Engine.Log.Error("Tried to play a track which is already playing on another layer.", MessageSource.Audio);
+                return false;
+            }
+            track.HasLayer = true;
+            return true;
         }
 
         protected abstract void InternalStatusChange(PlaybackStatus oldStatus, PlaybackStatus newStatus);
