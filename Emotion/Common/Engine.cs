@@ -24,7 +24,7 @@ namespace Emotion.Common
         /// <summary>
         /// The default engine configuration.
         /// </summary>
-        public static Configurator Configuration { get; private set; }
+        public static Configurator Configuration { get; private set; } = new Configurator();
 
         #region Modules
 

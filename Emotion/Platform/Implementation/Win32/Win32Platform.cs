@@ -273,7 +273,7 @@ namespace Emotion.Platform.Implementation.Win32
             }
 
             // Check if focused.
-            if (!IsFocused && Engine.Configuration != null && !Engine.Configuration.DebugMode) User32.WaitMessage();
+            if (!IsFocused && !Engine.Configuration.DebugMode) User32.WaitMessage();
 
             return true;
         }
