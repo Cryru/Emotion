@@ -672,33 +672,5 @@ namespace Emotion.Utility
             // Divide 180 by Pi and multiply by the radians. Convert to an integer.
             return radian * RAD_2DEG;
         }
-
-        /// <summary>
-        /// Find the bounding rectangle of a polygon.
-        /// </summary>
-        /// <param name="vertices">The vertices which make up the polygon.</param>
-        /// <returns>The bounding rectangle of the polygon.</returns>
-        public static Rectangle BoundingRectangleOfPolygon(params Vector3[] vertices)
-        {
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minY = float.MaxValue;
-            float maxY = float.MinValue;
-
-            for (var i = 0; i < vertices.Length; i++)
-            {
-                float x = vertices[i].X;
-                float y = vertices[i].Y;
-                minX = Math.Min(minX, x);
-                maxX = Math.Max(maxX, x);
-                minY = Math.Min(minY, y);
-                maxY = Math.Max(maxY, y);
-            }
-
-            float width = maxX - minX;
-            float height = maxY - minY;
-
-            return new Rectangle(minX, minY, width, height);
-        }
     }
 }
