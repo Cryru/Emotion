@@ -24,14 +24,14 @@ namespace Tests.Classes
             Assert.True(pepsi.Format.Channels == 2);
             Assert.True(pepsi.Format.BitsPerSample == 16);
             Assert.False(pepsi.Format.IsFloat);
-            Assert.True(pepsi.SoundData != null);
+            Assert.False(pepsi.SoundData.IsEmpty);
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
             Assert.True(money.Format.SampleRate == 22050);
             Assert.True(money.Format.Channels == 1);
             Assert.True(money.Format.BitsPerSample == 16);
             Assert.False(money.Format.IsFloat);
-            Assert.True(money.SoundData != null);
+            Assert.False(money.SoundData.IsEmpty);
         }
 
         [Test]
@@ -40,12 +40,12 @@ namespace Tests.Classes
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
 
             var copy = new byte[pepsi.SoundData.Length];
-            Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
+            pepsi.SoundData.CopyTo(copy);
             AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(32, true, 2, 44100), ref copy);
             Assert.True(copy.Length == pepsi.SoundData.Length * 2);
 
             copy = new byte[pepsi.SoundData.Length];
-            Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
+            pepsi.SoundData.CopyTo(copy);
             AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
             float ratio = 48000f / pepsi.Format.SampleRate;
             Assert.True(copy.Length == (int) (pepsi.SoundData.Length * ratio));
@@ -53,7 +53,7 @@ namespace Tests.Classes
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
 
             copy = new byte[money.SoundData.Length];
-            Array.Copy(money.SoundData, 0, copy, 0, money.SoundData.Length);
+            money.SoundData.CopyTo(copy);
             AudioUtil.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
             ratio = 48000f / money.Format.SampleRate;
             Assert.True(copy.Length == (int) (money.SoundData.Length * 2 * ratio));
@@ -70,7 +70,7 @@ namespace Tests.Classes
 
             var format = new AudioFormat(32, true, 2, 48000);
             var copy = new byte[pepsi.SoundData.Length];
-            Array.Copy(pepsi.SoundData, 0, copy, 0, pepsi.SoundData.Length);
+            pepsi.SoundData.CopyTo(copy);
             AudioUtil.ConvertFormat(pepsi.Format, format, ref copy);
 
             var testTasks = new List<Task>();
@@ -111,7 +111,7 @@ namespace Tests.Classes
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
             copy = new byte[money.SoundData.Length];
-            Array.Copy(money.SoundData, 0, copy, 0, money.SoundData.Length);
+            money.SoundData.CopyTo(copy);
             AudioUtil.ConvertFormat(money.Format, format, ref copy);
 
             for (var io = 0; io < 5; io++)

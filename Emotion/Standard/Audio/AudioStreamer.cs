@@ -18,7 +18,7 @@ namespace Emotion.Standard.Audio
     public class AudioStreamer
     {
         public int SourceSamples { get; protected set; }
-        public byte[] SoundData { get; protected set; }
+        public Memory<byte> SoundData { get; protected set; }
         public AudioFormat SourceFormat { get; protected set; }
 
         public float ResampleRatio { get; protected set; }
@@ -32,7 +32,7 @@ namespace Emotion.Standard.Audio
         {
             get
             {
-                int channels = ConvFormat == null ? SourceFormat.Channels : ConvFormat.Channels;
+                int channels = ConvFormat?.Channels ?? SourceFormat.Channels;
                 return (float) _srcResume / _sourceConvLength * channels;
             }
         }
@@ -45,7 +45,7 @@ namespace Emotion.Standard.Audio
         protected int _convQuality2;
         protected double _resampleStep;
 
-        public AudioStreamer(AudioFormat srcFormat, byte[] audioData)
+        public AudioStreamer(AudioFormat srcFormat, Memory<byte> audioData)
         {
             SourceFormat = srcFormat;
             SourceSamples = audioData.Length / srcFormat.SampleSize;
@@ -186,11 +186,11 @@ namespace Emotion.Standard.Audio
 
             float output;
 
-            var data = new ReadOnlySpan<byte>(SoundData);
+            Span<byte> data = SoundData.Span;
             switch (SourceFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
-                    output = (float) SoundData[sampleIdx] / byte.MaxValue;
+                    output = (float) data[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
                     short dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));

@@ -77,7 +77,7 @@ namespace Emotion.Tools.Windows
             if (ImGui.Button("Convert"))
             {
                 _converted = new byte[_file.SoundData.Length];
-                Array.Copy(_file.SoundData, 0, _converted, 0, _file.SoundData.Length);
+                _file.SoundData.CopyTo(_converted);
 
                 var dstFormat = new AudioFormat(_inputBitsPerSample, _inputFloat, _inputChan, _inputSampleRate);
                 if (!_file.Format.Equals(dstFormat))
@@ -107,7 +107,7 @@ namespace Emotion.Tools.Windows
             }
 
             composer.SetUseViewMatrix(true);
-            RenderWaveFormImage(composer, _file.SoundData, _file.Format, Color.Red);
+            RenderWaveFormImage(composer, _file.SoundData.Span, _file.Format, Color.Red);
             if (_converted != null) RenderWaveFormImage(composer, _converted, _file.Format, Color.Yellow, _scale);
         }
 
@@ -133,7 +133,7 @@ namespace Emotion.Tools.Windows
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
         }
 
-        public void RenderWaveFormImage(RenderComposer composer, byte[] data, AudioFormat f, Color color, float yOffset = 0)
+        public void RenderWaveFormImage(RenderComposer composer, Span<byte> data, AudioFormat f, Color color, float yOffset = 0)
         {
             var i = 0;
             float x = (Engine.Renderer.Camera.Position.X - Engine.Renderer.CurrentTarget.Size.X / 2) * _zoom;

@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using Emotion.Common;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Audio.WAV;
@@ -25,7 +26,7 @@ namespace Emotion.IO
         /// <summary>
         /// The sound data itself.
         /// </summary>
-        public byte[] SoundData { get; private set; }
+        public Memory<byte> SoundData { get; private set; }
 
         /// <summary>
         /// The sound format.
@@ -44,7 +45,7 @@ namespace Emotion.IO
                 Duration = format.GetSoundDuration(data.Length);
             }
 
-            if (Format != null && SoundData != null) return;
+            if (Format != null && SoundData.IsEmpty) return;
             Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
         }
 
