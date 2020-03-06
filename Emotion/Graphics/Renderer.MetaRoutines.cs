@@ -47,14 +47,8 @@ namespace Emotion.Graphics
 
                 if (i == 0)
                 {
-                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + x, radius + y, 0), color);
                     fX = x;
                     fY = y;
-                }
-                else if (i == circleDetail - 1)
-                {
-                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
-                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
                 }
                 else
                 {
@@ -63,6 +57,11 @@ namespace Emotion.Graphics
 
                 pX = x;
                 pY = y;
+
+                if (i == circleDetail - 1)
+                {
+                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                }
             }
 
             // Remove the model matrix.
@@ -92,38 +91,30 @@ namespace Emotion.Graphics
 
             var vertices = new List<Vector3>();
 
-            // Generate points.
+            // Generate triangles.
             for (uint i = 0; i < circleDetail; i++)
             {
                 var angle = (float) (i * 2 * Math.PI / circleDetail - Math.PI / 2);
                 float x = (float) Math.Cos(angle) * radius;
                 float y = (float) Math.Sin(angle) * radius;
 
-                if (i < circleDetail - 1)
-                {
-                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                    vertices.Add(new Vector3(radius + x, radius + y, 0));
-                    vertices.Add(new Vector3(radius, radius, 0));
-                    vertices.Add(new Vector3(radius, radius, 0));
-                }
-                else
-                {
-                    // when @ second-to-last segment -> Draw the last 2 triangles @ once, skipping last iter of loop
-                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                    vertices.Add(new Vector3(radius + x, radius + y, 0));
-                    vertices.Add(new Vector3(radius + fX, radius + fY, 0));
-                    vertices.Add(new Vector3(radius, radius, 0));
-                    break;
-                }
-                
-                if (i == 0)
-                {
-                    fX = x;
-                    fY = y;
-                }
+                vertices.Add(new Vector3(radius + pX, radius + pY, 0));
+                vertices.Add(new Vector3(radius + x, radius + y, 0));
+                vertices.Add(new Vector3(radius, radius, 0));
 
                 pX = x;
                 pY = y;
+
+                if (i == circleDetail - 1)
+                {
+                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
+                    vertices.Add(new Vector3(radius + x, radius + y, 0));
+                    vertices.Add(new Vector3(radius + fX, radius + fY, 0));
+                }
+
+                if (i != 0) continue;
+                fX = x;
+                fY = y;
             }
 
             RenderVertices(vertices, color);
