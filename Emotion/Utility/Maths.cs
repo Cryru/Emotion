@@ -571,6 +571,17 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Round to the closest integer. x.5 and higher will round to 1, anything lower will round to 0.
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float RoundClosest(float v)
+        {
+            return MathF.Floor(v + 0.5f);
+        }
+
+        /// <summary>
         /// returns sqrt( x * x + y * y )
         /// </summary>
         /// <param name="x">The x coordinate.</param>

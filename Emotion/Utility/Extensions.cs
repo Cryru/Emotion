@@ -83,8 +83,8 @@ namespace Emotion.Utility
 
         public static Vector2 RoundClosest(this Vector2 v)
         {
-            v.X = MathF.Floor(v.X + 0.5f);
-            v.Y = MathF.Floor(v.Y + 0.5f);
+            v.X = Maths.RoundClosest(v.X);
+            v.Y = Maths.RoundClosest(v.Y);
             return v;
         }
 
