@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 
@@ -87,7 +88,7 @@ namespace Emotion.Game.Animation
         /// <param name="animName"></param>
         public void SetAnimation(string animName)
         {
-            if (!_nodes.ContainsKey(animName))
+            if (!HasAnimation(animName))
             {
                 Engine.Log.Warning($"Animation {animName} not found.", MessageSource.Other);
                 return;
@@ -100,6 +101,17 @@ namespace Emotion.Game.Animation
             AnimTex.TimeBetweenFrames = n.TimeBetweenFrames;
 
             CurrentAnimation = n;
+        }
+
+        /// <summary>
+        /// Check if the controller contains the requested animation.
+        /// </summary>
+        /// <param name="animName"></param>
+        /// <returns>Whether the controller has this animation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool HasAnimation(string animName)
+        {
+            return _nodes.ContainsKey(animName);
         }
 
         /// <summary>
