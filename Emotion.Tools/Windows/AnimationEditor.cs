@@ -160,29 +160,24 @@ namespace Emotion.Tools.Windows
             {
                 ImGui.SameLine();
                 if (!ImGui.Button("SaveToFile")) return;
-                string outputFile = Helpers.CrossPlatformPath("./Assets/" + _saveName);
-                if (!outputFile.Contains(".anim")) outputFile += ".anim";
-                if (File.Exists(outputFile)) File.Delete(outputFile);
+                string saveName = _saveName;
+                if (!saveName.Contains(".anim")) saveName += ".anim";
+                if (!saveName.Contains("Player/")) saveName = $"Player/{saveName}";
 
                 try
                 {
-                    FileStream stream = File.OpenWrite(outputFile);
-                    XmlSerializer serializer;
+                    string saveData;
+                    // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
                     if (_animController != null)
                     {
-                        AnimationControllerDescription controllerDesc = _animController.GetDescription(_spriteSheetTexture.Name);
-                        serializer = new XmlSerializer(controllerDesc.GetType());
-                        serializer.Serialize(stream, controllerDesc);
+                        saveData = XMLAsset<AnimationControllerDescription>.FromObject(_animController.GetDescription(_spriteSheetTexture.Name));
                     }
                     else
                     {
-                        AnimatedTextureDescription animDesc = _animation.GetDescription(_spriteSheetTexture.Name);
-                        serializer = new XmlSerializer(animDesc.GetType());
-                        serializer.Serialize(stream, animDesc);
+                        saveData = XMLAsset<AnimatedTextureDescription>.FromObject(_animation.GetDescription(_spriteSheetTexture.Name));
                     }
 
-                    stream.Flush();
-                    stream.Close();
+                    Engine.AssetLoader.Save(System.Text.Encoding.UTF8.GetBytes(saveData), saveName);
                 }
                 catch (Exception ex)
                 {
@@ -245,7 +240,7 @@ namespace Emotion.Tools.Windows
                     }
                 }
 
-                if (ImGui.Button("Create"))
+                if (ImGui.Button("Create") && _animController.Animations.All(x => x.Name != "NewAnim"))
                 {
                     var newNode = new AnimationController.Node("NewAnim");
                     _animController.AddAnimation(newNode);

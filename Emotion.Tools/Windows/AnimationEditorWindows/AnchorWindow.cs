@@ -46,7 +46,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             {
                 composer.RenderSprite(new Vector3(pos, 0), _anim.Frames[i].Size, Color.White, _anim.Texture, _anim.Frames[i]);
                 composer.RenderSprite(new Vector3(pos + _anim.Anchors[i], 1), new Vector2(3, 3), Color.Red);
-                ImGui.InputFloat2($"Frame {i}", ref _anim.Anchors[i]);
+                ImGui.InputFloat2($"Frame {i} ({_anim.Frames[i]})", ref _anim.Anchors[i]);
                 ImGui.SameLine();
                 if (_clickPlace)
                 {
