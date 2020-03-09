@@ -10,6 +10,7 @@ using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Text;
+using Emotion.Utility;
 
 #endregion
 
@@ -151,6 +152,7 @@ namespace Emotion.Graphics
         public void RenderString(Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter layouter)
         {
             if (atlas?.Atlas?.Glyphs == null) return;
+            position = position.RoundClosest();
             foreach (char c in text)
             {
                 Vector2 gPos = layouter.AddLetter(c, out AtlasGlyph g);

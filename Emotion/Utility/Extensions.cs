@@ -88,6 +88,14 @@ namespace Emotion.Utility
             return v;
         }
 
+        public static Vector3 RoundClosest(this Vector3 v)
+        {
+            v.X = Maths.RoundClosest(v.X);
+            v.Y = Maths.RoundClosest(v.Y);
+            v.Z = Maths.RoundClosest(v.Z);
+            return v;
+        }
+
         public static bool LargerOrEqual(this Vector2 v, Vector2 comp)
         {
             return v.X >= comp.X && v.Y >= comp.Y;
