@@ -91,7 +91,7 @@ namespace Emotion.Graphics.Camera
         {
             return new Rectangle(
                 Engine.Renderer.Camera.ScreenToWorld(Vector2.Zero),
-                Engine.Renderer.Camera.ScreenToWorld(Engine.Renderer.DrawBuffer.Size) * 2
+                Engine.Renderer.Camera.ScreenToWorld(Engine.Renderer.DrawBuffer.Size)
             );
         }
     }
