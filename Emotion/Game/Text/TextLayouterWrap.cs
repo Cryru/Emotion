@@ -87,13 +87,6 @@ namespace Emotion.Game.Text
 
                     // Check if exceeding height box.
                     if (NeededHeight >= bounds.Y) break;
-
-                    // If the current character is a new line break retroactively push it on the last line, and continue without adding it to the current line.
-                    if (text[i] == '\n' && _newLineIndices.Count > 0)
-                    {
-                        _newLineIndices[^1] += 1;
-                        continue;
-                    }
                 }
 
                 // Add the current character to the current line string.
