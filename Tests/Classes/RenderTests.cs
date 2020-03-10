@@ -194,7 +194,7 @@ namespace Tests.Classes
         {
             Runner.ExecuteAsLoop(_ =>
             {
-                var testBuffer = new FrameBuffer(new Texture(Engine.Renderer.DrawBuffer.Size), new Texture(Engine.Renderer.DrawBuffer.Size));
+                FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WidhDepth(true);
                 var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/DepthTest.xml");
 
                 RenderComposer composer = Engine.Renderer.StartFrame();

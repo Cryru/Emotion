@@ -14,7 +14,7 @@ namespace Emotion.Graphics.Objects
     /// <summary>
     /// An uploaded texture.
     /// </summary>
-    public sealed class Texture : IDisposable
+    public class Texture : IDisposable
     {
         /// <summary>
         /// The bound textures.
@@ -24,17 +24,17 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The OpenGL pointer to this Texture.
         /// </summary>
-        public uint Pointer { get; private set; }
+        public uint Pointer { get; protected set; }
 
         /// <summary>
         /// The size of the texture in pixels.
         /// </summary>
-        public Vector2 Size { get; private set; }
+        public virtual Vector2 Size { get; protected set; }
 
         /// <summary>
         /// The matrix to multiply UVs by.
         /// </summary>
-        public Matrix4x4 TextureMatrix { get; set; } = Matrix4x4.Identity;
+        public virtual Matrix4x4 TextureMatrix { get; set; } = Matrix4x4.Identity;
 
         /// <summary>
         /// Whether to apply linear interpolation to the texture. Off by default.
@@ -148,7 +148,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="internalFormat">The internal format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelFormat">The pixel format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelType">The data type of individual pixel components.</param>
-        public void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType? pixelType = null)
+        public virtual void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType? pixelType = null)
         {
             Size = size;
 
@@ -201,9 +201,11 @@ namespace Emotion.Graphics.Objects
             Bound[slot] = pointer;
         }
 
-        #region Cleanup
-
-        public void Dispose()
+        /// <summary>
+        /// Destroy the texture freeing up memory.
+        /// The graphics object's destruction is async.
+        /// </summary>
+        public virtual void Dispose()
         {
             uint ptr = Pointer;
             Pointer = 0;
@@ -215,9 +217,9 @@ namespace Emotion.Graphics.Objects
                 if (Bound[i] == ptr) Bound[i] = 0;
             }
 
-            GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
+            if(ptr != 0) 
+                GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
 
-        #endregion
     }
 }

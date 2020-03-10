@@ -235,7 +235,7 @@ namespace Emotion.Graphics
 
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
             ScreenBuffer = new FrameBuffer(0, Engine.Host.Window.Size);
-            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, Engine.Configuration.RenderSize) : new FrameBuffer(new Texture(Engine.Configuration.RenderSize), true);
+            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, Engine.Configuration.RenderSize) : new FrameBuffer(Engine.Configuration.RenderSize).WithColor().WidhDepth();
             _bufferStack.Push(DrawBuffer);
 
             // Decide on scaling mode.
