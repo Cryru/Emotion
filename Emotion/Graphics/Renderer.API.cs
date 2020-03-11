@@ -321,7 +321,10 @@ namespace Emotion.Graphics
             {
                 Gl.Enable(EnableCap.ScissorTest);
                 Rectangle c = clip.Value;
-                Gl.Scissor((int) c.X, (int) (Engine.Renderer.CurrentTarget.Size.Y - c.Height - c.Y), (int) c.Width, (int) c.Height);
+                Gl.Scissor((int) (Engine.Renderer.CurrentTarget.Viewport.X + c.X),
+                    (int) (Engine.Renderer.CurrentTarget.Viewport.Y + (Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y)),
+                    (int) c.Width,
+                    (int) c.Height);
             }
 
             Engine.Renderer.CurrentState.ClipRect = clip;
