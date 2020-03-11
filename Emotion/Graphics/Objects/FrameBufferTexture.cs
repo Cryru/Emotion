@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using Emotion.Common.Threading;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -19,11 +20,12 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public uint RenderBufferPtr { get; protected set; }
 
-        public FrameBufferTexture(uint renderBufferPtr, Vector2 size)
+        public FrameBufferTexture(uint renderBufferPtr, Vector2 size, InternalFormat internalFormat)
         {
             Pointer = 0;
             RenderBufferPtr = renderBufferPtr;
             Size = size;
+            InternalFormat = internalFormat;
         }
 
         public FrameBufferTexture(Vector2 size, InternalFormat internalFormat, PixelFormat pixelFormat) : base(size, false, internalFormat, pixelFormat)
@@ -32,6 +34,12 @@ namespace Emotion.Graphics.Objects
 
         public override void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType? pixelType = null)
         {
+            if (RenderBufferPtr != 0)
+            {
+                Gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RenderBufferPtr);
+                Gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat, (int) size.X, (int) size.Y);
+            }
+
             if (Pointer == 0) return;
             base.Upload(size, data, internalFormat, pixelFormat, pixelType);
         }

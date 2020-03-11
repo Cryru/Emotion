@@ -87,17 +87,17 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// The format in which the texture is stored internally - this is the format shader should expect to work with.
         /// </summary>
-        public InternalFormat InternalFormat { get; private set; }
+        public InternalFormat InternalFormat { get; protected set; }
 
         /// <summary>
         /// The source format in which the texture's pixels were uploaded.
         /// </summary>
-        public PixelFormat PixelFormat { get; private set; }
+        public PixelFormat PixelFormat { get; protected set; }
 
         /// <summary>
         /// The source pixel type of the texture's pixels.
         /// </summary>
-        public PixelType PixelType { get; private set; } = PixelType.UnsignedByte;
+        public PixelType PixelType { get; protected set; } = PixelType.UnsignedByte;
 
         private bool _tile = true;
         private bool _smooth;
