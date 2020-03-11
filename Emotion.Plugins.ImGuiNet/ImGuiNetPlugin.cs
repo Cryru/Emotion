@@ -102,7 +102,7 @@ namespace Emotion.Plugins.ImGuiNet
 
             // Setup the font and display parameters.
             io.Fonts.AddFontDefault();
-            io.DisplaySize = Engine.Renderer.CurrentTarget.Size / ImGuiScale;
+            io.DisplaySize = Engine.Renderer.DrawBuffer.Size / ImGuiScale;
             io.DisplayFramebufferScale = new Vector2(1, 1);
             io.NativePtr->IniFilename = null;
             io.NativePtr->LogFilename = null;
@@ -172,7 +172,7 @@ namespace Emotion.Plugins.ImGuiNet
             io.DeltaTime = Engine.DeltaTime / 1000;
 
             // Set scale.
-            io.DisplaySize = Engine.Renderer.CurrentTarget.Size;
+            io.DisplaySize = Engine.Renderer.DrawBuffer.Size;
 
             // Check focus.
             if (io.WantCaptureKeyboard || io.WantCaptureMouse)

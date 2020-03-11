@@ -45,7 +45,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                 if (i != 0)
                 {
                     ImGuiWindow prev = _openWindows[i - 1];
-                    spawnOffset = prev.Position.X + prev.Size.X * 2 > Engine.Renderer.CurrentTarget.Size.X / ImGuiNetPlugin.ImGuiScale ? 
+                    spawnOffset = prev.Position.X + prev.Size.X * 2 > Engine.Renderer.DrawBuffer.Size.X ? 
                         new Vector2(prev.Position.X, prev.Position.Y + prev.Size.Y + 10) : 
                         new Vector2(_openWindows[i - 1].Position.X + _openWindows[i - 1].Size.X + 10, _openWindows[i - 1].Position.Y);
                 }
