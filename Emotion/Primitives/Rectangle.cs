@@ -157,6 +157,10 @@ namespace Emotion.Primitives
             Height = height;
         }
 
+        public Rectangle(Vector3 location, Vector2 size) : this(location.X, location.Y, size.X, size.Y)
+        {
+        }
+
         public Rectangle(Vector2 location, Vector2 size) : this(location.X, location.Y, size.X, size.Y)
         {
         }
@@ -190,6 +194,33 @@ namespace Emotion.Primitives
             a.Y *= f;
             a.Width *= f;
             a.Height *= f;
+            return a;
+        }
+
+        public static Rectangle operator +(Rectangle a, Rectangle b)
+        {
+            Rectangle n = a.Clone();
+            n.X += b.X;
+            n.Y += b.Y;
+            n.Width += b.Width;
+            n.Height += b.Height;
+            return n;
+        }
+
+        public static Rectangle operator -(Rectangle a, Rectangle b)
+        {
+            Rectangle n = a.Clone();
+            n.X -= b.X;
+            n.Y -= b.Y;
+            n.Width -= b.Width;
+            n.Height -= b.Height;
+            return n;
+        }
+
+        public static Rectangle operator -(Rectangle a, Vector2 v)
+        {
+            a.X -= v.X;
+            a.Y -= v.Y;
             return a;
         }
 
