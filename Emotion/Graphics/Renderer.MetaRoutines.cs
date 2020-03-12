@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -162,6 +163,18 @@ namespace Emotion.Graphics
             vertices[1].UV = new Vector2(uv.Width, uv.Y);
             vertices[2].UV = new Vector2(uv.Width, uv.Height);
             vertices[3].UV = new Vector2(uv.X, uv.Height);
+        }
+
+        /// <summary>
+        /// Render a framebuffer's color attachment to the currently bound buffer.
+        /// If you're "blitting" make sure the view matrix is disabled.
+        /// </summary>
+        /// <param name="buffer">The buffer to render.</param>
+        /// <param name="renderSizeOverwrite">By default the rendered quad will be the same size as the framebuffer. You can change that using this parameter.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null)
+        {
+            RenderSprite(Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, new Rectangle(0, buffer.AllocatedSize.Y - buffer.Size.Y, buffer.Size.X, buffer.Size.Y));
         }
     }
 }

@@ -11,6 +11,10 @@ using OpenGL;
 
 namespace Emotion.Graphics.Objects
 {
+    /// <summary>
+    /// Represents a FrameBuffer, also known as a "render target", "drawable texture" and others.
+    /// This class is also used to represent the primary frame buffer (screen buffer) in which case the GL Pointer is 0.
+    /// </summary>
     public class FrameBuffer : IDisposable
     {
         /// <summary>
@@ -99,11 +103,11 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="bindable">Whether the attachment will be bindable as a texture.</param>
         /// <returns>This framebuffer - for linking.</returns>
-        public FrameBuffer WidhDepth(bool bindable = false)
+        public FrameBuffer WithDepth(bool bindable = false)
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment), Size);
+                DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment), Size, InternalFormat.DepthComponent24);
             else
                 DepthStencilAttachment = CreateTexture(InternalFormat.DepthComponent24, PixelFormat.DepthComponent, FramebufferAttachment.DepthAttachment);
 
@@ -119,7 +123,7 @@ namespace Emotion.Graphics.Objects
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Depth24Stencil8, FramebufferAttachment.DepthStencilAttachment), Size);
+                DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Depth24Stencil8, FramebufferAttachment.DepthStencilAttachment), Size, InternalFormat.Depth24Stencil8);
             else
                 DepthStencilAttachment = CreateTexture(InternalFormat.Depth24Stencil8, PixelFormat.DepthStencil, FramebufferAttachment.DepthStencilAttachment);
 
@@ -137,7 +141,7 @@ namespace Emotion.Graphics.Objects
         {
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (!bindable)
-                ColorAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Rgba, FramebufferAttachment.ColorAttachment0), Size);
+                ColorAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Rgba, FramebufferAttachment.ColorAttachment0), Size, InternalFormat.Rgba);
             else
                 ColorAttachment = CreateTexture(InternalFormat.Rgba, PixelFormat.Bgra, FramebufferAttachment.ColorAttachment0);
 
@@ -176,7 +180,7 @@ namespace Emotion.Graphics.Objects
         #endregion
 
         /// <summary>
-        /// Bind the framebuffer. Also sets the current viewport to the frame buffer's viewport.
+        /// Bind the framebuffer. Unlike EnsureBound this sets the current viewport to the frame buffer's viewport.
         /// </summary>
         public void Bind()
         {
@@ -194,7 +198,7 @@ namespace Emotion.Graphics.Objects
         {
             if (!Viewport.Contains(rect)) return data;
 
-            rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
+            rect = new Rectangle(rect.X, (Size.Y - (rect.Y + rect.Height)), rect.Width, rect.Height);
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
@@ -221,21 +225,22 @@ namespace Emotion.Graphics.Objects
         /// If the requested size is smaller than the current texture size, it will be reused.
         /// </summary>
         /// <param name="newSize"></param>
-        public void Resize(Vector2 newSize)
+        /// <param name="reuseAttachments">Whether to reuse attachments if they are bigger than the new size.</param>
+        public void Resize(Vector2 newSize, bool reuseAttachments = false)
         {
             // Quick exit.
             if (newSize == Size) return;
 
             Size = newSize;
+            Viewport = new Rectangle(0, 0, newSize);
 
-            // Reset size holders.
-            AllocatedSize = newSize;
-            Viewport = new Rectangle(Viewport.Location, newSize);
+            if (reuseAttachments && AllocatedSize.X >= newSize.X && AllocatedSize.Y >= newSize.Y && Pointer != 0) return;
 
             // Re-create textures and framebuffer.
+            AllocatedSize = newSize;
             ColorAttachment?.Upload(newSize, null);
             DepthStencilAttachment?.Upload(newSize, null);
-            CheckErrors();
+            if (Pointer != 0) CheckErrors();
         }
 
         /// <summary>

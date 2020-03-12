@@ -14,6 +14,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 using OpenGL;
 using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
@@ -234,20 +235,21 @@ namespace Emotion.Graphics
             _blitState.ViewMatrix = false;
 
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
-            ScreenBuffer = new FrameBuffer(0, Engine.Host.Window.Size);
-            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, Engine.Configuration.RenderSize) : new FrameBuffer(Engine.Configuration.RenderSize).WithColor().WidhDepth();
+            Vector2 windowSize = Engine.Host.Window.Size;
+            ScreenBuffer = new FrameBuffer(0, windowSize);
+            DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, windowSize) : new FrameBuffer(windowSize).WithColor().WithDepth();
             _bufferStack.Push(DrawBuffer);
 
             // Decide on scaling mode.
             if (Engine.Configuration.ScaleBlackBars)
             {
                 Engine.Host.Window.OnResize.AddListener(HostResizedBlackBars);
-                HostResizedBlackBars(Engine.Host.Window.Size);
+                HostResizedBlackBars(windowSize);
             }
             else
             {
                 Engine.Host.Window.OnResize.AddListener(HostResized);
-                HostResized(Engine.Host.Window.Size);
+                HostResized(windowSize);
             }
 
             // Put in a default camera.
@@ -291,33 +293,19 @@ namespace Emotion.Graphics
             Scale = MathF.Min(ratio.X, ratio.Y);
             IntScale = (int) MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
 
-            // Set viewport.
-            Gl.Viewport(0, 0, (int) size.X, (int) size.Y);
-            ScreenBuffer.Viewport = new Rectangle(0, 0, size);
-            ScreenBuffer.Size = size;
-
+            Vector2 drawBufferSize = size;
             if (Engine.Configuration.IntScaleDrawBuffer)
             {
                 Scale -= IntScale - 1;
-                size /= IntScale;
-                size.X = (int) size.X;
-                size.Y = (int) size.Y;
+                drawBufferSize /= IntScale;
+                drawBufferSize.IntCastRound();
                 IntScale = 1;
             }
 
             Engine.Log.Info($"Resized host - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
 
-            // Recreate draw buffer.
-            if (!Engine.Configuration.UseIntermediaryBuffer)
-            {
-                DrawBuffer.Size = size;
-                DrawBuffer.Viewport = new Rectangle(0, 0, size);
-            }
-            else
-            {
-                DrawBuffer.Resize(size);
-            }
-
+            ScreenBuffer.Resize(size);
+            DrawBuffer.Resize(drawBufferSize, true);
             Camera?.RecreateMatrix();
             ApplySettings();
 
@@ -437,7 +425,7 @@ namespace Emotion.Graphics
                 // Push a blit from the draw buffer to the screen buffer.
                 SetState(_blitState);
                 RenderTo(ScreenBuffer);
-                RenderSprite(Vector3.Zero, ScreenBuffer.Size, Color.White, DrawBuffer.Texture);
+                RenderFrameBuffer(DrawBuffer, ScreenBuffer.Size);
                 RenderTo(null);
             }
 
