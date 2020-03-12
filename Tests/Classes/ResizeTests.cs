@@ -18,6 +18,8 @@ namespace Tests.Classes
     [Test("ResizeTest", true)]
     public class ResizeTests
     {
+        private static Vector2 _backgroundSize = new Vector2(50);
+
         [Test]
         public void TestFullScale()
         {
@@ -28,10 +30,10 @@ namespace Tests.Classes
                 RenderComposer composer = Engine.Renderer.StartFrame();
 
                 composer.SetUseViewMatrix(true);
-                composer.RenderSprite(new Vector3(Engine.Configuration.RenderSize * -1, 0), Engine.Configuration.RenderSize, Color.Black);
-                composer.RenderSprite(new Vector3(0, 0, 0), Engine.Configuration.RenderSize, Color.CornflowerBlue);
+                composer.RenderSprite(new Vector3(_backgroundSize * -1, 0), _backgroundSize, Color.Black);
+                composer.RenderSprite(new Vector3(0, 0, 0), _backgroundSize, Color.CornflowerBlue);
                 composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
-                composer.RenderSprite(new Vector3(Engine.Configuration.RenderSize - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
+                composer.RenderSprite(new Vector3(_backgroundSize - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
 
                 Engine.Renderer.EndFrame();
 
@@ -50,10 +52,10 @@ namespace Tests.Classes
                 Engine.Host.Window.Size = new Vector2(640, 360);
                 RenderComposer composer = Engine.Renderer.StartFrame();
 
-                composer.RenderSprite(new Vector3(Engine.Configuration.RenderSize * -1, 0), Engine.Configuration.RenderSize, Color.Black);
-                composer.RenderSprite(new Vector3(0, 0, 0), Engine.Configuration.RenderSize, Color.CornflowerBlue);
+                composer.RenderSprite(new Vector3(_backgroundSize * -1, 0), _backgroundSize, Color.Black);
+                composer.RenderSprite(new Vector3(0, 0, 0), _backgroundSize, Color.CornflowerBlue);
                 composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
-                composer.RenderSprite(new Vector3(Engine.Configuration.RenderSize - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
+                composer.RenderSprite(new Vector3(_backgroundSize - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
 
                 Engine.Renderer.EndFrame();
 
