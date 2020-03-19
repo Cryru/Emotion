@@ -738,25 +738,6 @@ namespace OpenGL
         public const int CLIENT_ACTIVE_TEXTURE = 0x84E1;
 
         /// <summary>
-        ///     <para>
-        ///     [GL2.1] Gl.Get: params returns a single value indicating the number of conventional texture units supported. Each
-        ///     conventional texture unit includes both a texture coordinate set and a texture image unit. Conventional texture
-        ///     units
-        ///     may be used for fixed-function (non-shader) rendering. The value must be at least 2. Additional texture coordinate
-        ///     sets
-        ///     and texture image units may be accessed from vertex and fragment shaders. See Gl.ActiveTexture and
-        ///     Gl.ClientActiveTexture.
-        ///     </para>
-        ///     <para>
-        ///     [GLES1.1] Gl.Get: params returns a single value indicating the number of texture units supported. The value must be
-        ///     at
-        ///     least 1. See Gl.ActiveTexture, Gl.ClientActiveTexture and Gl.MultiTexCoord.
-        ///     </para>
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ARB_multitexture")] [RemovedByFeature("GL_VERSION_3_2")]
-        public const int MAX_TEXTURE_UNITS = 0x84E2;
-
-        /// <summary>
         /// [GL2.1] Gl.Get: params returns 16 values, the elements of the modelview matrix in row-major order. See
         /// Gl.LoadTransposeMatrix.
         /// </summary>

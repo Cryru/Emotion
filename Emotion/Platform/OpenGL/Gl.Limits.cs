@@ -220,29 +220,6 @@ namespace OpenGL
 
             /// <summary>
             ///     <para>
-            ///     [GL2.1] Gl.Get: params returns a single value indicating the number of conventional texture units supported. Each
-            ///     conventional texture unit includes both a texture coordinate set and a texture image unit. Conventional texture
-            ///     units
-            ///     may be used for fixed-function (non-shader) rendering. The value must be at least 2. Additional texture coordinate
-            ///     sets
-            ///     and texture image units may be accessed from vertex and fragment shaders. See Gl.ActiveTexture and
-            ///     Gl.ClientActiveTexture.
-            ///     </para>
-            ///     <para>
-            ///     [GLES1.1] Gl.Get: params returns a single value indicating the number of texture units supported. The value must be
-            ///     at
-            ///     least 1. See Gl.ActiveTexture, Gl.ClientActiveTexture and Gl.MultiTexCoord.
-            ///     </para>
-            /// </summary>
-            [Limit(MAX_TEXTURE_UNITS)]
-            [RequiredByFeature("GL_VERSION_1_3")]
-            [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
-            [RequiredByFeature("GL_ARB_multitexture")]
-            [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxTextureUnits;
-
-            /// <summary>
-            ///     <para>
             ///     [GL4] Gl.Get: data returns one value. The value indicates the maximum supported size for renderbuffers. See
             ///     Gl.FramebufferRenderbuffer.
             ///     </para>
@@ -359,19 +336,6 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_tessellation_shader", Api = "gles2")]
             [RequiredByFeature("GL_OES_tessellation_shader", Api = "gles2")]
             public int MaxTessEvaluationInputComponents;
-
-            /// <summary>
-            /// [GL2.1] Gl.Get: params returns one value, the maximum number of texture coordinate sets available to vertex and
-            /// fragment
-            /// shaders. The value must be at least 2. See Gl.ActiveTexture and Gl.ClientActiveTexture.
-            /// </summary>
-            [Limit(MAX_TEXTURE_COORDS)]
-            [RequiredByFeature("GL_VERSION_2_0")]
-            [RequiredByFeature("GL_ARB_fragment_program")]
-            [RequiredByFeature("GL_ARB_vertex_shader")]
-            [RequiredByFeature("GL_NV_fragment_program")]
-            [RemovedByFeature("GL_VERSION_3_2")]
-            public int MaxTextureCoords;
 
             /// <summary>
             /// [GL4|GLES3.2] Gl.Get: data returns one value, the maximum supported texture image units that can be used to access
