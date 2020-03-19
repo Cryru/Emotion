@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
@@ -103,9 +105,11 @@ namespace Emotion.Common
             Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
             Log.Info("Emotion V0.0.0", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
-            Log.Info($" CPU Cores: {Environment.ProcessorCount}", MessageSource.Engine);
-            Log.Info($" x64: {Environment.Is64BitOperatingSystem}", MessageSource.Engine);
-            Log.Info($" Runtime: {Environment.Version}", MessageSource.Engine);
+            Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
+            Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
+            Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
+            Log.Info($" Execution Directory: {Environment.CurrentDirectory}", MessageSource.Engine);
+            Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
