@@ -49,6 +49,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private Win32Platform _platform;
 
         private delegate int RenderDocGetApi(int version, void* api);
+
         public RenderDocAPI RenderDoc;
 
         public void Init(IntPtr windowHandle, Win32Platform platform)
@@ -171,18 +172,54 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             Engine.Log.Trace($"Context ARB: {arbCreateContext}, Profile ARB: {_arbCreateContextProfile}", MessageSource.Wgl);
             if (arbCreateContext)
             {
-                // Try to create a core profile context first.
-                _contextHandle = CreateContextArb(1, 0, true, false);
+                // Context configurations to try.
+                WglContextDescription[] contextFactory =
+                {
+                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Core},
+                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Compat},
+                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Any},
+                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Any, ForwardCompat = false},
 
-                // If failed, create compat profile.
-                if (_contextHandle == IntPtr.Zero) 
-                    _contextHandle = CreateContextArb(1, 0, false, false);
+                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Core},
+                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Compat},
+                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Any},
+                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Any, ForwardCompat = false},
+
+                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Core},
+                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Compat},
+                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Any},
+                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Any, ForwardCompat = false},
+
+                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Core},
+                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Compat},
+                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Any},
+                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Any, ForwardCompat = false},
+
+                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Core},
+                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Compat},
+                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Any},
+                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Any, ForwardCompat = false},
+
+                    new WglContextDescription {Major = 1, Minor = 0, Profile = GLProfile.Any, ForwardCompat = false}
+                };
+
+                for (var i = 0; i < contextFactory.Length; i++)
+                {
+                    WglContextDescription current = contextFactory[i];
+
+                    IntPtr handle = CreateContextArb(contextFactory[i]);
+                    if (handle == IntPtr.Zero) continue;
+
+                    _contextHandle = handle;
+                    Engine.Log.Info($"Created WGL context - {current}", MessageSource.Wgl);
+                    break;
+                }
 
                 // If that failed too, look for errors.
                 // Fallback to legacy creation.
                 if (_contextHandle == IntPtr.Zero) Win32Platform.CheckError("Creating WGL context");
             }
-            
+
             if (_contextHandle == IntPtr.Zero)
             {
                 _contextHandle = createContext(_dc);
@@ -194,30 +231,38 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             Valid = true;
         }
 
-        private IntPtr CreateContextArb(int majorVersion, int minorVersion, bool core, bool debug)
+        private IntPtr CreateContextArb(WglContextDescription contextDescription)
         {
             WglContextFlags mask = 0;
             WglContextFlags flags = 0;
             var attributes = new List<int>();
 
-            if (majorVersion != 1)
+            if (contextDescription.Major != 1)
             {
                 attributes.Add((int) WglContextAttributes.MajorVersionArb);
-                attributes.Add(majorVersion);
+                attributes.Add(contextDescription.Major);
             }
 
-            if (majorVersion != 1 && minorVersion != 0)
+            if (contextDescription.Major != 1 && contextDescription.Minor != 0)
             {
                 attributes.Add((int) WglContextAttributes.MinorVersionArb);
-                attributes.Add(minorVersion);
+                attributes.Add(contextDescription.Minor);
             }
 
             // ArbCreateContextProfile is required to set a profile
-            if (core && _arbCreateContextProfile)
-                mask |= WglContextFlags.CoreProfileBitArb;
+            if (_arbCreateContextProfile && contextDescription.Profile != GLProfile.Any)
+            {
+                if (contextDescription.Profile == GLProfile.Core)
+                    mask |= WglContextFlags.CoreProfileBitArb;
+                else
+                    mask |= WglContextFlags.CompatibilityProfileBitArb;
+            }
 
-            if (debug)
+            if (contextDescription.Debug)
                 flags |= WglContextFlags.DebugBitArb;
+
+            if (contextDescription.ForwardCompat)
+                flags |= WglContextFlags.ForwardCompatibleBitArb;
 
             // Add flags and mask if any. (there mostly isn't)
             // Context creation in Wgl is mostly default and trusts(tm) the other side.
@@ -240,11 +285,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             fixed (int* attPtr = &attArr[0])
             {
                 handle = _createContextAttribs(_dc, IntPtr.Zero, attPtr);
-            }
-
-            if(handle != IntPtr.Zero)
-            {
-                Engine.Log.Info($"WGL context created - {majorVersion}.{minorVersion} Core: {core} Debug: {debug}", MessageSource.Wgl);
             }
 
             return handle;
