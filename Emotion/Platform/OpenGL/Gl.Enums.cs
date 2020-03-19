@@ -4469,12 +4469,6 @@ namespace OpenGL
         MaxUniformLocations = Gl.MAX_UNIFORM_LOCATIONS,
 
         /// <summary>
-        /// Strongly typed for value GL_MAX_VARYING_COMPONENTS, GL_MAX_VARYING_FLOATS.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_0")] [RequiredByFeature("GL_ARB_vertex_shader")]
-        MaxVaryingFloats = Gl.MAX_VARYING_FLOATS,
-
-        /// <summary>
         /// Strongly typed for value GL_MAX_VARYING_VECTORS.
         /// </summary>
         [RequiredByFeature("GL_VERSION_4_1")]

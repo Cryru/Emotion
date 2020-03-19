@@ -468,15 +468,6 @@ namespace OpenGL
         public const int MAX_VERTEX_UNIFORM_COMPONENTS = 0x8B4A;
 
         /// <summary>
-        /// [GL4] Gl.Get: data returns one value, the maximum number of interpolators available for processing varying variables
-        /// used by vertex and fragment shaders. This value represents the number of individual floating-point values that can be
-        /// interpolated; varying variables declared as vectors, matrices, and arrays will all consume multiple interpolators. The
-        /// value must be at least 32.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_2_0")] [RequiredByFeature("GL_ARB_vertex_shader")]
-        public const int MAX_VARYING_FLOATS = 0x8B4B;
-
-        /// <summary>
         /// [GL4|GLES3.2] Gl.Get: data returns one value, the maximum supported texture image units that can be used to access
         /// texture maps from the vertex shader. The value may be at least 16. See Gl.ActiveTexture.
         /// </summary>

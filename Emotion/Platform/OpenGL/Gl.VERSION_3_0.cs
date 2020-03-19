@@ -215,15 +215,6 @@ namespace OpenGL
         public const int FIXED_ONLY = 0x891D;
 
         /// <summary>
-        /// [GL4|GLES3.2] Gl.Get: data returns one value, the number components for varying variables, which must be at least 60.
-        /// </summary>
-        [RequiredByFeature("GL_VERSION_3_0")]
-        [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
-        [RequiredByFeature("GL_ARB_geometry_shader4", Api = "gl|glcore")]
-        [RequiredByFeature("GL_EXT_geometry_shader4")]
-        public const int MAX_VARYING_COMPONENTS = 0x8B4B;
-
-        /// <summary>
         /// [GL] Value of GL_TEXTURE_1D_ARRAY symbol.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_internalformat_query2", Api = "gl|glcore")] [RequiredByFeature("GL_EXT_texture_array")]
