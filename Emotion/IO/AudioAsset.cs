@@ -45,8 +45,7 @@ namespace Emotion.IO
                 Duration = format.GetSoundDuration(data.Length);
             }
 
-            if (Format != null && SoundData.IsEmpty) return;
-            Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
+            if (Format == null || SoundData.IsEmpty) Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);
         }
 
         protected override void DisposeInternal()
