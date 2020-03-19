@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Emotion.Common;
+using Emotion.Platform.OpenGL.Meta;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
 using Khronos;
@@ -48,20 +49,27 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private IntPtr _dc;
         private Win32Platform _platform;
 
+        #region RenderDoc
+
+        // https://renderdoc.org/
+
         private delegate int RenderDocGetApi(int version, void* api);
 
         public RenderDocAPI RenderDoc;
+        private IntPtr _renderDocModule;
+
+        #endregion
 
         public void Init(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
 
             // Check for RenderDoc
-            IntPtr renderDocModule = Kernel32.GetModuleHandle("renderdoc.dll");
-            if (renderDocModule != IntPtr.Zero)
+            _renderDocModule = Kernel32.GetModuleHandle("renderdoc.dll");
+            if (_renderDocModule != IntPtr.Zero)
             {
                 // Get a handle to the RenderDoc API
-                IntPtr api = Kernel32.GetProcAddress(renderDocModule, "RENDERDOC_GetAPI");
+                IntPtr api = Kernel32.GetProcAddress(_renderDocModule, "RENDERDOC_GetAPI");
                 if (api != IntPtr.Zero)
                 {
                     var getApiFunc = Marshal.GetDelegateForFunctionPointer<RenderDocGetApi>(api);
@@ -173,39 +181,19 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             if (arbCreateContext)
             {
                 // Context configurations to try.
-                WglContextDescription[] contextFactory =
+                var contextFactory = new List<GLContextDescription>(4)
                 {
-                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Core},
-                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Compat},
-                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Any},
-                    new WglContextDescription {Major = 4, Minor = 0, Profile = GLProfile.Any, ForwardCompat = false},
-
-                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Core},
-                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Compat},
-                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Any},
-                    new WglContextDescription {Major = 3, Minor = 3, Profile = GLProfile.Any, ForwardCompat = false},
-
-                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Core},
-                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Compat},
-                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Any},
-                    new WglContextDescription {Major = 3, Minor = 2, Profile = GLProfile.Any, ForwardCompat = false},
-
-                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Core},
-                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Compat},
-                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Any},
-                    new WglContextDescription {Major = 3, Minor = 1, Profile = GLProfile.Any, ForwardCompat = false},
-
-                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Core},
-                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Compat},
-                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Any},
-                    new WglContextDescription {Major = 3, Minor = 0, Profile = GLProfile.Any, ForwardCompat = false},
-
-                    new WglContextDescription {Major = 1, Minor = 0, Profile = GLProfile.Any, ForwardCompat = false}
+                    new GLContextDescription {Profile = GLProfile.Compat},
+                    new GLContextDescription {Profile = GLProfile.Core},
+                    new GLContextDescription {Profile = GLProfile.Any}
                 };
+                // If RenderDoc is loaded insert a core profile as the first context configuration to be attempted as RenderDoc requires a core context.
+                if (_renderDocModule != IntPtr.Zero) contextFactory.Add(new GLContextDescription {Profile = GLProfile.Core});
 
-                for (var i = 0; i < contextFactory.Length; i++)
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (var i = 0; i < contextFactory.Count; i++)
                 {
-                    WglContextDescription current = contextFactory[i];
+                    GLContextDescription current = contextFactory[i];
 
                     IntPtr handle = CreateContextArb(contextFactory[i]);
                     if (handle == IntPtr.Zero) continue;
@@ -231,7 +219,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             Valid = true;
         }
 
-        private IntPtr CreateContextArb(WglContextDescription contextDescription)
+        private IntPtr CreateContextArb(GLContextDescription contextDescription)
         {
             WglContextFlags mask = 0;
             WglContextFlags flags = 0;
