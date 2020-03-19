@@ -1,1 +1,0 @@
-﻿These bindings are a fork of https://github.com/luca-piccioni/OpenGL.Net

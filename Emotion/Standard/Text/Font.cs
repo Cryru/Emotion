@@ -7,11 +7,14 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
-using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.Text.FontTables;
 using Emotion.Standard.Utility;
+
+#if StbTrueType
+using Emotion.Primitives;
 using StbTrueTypeSharp;
+#endif
 
 #if FreeType
 using System.IO;
@@ -430,13 +433,14 @@ namespace Emotion.Standard.Text
             /// Fastest
             /// </summary>
             Emotion,
-
+#if StbTrueType
             /// <summary>
             /// A more mature rasterizer to be used if the Emotion rasterizer produces bugs/unwanted results.
             /// Is sort of a fallback.
             /// Fast
             /// </summary>
             StbTrueType,
+#endif
 #if FreeType
             /// <summary>
             /// The most mature and advanced renderer, but it isn't portable as it is a native library.
@@ -482,9 +486,12 @@ namespace Emotion.Standard.Text
                     case GlyphRasterizer.Emotion:
                         glyphRenders.Add(Task.Run(() => RenderGlyph(this, g, scale, samples)));
                         break;
+#if StbTrueType
                     case GlyphRasterizer.StbTrueType:
                         glyphRenders.Add(Task.Run(() => RenderGlyphStb(this, g, scale)));
                         break;
+#endif
+
 #if FreeType
                     case GlyphRasterizer.FreeType:
                         glyphRenders.Add(Task.Run(() => RenderGlyphFreeType(g, fontSize)));
@@ -569,6 +576,7 @@ namespace Emotion.Standard.Text
             return canvas;
         }
 
+#if StbTrueType
         private static unsafe GlyphRenderer.GlyphCanvas RenderGlyphStb(Font f, Glyph g, float scale)
         {
             var atlasGlyph = new AtlasGlyph(g, scale, f.Ascender);
@@ -618,6 +626,7 @@ namespace Emotion.Standard.Text
 
             return canvas;
         }
+#endif
 
 #if FreeType
         private GlyphRenderer.GlyphCanvas RenderGlyphFreeType(Glyph g, float scale)

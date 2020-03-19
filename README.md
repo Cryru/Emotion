@@ -107,25 +107,17 @@ Currently supported:
 
 Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
 
-## Projects Used
+## Dependencies
 
-.NetCore 3.1 and .Net Standard 2.1
+.NetCore 3.1 and .Net Standard 2.1 [MIT]
  - System.Numerics (Data Structures)
  - System.Xml.XmlSerializer (XMLAsset class)
 
-TiledSharp
+TiledSharp (https://github.com/marshallward/TiledSharp) [Apache 2.0]
  - Support for .tmx files.
 
-OpenGL.Net (https://github.com/luca-piccioni/OpenGL.Net)
- - Used as a wrapper for OpenGL.
- - Heavily forked, stripped down, and modified.
-
-Serilog (https://github.com/serilog/serilog)
+Serilog (https://github.com/serilog/serilog) [Apache 2.0]
  - Used for logging.
-
-StbTrueTypeSharp
- - Provided by [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp)
- - Used as a fallback to the Emotion text renderer. Will probably be removed later down the line
 
 ## Optional Dependencies
 
@@ -136,12 +128,47 @@ Emotion.Plugins.CSharpScripting
 Emotion.Plugins.ImGuiNet
  - Uses CimGui and CimGuiNet
  - Dev Mode UI
- - Included native libraries for MacOS, Linux, Windows64
+ - Included native libraries for MacOS_x64, Linux_x64, Windows_x64
 
 Emotion.Standard.TrueType (Found in the Plugins folder)
- - Custom wrapper utilizing .NetCore 3.0, based on [SharpFontStandard](https://github.com/jmazouri/SharpFontStandard/)
- - Included native libraries for MacOS, Linux, Windows64
+ - Custom wrapper utilizing .NetCore 3.0, based on [SharpFontStandard](https://github.com/jmazouri/SharpFontStandard/) which itself is based on [SharpFont](https://github.com/Robmaister/SharpFont)
+ - Included native libraries for MacOS_x64, Linux_x64, Windows_x64
  - Requires compiling Emotion with the "FreeType" symbol.
+
+StbTrueTypeSharp (https://github.com/zwcloud/StbTruetypeSharp) [GPL 3.0]
+ - Provided by [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp)
+ - Used by unit tests.
+
+## Projects Referenced
+
+WinApi (https://github.com/prasannavl/WinApi) [Apache]
+ - Windows API Interop Headers
+ - Forked
+
+OpenGL.Net (https://github.com/luca-piccioni/OpenGL.Net) [MIT]
+ - Used as a wrapper for OpenGL.
+ - Heavily forked, stripped down, and modified.
+
+OpenType.JS (https://opentype.js.org/)
+ - Font parsing reference.
+
+StbTrueType (https://github.com/nothings/stb/blob/master/stb_truetype.h)
+ - Font rendering reference.
+
+Nine.Imagine (https://github.com/yufeih/Nine.Imaging)
+ - Image parsing reference.
+
+ImageSharp (https://github.com/SixLabors/ImageSharp)
+ - Quirky image formats reference.
+
+OpenAL-Soft (https://github.com/kcat/openal-soft/)
+ - Audio code reference
+
+NAudio (https://github.com/naudio/NAudio)
+ - Audio code reference
+
+Audacity (https://github.com/audacity)
+ - Audio code reference
 
 ## Inspired Fully, Or In Parts By:
 

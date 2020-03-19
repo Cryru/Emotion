@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using Emotion.Primitives;
 using Emotion.Standard.Text;
@@ -133,19 +132,11 @@ namespace Tests.Classes
                     Assert.Equal(glyph.YBearing, g.Value.YBearing);
                 }
 
-                // Compare renders.
-                FontAtlas stbAtlas = f.GetAtlas(fontSize, rasterizer: Font.GlyphRasterizer.StbTrueType);
-                byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
-                // todo: Investigate removal - the two layout their glyphs differently within the atlas.
-                //Runner.SaveReferenceImage($"Original - {fonts[i]} - {fontSizes[i]}.png", emotionAtlas.Size, emotionAtlasRgba);
-                //Runner.VerifyImages($"CompareFont - {fonts[i]} - {fontSizes[i]}",
-                //    emotionAtlasRgba,
-                //    ImageUtil.AToRgba(stbAtlas?.Pixels), stbAtlas?.Size ?? Vector2.Zero);
-
                 // Check if there's a verified render.
                 if (string.IsNullOrEmpty(cachedRender[i])) continue;
 
                 // Compare with cached render.
+                byte[] emotionAtlasRgba = ImageUtil.AToRgba(emotionAtlas.Pixels);
                 ImageUtil.FlipImageY(emotionAtlasRgba, (int) emotionAtlas.Size.Y);
                 Runner.VerifyCachedRender(cachedRender[i], emotionAtlasRgba, emotionAtlas.Size);
             }
@@ -280,7 +271,7 @@ namespace Tests.Classes
                 Assert.Equal(rect.h, drawBox.Height);
 
                 StbTrueType.stbtt_vertex* vertices;
-                int verticesNum = StbTrueType.stbtt_GetGlyphShape(stbFont, (int)glyph.MapIndex, &vertices);
+                int verticesNum = StbTrueType.stbtt_GetGlyphShape(stbFont, (int) glyph.MapIndex, &vertices);
 
                 Assert.Equal(verticesNum, glyph.Vertices.Length);
                 for (var i = 0; i < glyph.Vertices.Length; i++)
