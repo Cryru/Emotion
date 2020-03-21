@@ -27,6 +27,12 @@ namespace Emotion.Common
         /// </summary>
         public bool DebugMode { get; set; }
 
+        /// <summary>
+        /// When enabled an OpenGL debug context (platform dependent) will be created and a debug callback will be attached,
+        /// printing messages in the logs.
+        /// </summary>
+        public bool GlDebugMode { get; set; }
+
         #region Rendering
 
         /// <summary>

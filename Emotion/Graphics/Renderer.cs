@@ -85,7 +85,7 @@ namespace Emotion.Graphics
         /// The maximum textures that can be mapped in one StreamBuffer and/or shader. If more than the allowed textures are mapped
         /// an exception is raised.
         /// </summary>
-        public int TextureArrayLimit { get; private set; } = 16;
+        public int TextureArrayLimit { get; private set; } = -1;
 
         #endregion
 
@@ -213,6 +213,13 @@ namespace Emotion.Graphics
 
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 
+            // Attach callback if debug mode is enabled.
+            if (Engine.Configuration.GlDebugMode && !CompatibilityMode && (Gl.CurrentExtensions.DebugOutput_ARB || Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3))
+            {
+                Gl.DebugMessageCallback(_glDebugCallback, IntPtr.Zero);
+                Engine.Log.Trace("Attached OpenGL debug callback.", MessageSource.Renderer);
+            }
+
             // Create default indices.
             IndexBuffer.CreateDefaultIndexBuffers();
 
@@ -273,6 +280,29 @@ namespace Emotion.Graphics
         }
 
         #region Event Handles and Sizing
+
+        /// <summary>
+        /// OpenGL debug callbacks.
+        /// </summary>
+        private static Gl.DebugProc _glDebugCallback = GlDebugCallback;
+
+        private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        {
+            var stringMessage = new string((sbyte*) message, 0, length);
+
+            switch (severity)
+            {
+                case DebugSeverity.DebugSeverityHigh:
+                    Engine.Log.Warning(stringMessage, $"GL_{msgType}_{source}");
+                    break;
+                case DebugSeverity.DebugSeverityMedium:
+                    Engine.Log.Info(stringMessage, $"GL_{msgType}_{source}");
+                    break;
+                default:
+                    Engine.Log.Trace(stringMessage, $"GL_{msgType}_{source}");
+                    break;
+            }
+        }
 
         /// <summary>
         /// Apply rendering settings.
