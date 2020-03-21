@@ -180,28 +180,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             Engine.Log.Trace($"Context ARB: {arbCreateContext}, Profile ARB: {_arbCreateContextProfile}", MessageSource.Wgl);
             if (arbCreateContext)
             {
-                // Context configurations to try.
-                var contextFactory = new List<GLContextDescription>(4)
-                {
-                    new GLContextDescription {Profile = GLProfile.Compat},
-                    new GLContextDescription {Profile = GLProfile.Core},
-                    new GLContextDescription {Profile = GLProfile.Any}
-                };
-                // If RenderDoc is loaded insert a core profile as the first context configuration to be attempted as RenderDoc requires a core context.
-                if (_renderDocModule != IntPtr.Zero) contextFactory.Add(new GLContextDescription {Profile = GLProfile.Core});
-
-                // ReSharper disable once ForCanBeConvertedToForeach
-                for (var i = 0; i < contextFactory.Count; i++)
-                {
-                    GLContextDescription current = contextFactory[i];
-
-                    IntPtr handle = CreateContextArb(contextFactory[i]);
-                    if (handle == IntPtr.Zero) continue;
-
-                    _contextHandle = handle;
-                    Engine.Log.Info($"Created WGL context - {current}", MessageSource.Wgl);
-                    break;
-                }
+                _contextHandle =  CreateContextArb(new GLContextDescription());
+                Engine.Log.Info("WGL context created!", MessageSource.Wgl);
 
                 // If that failed too, look for errors.
                 // Fallback to legacy creation.
