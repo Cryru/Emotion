@@ -130,6 +130,11 @@ namespace Emotion.Graphics
         public VertexArrayObject CommonVao;
 
         /// <summary>
+        /// A ring buffer of vertex buffers, for unsynchronized drawing.
+        /// </summary>
+        public RingVertexBuffer RingBuffer;
+
+        /// <summary>
         /// Cached VAOs per structure type. These are all bound to the common VBO.
         /// </summary>
         public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
@@ -211,11 +216,18 @@ namespace Emotion.Graphics
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
             TextureArrayLimit = SoftwareRenderer ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
 
+            for (var i = 0; i < TextureArrayLimit; i++)
+            {
+                Gl.ActiveTexture(TextureUnit.Texture0 + i);
+                Gl.Enable(EnableCap.Texture2d);
+            }
+
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 
             // Attach callback if debug mode is enabled.
             if (Engine.Configuration.GlDebugMode && !CompatibilityMode && (Gl.CurrentExtensions.DebugOutput_ARB || Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3))
             {
+                Gl.Enable(EnableCap.DebugOuput);
                 Gl.DebugMessageCallback(_glDebugCallback, IntPtr.Zero);
                 Engine.Log.Trace("Attached OpenGL debug callback.", MessageSource.Renderer);
             }
@@ -272,7 +284,15 @@ namespace Emotion.Graphics
         {
             Debug.Assert(GLThread.IsGLThread());
 
-            VertexBuffer = new VertexBuffer((uint) (MAX_INDICES * VertexData.SizeInBytes));
+            var size = (int) (MAX_INDICES * VertexData.SizeInBytes);
+            RingBuffer = new RingVertexBuffer(size, size / 8, 3, s =>
+            {
+                var vbo = new VertexBuffer((uint) s);
+                var vao = new VertexArrayObject<VertexData>(vbo);
+                return new RingGraphicsObjects(vbo, vao);
+            });
+
+            VertexBuffer = new VertexBuffer((uint) size);
             CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
             VaoCache.Add(typeof(VertexData), CommonVao);
 
@@ -289,6 +309,9 @@ namespace Emotion.Graphics
         private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
         {
             var stringMessage = new string((sbyte*) message, 0, length);
+
+            // NVidia drivers love to spam the debug log with how your buffers will be mapped in the system heap.
+            if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("SYSTEM HEAP")) return;
 
             switch (severity)
             {

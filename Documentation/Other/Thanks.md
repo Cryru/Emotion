@@ -27,6 +27,10 @@ jwki
 
 criver
 
+ivand
+
+Typhiant
+
 # Game Industry People:
 
 Jack "Mailman"

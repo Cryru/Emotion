@@ -10,7 +10,7 @@ namespace Emotion.Graphics.Batches
 {
     public interface ISharedMemorySpriteBatch
     {
-        void SetMemory(VertexBuffer owner);
+        void SetMemory(RingVertexBuffer owner);
     }
 
     /// <summary>
@@ -23,7 +23,7 @@ namespace Emotion.Graphics.Batches
             _spriteByteSize = _structByteSize * 4;
         }
 
-        protected VertexBuffer _vbo;
+        protected RingVertexBuffer _memoryOwner;
         protected IntPtr _memoryPtr;
         protected int _spriteByteSize;
 
@@ -31,9 +31,9 @@ namespace Emotion.Graphics.Batches
         /// Set the vbo which owns this batch's memory.
         /// </summary>
         /// <param name="owner">The vbp who owns this batch's memory.</param>
-        public void SetMemory(VertexBuffer owner)
+        public void SetMemory(RingVertexBuffer owner)
         {
-            _vbo = owner;
+            _memoryOwner = owner;
         }
 
         /// <inheritdoc />
@@ -49,7 +49,7 @@ namespace Emotion.Graphics.Batches
             texturePointer = -1;
 
             // Check if already full (or have no owner - that should never happen).
-            if (Full || _vbo == null) return null;
+            if (Full || _memoryOwner == null) return null;
 
             // Check if the texture exists in the binding for this batch.
             // This will also add the texture to this batch.
@@ -58,9 +58,8 @@ namespace Emotion.Graphics.Batches
 
             // Check if have memory.
             if (_memoryPtr == IntPtr.Zero)
-                _memoryPtr = (IntPtr) _vbo.CreateUnsafeMapper(0, 0,
-                    BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateBufferBit | BufferAccessMask.MapFlushExplicitBit
-                );
+                _memoryPtr = (IntPtr) _memoryOwner.CurrentBuffer.VBO.CreateUnsafeMapper(_memoryOwner.CurrentBufferOffset, _memoryOwner.CurrentBufferSize,
+                    BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapFlushExplicitBit);
 
             // Get the data.
             // ReSharper disable once PossibleNullReferenceException
@@ -69,7 +68,7 @@ namespace Emotion.Graphics.Batches
             _mappedTo += 4;
 
             // Mark memory as used.
-            var memoryLeft = (uint) (_vbo.Size - _mappedTo * _structByteSize);
+            var memoryLeft = (uint) (_memoryOwner.CurrentBufferSize - _mappedTo * _structByteSize);
 
             // Check if one more sprite can fit, both in memory and in the IBO. Each sprite is 4 vertices.
             if (memoryLeft < _spriteByteSize || _mappedTo + 4 > RenderComposer.MAX_INDICES) Full = true;
@@ -95,22 +94,24 @@ namespace Emotion.Graphics.Batches
             // If nothing mapped - or no memory (which shouldn't happen), do nothing.
             if (_mappedTo == 0 || _memoryPtr == IntPtr.Zero) return;
 
-            // Get the right graphics objects to use for the drawing.
-            VertexArrayObject vao = composer.CommonVao;
-
             // Upload the data if needed.
-            _vbo.FinishMappingRange(0, (uint) (_mappedTo * _structByteSize));
-            _vbo.FinishMapping();
+            int mapped = _mappedTo * _structByteSize;
+            _memoryOwner.CurrentBuffer.VBO.FinishMappingRange(0, (uint) mapped);
+            _memoryOwner.CurrentBuffer.VBO.FinishMapping();
 
-            // Draw.
-            Draw(vao);
+            // Convert the range within the current buffer to indices.
+            _startIndex = (uint) (_memoryOwner.CurrentBufferOffset / _structByteSize / 4 * 6);
+            _endIndex = (uint) (_startIndex + _mappedTo / 4 * 6);
+            Draw(_memoryOwner.CurrentBuffer.VAO);
+
+            _memoryOwner.SetUsed(mapped);
         }
 
         /// <inheritdoc />
         public override void Dispose()
         {
             Recycle();
-            _vbo = null;
+            _memoryOwner = null;
         }
     }
 }

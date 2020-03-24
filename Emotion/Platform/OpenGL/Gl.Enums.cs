@@ -2592,7 +2592,14 @@ namespace OpenGL
         /// Strongly typed for value GL_RASTERIZER_DISCARD.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_transform_feedback")] [RequiredByFeature("GL_NV_transform_feedback")]
-        RasterizerDiscard = Gl.RASTERIZER_DISCARD
+        RasterizerDiscard = Gl.RASTERIZER_DISCARD,
+
+        [RequiredByFeature("GL_VERSION_4_3")]
+        [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
+        [RequiredByFeature("GL_ARB_debug_output", Api = "gl|glcore")]
+        [RequiredByFeature("GL_KHR_debug")]
+        [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
+        DebugOuput = 0x92E0
     }
 
     /// <summary>
