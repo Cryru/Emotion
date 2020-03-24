@@ -190,6 +190,11 @@ namespace OpenGL
         #region Error Handling
 
         /// <summary>
+        /// Whether GL errors are being supressed.
+        /// </summary>
+        public static bool SupressingErrors = false;
+
+        /// <summary>
         /// OpenGL error checking.
         /// </summary>
         public static void CheckErrors()
@@ -220,6 +225,8 @@ namespace OpenGL
         // ReSharper disable once UnusedParameter.Local
         private static void DebugCheckErrors(object returnValue)
         {
+            if (SupressingErrors) ClearErrors();
+
             CheckErrors();
         }
 

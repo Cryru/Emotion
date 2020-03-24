@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Emotion.Common;
+using Emotion.Standard.Logging;
 using Khronos;
 
 #endregion
@@ -44,16 +45,16 @@ namespace OpenGL
                 var graphicsLimits = new Limits();
                 IEnumerable<FieldInfo> graphicsLimitsFields = typeof(Limits).GetTypeInfo().DeclaredFields;
 
+                // Supress errors. Some limits might be missing from certain drivers and versions.
+                SupressingErrors = true;
+
                 foreach (FieldInfo field in graphicsLimitsFields)
                 {
                     var graphicsLimitAttribute = (LimitAttribute) field.GetCustomAttribute(typeof(LimitAttribute));
-                    Attribute[] graphicsExtensionAttributes = new List<Attribute>(field.GetCustomAttributes(typeof(RequiredByFeatureAttribute))).ToArray();
-                    MethodInfo getMethod;
-
-                    if (graphicsLimitAttribute == null)
-                        continue;
+                    if (graphicsLimitAttribute == null) continue;
 
                     // Check extension support
+                    Attribute[] graphicsExtensionAttributes = new List<Attribute>(field.GetCustomAttributes(typeof(RequiredByFeatureAttribute))).ToArray();
                     if (graphicsExtensionAttributes != null && graphicsExtensionAttributes.Length > 0)
                     {
                         bool supported = Array.Exists(graphicsExtensionAttributes, delegate(Attribute item)
@@ -62,65 +63,54 @@ namespace OpenGL
                             return featureAttribute.IsSupported(version, glExtensions);
                         });
 
-                        if (supported == false)
-                            continue;
+                        if (!supported) continue;
                     }
 
                     // Determine which method is used to get the OpenGL limit
+                    MethodInfo getMethod;
                     if (field.FieldType != typeof(string))
                         getMethod = typeof(Gl).GetMethod("Get", field.FieldType.IsArray ? new[] {typeof(int), field.FieldType} : new[] {typeof(int), field.FieldType.MakeByRefType()});
                     else
                         getMethod = typeof(Gl).GetMethod("GetString", new[] {typeof(int)});
 
-                    if (getMethod != null)
+                    if (getMethod == null)
                     {
-                        if (field.FieldType != typeof(string))
-                        {
-                            object obj = field.FieldType.IsArray == false
-                                ? Activator.CreateInstance(field.FieldType)
-                                : Array.CreateInstance(field.FieldType.GetElementType(), (int) graphicsLimitAttribute.ArrayLength);
+                        Engine.Log.Error($"GraphicsLimits field " + field.Name + " doesn't have a OpenGL compatible type.", MessageSource.GL);
+                        continue;
+                    }
 
-                            try
-                            {
-                                object[] @params = {graphicsLimitAttribute.EnumValue, obj};
-                                getMethod.Invoke(null, @params);
-                                field.SetValue(graphicsLimits, @params[1]);
-                            }
-                            catch (GlException)
-                            {
-                                // the limit is missing.
-                            }
-                            catch (TargetInvocationException exception)
-                            {
-                                Engine.Log.Error($"Getting {field.Name} (0x{graphicsLimitAttribute.EnumValue:X4}): {exception.InnerException?.Message}", "OpenGL");
-                            }
-                        }
-                        else
+                    if (field.FieldType != typeof(string))
+                    {
+                        object obj = field.FieldType.IsArray == false
+                            ? Activator.CreateInstance(field.FieldType)
+                            : Array.CreateInstance(field.FieldType.GetElementType(), (int) graphicsLimitAttribute.ArrayLength);
+
+                        try
                         {
-                            try
-                            {
-                                var s = (string) getMethod.Invoke(null, new object[] {graphicsLimitAttribute.EnumValue});
-                                field.SetValue(graphicsLimits, s);
-                            }
-                            catch (GlException)
-                            {
-                                // the limit is missing.
-                            }
-                            catch (TargetInvocationException exception)
-                            {
-                                Engine.Log.Error($"Getting {field.Name} (0x{graphicsLimitAttribute.EnumValue}): {exception.InnerException?.Message}", "OpenGL");
-                            }
+                            object[] @params = {graphicsLimitAttribute.EnumValue, obj};
+                            getMethod.Invoke(null, @params);
+                            field.SetValue(graphicsLimits, @params[1]);
+                        }
+                        catch (TargetInvocationException exception)
+                        {
+                            Engine.Log.Error($"Getting {field.Name} (0x{graphicsLimitAttribute.EnumValue:X4}): {exception.InnerException?.Message}", MessageSource.GL);
                         }
                     }
                     else
                     {
-                        throw new InvalidOperationException("GraphicsLimits field " + field.Name + " doesn't have a OpenGL compatible type");
+                        try
+                        {
+                            var s = (string) getMethod.Invoke(null, new object[] {graphicsLimitAttribute.EnumValue});
+                            field.SetValue(graphicsLimits, s);
+                        }
+                        catch (TargetInvocationException exception)
+                        {
+                            Engine.Log.Error($"Getting {field.Name} (0x{graphicsLimitAttribute.EnumValue}): {exception.InnerException?.Message}", MessageSource.GL);
+                        }
                     }
                 }
 
-                // Note: in Release no error is checked, and there may be some error; do not let exit from here.
-                ClearErrors();
-
+                SupressingErrors = false;
                 return graphicsLimits;
             }
 
