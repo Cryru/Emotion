@@ -79,11 +79,8 @@ namespace OpenGL
             ProcLoadFunction = procLoadFunction;
 
             // Get version.
-            BindAPI<Gl>(QueryContextVersionCore(), CurrentExtensions);
-
-            // Query OpenGL informations
-            string glVersion = GetString(StringName.Version);
-            CurrentVersion = KhronosVersion.Parse(glVersion);
+            CurrentVersion = QueryContextVersion();
+            BindAPI<Gl>(CurrentVersion, CurrentExtensions);
 
             // Query OpenGL extensions (current OpenGL implementation, CurrentCaps)
             CurrentExtensions = new Extensions();
@@ -120,11 +117,12 @@ namespace OpenGL
         /// <returns>
         /// It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this thread.
         /// </returns>
-        /// <exception cref="InvalidOperationException">
-        /// Exception thrown if no GL context is current on the calling thread.
-        /// </exception>
         public static KhronosVersion QueryContextVersion()
         {
+            BindAPIFunction<Gl>("glGetError", Version100, null);
+            BindAPIFunction<Gl>("glGetString", Version100, null);
+            BindAPIFunction<Gl>("glGetIntegerv", Version100, null);
+
             // Parse version string (effective for detecting Desktop and ES contextes)
             string str = GetString(StringName.Version);
             KhronosVersion glVersion = KhronosVersion.Parse(str);
@@ -149,21 +147,6 @@ namespace OpenGL
             {
                 return new KhronosVersion(glVersion, KhronosVersion.PROFILE_COMPATIBILITY);
             }
-        }
-
-        /// <summary>
-        /// Query the version of the current OpenGL context.
-        /// </summary>
-        /// <returns>
-        /// It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this thread.
-        /// </returns>
-        public static KhronosVersion QueryContextVersionCore()
-        {
-            BindAPIFunction<Gl>("glGetError", Version100, null);
-            BindAPIFunction<Gl>("glGetString", Version100, null);
-            BindAPIFunction<Gl>("glGetIntegerv", Version100, null);
-
-            return QueryContextVersion();
         }
 
         /// <summary>
@@ -192,7 +175,7 @@ namespace OpenGL
         /// <summary>
         /// Whether GL errors are being supressed.
         /// </summary>
-        public static bool SupressingErrors = false;
+        public static bool SuppressingErrors = false;
 
         /// <summary>
         /// OpenGL error checking.
@@ -225,7 +208,7 @@ namespace OpenGL
         // ReSharper disable once UnusedParameter.Local
         private static void DebugCheckErrors(object returnValue)
         {
-            if (SupressingErrors) ClearErrors();
+            if (SuppressingErrors) ClearErrors();
 
             CheckErrors();
         }
@@ -261,11 +244,6 @@ namespace OpenGL
         /// </param>
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         public delegate void DebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam);
-
-        /// <summary>
-        /// </summary>
-        /// <returns></returns>
-        public delegate IntPtr VulkanProc();
 
         /// <summary>
         /// specify values to record in transform feedback buffers

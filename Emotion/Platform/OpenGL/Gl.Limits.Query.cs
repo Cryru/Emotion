@@ -46,7 +46,7 @@ namespace OpenGL
                 IEnumerable<FieldInfo> graphicsLimitsFields = typeof(Limits).GetTypeInfo().DeclaredFields;
 
                 // Supress errors. Some limits might be missing from certain drivers and versions.
-                SupressingErrors = true;
+                SuppressingErrors = true;
 
                 foreach (FieldInfo field in graphicsLimitsFields)
                 {
@@ -110,7 +110,7 @@ namespace OpenGL
                     }
                 }
 
-                SupressingErrors = false;
+                SuppressingErrors = false;
                 return graphicsLimits;
             }
 
