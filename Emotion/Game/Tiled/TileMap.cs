@@ -84,7 +84,7 @@ namespace Emotion.Game.Tiled
         public TileMap(Vector3 position, Vector2 size, string mapPath, string tileSetFolder) : base(position, size)
         {
             // Check if no map is provided.
-            if (mapPath == "") return;
+            if (mapPath == string.Empty) return;
 
             // Reset with the constructor parameters.
             Reset(mapPath, tileSetFolder);

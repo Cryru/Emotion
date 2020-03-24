@@ -221,5 +221,21 @@ namespace Emotion.Utility
 
             return -1;
         }
+
+        /// <summary>
+        /// Swap two items in an array by index.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="array"></param>
+        /// <param name="idx"></param>
+        /// <param name="withIdx"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ArraySwap<T>(this T[] array, int idx, int withIdx)
+        {
+            T temp = array[idx];
+            array[idx] = array[withIdx];
+            array[withIdx] = temp;
+        }
     }
 }

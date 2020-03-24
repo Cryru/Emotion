@@ -24,12 +24,13 @@ namespace Emotion.Graphics.Shading
         /// <summary>
         /// List of shader configurations to try to compile with.
         /// </summary>
-        private static Dictionary<string, Func<string[], string[]>> _shaderConfigurations = new Dictionary<string, Func<string[], string[]>>
+        private static (string name, Func<string[], string[]> func)[] _shaderConfigurations =
         {
-            {"default", s => s},
-            {"CompatTextureIndex", s => ApplyIndexUnwrap(AddPreprocessorConstant(s, "CompatTextureIndex"))},
-            {"AttribLocationExtension", s => AddExtensionConstant(s, "GL_ARB_explicit_attrib_location")},
-            {"CompatTextureIndex&AttribLocationExtension", s => ApplyIndexUnwrap(AddExtensionConstant(AddPreprocessorConstant(s, "CompatTextureIndex"), "GL_ARB_explicit_attrib_location"))}
+            ("default", ExcludeCompliantRenderer),
+            ("shader5", s => ExcludeCompliantRenderer(AddExtensionConstant(s, "GL_ARB_gpu_shader5"))),
+            ("CompatTextureIndex", s => ApplyIndexUnwrap(AddPreprocessorConstant(s, "CompatTextureIndex"))),
+            ("AttribLocationExtension", s => AddExtensionConstant(s, "GL_ARB_explicit_attrib_location")),
+            ("CompatTextureIndex&AttribLocationExtension", s => ApplyIndexUnwrap(AddExtensionConstant(AddPreprocessorConstant(s, "CompatTextureIndex"), "GL_ARB_explicit_attrib_location")))
         };
 
         /// <summary>
@@ -119,12 +120,20 @@ namespace Emotion.Graphics.Shading
             if (Engine.Configuration.DebugMode) WarningsCheck(preprocessed);
 
             // Find a configuration which will compile the shader.
-            foreach (KeyValuePair<string, Func<string[], string[]>> configuration in _shaderConfigurations)
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < _shaderConfigurations.Length; i++)
             {
+                (string name, Func<string[], string[]> func) configuration = _shaderConfigurations[i];
+
                 // Apply configuration.
                 var attempt = new string[preprocessed.Length];
                 Array.Copy(preprocessed, 0, attempt, 0, preprocessed.Length);
-                attempt = configuration.Value(attempt);
+                attempt = configuration.func(attempt);
+                if (attempt == null)
+                {
+                    Engine.Log.Trace($"Config {configuration.name} skipped.", MessageSource.Renderer);
+                    continue;
+                }
 
                 Gl.ShaderSource(shaderId, attempt);
                 Gl.CompileShader(shaderId);
@@ -145,10 +154,15 @@ namespace Emotion.Graphics.Shading
                 Gl.GetShader(shaderId, ShaderParameterName.CompileStatus, out int status);
                 if (status != 1)
                 {
-                    Engine.Log.Trace($"Shader compilation with config - {configuration.Key} failed.", MessageSource.Renderer);
+                    Engine.Log.Trace($"Shader compilation with config - {configuration.name} failed.", MessageSource.Renderer);
                     continue;
                 }
-                config = configuration.Key;
+                config = configuration.name;
+
+                // Swap the first configuration with the one which worked. This will speed up future compilations
+                // as a known working one will be tried first. You generally don't want to have a configuration which
+                // only works on some of your shaders, but rather polyfill for different hardware support.
+                _shaderConfigurations.ArraySwap(i, 0);
                 return true;
             }
 
@@ -212,8 +226,7 @@ namespace Emotion.Graphics.Shading
         private static string ResolveShaderDependency(string file)
         {
             var loadedFile = Engine.AssetLoader.Get<TextAsset>(file);
-            if (loadedFile == null) return "";
-            return Helpers.NormalizeNewLines(loadedFile.Content);
+            return loadedFile == null ? string.Empty : Helpers.NormalizeNewLines(loadedFile.Content);
         }
 
         /// <summary>
@@ -259,6 +272,66 @@ namespace Emotion.Graphics.Shading
             source[0] = $"{source[0]}#extension {extension} : require\n";
             return source;
         }
+
+        /// <summary>
+        /// Let me tell you a really sad story.
+        /// Indexing sampler (and other opaque types) arrays with a varying is not allowed by the GL spec.
+        /// Since version 400 (and with the shader5 extension) you can use dynamic uniform expressions to index,
+        /// which basically means through a uniform a variable. The presumption is that the value will be the same for all executions of the
+        /// shader.
+        ///
+        /// There are various workarounds to this, such as looping over the array and stopping to index it with the loop counter
+        /// once it has reached the varying value, or creating a large switch case (as the constant "CompatTextureIndex" does).
+        /// Theoretically this is still illegal and is a huge performance hit (as branching usually is in shaders).
+        /// 
+        /// HOWEVER, most drivers will actually let you index the array directly and it is assumed that those who stick to the spec,
+        /// and don't let you do that, will throw an error during shader compilation. The whole shader configuration logic here
+        /// exists to try out different variations of the shader until one compiles.
+        /// 
+        /// It turns out some drivers (AMD) compile silently without any errors. While they are technically up to spec, reporting success in such cases is not.
+        /// One way (I've randomly found) of detecting this is to attempt a compilation of a GLES shader, in which case they do throw an error
+        /// This function will attempt to compile such a shader once, and exclude non-compliant shader configurations if it fails.
+        /// </summary>
+        /// <param name="source">The shader source.</param>
+        /// <returns>null if the shader configuration should be skipped, and the source if it shouldn't.</returns>
+        private static string[] ExcludeCompliantRenderer(string[] source)
+        {
+            if(_compliantShader != null) return _compliantShader.Value ? null : source;
+
+            uint testShader = Gl.CreateShader(ShaderType.FragmentShader);
+            Gl.ShaderSource(testShader, _opaqueTypeIndexCheckShader);
+            Gl.CompileShader(testShader);
+            Gl.GetShader(testShader, ShaderParameterName.CompileStatus, out int status);
+
+            Gl.GetShader(testShader, ShaderParameterName.InfoLogLength, out int lLength);
+            if (lLength > 0)
+            {
+                // Get the info log.
+                var compileStatusReader = new StringBuilder(lLength);
+                Gl.GetShaderInfoLog(testShader, lLength, out int _, compileStatusReader);
+                string compileStatus = compileStatusReader.ToString();
+                Engine.Log.Info($"Compliant renderer compile status {status}, and reported: {compileStatus}", MessageSource.Renderer);
+            }
+
+            Gl.DeleteShader(testShader);
+            _compliantShader = status == 0;
+            return _compliantShader.Value ? null : source;
+        }
+
+        private static bool? _compliantShader;
+        private static string[] _opaqueTypeIndexCheckShader =
+        {
+            "#version 300 es\n",
+            "#ifdef GL_ES\n",
+            "precision highp float;\n",
+            "#endif\n",
+            $"uniform sampler2D textures[{Engine.Renderer.TextureArrayLimit}];\n",
+            "flat in int Tid;\n",
+            "out vec4 fragColor;\n",
+            "void main() {\n",
+            " fragColor = texture(textures[Tid], vec2(0.0));\n",
+            "}\n"
+        };
 
         #endregion
 
