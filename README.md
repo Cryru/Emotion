@@ -51,13 +51,11 @@ Currently supported:
 
 ## Features So Far
 
-- Platform handling
-  - Window creation
-  - Keyboard, mouse, and text input.
-  - Borderless fullscreen, and windowed.
+- Custom platform code.
+  - Window creation, keyboard, mouse, and text input.
+  - Borderless fullscreen, and windowed support.
   - Pause when focus is lost, lowering resource usage in the background.
-  - Software renderer fallback. (Windows only - through Gallium)
-- SIMD vector and matrix math, through System.Numerics.
+  - Software renderer fallback. Windows only
 - File Support
   - Reading and writing of various BMP formats and PNG files.
 	- BMP: 8/16/24/32bit
@@ -67,41 +65,33 @@ Currently supported:
     	- Optionally the font can also be rasterized using StbTrueTypeSharp.
   - "WAV" files for audio.
 - Asset loading and managements
- - Load assets from different sources, and manage their lifecycle.
 - Layer-based audio system with playlists and a custom resampler.
-- Rendering
-  - Camera system.
-  - Drawing of things like lines, rectangles, triangles, and circles.
-	- These are all drawn as triangles, no GL_LINES here, monsieur!
-  - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
-  - Draw order independent texture alpha testing and blending. (Mostly, you'll still need to order semi-transparent objects. The included feature is achieved by discarding invisible fragments.)
-  - Model matrix stack.
-  - Spritesheet based animation in either a grid or freeform format.
-  - Text.
-    - Includes advanced font drawing with control over each individual glyph.
-    - Extensible Richtext class featuring auto wrapping, alignment, markup, and more.
-  - Cache draw commands to re-execute them faster.
-  - Different types of scaling, with pixel art in mind, allowing your game to look good on all resolutions.
-  - Framebuffer (RenderTarget) stack, allows for easy management.
+- Camera system, and a model matrix stack.
+- Draw order independent texture alpha testing and blending. You'll still need to order semi-transparent objects.
+- Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
+- Unsynchronized rendering.
+- Easy drawing of vertices, and 2D primitives like lines, rectangles, triangles, and circles.
+- Spritesheet based animation in either a grid or freeform format.
+  - The animation editor allows you to easily detect frames in a spritesheet and name animations.
+- Custom text rendering with atlases created at runtime.
+  - Extensible Richtext and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
+- Different types of scaling, with pixel art in mind, allowing your game to look good on all resolutions.
+- Framebuffer (RenderTarget) stack allowing for easy rendering to textures and side buffers.
 - Shader Pipeline
   - Try multiple preprocessors to increase the compatibility of your shader.
   - Specify fallbacks!
-  - Predefined uniforms based on ShaderToy allow for cool effects.
-- An implementation of A*
-  - With the ability to add a custom heuristics function, and perform other customizations.
-- Logging.
+  - Predefined uniforms based on ShaderToy allow for easily making cool effects.
+- An implementation of A*, with the ability to add a custom heuristics function, and perform other customizations.
+- QuadTree Implementation
+- Logging, easily extendible and modifiable.
   - Runs on another thread as not to interrupt your game.
   - Remote logging to PaperTrail and other services which support the protocol.
-  - Easily create your own logger!
-- Framerate independent timing with a semi-fixed step.
-- Easy tilemap drawing and handling.
+- Framerate independent timing with a semi-fixed step. Automatically switches to a faster mode and slower mode depending on runtime performance.
+- Easy tilemap drawing and handling, including layer opacity, multiple tilesets, animated tiles, and more
   - Integration with the "Tiled" application.
-  - Includes layer opacity, multiple tilesets, animated tiles, and more.
-- QuadTree Implementation
-- A lot of configurable options.
 - ImGui Integration through a plugin.
-- Execute C# files as scripts in runtime!
-- Lots of math helper functions.
+
+and many more!
 
 ## Building and Using
 
