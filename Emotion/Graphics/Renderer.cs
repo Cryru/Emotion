@@ -216,31 +216,26 @@ namespace Emotion.Graphics
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
             TextureArrayLimit = SoftwareRenderer ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
 
-            //{
-            //    // Enable all texture units. This also serves to show how many are really supported.
-            //    Gl.SupressingErrors = true;
-            //    for (var i = 0; i < TextureArrayLimit; i++)
-            //    {
-            //        Gl.ActiveTexture(TextureUnit.Texture0 + i);
-            //        Gl.Enable(EnableCap.Texture2d);
-
-            //        if (Gl.IsEnabled(EnableCap.Texture2d)) continue;
-            //        Engine.Log.Warning($"Texture array support was reported as {TextureArrayLimit} but is in fact {i}", MessageSource.Renderer);
-            //        TextureArrayLimit = i == 0 ? 1 : i;
-            //        break;
-            //    }
-            //    Gl.SupressingErrors = false;
-            //}
-
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 
             // Attach callback if debug mode is enabled.
-            if (Engine.Configuration.GlDebugMode && !CompatibilityMode && (Gl.CurrentExtensions.DebugOutput_ARB || Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3))
+            bool hasDebugSupport = (Gl.CurrentExtensions.DebugOutput_ARB || Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3);
+            if (Engine.Configuration.GlDebugMode && !CompatibilityMode && hasDebugSupport)
             {
                 Gl.Enable(EnableCap.DebugOuput);
                 Gl.DebugMessageCallback(_glDebugCallback, IntPtr.Zero);
                 Engine.Log.Trace("Attached OpenGL debug callback.", MessageSource.Renderer);
             }
+#if !DEBUG
+            // In release mode GL errors are not checked after every call.
+            // In that case a error catching callback is attached so that GL errors are logged.
+            else if(hasDebugSupport)
+            {
+                Gl.Enable(EnableCap.DebugOuput);
+                Gl.DebugMessageCallback(_glErrorCatchCallback, IntPtr.Zero);
+                Engine.Log.Info("Attached OpenGL error catching callback.", MessageSource.Renderer);
+            }
+#endif
 
             // Create default indices.
             IndexBuffer.CreateDefaultIndexBuffers();
@@ -312,7 +307,7 @@ namespace Emotion.Graphics
         #region Event Handles and Sizing
 
         /// <summary>
-        /// OpenGL debug callbacks.
+        /// OpenGL debug callback.
         /// </summary>
         private static Gl.DebugProc _glDebugCallback = GlDebugCallback;
 
@@ -336,6 +331,19 @@ namespace Emotion.Graphics
                     break;
             }
         }
+
+#if !DEBUG
+
+        private static Gl.DebugProc _glErrorCatchCallback = glErrorCatchCallback;
+        private static unsafe void glErrorCatchCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        {
+            if(msgType != DebugType.DebugTypeError) return;
+
+            var stringMessage = new string((sbyte*) message, 0, length);
+            Engine.Log.Error(stringMessage, $"GL_{source}");
+        }
+
+#endif
 
         /// <summary>
         /// Apply rendering settings.
