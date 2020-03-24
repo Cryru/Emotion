@@ -70,7 +70,7 @@ namespace Emotion.Graphics.Batches
         /// <summary>
         /// How many texture slots are utilized.
         /// </summary>
-        protected int _textureSlotUtilization;
+        public int TextureSlotUtilization { get; protected set; }
 
         #endregion
 
@@ -101,7 +101,7 @@ namespace Emotion.Graphics.Batches
         public override void Recycle()
         {
             Full = false;
-            _textureSlotUtilization = 0;
+            TextureSlotUtilization = 0;
             _mappedTo = 0;
             _startIndex = 0;
             _endIndex = null;
@@ -178,17 +178,17 @@ namespace Emotion.Graphics.Batches
         {
             bindingPointer = -1;
 
-            if (_textureSlotUtilization == _textureBinding.Length) return false;
+            if (TextureSlotUtilization == _textureBinding.Length) return false;
 
             if (TextureInBinding(pointer, out bindingPointer)) return true;
 
             // Add to binding.
-            _textureBinding[_textureSlotUtilization] = pointer;
-            bindingPointer = _textureSlotUtilization;
-            _textureSlotUtilization++;
+            _textureBinding[TextureSlotUtilization] = pointer;
+            bindingPointer = TextureSlotUtilization;
+            TextureSlotUtilization++;
 
             // Verify if the texture binding maximum has been reached.
-            if (_textureSlotUtilization == _textureBinding.Length) Full = true;
+            if (TextureSlotUtilization == _textureBinding.Length) Full = true;
 
             return true;
         }
@@ -201,7 +201,7 @@ namespace Emotion.Graphics.Batches
         /// <returns>Whether this texture exists in the batch binding.</returns>
         public bool TextureInBinding(uint pointer, out int bindingPointer)
         {
-            for (var i = 0; i < _textureSlotUtilization; i++)
+            for (var i = 0; i < TextureSlotUtilization; i++)
             {
                 if (_textureBinding[i] != pointer) continue;
                 bindingPointer = i;
@@ -219,7 +219,7 @@ namespace Emotion.Graphics.Batches
         {
             Debug.Assert(GLThread.IsGLThread());
 
-            for (uint i = 0; i < _textureSlotUtilization; i++)
+            for (uint i = 0; i < TextureSlotUtilization; i++)
             {
                 Texture.EnsureBound(_textureBinding[i], i);
             }

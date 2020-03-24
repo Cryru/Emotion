@@ -37,7 +37,7 @@ namespace Emotion.Graphics.Batches
             var binding = new uint[_textureBinding.Length];
             Array.Copy(_textureBinding, 0, binding, 0, _textureBinding.Length);
 
-            _textureSlotUtilization = 0;
+            TextureSlotUtilization = 0;
             var data = new Span<VertexData>((void*) _batchedVertices, _mappedTo);
             for (var i = 0; i < data.Length; i++)
             {
@@ -53,7 +53,7 @@ namespace Emotion.Graphics.Batches
 
                 // Find within new binding.
                 int newIdx = -1;
-                for (var b = 0; b < _textureSlotUtilization; b++)
+                for (var b = 0; b < TextureSlotUtilization; b++)
                 {
                     if (_textureBinding[b] == oldBindingPtr) newIdx = b;
                 }
@@ -61,11 +61,11 @@ namespace Emotion.Graphics.Batches
                 // If not found - add it.
                 if (newIdx == -1)
                 {
-                    _textureBinding[_textureSlotUtilization] = oldBindingPtr;
-                    newIdx = _textureSlotUtilization;
-                    _textureSlotUtilization++;
+                    _textureBinding[TextureSlotUtilization] = oldBindingPtr;
+                    newIdx = TextureSlotUtilization;
+                    TextureSlotUtilization++;
 
-                    Debug.Assert(_textureSlotUtilization < _textureBinding.Length);
+                    Debug.Assert(TextureSlotUtilization < _textureBinding.Length);
                 }
 
                 // Amend vertex.
