@@ -216,11 +216,21 @@ namespace Emotion.Graphics
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
             TextureArrayLimit = SoftwareRenderer ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
 
-            for (var i = 0; i < TextureArrayLimit; i++)
-            {
-                Gl.ActiveTexture(TextureUnit.Texture0 + i);
-                Gl.Enable(EnableCap.Texture2d);
-            }
+            //{
+            //    // Enable all texture units. This also serves to show how many are really supported.
+            //    Gl.SupressingErrors = true;
+            //    for (var i = 0; i < TextureArrayLimit; i++)
+            //    {
+            //        Gl.ActiveTexture(TextureUnit.Texture0 + i);
+            //        Gl.Enable(EnableCap.Texture2d);
+
+            //        if (Gl.IsEnabled(EnableCap.Texture2d)) continue;
+            //        Engine.Log.Warning($"Texture array support was reported as {TextureArrayLimit} but is in fact {i}", MessageSource.Renderer);
+            //        TextureArrayLimit = i == 0 ? 1 : i;
+            //        break;
+            //    }
+            //    Gl.SupressingErrors = false;
+            //}
 
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 
