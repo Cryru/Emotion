@@ -374,5 +374,10 @@ namespace Emotion.Plugins.ImGuiNet
         }
 
         #endregion
+
+        public void Dispose()
+        {
+
+        }
     }
 }

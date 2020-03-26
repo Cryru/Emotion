@@ -453,6 +453,12 @@ namespace Emotion.Common
 
             // Flush logs.
             Log?.Dispose();
+
+            // Dispose of plugins.
+            foreach (IPlugin p in Configuration.Plugins)
+            {
+                p.Dispose();
+            }
         }
 
         #region Helpers

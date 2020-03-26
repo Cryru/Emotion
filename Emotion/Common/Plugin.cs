@@ -1,6 +1,8 @@
-﻿namespace Emotion.Common
+﻿using System;
+
+namespace Emotion.Common
 {
-    public interface IPlugin
+    public interface IPlugin : IDisposable
     {
         void Initialize();
         void Update();
