@@ -176,7 +176,7 @@ namespace Emotion.Standard.Audio
         /// <param name="secondChannel">Whether sampling for a second channel. Used internally.</param>
         /// <returns>The specified sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false, bool secondChannel = false)
+        public virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false, bool secondChannel = false)
         {
             // Check if simulating stereo from mono.
             if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
@@ -215,6 +215,8 @@ namespace Emotion.Standard.Audio
             }
 
             // If simulating mono from stereo get the other channel and average them.
+            // Without the "secondChannel" boolean you cannot get the value of the other channel
+            // as it will loop in trying to convert it to mono as well.
             if (secondChannel || SourceFormat.Channels != 2 || ConvFormat.Channels != 1) return output;
             float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true, true);
             output = (output + outputRightChannel) / 2f;

@@ -187,7 +187,6 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                     new GLContextDescription {Profile = GLProfile.Any}
                 };
 
-                // ReSharper disable once ForCanBeConvertedToForeach
                 for (var i = 0; i < contextFactory.Count; i++)
                 {
                     GLContextDescription current = contextFactory[i];

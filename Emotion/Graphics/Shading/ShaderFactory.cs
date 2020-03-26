@@ -120,7 +120,6 @@ namespace Emotion.Graphics.Shading
             if (Engine.Configuration.DebugMode) WarningsCheck(preprocessed);
 
             // Find a configuration which will compile the shader.
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < _shaderConfigurations.Length; i++)
             {
                 (string name, Func<string[], string[]> func) configuration = _shaderConfigurations[i];

@@ -368,7 +368,6 @@ namespace Emotion.Game.QuadTree
             {
                 // Otherwise, if the quad isn't fully contained, only add objects that intersect with the search rectangle
                 if (_objects != null)
-                    // ReSharper disable once ForCanBeConvertedToForeach
                     // ReSharper disable once LoopCanBeConvertedToQuery
                     for (var i = 0; i < _objects.Count; i++)
                     {
@@ -395,7 +394,6 @@ namespace Emotion.Game.QuadTree
         {
             // If this Quad has objects, add them
             if (_objects != null)
-                // ReSharper disable once ForCanBeConvertedToForeach
                 // ReSharper disable once LoopCanBeConvertedToQuery
                 for (var i = 0; i < _objects.Count; i++)
                 {

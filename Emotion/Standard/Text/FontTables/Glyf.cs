@@ -308,7 +308,6 @@ namespace Emotion.Standard.Text.FontTables
                 if (comp.Vertices == null || comp.Vertices.Length <= 0) continue;
 
                 // Copy vertices from the composite part.
-                // ReSharper disable once ForCanBeConvertedToForeach
                 for (var i = 0; i < comp.Vertices.Length; ++i)
                 {
                     GlyphVertex v = comp.Vertices[i];

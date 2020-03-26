@@ -16,12 +16,6 @@ namespace Emotion.Tools
 {
     internal class Program : IScene
     {
-        #region UI Logic
-
-        private static WindowManager _manager = new WindowManager();
-
-        #endregion
-
         private static void Main()
         {
             var config = new Configurator
@@ -38,7 +32,7 @@ namespace Emotion.Tools
 
         public void Update()
         {
-            _manager.Update();
+
         }
 
         public void Load()
@@ -55,11 +49,7 @@ namespace Emotion.Tools
         {
             composer.SetUseViewMatrix(false);
             composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
-
-            ImGui.NewFrame();
-            composer.RenderToolsMenu(_manager);
-            _manager.Render(composer);
-            ImGuiNetPlugin.RenderUI(composer);
+            composer.RenderToolsMenu();
         }
     }
 }

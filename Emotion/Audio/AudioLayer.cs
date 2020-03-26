@@ -223,8 +223,7 @@ namespace Emotion.Audio
             if (!format.Equals(currentTrack.ConvFormat)) currentTrack.SetConvertFormat(format);
 
             // Get frames from the streamer.
-            currentTrack.Volume = Volume;
-            int framesOutput = currentTrack.GetNextFrames(framesRequested, dest.Slice(framesOffset * format.FrameSize));
+            int framesOutput = currentTrack.GetNextVolumeModulatedFrames(Volume * Engine.Configuration.MasterVolume, framesRequested, dest.Slice(framesOffset * format.FrameSize));
 
             // Check if the buffer was filled.
             Debug.Assert(framesOutput <= framesRequested);

@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Emotion.Graphics;
+using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Tools.Windows.Art;
+using Emotion.Tools.Windows.Audio;
 using ImGuiNET;
 
 #endregion
@@ -15,7 +17,9 @@ namespace Emotion.Tools.Windows
 {
     public static class ToolsMenu
     {
+        // ReSharper disable once CollectionNeverUpdated.Global
         public static Dictionary<string, Action<WindowManager>> CustomTools = new Dictionary<string, Action<WindowManager>>();
+        public static WindowManager ToolsWindowManager;
 
         public static void RenderToolsMenu(this RenderComposer composer, WindowManager manager)
         {
@@ -62,6 +66,18 @@ namespace Emotion.Tools.Windows
             }
 
             ImGui.EndMainMenuBar();
+        }
+
+        public static void RenderToolsMenu(this RenderComposer composer)
+        {
+            if (ToolsWindowManager == null) ToolsWindowManager = new WindowManager();
+
+            ToolsWindowManager.Update();
+
+            ImGui.NewFrame();
+            RenderToolsMenu(composer, ToolsWindowManager);
+            ToolsWindowManager.Render(composer);
+            composer.RenderUI();
         }
     }
 }

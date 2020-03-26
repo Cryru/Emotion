@@ -85,7 +85,6 @@ namespace Emotion.Standard.Text
             n = 0;
             var wOffset = 0;
             var subSample = 1;
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < contourLengths.Length; i++)
             {
                 int j = contourLengths[i] - 1;

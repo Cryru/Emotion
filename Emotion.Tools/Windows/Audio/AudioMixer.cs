@@ -1,28 +1,27 @@
 ﻿#region Using
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
-using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet.Windowing;
-using Emotion.Primitives;
-using Emotion.Standard.Audio;
 using Emotion.Tools.Windows.HelpWindows;
 using ImGuiNET;
 
 #endregion
 
-namespace Emotion.Tools.Windows
+namespace Emotion.Tools.Windows.Audio
 {
     public class AudioMixer : ImGuiWindow
     {
         private FileExplorer<AudioAsset> _explorer;
         private string _newLayerName = "";
+
+        private Dictionary<AudioLayer, WaveformCache> _waveFormCache = new Dictionary<AudioLayer, WaveformCache>();
 
         public AudioMixer() : base("Audio Mixer")
         {
@@ -42,6 +41,10 @@ namespace Emotion.Tools.Windows
                 Parent.AddWindow(_explorer);
             }
 
+            // Push waveforms down.
+            composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, 200, 0)));
+
+            // Render ImGui section of layers.
             string[] layers = Engine.Host.Audio.GetLayers();
             for (var i = 0; i < layers.Length; i++)
             {
@@ -50,7 +53,8 @@ namespace Emotion.Tools.Windows
                 ImGui.Text($"Layer {layers[i]}");
 
                 ImGui.PushID(i);
-                ImGui.Text($"Status: {layer.Status}" + (layer.CurrentTrack != null ? $" {(MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f).ToString("0")}/{layer.CurrentTrack.File.Duration}" : ""));
+                ImGui.Text($"Status: {layer.Status}" +
+                           (layer.CurrentTrack != null ? $" {(MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f).ToString("0")}/{layer.CurrentTrack.File.Duration}" : ""));
                 float volume = layer.Volume;
                 ImGui.InputFloat("Volume", ref volume);
                 layer.Volume = volume;
@@ -82,19 +86,45 @@ namespace Emotion.Tools.Windows
 
                 ImGui.PopID();
                 ImGui.NewLine();
+
+                _waveFormCache.TryGetValue(layer, out WaveformCache cache);
+                cache?.Render(composer);
             }
 
-            if(ImGui.Button("Create Layer") && !string.IsNullOrEmpty(_newLayerName))
+            composer.PopModelMatrix();
+
+            if (ImGui.Button("Create Layer") && !string.IsNullOrEmpty(_newLayerName))
             {
                 Engine.Host.Audio.CreateLayer(_newLayerName);
                 _newLayerName = "";
             }
+
             ImGui.InputText("", ref _newLayerName, 50);
         }
 
         public override void Update()
         {
+            string[] layers = Engine.Host.Audio.GetLayers();
+            for (var i = 0; i < layers.Length; i++)
+            {
+                AudioLayer layer = Engine.Host.Audio.GetLayer(layers[i]);
 
+                _waveFormCache.TryGetValue(layer, out WaveformCache cache);
+                if (cache == null)
+                {
+                    cache = new WaveformCache(layer);
+                    _waveFormCache[layer] = cache;
+                }
+
+                if (layer.Status != PlaybackStatus.Playing)
+                {
+                    cache.Clear();
+                    continue;
+                }
+
+                // Update waveform cache.
+                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Engine.Renderer.DrawBuffer.Size.X, 200);
+            }
         }
     }
 }

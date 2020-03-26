@@ -521,7 +521,6 @@ namespace Emotion.Standard.Text
 
             float atlasRowSpacing = MathF.Ceiling(Height * (scale * samples));
 
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < canvases.Length; i++)
             {
                 atlasGlyphs[i] = canvases[i].Glyph;

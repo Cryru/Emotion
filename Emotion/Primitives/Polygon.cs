@@ -181,7 +181,6 @@ namespace Emotion.Primitives
                 Vector3 c = vertices[w];
 
                 if (Maths.EPSILON > (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X)) return false;
-                // ReSharper disable once ForCanBeConvertedToForeach
                 // ReSharper disable once LoopCanBeConvertedToQuery
                 for (var p = 0; p < vertices.Count; p++)
                 {

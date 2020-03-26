@@ -356,7 +356,6 @@ namespace Emotion.Standard.Image.PNG
             // Run scanlines which couldn't be parallel processed.
             if (scanLineCount >= 2000) Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without that, it will load faster.", MessageSource.ImagePng);
             cannotParallel.Sort();
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < cannotParallel.Count; i++)
             {
                 int idx = cannotParallel[i];
