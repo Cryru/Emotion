@@ -171,7 +171,10 @@ namespace Emotion.Graphics.Objects
 
         private FrameBufferTexture CreateTexture(InternalFormat internalFormat, PixelFormat pixelFormat, FramebufferAttachment attachment)
         {
-            var texture = new FrameBufferTexture(Size, internalFormat, pixelFormat);
+            var texture = new FrameBufferTexture(Size, internalFormat, pixelFormat)
+            {
+                FlipY = true // Framebuffer textures are always flipped.
+            };
             EnsureBound(Pointer);
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, texture.Pointer, 0);
             return texture;

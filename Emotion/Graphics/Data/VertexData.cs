@@ -76,28 +76,10 @@ namespace Emotion.Graphics.Data
             // If no UV specified - fill entire.
             if (textureArea == null) textureArea = new Rectangle(0, 0, texture.Size);
 
-            Matrix4x4 texMatrix = texture.TextureMatrix;
-            // Add sprite modifier - if any.
-            if (flipX)
-            {
-                var r = (Rectangle) textureArea;
-                r.X = texture.Size.X - r.Width - r.X;
-                textureArea = r;
-
-                texMatrix *= Maths.FlipMatX;
-            }
-
-            if (flipY)
-            {
-                var r = (Rectangle) textureArea;
-                r.Y = texture.Size.Y - r.Height - r.Y;
-                textureArea = r;
-
-                texMatrix *= Maths.FlipMatY;
-            }
-
             // Convert input from texture coordinates to UV coordinates.
-            Rectangle uvRect = textureArea.Value;
+            var uvRect = (Rectangle) textureArea;
+            uvRect.Y = texture.Size.Y - uvRect.Height - uvRect.Y;
+
             // 0, 1    1, 1
             // 0, 0    1, 0
             float uvXP = uvRect.X + uvRect.Width;
@@ -115,14 +97,38 @@ namespace Emotion.Graphics.Data
             nnUV = new Vector2(nnUV.X + Maths.EPSILON, nnUV.Y + Maths.EPSILON);
 
             // Same order as vertices.
-            vertices[0].UV = npUV;
-            vertices[1].UV = ppUV;
-            vertices[2].UV = pnUV;
-            vertices[3].UV = nnUV;
+            // 0, 0    1, 0
+            // 0, 1    1, 1
+            vertices[0].UV = nnUV;
+            vertices[1].UV = pnUV;
+            vertices[2].UV = ppUV;
+            vertices[3].UV = npUV;
 
-            for (var i = 0; i < vertices.Length; i++)
+            if (texture.FlipY != flipY)
             {
-                vertices[i].UV = Vector2.Transform(vertices[i].UV, texMatrix);
+                // Flipped Y
+                // 0, 1    1, 1
+                // 0, 0    1, 0
+                Vector2 temp = vertices[0].UV;
+                vertices[0].UV = vertices[3].UV;
+                vertices[3].UV = temp;
+                temp = vertices[1].UV;
+                vertices[1].UV = vertices[2].UV;
+                vertices[2].UV = temp;
+            }
+            
+            // ReSharper disable once InvertIf
+            if (flipX)
+            {
+                // Flipped X
+                // 1, 0    0, 0
+                // 1, 1    0, 1
+                Vector2 temp = vertices[0].UV;
+                vertices[0].UV = vertices[1].UV;
+                vertices[1].UV = temp;
+                temp = vertices[3].UV;
+                vertices[3].UV = vertices[2].UV;
+                vertices[2].UV = temp;
             }
         }
     }

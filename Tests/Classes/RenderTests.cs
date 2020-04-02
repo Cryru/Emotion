@@ -219,5 +219,39 @@ namespace Tests.Classes
                 testBuffer.Dispose();
             }).WaitOne();
         }
+
+        /// <summary>
+        /// Tests whether the UVs are mapped properly and flipping functionality.
+        /// </summary>
+        [Test]
+        public void TestUVMapping()
+        {
+            var asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAsymmetric.png");
+
+            Runner.ExecuteAsLoop(_ =>
+            {
+                RenderComposer composer = Engine.Renderer.StartFrame();
+
+                composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true);
+                composer.RenderSprite(new Vector3(100, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, false, true);
+                composer.RenderSprite(new Vector3(200, 10, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true, true);
+
+                composer.InvalidateStateBatches();
+                asset.Texture.Tile = false;
+
+                composer.RenderSprite(new Vector3(10, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true);
+                composer.RenderSprite(new Vector3(100, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, false, true);
+                composer.RenderSprite(new Vector3(200, 100, 0), new Vector2(100, 100), Color.White, asset.Texture, null, true, true);
+
+                composer.RenderSprite(new Vector3(10, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), true);
+                composer.RenderSprite(new Vector3(100, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), false, true);
+                composer.RenderSprite(new Vector3(200, 200, 0), new Vector2(100, 100), Color.White, asset.Texture, new Rectangle(0, 0, 50, 50), true, true);
+
+                composer.InvalidateStateBatches();
+                asset.Texture.Tile = true;
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.TestUVMapping);
+            }).WaitOne();
+        }
     }
 }

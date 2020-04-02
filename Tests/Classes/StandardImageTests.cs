@@ -9,7 +9,6 @@ using Emotion.Primitives;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Test;
-using Emotion.Utility;
 using Tests.Results;
 
 #endregion
@@ -35,7 +34,7 @@ namespace Tests.Classes
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
                     decodedPixelData
-                );
+                ) {FlipY = true};
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);
@@ -61,7 +60,7 @@ namespace Tests.Classes
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
                     decodedPixelData
-                );
+                ) {FlipY = true};
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);
@@ -87,7 +86,7 @@ namespace Tests.Classes
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
                     decodedPixelData
-                );
+                ) {FlipY = true};
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);
@@ -107,9 +106,6 @@ namespace Tests.Classes
 
             byte[] decodedPixelData = PngFormat.Decode(bytes, out PngFileHeader fileHeader);
             Assert.True(decodedPixelData != null);
-
-            // PNG images are flipped.
-            ImageUtil.FlipImageY(decodedPixelData, fileHeader.Height);
 
             Runner.ExecuteAsLoop(_ =>
             {
@@ -137,9 +133,6 @@ namespace Tests.Classes
             byte[] decodedPixelData = PngFormat.Decode(bytes, out PngFileHeader fileHeader);
             Assert.True(decodedPixelData != null);
             Assert.True(fileHeader.InterlaceMethod == 1);
-
-            // PNG images are flipped.
-            ImageUtil.FlipImageY(decodedPixelData, fileHeader.Height);
 
             Runner.ExecuteAsLoop(_ =>
             {

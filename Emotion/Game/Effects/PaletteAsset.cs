@@ -49,7 +49,7 @@ namespace Emotion.Game.Effects
                 {
                     var texture = new Texture(BaseTexture.Texture.Size);
                     texture.Upload(BaseTexture.Texture.Size, pixels);
-                    texture.TextureMatrix = BaseTexture.Texture.TextureMatrix;
+                    texture.FlipY = BaseTexture.Texture.FlipY;
                     PaletteSwaps.Add(p, texture);
                 });
             }

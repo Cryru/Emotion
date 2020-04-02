@@ -96,7 +96,6 @@ namespace Emotion.IO
             GLThread.ExecuteGLThread(() =>
             {
                 Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels)) {Smooth = smooth};
-                Texture.TextureMatrix = Matrix4x4.CreateScale(1, -1, 1) * Texture.TextureMatrix;
             });
 
             // Free memory.

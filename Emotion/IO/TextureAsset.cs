@@ -27,7 +27,7 @@ namespace Emotion.IO
             byte[] pixels = null;
             var width = 0;
             var height = 0;
-            var flipped = false;
+            var flipped = false; // Whether the image was uploaded flipped - top to bottom.
 
             // Check if PNG.
             if (PngFormat.IsPng(data))
@@ -35,7 +35,6 @@ namespace Emotion.IO
                 pixels = PngFormat.Decode(data, out PngFileHeader header);
                 width = header.Width;
                 height = header.Height;
-                flipped = true;
             }
             // Check if BMP.
             else if (BmpFormat.IsBmp(data))
@@ -43,6 +42,7 @@ namespace Emotion.IO
                 pixels = BmpFormat.Decode(data, out BmpFileHeader header);
                 width = header.Width;
                 height = header.Height;
+                flipped = true;
             }
 
             if (pixels == null || width == 0 || height == 0)
@@ -58,8 +58,10 @@ namespace Emotion.IO
         {
             GLThread.ExecuteGLThread(() =>
             {
-                Texture = new Texture(size, bgraPixels);
-                if (flipped) Texture.TextureMatrix = Matrix4x4.CreateScale(1, -1, 1);
+                Texture = new Texture(size, bgraPixels)
+                {
+                    FlipY = flipped
+                };
             });
         }
 
