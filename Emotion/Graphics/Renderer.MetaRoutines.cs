@@ -174,7 +174,7 @@ namespace Emotion.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null)
         {
-            RenderSprite(Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, new Rectangle(0, buffer.AllocatedSize.Y - buffer.Size.Y, buffer.Size.X, buffer.Size.Y));
+            RenderSprite(Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, new Rectangle(0, 0, buffer.Size.X, buffer.Size.Y));
         }
     }
 }
