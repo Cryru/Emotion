@@ -115,6 +115,15 @@ namespace Emotion.Game.Text
         }
 
         /// <summary>
+        /// Restart only the pen position.
+        /// </summary>
+        public void RestartPen()
+        {
+            base.Restart();
+            _counter = 0;
+        }
+
+        /// <summary>
         /// Restart the layouter.
         /// </summary>
         public override void Restart()
