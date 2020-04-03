@@ -10,7 +10,7 @@ namespace Emotion.Graphics.Batches
 {
     public interface ISharedMemorySpriteBatch
     {
-        void SetMemory(RingVertexBuffer owner);
+        void SetMemory(FencedBufferSource owner);
     }
 
     /// <summary>
@@ -23,7 +23,7 @@ namespace Emotion.Graphics.Batches
             _spriteByteSize = _structByteSize * 4;
         }
 
-        protected RingVertexBuffer _memoryOwner;
+        protected FencedBufferSource _memoryOwner;
         protected IntPtr _memoryPtr;
         protected int _spriteByteSize;
 
@@ -31,7 +31,7 @@ namespace Emotion.Graphics.Batches
         /// Set the vbo which owns this batch's memory.
         /// </summary>
         /// <param name="owner">The vbp who owns this batch's memory.</param>
-        public void SetMemory(RingVertexBuffer owner)
+        public void SetMemory(FencedBufferSource owner)
         {
             _memoryOwner = owner;
         }

@@ -201,7 +201,7 @@ namespace Emotion.Graphics.Objects
         {
             if (!Viewport.Contains(rect)) return data;
 
-            rect = new Rectangle(rect.X, (Size.Y - (rect.Y + rect.Height)), rect.Width, rect.Height);
+            rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
@@ -237,7 +237,12 @@ namespace Emotion.Graphics.Objects
             Size = newSize;
             Viewport = new Rectangle(0, 0, newSize);
 
-            if (reuseAttachments && AllocatedSize.X >= newSize.X && AllocatedSize.Y >= newSize.Y && Pointer != 0) return;
+            if (reuseAttachments && AllocatedSize.X >= newSize.X && AllocatedSize.Y >= newSize.Y && Pointer != 0)
+            {
+                ColorAttachment?.SetSize(newSize);
+                DepthStencilAttachment?.SetSize(newSize);
+                return;
+            }
 
             // Re-create textures and framebuffer.
             AllocatedSize = newSize;

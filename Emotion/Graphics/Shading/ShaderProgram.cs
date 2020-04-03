@@ -101,7 +101,7 @@ namespace Emotion.Graphics.Shading
             Gl.GetProgramInfoLog(Pointer, 1024, out int length, programCompileStatusReader);
             if (length > 0)
             {
-                string programStatus = programCompileStatusReader.ToString(0, length);
+                var programStatus = programCompileStatusReader.ToString(0, length);
                 if (programStatus != "") Engine.Log.Warning($"Log for linking shader {Pointer} is {programStatus}", MessageSource.GL);
             }
 

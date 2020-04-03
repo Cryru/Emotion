@@ -54,7 +54,7 @@ namespace Emotion.Graphics
             InvalidateStateBatches();
 
             // If using shared memory, link to the composer.
-            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch) sharedMemoryBatch.SetMemory(RingBuffer);
+            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch) sharedMemoryBatch.SetMemory(FencedBufferSource);
 
             ActiveQuadBatch = batch;
         }
@@ -67,7 +67,7 @@ namespace Emotion.Graphics
             InvalidateStateBatches();
 
             var defaultBatch = new VertexDataSharedMemorySpriteBatch();
-            defaultBatch.SetMemory(RingBuffer);
+            defaultBatch.SetMemory(FencedBufferSource);
             ActiveQuadBatch = defaultBatch;
         }
 

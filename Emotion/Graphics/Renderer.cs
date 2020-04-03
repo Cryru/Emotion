@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
+using Emotion.Graphics.Batches;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
@@ -132,7 +133,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// A ring buffer of vertex buffers, for unsynchronized drawing.
         /// </summary>
-        public RingVertexBuffer RingBuffer;
+        public FencedBufferSource FencedBufferSource;
 
         /// <summary>
         /// Cached VAOs per structure type. These are all bound to the common VBO.
@@ -290,11 +291,11 @@ namespace Emotion.Graphics
             Debug.Assert(GLThread.IsGLThread());
 
             var size = (int) (MAX_INDICES * VertexData.SizeInBytes);
-            RingBuffer = new RingVertexBuffer(size, size / 8, 3, s =>
+            FencedBufferSource = new FencedBufferSource(size, size / 8, 3, s =>
             {
                 var vbo = new VertexBuffer((uint) s);
                 var vao = new VertexArrayObject<VertexData>(vbo);
-                return new RingGraphicsObjects(vbo, vao);
+                return new FencedBufferObjects(vbo, vao);
             });
 
             VertexBuffer = new VertexBuffer((uint) size);
