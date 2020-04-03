@@ -54,6 +54,7 @@ namespace Tests.Results
         public static string TilemapRender = "TilemapRender";
         public static string TestDepthFromOtherFrameBuffer = "TestDepthFromOtherFrameBuffer";
         public static string TestUVMapping = "TestUVMapping";
+        public static string FramebufferResizing = "FramebufferResizing";
 
         public static string TestFullScale = "TestFullScale";
         public static string TestFullScaleInteger = "TestFullScaleInteger";

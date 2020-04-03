@@ -253,5 +253,37 @@ namespace Tests.Classes
                 Runner.VerifyScreenshot(ResultDb.TestUVMapping);
             }).WaitOne();
         }
+
+        /// <summary>
+        /// Framebuffer resizing
+        /// </summary>
+        [Test]
+        public void FramebufferResizing()
+        {
+            Runner.ExecuteAsLoop(_ =>
+            {
+                FrameBuffer testBuffer = new FrameBuffer(new Vector2(1000, 1000)).WithColor();
+
+                RenderComposer composer = Engine.Renderer.StartFrame();
+
+                composer.RenderToAndClear(testBuffer);
+                composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(1000, 1000), Color.Red);
+                composer.RenderTo(null);
+
+                composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(100, 100), Color.White, testBuffer.Texture);
+                testBuffer.Resize(new Vector2(500, 500), true);
+
+                composer.RenderToAndClear(testBuffer);
+                composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(500, 500), Color.Green);
+                composer.RenderTo(null);
+
+                composer.RenderSprite(new Vector3(100, 0, 0), new Vector2(100, 100), Color.White, testBuffer.Texture, new Rectangle(0, 0, testBuffer.Size));
+
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.FramebufferResizing);
+
+                testBuffer.Dispose();
+            }).WaitOne();
+        }
     }
 }
