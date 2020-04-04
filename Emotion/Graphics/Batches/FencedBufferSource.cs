@@ -106,7 +106,10 @@ namespace Emotion.Graphics.Batches
                     return;
 
             SyncStatus waitResult = Gl.ClientWaitSync(currentFence, SyncObjectMask.SyncFlushCommandsBit, ulong.MaxValue);
-            if (waitResult != SyncStatus.AlreadySignaled) Engine.Log.Info($"Wait sync - {waitResult}", "FenceSource ");
+            if (Engine.Configuration.GlDebugMode)
+            {
+                if (waitResult != SyncStatus.AlreadySignaled) Engine.Log.Info($"Wait sync - {waitResult}", "FenceSource");
+            }
 
             _fences[CurrentBufferIdx] = 0;
         }
