@@ -69,6 +69,12 @@ namespace Emotion.Common
         /// </summary>
         public bool UseIntermediaryBuffer { get; set; }
 
+        /// <summary>
+        /// Whether textures should default to "smooth" (bilinear) sampling on creation.
+        /// This is off by default and textures are created with a nearest filter.
+        /// </summary>
+        public bool TextureDefaultSmooth { get; set; }
+
         #endregion
 
         #region Loop

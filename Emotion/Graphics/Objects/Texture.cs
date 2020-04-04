@@ -118,11 +118,11 @@ namespace Emotion.Graphics.Objects
         /// <param name="smooth">Whether to apply linear interpolation to the surface's texture.</param>
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
-        public Texture(Vector2 size, bool smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
+        public Texture(Vector2 size, bool? smooth = null, InternalFormat internalFormat = InternalFormat.Rgba,
             PixelFormat pixelFormat = PixelFormat.Bgra) : this()
         {
+            _smooth = smooth ?? Engine.Configuration.TextureDefaultSmooth;
             Upload(size, null, internalFormat, pixelFormat);
-            _smooth = smooth;
         }
 
         /// <summary>
@@ -133,11 +133,11 @@ namespace Emotion.Graphics.Objects
         /// <param name="smooth">Whether to apply linear interpolation to the surface's texture.</param>
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
-        public Texture(Vector2 size, byte[] data, bool smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
+        public Texture(Vector2 size, byte[] data, bool? smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
             PixelFormat pixelFormat = PixelFormat.Bgra) : this()
         {
+            _smooth = smooth ?? Engine.Configuration.TextureDefaultSmooth;
             Upload(size, data, internalFormat, pixelFormat);
-            _smooth = smooth;
         }
 
         /// <summary>
