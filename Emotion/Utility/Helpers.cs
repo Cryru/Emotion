@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Emotion.Common;
 using Emotion.Platform.Input;
@@ -17,6 +18,11 @@ namespace Emotion.Utility
     /// </summary>
     public static class Helpers
     {
+        /// <summary>
+        /// The assemblies the engine considers associated. Will load embedded resources from, will load XML types from etc.
+        /// </summary>
+        public static Assembly[] AssociatedAssemblies;
+
         /// <summary>
         /// Regex for capturing Windows line endings.
         /// </summary>

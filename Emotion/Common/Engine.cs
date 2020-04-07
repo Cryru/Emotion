@@ -16,6 +16,7 @@ using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 
 #endregion
 
@@ -84,6 +85,16 @@ namespace Emotion.Common
         /// The total time passed since the start of the engine, in milliseconds.
         /// </summary>
         public static float TotalTime { get; set; }
+
+        static Engine()
+        {
+            Helpers.AssociatedAssemblies = new List<Assembly>
+            {
+                Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
+                Assembly.GetExecutingAssembly(), // Is the engine.
+                Assembly.GetEntryAssembly() // Is game or debugger.
+            }.Distinct().Where(x => x != null).ToArray();
+        }
 
         /// <summary>
         /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
@@ -473,20 +484,10 @@ namespace Emotion.Common
         {
             var loader = new AssetLoader();
 
-            // Add default embedded sources.
-            var sourceAssemblies = new List<Assembly>
-            {
-                Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
-                Assembly.GetExecutingAssembly(), // Is the engine.
-                Assembly.GetEntryAssembly() // Is game or debugger.
-            };
-
-            // Remove duplicate assemblies and null assemblies.
-            sourceAssemblies = sourceAssemblies.Distinct().Where(x => x != null).ToList();
-
             // Create sources.
-            foreach (Assembly assembly in sourceAssemblies)
+            for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
             {
+                Assembly assembly = Helpers.AssociatedAssemblies[i];
                 loader.AddSource(new EmbeddedAssetSource(assembly, "Assets"));
             }
 
