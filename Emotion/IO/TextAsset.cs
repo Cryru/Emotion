@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Text;
+using Emotion.Utility;
 
 #endregion
 
@@ -18,8 +19,9 @@ namespace Emotion.IO
 
         protected override void CreateInternal(byte[] data)
         {
-            // Remove new lines and BOM.
-            Content = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
+            Content = Helpers.GuessStringEncoding(data);
+            // Remove windows new lines and BOM.
+            Content = Content.Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
         }
 
         protected override void DisposeInternal()
