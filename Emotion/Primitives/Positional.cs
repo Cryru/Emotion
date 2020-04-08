@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using Emotion.Standard.XML;
 
 #endregion
 
@@ -17,6 +18,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The location of the object on the X-axis.
         /// </summary>
+        [DontSerialize]
         public virtual float X
         {
             get => _x;
@@ -32,6 +34,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The location of the object on the Y-axis.
         /// </summary>
+        [DontSerialize]
         public virtual float Y
         {
             get => _y;
@@ -47,6 +50,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The location of the object on the Z-axis.
         /// </summary>
+        [DontSerialize]
         public virtual float Z
         {
             get => _z;
@@ -66,6 +70,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The position within 2D space.
         /// </summary>
+        [DontSerialize]
         public Vector2 Position2
         {
             get => new Vector2(X, Y);
@@ -118,6 +123,14 @@ namespace Emotion.Primitives
         #endregion
 
         #region Constructors
+
+        /// <summary>
+        /// Serialization constructor.
+        /// </summary>
+        private Positional()
+        {
+
+        }
 
         /// <summary>
         /// Create a new position from a vec3.

@@ -1,10 +1,8 @@
 ﻿#region Using
 
 using System;
-using System.IO;
-using System.Text;
-using System.Xml.Serialization;
 using Emotion.Common;
+using Emotion.Standard.XML;
 
 #endregion
 
@@ -21,18 +19,11 @@ namespace Emotion.IO
         /// </summary>
         public T Content { get; protected set; }
 
-        /// <summary>
-        /// The serializer used for the file.
-        /// </summary>
-        public static XmlSerializer Serializer = new XmlSerializer(typeof(T));
-
         protected override void CreateInternal(byte[] data)
         {
             try
             {
-                // Deserialize the xml type.
-                using var stream = new MemoryStream(data);
-                Content = (T) Serializer.Deserialize(stream);
+                Content = XmlFormat.From<T>(data);
             }
             catch (Exception ex)
             {
@@ -42,19 +33,6 @@ namespace Emotion.IO
 
         protected override void DisposeInternal()
         {
-        }
-
-        /// <summary>
-        /// Convert an object to an xml string.
-        /// Used in creating XMLAssets.
-        /// </summary>
-        /// <param name="obj">The obj to convert.</param>
-        /// <returns>The object as an xml string.</returns>
-        public static string FromObject(T obj)
-        {
-            using var stream = new MemoryStream();
-            Serializer.Serialize(stream, obj);
-            return Encoding.UTF8.GetString(stream.ToArray());
         }
     }
 }

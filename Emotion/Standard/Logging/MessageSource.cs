@@ -21,6 +21,7 @@
         // Specific
         public static string ImagePng = "ImagePng";
         public static string FontParser = "FontParser";
+        public static string XML = "XML";
 
         // Platform
         public static string Win32 = "Win32";

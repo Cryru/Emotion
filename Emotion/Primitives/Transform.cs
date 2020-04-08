@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using Emotion.Standard.XML;
 
 #endregion
 
@@ -17,6 +18,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The width of the transform.
         /// </summary>
+        [DontSerialize]
         public virtual float Width
         {
             get => _width;
@@ -32,6 +34,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The height of the transform.
         /// </summary>
+        [DontSerialize]
         public virtual float Height
         {
             get => _height;
@@ -68,6 +71,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The center of the transform, as if it was a rectangle.
         /// </summary>
+        [DontSerialize]
         public virtual Vector2 Center
         {
             get => new Vector2(X + Width / 2, Y + Height / 2);
@@ -83,6 +87,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The center of the transform, as if it was a rectangle, relative to its position.
         /// </summary>
+        [DontSerialize]
         public virtual Vector2 CenterRelative
         {
             get => new Vector2(Width / 2, Height / 2);
@@ -91,6 +96,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// The rectangle bounding the transform.
         /// </summary>
+        [DontSerialize]
         public virtual Rectangle Bounds
         {
             get => new Rectangle(X, Y, Width, Height);
@@ -122,6 +128,14 @@ namespace Emotion.Primitives
         #endregion
 
         #region Constructors
+
+        /// <summary>
+        /// Serialization constructor.
+        /// </summary>
+        private Transform()
+        {
+
+        }
 
         /// <summary>
         /// Create a new transform from a vec3 and a vec2.

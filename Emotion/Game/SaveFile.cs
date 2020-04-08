@@ -5,6 +5,7 @@ using System.Text;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Logging;
+using Emotion.Standard.XML;
 
 #endregion
 
@@ -42,7 +43,7 @@ namespace Emotion.Game
         /// </summary>
         public void Save()
         {
-            string data = FromObject(Content);
+            string data = XmlFormat.To(Content);
             if (!Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), Name)) Engine.Log.Warning($"Couldn't save file {Name}.", MessageSource.Other);
         }
     }

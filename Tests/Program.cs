@@ -35,7 +35,8 @@ namespace Tests
             {"tag=StandardAudio", null},
             {"tag=Audio", null},
             {"tag=StandardText", null},
-            {"tag=AnimatedTexture", null}
+            {"tag=AnimatedTexture", null},
+            {"tag=XML testOnly", null}
         };
 
 
@@ -47,7 +48,6 @@ namespace Tests
                 HostSize = new Vector2(640, 360),
                 RenderSize = new Vector2(640, 360)
             };
-
             Runner.RunTests(config, args, _otherConfigs, ResultDb.CachedResults);
         }
     }

@@ -1,8 +1,11 @@
-﻿namespace Emotion.IO
+﻿using Emotion.Standard.XML;
+
+namespace Emotion.IO
 {
     /// <summary>
     /// An asset file.
     /// </summary>
+    [DontSerialize]
     public abstract class Asset
     {
         /// <summary>

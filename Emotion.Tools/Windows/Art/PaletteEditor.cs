@@ -13,6 +13,7 @@ using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
 using Emotion.Standard.Image;
+using Emotion.Standard.XML;
 using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Utility;
 using ImGuiNET;
@@ -110,7 +111,7 @@ namespace Emotion.Tools.Windows.Art
 
             if (ImGui.Button("Save"))
             {
-                string xml = PaletteAsset.FromObject(_description);
+                string xml = XmlFormat.To(_description);
                 File.WriteAllText(Helpers.CrossPlatformPath($"Assets/{_fileName}"), xml);
             }
 

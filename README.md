@@ -90,6 +90,7 @@ Currently supported:
 - Easy tilemap drawing and handling, including layer opacity, multiple tilesets, animated tiles, and more
   - Integration with the "Tiled" application.
 - ImGui Integration through a plugin.
+- Custom fast performance XML serializer/deserializer with support for derived types, compliant with the .Net XML one.
 
 and many more!
 
@@ -101,7 +102,6 @@ Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion"
 
 .NetCore 3.1 and .Net Standard 2.1 [MIT]
  - System.Numerics (Data Structures)
- - System.Xml.XmlSerializer (XMLAsset class)
 
 TiledSharp (https://github.com/marshallward/TiledSharp) [Apache 2.0]
  - Support for .tmx files.

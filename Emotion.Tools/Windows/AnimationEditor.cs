@@ -2,10 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Xml.Serialization;
+using System.Text;
 using Emotion.Common;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
@@ -14,9 +13,9 @@ using Emotion.IO;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Standard.XML;
 using Emotion.Tools.Windows.AnimationEditorWindows;
 using Emotion.Tools.Windows.HelpWindows;
-using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;
 
@@ -169,15 +168,11 @@ namespace Emotion.Tools.Windows
                     string saveData;
                     // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
                     if (_animController != null)
-                    {
-                        saveData = XMLAsset<AnimationControllerDescription>.FromObject(_animController.GetDescription(_spriteSheetTexture.Name));
-                    }
+                        saveData = XmlFormat.To(_animController.GetDescription(_spriteSheetTexture.Name));
                     else
-                    {
-                        saveData = XMLAsset<AnimatedTextureDescription>.FromObject(_animation.GetDescription(_spriteSheetTexture.Name));
-                    }
+                        saveData = XmlFormat.To(_animation.GetDescription(_spriteSheetTexture.Name));
 
-                    Engine.AssetLoader.Save(System.Text.Encoding.UTF8.GetBytes(saveData), saveName);
+                    Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
                 }
                 catch (Exception ex)
                 {
@@ -303,10 +298,7 @@ namespace Emotion.Tools.Windows
                     modified = true;
                 }
 
-                if (modified)
-                {
-                    _animController.SetAnimation(cur.Name);
-                }
+                if (modified) _animController.SetAnimation(cur.Name);
             }
         }
 
