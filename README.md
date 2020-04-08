@@ -90,7 +90,7 @@ Currently supported:
 - Easy tilemap drawing and handling, including layer opacity, multiple tilesets, animated tiles, and more
   - Integration with the "Tiled" application.
 - ImGui Integration through a plugin.
-- Custom fast performance XML serializer/deserializer with support for derived types, compliant with the .Net XML one.
+- Custom fast XML serializer/deserializer with support for derived types, compliant with the .Net XML one.
 
 and many more!
 
