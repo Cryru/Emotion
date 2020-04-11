@@ -167,10 +167,10 @@ namespace Emotion.Game.Animation
             {
                 for (var x = 0; x < columns; x++)
                 {
-                    frames[i].X = w / rows * x;
-                    frames[i].Y = h / columns * y;
-                    frames[i].Width = w / rows;
-                    frames[i].Height = h / columns;
+                    frames[i].X = w / columns * x;
+                    frames[i].Y = h / rows * y;
+                    frames[i].Width = w / columns;
+                    frames[i].Height = h / rows;
                     i++;
                 }
             }
@@ -401,7 +401,7 @@ namespace Emotion.Game.Animation
             // If invalid number of columns this means the texture size is larger than the frame size.
             if (columns == 0)
             {
-                Engine.Log.Trace($"Invalid frame size of [{frameSize}] for image of size [{textureSize}].", MessageSource.Other);
+                Engine.Log.Trace($"Invalid frame size of [{frameSize}] for image of size [{textureSize}].", MessageSource.Anim);
                 return new Rectangle(Vector2.Zero, textureSize);
             }
 
