@@ -95,7 +95,7 @@ namespace Emotion.Scenography
 
             return Task.Run(() =>
             {
-                if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Scene Loading Task";
+                if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Scene Loading";
 
                 // Set the current scene to be the loading screen, and get the old one.
                 IScene old = SwapActive(LoadingScreen);

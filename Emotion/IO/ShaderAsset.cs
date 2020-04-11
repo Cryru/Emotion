@@ -137,7 +137,7 @@ namespace Emotion.IO
                 ownFrag = false;
             }
 
-            Engine.Log.Info($"Creating shader asset - v:{vertShader.Name}, f:{fragShader.Name}", MessageSource.AssetLoader);
+            Engine.Log.Info($"Creating shader - v:{vertShader.Name}, f:{fragShader.Name}", MessageSource.AssetLoader);
 
             // Create the shader, or at least try to.
             GLThread.ExecuteGLThread(() => { Shader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content); });

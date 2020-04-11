@@ -90,7 +90,7 @@ namespace Emotion.Game.Animation
         {
             if (!HasAnimation(animName))
             {
-                Engine.Log.Warning($"Animation {animName} not found.", MessageSource.Other);
+                Engine.Log.Warning($"Animation {animName} not found.", MessageSource.Anim);
                 return;
             }
 

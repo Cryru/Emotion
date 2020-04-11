@@ -77,13 +77,13 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     bool success = _layerContext.WaitHandle.WaitOne(_layerContext.TimeoutPeriod);
                     if (!success)
                     {
-                        Engine.Log.Warning($"Layer {Name} audio context timeout.", MessageSource.Audio);
+                        Engine.Log.Warning($"Layer {Name} audio context timeout.", MessageSource.WasApi);
                         continue;
                     }
 
                     // Get more frames.
                     int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
-                    if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.Audio);
+                    if (error != 0) Engine.Log.Warning($"Couldn't get device padding, error {error}.", MessageSource.WasApi);
                     if (!FillBuffer(_layerContext.RenderClient, frameCount - padding)) continue;
                 }
                 catch (COMException ex)
@@ -95,7 +95,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                         continue;
                     }
 
-                    Engine.Log.Error(ex.ToString(), MessageSource.Audio);
+                    Engine.Log.Error(ex.ToString(), MessageSource.WasApi);
                 }
 
                 // If done, reset the audio client.
@@ -120,13 +120,13 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             if (bufferFrameCount == 0) return false;
 
             int error = client.GetBuffer(bufferFrameCount, out IntPtr bufferPtr);
-            if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.Audio);
+            if (error != 0) Engine.Log.Warning($"Couldn't get device buffer, error {error}.", MessageSource.WasApi);
             var buffer = new Span<byte>((void*) bufferPtr, bufferFrameCount * _layerContext.AudioClientFormat.FrameSize);
 
             int frames = GetDataForCurrentTrack(_layerContext.AudioClientFormat, bufferFrameCount, buffer);
 
             error = client.ReleaseBuffer(frames, frames == 0 ? AudioClientBufferFlags.Silent : AudioClientBufferFlags.None);
-            if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.Audio);
+            if (error != 0) Engine.Log.Warning($"Couldn't release device buffer, error {error}.", MessageSource.WasApi);
             return frames == 0;
         }
 
