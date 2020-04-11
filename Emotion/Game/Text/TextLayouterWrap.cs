@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Standard.Text;
 
@@ -72,32 +73,32 @@ namespace Emotion.Game.Text
                     breakSkipModeLimit = i + textToBreak.Length;
                 }
 
-                // Get the largest height.
-                if (textSize.Y > lineHeight) lineHeight = textSize.Y;
-
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
                 if (textSize.X > bounds.X || text[i] == '\n')
                 {
-                    // Push new line.
+                    // Update measures.
+                    Vector2 lineSize = MeasureString(currentLine);
+                    if(lineSize.X > longestLine) longestLine = lineSize.X;
+                    if(lineSize.Y > lineHeight) lineHeight = textSize.Y;
                     NeededHeight += lineHeight + LineGap;
-                    if(textSize.X > longestLine) longestLine = textSize.X;
                     lineHeight = _atlas.FontHeight;
+
+                    // Push new line.
                     if (text[i] != '\n') _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
                     currentLine = "";
-
-                    // Check if exceeding height box.
-                    if (NeededHeight >= bounds.Y) break;
                 }
 
                 // Add the current character to the current line string.
                 currentLine += text[i].ToString();
             }
 
-            // If there is text left push in on a new line.
+            // If there is text left, push it onto the measurement too.
             NeededHeight += lineHeight + LineGap;
             float lastLine = MeasureString(currentLine).X;
             if (lastLine > longestLine) longestLine = lastLine;
             NeededWidth = longestLine;
+
+            Debug.Assert(NeededWidth <= bounds.X);
         }
 
         /// <summary>
