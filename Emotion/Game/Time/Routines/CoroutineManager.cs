@@ -29,7 +29,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// List of running routines.
         /// </summary>
-        private List<Coroutine> _runningRoutines = new List<Coroutine>();
+        private List<IRoutineWaiter> _runningRoutines = new List<IRoutineWaiter>();
 
         /// <summary>
         /// Start a new coroutine.
@@ -55,11 +55,6 @@ namespace Emotion.Game.Time.Routines
         {
             lock (this)
             {
-                foreach (Coroutine r in _runningRoutines)
-                {
-                    r.Stop();
-                }
-
                 _runningRoutines.Clear();
             }
         }
@@ -77,44 +72,17 @@ namespace Emotion.Game.Time.Routines
 
                 for (var i = 0; i < _runningRoutines.Count; i++)
                 {
-                    Coroutine current = _runningRoutines[i];
+                    IRoutineWaiter current = _runningRoutines[i];
 
                     // Update the current delay of the coroutine.
-                    current.Waiter?.Update();
+                    current?.Update();
 
                     // Check if the current delay is finished. If not, skip.
-                    if (current.Waiter != null && current.Waiter?.Finished != true) continue;
+                    if (current != null && current.Finished != true) continue;
 
-                    // Increment the routine.
-                    bool? incremented = current.Enumerator?.MoveNext();
-                    object currentYield = current.Enumerator?.Current;
-                    if (incremented == true)
-                    {
-                        switch (currentYield)
-                        {
-                            // Check if a delay, and add it as the routine's delay.
-                            case IRoutineWaiter routineDelay:
-                                current.Waiter = routineDelay;
-                                break;
-                            // Check if adding a subroutine.
-                            case IEnumerator subroutine:
-                                current.Waiter = StartCoroutine(subroutine);
-                                break;
-                        }
-
-                        // If the delay is some other object it will delay execution by one loop.
-                    }
-                    else
-                    {
-                        // If there was no next, the routine is over. Perform cleanup.
-
-                        // Mark as stopped.
-                        current.Stop();
-
-                        // Remove the routine from the list and decrement.
-                        _runningRoutines.RemoveAt(i);
-                        i--;
-                    }
+                    // Remove the routine from the list and decrement.
+                    _runningRoutines.RemoveAt(i);
+                    i--;
                 }
 
                 return true;

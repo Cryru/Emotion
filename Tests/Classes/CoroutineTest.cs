@@ -194,26 +194,26 @@ namespace Tests.Classes
             Assert.Equal(1, manager.Count);
             Assert.False(routineHandle.Finished);
 
-            // First loop. This is when the second routine will be created.
+            // This is when the second routine will be created.
+            // However the number of running routines will remain the same as it is subroutined.
             manager.Update();
-            Assert.Equal(2, manager.Count);
+            Assert.Equal(1, manager.Count);
+            Assert.False(routineHandle.Finished);
+            Assert.False(switchFlag.Switch);
+
+            // First loop.
+            manager.Update();
+            Assert.Equal(1, manager.Count);
             Assert.False(routineHandle.Finished);
             Assert.False(switchFlag.Switch);
 
             // Second loop.
             manager.Update();
-            Assert.Equal(2, manager.Count);
+            Assert.Equal(1, manager.Count);
             Assert.False(routineHandle.Finished);
             Assert.False(switchFlag.Switch);
 
-            // The subroutine will have finished now, but since it was started after the first it is updated after it.
-            // This means that the first routine will find out about it's child's status one loop after.
-            manager.Update();
-            Assert.Equal(1, manager.Count);
-            Assert.False(routineHandle.Finished);
-            Assert.True(switchFlag.Switch);
-
-            // Now the parent routine will finish as well.
+            // The subroutine will have finished now.
             manager.Update();
             Assert.Equal(0, manager.Count);
             Assert.True(routineHandle.Finished);
