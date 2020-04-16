@@ -88,7 +88,7 @@ namespace Emotion.Primitives
 
         public Vector2 BottomLeft
         {
-            get => new Vector2(X, Top);
+            get => new Vector2(X, Bottom);
         }
 
         public Vector2 BottomRight
