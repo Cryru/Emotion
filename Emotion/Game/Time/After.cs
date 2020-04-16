@@ -10,7 +10,7 @@ namespace Emotion.Game.Time
 {
     public class After : ITimer, IRoutineWaiter
     {
-        public float Progress
+        public virtual float Progress
         {
             get => _timePassed / _delay;
         }
