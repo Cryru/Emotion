@@ -25,7 +25,7 @@ namespace Emotion.Game.Text
         {
         }
 
-        public void SetupBox(string text, Vector2 bounds)
+        public void SetupBox(string text, Vector2 bounds, bool tightHeight = false)
         {
             var currentLine = "";
             var breakSkipMode = false;
@@ -93,11 +93,21 @@ namespace Emotion.Game.Text
             }
 
             // If there is text left, push it onto the measurement too.
-            NeededHeight += lineHeight + LineGap;
-            float lastLine = MeasureString(currentLine).X;
-            if (lastLine > longestLine) longestLine = lastLine;
-            NeededWidth = longestLine;
+            if (!string.IsNullOrEmpty(currentLine))
+            {
+                Vector2 lastLine = MeasureString(currentLine);
+                if (tightHeight)
+                {
+                    NeededHeight += lastLine.Y;
+                }
+                else
+                {
+                    NeededHeight += lineHeight;
+                }
+                if (lastLine.X > longestLine) longestLine = lastLine.X;
+            }
 
+            NeededWidth = longestLine;
             Debug.Assert(NeededWidth <= bounds.X);
         }
 
