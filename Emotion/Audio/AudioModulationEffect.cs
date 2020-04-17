@@ -6,16 +6,19 @@ using System.Runtime.CompilerServices;
 
 namespace Emotion.Audio
 {
-    public abstract class PlaybackEvent
+    /// <summary>
+    /// A base for audio modulation effects.
+    /// </summary>
+    public abstract class AudioModulationEffect
     {
         public float TimeStamp;
 
-        protected PlaybackEvent(float timeStamp)
+        protected AudioModulationEffect(float timeStamp)
         {
             TimeStamp = timeStamp;
         }
 
-        protected PlaybackEvent(float progress, bool _)
+        protected AudioModulationEffect(float progress, bool _)
         {
             TimeStamp = -progress;
         }
@@ -23,7 +26,7 @@ namespace Emotion.Audio
         public abstract void Apply(ref float sampleValue, ref float volume, float progress, float timestamp, AudioTrack track);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ProgressToFire(float progress, float timestamp)
+        protected float ProgressToTimestamp(float progress, float timestamp)
         {
             if (progress == 0) return 0;
 

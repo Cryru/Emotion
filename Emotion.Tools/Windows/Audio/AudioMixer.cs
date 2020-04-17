@@ -20,6 +20,7 @@ namespace Emotion.Tools.Windows.Audio
     {
         private FileExplorer<AudioAsset> _explorer;
         private string _newLayerName = "";
+        private int _waveFormHeight = 200;
 
         private Dictionary<AudioLayer, WaveformCache> _waveFormCache = new Dictionary<AudioLayer, WaveformCache>();
 
@@ -35,29 +36,47 @@ namespace Emotion.Tools.Windows.Audio
                 return;
             }
 
-            void ExecuteOnFile(Action<AudioAsset> func)
+            void ExecuteOnFile(Action<AudioTrack> func)
             {
-                _explorer = new FileExplorer<AudioAsset>(func);
+                _explorer = new FileExplorer<AudioAsset>(asset =>
+                {
+                    var modifyModal = new AudioTrackModifyModal(asset, func);
+                    Parent.AddWindow(modifyModal);
+                });
                 Parent.AddWindow(_explorer);
             }
 
+            float masterVol = Engine.Configuration.MasterVolume;
+            if (ImGui.DragFloat("Global Volume", ref masterVol, 0.01f, 0f, 1f))
+            {
+                Engine.Configuration.MasterVolume = masterVol;
+                foreach (KeyValuePair<AudioLayer, WaveformCache> cache in _waveFormCache)
+                {
+                    cache.Value.Recreate();
+                }
+            }
+
             // Push waveforms down.
-            composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, 200, 0)));
+            composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, _waveFormHeight, 0)));
 
             // Render ImGui section of layers.
             string[] layers = Engine.Host.Audio.GetLayers();
             for (var i = 0; i < layers.Length; i++)
             {
                 AudioLayer layer = Engine.Host.Audio.GetLayer(layers[i]);
+                _waveFormCache.TryGetValue(layer, out WaveformCache cache);
 
                 ImGui.Text($"Layer {layers[i]}");
 
                 ImGui.PushID(i);
                 ImGui.Text($"Status: {layer.Status}" +
-                           (layer.CurrentTrack != null ? $" {(MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f).ToString("0")}/{layer.CurrentTrack.File.Duration}" : ""));
+                           (layer.CurrentTrack != null ? $" {MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration}" : ""));
                 float volume = layer.Volume;
-                ImGui.InputFloat("Volume", ref volume);
-                layer.Volume = volume;
+                if (ImGui.DragFloat("Volume", ref volume, 0.01f, 0f, 1f))
+                {
+                    cache?.Recreate();
+                    layer.Volume = volume;
+                }
 
                 if (ImGui.Button("Add To Queue"))
                     ExecuteOnFile(layer.AddToQueue);
@@ -77,8 +96,10 @@ namespace Emotion.Tools.Windows.Audio
                 if (ImGui.Button("Stop"))
                     layer.Stop();
 
-                if (ImGui.Button("Loop"))
+                if (ImGui.Button("Loop Current"))
                     layer.LoopingCurrent = !layer.LoopingCurrent;
+                ImGui.SameLine();
+                ImGui.Text(layer.LoopingCurrent.ToString());
 
                 var r = 0;
                 string[] items = layer.Playlist.Select(x => x.Name).ToArray();
@@ -87,8 +108,9 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.PopID();
                 ImGui.NewLine();
 
-                _waveFormCache.TryGetValue(layer, out WaveformCache cache);
+                composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, i * _waveFormHeight, 0)));
                 cache?.Render(composer);
+                composer.PopModelMatrix();
             }
 
             composer.PopModelMatrix();
@@ -116,14 +138,14 @@ namespace Emotion.Tools.Windows.Audio
                     _waveFormCache[layer] = cache;
                 }
 
-                if (layer.Status != PlaybackStatus.Playing)
+                if (layer.Status == PlaybackStatus.NotPlaying && layer.Status != PlaybackStatus.Paused)
                 {
                     cache.Clear();
                     continue;
                 }
 
                 // Update waveform cache.
-                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Engine.Renderer.DrawBuffer.Size.X, 200);
+                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Engine.Renderer.DrawBuffer.Size.X, _waveFormHeight);
             }
         }
     }

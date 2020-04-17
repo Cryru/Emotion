@@ -31,7 +31,7 @@ namespace Emotion.Audio
         }
 
         private float _volume = 1f;
-        private List<PlaybackEvent> _playbackEvents;
+        private List<AudioModulationEffect> _playbackEvents;
 
         public AudioTrack(AudioAsset file) : base(file.Format, file.SoundData)
         {
@@ -42,37 +42,40 @@ namespace Emotion.Audio
         /// Add a new event to the track's playback.
         /// </summary>
         /// <param name="newEvent">The event to add.</param>
-        public void AddPlaybackEvent(PlaybackEvent newEvent)
+        public void AddAudioModulation(AudioModulationEffect newEvent)
         {
-            if (_playbackEvents == null) _playbackEvents = new List<PlaybackEvent>();
+            if (_playbackEvents == null) _playbackEvents = new List<AudioModulationEffect>();
             _playbackEvents.Add(newEvent);
         }
 
         public int GetNextVolumeModulatedFrames(float volume, int frameCount, Span<byte> buffer)
         {
-            // The rest of this is in SetSampleAsFloat and volume is kept as a member
-            // due to the complexity of the resampling process.
+            // The rest of this is in GetSampleAsFloat and volume is kept as a member
+            // due to the complexity of the resampling process and the modulation working with float values.
             _volume = volume;
+            if (frameCount == 0) return 0;
             return base.GetNextFrames(frameCount, buffer);
         }
 
-        protected override void SetSampleAsFloat(int index, float value, Span<byte> buffer)
+        public override float GetSampleAsFloat(int sampleIdx, bool trueIndex = false, bool secondChannel = false)
         {
             float volume = _volume;
+            float sample = base.GetSampleAsFloat(sampleIdx, trueIndex, secondChannel);
 
             if (_playbackEvents != null)
             {
-                float progress = Progress;
-                float playback = Playback;
+                int channels = ConvFormat?.Channels ?? SourceFormat.Channels;
+                float progress = (float) sampleIdx / _sourceConvLength * channels;
+                float playback = progress * File.Duration;
                 for (var i = 0; i < _playbackEvents.Count; i++)
                 {
-                    _playbackEvents[i].Apply(ref value, ref volume, progress, playback, this);
+                    _playbackEvents[i].Apply(ref sample, ref volume, progress, playback, this);
                 }
             }
 
             volume = MathF.Pow(volume, Engine.Configuration.AudioCurve);
-            value *= volume;
-            base.SetSampleAsFloat(index, value, buffer);
+            sample *= volume;
+            return sample;
         }
     }
 }

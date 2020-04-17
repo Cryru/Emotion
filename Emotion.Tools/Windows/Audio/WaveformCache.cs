@@ -1,7 +1,9 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Audio;
+using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -28,15 +30,22 @@ namespace Emotion.Tools.Windows.Audio
             Track = track;
             _cacheWidth = width;
             _cacheHeight = height;
+            Recreate();
+        }
 
-            float interval = track.File.Duration / width;
+        public void Recreate()
+        {
+            if(Track == null) return;
+            Track.GetNextVolumeModulatedFrames(Layer.Volume * Engine.Configuration.MasterVolume, 0, Span<byte>.Empty);
+
+            float interval = Track.File.Duration / _cacheWidth;
             var sampleCount = (int) (1f / interval);
             _cache = new Vector2[sampleCount];
             for (var i = 0; i < sampleCount; i++)
             {
                 float location = i == sampleCount - 1 ? 1 : i * interval;
-                float sample = track.GetSampleAsFloat((int) (track.SourceSamples * location));
-                _cache[i] = new Vector2(width * location, height * ((1.0f + sample) / 2f));
+                float sample = Track.GetSampleAsFloat((int) ((Track.SourceSamples - 1) * location));
+                _cache[i] = new Vector2(_cacheWidth * location, _cacheHeight * ((1.0f + sample) / 2f));
             }
         }
 

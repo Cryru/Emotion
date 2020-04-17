@@ -27,7 +27,6 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.BeginMenu("Audio"))
             {
-                if (ImGui.MenuItem("Old Editor")) manager.AddWindow(new AudioEditor());
                 if (ImGui.MenuItem("Audio Mixer")) manager.AddWindow(new AudioMixer());
                 ImGui.EndMenu();
             }
