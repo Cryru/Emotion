@@ -7,18 +7,20 @@ namespace Emotion.Audio.Fading
     /// </summary>
     public class AudioFadeOut : AudioModulationEffect
     {
+        public static float FadeOutDebug = 1.0f;
+
         /// <summary>
         /// Create a new fade out effect.
         /// </summary>
-        /// <param name="timestamp">The timestamp in seconds to begin at.</param>
-        public AudioFadeOut(float timestamp) : base(timestamp)
+        /// <param name="duration">The duration of the fade, in seconds.</param>
+        public AudioFadeOut(float duration) : base(duration)
         {
         }
 
         /// <summary>
         /// Create a new fade out effect.
         /// </summary>
-        /// <param name="progress">The progress timestamp (0-1) to begin at.</param>
+        /// <param name="progress">The duration of the fade, in track progress (0-1).</param>
         /// <param name="_">Placeholder for dual constructor.</param>
         public AudioFadeOut(float progress, bool _) : base(progress, _)
         {
@@ -27,11 +29,20 @@ namespace Emotion.Audio.Fading
         public override void Apply(ref float sampleValue, ref float volume, float progress, float timestamp, AudioTrack track)
         {
             // The effect is applied past the timestamp.
-            float fadeInProgress = ProgressToTimestamp(progress, timestamp);
-            if (fadeInProgress < 1.0f) return;
-
-            fadeInProgress = Maths.Clamp01(2.0f - fadeInProgress);
-            volume *= fadeInProgress;
+            float fadeOutProgress;
+            if (TimeStamp > 0.0)
+            {
+                float activationTimeStamp = track.File.Duration - TimeStamp;
+                if (timestamp < activationTimeStamp) return;
+                fadeOutProgress = 1.0f - (timestamp - activationTimeStamp) / TimeStamp;
+            }
+            else
+            {
+                float activationProgress = 1.0f + TimeStamp;
+                if (progress < activationProgress) return;
+                fadeOutProgress = 1.0f - (progress - activationProgress) / -TimeStamp;
+            }
+            volume *= Maths.Clamp01(fadeOutProgress);
         }
     }
 }

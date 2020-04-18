@@ -1,9 +1,7 @@
 ﻿#region Using
 
-using System;
 using System.Numerics;
 using Emotion.Audio;
-using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -35,8 +33,10 @@ namespace Emotion.Tools.Windows.Audio
 
         public void Recreate()
         {
-            if(Track == null) return;
-            Track.GetNextVolumeModulatedFrames(Layer.Volume * Engine.Configuration.MasterVolume, 0, Span<byte>.Empty);
+            if (Track == null) return;
+            float vol = Layer.Volume;
+            // Set the layer volume to 1 as we don't want it affecting the waveform.
+            Layer.Volume = 1.0f;
 
             float interval = Track.File.Duration / _cacheWidth;
             var sampleCount = (int) (1f / interval);
@@ -47,6 +47,8 @@ namespace Emotion.Tools.Windows.Audio
                 float sample = Track.GetSampleAsFloat((int) ((Track.SourceSamples - 1) * location));
                 _cache[i] = new Vector2(_cacheWidth * location, _cacheHeight * ((1.0f + sample) / 2f));
             }
+
+            Layer.Volume = vol;
         }
 
         public void Render(RenderComposer c)

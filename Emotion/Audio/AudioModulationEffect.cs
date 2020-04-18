@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Runtime.CompilerServices;
+using Emotion.Utility;
 
 #endregion
 
@@ -20,13 +21,13 @@ namespace Emotion.Audio
 
         protected AudioModulationEffect(float progress, bool _)
         {
-            TimeStamp = -progress;
+            TimeStamp = -Maths.Clamp01(progress);
         }
 
         public abstract void Apply(ref float sampleValue, ref float volume, float progress, float timestamp, AudioTrack track);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ProgressToTimestamp(float progress, float timestamp)
+        protected virtual float ProgressToTimestamp(float progress, float timestamp)
         {
             if (progress == 0) return 0;
 

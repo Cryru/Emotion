@@ -10,15 +10,15 @@ namespace Emotion.Audio.Fading
         /// <summary>
         /// Create a new fade out effect.
         /// </summary>
-        /// <param name="timestamp">The timestamp in seconds to end at.</param>
-        public AudioFadeIn(float timestamp) : base(timestamp)
+        /// <param name="duration">The duration of the fade, in seconds.</param>
+        public AudioFadeIn(float duration) : base(duration)
         {
         }
 
         /// <summary>
         /// Create a new fade out effect.
         /// </summary>
-        /// <param name="progress">The progress timestamp (0-1) to end at.</param>
+        /// <param name="progress">The duration of the fade, in track progress (0-1).</param>
         /// <param name="_">Placeholder for dual constructor.</param>
         public AudioFadeIn(float progress, bool _) : base(progress, _)
         {

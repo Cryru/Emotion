@@ -46,7 +46,7 @@ namespace Emotion.Tools.Windows.Audio
             if (_fadeOut)
             {
                 ImGui.SameLine();
-                ImGui.DragFloat("FadeOut Timestamp", ref _fadeOutTimestamp, 0.5f, 0.0f, _asset.Duration);
+                ImGui.DragFloat("FadeOut Duration", ref _fadeOutTimestamp, 0.5f, 0.0f, _asset.Duration);
             }
 
             if (ImGui.Button("Ok"))

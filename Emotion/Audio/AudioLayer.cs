@@ -99,7 +99,7 @@ namespace Emotion.Audio
         /// <param name="track">The track to play next.</param>
         public void PlayNext(AudioTrack track)
         {
-            if(!MarkTrack(track)) return;
+            if(!OwnTrack(track)) return;
 
             lock (_playlist)
             {
@@ -120,7 +120,7 @@ namespace Emotion.Audio
         /// <param name="track">The track to play.</param>
         public void AddToQueue(AudioTrack track)
         {
-            if(!MarkTrack(track)) return;
+            if(!OwnTrack(track)) return;
 
             lock (_playlist)
             {
@@ -141,7 +141,7 @@ namespace Emotion.Audio
         /// </summary>
         public void QuickPlay(AudioTrack track)
         {
-            if(!MarkTrack(track)) return;
+            if(!OwnTrack(track)) return;
 
             lock (_playlist)
             {
@@ -223,7 +223,7 @@ namespace Emotion.Audio
             if (!format.Equals(currentTrack.ConvFormat)) currentTrack.SetConvertFormat(format);
 
             // Get frames from the streamer.
-            int framesOutput = currentTrack.GetNextVolumeModulatedFrames(Volume * Engine.Configuration.MasterVolume, framesRequested, dest.Slice(framesOffset * format.FrameSize));
+            int framesOutput = currentTrack.GetNextFrames(framesRequested, dest.Slice(framesOffset * format.FrameSize));
 
             // Check if the buffer was filled.
             Debug.Assert(framesOutput <= framesRequested);
@@ -298,14 +298,14 @@ namespace Emotion.Audio
             if (newStatus == PlaybackStatus.NotPlaying) _currentTrack = -1;
         }
 
-        private static bool MarkTrack(AudioTrack track)
+        private bool OwnTrack(AudioTrack track)
         {
-            if (track.HasLayer)
+            if (track.Layer != null)
             {
                 Engine.Log.Error("Tried to play a track which is already playing on another layer.", MessageSource.Audio);
                 return false;
             }
-            track.HasLayer = true;
+            track.Layer = this;
             return true;
         }
 
