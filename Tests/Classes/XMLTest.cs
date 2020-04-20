@@ -528,5 +528,36 @@ namespace Tests.Classes
             var restored = XmlFormat.From<NullableTrivialContainer>(nul);
             Assert.True(restored.Number == null);
         }
+
+        [Test]
+        public void PrimitiveDictionary()
+        {
+            var primitiveDict = new Dictionary<string, int> {{"testOne", 1}, {"testTwo", 2}, {"", 4}, {" ", 0}};
+
+            string xml = XmlFormat.To(primitiveDict);
+            var restored = XmlFormat.From<Dictionary<string, int>>(xml);
+            Assert.True(restored != null);
+            Assert.Equal(restored.Count, 4);
+            Assert.Equal(restored["testOne"], 1);
+            Assert.Equal(restored["testTwo"], 2);
+            Assert.Equal(restored[""], 4);
+            Assert.Equal(restored[" "], 0);
+        }
+
+        [Test]
+        public void ComplexDictionary()
+        {
+            var complexDict = new Dictionary<TestEnum, Transform> {{TestEnum.Test, new Transform(1, 2, 3, 4)}, {TestEnum.This, null}};
+
+            string xml = XmlFormat.To(complexDict);
+            var restored = XmlFormat.From<Dictionary<TestEnum, Transform>>(xml);
+            Assert.True(restored != null);
+            Assert.Equal(restored.Count, 2);
+            Assert.Equal(restored[TestEnum.Test].X, 1);
+            Assert.Equal(restored[TestEnum.Test].Y, 2);
+            Assert.Equal(restored[TestEnum.Test].Z, 3);
+            Assert.Equal(restored[TestEnum.Test].Width, 4);
+            Assert.True(restored[TestEnum.This] == null);
+        }
     }
 }

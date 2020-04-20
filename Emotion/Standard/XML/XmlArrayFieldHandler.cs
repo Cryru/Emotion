@@ -22,7 +22,7 @@ namespace Emotion.Standard.XML
 
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
-            if(obj == null) return;
+            if (obj == null) return;
 
             if (RecursionCheck)
             {
@@ -37,6 +37,7 @@ namespace Emotion.Standard.XML
             {
                 _elementTypeHandler.Serialize(item, output, indentation + 1, recursionChecker);
             }
+
             output.AppendJoin(XmlFormat.IndentChar, new string[indentation + 1]);
             output.Append($"</{Name}>\n");
 
@@ -61,6 +62,7 @@ namespace Emotion.Standard.XML
                         Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
                         return null;
                     }
+
                     handler = XmlHelpers.ResolveFieldHandler(derivedType, handler.ReflectionInfo, _elementTypeHandler.ReflectionInfo.Type);
                 }
 
@@ -83,10 +85,9 @@ namespace Emotion.Standard.XML
             }
 
             // List
-            Type listType = typeof(List<>);
-            if (ReflectionInfo.Type != listType)
+            if (ReflectionInfo.Type.IsGenericType && ReflectionInfo.Type.GetGenericTypeDefinition() == XmlHelpers.ListType)
             {
-                Type listGenericType = listType.MakeGenericType(_elementTypeHandler.ReflectionInfo.Type);
+                Type listGenericType = XmlHelpers.ListType.MakeGenericType(_elementTypeHandler.ReflectionInfo.Type);
                 var list = (IList) Activator.CreateInstance(listGenericType, backingArr.Count);
                 for (var i = 0; i < backingArr.Count; i++)
                 {
@@ -94,6 +95,22 @@ namespace Emotion.Standard.XML
                 }
 
                 return list;
+            }
+
+            // Dictionary
+            if (ReflectionInfo.Type.GetInterface("IDictionary") != null)
+            {
+                Type genericTypeDef = ReflectionInfo.Type.GetGenericTypeDefinition();
+                Type dictionaryGenericType = genericTypeDef.MakeGenericType(_elementTypeHandler.ReflectionInfo.Type.GetGenericArguments());
+                var dict = (IDictionary) Activator.CreateInstance(dictionaryGenericType, backingArr.Count);
+                var keyValueHandler = (XMLKeyValueTypeHandler) XmlHelpers.GetTypeHandler(_elementTypeHandler.ReflectionInfo.Type);
+                for (var i = 0; i < backingArr.Count; i++)
+                {
+                    object item = backingArr[i];
+                    dict.Add(keyValueHandler.GetKey(item), keyValueHandler.GetValue(item));
+                }
+
+                return dict;
             }
 
             Engine.Log.Warning($"Unknown IEnumerable type {ReflectionInfo.Type}", MessageSource.XML);

@@ -31,7 +31,7 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Handlers for all fields of this type.
         /// </summary>
-        private Dictionary<string, XmlFieldHandler> _fieldHandlers;
+        protected Dictionary<string, XmlFieldHandler> _fieldHandlers;
 
         /// <summary>
         /// The handler for this type's base class (if any).
@@ -43,7 +43,7 @@ namespace Emotion.Standard.XML
             Type = type;
         }
 
-        public void Init()
+        public virtual void Init()
         {
             // Check if inheriting anything.
             if (!Type.IsValueType && Type.BaseType != typeof(object)) _baseClass = XmlHelpers.GetTypeHandler(Type.BaseType);
@@ -85,7 +85,7 @@ namespace Emotion.Standard.XML
             }
         }
 
-        public void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public virtual void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
             if (obj == null) return;
 
@@ -97,7 +97,7 @@ namespace Emotion.Standard.XML
             }
         }
 
-        public object Deserialize(XmlReader input)
+        public virtual object Deserialize(XmlReader input)
         {
             int depth = input.Depth;
             object newObj = Activator.CreateInstance(Type, true);
@@ -142,7 +142,7 @@ namespace Emotion.Standard.XML
             return _baseClass != null && _baseClass.GetFieldHandler(tag, out handler);
         }
 
-        private XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property)
+        protected XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property)
         {
             // Recursive
             if (Type != type) return XmlHelpers.ResolveFieldHandler(type, property, Type);

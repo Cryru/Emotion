@@ -1,4 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿#region Using
+
+using System.Text.RegularExpressions;
+
+#endregion
 
 namespace Emotion.Standard.XML
 {
@@ -29,7 +33,7 @@ namespace Emotion.Standard.XML
             int valueStart = _offset + 1;
 
             for (; _offset < _source.Length; _offset++)
-            {   
+            {
                 char c = _source[_offset];
                 if (c != '<') continue; // <tag>
                 char oneAhead = PeekOneAhead();
@@ -37,10 +41,11 @@ namespace Emotion.Standard.XML
                 {
                     case '?': // <?xml
                         continue;
-                    case '/':  // </tag
+                    case '/': // </tag
                         Depth--;
                         break;
                 }
+
                 _offset++;
                 break;
             }
@@ -61,10 +66,7 @@ namespace Emotion.Standard.XML
             var tagEnd = 0;
             typeAttribute = null;
 
-            if (_source[_offset] != '/')
-            {
-                Depth++;
-            }
+            if (_source[_offset] != '/') Depth++;
 
             for (; _offset < _source.Length; _offset++)
             {
@@ -95,10 +97,7 @@ namespace Emotion.Standard.XML
                     string name = match.Groups[1].Value;
                     string value = match.Groups[2].Value;
 
-                    if (name == "type")
-                    {
-                        typeAttribute = value;
-                    }
+                    if (name == "type") typeAttribute = value;
                 }
             }
 

@@ -26,12 +26,9 @@ namespace Emotion.Standard.XML
 
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker _)
         {
-            if(obj == null || obj.Equals(_defaultValue)) return;
+            if (obj == null || obj.Equals(_defaultValue)) return;
 
-            if (_isString)
-            {
-                obj = SanitizeString((string) obj);
-            }
+            if (_isString) obj = SanitizeString((string) obj);
 
             output.AppendJoin(XmlFormat.IndentChar, new string[indentation + 1]);
             output.Append($"<{Name}>");
@@ -43,10 +40,7 @@ namespace Emotion.Standard.XML
         {
             string readValue = input.GoToNextTag();
 
-            if (!_isEnum)
-            {
-                return _isString ? RestoreString(readValue) : Convert.ChangeType(readValue, ReflectionInfo.Type);
-            }
+            if (!_isEnum) return _isString ? RestoreString(readValue) : Convert.ChangeType(readValue, ReflectionInfo.Type);
 
             return Enum.Parse(ReflectionInfo.Type, readValue);
         }

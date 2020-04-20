@@ -16,7 +16,8 @@ namespace Emotion.Standard.XML
     public static class XmlHelpers
     {
         public static readonly Type DontSerializeAttributeType = typeof(DontSerializeAttribute);
-        private static readonly Type EnumerableType = typeof(IEnumerable<>);
+        public static Type ListType = typeof(List<>);
+        public static readonly Type KeyValuePairType = typeof(KeyValuePair<,>);
 
         /// <summary>
         /// Every complex type is analyzed using reflection to determine how to serialize it.
@@ -26,11 +27,11 @@ namespace Emotion.Standard.XML
         public static XMLTypeHandler GetTypeHandler(Type type)
         {
             // Check if type is excluded.
-            if(type.CustomAttributes.Any(x => x.AttributeType == DontSerializeAttributeType)) return null;
+            if (type.CustomAttributes.Any(x => x.AttributeType == DontSerializeAttributeType)) return null;
 
             if (Handlers.TryGetValue(type, out XMLTypeHandler newHandler)) return newHandler;
 
-            newHandler = new XMLTypeHandler(type);
+            newHandler = type.IsGenericType && type.GetGenericTypeDefinition() == KeyValuePairType ? new XMLKeyValueTypeHandler(type) : new XMLTypeHandler(type);
             Handlers.Add(type, newHandler);
             newHandler.Init();
             return newHandler;
@@ -91,6 +92,7 @@ namespace Emotion.Standard.XML
             {
                 typeName.Append($"{GetTypeName(generics[i], full)}");
             }
+
             return typeName.ToString();
         }
 
@@ -127,10 +129,7 @@ namespace Emotion.Standard.XML
             type = GetOpaqueType(type, out bool _);
 
             string typeName = GetTypeName(type);
-            if(!ResolvedTypes.ContainsKey(typeName))
-            {
-                ResolvedTypes.Add(typeName, type);
-            }
+            if (!ResolvedTypes.ContainsKey(typeName)) ResolvedTypes.Add(typeName, type);
 
             // Trivial types.
             if (XmlTrivialFieldHandler.TypeIsTrivial(type)) return new XmlTrivialFieldHandler(property);
@@ -138,11 +137,24 @@ namespace Emotion.Standard.XML
             // Arrays and array-like
             if (type.IsArray || type.GetInterface("IEnumerable") != null)
             {
-                Type elementType = type.GetElementType() ?? type.GetGenericArguments().FirstOrDefault();
-                if (elementType == null) return null;
-                XmlFieldHandler elementTypeHandler = ResolveFieldHandler(elementType, new XmlReflectionHandler(elementType), referencingType);
-                if(elementTypeHandler == null) return null;
+                Type elementType;
+                XmlFieldHandler elementTypeHandler;
+                if (type.GetInterface("IDictionary") != null)
+                {
+                    // The dictionary is basically an array of key value types. Synthesize this here.
+                    Type[] generics = type.GetGenericArguments();
+                    Type keyType = generics[0];
+                    Type valueType = generics[1];
+                    elementType = KeyValuePairType.MakeGenericType(keyType, valueType);
+                }
+                else
+                {
+                    elementType = type.GetElementType() ?? type.GetGenericArguments().FirstOrDefault();
+                }
 
+                if (elementType == null) return null;
+                elementTypeHandler = ResolveFieldHandler(elementType, new XmlReflectionHandler(elementType), referencingType);
+                if (elementTypeHandler == null) return null;
                 var arrayHandler = new XmlArrayFieldHandler(property, elementTypeHandler);
 
                 // Recursion with parent.
@@ -155,7 +167,7 @@ namespace Emotion.Standard.XML
 
             // Complex type
             XMLTypeHandler typeHandler = GetTypeHandler(type);
-            if(typeHandler == null) return null; // Excluded or some other error.
+            if (typeHandler == null) return null; // Excluded or some other error.
             var complexHandler = new XmlComplexFieldHandler(property, typeHandler);
             if (referencingType != null && type.IsSubclassOf(referencingType)) complexHandler.RecursionCheck = true;
             return complexHandler;
