@@ -43,7 +43,7 @@ namespace Emotion.Standard.XML
             string currentTag = reader.ReadTag(out string _);
             Type tagType = XmlHelpers.GetTypeByName(currentTag);
             if (tagType != null && tagType == type) return (T) handler.Deserialize(reader);
-            Engine.Log.Warning($"Serializing XML of type {tagType} while expecting {type}.", MessageSource.XML);
+            Engine.Log.Warning($"Serializing XML of type {tagType}({currentTag}) while expecting {type}.", MessageSource.XML);
             return default;
         }
 

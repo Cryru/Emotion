@@ -95,7 +95,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                         handler = _valueHandler.Value;
                         break;
                     default:
-                        continue;
+                        Engine.Log.Warning($"Unknown deserialization tag in KVP - {currentTag}.", MessageSource.XML);
+                        return null;
                 }
 
                 // Derived type.
@@ -117,8 +118,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                         value = handler.Deserialize(input);
                         break;
                     default:
-                        Debug.Assert(false);
-                        break;
+                        Engine.Log.Warning($"Unknown deserialization tag in KVP - {currentTag}.", MessageSource.XML);
+                        return null;
                 }
 
                 input.GoToNextTag();
