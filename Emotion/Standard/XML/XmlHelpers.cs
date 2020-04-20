@@ -25,23 +25,27 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Every complex type is analyzed using reflection to determine how to serialize it.
         /// </summary>
-        private static readonly Dictionary<Type, XMLTypeHandler> Handlers = new Dictionary<Type, XMLTypeHandler>();
+        private static readonly LazyConcurrentDictionary<Type, XMLTypeHandler> Handlers = new LazyConcurrentDictionary<Type, XMLTypeHandler>();
 
         /// <summary>
         /// Type names which are resolved are added here.
         /// </summary>
-        private static readonly Dictionary<string, Type> ResolvedTypes = new Dictionary<string, Type>();
+        private static readonly LazyConcurrentDictionary<string, Type> ResolvedTypes = new LazyConcurrentDictionary<string, Type>();
 
         public static XMLTypeHandler GetTypeHandler(Type type)
         {
             // Check if type is excluded.
             if (type.CustomAttributes.Any(x => x.AttributeType == DontSerializeAttributeType)) return null;
+            return Handlers.GetOrAddValue(type, TypeHandlerFactory);
+        }
 
-            if (Handlers.TryGetValue(type, out XMLTypeHandler newHandler)) return newHandler;
-
+        private static XMLTypeHandler TypeHandlerFactory(Type type)
+        {
             // Index name.
             string typeName = GetTypeName(type);
-            if (!ResolvedTypes.ContainsKey(typeName)) ResolvedTypes.Add(typeName, type);
+            ResolvedTypes.TryAdd(typeName, new Lazy<Type>(type));
+
+            XMLTypeHandler newHandler = null;
 
             // Trivial types.
             if (type.IsPrimitive) newHandler = new XmlPrimitiveTypeHandler(type);
@@ -79,15 +83,8 @@ namespace Emotion.Standard.XML
                 newHandler = new XmlKeyValueTypeHandler(type);
             }
 
-            // Some other type.
-            if (newHandler == null)
-            {
-                newHandler = new XmlComplexTypeHandler(type);
-            }
-
-            Handlers.Add(type, newHandler);
-            newHandler.Init();
-            return newHandler;
+            // Some other type, for sure a complex one.
+            return newHandler ?? new XmlComplexTypeHandler(type);
         }
 
         /// <summary>
@@ -97,13 +94,15 @@ namespace Emotion.Standard.XML
         /// <returns>The type under that name.</returns>
         public static Type GetTypeByName(string typeName)
         {
-            if (ResolvedTypes.TryGetValue(typeName, out Type type)) return type;
+            return ResolvedTypes.GetOrAddValue(typeName, GetTypeByNameFactory);
+        }
 
+        private static Type GetTypeByNameFactory(string typeName)
+        {
             for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
             {
-                type = Helpers.AssociatedAssemblies[i].GetType(typeName, false, true);
+                Type type = Helpers.AssociatedAssemblies[i].GetType(typeName, false, true);
                 if (type == null) continue;
-                ResolvedTypes.Add(typeName, type);
                 return type;
             }
 
@@ -175,8 +174,7 @@ namespace Emotion.Standard.XML
         {
             Type opaqueType = GetOpaqueType(type, out bool opaque);
             XMLTypeHandler typeHandler = GetTypeHandler(opaqueType);
-            if (typeHandler == null) return null; // Excluded or some other error.
-            return new XmlFieldHandler(property, typeHandler, opaque);
+            return typeHandler == null ? null : new XmlFieldHandler(property, typeHandler, opaque); // TypeHandler is null if an excluded type.
         }
     }
 }

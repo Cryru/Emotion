@@ -23,14 +23,13 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// arrays of arrays which can contain themselves and complex types with fields of
         /// the same type or a derived one.
         /// </summary>
-        public bool RecursiveType { get; protected set; }
+        public virtual bool RecursiveType { get; protected set; }
 
         protected XMLTypeHandler(Type type)
         {
             Type = type;
         }
 
-        public abstract void Init();
         public abstract void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker);
         public abstract object Deserialize(XmlReader input);
 

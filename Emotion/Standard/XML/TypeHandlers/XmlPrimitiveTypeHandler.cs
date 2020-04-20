@@ -19,10 +19,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             _defaultValue = _opaque ? Activator.CreateInstance(Type, true) : null;
         }
 
-        public override void Init()
-        {
-        }
-
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
             output.Append($"{obj}");

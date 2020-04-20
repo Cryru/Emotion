@@ -13,14 +13,25 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlKeyValueTypeHandler : XMLTypeHandler
     {
-        private XmlFieldHandler _keyHandler;
-        private XmlFieldHandler _valueHandler;
+        public override bool RecursiveType
+        {
+            get
+            {
+                if(_recursiveType != null)
+                {
+                    return _recursiveType.Value;
+                }
+                _recursiveType = _keyHandler.Value.TypeHandler.IsRecursiveWith(Type) || _valueHandler.Value.TypeHandler.IsRecursiveWith(Type);
+                return _recursiveType.Value;
+            }
+            protected set => _recursiveType = value;
+        }
+        private bool? _recursiveType;
+
+        private Lazy<XmlFieldHandler> _keyHandler;
+        private Lazy<XmlFieldHandler> _valueHandler;
 
         public XmlKeyValueTypeHandler(Type type) : base(type)
-        {
-        }
-
-        public override void Init()
         {
             PropertyInfo[] properties = Type.GetProperties();
 
@@ -32,12 +43,12 @@ namespace Emotion.Standard.XML.TypeHandlers
                 {
                     case "Key":
                     {
-                        _keyHandler = XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
+                        _keyHandler = new Lazy<XmlFieldHandler>(() => XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property)));
                         break;
                     }
                     case "Value":
                     {
-                        _valueHandler = XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
+                        _valueHandler = new Lazy<XmlFieldHandler>(() => XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property)));
                         break;
                     }
                     default:
@@ -45,13 +56,11 @@ namespace Emotion.Standard.XML.TypeHandlers
                         break;
                 }
             }
-
-            RecursiveType = _keyHandler.TypeHandler.IsRecursiveWith(Type) || _valueHandler.TypeHandler.IsRecursiveWith(Type);
         }
 
         public override bool IsRecursiveWith(Type type)
         {
-            return base.IsRecursiveWith(type) || _keyHandler.TypeHandler.IsRecursiveWith(type) || _valueHandler.TypeHandler.IsRecursiveWith(type);
+            return base.IsRecursiveWith(type) || _keyHandler.Value.TypeHandler.IsRecursiveWith(type) || _valueHandler.Value.TypeHandler.IsRecursiveWith(type);
         }
 
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
@@ -59,8 +68,8 @@ namespace Emotion.Standard.XML.TypeHandlers
             if (obj == null) return;
 
             Debug.Assert(Type.IsInstanceOfType(obj));
-            _keyHandler.Serialize(GetKey(obj), output, indentation, recursionChecker);
-            _valueHandler.Serialize(GetValue(obj), output, indentation, recursionChecker);
+            _keyHandler.Value.Serialize(GetKey(obj), output, indentation, recursionChecker);
+            _valueHandler.Value.Serialize(GetValue(obj), output, indentation, recursionChecker);
         }
 
         public override object Deserialize(XmlReader input)
@@ -77,10 +86,10 @@ namespace Emotion.Standard.XML.TypeHandlers
                 switch (currentTag)
                 {
                     case "Key":
-                        handler = _keyHandler;
+                        handler = _keyHandler.Value;
                         break;
                     case "Value":
-                        handler = _valueHandler;
+                        handler = _valueHandler.Value;
                         break;
                     default:
                         continue;
@@ -118,12 +127,12 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public object GetKey(object val)
         {
-            return _keyHandler.ReflectionInfo.GetValue(val);
+            return _keyHandler.Value.ReflectionInfo.GetValue(val);
         }
 
         public object GetValue(object val)
         {
-            return _valueHandler.ReflectionInfo.GetValue(val);
+            return _valueHandler.Value.ReflectionInfo.GetValue(val);
         }
     }
 }

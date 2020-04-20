@@ -26,10 +26,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             return base.IsRecursiveWith(type) || _elementTypeHandler.TypeHandler.IsRecursiveWith(type);
         }
 
-        public override void Init()
-        {
-        }
-
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
             var arr = (IEnumerable) obj;

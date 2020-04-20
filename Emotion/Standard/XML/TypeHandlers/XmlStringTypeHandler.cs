@@ -15,10 +15,6 @@ namespace Emotion.Standard.XML.TypeHandlers
         {
         }
 
-        public override void Init()
-        {
-        }
-
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
             if (obj == null) return;
