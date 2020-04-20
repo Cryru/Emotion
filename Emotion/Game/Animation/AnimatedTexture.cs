@@ -4,6 +4,7 @@ using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics.Objects;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 
@@ -16,6 +17,17 @@ namespace Emotion.Game.Animation
     /// </summary>
     public class AnimatedTexture
     {
+        public string SpriteSheetName
+        {
+            get => _spriteSheetName;
+            set
+            {
+                _spriteSheetName = value;
+                TextureAsset = Engine.AssetLoader.Get<TextureAsset>(_spriteSheetName);
+            }
+        }
+        private string _spriteSheetName;
+
         #region Properties
 
         /// <summary>
@@ -108,7 +120,15 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// The spritesheet texture associated with the animation.
         /// </summary>
-        public Texture Texture { get; protected set; }
+        public TextureAsset TextureAsset { get; protected set; }
+
+        /// <summary>
+        /// The spritesheet texture associated with the animation.
+        /// </summary>
+        public Texture Texture
+        {
+            get => TextureAsset.Texture;
+        }
 
         /// <summary>
         /// The number of times the animation looped.
@@ -131,9 +151,9 @@ namespace Emotion.Game.Animation
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
         /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, Rectangle[] frames, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
+        public AnimatedTexture(TextureAsset texture, Rectangle[] frames, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
         {
-            Texture = texture;
+            TextureAsset = texture;
             _frames = frames;
 
             LoopType = loopType;
@@ -155,12 +175,12 @@ namespace Emotion.Game.Animation
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
         /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, int columns, int rows, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
+        public AnimatedTexture(TextureAsset texture, int columns, int rows, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
         {
-            Texture = texture;
+            TextureAsset = texture;
             var frames = new Rectangle[columns * rows];
-            var w = (int) texture.Size.X;
-            var h = (int) texture.Size.Y;
+            var w = (int) texture.Texture.Size.X;
+            var h = (int) texture.Texture.Size.Y;
 
             var i = 0;
             for (var y = 0; y < rows; y++)
@@ -194,7 +214,7 @@ namespace Emotion.Game.Animation
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
         /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1) : this(texture, frameSize,
+        public AnimatedTexture(TextureAsset texture, Vector2 frameSize, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1) : this(texture, frameSize,
             Vector2.Zero, loopType, timeBetweenFrames, startingFrame, endingFrame)
         {
         }
@@ -209,16 +229,16 @@ namespace Emotion.Game.Animation
         /// <param name="timeBetweenFrames">The time between frames in milliseconds.</param>
         /// <param name="startingFrame">The frame index to start from. Inclusive. Zero indexed.</param>
         /// <param name="endingFrame">The frame index to end on from the total frame count. Zero indexed. Inclusive.</param>
-        public AnimatedTexture(Texture texture, Vector2 frameSize, Vector2 spacing, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
+        public AnimatedTexture(TextureAsset texture, Vector2 frameSize, Vector2 spacing, AnimationLoopType loopType, int timeBetweenFrames, int startingFrame = 0, int endingFrame = -1)
         {
-            Texture = texture;
+            TextureAsset = texture;
 
-            Vector2 frameC = texture.Size / (frameSize + spacing);
+            Vector2 frameC = texture.Texture.Size / (frameSize + spacing);
             var frameCount = (int) (frameC.X * frameC.Y);
             var frames = new Rectangle[frameCount];
             for (var i = 0; i < frames.Length; i++)
             {
-                frames[i] = GetGridFrameBounds(texture.Size, frameSize, spacing, i);
+                frames[i] = GetGridFrameBounds(texture.Texture.Size, frameSize, spacing, i);
             }
 
             _frames = frames;
@@ -241,7 +261,7 @@ namespace Emotion.Game.Animation
             LoopCount = copy.LoopCount;
             LoopType = copy.LoopType;
             StartingFrame = copy.StartingFrame;
-            Texture = copy.Texture;
+            TextureAsset = copy.TextureAsset;
             TimeBetweenFrames = copy.TimeBetweenFrames;
         }
 
@@ -434,27 +454,8 @@ namespace Emotion.Game.Animation
                 LoopCount = LoopCount,
                 LoopType = LoopType,
                 StartingFrame = StartingFrame,
-                Texture = Texture,
+                TextureAsset = TextureAsset,
                 TimeBetweenFrames = TimeBetweenFrames
-            };
-        }
-
-        /// <summary>
-        /// Returns a serializable animation description file.
-        /// </summary>
-        /// <param name="textureName">The spritesheet texture's name within the asset loader.</param>
-        /// <returns>A serializable animation description file.</returns>
-        public virtual AnimatedTextureDescription GetDescription(string textureName = null)
-        {
-            return new AnimatedTextureDescription
-            {
-                SpriteSheetName = textureName,
-                StartingFrame = StartingFrame,
-                EndingFrame = EndingFrame,
-                TimeBetweenFrames = TimeBetweenFrames,
-                LoopType = LoopType,
-                Frames = Frames,
-                Anchors = Anchors
             };
         }
 

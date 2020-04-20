@@ -60,7 +60,7 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Open AnimatedTexture"))
             {
-                var explorer = new FileExplorer<XMLAsset<AnimatedTextureDescription>>(LoadAnimatedTexture);
+                var explorer = new FileExplorer<XMLAsset<AnimatedTexture>>(LoadAnimatedTexture);
                 Parent.AddWindow(explorer);
             }
 
@@ -68,7 +68,7 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Open AnimationController"))
             {
-                var explorer = new FileExplorer<XMLAsset<AnimationControllerDescription>>(LoadAnimationController);
+                var explorer = new FileExplorer<XMLAsset<AnimationController>>(LoadAnimationController);
                 Parent.AddWindow(explorer);
             }
 
@@ -79,8 +79,8 @@ namespace Emotion.Tools.Windows
 
                 if (ImGui.Button("Grid"))
                 {
-                    var win = new GridSettingsWindow(this, (fs, s) => { _animation = new AnimatedTexture(_spriteSheetTexture.Texture, fs, s, AnimationLoopType.Normal, 1000); },
-                        (r, c) => { _animation = new AnimatedTexture(_spriteSheetTexture.Texture, c, r, AnimationLoopType.Normal, 1000); });
+                    var win = new GridSettingsWindow(this, (fs, s) => { _animation = new AnimatedTexture(_spriteSheetTexture, fs, s, AnimationLoopType.Normal, 1000); },
+                        (r, c) => { _animation = new AnimatedTexture(_spriteSheetTexture, c, r, AnimationLoopType.Normal, 1000); });
                     Parent.AddWindow(win);
                 }
 
@@ -89,7 +89,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.Button("Auto Detect Frames"))
                 {
                     Rectangle[] frames = AutoDetectFrames(_spriteSheetTexture.Texture);
-                    _animation = new AnimatedTexture(_spriteSheetTexture.Texture, frames, AnimationLoopType.Normal, 1000);
+                    _animation = new AnimatedTexture(_spriteSheetTexture, frames, AnimationLoopType.Normal, 1000);
                 }
 
                 return;
@@ -168,9 +168,9 @@ namespace Emotion.Tools.Windows
                     string saveData;
                     // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
                     if (_animController != null)
-                        saveData = XmlFormat.To(_animController.GetDescription(_spriteSheetTexture.Name));
+                        saveData = XmlFormat.To(_animController);
                     else
-                        saveData = XmlFormat.To(_animation.GetDescription(_spriteSheetTexture.Name));
+                        saveData = XmlFormat.To(_animation);
 
                     Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
                 }
@@ -195,7 +195,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.Button("Create Controller"))
                 {
                     _animController = new AnimationController(_animation);
-                    _animController.AddAnimation(new AnimationController.Node("Default")
+                    _animController.AddAnimation(new AnimationNode("Default")
                     {
                         EndingFrame = _animation.EndingFrame,
                         StartingFrame = _animation.StartingFrame,
@@ -223,7 +223,7 @@ namespace Emotion.Tools.Windows
             {
                 ImGui.Text("Animations");
                 ImGui.PushID("animList");
-                foreach (AnimationController.Node n in _animController.Animations)
+                foreach (AnimationNode n in _animController.Animations.Values)
                 {
                     if (n == _animController.CurrentAnimation)
                     {
@@ -235,9 +235,9 @@ namespace Emotion.Tools.Windows
                     }
                 }
 
-                if (ImGui.Button("Create") && _animController.Animations.All(x => x.Name != "NewAnim"))
+                if (ImGui.Button("Create") && _animController.Animations.All(x => x.Key != "NewAnim"))
                 {
-                    var newNode = new AnimationController.Node("NewAnim");
+                    var newNode = new AnimationNode("NewAnim");
                     _animController.AddAnimation(newNode);
                 }
 
@@ -263,7 +263,7 @@ namespace Emotion.Tools.Windows
 
                 ImGui.PopID();
 
-                AnimationController.Node cur = _animController.CurrentAnimation;
+                AnimationNode cur = _animController.CurrentAnimation;
                 var modified = false;
 
                 int frameTime = cur.TimeBetweenFrames;
@@ -320,22 +320,22 @@ namespace Emotion.Tools.Windows
             _animController = null;
         }
 
-        private void LoadAnimatedTexture(XMLAsset<AnimatedTextureDescription> f)
+        private void LoadAnimatedTexture(XMLAsset<AnimatedTexture> f)
         {
             if (f?.Content == null) return;
 
-            AnimatedTexture anim = f.Content.CreateFrom();
-            _spriteSheetTexture = Engine.AssetLoader.Get<TextureAsset>(f.Content.SpriteSheetName);
+            AnimatedTexture anim = f.Content;
+            _spriteSheetTexture = anim.TextureAsset;
             _animation = anim;
             _animController = null;
             _saveName = f.Name;
         }
 
-        private void LoadAnimationController(XMLAsset<AnimationControllerDescription> f)
+        private void LoadAnimationController(XMLAsset<AnimationController> f)
         {
             if (f?.Content == null) return;
-            _animController = f.Content.CreateFrom();
-            _spriteSheetTexture = Engine.AssetLoader.Get<TextureAsset>(f.Content.AnimTex.SpriteSheetName);
+            _animController = f.Content;
+            _spriteSheetTexture = _animController.AnimTex.TextureAsset;
             _animation = _animController.AnimTex;
             _saveName = f.Name;
         }

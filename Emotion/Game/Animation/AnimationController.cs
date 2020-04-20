@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Standard.XML;
 
 #endregion
 
@@ -16,38 +17,10 @@ namespace Emotion.Game.Animation
     public class AnimationController
     {
         /// <summary>
-        /// A single animation node.
-        /// </summary>
-        public class Node
-        {
-            public string Name { get; set; }
-            public int StartingFrame { get; set; } = 0;
-            public int EndingFrame { get; set; } = -1;
-            public int TimeBetweenFrames { get; set; } = 500;
-            public AnimationLoopType LoopType { get; set; } = AnimationLoopType.Normal;
-
-            public Node()
-            {
-            }
-
-            public Node(string name)
-            {
-                Name = name;
-            }
-        }
-
-        /// <summary>
-        /// List of possible animations.
-        /// </summary>
-        public Node[] Animations
-        {
-            get => _nodes.Values.ToArray();
-        }
-
-        /// <summary>
         /// The currently playing node.
         /// </summary>
-        public Node CurrentAnimation;
+        [DontSerialize]
+        public AnimationNode CurrentAnimation;
 
         /// <summary>
         /// The animated texture in which all animations are stored.
@@ -57,7 +30,7 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// Possible animations.
         /// </summary>
-        private Dictionary<string, Node> _nodes = new Dictionary<string, Node>();
+        public Dictionary<string, AnimationNode> Animations = new Dictionary<string, AnimationNode>();
 
         public AnimationController(AnimatedTexture animTex)
         {
@@ -65,12 +38,20 @@ namespace Emotion.Game.Animation
         }
 
         /// <summary>
+        /// Serialization constructor.
+        /// </summary>
+        protected AnimationController()
+        {
+
+        }
+
+        /// <summary>
         /// Add a new animation.
         /// </summary>
         /// <param name="n">The animation node to add.</param>
-        public void AddAnimation(Node n)
+        public void AddAnimation(AnimationNode n)
         {
-            _nodes.Add(n.Name, n);
+            Animations.Add(n.Name, n);
         }
 
         /// <summary>
@@ -79,7 +60,7 @@ namespace Emotion.Game.Animation
         /// <param name="name">The name of the animation to remove.</param>
         public void RemoveAnimation(string name)
         {
-            _nodes.Remove(name);
+            Animations.Remove(name);
         }
 
         /// <summary>
@@ -94,7 +75,7 @@ namespace Emotion.Game.Animation
                 return;
             }
 
-            Node n = _nodes[animName];
+            AnimationNode n = Animations[animName];
             AnimTex.StartingFrame = n.StartingFrame;
             AnimTex.EndingFrame = n.EndingFrame;
             AnimTex.LoopType = n.LoopType;
@@ -111,7 +92,7 @@ namespace Emotion.Game.Animation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAnimation(string animName)
         {
-            return _nodes.ContainsKey(animName);
+            return Animations.ContainsKey(animName);
         }
 
         /// <summary>
@@ -119,26 +100,12 @@ namespace Emotion.Game.Animation
         /// </summary>
         public void Reindex()
         {
-            Node[] nodeData = _nodes.Values.ToArray();
-            _nodes.Clear();
-            foreach (Node node in nodeData)
+            AnimationNode[] nodeData = Animations.Values.ToArray();
+            Animations.Clear();
+            foreach (AnimationNode node in nodeData)
             {
-                _nodes.Add(node.Name, node);
+                Animations.Add(node.Name, node);
             }
-        }
-
-        /// <summary>
-        /// Returns a serializable animation controller description file.
-        /// </summary>
-        /// <param name="textureName">The spritesheet texture's name within the asset loader.</param>
-        /// <returns>A serializable animation controller description file.</returns>
-        public AnimationControllerDescription GetDescription(string textureName = null)
-        {
-            return new AnimationControllerDescription
-            {
-                AnimTex = AnimTex.GetDescription(textureName),
-                Nodes = _nodes.Values.ToList()
-            };
         }
     }
 }

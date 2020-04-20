@@ -24,13 +24,13 @@ namespace Tests.Classes
         [Test]
         public void AnimatedTextureClassDrawing()
         {
-            var normalLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
+            var normalLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
             // Test constructor without starting-ending frame as well. It should set the starting and ending frames to 0-3 as well.
-            var noLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, 2, 2, AnimationLoopType.None, 500);
-            var normalThenReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NormalThenReverse, 500,
+            var noLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), 2, 2, AnimationLoopType.None, 500);
+            var normalThenReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.NormalThenReverse, 500,
                 0, 3);
-            var noLoopReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.NoneReverse, 500, 0, 3);
-            var reverseLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Reverse, 500);
+            var noLoopReverse = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.NoneReverse, 500, 0, 3);
+            var reverseLoop = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Reverse, 500);
 
             void DrawFrame(Action end)
             {
@@ -245,11 +245,11 @@ namespace Tests.Classes
         public void AnimatedTextureClassErrorBehavior()
         {
             // The size of the frame is larger than the image itself.
-            var wrongFrameSize = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(125, 50), AnimationLoopType.Normal, 500, 0, 3);
+            var wrongFrameSize = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(125, 50), AnimationLoopType.Normal, 500, 0, 3);
             // Test the auto starting-ending frame constructor working with invalid frame sizes.
             var wrongFrameSizeAltConstructor =
-                new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(125, 50), AnimationLoopType.Normal, 500);
-            var frameChange = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
+                new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(125, 50), AnimationLoopType.Normal, 500);
+            var frameChange = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Normal, 500, 0, 3);
 
             void DrawFrame(Action end)
             {
@@ -278,7 +278,7 @@ namespace Tests.Classes
             }
 
             // Perform unit tests.
-            var wrongStartingFrame = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, -10, 3);
+            var wrongStartingFrame = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Normal, 500, -10, 3);
             Assert.Equal(0, wrongStartingFrame.CurrentFrameIndex);
             wrongStartingFrame.Update(500);
             Assert.Equal(1, wrongStartingFrame.CurrentFrameIndex);
@@ -286,7 +286,7 @@ namespace Tests.Classes
             Assert.Equal(0, wrongStartingFrame.StartingFrame);
             Assert.Equal(3, wrongStartingFrame.EndingFrame);
             Assert.Equal(500, wrongStartingFrame.TimeBetweenFrames);
-            wrongStartingFrame = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 4, 3);
+            wrongStartingFrame = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Normal, 500, 4, 3);
             Assert.Equal(0, wrongStartingFrame.CurrentFrameIndex);
             wrongStartingFrame.Update(500);
             Assert.Equal(1, wrongStartingFrame.CurrentFrameIndex);
@@ -294,7 +294,7 @@ namespace Tests.Classes
             Assert.Equal(0, wrongStartingFrame.StartingFrame);
             Assert.Equal(3, wrongStartingFrame.EndingFrame);
             Assert.Equal(500, wrongStartingFrame.TimeBetweenFrames);
-            wrongStartingFrame = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png").Texture, new Vector2(50, 50), AnimationLoopType.Normal, 500, 3, 2);
+            wrongStartingFrame = new AnimatedTexture(Engine.AssetLoader.Get<TextureAsset>("Images/spritesheetAnimation.png"), new Vector2(50, 50), AnimationLoopType.Normal, 500, 3, 2);
             Assert.Equal(0, wrongStartingFrame.CurrentFrameIndex);
             wrongStartingFrame.Update(500);
             Assert.Equal(1, wrongStartingFrame.CurrentFrameIndex);
