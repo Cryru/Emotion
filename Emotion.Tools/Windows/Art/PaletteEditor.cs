@@ -111,7 +111,7 @@ namespace Emotion.Tools.Windows.Art
 
             if (ImGui.Button("Save"))
             {
-                string xml = XmlFormat.To(_description);
+                string xml = XMLFormat.To(_description);
                 File.WriteAllText(Helpers.CrossPlatformPath($"Assets/{_fileName}"), xml);
             }
 

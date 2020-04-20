@@ -11,7 +11,7 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XmlKeyValueTypeHandler : XMLTypeHandler
+    public class XMLKeyValueTypeHandler : XMLTypeHandler
     {
         public override bool CanBeInherited { get => false; }
         public override bool RecursiveType
@@ -29,10 +29,10 @@ namespace Emotion.Standard.XML.TypeHandlers
         }
         private bool? _recursiveType;
 
-        private Lazy<XmlFieldHandler> _keyHandler;
-        private Lazy<XmlFieldHandler> _valueHandler;
+        private Lazy<XMLFieldHandler> _keyHandler;
+        private Lazy<XMLFieldHandler> _valueHandler;
 
-        public XmlKeyValueTypeHandler(Type type) : base(type)
+        public XMLKeyValueTypeHandler(Type type) : base(type)
         {
             PropertyInfo[] properties = Type.GetProperties();
 
@@ -44,12 +44,12 @@ namespace Emotion.Standard.XML.TypeHandlers
                 {
                     case "Key":
                     {
-                        _keyHandler = new Lazy<XmlFieldHandler>(() => XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property)));
+                        _keyHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(property.PropertyType, new XMLReflectionHandler(property)));
                         break;
                     }
                     case "Value":
                     {
-                        _valueHandler = new Lazy<XmlFieldHandler>(() => XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property)));
+                        _valueHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(property.PropertyType, new XMLReflectionHandler(property)));
                         break;
                     }
                     default:
@@ -64,7 +64,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             return base.IsRecursiveWith(type) || _keyHandler.Value.TypeHandler.IsRecursiveWith(type) || _valueHandler.Value.TypeHandler.IsRecursiveWith(type);
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             if (obj == null) return;
 
@@ -72,10 +72,10 @@ namespace Emotion.Standard.XML.TypeHandlers
             output.Append("\n");
             _keyHandler.Value.Serialize(GetKey(obj), output, indentation, recursionChecker);
             _valueHandler.Value.Serialize(GetValue(obj), output, indentation, recursionChecker);
-            output.AppendJoin(XmlFormat.IndentChar, new string[indentation]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
         }
 
-        public override object Deserialize(XmlReader input)
+        public override object Deserialize(XMLReader input)
         {
             int depth = input.Depth;
             object key = null;
@@ -85,7 +85,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             while (input.Depth >= depth && !input.Finished)
             {
                 string currentTag = input.ReadTag(out string typeAttribute);
-                XmlFieldHandler handler;
+                XMLFieldHandler handler;
                 switch (currentTag)
                 {
                     case "Key":
@@ -102,11 +102,11 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Derived type.
                 if (typeAttribute != null)
                 {
-                    Type derivedType = XmlHelpers.GetTypeByName(typeAttribute);
+                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
                     if (derivedType == null)
                         Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute}.", MessageSource.XML);
                     else
-                        handler = XmlHelpers.ResolveFieldHandler(derivedType, handler.ReflectionInfo);
+                        handler = XMLHelpers.ResolveFieldHandler(derivedType, handler.ReflectionInfo);
                 }
 
                 switch (currentTag)

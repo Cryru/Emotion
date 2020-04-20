@@ -23,7 +23,7 @@ namespace Emotion.IO
         {
             try
             {
-                Content = XmlFormat.From<T>(data);
+                Content = XMLFormat.From<T>(data);
             }
             catch (Exception ex)
             {

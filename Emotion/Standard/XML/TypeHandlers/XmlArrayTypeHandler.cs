@@ -11,14 +11,14 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XmlArrayTypeHandler : XMLTypeHandler
+    public class XMLArrayTypeHandler : XMLTypeHandler
     {
         public override bool CanBeInherited { get => false; }
-        protected XmlFieldHandler _elementTypeHandler;
+        protected XMLFieldHandler _elementTypeHandler;
 
-        public XmlArrayTypeHandler(Type type, Type elementType) : base(type)
+        public XMLArrayTypeHandler(Type type, Type elementType) : base(type)
         {
-            _elementTypeHandler = XmlHelpers.ResolveFieldHandler(elementType, null);
+            _elementTypeHandler = XMLHelpers.ResolveFieldHandler(elementType, null);
             RecursiveType = _elementTypeHandler.TypeHandler.IsRecursiveWith(Type);
         }
 
@@ -27,7 +27,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             return base.IsRecursiveWith(type) || _elementTypeHandler.TypeHandler.IsRecursiveWith(type);
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             var arr = (IEnumerable) obj;
             output.Append("\n");
@@ -37,7 +37,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (!_elementTypeHandler.TypeHandler.ShouldSerialize(item))
                 {
                     _elementTypeHandler.GetDerivedTypeHandler(item, out string derivedType);
-                    output.AppendJoin(XmlFormat.IndentChar, new string[indentation + 1]);
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
                     output.Append(derivedType != null ? $"<{_elementTypeHandler.Name} type=\"{derivedType}\">" : $"<{_elementTypeHandler.Name}></{_elementTypeHandler.Name}>\n");
                 }
                 else
@@ -45,10 +45,10 @@ namespace Emotion.Standard.XML.TypeHandlers
                     _elementTypeHandler.Serialize(item, output, indentation, recursionChecker);
                 }
             }
-            output.AppendJoin(XmlFormat.IndentChar, new string[indentation]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
         }
 
-        public override object Deserialize(XmlReader input)
+        public override object Deserialize(XMLReader input)
         {
             var backingList = new List<object>();
 
@@ -60,14 +60,14 @@ namespace Emotion.Standard.XML.TypeHandlers
                 XMLTypeHandler handler = _elementTypeHandler.TypeHandler;
                 if (typeAttribute != null)
                 {
-                    Type derivedType = XmlHelpers.GetTypeByName(typeAttribute);
+                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
                     if (derivedType == null)
                     {
                         Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
                         return null;
                     }
 
-                    handler = XmlHelpers.GetTypeHandler(derivedType);
+                    handler = XMLHelpers.GetTypeHandler(derivedType);
                 }
 
                 object newObj = handler.Deserialize(input);

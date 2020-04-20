@@ -10,7 +10,7 @@ using Emotion.Utility;
 
 namespace Emotion.Standard.XML
 {
-    public static class XmlFormat
+    public static class XMLFormat
     {
         public static string IndentChar = "  ";
 
@@ -20,7 +20,7 @@ namespace Emotion.Standard.XML
             var output = new StringBuilder();
             output.Append("<?xml version=\"1.0\"?>\n");
 
-            XmlFieldHandler handler = XmlHelpers.ResolveFieldHandler(type, null);
+            XMLFieldHandler handler = XMLHelpers.ResolveFieldHandler(type, null);
             if (handler == null) return null;
             handler.Serialize(obj, output, 0, null);
             return output.ToString();
@@ -33,15 +33,15 @@ namespace Emotion.Standard.XML
             Type type = typeof(T);
 
             // Handler is gotten first so it can index type names.
-            XmlFieldHandler handler = XmlHelpers.ResolveFieldHandler(type, null);
+            XMLFieldHandler handler = XMLHelpers.ResolveFieldHandler(type, null);
             if (handler == null) return default;
 
-            var reader = new XmlReader(xml);
+            var reader = new XMLReader(xml);
 
             // Verify first tag is the provided type.
             reader.GoToNextTag();
             string currentTag = reader.ReadTag(out string _);
-            Type tagType = XmlHelpers.GetTypeByName(currentTag);
+            Type tagType = XMLHelpers.GetTypeByName(currentTag);
             if (tagType != null && tagType == type) return (T) handler.Deserialize(reader);
             Engine.Log.Warning($"Serializing XML of type {tagType}({currentTag}) while expecting {type}.", MessageSource.XML);
             return default;

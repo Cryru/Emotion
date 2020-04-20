@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Emotion.Standard.XML
 {
-    public class XmlReader
+    public class XMLReader
     {
         public int Depth { get; private set; }
         public bool Finished { get; private set; }
@@ -17,7 +17,7 @@ namespace Emotion.Standard.XML
 
         private static readonly Regex AttributeRegex = new Regex("([\\S]+)=\\\"([\\s\\S]*?)\\\"", RegexOptions.Compiled);
 
-        public XmlReader(string s)
+        public XMLReader(string s)
         {
             _source = s;
             _offset = 0;

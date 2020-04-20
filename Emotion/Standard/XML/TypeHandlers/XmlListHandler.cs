@@ -10,13 +10,13 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XmlListHandler : XmlArrayTypeHandler
+    public class XMLListHandler : XMLArrayTypeHandler
     {
-        public XmlListHandler(Type type, Type elementType) : base(type, elementType)
+        public XMLListHandler(Type type, Type elementType) : base(type, elementType)
         {
         }
 
-        public override object Deserialize(XmlReader input)
+        public override object Deserialize(XMLReader input)
         {
             var backingArr = new List<object>();
 
@@ -28,14 +28,14 @@ namespace Emotion.Standard.XML.TypeHandlers
                 XMLTypeHandler handler = _elementTypeHandler.TypeHandler;
                 if (typeAttribute != null)
                 {
-                    Type derivedType = XmlHelpers.GetTypeByName(typeAttribute);
+                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
                     if (derivedType == null)
                     {
                         Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
                         return null;
                     }
 
-                    handler = XmlHelpers.GetTypeHandler(derivedType);
+                    handler = XMLHelpers.GetTypeHandler(derivedType);
                 }
 
                 object newObj = handler.Deserialize(input);
@@ -44,7 +44,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 input.ReadTag(out typeAttribute);
             }
 
-            Type listGenericType = XmlHelpers.ListType.MakeGenericType(_elementTypeHandler.TypeHandler.Type);
+            Type listGenericType = XMLHelpers.ListType.MakeGenericType(_elementTypeHandler.TypeHandler.Type);
             var list = (IList) Activator.CreateInstance(listGenericType, backingArr.Count);
             for (var i = 0; i < backingArr.Count; i++)
             {

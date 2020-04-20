@@ -168,9 +168,9 @@ namespace Emotion.Tools.Windows
                     string saveData;
                     // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
                     if (_animController != null)
-                        saveData = XmlFormat.To(_animController);
+                        saveData = XMLFormat.To(_animController);
                     else
-                        saveData = XmlFormat.To(_animation);
+                        saveData = XMLFormat.To(_animation);
 
                     Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
                 }

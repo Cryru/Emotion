@@ -35,8 +35,8 @@ namespace Emotion.Standard.XML.TypeHandlers
             Type = type;
         }
 
-        public abstract void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker);
-        public abstract object Deserialize(XmlReader input);
+        public abstract void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker);
+        public abstract object Deserialize(XMLReader input);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual bool ShouldSerialize(object obj)

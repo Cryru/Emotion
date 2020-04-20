@@ -8,20 +8,20 @@ using System.Text;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XmlPrimitiveTypeHandler : XMLTypeHandler
+    public class XMLPrimitiveTypeHandler : XMLTypeHandler
     {
         public override bool CanBeInherited { get => false; }
 
         protected object _defaultValue;
         protected bool _opaque;
 
-        public XmlPrimitiveTypeHandler(Type type) : base(type)
+        public XMLPrimitiveTypeHandler(Type type) : base(type)
         {
-            Type = XmlHelpers.GetOpaqueType(type, out _opaque);
+            Type = XMLHelpers.GetOpaqueType(type, out _opaque);
             _defaultValue = _opaque ? Activator.CreateInstance(Type, true) : null;
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             output.Append($"{obj}");
         }
@@ -32,7 +32,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             return obj != null && !obj.Equals(_defaultValue);
         }
 
-        public override object Deserialize(XmlReader input)
+        public override object Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
             return Convert.ChangeType(readValue, Type);

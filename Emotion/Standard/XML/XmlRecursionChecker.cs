@@ -8,7 +8,7 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML
 {
-    public class XmlRecursionChecker
+    public class XMLRecursionChecker
     {
         private HashSet<object> _references = new HashSet<object>();
 

@@ -9,22 +9,22 @@ using System.Text.RegularExpressions;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XmlStringTypeHandler : XMLTypeHandler
+    public class XMLStringTypeHandler : XMLTypeHandler
     {
         public override bool CanBeInherited { get => false; }
 
-        public XmlStringTypeHandler(Type type) : base(type)
+        public XMLStringTypeHandler(Type type) : base(type)
         {
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             if (obj == null) return;
             obj = SanitizeString((string) obj);
             output.Append($"{obj}");
         }
 
-        public override object Deserialize(XmlReader input)
+        public override object Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
             return RestoreString(readValue);

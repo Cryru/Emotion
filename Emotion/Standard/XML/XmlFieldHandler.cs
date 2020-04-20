@@ -10,7 +10,7 @@ using Emotion.Standard.XML.TypeHandlers;
 
 namespace Emotion.Standard.XML
 {
-    public class XmlFieldHandler
+    public class XMLFieldHandler
     {
         /// <summary>
         /// The name of the field. If within a complex class this is the field name, if
@@ -22,7 +22,7 @@ namespace Emotion.Standard.XML
         /// Contains information on how to set/get the value of this field, and its type.
         /// Within arrays this only contains the type.
         /// </summary>
-        public XmlReflectionHandler ReflectionInfo { get; private set; }
+        public XMLReflectionHandler ReflectionInfo { get; private set; }
 
         /// <summary>
         /// Knows how to handle the type this field is of.
@@ -34,15 +34,15 @@ namespace Emotion.Standard.XML
         /// </summary>
         public bool OpaqueField { get; }
 
-        public XmlFieldHandler(XmlReflectionHandler field, XMLTypeHandler typeHandler, bool opaqueType)
+        public XMLFieldHandler(XMLReflectionHandler field, XMLTypeHandler typeHandler, bool opaqueType)
         {
             ReflectionInfo = field;
             TypeHandler = typeHandler;
             OpaqueField = opaqueType;
-            Name = ReflectionInfo?.Name ?? XmlHelpers.GetTypeName(TypeHandler.Type);
+            Name = ReflectionInfo?.Name ?? XMLHelpers.GetTypeName(TypeHandler.Type);
         }
 
-        public void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             if (obj == null) return;
 
@@ -50,11 +50,11 @@ namespace Emotion.Standard.XML
             if (OpaqueField && !handler.ShouldSerialize(obj)) return;
             if (TypeHandler.RecursiveType)
             {
-                if (recursionChecker == null) recursionChecker = new XmlRecursionChecker();
+                if (recursionChecker == null) recursionChecker = new XMLRecursionChecker();
                 if (recursionChecker.PushReference(obj)) return;
             }
 
-            output.AppendJoin(XmlFormat.IndentChar, new string[indentation + 1]);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
             output.Append(derivedType != null ? $"<{Name} type=\"{derivedType}\">" : $"<{Name}>");
             handler.Serialize(obj, output, indentation + 1, recursionChecker);
             output.Append($"</{Name}>\n");
@@ -74,8 +74,8 @@ namespace Emotion.Standard.XML
             // Encountering a type which inherits from this type.
             if (handler.Type.IsAssignableFrom(objType))
             {
-                handler = XmlHelpers.GetTypeHandler(objType);
-                derivedType = XmlHelpers.GetTypeName(objType, true);
+                handler = XMLHelpers.GetTypeHandler(objType);
+                derivedType = XMLHelpers.GetTypeName(objType, true);
             }
             else
             {
@@ -87,7 +87,7 @@ namespace Emotion.Standard.XML
             return handler;
         }
 
-        public object Deserialize(XmlReader input)
+        public object Deserialize(XMLReader input)
         {
             return TypeHandler.Deserialize(input);
         }

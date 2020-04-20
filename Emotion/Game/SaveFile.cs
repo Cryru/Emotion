@@ -43,7 +43,7 @@ namespace Emotion.Game
         /// </summary>
         public void Save()
         {
-            string data = XmlFormat.To(Content);
+            string data = XMLFormat.To(Content);
             if (!Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), Name)) Engine.Log.Warning($"Couldn't save file {Name}.", MessageSource.Other);
         }
     }

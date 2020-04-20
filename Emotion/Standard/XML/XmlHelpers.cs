@@ -14,7 +14,7 @@ using Emotion.Utility;
 
 namespace Emotion.Standard.XML
 {
-    public static class XmlHelpers
+    public static class XMLHelpers
     {
         public static readonly Type DontSerializeAttributeType = typeof(DontSerializeAttribute);
         public static Type ListType = typeof(List<>);
@@ -48,9 +48,9 @@ namespace Emotion.Standard.XML
             XMLTypeHandler newHandler = null;
 
             // Trivial types.
-            if (type.IsPrimitive) newHandler = new XmlPrimitiveTypeHandler(type);
-            if (type.IsEnum) newHandler = new XmlEnumTypeHandler(type);
-            if (type == StringType) newHandler = new XmlStringTypeHandler(type);
+            if (type.IsPrimitive) newHandler = new XMLPrimitiveTypeHandler(type);
+            if (type.IsEnum) newHandler = new XMLEnumTypeHandler(type);
+            if (type == StringType) newHandler = new XMLStringTypeHandler(type);
 
             // IEnumerable
             if (type.IsArray || type.GetInterface("IEnumerable") != null)
@@ -59,12 +59,12 @@ namespace Emotion.Standard.XML
                 if (type.IsArray)
                 {
                     elementType = type.GetElementType();
-                    newHandler = new XmlArrayTypeHandler(type, elementType);
+                    newHandler = new XMLArrayTypeHandler(type, elementType);
                 }
                 else if(type.GetInterface("IList") != null)
                 {
                     elementType = type.GetGenericArguments().FirstOrDefault();
-                    newHandler = new XmlListHandler(type, elementType);
+                    newHandler = new XMLListHandler(type, elementType);
                 }
                 else if (type.GetInterface("IDictionary") != null)
                 {
@@ -73,18 +73,18 @@ namespace Emotion.Standard.XML
                     Type keyType = generics[0];
                     Type valueType = generics[1];
                     elementType = KeyValuePairType.MakeGenericType(keyType, valueType);
-                    newHandler = new XmlDictionaryTypeHandler(type, elementType);
+                    newHandler = new XMLDictionaryTypeHandler(type, elementType);
                 }
             }
 
             // KeyValue
             if (type.IsGenericType && type.GetGenericTypeDefinition() == KeyValuePairType)
             {
-                newHandler = new XmlKeyValueTypeHandler(type);
+                newHandler = new XMLKeyValueTypeHandler(type);
             }
 
             // Some other type, for sure a complex one.
-            return newHandler ?? new XmlComplexTypeHandler(type);
+            return newHandler ?? new XMLComplexTypeHandler(type);
         }
 
         /// <summary>
@@ -170,11 +170,11 @@ namespace Emotion.Standard.XML
         /// <param name="type">The field type.</param>
         /// <param name="property">The reflection handler for the field.</param>
         /// <returns>A handler for the specified field.</returns>
-        public static XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property)
+        public static XMLFieldHandler ResolveFieldHandler(Type type, XMLReflectionHandler property)
         {
             Type opaqueType = GetOpaqueType(type, out bool opaque);
             XMLTypeHandler typeHandler = GetTypeHandler(opaqueType);
-            return typeHandler == null ? null : new XmlFieldHandler(property, typeHandler, opaque); // TypeHandler is null if an excluded type.
+            return typeHandler == null ? null : new XMLFieldHandler(property, typeHandler, opaque); // TypeHandler is null if an excluded type.
         }
     }
 }

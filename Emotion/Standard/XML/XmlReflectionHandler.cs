@@ -8,20 +8,20 @@ using System.Runtime.CompilerServices;
 
 namespace Emotion.Standard.XML
 {
-    public class XmlReflectionHandler
+    public class XMLReflectionHandler
     {
         public string Name { get; }
 
         private PropertyInfo _prop;
         private FieldInfo _field;
 
-        public XmlReflectionHandler(PropertyInfo prop)
+        public XMLReflectionHandler(PropertyInfo prop)
         {
             _prop = prop;
             Name = _prop.Name;
         }
 
-        public XmlReflectionHandler(FieldInfo field)
+        public XMLReflectionHandler(FieldInfo field)
         {
             _field = field;
             Name = _field.Name;
