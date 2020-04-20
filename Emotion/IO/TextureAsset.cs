@@ -22,6 +22,21 @@ namespace Emotion.IO
         /// </summary>
         public Texture Texture { get; set; }
 
+        public TextureAsset()
+        {
+
+        }
+
+        /// <summary>
+        /// Create a fake texture asset from a texture.
+        /// </summary>
+        /// <param name="texture"></param>
+        public TextureAsset(Texture texture)
+        {
+            Texture = texture;
+            Name = $"Synthesized TextureAsset - {texture.Pointer}";
+        }
+
         protected override void CreateInternal(byte[] data)
         {
             byte[] pixels = null;

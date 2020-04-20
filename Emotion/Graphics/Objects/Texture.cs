@@ -5,6 +5,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Standard.Logging;
+using Emotion.Standard.XML;
 using OpenGL;
 
 #endregion
@@ -14,6 +15,7 @@ namespace Emotion.Graphics.Objects
     /// <summary>
     /// An uploaded texture.
     /// </summary>
+    [DontSerialize]
     public class Texture : IDisposable
     {
         /// <summary>
