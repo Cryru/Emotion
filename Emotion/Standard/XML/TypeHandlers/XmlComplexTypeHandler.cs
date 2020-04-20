@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
 using Emotion.Standard.Logging;
-using Emotion.Utility;
 
 #endregion
 
@@ -17,31 +16,29 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlComplexTypeHandler : XMLTypeHandler
     {
-        public override bool CanBeInherited { get => true; }
+        public override bool CanBeInherited
+        {
+            get => true;
+        }
+
         public override bool RecursiveType
         {
             get
             {
-                if(_recursiveType != null)
-                {
-                    return _recursiveType.Value;
-                }
-                _recursiveType = _fieldHandlers.Any(x =>
-                {
-                    XmlFieldHandler field = x.Value.Value;
-                    return field != null && field.TypeHandler.IsRecursiveWith(Type);
-                });
+                if (_recursiveType != null) return _recursiveType.Value;
+                _recursiveType = _fieldHandlers.Value.Any(x => x.Value.TypeHandler.IsRecursiveWith(Type));
                 return _recursiveType.Value;
             }
             protected set => _recursiveType = value;
         }
+
         private bool? _recursiveType;
 
         /// <summary>
         /// Handlers for all fields of this type.
         /// These have to be lazily initialized as they may contain referenced to this type handler.
         /// </summary>
-        protected Dictionary<string, Lazy<XmlFieldHandler>> _fieldHandlers;
+        protected Lazy<Dictionary<string, XmlFieldHandler>> _fieldHandlers;
 
         /// <summary>
         /// The handler for this type's base class (if any).
@@ -52,16 +49,21 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public XmlComplexTypeHandler(Type type) : base(type)
         {
-             // Value types are complex and have custom defaults.
+            // Value types are complex and have custom defaults.
             if (Type.IsValueType) _defaultValue = Activator.CreateInstance(Type, true);
 
             // Check if inheriting anything.
             if (!Type.IsValueType && Type.BaseType != typeof(object)) _baseClass = (XmlComplexTypeHandler) XmlHelpers.GetTypeHandler(Type.BaseType);
 
+            _fieldHandlers = new Lazy<Dictionary<string, XmlFieldHandler>>(IndexFields);
+        }
+
+        private Dictionary<string, XmlFieldHandler> IndexFields()
+        {
             // Gather fields and create field handlers for them.
             PropertyInfo[] properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             FieldInfo[] fields = Type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            _fieldHandlers = new Dictionary<string, Lazy<XmlFieldHandler>>(properties.Length + fields.Length);
+            var fieldHandlers = new Dictionary<string, XmlFieldHandler>(properties.Length + fields.Length);
 
             for (var i = 0; i < properties.Length; i++)
             {
@@ -73,9 +75,11 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null || !readMethod.IsPublic || !writeMethod.IsPublic ||
                     property.CustomAttributes.Any(x => x.AttributeType == XmlHelpers.DontSerializeAttributeType)) continue;
 
-                _fieldHandlers.TryAdd(property.Name, new Lazy<XmlFieldHandler>(() => ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property))));
+                XmlFieldHandler handler = ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
+                if (handler == null) continue;
+                fieldHandlers.TryAdd(property.Name, handler);
             }
-            //if (handler.TypeHandler.IsRecursiveWith(Type)) RecursiveType = true;
+
             for (var i = 0; i < fields.Length; i++)
             {
                 FieldInfo field = fields[i];
@@ -85,9 +89,10 @@ namespace Emotion.Standard.XML.TypeHandlers
 
                 XmlFieldHandler handler = ResolveFieldHandler(field.FieldType, new XmlReflectionHandler(field));
                 if (handler == null) continue;
-
-                _fieldHandlers.TryAdd(field.Name, new Lazy<XmlFieldHandler>(() => ResolveFieldHandler(field.FieldType, new XmlReflectionHandler(field))));
+                fieldHandlers.TryAdd(field.Name, handler);
             }
+
+            return fieldHandlers;
         }
 
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
@@ -102,9 +107,9 @@ namespace Emotion.Standard.XML.TypeHandlers
         public void SerializeFields(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
             _baseClass?.SerializeFields(obj, output, indentation, recursionChecker);
-            foreach ((string _, Lazy<XmlFieldHandler> lazyHandler) in _fieldHandlers)
+            foreach ((string _, XmlFieldHandler lazyHandler) in _fieldHandlers.Value)
             {
-                XmlFieldHandler handler = lazyHandler.Value;
+                XmlFieldHandler handler = lazyHandler;
                 handler?.Serialize(handler.ReflectionInfo.GetValue(obj), output, indentation, recursionChecker);
             }
         }
@@ -156,19 +161,8 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <returns>Whether a handler was found for this field.</returns>
         public bool GetFieldHandler(string tag, out XmlFieldHandler handler)
         {
-            if (_fieldHandlers.TryGetValue(tag, out Lazy<XmlFieldHandler> lazyHandler))
-            {
-                handler = lazyHandler.Value;
-                return handler != null;
-            }
-
-            if (_baseClass != null)
-            {
-                return _baseClass.GetFieldHandler(tag, out handler);
-            }
-
-            handler = null;
-            return false;
+            if (_fieldHandlers.Value.TryGetValue(tag, out handler)) return true;
+            return _baseClass != null && _baseClass.GetFieldHandler(tag, out handler);
         }
 
         protected XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property)

@@ -36,7 +36,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Force serialize objects in arrays, to keep length.
                 if (!_elementTypeHandler.TypeHandler.ShouldSerialize(item))
                 {
-                    _elementTypeHandler.GetDerivedTypeHandler(obj, out string derivedType);
+                    _elementTypeHandler.GetDerivedTypeHandler(item, out string derivedType);
                     output.AppendJoin(XmlFormat.IndentChar, new string[indentation + 1]);
                     output.Append(derivedType != null ? $"<{_elementTypeHandler.Name} type=\"{derivedType}\">" : $"<{_elementTypeHandler.Name}></{_elementTypeHandler.Name}>\n");
                 }
