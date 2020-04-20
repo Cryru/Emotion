@@ -19,6 +19,11 @@ namespace Emotion.Standard.XML.TypeHandlers
         public Type Type { get; protected set; }
 
         /// <summary>
+        /// Whether this type can be inherited from.
+        /// </summary>
+        public abstract bool CanBeInherited { get; }
+
+        /// <summary>
         /// Whether this type requires recursion checking when being serialized. For instance
         /// arrays of arrays which can contain themselves and complex types with fields of
         /// the same type or a derived one.

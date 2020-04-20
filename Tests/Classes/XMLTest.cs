@@ -559,5 +559,23 @@ namespace Tests.Classes
             Assert.Equal(restored[TestEnum.Test].Width, 4);
             Assert.True(restored[TestEnum.This] == null);
         }
+
+        [Test]
+        public void ArrayWithDefaultHoles()
+        {
+            var array = new []
+            {
+                new Rectangle(1, 2, 3, 4),
+                new Rectangle(),
+                new Rectangle(5, 6, 7, 8)
+            };
+
+            string xml = XmlFormat.To(array);
+            Rectangle[] restored = XmlFormat.From<Rectangle[]>(xml);
+            Assert.Equal(restored.Length, 3);
+            Assert.Equal(restored[0].Width, 3);
+            Assert.Equal(restored[1].Width, 0);
+            Assert.Equal(restored[2].Width, 7);
+        }
     }
 }

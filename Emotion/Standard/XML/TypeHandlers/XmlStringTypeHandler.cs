@@ -11,6 +11,8 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlStringTypeHandler : XMLTypeHandler
     {
+        public override bool CanBeInherited { get => false; }
+
         public XmlStringTypeHandler(Type type) : base(type)
         {
         }

@@ -13,6 +13,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlKeyValueTypeHandler : XMLTypeHandler
     {
+        public override bool CanBeInherited { get => false; }
         public override bool RecursiveType
         {
             get
@@ -68,8 +69,10 @@ namespace Emotion.Standard.XML.TypeHandlers
             if (obj == null) return;
 
             Debug.Assert(Type.IsInstanceOfType(obj));
+            output.Append("\n");
             _keyHandler.Value.Serialize(GetKey(obj), output, indentation, recursionChecker);
             _valueHandler.Value.Serialize(GetValue(obj), output, indentation, recursionChecker);
+            output.AppendJoin(XmlFormat.IndentChar, new string[indentation]);
         }
 
         public override object Deserialize(XmlReader input)

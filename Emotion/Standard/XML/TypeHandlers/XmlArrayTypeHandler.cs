@@ -13,6 +13,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlArrayTypeHandler : XMLTypeHandler
     {
+        public override bool CanBeInherited { get => false; }
         protected XmlFieldHandler _elementTypeHandler;
 
         public XmlArrayTypeHandler(Type type, Type elementType) : base(type)
@@ -32,7 +33,17 @@ namespace Emotion.Standard.XML.TypeHandlers
             output.Append("\n");
             foreach (object item in arr)
             {
-                _elementTypeHandler.Serialize(item, output, indentation, recursionChecker);
+                // Force serialize objects in arrays, to keep length.
+                if (!_elementTypeHandler.TypeHandler.ShouldSerialize(item))
+                {
+                    _elementTypeHandler.GetDerivedTypeHandler(obj, out string derivedType);
+                    output.AppendJoin(XmlFormat.IndentChar, new string[indentation + 1]);
+                    output.Append(derivedType != null ? $"<{_elementTypeHandler.Name} type=\"{derivedType}\">" : $"<{_elementTypeHandler.Name}></{_elementTypeHandler.Name}>\n");
+                }
+                else
+                {
+                    _elementTypeHandler.Serialize(item, output, indentation, recursionChecker);
+                }
             }
             output.AppendJoin(XmlFormat.IndentChar, new string[indentation]);
         }

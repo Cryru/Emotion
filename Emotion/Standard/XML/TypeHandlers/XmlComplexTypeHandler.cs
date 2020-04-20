@@ -17,6 +17,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlComplexTypeHandler : XMLTypeHandler
     {
+        public override bool CanBeInherited { get => true; }
         public override bool RecursiveType
         {
             get

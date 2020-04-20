@@ -46,25 +46,7 @@ namespace Emotion.Standard.XML
         {
             if (obj == null) return;
 
-            XMLTypeHandler handler = TypeHandler;
-            string derivedType = null;
-            Type objType = obj.GetType();
-            if (objType != handler.Type)
-            {
-                // Encountering a type which inherits from this type.
-                if (handler.Type.IsAssignableFrom(objType))
-                {
-                    handler = XmlHelpers.GetTypeHandler(objType);
-                    derivedType = XmlHelpers.GetTypeName(objType, true);
-                }
-                else
-                {
-                    // wtf?
-                    Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {Name}", MessageSource.XML);
-                    return;
-                }
-            }
-
+            XMLTypeHandler handler = GetDerivedTypeHandler(obj, out string derivedType);
             if (OpaqueField && !handler.ShouldSerialize(obj)) return;
             if (TypeHandler.RecursiveType)
             {
@@ -78,6 +60,31 @@ namespace Emotion.Standard.XML
             output.Append($"</{Name}>\n");
 
             if (TypeHandler.RecursiveType) recursionChecker.PopReference(obj);
+        }
+
+        public XMLTypeHandler GetDerivedTypeHandler(object obj, out string derivedType)
+        {
+            XMLTypeHandler handler = TypeHandler;
+            derivedType = null;
+            if (obj == null || !handler.CanBeInherited) return handler;
+
+            Type objType = obj.GetType();
+            if (objType == handler.Type) return handler;
+
+            // Encountering a type which inherits from this type.
+            if (handler.Type.IsAssignableFrom(objType))
+            {
+                handler = XmlHelpers.GetTypeHandler(objType);
+                derivedType = XmlHelpers.GetTypeName(objType, true);
+            }
+            else
+            {
+                // wtf?
+                Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {Name}", MessageSource.XML);
+                return handler;
+            }
+
+            return handler;
         }
 
         public object Deserialize(XmlReader input)

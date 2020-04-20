@@ -10,6 +10,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XmlEnumTypeHandler : XMLTypeHandler
     {
+        public override bool CanBeInherited { get => false; }
         protected object _defaultValue;
         protected bool _opaque;
 
