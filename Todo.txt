@@ -51,7 +51,4 @@ Tools
 	- Modals are reported to not center on 4k screens.
 XML
 	- Recursive type support (assign handles to recursive values and set as attribute)
-	- Cache ReflectionHandler.GetName
-	- Merge TypeHandler and ComplexType
-	- Investigate why TypeHandler's RecursionPossible property doesn't bubble up in all cases from the fields
 	- Settings per serialization, such as no indentation, no new lines, serialize as binary where possible, smaller closing tags (</>)

@@ -204,7 +204,7 @@ namespace Emotion.Test
         private static void BeginRun()
         {
             // Find all test classes.
-            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            var entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly == null) return;
             Type[] testClasses = entryAssembly.GetTypes().AsParallel().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0).ToArray();
 

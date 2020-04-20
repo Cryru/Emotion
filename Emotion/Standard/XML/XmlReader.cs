@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 #endregion
@@ -21,6 +22,13 @@ namespace Emotion.Standard.XML
             _source = s;
             _offset = 0;
         }
+
+#if DEBUG
+        public string GetDebugSource()
+        {
+            return _source.Substring(_offset);
+        }
+#endif
 
         /// <summary>
         /// Go to the next tag in the xml. Returns everything between the current position and the next tag.

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
 
 #endregion
@@ -18,11 +19,18 @@ namespace Emotion.Standard.XML
         public static readonly Type DontSerializeAttributeType = typeof(DontSerializeAttribute);
         public static Type ListType = typeof(List<>);
         public static readonly Type KeyValuePairType = typeof(KeyValuePair<,>);
+        public static readonly Type StringType = typeof(string);
+        public static readonly Type NullableType = typeof(Nullable<>);
 
         /// <summary>
         /// Every complex type is analyzed using reflection to determine how to serialize it.
         /// </summary>
         private static readonly Dictionary<Type, XMLTypeHandler> Handlers = new Dictionary<Type, XMLTypeHandler>();
+
+        /// <summary>
+        /// Type names which are resolved are added here.
+        /// </summary>
+        private static readonly Dictionary<string, Type> ResolvedTypes = new Dictionary<string, Type>();
 
         public static XMLTypeHandler GetTypeHandler(Type type)
         {
@@ -31,16 +39,56 @@ namespace Emotion.Standard.XML
 
             if (Handlers.TryGetValue(type, out XMLTypeHandler newHandler)) return newHandler;
 
-            newHandler = type.IsGenericType && type.GetGenericTypeDefinition() == KeyValuePairType ? new XMLKeyValueTypeHandler(type) : new XMLTypeHandler(type);
+            // Index name.
+            string typeName = GetTypeName(type);
+            if (!ResolvedTypes.ContainsKey(typeName)) ResolvedTypes.Add(typeName, type);
+
+            // Trivial types.
+            if (type.IsPrimitive) newHandler = new XmlPrimitiveTypeHandler(type);
+            if (type.IsEnum) newHandler = new XmlEnumTypeHandler(type);
+            if (type == StringType) newHandler = new XmlStringTypeHandler(type);
+
+            // IEnumerable
+            if (type.IsArray || type.GetInterface("IEnumerable") != null)
+            {
+                Type elementType;
+                if (type.IsArray)
+                {
+                    elementType = type.GetElementType();
+                    newHandler = new XmlArrayTypeHandler(type, elementType);
+                }
+                else if(type.GetInterface("IList") != null)
+                {
+                    elementType = type.GetGenericArguments().FirstOrDefault();
+                    newHandler = new XmlListHandler(type, elementType);
+                }
+                else if (type.GetInterface("IDictionary") != null)
+                {
+                    // The dictionary is basically an array of key value types. Synthesize this here.
+                    Type[] generics = type.GetGenericArguments();
+                    Type keyType = generics[0];
+                    Type valueType = generics[1];
+                    elementType = KeyValuePairType.MakeGenericType(keyType, valueType);
+                    newHandler = new XmlDictionaryTypeHandler(type, elementType);
+                }
+            }
+
+            // KeyValue
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == KeyValuePairType)
+            {
+                newHandler = new XmlKeyValueTypeHandler(type);
+            }
+
+            // Some other type.
+            if (newHandler == null)
+            {
+                newHandler = new XmlComplexTypeHandler(type);
+            }
+
             Handlers.Add(type, newHandler);
             newHandler.Init();
             return newHandler;
         }
-
-        /// <summary>
-        /// Type names which are resolved are added here.
-        /// </summary>
-        private static readonly Dictionary<string, Type> ResolvedTypes = new Dictionary<string, Type>();
 
         /// <summary>
         /// Get the type of the specified name.
@@ -122,55 +170,13 @@ namespace Emotion.Standard.XML
         /// </summary>
         /// <param name="type">The field type.</param>
         /// <param name="property">The reflection handler for the field.</param>
-        /// <param name="referencingType">The type containing this field. Used for recursion checks.</param>
         /// <returns>A handler for the specified field.</returns>
-        public static XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property, Type referencingType = null)
+        public static XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property)
         {
-            type = GetOpaqueType(type, out bool _);
-
-            string typeName = GetTypeName(type);
-            if (!ResolvedTypes.ContainsKey(typeName)) ResolvedTypes.Add(typeName, type);
-
-            // Trivial types.
-            if (XmlTrivialFieldHandler.TypeIsTrivial(type)) return new XmlTrivialFieldHandler(property);
-
-            // Arrays and array-like
-            if (type.IsArray || type.GetInterface("IEnumerable") != null)
-            {
-                Type elementType;
-                XmlFieldHandler elementTypeHandler;
-                if (type.GetInterface("IDictionary") != null)
-                {
-                    // The dictionary is basically an array of key value types. Synthesize this here.
-                    Type[] generics = type.GetGenericArguments();
-                    Type keyType = generics[0];
-                    Type valueType = generics[1];
-                    elementType = KeyValuePairType.MakeGenericType(keyType, valueType);
-                }
-                else
-                {
-                    elementType = type.GetElementType() ?? type.GetGenericArguments().FirstOrDefault();
-                }
-
-                if (elementType == null) return null;
-                elementTypeHandler = ResolveFieldHandler(elementType, new XmlReflectionHandler(elementType), referencingType);
-                if (elementTypeHandler == null) return null;
-                var arrayHandler = new XmlArrayFieldHandler(property, elementTypeHandler);
-
-                // Recursion with parent.
-                if (referencingType != null && referencingType.IsAssignableFrom(elementType)) arrayHandler.RecursionCheck = true;
-
-                // Recursion with self.
-                if (type.IsAssignableFrom(elementType)) arrayHandler.RecursionCheck = true;
-                return arrayHandler;
-            }
-
-            // Complex type
-            XMLTypeHandler typeHandler = GetTypeHandler(type);
+            Type opaqueType = GetOpaqueType(type, out bool opaque);
+            XMLTypeHandler typeHandler = GetTypeHandler(opaqueType);
             if (typeHandler == null) return null; // Excluded or some other error.
-            var complexHandler = new XmlComplexFieldHandler(property, typeHandler);
-            if (referencingType != null && type.IsSubclassOf(referencingType)) complexHandler.RecursionCheck = true;
-            return complexHandler;
+            return new XmlFieldHandler(property, typeHandler, opaque);
         }
     }
 }

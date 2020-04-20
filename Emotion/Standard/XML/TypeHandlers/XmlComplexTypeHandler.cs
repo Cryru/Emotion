@@ -5,29 +5,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 
 #endregion
 
-namespace Emotion.Standard.XML
+namespace Emotion.Standard.XML.TypeHandlers
 {
-    /// <summary>
-    /// Object which knows how to handle the serialization and deserialization of complex types (non primitives).
-    /// </summary>
-    public class XMLTypeHandler
+    public class XmlComplexTypeHandler : XMLTypeHandler
     {
-        /// <summary>
-        /// The type this handler relates to.
-        /// </summary>
-        public Type Type { get; }
-
-        /// <summary>
-        /// Whether this type a reference to itself or its base type/s.
-        /// </summary>
-        public bool PossibleRecursion { get; set; }
-
         /// <summary>
         /// Handlers for all fields of this type.
         /// </summary>
@@ -36,17 +24,21 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// The handler for this type's base class (if any).
         /// </summary>
-        private XMLTypeHandler _baseClass;
+        private XmlComplexTypeHandler _baseClass;
 
-        public XMLTypeHandler(Type type)
+        private object _defaultValue;
+
+        public XmlComplexTypeHandler(Type type) : base(type)
         {
-            Type = type;
         }
 
-        public virtual void Init()
+        public override void Init()
         {
+            // Value types are complex and have custom defaults.
+            if (Type.IsValueType) _defaultValue = Activator.CreateInstance(Type, true);
+
             // Check if inheriting anything.
-            if (!Type.IsValueType && Type.BaseType != typeof(object)) _baseClass = XmlHelpers.GetTypeHandler(Type.BaseType);
+            if (!Type.IsValueType && Type.BaseType != typeof(object)) _baseClass = (XmlComplexTypeHandler) XmlHelpers.GetTypeHandler(Type.BaseType);
 
             // Gather fields and create field handlers for them.
             PropertyInfo[] properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -65,7 +57,7 @@ namespace Emotion.Standard.XML
                 XmlFieldHandler handler = ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
                 if (handler == null) continue;
 
-                if (handler.RecursionCheck) PossibleRecursion = true;
+                if (handler.TypeHandler.IsRecursiveWith(Type)) RecursiveType = true;
                 _fieldHandlers.Add(handler.Name, handler);
             }
 
@@ -80,24 +72,36 @@ namespace Emotion.Standard.XML
                 XmlFieldHandler handler = ResolveFieldHandler(field.FieldType, new XmlReflectionHandler(field));
                 if (handler == null) continue;
 
-                if (handler.RecursionCheck) PossibleRecursion = true;
+                if (handler.TypeHandler.IsRecursiveWith(Type)) RecursiveType = true;
                 _fieldHandlers.Add(handler.Name, handler);
             }
         }
 
-        public virtual void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
         {
-            if (obj == null) return;
-
             Debug.Assert(Type.IsInstanceOfType(obj));
-            _baseClass?.Serialize(obj, output, indentation, recursionChecker);
+            output.Append("\n");
+            SerializeFields(obj, output, indentation, recursionChecker);
+            output.AppendJoin(XmlFormat.IndentChar, new string[indentation]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SerializeFields(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
+        {
+            _baseClass?.SerializeFields(obj, output, indentation, recursionChecker);
             foreach ((string _, XmlFieldHandler value) in _fieldHandlers)
             {
                 value.Serialize(value.ReflectionInfo.GetValue(obj), output, indentation, recursionChecker);
             }
         }
 
-        public virtual object Deserialize(XmlReader input)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override bool ShouldSerialize(object obj)
+        {
+            return obj != null && !obj.Equals(_defaultValue);
+        }
+
+        public override object Deserialize(XmlReader input)
         {
             int depth = input.Depth;
             object newObj = Activator.CreateInstance(Type, true);
@@ -145,9 +149,9 @@ namespace Emotion.Standard.XML
         protected XmlFieldHandler ResolveFieldHandler(Type type, XmlReflectionHandler property)
         {
             // Recursive
-            if (Type != type) return XmlHelpers.ResolveFieldHandler(type, property, Type);
-            PossibleRecursion = true;
-            return new XmlComplexFieldHandler(property, this);
+            if (Type != type) return XmlHelpers.ResolveFieldHandler(type, property);
+            RecursiveType = true;
+            return new XmlFieldHandler(property, this, true);
         }
     }
 }

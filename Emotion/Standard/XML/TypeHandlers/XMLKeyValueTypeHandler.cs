@@ -9,14 +9,14 @@ using Emotion.Standard.Logging;
 
 #endregion
 
-namespace Emotion.Standard.XML
+namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XMLKeyValueTypeHandler : XMLTypeHandler
+    public class XmlKeyValueTypeHandler : XMLTypeHandler
     {
         private XmlFieldHandler _keyHandler;
         private XmlFieldHandler _valueHandler;
 
-        public XMLKeyValueTypeHandler(Type type) : base(type)
+        public XmlKeyValueTypeHandler(Type type) : base(type)
         {
         }
 
@@ -32,14 +32,12 @@ namespace Emotion.Standard.XML
                 {
                     case "Key":
                     {
-                        _keyHandler = ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
-                        if (_keyHandler.RecursionCheck) PossibleRecursion = true;
+                        _keyHandler = XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
                         break;
                     }
                     case "Value":
                     {
-                        _valueHandler = ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
-                        if (_valueHandler.RecursionCheck) PossibleRecursion = true;
+                        _valueHandler = XmlHelpers.ResolveFieldHandler(property.PropertyType, new XmlReflectionHandler(property));
                         break;
                     }
                     default:
@@ -47,6 +45,13 @@ namespace Emotion.Standard.XML
                         break;
                 }
             }
+
+            RecursiveType = _keyHandler.TypeHandler.IsRecursiveWith(Type) || _valueHandler.TypeHandler.IsRecursiveWith(Type);
+        }
+
+        public override bool IsRecursiveWith(Type type)
+        {
+            return base.IsRecursiveWith(type) || _keyHandler.TypeHandler.IsRecursiveWith(type) || _valueHandler.TypeHandler.IsRecursiveWith(type);
         }
 
         public override void Serialize(object obj, StringBuilder output, int indentation, XmlRecursionChecker recursionChecker)
@@ -88,7 +93,7 @@ namespace Emotion.Standard.XML
                     if (derivedType == null)
                         Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute}.", MessageSource.XML);
                     else
-                        handler = ResolveFieldHandler(derivedType, handler.ReflectionInfo);
+                        handler = XmlHelpers.ResolveFieldHandler(derivedType, handler.ReflectionInfo);
                 }
 
                 switch (currentTag)

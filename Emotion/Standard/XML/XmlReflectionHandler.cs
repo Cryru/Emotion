@@ -10,10 +10,7 @@ namespace Emotion.Standard.XML
 {
     public class XmlReflectionHandler
     {
-        public bool NoValue { get; }
-        public Type Type { get; }
-        public string TypeName { get; private set; }
-        public bool Opaque { get; private set; }
+        public string Name { get; }
 
         private PropertyInfo _prop;
         private FieldInfo _field;
@@ -21,31 +18,13 @@ namespace Emotion.Standard.XML
         public XmlReflectionHandler(PropertyInfo prop)
         {
             _prop = prop;
-            Type = XmlHelpers.GetOpaqueType(prop.PropertyType, out bool opaque);
-            Opaque = opaque;
-            TypeName = XmlHelpers.GetTypeName(Type);
+            Name = _prop.Name;
         }
 
         public XmlReflectionHandler(FieldInfo field)
         {
             _field = field;
-            Type = XmlHelpers.GetOpaqueType(field.FieldType, out bool opaque);
-            Opaque = opaque;
-            TypeName = XmlHelpers.GetTypeName(Type);
-        }
-
-        public XmlReflectionHandler(Type type)
-        {
-            NoValue = true;
-            Type = XmlHelpers.GetOpaqueType(type, out bool opaque);
-            Opaque = opaque;
-            TypeName = XmlHelpers.GetTypeName(Type);
-        }
-
-        public string GetName()
-        {
-            if (_prop != null) return _prop.Name;
-            return _field != null ? _field.Name : TypeName;
+            Name = _field.Name;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

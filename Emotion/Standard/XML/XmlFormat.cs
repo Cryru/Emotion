@@ -20,7 +20,7 @@ namespace Emotion.Standard.XML
             var output = new StringBuilder();
             output.Append("<?xml version=\"1.0\"?>\n");
 
-            XmlFieldHandler handler = XmlHelpers.ResolveFieldHandler(type, new XmlReflectionHandler(type));
+            XmlFieldHandler handler = XmlHelpers.ResolveFieldHandler(type, null);
             if (handler == null) return null;
             handler.Serialize(obj, output, 0, null);
             return output.ToString();
@@ -33,7 +33,7 @@ namespace Emotion.Standard.XML
             Type type = typeof(T);
 
             // Handler is gotten first so it can index type names.
-            XmlFieldHandler handler = XmlHelpers.ResolveFieldHandler(type, new XmlReflectionHandler(type));
+            XmlFieldHandler handler = XmlHelpers.ResolveFieldHandler(type, null);
             if (handler == null) return default;
 
             var reader = new XmlReader(xml);
