@@ -44,7 +44,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 input.ReadTag(out typeAttribute);
             }
 
-            Type listGenericType = XMLHelpers.ListType.MakeGenericType(_elementTypeHandler.TypeHandler.Type);
+            Type listGenericType = XMLHelpers.ListType.MakeGenericType(_elementType);
             var list = (IList) Activator.CreateInstance(listGenericType, backingArr.Count);
             for (var i = 0; i < backingArr.Count; i++)
             {

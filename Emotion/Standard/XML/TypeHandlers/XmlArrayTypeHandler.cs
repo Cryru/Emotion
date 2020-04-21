@@ -15,10 +15,12 @@ namespace Emotion.Standard.XML.TypeHandlers
     {
         public override bool CanBeInherited { get => false; }
         protected XMLFieldHandler _elementTypeHandler;
+        protected Type _elementType;
 
         public XMLArrayTypeHandler(Type type, Type elementType) : base(type)
         {
             _elementTypeHandler = XMLHelpers.ResolveFieldHandler(elementType, null);
+            _elementType = elementType;
             RecursiveType = _elementTypeHandler.TypeHandler.IsRecursiveWith(Type);
         }
 
@@ -76,7 +78,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 input.ReadTag(out typeAttribute);
             }
 
-            var arr = Array.CreateInstance(_elementTypeHandler.TypeHandler.Type, backingList.Count);
+            var arr = Array.CreateInstance(_elementType, backingList.Count);
             for (var i = 0; i < backingList.Count; i++)
             {
                 arr.SetValue(backingList[i], i);

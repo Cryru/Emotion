@@ -44,22 +44,24 @@ namespace Emotion.Standard.XML
 
         public void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
-            if (obj == null) return;
-
             XMLTypeHandler handler = GetDerivedTypeHandler(obj, out string derivedType);
-            if (OpaqueField && !handler.ShouldSerialize(obj)) return;
-            if (TypeHandler.RecursiveType)
-            {
-                if (recursionChecker == null) recursionChecker = new XMLRecursionChecker();
-                if (recursionChecker.PushReference(obj)) return;
-            }
+            handler.Serialize(obj, output, indentation, recursionChecker);
+            //if (obj == null) return;
 
-            output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
-            output.Append(derivedType != null ? $"<{Name} type=\"{derivedType}\">" : $"<{Name}>");
-            handler.Serialize(obj, output, indentation + 1, recursionChecker);
-            output.Append($"</{Name}>\n");
+            //XMLTypeHandler handler = GetDerivedTypeHandler(obj, out string derivedType);
+            //if (OpaqueField && !handler.ShouldSerialize(obj)) return;
+            //if (TypeHandler.RecursiveType)
+            //{
+            //    if (recursionChecker == null) recursionChecker = new XMLRecursionChecker();
+            //    if (recursionChecker.PushReference(obj)) return;
+            //}
 
-            if (TypeHandler.RecursiveType) recursionChecker.PopReference(obj);
+            //output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
+            //output.Append(derivedType != null ? $"<{Name} type=\"{derivedType}\">" : $"<{Name}>");
+            //handler.Serialize(obj, output, indentation + 1, recursionChecker);
+            //output.Append($"</{Name}>\n");
+
+            //if (TypeHandler.RecursiveType) recursionChecker.PopReference(obj);
         }
 
         public XMLTypeHandler GetDerivedTypeHandler(object obj, out string derivedType)
