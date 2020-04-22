@@ -24,7 +24,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             _fieldHandlers = new Lazy<Dictionary<string, XMLFieldHandler>>(IndexFields);
         }
 
-        protected Dictionary<string, XMLFieldHandler> IndexFields()
+        protected virtual Dictionary<string, XMLFieldHandler> IndexFields()
         {
             // Gather fields and create field handlers for them.
             PropertyInfo[] properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -64,11 +64,12 @@ namespace Emotion.Standard.XML.TypeHandlers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
-            foreach ((string _, XMLFieldHandler field) in _fieldHandlers.Value)
+            Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
+            foreach ((string _, XMLFieldHandler field) in fieldHandlers)
             {
                 object propertyVal = field.ReflectionInfo.GetValue(obj);
-                XMLTypeHandler typeHandler = field.TypeHandler;
-                typeHandler.Serialize(propertyVal, output, indentation, recursionChecker, field.Name);
+                string fieldName = field.Name;
+                field.TypeHandler.Serialize(propertyVal, output, indentation, recursionChecker, fieldName);
             }
         }
     }

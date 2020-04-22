@@ -65,7 +65,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
             while (input.Depth >= depth && !input.Finished)
             {
-                object newObj = tag.Contains("/") ? null : handler.Deserialize(input);
+                object newObj = tag[^1] == '/' ? null : handler.Deserialize(input);
                 backingList.Add(newObj);
                 input.GoToNextTag();
                 handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;

@@ -62,11 +62,24 @@ Primitive types are serialized between two tags with no new lines (unless contai
 
 Enums are serialized as their string values.
 
-Default values are not serialized.
-
 Example:
 ```
 <Boolean>True</Boolean>
+```
+
+Default values are not serialized, unless the complex reference type containing the primitive has specified a custom default value. In which case the primitive will be empty if it should resolve to it's opaque default value or an immediately closing tag if the default value is null.
+
+Example:
+```
+class CustomDefault
+{
+  public bool CustomBool = true;
+  public int? NullableInt = 13;
+}
+
+CustomDefault(true, 13) -> both fields will be serialized as "true" and "13"
+CustomDefault(false, 13) -> <CustomDefault> <CustomBool></CustomBool> <NullableInt>13</NullableInt> </CustomDefault>
+CustomDefault(false, null) -> <CustomDefault> <CustomBool></CustomBool> <NullableInt/> </CustomDefault>
 ```
 
 # Complex Types

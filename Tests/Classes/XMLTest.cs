@@ -87,7 +87,6 @@ namespace Tests.Classes
 
             public TransformLink()
             {
-
             }
 
             public TransformLink(float x, float y, float z, float w, float h) : base(x, y, z, w, h)
@@ -263,7 +262,7 @@ namespace Tests.Classes
         public void ComplexTypeRecursiveReferenceArrayError()
         {
             var transformLink = new TransformRecursiveRefArray {X = 100};
-            transformLink.Others = new [] { transformLink };
+            transformLink.Others = new[] {transformLink};
             string re = XMLFormat.To(transformLink);
 
             var restored = XMLFormat.From<TransformRecursiveRefArray>(re);
@@ -575,7 +574,7 @@ namespace Tests.Classes
         [Test]
         public void ArrayWithDefaultHoles()
         {
-            var array = new []
+            var array = new[]
             {
                 new Rectangle(1, 2, 3, 4),
                 new Rectangle(),
@@ -592,7 +591,7 @@ namespace Tests.Classes
 
         [Test]
         [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
-        public void OpaqueArrayWithDefaultHoles()
+        public void NonOpaqueArrayWithDefaultHoles()
         {
             var array = new Rectangle?[]
             {
@@ -611,6 +610,46 @@ namespace Tests.Classes
             Assert.True(restored[2] == null);
             Assert.Equal(restored[3].Value.Width, 7);
             Assert.True(restored[4] == null);
+        }
+
+        public class CustomDefaultsComplex
+        {
+            public TestEnum Test = TestEnum.This;
+            public int Number = 13;
+            public bool Bool = true;
+            public string Str = "Test";
+            public Rectangle Rect = new Rectangle(1, 2, 3, 4);
+            public Transform Transform = new Transform(5, 6, 7, 8, 9);
+            public float[] Array = new float[] {10, 20.5f, 30};
+            public Positional Derived = new Transform(10, 11, 12, 13);
+            public double? Nullable = 10;
+        }
+
+        [Test]
+        public void ComplexTypeWithCustomDefaults()
+        {
+            string xml = XMLFormat.To(new CustomDefaultsComplex()
+            {
+                Test = TestEnum.A,
+                Number = 0,
+                Bool = false,
+                Str = "",
+                Rect = new Rectangle(),
+                Transform = null,
+                Array = null,
+                Derived = null,
+                Nullable = null
+            });
+            var restored = XMLFormat.From<CustomDefaultsComplex>(xml);
+            Assert.Equal(restored.Test, TestEnum.A);
+            Assert.Equal(restored.Number, 0);
+            Assert.Equal(restored.Bool, false);
+            Assert.Equal(restored.Str, "");
+            Assert.Equal(restored.Rect.X, 0);
+            Assert.True(restored.Transform == null);
+            Assert.True(restored.Array == null);
+            Assert.True(restored.Derived == null);
+            Assert.True(restored.Nullable == null);
         }
     }
 }

@@ -101,6 +101,7 @@ namespace Emotion.Standard.XML
             if (tagEnd == 0)
             {
                 tagEnd = _offset;
+                immediatelyClosing = false; // The slash will be a part of the name anyway.
             }
             else
             {

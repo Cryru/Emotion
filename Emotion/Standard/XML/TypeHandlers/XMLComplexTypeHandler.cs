@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -34,10 +35,26 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// </summary>
         private XMLComplexTypeHandler _baseClass;
 
+        /// <summary>
+        /// The default value of the complex type when constructed.
+        /// </summary>
+        protected object _defaultConstruct;
+
         public XMLComplexTypeHandler(Type type) : base(type)
         {
             // Check if inheriting anything.
             if (Type.BaseType != typeof(object)) _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
+            _defaultConstruct = Activator.CreateInstance(type, true);
+        }
+
+        protected override Dictionary<string, XMLFieldHandler> IndexFields()
+        {
+            Dictionary<string, XMLFieldHandler> fields = base.IndexFields();
+            foreach (KeyValuePair<string, XMLFieldHandler> handler in fields)
+            {
+                handler.Value.SetDefaultValue(_defaultConstruct);
+            }
+            return fields;
         }
 
         public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
@@ -73,7 +90,30 @@ namespace Emotion.Standard.XML.TypeHandlers
         protected override void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             _baseClass?.SerializeFields(obj, output, indentation, recursionChecker);
-            base.SerializeFields(obj, output, indentation, recursionChecker);
+            Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
+            foreach ((string _, XMLFieldHandler field) in fieldHandlers)
+            {
+                object propertyVal = field.ReflectionInfo.GetValue(obj);
+                string fieldName = field.Name;
+                bool serialized = field.TypeHandler.Serialize(propertyVal, output, indentation, recursionChecker, fieldName);
+
+                // If not serialized that means the value passed is the default one of the type.
+                // However we want to know if the value is the field's default.
+                if (serialized) continue;
+
+                object defaultValue = field.DefaultValue;
+                if (propertyVal == null || defaultValue == null)
+                {
+                    if (propertyVal == defaultValue) continue;
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+                    output.Append($"<{fieldName}/>\n");
+                }
+                else if (!propertyVal.Equals(defaultValue))
+                {
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+                    output.Append($"<{fieldName}></{fieldName}>\n");
+                }
+            }
         }
 
         public override object Deserialize(XMLReader input)
@@ -85,6 +125,13 @@ namespace Emotion.Standard.XML.TypeHandlers
             while (input.Depth >= depth && !input.Finished)
             {
                 XMLTypeHandler derivedHandler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string currentTag);
+                var nullValue = false;
+                if (currentTag[^1] == '/')
+                {
+                    currentTag = currentTag.Substring(0, currentTag.Length - 1);
+                    nullValue = true;
+                }
+
                 if (!GetFieldHandler(currentTag, out XMLFieldHandler field))
                 {
                     Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
@@ -94,7 +141,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Derived type.
                 if (derivedHandler != null) field = new XMLFieldHandler(field.ReflectionInfo, derivedHandler);
 
-                object val = field.TypeHandler.Deserialize(input);
+                object val = nullValue ? null : field.TypeHandler.Deserialize(input);
                 field.ReflectionInfo.SetValue(newObj, val);
                 input.GoToNextTag();
             }

@@ -44,7 +44,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             while (input.Depth >= depth && !input.Finished)
             {
                 string currentTag = input.ReadTagWithoutAttribute();
-                if (!GetFieldHandler(currentTag, out XMLFieldHandler field))
+                if (!_fieldHandlers.Value.TryGetValue(currentTag, out XMLFieldHandler field))
                 {
                     Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
                     return newObj;
@@ -56,17 +56,6 @@ namespace Emotion.Standard.XML.TypeHandlers
             }
 
             return newObj;
-        }
-
-        /// <summary>
-        /// Get the handler for a field, recursively searches within the base class.
-        /// </summary>
-        /// <param name="tag">The field name.</param>
-        /// <param name="handler">The handler for that field.</param>
-        /// <returns>Whether a handler was found for this field.</returns>
-        protected bool GetFieldHandler(string tag, out XMLFieldHandler handler)
-        {
-            return _fieldHandlers.Value.TryGetValue(tag, out handler);
         }
     }
 }

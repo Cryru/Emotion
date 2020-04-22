@@ -25,11 +25,21 @@ namespace Emotion.Standard.XML
         /// </summary>
         public XMLTypeHandler TypeHandler { get; private set; }
 
+        /// <summary>
+        /// The default value for this field.
+        /// </summary>
+        public object DefaultValue { get; set; }
+
         public XMLFieldHandler(XMLReflectionHandler field, XMLTypeHandler typeHandler)
         {
             ReflectionInfo = field;
             TypeHandler = typeHandler;
             Name = ReflectionInfo?.Name ?? XMLHelpers.GetTypeName(TypeHandler.Type);
+        }
+
+        public void SetDefaultValue(object defaultConstruct)
+        {
+            DefaultValue = ReflectionInfo.GetValue(defaultConstruct);
         }
     }
 }

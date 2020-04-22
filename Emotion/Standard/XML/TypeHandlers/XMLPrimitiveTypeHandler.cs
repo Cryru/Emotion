@@ -25,7 +25,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         public override object Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
-            return Convert.ChangeType(readValue, Type);
+            return string.IsNullOrEmpty(readValue) ? _defaultValue : Convert.ChangeType(readValue, Type);
         }
     }
 }
