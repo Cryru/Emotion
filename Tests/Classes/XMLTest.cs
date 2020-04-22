@@ -88,7 +88,7 @@ namespace Tests.Classes
         }
 
         [Test]
-        public void ComplexTypeRecursive()
+        public void ComplexTypeRecursiveType()
         {
             string tl = XMLFormat.To(new TransformLink(100, 200, 300, 400, 500)
             {
@@ -106,6 +106,8 @@ namespace Tests.Classes
             Assert.Equal(restored.Left.Z, 800);
             Assert.Equal(restored.Left.Width, 900);
             Assert.Equal(restored.Left.Height, 1000);
+
+            Assert.True(restored.Right == null);
         }
 
         public class TransformDerived : Transform
@@ -114,7 +116,7 @@ namespace Tests.Classes
         }
 
         [Test]
-        public void ComplexTypeRecursiveDerived()
+        public void ComplexTypeRecursiveTypeDerived()
         {
             string tld = XMLFormat.To(new TransformLink(100, 200, 300, 400, 500) {Left = new TransformDerived {CoolStuff = true, Height = 1100}});
             var restored = XMLFormat.From<TransformLink>(tld);
@@ -135,7 +137,7 @@ namespace Tests.Classes
 
         [Test]
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
-        public void ComplexTypeRecursiveArrayWithDerived()
+        public void ComplexTypeRecursiveTypeArrayWithDerived()
         {
             string tlda = XMLFormat.To(new TransformArrayHolder
             {
@@ -537,6 +539,7 @@ namespace Tests.Classes
             string xml = XMLFormat.To(primitiveDict);
             var restored = XMLFormat.From<Dictionary<string, int>>(xml);
             Assert.True(restored != null);
+            // ReSharper disable once PossibleNullReferenceException
             Assert.Equal(restored.Count, 4);
             Assert.Equal(restored["testOne"], 1);
             Assert.Equal(restored["testTwo"], 2);
@@ -552,6 +555,7 @@ namespace Tests.Classes
             string xml = XMLFormat.To(complexDict);
             var restored = XMLFormat.From<Dictionary<TestEnum, Transform>>(xml);
             Assert.True(restored != null);
+            // ReSharper disable once PossibleNullReferenceException
             Assert.Equal(restored.Count, 2);
             Assert.Equal(restored[TestEnum.Test].X, 1);
             Assert.Equal(restored[TestEnum.Test].Y, 2);
@@ -576,6 +580,29 @@ namespace Tests.Classes
             Assert.Equal(restored[0].Width, 3);
             Assert.Equal(restored[1].Width, 0);
             Assert.Equal(restored[2].Width, 7);
+        }
+
+        [Test]
+        [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
+        public void OpaqueArrayWithDefaultHoles()
+        {
+            var array = new Rectangle?[]
+            {
+                new Rectangle(1, 2, 3, 4),
+                new Rectangle(),
+                null,
+                new Rectangle(5, 6, 7, 8),
+                null
+            };
+
+            string xml = XMLFormat.To(array);
+            Rectangle?[] restored = XMLFormat.From<Rectangle?[]>(xml);
+            Assert.Equal(restored.Length, 5);
+            Assert.Equal(restored[0].Value.Width, 3);
+            Assert.Equal(restored[1].Value.Width, 0);
+            Assert.True(restored[2] == null);
+            Assert.Equal(restored[3].Value.Width, 7);
+            Assert.True(restored[4] == null);
         }
     }
 }

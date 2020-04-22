@@ -3,8 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -22,26 +20,13 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             int depth = input.Depth;
             input.GoToNextTag();
-            input.ReadTag(out string typeAttribute);
+            XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
             while (input.Depth >= depth && !input.Finished)
             {
-                XMLTypeHandler handler = _elementTypeHandler.TypeHandler;
-                if (typeAttribute != null)
-                {
-                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
-                    if (derivedType == null)
-                    {
-                        Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
-                        return null;
-                    }
-
-                    handler = XMLHelpers.GetTypeHandler(derivedType);
-                }
-
-                object newObj = handler.Deserialize(input);
+                object newObj = tag.Contains("/") ? null : handler.Deserialize(input);
                 backingArr.Add(newObj);
                 input.GoToNextTag();
-                input.ReadTag(out typeAttribute);
+                handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;
             }
 
             Type listGenericType = XMLHelpers.ListType.MakeGenericType(_elementType);

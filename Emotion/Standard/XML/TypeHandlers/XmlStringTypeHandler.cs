@@ -11,17 +11,14 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XMLStringTypeHandler : XMLTypeHandler
     {
-        public override bool CanBeInherited { get => false; }
-
         public XMLStringTypeHandler(Type type) : base(type)
         {
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
-            if (obj == null) return;
             obj = SanitizeString((string) obj);
-            output.Append($"{obj}");
+            return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
         }
 
         public override object Deserialize(XMLReader input)

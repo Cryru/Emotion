@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 #endregion
@@ -10,26 +9,17 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XMLPrimitiveTypeHandler : XMLTypeHandler
     {
-        public override bool CanBeInherited { get => false; }
-
         protected object _defaultValue;
-        protected bool _opaque;
 
-        public XMLPrimitiveTypeHandler(Type type) : base(type)
+        public XMLPrimitiveTypeHandler(Type type, bool opaque) : base(type)
         {
-            Type = XMLHelpers.GetOpaqueType(type, out _opaque);
-            _defaultValue = _opaque ? Activator.CreateInstance(Type, true) : null;
+            _defaultValue = opaque ? Activator.CreateInstance(Type, true) : null;
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
-            output.Append($"{obj}");
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool ShouldSerialize(object obj)
-        {
-            return obj != null && !obj.Equals(_defaultValue);
+            if (_defaultValue != null && obj.Equals(_defaultValue)) return false;
+            return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
         }
 
         public override object Deserialize(XMLReader input)

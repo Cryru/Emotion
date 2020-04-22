@@ -32,6 +32,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         private static readonly LazyConcurrentDictionary<string, Type> ResolvedTypes = new LazyConcurrentDictionary<string, Type>();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static XMLTypeHandler GetTypeHandler(Type type)
         {
             // Check if type is excluded.
@@ -41,6 +42,8 @@ namespace Emotion.Standard.XML
 
         private static XMLTypeHandler TypeHandlerFactory(Type type)
         {
+            type = GetOpaqueType(type, out bool opaque);
+
             // Index name.
             string typeName = GetTypeName(type);
             ResolvedTypes.TryAdd(typeName, new Lazy<Type>(type));
@@ -48,8 +51,8 @@ namespace Emotion.Standard.XML
             XMLTypeHandler newHandler = null;
 
             // Trivial types.
-            if (type.IsPrimitive) newHandler = new XMLPrimitiveTypeHandler(type);
-            if (type.IsEnum) newHandler = new XMLEnumTypeHandler(type);
+            if (type.IsPrimitive) newHandler = new XMLPrimitiveTypeHandler(type, opaque);
+            if (type.IsEnum) newHandler = new XMLEnumTypeHandler(type, opaque);
             if (type == StringType) newHandler = new XMLStringTypeHandler(type);
 
             // IEnumerable
@@ -61,7 +64,7 @@ namespace Emotion.Standard.XML
                     elementType = type.GetElementType();
                     newHandler = new XMLArrayTypeHandler(type, elementType);
                 }
-                else if(type.GetInterface("IList") != null)
+                else if (type.GetInterface("IList") != null)
                 {
                     elementType = type.GetGenericArguments().FirstOrDefault();
                     newHandler = new XMLListHandler(type, elementType);
@@ -78,12 +81,11 @@ namespace Emotion.Standard.XML
             }
 
             // KeyValue
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == KeyValuePairType)
-            {
-                newHandler = new XMLKeyValueTypeHandler(type);
-            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == KeyValuePairType) newHandler = new XMLKeyValueTypeHandler(type);
 
             // Some other type, for sure a complex one.
+            if (newHandler == null && type.IsValueType) return new XMLComplexValueTypeHandler(type, opaque);
+
             return newHandler ?? new XMLComplexTypeHandler(type);
         }
 
@@ -92,6 +94,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         /// <param name="typeName">The name of the type.</param>
         /// <returns>The type under that name.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Type GetTypeByName(string typeName)
         {
             return ResolvedTypes.GetOrAddValue(typeName, GetTypeByNameFactory);
@@ -116,6 +119,7 @@ namespace Emotion.Standard.XML
         /// <param name="type">The type's name to get.</param>
         /// <param name="full">Whether you want the full name - assembly and type.</param>
         /// <returns>The type name.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetTypeName(Type type, bool full = false)
         {
             if (!type.IsArray && !type.IsGenericType) return full ? type.FullName : type.Name;
@@ -170,11 +174,27 @@ namespace Emotion.Standard.XML
         /// <param name="type">The field type.</param>
         /// <param name="property">The reflection handler for the field.</param>
         /// <returns>A handler for the specified field.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static XMLFieldHandler ResolveFieldHandler(Type type, XMLReflectionHandler property)
         {
-            Type opaqueType = GetOpaqueType(type, out bool opaque);
-            XMLTypeHandler typeHandler = GetTypeHandler(opaqueType);
-            return typeHandler == null ? null : new XMLFieldHandler(property, typeHandler, opaque); // TypeHandler is null if an excluded type.
+            XMLTypeHandler typeHandler = GetTypeHandler(type);
+            return typeHandler == null ? null : new XMLFieldHandler(property, typeHandler); // TypeHandler is null if an excluded type.
+        }
+
+        /// <summary>
+        /// Read an XML tag and return the type handler for it if it's a derived type, otherwise return null.
+        /// </summary>
+        /// <param name="reader">The XML reader primed just before the tag.</param>
+        /// <param name="tag">The read tag.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static XMLTypeHandler GetDerivedTypeHandlerFromXMLTag(XMLReader reader, out string tag)
+        {
+            tag = reader.ReadTag(out string typeAttribute);
+            if (typeAttribute == null) return null;
+            Type derivedType = GetTypeByName(typeAttribute);
+            if (derivedType != null) return GetTypeHandler(derivedType);
+            Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
+            return null;
         }
     }
 }

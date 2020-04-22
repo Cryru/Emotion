@@ -1,10 +1,7 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
@@ -14,19 +11,17 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
-    public class XMLComplexTypeHandler : XMLTypeHandler
+    public class XMLComplexTypeHandler : XMLComplexBaseTypeHandler
     {
-        public override bool CanBeInherited
-        {
-            get => true;
-        }
-
-        public override bool RecursiveType
+        /// <summary>
+        /// Whether this type contains fields which could reference it.
+        /// </summary>
+        public bool RecursiveType
         {
             get
             {
                 if (_recursiveType != null) return _recursiveType.Value;
-                _recursiveType = _fieldHandlers.Value.Any(x => x.Value.TypeHandler.IsRecursiveWith(Type));
+                _recursiveType = (_baseClass?.RecursiveType ?? false) || IsRecursiveWith(Type);
                 return _recursiveType.Value;
             }
             protected set => _recursiveType = value;
@@ -35,89 +30,50 @@ namespace Emotion.Standard.XML.TypeHandlers
         private bool? _recursiveType;
 
         /// <summary>
-        /// Handlers for all fields of this type.
-        /// These have to be lazily initialized as they may contain referenced to this type handler.
-        /// </summary>
-        protected Lazy<Dictionary<string, XMLFieldHandler>> _fieldHandlers;
-
-        /// <summary>
         /// The handler for this type's base class (if any).
         /// </summary>
         private XMLComplexTypeHandler _baseClass;
 
-        private object _defaultValue;
-
         public XMLComplexTypeHandler(Type type) : base(type)
         {
-            // Value types are complex and have custom defaults.
-            if (Type.IsValueType) _defaultValue = Activator.CreateInstance(Type, true);
-
             // Check if inheriting anything.
-            if (!Type.IsValueType && Type.BaseType != typeof(object)) _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
-
-            _fieldHandlers = new Lazy<Dictionary<string, XMLFieldHandler>>(IndexFields);
+            if (Type.BaseType != typeof(object)) _baseClass = (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(Type.BaseType);
         }
 
-        private Dictionary<string, XMLFieldHandler> IndexFields()
+        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
-            // Gather fields and create field handlers for them.
-            PropertyInfo[] properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            FieldInfo[] fields = Type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            var fieldHandlers = new Dictionary<string, XMLFieldHandler>(properties.Length + fields.Length);
+            if (obj == null) return false;
 
-            for (var i = 0; i < properties.Length; i++)
+            if (RecursiveType)
             {
-                PropertyInfo property = properties[i];
-
-                // Only serialize properties with public get; set; and who aren't marked as "DontSerialize"
-                MethodInfo readMethod = property.GetMethod;
-                MethodInfo writeMethod = property.SetMethod;
-                if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null || !readMethod.IsPublic || !writeMethod.IsPublic ||
-                    property.CustomAttributes.Any(x => x.AttributeType == XMLHelpers.DontSerializeAttributeType)) continue;
-
-                XMLFieldHandler handler = ResolveFieldHandler(property.PropertyType, new XMLReflectionHandler(property));
-                if (handler == null) continue;
-                fieldHandlers.TryAdd(property.Name, handler);
+                if (recursionChecker == null) recursionChecker = new XMLRecursionChecker();
+                if (recursionChecker.PushReference(obj))
+                {
+                    Engine.Log.Warning($"Recursive reference in field {fieldName}.", MessageSource.XML);
+                    recursionChecker.PopReference(obj);
+                    return true;
+                }
             }
 
-            for (var i = 0; i < fields.Length; i++)
-            {
-                FieldInfo field = fields[i];
+            // Handle derived type.
+            XMLComplexTypeHandler typeHandler = GetDerivedTypeHandler(obj, out string derivedType) ?? this;
 
-                // Exclude fields marked as "DontSerialize"
-                if (field.CustomAttributes.Any(x => x.AttributeType == XMLHelpers.DontSerializeAttributeType)) continue;
-
-                XMLFieldHandler handler = ResolveFieldHandler(field.FieldType, new XMLReflectionHandler(field));
-                if (handler == null) continue;
-                fieldHandlers.TryAdd(field.Name, handler);
-            }
-
-            return fieldHandlers;
-        }
-
-        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
-        {
-            Debug.Assert(Type.IsInstanceOfType(obj));
-            output.Append("\n");
-            SerializeFields(obj, output, indentation, recursionChecker);
+            fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append(derivedType == null ? $"<{fieldName}>\n" : $"<{fieldName} type=\"{derivedType}\">\n");
+            typeHandler.SerializeFields(obj, output, indentation + 1, recursionChecker);
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append($"</{fieldName}>\n");
+
+            if (RecursiveType) recursionChecker.PopReference(obj);
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        protected override void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             _baseClass?.SerializeFields(obj, output, indentation, recursionChecker);
-            foreach ((string _, XMLFieldHandler lazyHandler) in _fieldHandlers.Value)
-            {
-                XMLFieldHandler handler = lazyHandler;
-                handler?.Serialize(handler.ReflectionInfo.GetValue(obj), output, indentation, recursionChecker);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool ShouldSerialize(object obj)
-        {
-            return obj != null && !obj.Equals(_defaultValue);
+            base.SerializeFields(obj, output, indentation, recursionChecker);
         }
 
         public override object Deserialize(XMLReader input)
@@ -128,25 +84,18 @@ namespace Emotion.Standard.XML.TypeHandlers
             input.GoToNextTag();
             while (input.Depth >= depth && !input.Finished)
             {
-                string currentTag = input.ReadTag(out string typeAttribute);
-                if (!GetFieldHandler(currentTag, out XMLFieldHandler handler))
+                XMLTypeHandler derivedHandler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string currentTag);
+                if (!GetFieldHandler(currentTag, out XMLFieldHandler field))
                 {
                     Engine.Log.Warning($"Couldn't find handler for field - {currentTag}", MessageSource.XML);
                     return newObj;
                 }
 
                 // Derived type.
-                if (typeAttribute != null)
-                {
-                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
-                    if (derivedType == null)
-                        Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute}.", MessageSource.XML);
-                    else
-                        handler = ResolveFieldHandler(derivedType, handler.ReflectionInfo);
-                }
+                if (derivedHandler != null) field = new XMLFieldHandler(field.ReflectionInfo, derivedHandler);
 
-                object val = handler.Deserialize(input);
-                handler.ReflectionInfo.SetValue(newObj, val);
+                object val = field.TypeHandler.Deserialize(input);
+                field.ReflectionInfo.SetValue(newObj, val);
                 input.GoToNextTag();
             }
 
@@ -159,18 +108,34 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <param name="tag">The field name.</param>
         /// <param name="handler">The handler for that field.</param>
         /// <returns>Whether a handler was found for this field.</returns>
-        public bool GetFieldHandler(string tag, out XMLFieldHandler handler)
+        protected bool GetFieldHandler(string tag, out XMLFieldHandler handler)
         {
             if (_fieldHandlers.Value.TryGetValue(tag, out handler)) return true;
             return _baseClass != null && _baseClass.GetFieldHandler(tag, out handler);
         }
 
-        protected XMLFieldHandler ResolveFieldHandler(Type type, XMLReflectionHandler property)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected XMLComplexTypeHandler GetDerivedTypeHandler(object obj, out string derivedType)
         {
-            // Recursive
-            if (Type != type) return XMLHelpers.ResolveFieldHandler(type, property);
-            RecursiveType = true;
-            return new XMLFieldHandler(property, this, true);
+            derivedType = null;
+            Type objType = obj.GetType();
+            if (objType == Type) return null;
+
+            // Encountering a type which inherits from this type.
+            if (Type.IsAssignableFrom(objType))
+            {
+                derivedType = XMLHelpers.GetTypeName(objType, true);
+                return (XMLComplexTypeHandler) XMLHelpers.GetTypeHandler(objType);
+            }
+
+            // wtf?
+            Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {TypeName}", MessageSource.XML);
+            return null;
+        }
+
+        public override bool IsRecursiveWith(Type type)
+        {
+            return type.IsAssignableFrom(Type) || _fieldHandlers.Value.Any(x => x.Value.TypeHandler.IsRecursiveWith(type));
         }
     }
 }

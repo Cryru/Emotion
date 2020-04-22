@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 #endregion
@@ -65,6 +64,8 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Read the current tag and return its value.
         /// The cursor is left at the &gt;
+        ///
+        /// Immediately closing tags are returned as tag/ regardless of attributes.
         /// </summary>
         /// <param name="typeAttribute">An attribute with the name "type" if any.</param>
         /// <returns>What was read.</returns>
@@ -72,23 +73,28 @@ namespace Emotion.Standard.XML
         {
             int tagStart = _offset;
             var tagEnd = 0;
+            var immediatelyClosing = false; // Tags such as <tag/> are considered immediately closing.
             typeAttribute = null;
 
-            if (_source[_offset] != '/') Depth++;
+            if (_source[_offset] != '/') Depth++; // NextTag stops after the <, the next character could be / or any letter.
+            _offset++;
 
             for (; _offset < _source.Length; _offset++)
             {
                 char c = _source[_offset];
 
-                // <tag attribute="value"
-                if (c == ' ' && tagEnd == 0)
+                switch (c)
                 {
-                    tagEnd = _offset;
-                    continue;
+                    case ' ' when tagEnd == 0: // <tag attribute="value"
+                        tagEnd = _offset;
+                        continue;
+                    case '/':
+                        immediatelyClosing = true;
+                        Depth--; // tag/>
+                        break;
                 }
 
-                if (c != '>') continue; // tag>
-                break;
+                if(c == '>') break; // tag>
             }
 
             // If the tag didn't explicitly end, the end is now.
@@ -110,7 +116,28 @@ namespace Emotion.Standard.XML
             }
 
             if (_offset == _source.Length - 1) Finished = true;
-            return _source.Substring(tagStart, tagEnd - tagStart);
+            return _source.Substring(tagStart, tagEnd - tagStart) + (immediatelyClosing ? "/" : "");
+        }
+
+        /// <summary>
+        /// Read the current tag and return its value.
+        /// The cursor is left at the &gt;
+        /// </summary>
+        public string ReadTagWithoutAttribute()
+        {
+            int tagStart = _offset;
+
+            if (_source[_offset] != '/') Depth++;
+
+            for (; _offset < _source.Length; _offset++)
+            {
+                char c = _source[_offset];
+                if (c != '>') continue; // tag>
+                break;
+            }
+
+            if (_offset == _source.Length - 1) Finished = true;
+            return _source.Substring(tagStart, _offset - tagStart);
         }
 
         private char PeekOneAhead()

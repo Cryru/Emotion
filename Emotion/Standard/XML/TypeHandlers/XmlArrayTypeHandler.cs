@@ -4,8 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -13,41 +11,49 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XMLArrayTypeHandler : XMLTypeHandler
     {
-        public override bool CanBeInherited { get => false; }
-        protected XMLFieldHandler _elementTypeHandler;
+        protected XMLTypeHandler _elementTypeHandler;
         protected Type _elementType;
+        protected bool _nonOpaque;
 
         public XMLArrayTypeHandler(Type type, Type elementType) : base(type)
         {
-            _elementTypeHandler = XMLHelpers.ResolveFieldHandler(elementType, null);
-            _elementType = elementType;
-            RecursiveType = _elementTypeHandler.TypeHandler.IsRecursiveWith(Type);
+            _elementTypeHandler = XMLHelpers.GetTypeHandler(elementType);
+            _elementType = elementType; // non-opaque
         }
 
         public override bool IsRecursiveWith(Type type)
         {
-            return base.IsRecursiveWith(type) || _elementTypeHandler.TypeHandler.IsRecursiveWith(type);
+            return _elementTypeHandler.IsRecursiveWith(type);
         }
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
-            var arr = (IEnumerable) obj;
-            output.Append("\n");
-            foreach (object item in arr)
-            {
-                // Force serialize objects in arrays, to keep length.
-                if (!_elementTypeHandler.TypeHandler.ShouldSerialize(item))
-                {
-                    _elementTypeHandler.GetDerivedTypeHandler(item, out string derivedType);
-                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
-                    output.Append(derivedType != null ? $"<{_elementTypeHandler.Name} type=\"{derivedType}\">" : $"<{_elementTypeHandler.Name}></{_elementTypeHandler.Name}>\n");
-                }
-                else
-                {
-                    _elementTypeHandler.Serialize(item, output, indentation, recursionChecker);
-                }
-            }
+            if (obj == null) return false;
+
+            fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append($"<{fieldName}>\n");
+            var iterable = (IEnumerable) obj;
+            foreach (object item in iterable)
+            {
+                if (item == null)
+                {
+                    output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
+                    output.Append($"<{_elementTypeHandler.TypeName} xsi:nil=\"true\" />\n");
+                    continue;
+                }
+
+                bool serialized = _elementTypeHandler.Serialize(item, output, indentation + 1, recursionChecker);
+
+                // Force serialize in arrays, to preserve length.
+                if (serialized) continue;
+                output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
+                output.Append($"<{_elementTypeHandler.TypeName}></{_elementTypeHandler.TypeName}>\n");
+            }
+
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append($"</{fieldName}>\n");
+            return true;
         }
 
         public override object Deserialize(XMLReader input)
@@ -56,26 +62,13 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             int depth = input.Depth;
             input.GoToNextTag();
-            input.ReadTag(out string typeAttribute);
+            XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string tag) ?? _elementTypeHandler;
             while (input.Depth >= depth && !input.Finished)
             {
-                XMLTypeHandler handler = _elementTypeHandler.TypeHandler;
-                if (typeAttribute != null)
-                {
-                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
-                    if (derivedType == null)
-                    {
-                        Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute} in array.", MessageSource.XML);
-                        return null;
-                    }
-
-                    handler = XMLHelpers.GetTypeHandler(derivedType);
-                }
-
-                object newObj = handler.Deserialize(input);
+                object newObj = tag.Contains("/") ? null : handler.Deserialize(input);
                 backingList.Add(newObj);
                 input.GoToNextTag();
-                input.ReadTag(out typeAttribute);
+                handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out tag) ?? _elementTypeHandler;
             }
 
             var arr = Array.CreateInstance(_elementType, backingList.Count);

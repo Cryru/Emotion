@@ -1,9 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Text;
-using Emotion.Common;
-using Emotion.Standard.Logging;
 using Emotion.Standard.XML.TypeHandlers;
 
 #endregion
@@ -29,69 +25,11 @@ namespace Emotion.Standard.XML
         /// </summary>
         public XMLTypeHandler TypeHandler { get; private set; }
 
-        /// <summary>
-        /// Whether the field is of an opaque type.
-        /// </summary>
-        public bool OpaqueField { get; }
-
-        public XMLFieldHandler(XMLReflectionHandler field, XMLTypeHandler typeHandler, bool opaqueType)
+        public XMLFieldHandler(XMLReflectionHandler field, XMLTypeHandler typeHandler)
         {
             ReflectionInfo = field;
             TypeHandler = typeHandler;
-            OpaqueField = opaqueType;
             Name = ReflectionInfo?.Name ?? XMLHelpers.GetTypeName(TypeHandler.Type);
-        }
-
-        public void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
-        {
-            XMLTypeHandler handler = GetDerivedTypeHandler(obj, out string derivedType);
-            handler.Serialize(obj, output, indentation, recursionChecker);
-            //if (obj == null) return;
-
-            //XMLTypeHandler handler = GetDerivedTypeHandler(obj, out string derivedType);
-            //if (OpaqueField && !handler.ShouldSerialize(obj)) return;
-            //if (TypeHandler.RecursiveType)
-            //{
-            //    if (recursionChecker == null) recursionChecker = new XMLRecursionChecker();
-            //    if (recursionChecker.PushReference(obj)) return;
-            //}
-
-            //output.AppendJoin(XMLFormat.IndentChar, new string[indentation + 1]);
-            //output.Append(derivedType != null ? $"<{Name} type=\"{derivedType}\">" : $"<{Name}>");
-            //handler.Serialize(obj, output, indentation + 1, recursionChecker);
-            //output.Append($"</{Name}>\n");
-
-            //if (TypeHandler.RecursiveType) recursionChecker.PopReference(obj);
-        }
-
-        public XMLTypeHandler GetDerivedTypeHandler(object obj, out string derivedType)
-        {
-            XMLTypeHandler handler = TypeHandler;
-            derivedType = null;
-            if (obj == null || !handler.CanBeInherited) return handler;
-
-            Type objType = obj.GetType();
-            if (objType == handler.Type) return handler;
-
-            // Encountering a type which inherits from this type.
-            if (handler.Type.IsAssignableFrom(objType))
-            {
-                handler = XMLHelpers.GetTypeHandler(objType);
-                derivedType = XMLHelpers.GetTypeName(objType, true);
-            }
-            else
-            {
-                // wtf?
-                Engine.Log.Warning($"Unknown object of type {objType.Name} was passed to handler of type {Name}", MessageSource.XML);
-                return handler;
-            }
-
-            return handler;
-        }
-
-        public object Deserialize(XMLReader input)
-        {
-            return TypeHandler.Deserialize(input);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using Emotion.Common;
@@ -13,130 +13,78 @@ namespace Emotion.Standard.XML.TypeHandlers
 {
     public class XMLKeyValueTypeHandler : XMLTypeHandler
     {
-        public override bool CanBeInherited { get => false; }
-        public override bool RecursiveType
-        {
-            get
-            {
-                if(_recursiveType != null)
-                {
-                    return _recursiveType.Value;
-                }
-                _recursiveType = _keyHandler.Value.TypeHandler.IsRecursiveWith(Type) || _valueHandler.Value.TypeHandler.IsRecursiveWith(Type);
-                return _recursiveType.Value;
-            }
-            protected set => _recursiveType = value;
-        }
-        private bool? _recursiveType;
-
         private Lazy<XMLFieldHandler> _keyHandler;
         private Lazy<XMLFieldHandler> _valueHandler;
 
+        private object _keyDefault;
+        private object _valueDefault;
+
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public XMLKeyValueTypeHandler(Type type) : base(type)
         {
-            PropertyInfo[] properties = Type.GetProperties();
+            PropertyInfo keyProperty = Type.GetProperty("Key");
+            _keyHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(keyProperty.PropertyType, new XMLReflectionHandler(keyProperty)));
+            PropertyInfo valueProperty = Type.GetProperty("Value");
+            _valueHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(valueProperty.PropertyType, new XMLReflectionHandler(valueProperty)));
 
-            for (var i = 0; i < properties.Length; i++)
-            {
-                PropertyInfo property = properties[i];
-
-                switch (property.Name)
-                {
-                    case "Key":
-                    {
-                        _keyHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(property.PropertyType, new XMLReflectionHandler(property)));
-                        break;
-                    }
-                    case "Value":
-                    {
-                        _valueHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(property.PropertyType, new XMLReflectionHandler(property)));
-                        break;
-                    }
-                    default:
-                        Debug.Assert(false);
-                        break;
-                }
-            }
+            Type opaqueKeyType = XMLHelpers.GetOpaqueType(keyProperty.PropertyType, out bool opaque);
+            _keyDefault = opaque && opaqueKeyType.IsValueType ? Activator.CreateInstance(opaqueKeyType) : null;
+            Type opaqueValueType = XMLHelpers.GetOpaqueType(valueProperty.PropertyType, out opaque);
+            _valueDefault = opaque && opaqueValueType.IsValueType ? Activator.CreateInstance(opaqueValueType) : null;
         }
 
-        public override bool IsRecursiveWith(Type type)
+        public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
-            return base.IsRecursiveWith(type) || _keyHandler.Value.TypeHandler.IsRecursiveWith(type) || _valueHandler.Value.TypeHandler.IsRecursiveWith(type);
-        }
+            if (obj == null) return false;
 
-        public override void Serialize(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
-        {
-            if (obj == null) return;
-
-            Debug.Assert(Type.IsInstanceOfType(obj));
-            output.Append("\n");
-            _keyHandler.Value.Serialize(GetKey(obj), output, indentation, recursionChecker);
-            _valueHandler.Value.Serialize(GetValue(obj), output, indentation, recursionChecker);
+            fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append($"<{fieldName}>\n");
+
+            XMLFieldHandler keyHandler = _keyHandler.Value;
+            XMLFieldHandler valueHandler = _valueHandler.Value;
+
+            keyHandler.TypeHandler.Serialize(keyHandler.ReflectionInfo.GetValue(obj), output, indentation + 1, recursionChecker, "Key");
+            valueHandler.TypeHandler.Serialize(valueHandler.ReflectionInfo.GetValue(obj), output, indentation + 1, recursionChecker, "Value");
+
+            output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
+            output.Append($"</{fieldName}>\n");
+            return true;
         }
 
         public override object Deserialize(XMLReader input)
         {
-            int depth = input.Depth;
-            object key = null;
-            object value = null;
+            // This type is expected to be encountered only in the dictionary, where it use DeserializeKeyValue
+            throw new NotImplementedException();
+        }
 
+        public void DeserializeKeyValue(XMLReader input, out object key, out object value)
+        {
+            key = _keyDefault;
+            value = _valueDefault;
+
+            int depth = input.Depth;
             input.GoToNextTag();
             while (input.Depth >= depth && !input.Finished)
             {
-                string currentTag = input.ReadTag(out string typeAttribute);
-                XMLFieldHandler handler;
+                XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(input, out string currentTag);
                 switch (currentTag)
                 {
                     case "Key":
-                        handler = _keyHandler.Value;
-                        break;
-                    case "Value":
-                        handler = _valueHandler.Value;
-                        break;
-                    default:
-                        Engine.Log.Warning($"Unknown deserialization tag in KVP - {currentTag}.", MessageSource.XML);
-                        return null;
-                }
-
-                // Derived type.
-                if (typeAttribute != null)
-                {
-                    Type derivedType = XMLHelpers.GetTypeByName(typeAttribute);
-                    if (derivedType == null)
-                        Engine.Log.Warning($"Couldn't find derived type of name {typeAttribute}.", MessageSource.XML);
-                    else
-                        handler = XMLHelpers.ResolveFieldHandler(derivedType, handler.ReflectionInfo);
-                }
-
-                switch (currentTag)
-                {
-                    case "Key":
+                        if (handler == null) handler = _keyHandler.Value.TypeHandler;
                         key = handler.Deserialize(input);
                         break;
                     case "Value":
+                        if (handler == null) handler = _valueHandler.Value.TypeHandler;
                         value = handler.Deserialize(input);
                         break;
                     default:
                         Engine.Log.Warning($"Unknown deserialization tag in KVP - {currentTag}.", MessageSource.XML);
-                        return null;
+                        return;
                 }
 
                 input.GoToNextTag();
             }
-
-            object newObj = Activator.CreateInstance(Type, key, value);
-            return newObj;
-        }
-
-        public object GetKey(object val)
-        {
-            return _keyHandler.Value.ReflectionInfo.GetValue(val);
-        }
-
-        public object GetValue(object val)
-        {
-            return _valueHandler.Value.ReflectionInfo.GetValue(val);
         }
     }
 }
