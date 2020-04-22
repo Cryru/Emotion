@@ -120,7 +120,7 @@ Emotion.Plugins.ImGuiNet
  - Dev Mode UI
  - Included native libraries for MacOS_x64, Linux_x64, Windows_x64
 
-Emotion.Standard.TrueType (Found in the Plugins folder)
+Emotion.Standard.FreeType (Found in the Plugins folder)
  - Custom wrapper utilizing .NetCore 3.0, based on [SharpFontStandard](https://github.com/jmazouri/SharpFontStandard/) which itself is based on [SharpFont](https://github.com/Robmaister/SharpFont)
  - Included native libraries for MacOS_x64, Linux_x64, Windows_x64
  - Requires compiling Emotion with the "FreeType" symbol.

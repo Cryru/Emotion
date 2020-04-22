@@ -7,12 +7,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/head
     /// </summary>
-    public class Head
+    public class HeadTable
     {
         public float Version;
         public float FontRevision;
@@ -37,7 +37,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Essentially the header.
         /// </summary>
-        public Head(ByteReader reader)
+        public HeadTable(ByteReader reader)
         {
             Version = reader.ReadOpenTypeVersionBE();
             FontRevision = (float) (Math.Round(reader.ReadFloatBE() * 1000) / 1000);

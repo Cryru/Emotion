@@ -4,12 +4,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/hhea
     /// </summary>
-    public class Hhea
+    public class HheaTable
     {
         public float Version;
         public short Ascender;
@@ -30,7 +30,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Contains information about horizontal layout.
         /// </summary>
-        public Hhea(ByteReader reader)
+        public HheaTable(ByteReader reader)
         {
             Version = reader.ReadOpenTypeVersionBE();
             Ascender = reader.ReadShortBE();

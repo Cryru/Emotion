@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using Emotion.Standard.Text;
+using Emotion.Standard.OpenType;
 
 #endregion
 

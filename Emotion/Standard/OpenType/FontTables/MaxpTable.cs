@@ -4,12 +4,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/maxp
     /// </summary>
-    public class Maxp
+    public class MaxpTable
     {
         public float Version;
         public ushort NumGlyphs;
@@ -31,7 +31,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Memory requirements for the glyph.
         /// </summary>
-        public Maxp(ByteReader reader)
+        public MaxpTable(ByteReader reader)
         {
             Version = reader.ReadOpenTypeVersionBE();
             NumGlyphs = reader.ReadUShortBE();

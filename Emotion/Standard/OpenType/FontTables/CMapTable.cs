@@ -7,12 +7,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/cmap
     /// </summary>
-    public class CMap
+    public class CMapTable
     {
         public ushort Version;
         public ushort NumTables;
@@ -28,7 +28,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Parse the `CMap` table. This table stores the mappings from characters to glyphs.
         /// </summary>
-        public CMap(ByteReader reader)
+        public CMapTable(ByteReader reader)
         {
             Version = reader.ReadUShortBE();
 

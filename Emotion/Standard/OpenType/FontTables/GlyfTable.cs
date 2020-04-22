@@ -9,9 +9,9 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
-    public static class Glyf
+    public static class GlyfTable
     {
         private struct CompositeGlyphRequest
         {

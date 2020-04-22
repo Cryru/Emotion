@@ -18,16 +18,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Update="Standard\Text\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="Standard\OpenType\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\Text\Freetype\freetype6.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="Standard\OpenType\Freetype\freetype6.dll" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\Text\Freetype\freetype6.dylib" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="Standard\OpenType\Freetype\freetype6.dylib" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\Text\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="Standard\OpenType\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

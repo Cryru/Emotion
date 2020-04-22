@@ -4,12 +4,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/loca
     /// </summary>
-    public class Loca
+    public class LocaTable
     {
         // Parse the `loca` table. This table stores the offsets to the locations of the glyphs in the font,
         // relative to the beginning of the glyphData table.

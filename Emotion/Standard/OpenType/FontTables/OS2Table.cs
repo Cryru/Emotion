@@ -4,12 +4,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/os2
     /// </summary>
-    public class OS2
+    public class OS2Table
     {
         public ushort Version;
         public short XAvgCharWidth;
@@ -58,7 +58,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Parse the OS/2 and Windows metrics `OS/2` table
         /// </summary>
-        public OS2(ByteReader reader)
+        public OS2Table(ByteReader reader)
         {
             Version = reader.ReadUShortBE();
             XAvgCharWidth = reader.ReadShortBE();

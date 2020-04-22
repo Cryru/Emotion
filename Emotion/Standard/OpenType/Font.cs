@@ -8,7 +8,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Standard.Logging;
-using Emotion.Standard.Text.FontTables;
+using Emotion.Standard.OpenType.FontTables;
 using Emotion.Standard.Utility;
 
 #if StbTrueType
@@ -23,7 +23,7 @@ using System.Reflection;
 
 #endregion
 
-namespace Emotion.Standard.Text
+namespace Emotion.Standard.OpenType
 {
     /// <summary>
     /// Represents an OpenType font.
@@ -152,9 +152,9 @@ namespace Emotion.Standard.Text
                 {
                     if (_freeTypeLib == IntPtr.Zero)
                     {
-                        Assembly freeTypeSupportAssembly = Assembly.LoadFrom(Path.Combine("Standard", "Text", "Freetype", "Emotion.Standard.FreeType.dll"));
+                        Assembly freeTypeSupportAssembly = Assembly.LoadFrom(Path.Combine("Standard", "OpenType", "Freetype", "Emotion.Standard.FreeType.dll"));
                         MethodInfo initFunc = freeTypeSupportAssembly.GetType("SharpFont.FT").GetMethod("Init");
-                        _freeTypeLib = Engine.Host.LoadLibrary(Path.Combine("Standard", "Text", "Freetype", "freetype6"));
+                        _freeTypeLib = Engine.Host.LoadLibrary(Path.Combine("Standard", "OpenType", "Freetype", "freetype6"));
                         if (_freeTypeLib != IntPtr.Zero)
                         {
                             initFunc?.Invoke(null, new object[] { _freeTypeLib });
@@ -170,13 +170,14 @@ namespace Emotion.Standard.Text
                         }
                         else
                         {
+                            Engine.Log.Warning("Couldn't load the native FreeType library through the host.", MessageSource.FontParser);
                             return;
                         }
                     }
 
                     _freeTypeFace = Activator.CreateInstance(_freeTypeFaceType, _freeTypeLibrary, fontData, 0);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // Suppress errors.
                     Engine.Log.Error("Couldn't load FreeType.", "Emotion.Standard.FreeType");
@@ -227,7 +228,7 @@ namespace Emotion.Standard.Text
             short indexToLocFormat;
             if (table != null)
             {
-                var head = new Head(r.Branch(table.Offset, true, table.Length));
+                var head = new HeadTable(r.Branch(table.Offset, true, table.Length));
                 UnitsPerEm = head.UnitsPerEm;
                 indexToLocFormat = head.IndexToLocFormat;
             }
@@ -241,7 +242,7 @@ namespace Emotion.Standard.Text
             table = GetTable("hhea");
             if (table != null)
             {
-                var hhea = new Hhea(r.Branch(table.Offset, true, table.Length));
+                var hhea = new HheaTable(r.Branch(table.Offset, true, table.Length));
 
                 Ascender = hhea.Ascender;
                 Descender = hhea.Descender;
@@ -258,14 +259,14 @@ namespace Emotion.Standard.Text
             if (table != null)
             {
                 // todo: ltag parsing
-                Dictionary<string, Dictionary<string, string>> names = Name.ParseName(r.Branch(table.Offset, true, table.Length), null);
+                Dictionary<string, Dictionary<string, string>> names = NameTable.ParseName(r.Branch(table.Offset, true, table.Length), null);
 
-                FontFamily = Name.GetDefaultValue(names, "fontFamily");
-                FontSubFamily = Name.GetDefaultValue(names, "fontSubfamily");
-                FullName = Name.GetDefaultValue(names, "fullName");
-                Version = Name.GetDefaultValue(names, "version");
-                Copyright = Name.GetDefaultValue(names, "copyright");
-                UniqueId = Name.GetDefaultValue(names, "uniqueID");
+                FontFamily = NameTable.GetDefaultValue(names, "fontFamily");
+                FontSubFamily = NameTable.GetDefaultValue(names, "fontSubfamily");
+                FullName = NameTable.GetDefaultValue(names, "fullName");
+                Version = NameTable.GetDefaultValue(names, "version");
+                Copyright = NameTable.GetDefaultValue(names, "copyright");
+                UniqueId = NameTable.GetDefaultValue(names, "uniqueID");
             }
             else
             {
@@ -278,7 +279,7 @@ namespace Emotion.Standard.Text
             ushort numGlyphs;
             if (table != null)
             {
-                var maxp = new Maxp(r.Branch(table.Offset, true, table.Length));
+                var maxp = new MaxpTable(r.Branch(table.Offset, true, table.Length));
                 numGlyphs = maxp.NumGlyphs;
             }
             else
@@ -294,17 +295,17 @@ namespace Emotion.Standard.Text
             {
                 bool shortVersion = indexToLocFormat == 0;
                 FontTable locaTable = GetTable("loca");
-                int[] locaOffsets = Loca.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, shortVersion);
+                int[] locaOffsets = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, shortVersion);
 
-                Glyphs = Glyf.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
+                Glyphs = GlyfTable.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
 
                 // Add glyph names.
                 FontTable cmapTable = GetTable("cmap");
                 FontTable postTable = GetTable("post");
                 if (cmapTable != null && postTable != null)
                 {
-                    var cMap = new CMap(r.Branch(cmapTable.Offset, true, cmapTable.Length));
-                    var post = new Post(r.Branch(postTable.Offset, true, postTable.Length));
+                    var cMap = new CMapTable(r.Branch(cmapTable.Offset, true, cmapTable.Length));
+                    var post = new PostTable(r.Branch(postTable.Offset, true, postTable.Length));
                     if (cMap.GlyphIndexMap != null)
                         AddGlyphNames(ref Glyphs, cMap.GlyphIndexMap, post.Names);
                 }
@@ -318,14 +319,14 @@ namespace Emotion.Standard.Text
                     return;
                 }
 
-                var cff = new Cff(r.Branch(table.Offset, true, table.Length));
+                var cff = new CffTable(r.Branch(table.Offset, true, table.Length));
                 var cffGlyphs = new List<Glyph>();
 
                 FontTable cmapTable = GetTable("cmap");
                 if (cmapTable != null)
                 {
                     // Using Cmap encoding.
-                    var cMap = new CMap(r.Branch(cmapTable.Offset, true, cmapTable.Length));
+                    var cMap = new CMapTable(r.Branch(cmapTable.Offset, true, cmapTable.Length));
                     foreach (KeyValuePair<uint, uint> glyph in cMap.GlyphIndexMap)
                     {
                         Glyph g = cff.CffGlyphLoad((int) glyph.Value);
@@ -351,7 +352,7 @@ namespace Emotion.Standard.Text
 
             // Add metrics.
             table = GetTable("hmtx");
-            if (table != null) Hmtx.ParseHmtx(r.Branch(table.Offset, true, table.Length), NumberOfHMetrics, Glyphs);
+            if (table != null) HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length), NumberOfHMetrics, Glyphs);
 
             // os/2 parsed, but unused
             // cvt parsed, but unused
@@ -394,7 +395,7 @@ namespace Emotion.Standard.Text
 
             if (!hasSpace)
             {
-                Engine.Log.Warning("Font didn't have a space glyph.", MessageSource.FontParser);
+                Engine.Log.Warning("Font didn't have a space glyph one was synthesized from char 160.", MessageSource.FontParser);
                 var fakeSpace = new Glyph
                 {
                     Name = "fake-space",
@@ -632,7 +633,7 @@ namespace Emotion.Standard.Text
         {
             if(_freeTypeFace == null)
             {
-                return null;
+                return new GlyphRenderer.GlyphCanvas(new AtlasGlyph(g, scale, 0), 1, 1);
             }
 
             GlyphRenderer.GlyphCanvas glyphCanvas;

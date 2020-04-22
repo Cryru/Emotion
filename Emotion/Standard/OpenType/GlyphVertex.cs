@@ -1,4 +1,4 @@
-﻿namespace Emotion.Standard.Text
+﻿namespace Emotion.Standard.OpenType
 {
     public enum VertexTypeFlag : byte
     {

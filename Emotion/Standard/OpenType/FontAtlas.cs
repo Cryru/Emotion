@@ -10,7 +10,7 @@ using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text
+namespace Emotion.Standard.OpenType
 {
     /// <summary>
     /// Represents a single glyph within a FontAtlas.

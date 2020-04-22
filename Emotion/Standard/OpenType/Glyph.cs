@@ -5,7 +5,7 @@ using Emotion.Primitives;
 
 #endregion
 
-namespace Emotion.Standard.Text
+namespace Emotion.Standard.OpenType
 {
     public class Glyph
     {

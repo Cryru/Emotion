@@ -4,12 +4,12 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
     /// <summary>
     /// https://docs.microsoft.com/en-us/typography/opentype/spec/post
     /// </summary>
-    public class Post
+    public class PostTable
     {
         // ReSharper disable StringLiteralTypo
         public static string[] StandardNames =
@@ -61,7 +61,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Additional information like names.
         /// </summary>
-        public Post(ByteReader reader)
+        public PostTable(ByteReader reader)
         {
             Version = reader.ReadOpenTypeVersionBE();
             ItalicAngle = reader.ReadFloatBE();

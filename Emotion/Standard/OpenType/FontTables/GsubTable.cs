@@ -4,9 +4,9 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
-    public class Gsub
+    public class GsubTable
     {
         public ushort Count;
 
@@ -15,7 +15,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Parse the `Gsub` table.
         /// </summary>
-        public Gsub(ByteReader reader)
+        public GsubTable(ByteReader reader)
         {
             reader.ReadOpenTypeVersionBE();
             Count = reader.ReadUShortBE();

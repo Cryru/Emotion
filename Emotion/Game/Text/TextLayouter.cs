@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System.Numerics;
-using Emotion.Standard.Text;
+using Emotion.Standard.OpenType;
 
 #endregion
 

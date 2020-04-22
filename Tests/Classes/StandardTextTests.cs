@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using Emotion.Primitives;
-using Emotion.Standard.Text;
+using Emotion.Standard.OpenType;
 using Emotion.Test;
 using Emotion.Utility;
 using StbTrueTypeSharp;

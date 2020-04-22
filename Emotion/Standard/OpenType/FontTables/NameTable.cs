@@ -7,9 +7,9 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
-    public class Name
+    public class NameTable
     {
         // NameIDs for the name table.
         private static string[] _nameTableNames =

@@ -5,9 +5,9 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
-    public static class Hmtx
+    public static class HmtxTable
     {
         public static void ParseHmtx(ByteReader reader, ushort numberOfHMetrics, Glyph[] glyphs)
         {

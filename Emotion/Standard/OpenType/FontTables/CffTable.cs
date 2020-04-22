@@ -9,9 +9,9 @@ using Emotion.Standard.Utility;
 
 #endregion
 
-namespace Emotion.Standard.Text.FontTables
+namespace Emotion.Standard.OpenType.FontTables
 {
-    public class Cff
+    public class CffTable
     {
         public byte FormatMajor;
         public byte FormatMinor;
@@ -47,7 +47,7 @@ namespace Emotion.Standard.Text.FontTables
         /// <summary>
         /// Parse the `Cff` table. This table stores glyphs in Cff format fonts.
         /// </summary>
-        public Cff(ByteReader reader)
+        public CffTable(ByteReader reader)
         {
             // Cff header
             FormatMajor = reader.ReadByte();

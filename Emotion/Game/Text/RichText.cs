@@ -9,7 +9,7 @@ using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Standard.Text;
+using Emotion.Standard.OpenType;
 using Emotion.Utility;
 
 #endregion
