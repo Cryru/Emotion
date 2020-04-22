@@ -40,6 +40,14 @@ namespace Tests.Classes
         }
 
         [Test]
+        public void BasicStringNull()
+        {
+            string str = XMLFormat.To(new StringContainer {Test = null});
+            var restored = XMLFormat.From<StringContainer>(str);
+            Assert.True(restored.Test == null);
+        }
+
+        [Test]
         public void ComplexValueType()
         {
             string r = XMLFormat.To(new Rectangle(100, 100, 200, 200));

@@ -17,6 +17,8 @@ namespace Emotion.Standard.XML.TypeHandlers
 
         public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
+            if (obj == null) return false;
+
             obj = SanitizeString((string) obj);
             return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
         }
