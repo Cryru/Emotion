@@ -146,22 +146,22 @@ namespace Emotion.IO
                 return default;
             }
 
-            PerfProfiler.ProfilerEventStart($"Loading {name}", "AssetLoading");
-            PerfProfiler.ProfilerEventStart($"SourceLoading {name}", "AssetLoading");
+            PerfProfiler.ProfilerEventStart($"Loading {name}", "Loading");
+            PerfProfiler.ProfilerEventStart($"SourceLoading {name}", "Loading");
 
             // Load it from the source.
             byte[] data = source.GetAsset(name);
 
-            PerfProfiler.ProfilerEventEnd($"SourceLoading {name}", "AssetLoading");
-            PerfProfiler.ProfilerEventStart($"InternalLoading {name}", "AssetLoading");
+            PerfProfiler.ProfilerEventEnd($"SourceLoading {name}", "Loading");
+            PerfProfiler.ProfilerEventStart($"InternalLoading {name}", "Loading");
 
             // Load the asset.
             asset = new T {Name = name};
             asset.Create(data);
             _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
-            PerfProfiler.ProfilerEventEnd($"InternalLoading {name}", "AssetLoading");
-            PerfProfiler.ProfilerEventEnd($"Loading {name}", "AssetLoading");
+            PerfProfiler.ProfilerEventEnd($"InternalLoading {name}", "Loading");
+            PerfProfiler.ProfilerEventEnd($"Loading {name}", "Loading");
 
             return (T) asset;
         }

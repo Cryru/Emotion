@@ -100,8 +100,13 @@ namespace Emotion.Scenography
                 // Set the current scene to be the loading screen, and get the old one.
                 IScene old = SwapActive(LoadingScreen);
 
+                PerfProfiler.ProfilerEventStart($"SceneUnload {old}", "Loading");
+
                 // Unload the old if it isn't the loading screen.
                 if (old != LoadingScreen) Unload(old);
+
+                PerfProfiler.ProfilerEventEnd($"SceneUnload {old}", "Loading");
+                PerfProfiler.ProfilerEventStart($"SceneLoad {scene}", "Loading");
 
                 // Check if a new scene was provided.
                 if (scene != null)
@@ -118,6 +123,7 @@ namespace Emotion.Scenography
                     Current = LoadingScreen;
                 }
 
+                PerfProfiler.ProfilerEventEnd($"SceneLoad {scene}", "Loading");
                 Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
             });
         }

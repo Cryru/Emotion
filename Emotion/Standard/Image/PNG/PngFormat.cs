@@ -300,9 +300,9 @@ namespace Emotion.Standard.Image.PNG
 
             // Decompress data.
             dataStream.Position = 0;
-            PerfProfiler.ProfilerEventStart("PNG Decompression", "AssetLoading");
+            PerfProfiler.ProfilerEventStart("PNG Decompression", "Loading");
             byte[] data = ZlibStreamUtility.Decompress(dataStream);
-            PerfProfiler.ProfilerEventEnd("PNG Decompression", "AssetLoading");
+            PerfProfiler.ProfilerEventEnd("PNG Decompression", "Loading");
 
             // Parse into pixels.
             var pixels = new byte[fileHeader.Width * fileHeader.Height * 4];
@@ -355,7 +355,7 @@ namespace Emotion.Standard.Image.PNG
 
             if (cannotParallel.Count == 0) return;
 
-            PerfProfiler.ProfilerEventStart("PNG Parse Sequential", "AssetLoading");
+            PerfProfiler.ProfilerEventStart("PNG Parse Sequential", "Loading");
 
             // Run scanlines which couldn't be parallel processed.
             if (scanLineCount >= 2000) Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without that, it will load faster.", MessageSource.ImagePng);
@@ -378,7 +378,7 @@ namespace Emotion.Standard.Image.PNG
                 reader.ReadScanline(rowData, pixels, fileHeader, idx);
             }
 
-            PerfProfiler.ProfilerEventEnd("PNG Parse Sequential", "AssetLoading");
+            PerfProfiler.ProfilerEventEnd("PNG Parse Sequential", "Loading");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
