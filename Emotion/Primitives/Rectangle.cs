@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.Numerics;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 
 #endregion
 
@@ -506,7 +507,6 @@ namespace Emotion.Primitives
             Height = (int) (Height * scale.Y);
         }
 
-
         /// <summary>
         /// Whether the ray intersects with the rectangle, and at what distance.
         /// </summary>
@@ -517,15 +517,16 @@ namespace Emotion.Primitives
         public bool RayIntersects(ref Rectangle rect, ref Ray2D ray, out float distance)
         {
             distance = 0f;
-            float maxValue = float.MaxValue;
 
-            if (Math.Abs(ray.Direction.X) < 1E-06f)
+            if (Math.Abs(ray.Direction.X) < Maths.EPSILON)
             {
                 if (ray.Start.X < X || ray.Start.X > X + Width)
                     return false;
             }
             else
             {
+                float maxValue = ray.Finite ? ray.End.X : float.MaxValue;
+
                 float num11 = 1f / ray.Direction.X;
                 float num8 = (X - ray.Start.X) * num11;
                 float num7 = (X + Width - ray.Start.X) * num11;
@@ -542,12 +543,14 @@ namespace Emotion.Primitives
                     return false;
             }
 
-            if (Math.Abs(ray.Direction.Y) < 1E-06f)
+            if (Math.Abs(ray.Direction.Y) < Maths.EPSILON)
             {
                 if (ray.Start.Y < Y || ray.Start.Y > Y + Height) return false;
             }
             else
             {
+                float maxValue = ray.Finite ? ray.End.Y : float.MaxValue;
+
                 float num10 = 1f / ray.Direction.Y;
                 float num6 = (Y - ray.Start.Y) * num10;
                 float num5 = (Y + Height - ray.Start.Y) * num10;
@@ -585,7 +588,6 @@ namespace Emotion.Primitives
             return broadphaseBox;
         }
 
-
         /// <summary>
         /// returns true if the boxes are colliding
         /// moveX and moveY will return the movement that b1 must move to avoid the collision
@@ -618,7 +620,6 @@ namespace Emotion.Primitives
 
             return true;
         }
-
 
         /// <summary>
         /// Calculates the signed depth of intersection between two rectangles.

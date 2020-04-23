@@ -17,6 +17,8 @@ namespace Emotion.Primitives
         public Vector2 End { get; set; }
         public Vector2 Direction { get; set; }
 
+        public bool Finite { get; set; }
+
         /// <summary>
         /// Create a ray from a starting and ending position.
         /// The direction is inferred from the two points.
@@ -28,6 +30,7 @@ namespace Emotion.Primitives
             Start = start;
             End = end;
             Direction = end - Start;
+            Finite = true;
         }
 
         /// <summary>
@@ -41,6 +44,7 @@ namespace Emotion.Primitives
             Start = start;
             End = new Vector2(length * direction.X, length * direction.Y);
             Direction = direction;
+            Finite = false;
         }
     }
 }
