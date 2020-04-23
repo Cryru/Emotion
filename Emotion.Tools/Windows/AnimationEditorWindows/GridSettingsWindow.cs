@@ -39,7 +39,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
         {
             ImGui.InputFloat2("Frame Size", ref _frameSize);
             ImGui.InputFloat2("Spacing", ref _spacing);
-            if (ImGui.Button("Create"))
+            if (ImGui.Button("Create From FrameSize"))
             {
                 _callback(_frameSize, _spacing);
                 Open = false;
@@ -47,7 +47,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
             ImGui.InputInt("Rows", ref _row);
             ImGui.InputInt("Columns", ref _columns);
-            if (ImGui.Button("Create"))
+            if (ImGui.Button("Create From Row/Columns"))
             {
                 _callbackRC(_row, _columns);
                 Open = false;

@@ -217,7 +217,11 @@ namespace Emotion.Tools.Windows
 
                 var loopType = (int) _animation.LoopType;
                 ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
-                if ((AnimationLoopType) loopType != _animation.LoopType) _animation.LoopType = (AnimationLoopType) loopType;
+                if ((AnimationLoopType) loopType != _animation.LoopType)
+                {
+                    _animation.LoopType = (AnimationLoopType) loopType;
+                    _animation.Reset();
+                }
             }
             else
             {
