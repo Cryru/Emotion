@@ -69,21 +69,19 @@ namespace Emotion.IO
             }
 
             PerfProfiler.ProfilerEventEnd("Decoding Image", "Loading");
-            PerfProfiler.ProfilerEventStart("Uploading Image", "Loading");
-
             UploadTexture(new Vector2(width, height), pixels, flipped);
-
-            PerfProfiler.ProfilerEventEnd("Uploading Image", "Loading");
         }
 
         protected virtual void UploadTexture(Vector2 size, byte[] bgraPixels, bool flipped)
         {
             GLThread.ExecuteGLThread(() =>
             {
+                PerfProfiler.ProfilerEventStart("Uploading Image", "Loading");
                 Texture = new Texture(size, bgraPixels)
                 {
                     FlipY = flipped
                 };
+                PerfProfiler.ProfilerEventEnd("Uploading Image", "Loading");
             });
         }
 
