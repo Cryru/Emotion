@@ -44,6 +44,8 @@ namespace Emotion.IO
             var height = 0;
             var flipped = false; // Whether the image was uploaded flipped - top to bottom.
 
+            PerfProfiler.ProfilerEventStart("Decoding Image", "AssetLoading");
+
             // Check if PNG.
             if (PngFormat.IsPng(data))
             {
@@ -66,7 +68,12 @@ namespace Emotion.IO
                 return;
             }
 
+            PerfProfiler.ProfilerEventEnd("Decoding Image", "AssetLoading");
+            PerfProfiler.ProfilerEventStart("Uploading Image", "AssetLoading");
+
             UploadTexture(new Vector2(width, height), pixels, flipped);
+
+            PerfProfiler.ProfilerEventEnd("Uploading Image", "AssetLoading");
         }
 
         protected virtual void UploadTexture(Vector2 size, byte[] bgraPixels, bool flipped)

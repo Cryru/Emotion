@@ -38,10 +38,10 @@ namespace Emotion.Graphics
         public void InvalidateStateBatches()
         {
             if (ActiveQuadBatch == null || ActiveQuadBatch.BatchedSprites == 0) return;
-            PerfProfiler.Start($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
+            PerfProfiler.StartFrameEvent($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
             ActiveQuadBatch.Render(this);
             ActiveQuadBatch.Recycle();
-            PerfProfiler.Stop();
+            PerfProfiler.StopFrameEvent($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
         }
 
         /// <summary>
