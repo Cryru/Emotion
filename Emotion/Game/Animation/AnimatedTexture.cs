@@ -295,7 +295,7 @@ namespace Emotion.Game.Animation
         public virtual int NextFrame(out bool looped, out bool reversed)
         {
             looped = false;
-            reversed = false;
+            reversed = _inReverse;
 
             switch (LoopType)
             {
