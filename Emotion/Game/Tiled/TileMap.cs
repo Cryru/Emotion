@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 using TiledSharp;
 
 #endregion
@@ -139,7 +141,7 @@ namespace Emotion.Game.Tiled
         public virtual void Reset(OtherAsset mapFile, string tileSetFolder, bool resetSize = false)
         {
             // Check if tileSetFolder ends in a slash.
-            if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[tileSetFolder.Length - 1] != '/') tileSetFolder += "/";
+            if (!string.IsNullOrEmpty(tileSetFolder) && tileSetFolder[^1] != '/') tileSetFolder += "/";
 
             // Reset loading flag.
             _loaded = false;
@@ -153,7 +155,7 @@ namespace Emotion.Game.Tiled
 
             // Reset holders.
             Tilesets.Clear();
-            _animatedTiles.Clear();
+            _animatedTiles.Clear(); 
             TiledMap = null;
 
             // Check if no map is provided.
@@ -162,7 +164,7 @@ namespace Emotion.Game.Tiled
             // Load the map from the data as a stream.
             try
             {
-                using var mapFileStream = new MemoryStream(mapFile.Content);
+                using var mapFileStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(Helpers.GuessStringEncoding(mapFile.Content)));
                 TiledMap = new TmxMap(mapFileStream);
             }
             catch (Exception ex)
