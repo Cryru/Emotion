@@ -71,6 +71,9 @@ namespace Emotion.Tools.Windows
         {
             if (ToolsWindowManager == null) ToolsWindowManager = new WindowManager();
 
+            composer.SetDepthTest(false);
+            composer.SetUseViewMatrix(false);
+
             ToolsWindowManager.Update();
 
             ImGui.NewFrame();
