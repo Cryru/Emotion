@@ -69,6 +69,8 @@ namespace Emotion.Game.Animation
         /// <param name="animName"></param>
         public void SetAnimation(string animName)
         {
+            if (CurrentAnimation != null && CurrentAnimation.Name == animName) return;
+
             if (!HasAnimation(animName))
             {
                 Engine.Log.Warning($"Animation {animName} not found.", MessageSource.Anim);
@@ -80,6 +82,7 @@ namespace Emotion.Game.Animation
             AnimTex.EndingFrame = n.EndingFrame;
             AnimTex.LoopType = n.LoopType;
             AnimTex.TimeBetweenFrames = n.TimeBetweenFrames;
+            AnimTex.Reset();
 
             CurrentAnimation = n;
         }
