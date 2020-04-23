@@ -104,10 +104,7 @@ namespace Emotion.Standard.Image.PNG
 
             for (var y = 0; y < height; y++)
             {
-                byte compression = 0;
-                if (y > 0) compression = 2;
-
-                data[y * rowLength] = compression;
+                data[y * rowLength] = 0;
 
                 for (var x = 0; x < width; x++)
                 {
@@ -121,15 +118,6 @@ namespace Emotion.Standard.Image.PNG
                     data[dataOffset + 1] = pixels[pixelOffset + 1];
                     data[dataOffset + 2] = pixels[pixelOffset + 0];
                     data[dataOffset + 3] = pixels[pixelOffset + 3];
-
-                    if (y <= 0) continue;
-
-                    int lastOffset = ((y - 1) * width + x) * 4;
-
-                    data[dataOffset + 0] -= pixels[lastOffset + 2];
-                    data[dataOffset + 1] -= pixels[lastOffset + 1];
-                    data[dataOffset + 2] -= pixels[lastOffset + 0];
-                    data[dataOffset + 3] -= pixels[lastOffset + 3];
                 }
             }
 
