@@ -237,5 +237,13 @@ namespace Emotion.Utility
             array[idx] = array[withIdx];
             array[withIdx] = temp;
         }
+
+        /// <summary>
+        /// "Cross product" approximation for 2D vectors.
+        /// </summary>
+        public static float Cross(this Vector2 me, Vector2 other)
+        {
+            return Vector3.Cross(me.ToVec3(), other.ToVec3()).Z;
+        }
     }
 }
