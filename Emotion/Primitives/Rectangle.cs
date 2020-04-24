@@ -3,6 +3,7 @@
 using System;
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Standard.XML;
 using Emotion.Utility;
 
@@ -225,6 +226,14 @@ namespace Emotion.Primitives
             return a;
         }
 
+        /// <summary>
+        /// clones and returns a new Rectangle with the same data as the current rectangle
+        /// </summary>
+        public Rectangle Clone()
+        {
+            return new Rectangle(X, Y, Width, Height);
+        }
+
         public bool Contains(float x, float y)
         {
             return X <= x && x <= X + Width && Y <= y && y <= Y + Height;
@@ -290,12 +299,15 @@ namespace Emotion.Primitives
             return (int) Math.Pow(Math.Pow(X, Y), Math.Pow(Width, Height));
         }
 
-        public bool Intersects(Vector2 v2)
+        public bool Intersects(ref Vector2 v2)
         {
-            return Intersects(new Rectangle(v2, Vector2.One));
+            return v2.X < Right &&
+                   Left > v2.X &&
+                   v2.Y < Bottom &&
+                   Top > v2.Y;
         }
 
-        public bool Intersects(Rectangle r2)
+        public bool Intersects(ref Rectangle r2)
         {
             return r2.Left < Right &&
                    Left < r2.Right &&
@@ -303,17 +315,79 @@ namespace Emotion.Primitives
                    Top < r2.Bottom;
         }
 
-        public bool IntersectsInclusive(Vector2 v2)
+        public bool IntersectsInclusive(ref Vector2 v2)
         {
-            return IntersectsInclusive(new Rectangle(v2, Vector2.One));
+            return v2.X <= Right &&
+                   Left >= v2.X &&
+                   v2.Y <= Bottom &&
+                   Top >= v2.Y;
         }
 
-        public bool IntersectsInclusive(Rectangle r2)
+        public bool IntersectsInclusive(ref Rectangle r2)
         {
             return r2.Left <= Right &&
                    Left <= r2.Right &&
                    r2.Top <= Bottom &&
                    Top <= r2.Bottom;
+        }
+
+        /// <summary>
+        /// Whether the ray intersects with the rectangle, and at what distance.
+        /// </summary>
+        /// <param name="ray">The ray or line.</param>
+        /// <param name="distance">The distance at which the ray will intersect with the rectangle.</param>
+        /// <returns>Whether the ray intersects with the rectangle.</returns>
+        public bool RayIntersects(ref Ray2D ray, out float distance)
+        {
+            var maxValue = float.MaxValue;
+            distance = 0f;
+
+            if (Math.Abs(ray.Direction.X) < Maths.EPSILON)
+            {
+                if (ray.Start.X < X || ray.Start.X > X + Width)
+                    return false;
+            }
+            else
+            {
+                float num11 = 1f / ray.Direction.X;
+                float num8 = (X - ray.Start.X) * num11;
+                float num7 = (X + Width - ray.Start.X) * num11;
+                if (num8 > num7)
+                {
+                    float num14 = num8;
+                    num8 = num7;
+                    num7 = num14;
+                }
+
+                distance = Math.Max(num8, distance);
+                maxValue = Math.Min(num7, maxValue);
+                if (distance > maxValue)
+                    return false;
+            }
+
+            if (Math.Abs(ray.Direction.Y) < Maths.EPSILON)
+            {
+                if (ray.Start.Y < Y || ray.Start.Y > Y + Height) return false;
+            }
+            else
+            {
+                float num10 = 1f / ray.Direction.Y;
+                float num6 = (Y - ray.Start.Y) * num10;
+                float num5 = (Y + Height - ray.Start.Y) * num10;
+                if (num6 > num5)
+                {
+                    float num13 = num6;
+                    num6 = num5;
+                    num5 = num13;
+                }
+
+                distance = Math.Max(num6, distance);
+                maxValue = Math.Min(num5, maxValue);
+                if (distance > maxValue)
+                    return false;
+            }
+
+            return true;
         }
 
         #endregion
@@ -488,14 +562,6 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// clones and returns a new Rectangle with the same data as the current rectangle
-        /// </summary>
-        public Rectangle Clone()
-        {
-            return new Rectangle(X, Y, Width, Height);
-        }
-
-        /// <summary>
         /// scales the rect
         /// </summary>
         /// <param name="scale">Scale.</param>
@@ -505,69 +571,6 @@ namespace Emotion.Primitives
             Y = (int) (Y * scale.Y);
             Width = (int) (Width * scale.X);
             Height = (int) (Height * scale.Y);
-        }
-
-        /// <summary>
-        /// Whether the ray intersects with the rectangle, and at what distance.
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <param name="ray"></param>
-        /// <param name="distance">The distance at which the ray will intersect with the rectangle.</param>
-        /// <returns>Whether the ray intersects with the rectangle.</returns>
-        public bool RayIntersects(ref Rectangle rect, ref Ray2D ray, out float distance)
-        {
-            distance = 0f;
-
-            if (Math.Abs(ray.Direction.X) < Maths.EPSILON)
-            {
-                if (ray.Start.X < X || ray.Start.X > X + Width)
-                    return false;
-            }
-            else
-            {
-                float maxValue = ray.Finite ? ray.End.X : float.MaxValue;
-
-                float num11 = 1f / ray.Direction.X;
-                float num8 = (X - ray.Start.X) * num11;
-                float num7 = (X + Width - ray.Start.X) * num11;
-                if (num8 > num7)
-                {
-                    float num14 = num8;
-                    num8 = num7;
-                    num7 = num14;
-                }
-
-                distance = Math.Max(num8, distance);
-                maxValue = Math.Min(num7, maxValue);
-                if (distance > maxValue)
-                    return false;
-            }
-
-            if (Math.Abs(ray.Direction.Y) < Maths.EPSILON)
-            {
-                if (ray.Start.Y < Y || ray.Start.Y > Y + Height) return false;
-            }
-            else
-            {
-                float maxValue = ray.Finite ? ray.End.Y : float.MaxValue;
-
-                float num10 = 1f / ray.Direction.Y;
-                float num6 = (Y - ray.Start.Y) * num10;
-                float num5 = (Y + Height - ray.Start.Y) * num10;
-                if (num6 > num5)
-                {
-                    float num13 = num6;
-                    num6 = num5;
-                    num5 = num13;
-                }
-
-                distance = Math.Max(num6, distance);
-                maxValue = Math.Min(num5, maxValue);
-                if (distance > maxValue)
-                    return false;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -728,6 +731,34 @@ namespace Emotion.Primitives
                 res.X = Right;
 
             return res;
+        }
+
+        #endregion
+
+        #region Overloads
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(Vector2 v2)
+        {
+            return Intersects(ref v2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(Rectangle r2)
+        {
+            return Intersects(ref r2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IntersectsInclusive(Vector2 v2)
+        {
+            return IntersectsInclusive(ref v2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IntersectsInclusive(Rectangle r2)
+        {
+            return IntersectsInclusive(ref r2);
         }
 
         #endregion

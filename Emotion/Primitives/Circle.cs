@@ -82,23 +82,50 @@ namespace Emotion.Primitives
 
         #region Static Methods
 
-        public static bool IntersectsLine(Circle c, Ray2D l)
+        public bool IntersectsLine(ref LineSegment l)
         {
-            return IsPointInsideCircle(c, l.Start) || IsPointInsideCircle(c, l.End);
+            Vector2 d = l.End - l.Start;
+            Vector2 f = l.Start - Center;
+
+            float a = Vector2.Dot(d, d);
+            float b = 2 * Vector2.Dot(f, d);
+            float c = Vector2.Dot(f, f) - Radius * Radius;
+
+            float discriminant = b * b - 4 * a * c;
+            // Missed
+            if (discriminant < 0) return false;
+
+            // Either solution can be on or off.
+            discriminant = MathF.Sqrt(discriminant);
+            float t1 = (-b - discriminant) / (2 * a);
+            float t2 = (-b + discriminant) / (2 * a);
+
+            // 3x HIT cases:
+            //          -o->             --|-->  |            |  --|->
+            // Impale(t1 hit,t2 hit), Poke(t1 hit,t2>1), ExitWound(t1<0, t2 hit), 
+
+            // 3x MISS cases:
+            //       ->  o                     o ->              | -> |
+            // FallShort (t1>1,t2>1), Past (t1<0,t2<0), CompletelyInside(t1<0, t2>1)
+
+            // t1 is closer, check it first.
+            if (t1 >= 0 && t1 <= 1) return true;
+            return t2 >= 0 && t2 <= 1;
         }
 
-        public static bool IsPointInsideCircle(Circle c, Vector2 p)
+        public bool IsPointInsideCircle(ref Vector2 p)
         {
-            return Vector2.Distance(c.Center, p) <= c.Radius;
+            return Vector2.Distance(Center, p) <= Radius;
         }
 
-        public static bool IntersectsRectangle(Circle c, Rectangle r)
+        public bool IntersectsRectangle(ref Rectangle r)
         {
-            return r.Intersects(c.Center) ||
-                   IntersectsLine(c, new Ray2D(new Vector2(r.X, r.Y), new Vector2(r.X + r.Width, r.Y))) ||
-                   IntersectsLine(c, new Ray2D(new Vector2(r.X + r.Width, r.Y), new Vector2(r.X + r.Width, r.Y + r.Height))) ||
-                   IntersectsLine(c, new Ray2D(new Vector2(r.X + r.Width, r.Y + r.Height), new Vector2(r.X, r.Y + r.Height))) ||
-                   IntersectsLine(c, new Ray2D(new Vector2(r.X, r.Y + r.Height), new Vector2(r.X, r.Y)));
+            var top = new LineSegment(r.TopLeft, r.TopRight);
+            var right = new LineSegment(r.TopRight, r.BottomRight);
+            var bottom = new LineSegment(r.BottomLeft, r.BottomRight);
+            var left = new LineSegment(r.BottomLeft, r.TopLeft);
+
+            return r.Intersects(Center) || IntersectsLine(ref top) || IntersectsLine(ref right) || IntersectsLine(ref bottom) || IntersectsLine(ref left);
         }
 
         #endregion
