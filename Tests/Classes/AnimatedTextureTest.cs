@@ -146,6 +146,9 @@ namespace Tests.Classes
             Assert.Equal(0, noLoopReverse.CurrentFrameIndex);
             Assert.Equal(2, reverseLoop.CurrentFrameIndex);
 
+            AdvanceAnimation(500);
+            Assert.Equal(0, normalThenReverse.CurrentFrameIndex);
+
             // Ensure objects are as expected.
             Assert.Equal(3, normalLoop.AnimationFrames);
             Assert.Equal(0, normalLoop.StartingFrame);
