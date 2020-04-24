@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Common;
@@ -134,7 +135,11 @@ namespace Emotion.IO
             // Check if loaded.
             bool loaded = _loadedAssets.TryGetValue(name, out Asset asset);
             // If loaded and not disposed - return it.
-            if (loaded && !asset.Disposed) return (T) asset;
+            if (loaded && !asset.Disposed)
+            {
+                Debug.Assert(asset is T, "Asset was requested twice as different types.");
+                return (T) asset;
+            }
 
             // Get the source which contains it, if any.
             AssetSource source = GetSource(name);
