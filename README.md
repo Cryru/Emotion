@@ -103,9 +103,6 @@ Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion"
 .NetCore 3.1 and .Net Standard 2.1 [MIT]
  - System.Numerics (Data Structures)
 
-TiledSharp (https://github.com/marshallward/TiledSharp) [Apache 2.0]
- - Support for .tmx files.
-
 Serilog (https://github.com/serilog/serilog) [Apache 2.0]
  - Used for logging.
 
@@ -159,6 +156,10 @@ NAudio (https://github.com/naudio/NAudio)
 
 Audacity (https://github.com/audacity)
  - Audio code reference
+
+TiledSharp (https://github.com/marshallward/TiledSharp)
+ - TMX file support reference.
+ - Was originally forked from, but it has changed too much.
 
 ## Inspired Fully, Or In Parts By:
 

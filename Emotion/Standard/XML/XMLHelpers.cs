@@ -189,7 +189,7 @@ namespace Emotion.Standard.XML
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static XMLTypeHandler GetDerivedTypeHandlerFromXMLTag(XMLReader reader, out string tag)
         {
-            tag = reader.ReadTag(out string typeAttribute);
+            tag = reader.SerializationReadTagAndTypeAttribute(out string typeAttribute);
             if (typeAttribute == null) return null;
             Type derivedType = GetTypeByName(typeAttribute);
             if (derivedType != null) return GetTypeHandler(derivedType);

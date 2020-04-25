@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System.Collections.ObjectModel;
-using TiledSharp;
+using Emotion.Standard.TMX;
 
 #endregion
 
@@ -9,6 +9,7 @@ namespace Emotion.Game.Tiled
 {
     /// <summary>
     /// An internal object to be used by the map object to animate tiles.
+    /// Holds the current state of a tmx animated tile.
     /// </summary>
     public class AnimatedTile
     {
@@ -41,7 +42,6 @@ namespace Emotion.Game.Tiled
         public AnimatedTile(int gid, Collection<TmxAnimationFrame> frames)
         {
             Id = gid;
-
             _frames = frames;
         }
 

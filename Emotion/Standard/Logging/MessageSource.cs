@@ -24,6 +24,7 @@
         public static string ImagePng = "ImagePng";
         public static string FontParser = "FontParser";
         public static string XML = "XML";
+        public static string TMX = "TMX";
 
         // Platform
         public static string Win32 = "Win32";

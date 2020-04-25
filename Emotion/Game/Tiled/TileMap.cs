@@ -2,17 +2,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using Emotion.Standard.TMX;
+using Emotion.Standard.TMX.Layer;
+using Emotion.Standard.XML;
 using Emotion.Utility;
-using TiledSharp;
 
 #endregion
 
@@ -155,7 +155,7 @@ namespace Emotion.Game.Tiled
 
             // Reset holders.
             Tilesets.Clear();
-            _animatedTiles.Clear(); 
+            _animatedTiles.Clear();
             TiledMap = null;
 
             // Check if no map is provided.
@@ -164,8 +164,7 @@ namespace Emotion.Game.Tiled
             // Load the map from the data as a stream.
             try
             {
-                using var mapFileStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(Helpers.GuessStringEncoding(mapFile.Content)));
-                TiledMap = new TmxMap(mapFileStream);
+                TiledMap = new TmxMap(new XMLReader(Helpers.GuessStringEncoding(mapFile.Content)));
             }
             catch (Exception ex)
             {
@@ -176,7 +175,9 @@ namespace Emotion.Game.Tiled
             // Load all map tilesets.
             foreach (TmxTileset tileset in TiledMap.Tilesets)
             {
-                string tilesetFile = tileset.Image.Source;
+                string tilesetFile = tileset.Source;
+                if (string.IsNullOrEmpty(tilesetFile)) continue;
+
                 // Cut out the last slash if any.
                 if (tilesetFile.IndexOf('/') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('/') + 1);
                 if (tilesetFile.IndexOf('\\') != -1) tilesetFile = tilesetFile.Substring(tilesetFile.LastIndexOf('\\') + 1);
@@ -226,8 +227,8 @@ namespace Emotion.Game.Tiled
             // Go through all map layers.
             foreach (TmxLayer layer in TiledMap.Layers)
             {
-                // Skip the layer if not visible.
-                if (!layer.Visible) continue;
+                // Skip the layer if not visible or if not a tile layer.
+                if (!layer.Visible || layer.Tiles == null) continue;
 
                 // Go through all tiles on the layer.
                 for (var t = 0; t < layer.Tiles.Count; t++)
@@ -327,7 +328,7 @@ namespace Emotion.Game.Tiled
         {
             // Check if layer is out of bounds.
             tileSet = -1;
-            if (layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
+            if (layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
 
             // Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
