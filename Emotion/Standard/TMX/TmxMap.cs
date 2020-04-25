@@ -31,7 +31,7 @@ namespace Emotion.Standard.TMX
 
         public TmxList<TmxTileset> Tilesets { get; private set; }
         public TmxList<TmxLayer> TileLayers { get; private set; }
-        public TmxList<TmxObjectLayer> ObjectGroups { get; private set; }
+        public TmxList<TmxObjectLayer> ObjectLayers { get; private set; }
         public TmxList<TmxImageLayer> ImageLayers { get; private set; }
         public TmxList<TmxGroupedLayers> Groups { get; private set; }
         public Dictionary<string, string> Properties { get; private set; }
@@ -66,7 +66,7 @@ namespace Emotion.Standard.TMX
 
             Layers = new TmxList<TmxLayer>();
             TileLayers = new TmxList<TmxLayer>();
-            ObjectGroups = new TmxList<TmxObjectLayer>();
+            ObjectLayers = new TmxList<TmxObjectLayer>();
             ImageLayers = new TmxList<TmxImageLayer>();
             Groups = new TmxList<TmxGroupedLayers>();
             foreach (XMLReader e in xMap.Elements().Where(x => x.Name == "layer" || x.Name == "objectgroup" || x.Name == "imagelayer" || x.Name == "group"))
@@ -80,14 +80,14 @@ namespace Emotion.Standard.TMX
                         TileLayers.Add(tileLayer);
                         break;
                     case "objectgroup":
-                        var objectgroup = new TmxObjectLayer(e);
-                        layer = objectgroup;
-                        ObjectGroups.Add(objectgroup);
+                        var objectLayer = new TmxObjectLayer(e);
+                        layer = objectLayer;
+                        ObjectLayers.Add(objectLayer);
                         break;
                     case "imagelayer":
-                        var imagelayer = new TmxImageLayer(e);
-                        layer = imagelayer;
-                        ImageLayers.Add(imagelayer);
+                        var imageLayer = new TmxImageLayer(e);
+                        layer = imageLayer;
+                        ImageLayers.Add(imageLayer);
                         break;
                     case "group":
                         var group = new TmxGroupedLayers(e, Width, Height);

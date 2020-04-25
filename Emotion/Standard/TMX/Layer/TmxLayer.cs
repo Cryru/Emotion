@@ -19,8 +19,8 @@ namespace Emotion.Standard.TMX.Layer
 
         public double Opacity { get; private set; }
         public bool Visible { get; private set; }
-        public double? OffsetX { get; private set; }
-        public double? OffsetY { get; private set; }
+        public float OffsetX { get; private set; }
+        public float OffsetY { get; private set; }
 
         public Collection<TmxLayerTile> Tiles { get; private set; }
         public Dictionary<string, string> Properties { get; private set; }
@@ -33,8 +33,8 @@ namespace Emotion.Standard.TMX.Layer
 
             Opacity = xLayer.AttributeDoubleN("opacity") ?? 1.0;
             Visible = xLayer.AttributeBoolN("visible") ?? true;
-            OffsetX = xLayer.AttributeDouble("offsetx");
-            OffsetY = xLayer.AttributeDouble("offsety");
+            OffsetX = (float) xLayer.AttributeDouble("offsetx");
+            OffsetY = (float) xLayer.AttributeDouble("offsety");
 
             Properties = TmxHelpers.GetPropertyDict(xLayer.Element("properties"));
 
@@ -48,30 +48,20 @@ namespace Emotion.Standard.TMX.Layer
                 case "csv":
                 {
                     string csvData = xData.CurrentContents();
-                    var k = 0;
                     foreach (string s in csvData.Split(','))
                     {
                         uint gid = uint.Parse(s.Trim());
-                        int x = k % width;
-                        int y = k / width;
-                        Tiles.Add(new TmxLayerTile(gid, x, y));
-                        k++;
+                        Tiles.Add(new TmxLayerTile(gid));
                     }
 
                     break;
                 }
                 case null:
                 {
-                    var k = 0;
                     foreach (XMLReader e in xData.Elements("tile"))
                     {
                         uint gid = e.AttributeUInt("gid");
-
-                        int x = k % width;
-                        int y = k / width;
-
-                        Tiles.Add(new TmxLayerTile(gid, x, y));
-                        k++;
+                        Tiles.Add(new TmxLayerTile(gid));
                     }
 
                     break;

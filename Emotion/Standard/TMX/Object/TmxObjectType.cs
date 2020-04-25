@@ -3,7 +3,7 @@
     public enum TmxObjectType
     {
         Basic,
-        Tile,
+        Image,
         Ellipse,
         Polygon,
         Polyline

@@ -1,10 +1,8 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Numerics;
-using Emotion.Standard.TMX.Layer;
 using Emotion.Standard.XML;
 
 #endregion
@@ -13,9 +11,8 @@ namespace Emotion.Standard.TMX.Object
 {
     public class TmxObject : ITmxElement
     {
-        // Many TmxObjectTypes are distinguished by null values in fields
-        // It might be smart to subclass TmxObject
         public int Id { get; private set; }
+        public int? Gid { get; private set; }
         public string Name { get; private set; }
         public TmxObjectType ObjectType { get; private set; }
         public string Type { get; private set; }
@@ -24,7 +21,6 @@ namespace Emotion.Standard.TMX.Object
         public double Width { get; private set; }
         public double Height { get; private set; }
         public double Rotation { get; private set; }
-        public TmxLayerTile Tile { get; private set; }
         public bool Visible { get; private set; }
         public TmxText Text { get; private set; }
 
@@ -44,15 +40,14 @@ namespace Emotion.Standard.TMX.Object
             Rotation = xObject.AttributeDouble("rotation");
 
             // Assess object type and assign appropriate content
-            uint? xGid = xObject.AttributeUIntN("gid");
+            Gid = xObject.AttributeIntN("gid");
             XMLReader xEllipse = xObject.Element("ellipse");
             XMLReader xPolygon = xObject.Element("polygon");
             XMLReader xPolyline = xObject.Element("polyline");
 
-            if (xGid != null)
+            if (Gid != null)
             {
-                Tile = new TmxLayerTile((uint) xGid, Convert.ToInt32(Math.Round(X)), Convert.ToInt32(Math.Round(Y)));
-                ObjectType = TmxObjectType.Tile;
+                ObjectType = TmxObjectType.Image;
             }
             else if (xEllipse != null)
             {
