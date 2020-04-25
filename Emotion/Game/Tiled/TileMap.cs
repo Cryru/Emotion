@@ -228,9 +228,9 @@ namespace Emotion.Game.Tiled
             MapPreLoad();
 
             // Load all map tilesets.
-            PerfProfiler.ProfilerEventStart("TileMap Loading Tilesets", "Loading");
+            PerfProfiler.ProfilerEventStart("TileMap: Loading Tilesets", "Loading");
             LoadTilesets();
-            PerfProfiler.ProfilerEventEnd("TileMap Loading Tilesets", "Loading");
+            PerfProfiler.ProfilerEventEnd("TileMap: Loading Tilesets", "Loading");
 
             // Find animated tiles.
             CacheAnimatedTiles();
@@ -250,13 +250,14 @@ namespace Emotion.Game.Tiled
                     {
                         TmxObject objDef = TiledMap.ObjectLayers[i].Objects[j];
                         TextureAsset asset = null;
+                        Rectangle? uv = null;
                         if (objDef.Gid != null)
                         {
-                            int tsId = GetTilesetIdFromTid(objDef.Gid.Value, out int _);
+                            uv = GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
                             if (tsId > 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
                         }
 
-                        T factoryObject = CreateObject(objDef, asset, i);
+                        T factoryObject = CreateObject(objDef, asset, uv, i);
                         if (factoryObject != null) Objects.Add(factoryObject);
                     }
                 }
@@ -382,9 +383,9 @@ namespace Emotion.Game.Tiled
 
             for (int layer = start; layer < end; layer++)
             {
-                PerfProfiler.FrameEventStart($"TileMap layer {layer}");
+                PerfProfiler.FrameEventStart($"TileMap: Mapping layer {layer}");
                 RenderLayer(composer, layer, clipRect);
-                PerfProfiler.FrameEventEnd($"TileMap layer {layer}");
+                PerfProfiler.FrameEventEnd($"TileMap: Mapping layer {layer}");
             }
         }
 
@@ -426,14 +427,12 @@ namespace Emotion.Game.Tiled
             // Check if anything is loaded.
             if (Objects == null) return;
             QueryObjectsToRender();
-            PerfProfiler.FrameEventStart("TileMap Objects");
-
+            PerfProfiler.FrameEventStart("TileMap: Objects");
             for (var i = 0; i < _quadTreeQueryMemory.Count; i++)
             {
                 _quadTreeQueryMemory[i].Render(composer);
             }
-
-            PerfProfiler.FrameEventEnd("TileMap Objects");
+            PerfProfiler.FrameEventEnd("TileMap: Objects");
         }
 
         protected virtual void QueryObjectsToRender()
@@ -682,7 +681,7 @@ namespace Emotion.Game.Tiled
 
         #region Override Interface
 
-        protected virtual T CreateObject(TmxObject objDef, TextureAsset image, int layerId)
+        protected virtual T CreateObject(TmxObject objDef, TextureAsset image, Rectangle? uv, int layerId)
         {
             return null;
         }

@@ -76,12 +76,12 @@ namespace Emotion.IO
         {
             GLThread.ExecuteGLThread(() =>
             {
-                PerfProfiler.ProfilerEventStart("Uploading Image", "Loading");
+                PerfProfiler.ProfilerEventStart($"Uploading Image {Name}", "Loading");
                 Texture = new Texture(size, bgraPixels)
                 {
                     FlipY = flipped
                 };
-                PerfProfiler.ProfilerEventEnd("Uploading Image", "Loading");
+                PerfProfiler.ProfilerEventEnd($"Uploading Image {Name}", "Loading");
             });
         }
 
