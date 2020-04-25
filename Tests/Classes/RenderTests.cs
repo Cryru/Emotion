@@ -171,7 +171,7 @@ namespace Tests.Classes
         [Test]
         public void TilemapTest()
         {
-            var tileMap = new TileMap(Vector3.Zero, Vector2.Zero, "Tilemap/DeepForest.tmx", "Tilemap/");
+            var tileMap = new TileMap<TransformRenderable>("Tilemap/DeepForest.tmx");
 
             Runner.ExecuteAsLoop(_ =>
             {
@@ -183,7 +183,7 @@ namespace Tests.Classes
                 Runner.VerifyScreenshot(ResultDb.TilemapRender);
             }).WaitOne();
 
-            tileMap.Reset("", "");
+            tileMap.Reset("");
         }
 
         /// <summary>
