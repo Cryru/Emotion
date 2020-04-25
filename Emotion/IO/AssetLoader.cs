@@ -272,5 +272,31 @@ namespace Emotion.IO
         {
             return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
         }
+
+        public static string GetDirectoryName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return name;
+            if (name[^1] == '/') return name;
+
+            int lastSlash = name.LastIndexOf("/", StringComparison.Ordinal);
+            return lastSlash == -1 ? "" : name.Substring(0, lastSlash);
+        }
+
+        public static string GetRelativePath(string relativeTo, string path)
+        {
+            int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
+            if (lastBack == -1) return path;
+
+            path = path.Substring(0, lastBack);
+            string directory = GetDirectoryName(relativeTo);
+            return directory + "/" + path;
+        }   
+
+        public static string JoinPath(string left, string right)
+        {
+            if (string.IsNullOrEmpty(left)) return right;
+            if (string.IsNullOrEmpty(right)) return left;
+            return left + "/" + right;
+        }
     }
 }
