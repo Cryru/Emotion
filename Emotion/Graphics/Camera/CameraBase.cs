@@ -89,9 +89,10 @@ namespace Emotion.Graphics.Camera
         /// <returns>Rectangle bounding the visible section of the world.</returns>
         public Rectangle GetWorldBoundingRect()
         {
+            Vector2 start = ScreenToWorld(Vector2.Zero);
             return new Rectangle(
-                Engine.Renderer.Camera.ScreenToWorld(Vector2.Zero),
-                Engine.Renderer.Camera.ScreenToWorld(Engine.Renderer.DrawBuffer.Size)
+                start,
+                ScreenToWorld(Engine.Renderer.DrawBuffer.Size) - start
             );
         }
     }
