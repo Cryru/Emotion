@@ -143,6 +143,7 @@ namespace Emotion.Standard.XML
             if (PeekOneBehind() != '<') GoToNextTag();
 
             int tagStart = _offset;
+            var tagEnd = 0;
 
             if (Finished) return null;
 
@@ -152,6 +153,10 @@ namespace Emotion.Standard.XML
             for (; _offset - _startOffset < _length; _offset++)
             {
                 char c = _source[_offset];
+                if (c == ' ' && tagEnd == 0)
+                {
+                    tagEnd = _offset;
+                }
                 if ((c == '/' || c == '?') && PeekOneAhead() == '>') // tag/> and tag?>
                 {
                     Depth--;
@@ -161,8 +166,14 @@ namespace Emotion.Standard.XML
                 if (c == '>') break; // tag>
             }
 
+            // If the tag didn't explicitly end, the end is now.
+            if (tagEnd == 0)
+            {
+                tagEnd = _offset;
+            }
+
             if (_offset - _startOffset == _length - 1) Finished = true;
-            return _source.Substring(tagStart, _offset - tagStart);
+            return _source.Substring(tagStart, tagEnd - tagStart);
         }
 
         /// <summary>
