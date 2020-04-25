@@ -42,7 +42,7 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.BeginMenu("Gameplay"))
             {
-                if (ImGui.MenuItem("Map Editor")) manager.AddWindow(new MapEditor());
+                if (ImGui.MenuItem("Map Viewer")) manager.AddWindow(new MapViewer());
                 ImGui.EndMenu();
             }
 
