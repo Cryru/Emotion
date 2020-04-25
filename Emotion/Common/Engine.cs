@@ -422,25 +422,25 @@ namespace Emotion.Common
             PerfProfiler.FrameStart();
 
             // Run the GLThread queued commands.
-            PerfProfiler.StartFrameEvent("GLThread.Run");
+            PerfProfiler.FrameEventStart("GLThread.Run");
             GLThread.Run();
-            PerfProfiler.StopFrameEvent("GLThread.Run");
+            PerfProfiler.FrameEventEnd("GLThread.Run");
 
-            PerfProfiler.StartFrameEvent("StartFrame");
+            PerfProfiler.FrameEventStart("StartFrame");
             Renderer.StartFrame();
-            PerfProfiler.StopFrameEvent("StartFrame");
+            PerfProfiler.FrameEventEnd("StartFrame");
 
-            PerfProfiler.StartFrameEvent("Scene.Draw");
+            PerfProfiler.FrameEventStart("Scene.Draw");
             SceneManager.Draw(Renderer);
-            PerfProfiler.StopFrameEvent("Scene.Draw");
+            PerfProfiler.FrameEventEnd("Scene.Draw");
 
-            PerfProfiler.StartFrameEvent("EndFrame");
+            PerfProfiler.FrameEventStart("EndFrame");
             Renderer.EndFrame();
-            PerfProfiler.StopFrameEvent("EndFrame");
+            PerfProfiler.FrameEventEnd("EndFrame");
 
-            PerfProfiler.StartFrameEvent("BufferSwap");
+            PerfProfiler.FrameEventStart("BufferSwap");
             Host.Window.Context.SwapBuffers();
-            PerfProfiler.StopFrameEvent("BufferSwap");
+            PerfProfiler.FrameEventEnd("BufferSwap");
 #if TIMING_DEBUG
             _frameId++;
             Console.Write(_curUpdateC);

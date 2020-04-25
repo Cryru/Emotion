@@ -96,7 +96,7 @@ namespace Emotion.Common
         }
 
         [Conditional("PROFILER")]
-        public static void StartFrameEvent(string name)
+        public static void FrameEventStart(string name)
         {
             if (!_profileFrame) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", true, _frameTimer.GetElapsedMicroseconds()));
@@ -104,7 +104,7 @@ namespace Emotion.Common
         }
 
         [Conditional("PROFILER")]
-        public static void StopFrameEvent(string name)
+        public static void FrameEventEnd(string name)
         {
             if (!_profileFrame) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", false, _frameTimer.GetElapsedMicroseconds()));
