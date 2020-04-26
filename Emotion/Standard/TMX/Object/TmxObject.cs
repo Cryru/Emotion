@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Numerics;
+using Emotion.Primitives;
 using Emotion.Standard.XML;
 
 #endregion
@@ -12,7 +13,6 @@ namespace Emotion.Standard.TMX.Object
     public class TmxObject : ITmxElement
     {
         public int Id { get; private set; }
-        public int? Gid { get; private set; }
         public string Name { get; private set; }
         public TmxObjectType ObjectType { get; private set; }
         public string Type { get; private set; }
@@ -22,10 +22,22 @@ namespace Emotion.Standard.TMX.Object
         public double Height { get; private set; }
         public double Rotation { get; private set; }
         public bool Visible { get; private set; }
+        public Dictionary<string, string> Properties { get; private set; }
+
+        // Image object.
+        public int? Gid { get; private set; }
+        public bool HorizontalFlip;
+        public bool VerticalFlip;
+        public bool DiagonalFlip;
+
+        // Text object
         public TmxText Text { get; private set; }
 
-        public Collection<Vector2> Points { get; private set; }
-        public Dictionary<string, string> Properties { get; private set; }
+        // Polygon object.
+        public List<Vector2> Points { get; private set; }
+
+        // Polyline object.
+        public List<LineSegment> Lines { get; private set; }
 
         public TmxObject(XMLReader xObject)
         {
@@ -40,7 +52,12 @@ namespace Emotion.Standard.TMX.Object
             Rotation = xObject.AttributeDouble("rotation");
 
             // Assess object type and assign appropriate content
-            Gid = xObject.AttributeIntN("gid");
+            uint? rawGid = xObject.AttributeUIntN("gid");
+            if (rawGid != null)
+            {
+                Gid = TmxHelpers.GetGidFlags((uint) rawGid, out HorizontalFlip, out VerticalFlip, out DiagonalFlip);
+            }
+
             XMLReader xEllipse = xObject.Element("ellipse");
             XMLReader xPolygon = xObject.Element("polygon");
             XMLReader xPolyline = xObject.Element("polyline");
@@ -60,7 +77,12 @@ namespace Emotion.Standard.TMX.Object
             }
             else if (xPolyline != null)
             {
-                Points = ParsePoints(xPolyline);
+                List<Vector2> points = ParsePoints(xPolyline);
+                Lines = new List<LineSegment>(points.Count / 2);
+                for (var i = 0; i < points.Count; i+=2)
+                {
+                    Lines.Add(new LineSegment(points[i], points[i + 1]));
+                }
                 ObjectType = TmxObjectType.Polyline;
             }
             else
@@ -74,9 +96,9 @@ namespace Emotion.Standard.TMX.Object
             Properties = TmxHelpers.GetPropertyDict(xObject.Element("properties"));
         }
 
-        public static Collection<Vector2> ParsePoints(XMLReader xPoints)
+        public static List<Vector2> ParsePoints(XMLReader xPoints)
         {
-            var points = new Collection<Vector2>();
+            var points = new List<Vector2>();
 
             string pointString = xPoints.Attribute("points");
             string[] pointStringPair = pointString.Split(' ');

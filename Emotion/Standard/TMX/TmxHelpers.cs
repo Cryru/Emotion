@@ -63,5 +63,30 @@ namespace Emotion.Standard.TMX
             };
             return v;
         }
+
+        private const uint FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
+        private const uint FLIPPED_VERTICALLY_FLAG = 0x40000000;
+        private const uint FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+
+        public static int GetGidFlags(uint rawId, out bool horizontalFlip, out bool verticalFlip, out bool diagonalFlip)
+        {
+            // Scan for tile flip bit flags
+            bool flip = (rawId & FLIPPED_HORIZONTALLY_FLAG) != 0;
+            horizontalFlip = flip;
+
+            flip = (rawId & FLIPPED_VERTICALLY_FLAG) != 0;
+            verticalFlip = flip;
+
+            flip = (rawId & FLIPPED_DIAGONALLY_FLAG) != 0;
+            diagonalFlip = flip;
+
+            // Zero the bit flags
+            rawId &= ~(FLIPPED_HORIZONTALLY_FLAG |
+                       FLIPPED_VERTICALLY_FLAG |
+                       FLIPPED_DIAGONALLY_FLAG);
+
+            // Save GID remainder to int
+            return (int) rawId;
+        }
     }
 }
