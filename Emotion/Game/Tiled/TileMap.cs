@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Game.QuadTree;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
@@ -151,16 +152,16 @@ namespace Emotion.Game.Tiled
             }
 
             _tilesetFolder = tileSetFolder;
-
-            // Reload the map.
-            TmxMap map = TiledMap;
-            MapReloadInternal();
-            ResetInternal(map);
+            Reload();
         }
 
         protected virtual void LoadTilesets()
         {
             if (TiledMap.Tilesets.Count == 0) return;
+
+            // Don't load the assets in parallel if running on the draw thread. This might cause a deadlock as assets will wait on
+            // the draw thread to wake up in order to upload data.
+            bool parallel = !GLThread.IsGLThread();
 
             var assets = new Task<TextureAsset>[TiledMap.Tilesets.Count];
             for (var i = 0; i < assets.Length; i++)
@@ -170,7 +171,15 @@ namespace Emotion.Game.Tiled
                 tilesetFile = AssetLoader.NameToEngineName(tilesetFile);
                 if (tilesetFile[0] == '/') tilesetFile = tilesetFile.Substring(1);
 
-                assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(AssetLoader.JoinPath(_tilesetFolder, tilesetFile));
+                string assetPath = AssetLoader.JoinPath(_tilesetFolder, tilesetFile);
+                if (parallel)
+                {
+                    assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(assetPath);
+                }
+                else
+                {
+                    assets[i] = Task.FromResult(Engine.AssetLoader.Get<TextureAsset>(assetPath));
+                }
             }
 
             // ReSharper disable once CoVariantArrayConversion
@@ -183,6 +192,17 @@ namespace Emotion.Game.Tiled
                 else
                     Tilesets.Add(null);
             }
+        }
+
+        /// <summary>
+        /// Reload the currently loaded map.
+        /// </summary>
+        public void Reload()
+        {
+            TmxMap map = TiledMap;
+            MapUnloadInternal();
+            TiledMap = map;
+            ResetInternal(map);
         }
 
         /// <summary>
@@ -200,7 +220,7 @@ namespace Emotion.Game.Tiled
         /// <param name="mapFile">The new map file.</param>
         public virtual void Reset(TextAsset mapFile)
         {
-            MapReloadInternal();
+            MapUnloadInternal();
 
             // Check if no map is provided.
             if (mapFile == null) return;
@@ -432,6 +452,7 @@ namespace Emotion.Game.Tiled
             {
                 _quadTreeQueryMemory[i].Render(composer);
             }
+
             PerfProfiler.FrameEventEnd("TileMap: Objects");
         }
 
@@ -663,9 +684,9 @@ namespace Emotion.Game.Tiled
 
         #endregion
 
-        private void MapReloadInternal()
+        private void MapUnloadInternal()
         {
-            MapReload();
+            MapUnloading();
 
             // Reset holders.
             _loaded = false;
@@ -676,7 +697,7 @@ namespace Emotion.Game.Tiled
 
         public void Dispose()
         {
-            MapReloadInternal();
+            MapUnloadInternal();
         }
 
         #region Override Interface
@@ -708,7 +729,7 @@ namespace Emotion.Game.Tiled
         /// Called when the map is reloaded or disposed of.
         /// Internal resources will be cleared separately.
         /// </summary>
-        protected virtual void MapReload()
+        protected virtual void MapUnloading()
         {
             Objects = null;
 
