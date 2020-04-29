@@ -62,7 +62,7 @@ Currently supported:
 	- PNG: GreyScale/PalleteIndex/Color, Adam7 Interlacing (color only), All PNG supported bit depths. 
   - Parsing of "CFF" and "TTF" font formats, rasterizing and preparing an atlas of glyphs using an Emotion parser and rasterizer.
 	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the inluded native library)
-    	- Optionally the font can also be rasterized using StbTrueTypeSharp.
+	- Optionally the font can also be rasterized using StbTrueTypeSharp.
   - "WAV" files for audio.
 - Asset loading and managements
 - Layer-based audio system with playlists and a custom resampler.
@@ -123,7 +123,7 @@ Emotion.Standard.FreeType (Found in the Plugins folder)
  - Requires compiling Emotion with the "FreeType" symbol.
 
 StbTrueTypeSharp (https://github.com/zwcloud/StbTruetypeSharp) [GPL 3.0]
- - Provided by [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp)
+ - Requires compiling Emotion with the "StbTrueType" symbol.
  - Used by unit tests.
 
 ## Projects Referenced
