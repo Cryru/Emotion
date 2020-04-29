@@ -130,6 +130,12 @@ namespace Emotion.Graphics.Shading
         /// <returns>The location of the uniform.</returns>
         public int GetUniformLocation(string name)
         {
+            if (Bound != Pointer)
+            {
+                Engine.Log.Error($"Tried to upload uniform {name} to a shader that is not current.", MessageSource.GL);
+                return -1;
+            }
+
             // Check if uniform location is present in cache.
             if (_uniformLocationsMap.ContainsKey(name)) return _uniformLocationsMap[name];
 
