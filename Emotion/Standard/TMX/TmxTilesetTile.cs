@@ -58,7 +58,7 @@ namespace Emotion.Standard.TMX
                 // TODO: Assert that TerrainEdges length is 4
             }
 
-            Probability = xTile.AttributeDoubleN("probability") ?? 1.0;
+            Probability = xTile.AttributeFloatN("probability") ?? 1.0f;
             Type = xTile.Attribute("type");
             Image = xTile.Element("image").CurrentContents();
 

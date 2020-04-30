@@ -17,7 +17,7 @@ namespace Emotion.Standard.TMX.Layer
         public int Width { get; private set; }
         public int Height { get; private set; }
 
-        public double Opacity { get; private set; }
+        public float Opacity { get; private set; }
         public bool Visible { get; private set; }
         public float OffsetX { get; private set; }
         public float OffsetY { get; private set; }
@@ -31,10 +31,10 @@ namespace Emotion.Standard.TMX.Layer
             Width = width;
             Height = height;
 
-            Opacity = xLayer.AttributeDoubleN("opacity") ?? 1.0;
+            Opacity = xLayer.AttributeFloatN("opacity") ?? 1.0f;
             Visible = xLayer.AttributeBoolN("visible") ?? true;
-            OffsetX = (float) xLayer.AttributeDouble("offsetx");
-            OffsetY = (float) xLayer.AttributeDouble("offsety");
+            OffsetX = xLayer.AttributeFloat("offsetx");
+            OffsetY = xLayer.AttributeFloat("offsety");
 
             Properties = TmxHelpers.GetPropertyDict(xLayer.Element("properties"));
 

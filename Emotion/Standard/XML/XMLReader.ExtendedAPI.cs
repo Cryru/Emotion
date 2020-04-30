@@ -200,6 +200,25 @@ namespace Emotion.Standard.XML
         }
 
         /// <summary>
+        /// Get the attribute of this name as a nullable float.
+        /// </summary>
+        public float? AttributeFloatN(string attributeName)
+        {
+            if (!_attributes.ContainsKey(attributeName)) return null;
+            string value = _attributes[attributeName];
+            if (!float.TryParse(value, out float result)) return null;
+            return result;
+        }
+
+        /// <summary>
+        /// Get the attribute of this name as a float.
+        /// </summary>
+        public float AttributeFloat(string attributeName)
+        {
+            return AttributeFloatN(attributeName) ?? default;
+        }
+
+        /// <summary>
         /// Get the attribute of this name as a nullable bool.
         /// </summary>
         public bool? AttributeBoolN(string attributeName)
