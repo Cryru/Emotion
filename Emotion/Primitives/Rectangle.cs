@@ -302,9 +302,9 @@ namespace Emotion.Primitives
         public bool Intersects(ref Vector2 v2)
         {
             return v2.X < Right &&
-                   Left > v2.X &&
+                   v2.X > Left &&
                    v2.Y < Bottom &&
-                   Top > v2.Y;
+                   v2.Y > Top;
         }
 
         public bool Intersects(ref Rectangle r2)
@@ -318,9 +318,9 @@ namespace Emotion.Primitives
         public bool IntersectsInclusive(ref Vector2 v2)
         {
             return v2.X <= Right &&
-                   Left >= v2.X &&
+                   v2.X >= Left &&
                    v2.Y <= Bottom &&
-                   Top >= v2.Y;
+                   v2.Y >= Top;
         }
 
         public bool IntersectsInclusive(ref Rectangle r2)
