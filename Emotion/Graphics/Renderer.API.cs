@@ -299,8 +299,8 @@ namespace Emotion.Graphics
             InvalidateStateBatches();
             shader ??= ShaderFactory.DefaultProgram;
             ShaderProgram.EnsureBound(shader.Pointer);
-            Engine.Renderer.CurrentState.Shader = shader;
-            Engine.Renderer.SyncShader();
+            CurrentState.Shader = shader;
+            SyncShader();
 
             return shader;
         }
