@@ -761,6 +761,12 @@ namespace Emotion.Primitives
             return IntersectsInclusive(ref r2);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2 GetIntersectionDepth(Rectangle rectB)
+        {
+            return GetIntersectionDepth(ref rectB);
+        }
+
         #endregion
     }
 }
