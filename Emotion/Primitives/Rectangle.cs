@@ -633,16 +633,16 @@ namespace Emotion.Primitives
         /// intersect. This allows callers to determine the correct direction to push objects in order to resolve collisions.
         /// If the rectangles are not intersecting, Vector2.Zero is returned.
         /// </returns>
-        public Vector2 GetIntersectionDepth(ref Rectangle rectA, ref Rectangle rectB)
+        public Vector2 GetIntersectionDepth(ref Rectangle rectB)
         {
             // calculate half sizes
-            float halfWidthA = rectA.Width / 2.0f;
-            float halfHeightA = rectA.Height / 2.0f;
+            float halfWidthA = Width / 2.0f;
+            float halfHeightA = Height / 2.0f;
             float halfWidthB = rectB.Width / 2.0f;
             float halfHeightB = rectB.Height / 2.0f;
 
             // calculate centers
-            var centerA = new Vector2(rectA.Left + halfWidthA, rectA.Top + halfHeightA);
+            var centerA = new Vector2(Left + halfWidthA, Top + halfHeightA);
             var centerB = new Vector2(rectB.Left + halfWidthB, rectB.Top + halfHeightB);
 
             // calculate current and minimum-non-intersecting distances between centers

@@ -80,8 +80,6 @@ namespace Emotion.Primitives
             return $"Circle - X:{X}, Y:{Y}, Radius: {Radius}";
         }
 
-        #region Static Methods
-
         public bool IntersectsLine(ref LineSegment l)
         {
             Vector2 d = l.End - l.Start;
@@ -127,7 +125,5 @@ namespace Emotion.Primitives
 
             return r.Intersects(Center) || IntersectsLine(ref top) || IntersectsLine(ref right) || IntersectsLine(ref bottom) || IntersectsLine(ref left);
         }
-
-        #endregion
     }
 }
