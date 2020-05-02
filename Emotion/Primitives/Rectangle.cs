@@ -633,17 +633,17 @@ namespace Emotion.Primitives
         /// intersect. This allows callers to determine the correct direction to push objects in order to resolve collisions.
         /// If the rectangles are not intersecting, Vector2.Zero is returned.
         /// </returns>
-        public Vector2 GetIntersectionDepth(ref Rectangle rectB)
+        public Vector2 GetIntersectionDepth(ref Rectangle r2)
         {
             // calculate half sizes
             float halfWidthA = Width / 2.0f;
             float halfHeightA = Height / 2.0f;
-            float halfWidthB = rectB.Width / 2.0f;
-            float halfHeightB = rectB.Height / 2.0f;
+            float halfWidthB = r2.Width / 2.0f;
+            float halfHeightB = r2.Height / 2.0f;
 
             // calculate centers
-            var centerA = new Vector2(Left + halfWidthA, Top + halfHeightA);
-            var centerB = new Vector2(rectB.Left + halfWidthB, rectB.Top + halfHeightB);
+            var centerA = Center;
+            var centerB = r2.Center;
 
             // calculate current and minimum-non-intersecting distances between centers
             float distanceX = centerA.X - centerB.X;
@@ -656,12 +656,11 @@ namespace Emotion.Primitives
                 return Vector2.Zero;
 
             // calculate and return intersection depths
-            float depthX = distanceX > 0 ? minDistanceX - distanceX : -minDistanceX - distanceX;
-            float depthY = distanceY > 0 ? minDistanceY - distanceY : -minDistanceY - distanceY;
+            float depthX = distanceX == 0 ? 0 : distanceX > 0 ? minDistanceX - distanceX : -minDistanceX - distanceX;
+            float depthY = distanceY == 0 ? 0 : distanceY > 0 ? minDistanceY - distanceY : -minDistanceY - distanceY;
 
             return new Vector2(depthX, depthY);
         }
-
 
         public Vector2 GetClosestPointOnBoundsToOrigin()
         {
@@ -762,9 +761,9 @@ namespace Emotion.Primitives
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2 GetIntersectionDepth(Rectangle rectB)
+        public Vector2 GetIntersectionDepth(Rectangle r2)
         {
-            return GetIntersectionDepth(ref rectB);
+            return GetIntersectionDepth(ref r2);
         }
 
         #endregion
