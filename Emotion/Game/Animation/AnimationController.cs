@@ -19,8 +19,7 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// The currently playing node.
         /// </summary>
-        [DontSerialize]
-        public AnimationNode CurrentAnimation;
+        [DontSerialize] public AnimationNode CurrentAnimation;
 
         /// <summary>
         /// The animated texture in which all animations are stored.
@@ -42,7 +41,6 @@ namespace Emotion.Game.Animation
         /// </summary>
         protected AnimationController()
         {
-
         }
 
         /// <summary>
@@ -109,6 +107,16 @@ namespace Emotion.Game.Animation
             {
                 Animations.Add(node.Name, node);
             }
+        }
+
+        public AnimationController Copy()
+        {
+            return new AnimationController
+            {
+                Animations = Animations,
+                AnimTex = AnimTex.Copy(),
+                CurrentAnimation = CurrentAnimation
+            };
         }
     }
 }
