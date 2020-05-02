@@ -80,7 +80,7 @@ namespace Emotion.Primitives
             return $"Circle - X:{X}, Y:{Y}, Radius: {Radius}";
         }
 
-        public bool IntersectsLine(ref LineSegment l)
+        public bool Intersects(ref LineSegment l)
         {
             Vector2 d = l.End - l.Start;
             Vector2 f = l.Start - Center;
@@ -111,19 +111,19 @@ namespace Emotion.Primitives
             return t2 >= 0 && t2 <= 1;
         }
 
-        public bool IsPointInsideCircle(ref Vector2 p)
+        public bool Contains(ref Vector2 p)
         {
             return Vector2.Distance(Center, p) <= Radius;
         }
 
-        public bool IntersectsRectangle(ref Rectangle r)
+        public bool Intersects(ref Rectangle r)
         {
             var top = new LineSegment(r.TopLeft, r.TopRight);
             var right = new LineSegment(r.TopRight, r.BottomRight);
             var bottom = new LineSegment(r.BottomLeft, r.BottomRight);
             var left = new LineSegment(r.BottomLeft, r.TopLeft);
 
-            return r.Intersects(Center) || IntersectsLine(ref top) || IntersectsLine(ref right) || IntersectsLine(ref bottom) || IntersectsLine(ref left);
+            return r.Intersects(Center) || Intersects(ref top) || Intersects(ref right) || Intersects(ref bottom) || Intersects(ref left);
         }
     }
 }
