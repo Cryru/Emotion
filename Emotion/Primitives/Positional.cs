@@ -116,9 +116,9 @@ namespace Emotion.Primitives
 
         #region Private Holders
 
-        private float _x;
-        private float _y;
-        private float _z;
+        protected float _x;
+        protected float _y;
+        protected float _z;
 
         #endregion
 

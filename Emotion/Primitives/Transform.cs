@@ -122,8 +122,8 @@ namespace Emotion.Primitives
 
         #region Private Holders
 
-        private float _width;
-        private float _height;
+        protected float _width;
+        protected float _height;
 
         #endregion
 
