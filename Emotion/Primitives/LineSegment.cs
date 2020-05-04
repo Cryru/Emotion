@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using Emotion.Utility;
 
 #endregion
 
@@ -71,6 +72,75 @@ namespace Emotion.Primitives
                    point.Y >= Start.Y && point.Y <= End.Y ||
                    point.X >= End.X && point.X <= Start.X &&
                    point.Y >= End.Y && point.Y <= Start.Y;
+        }
+
+        public Vector2 GetClosestPointOnLineSegment(Vector2 p)
+        {
+            Vector2 AP = p - Start; //Vector from A to P   
+            Vector2 AB = End - Start; //Vector from A to B  
+
+            float magnitudeAB = AB.LengthSquared(); // Magnitude of AB vector (it's length squared)     
+            float dAPAB = Vector2.Dot(AP, AB); // The DOT product of a_to_p and a_to_b     
+            float distance = dAPAB / magnitudeAB; // The normalized "distance" from a to your closest point  
+
+            if (distance < 0) // Check if P projection is over the line
+                return Start;
+            if (distance > 1)
+                return End;
+            return Start + AB * distance;
+        }
+
+        /// <summary>
+        /// Returns the normal vector on the left side of the line.
+        /// </summary>
+        /// <param name="getRightNormal">Whether to return the normal on the right side instead.</param>
+        public Vector2 GetNormal(bool getRightNormal = false)
+        {
+            Vector2 d = End - Start;
+            return Vector2.Normalize(getRightNormal ? new Vector2(d.Y, -d.X) : new Vector2(-d.Y, d.X));
+        }
+
+        /// <summary>
+        /// Whether the provided point is left (or above) the line, and false if it is right or below.
+        /// If the point is on the line, returns null
+        /// </summary>
+        public bool? IsPointLeftOf(Vector2 c)
+        {
+            // vertical line
+            if (Maths.Approximately(End.X - Start.X, 0))
+            {
+                if (c.X < End.X) return End.Y > Start.Y;
+                if (c.X > End.X) return End.Y <= Start.Y;
+                return null;
+            }
+
+            // horizontal line
+            if (Maths.Approximately(End.Y - Start.Y, 0))
+            {
+                if (c.Y < End.Y) return End.X <= Start.X;
+                if (c.Y > End.Y) return End.X > Start.X;
+                return null;
+            }
+
+            double slope = (End.Y - Start.Y) / (End.X - Start.X);
+            double yIntercept = Start.Y - Start.X * slope;
+            double cSolution = slope * c.X + yIntercept;
+            if (slope == 0) return null;
+
+            if (c.Y > cSolution) return End.X > Start.X;
+            if (c.Y < cSolution) return End.X <= Start.X;
+            return null;
+        }
+
+        public Vector2 PointOnLineAtDistance(float distance)
+        {
+            float d = Length();
+            float t = distance / d;
+
+            float xt = (1 - t) * Start.X + t * End.X;
+            float yt = (1 - t) * Start.Y + t * End.Y;
+
+            return new Vector2(xt, yt);
         }
     }
 }
