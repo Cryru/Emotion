@@ -1,12 +1,12 @@
 ﻿#region Using
 
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
+using Emotion.Utility;
 
 #endregion
 
-namespace Emotion.Utility
+namespace System.Numerics
 {
     /// <summary>
     /// Extension functionality of other classes not within Emotion.
@@ -188,6 +188,60 @@ namespace Emotion.Utility
             return v.X <= comp.X && v.Y <= comp.Y;
         }
 
+        
+        /// <summary>
+        /// Returns whether the components of the second vector are all larger or equal to this vector's.
+        /// >=
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="comp"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool LargerOrEqual(this Vector3 v, Vector3 comp)
+        {
+            return v.X >= comp.X && v.Y >= comp.Y && v.Z >= comp.Z;
+        }
+
+        /// <summary>
+        /// Returns whether the components of the second vector are all smaller or equal to this vector's.
+        /// Basically &lt;=
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="comp"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool SmallerOrEqual(this Vector3 v, Vector3 comp)
+        {
+            return v.X <= comp.X && v.Y <= comp.Y && v.Z <= comp.Z;
+        }
+
+        /// <summary>
+        /// "Cross product" approximation for 2D vectors.
+        /// </summary>
+        public static float Cross(this Vector2 me, Vector2 other)
+        {
+            return Vector3.Cross(me.ToVec3(), other.ToVec3()).Z;
+        }
+
+        /// <summary>
+        /// Pow both components of the vector2.
+        /// </summary>
+        public static Vector2 Pow(this Vector2 me, float pow)
+        {
+            return new Vector2(MathF.Pow(me.X, pow), MathF.Pow(me.Y, pow));
+        }
+
+        public static float PowDiagonal(this Vector2 me, float pow)
+        {
+            return MathF.Pow(me.X, pow) + MathF.Pow(me.Y, pow);
+        }
+    }
+}
+
+namespace Emotion.Utility
+{
+    public static class Extensions
+    {
         /// <summary>
         /// Adds an element to an array. This is worse than using a list and will resize the array.
         /// </summary>
@@ -236,14 +290,6 @@ namespace Emotion.Utility
             T temp = array[idx];
             array[idx] = array[withIdx];
             array[withIdx] = temp;
-        }
-
-        /// <summary>
-        /// "Cross product" approximation for 2D vectors.
-        /// </summary>
-        public static float Cross(this Vector2 me, Vector2 other)
-        {
-            return Vector3.Cross(me.ToVec3(), other.ToVec3()).Z;
         }
     }
 }
