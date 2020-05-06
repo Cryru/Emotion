@@ -91,6 +91,31 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
+        /// Find the point of intersection between a ray and this line segment.
+        /// If the ray doesn't hit the line 0,0 is returned.
+        /// </summary>
+        public Vector2 FindIntersectionPoint(Ray2D ray)
+        {
+            Vector2 v1 = ray.Start - Start;
+            Vector2 v2 = End - Start;
+            var v3 = new Vector2(-ray.Direction.Y, ray.Direction.X);
+
+            float dot = Vector2.Dot(v2, v3);
+            if (MathF.Abs(dot) < 0.000001)
+                return Vector2.Zero;
+
+            float t1 = v2.Cross(v1) / dot;
+            float t2 = Vector2.Dot(v1, v3) / dot;
+
+            if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0))
+            {
+                return ray.Start + ray.Direction * t1;
+            }
+
+            return Vector2.Zero;
+        }
+
+        /// <summary>
         /// Returns the normal vector on the left side of the line.
         /// </summary>
         /// <param name="getRightNormal">Whether to return the normal on the right side instead.</param>
