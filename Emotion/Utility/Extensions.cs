@@ -218,22 +218,29 @@ namespace System.Numerics
         /// <summary>
         /// "Cross product" approximation for 2D vectors.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Cross(this Vector2 me, Vector2 other)
         {
             return Vector3.Cross(me.ToVec3(), other.ToVec3()).Z;
         }
 
         /// <summary>
+        /// Get the vector perpendicular (90deg) to this one.
+        /// </summary>
+        /// <param name="me"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 Perpendicular(this Vector2 me)
+        {
+            return new Vector2(me.Y, me.X);
+        }
+
+        /// <summary>
         /// Pow both components of the vector2.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 Pow(this Vector2 me, float pow)
         {
             return new Vector2(MathF.Pow(me.X, pow), MathF.Pow(me.Y, pow));
-        }
-
-        public static float PowDiagonal(this Vector2 me, float pow)
-        {
-            return MathF.Pow(me.X, pow) + MathF.Pow(me.Y, pow);
         }
     }
 }
