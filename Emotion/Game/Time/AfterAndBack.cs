@@ -62,5 +62,10 @@ namespace Emotion.Game.Time
             _function?.Invoke();
             Finished = true;
         }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}, InReverse: {InReverse}";
+        }
     }
 }

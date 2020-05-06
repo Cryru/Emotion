@@ -56,5 +56,10 @@ namespace Emotion.Game.Time
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return $"Delay: {_delay}, Progress: {Math.Round(Progress, 2)}, Finished: {Finished}";
+        }
     }
 }
