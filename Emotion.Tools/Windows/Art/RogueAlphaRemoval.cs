@@ -1,13 +1,14 @@
 ﻿#region Using
 
 using System;
+using System.Numerics;
+using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Standard.Image.PNG;
 using Emotion.Tools.Windows.HelpWindows;
-using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;
 
@@ -18,7 +19,7 @@ namespace Emotion.Tools.Windows.Art
     public class RogueAlphaRemoval : ImGuiWindow
     {
         private TextureAsset _file;
-        private int _rogueAlphaPixels = 0;
+        private int _rogueAlphaPixels;
         private byte[] _pixelData;
         private byte[] _removedPixelData;
         private Texture _previewTexture;
@@ -34,19 +35,17 @@ namespace Emotion.Tools.Windows.Art
             // File selection.
             if (ImGui.Button("Choose Texture File"))
             {
-                var explorer = new FileExplorer<TextureAsset>(f => { 
+                var explorer = new FileExplorer<TextureAsset>(f =>
+                {
                     _file = f;
                     _pixelData = null;
                 });
                 Parent.AddWindow(explorer);
             }
 
-            if(_file == null) return;
+            if (_file == null) return;
 
-            if (_previewTexture == null)
-            {
-                _previewTexture = new Texture(new System.Numerics.Vector2(100, 100));
-            }
+            if (_previewTexture == null) _previewTexture = new Texture(new Vector2(100, 100));
 
             if (_pixelData == null)
             {
@@ -75,26 +74,21 @@ namespace Emotion.Tools.Windows.Art
                 DetectRogueAlpha();
                 UpdatePreview();
             }
+
             ImGui.Text($"Detected Rogue Alpha: {_rogueAlphaPixels}/{_file.Texture.Size.X * _file.Texture.Size.Y} pixels");
 
             ImGui.Text("Preview");
             ImGui.Image(new IntPtr(_previewTexture.Pointer), _previewTexture.Size);
 
-            if (ImGui.Button("Normal Preview"))
-            {
-                UpdatePreview("normal");
-            }
+            if (ImGui.Button("Normal Preview")) UpdatePreview("normal");
             ImGui.SameLine();
-            if (ImGui.Button("Alpha Preview"))
-            {
-                UpdatePreview("alpha");
-            }
+            if (ImGui.Button("Alpha Preview")) UpdatePreview("alpha");
 
             if (ImGui.Button("Apply Changes"))
             {
                 UpdatePreview("export");
                 byte[] pngData = PngFormat.Encode(_removedPixelData, (int) _previewTexture.Size.X, (int) _previewTexture.Size.Y);
-                System.IO.File.WriteAllBytes(Helpers.CrossPlatformPath($"Assets/rogueAlphaRemoved_{System.IO.Path.GetFileName(_file.Name)}"), pngData);
+                Engine.AssetLoader.Save(pngData, AssetLoader.JoinPath("Player", _file.Name));
             }
         }
 
@@ -104,7 +98,7 @@ namespace Emotion.Tools.Windows.Art
 
             _rogueAlphaPixels = 0;
 
-            for (var i = 0; i < _pixelData.Length; i+= 4)
+            for (var i = 0; i < _pixelData.Length; i += 4)
             {
                 byte b = _pixelData[i];
                 byte g = _pixelData[i + 1];
