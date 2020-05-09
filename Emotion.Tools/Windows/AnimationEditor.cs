@@ -122,6 +122,29 @@ namespace Emotion.Tools.Windows
                 if (_orderWindow == null || !_orderWindow.Open)
                     Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, _animation));
 
+            if (ImGui.Button("Redetect Frames"))
+            {
+                Rectangle[] previousFrames = _animation.Frames;
+                Rectangle[] frames = AutoDetectFrames(_spriteSheetTexture.Texture);
+
+                // Try to maintain the old order.
+                for (var i = 0; i < frames.Length; i++)
+                {
+                    for (var old = 0; old < previousFrames.Length; old++)
+                    {
+                        if (frames[i] == previousFrames[old] && i != old && old < frames.Length - 1)
+                        {
+                            Rectangle temp = frames[i];
+                            frames[i] = frames[old];
+                            frames[old] = temp;
+                            break;
+                        }
+                    }
+                }
+
+                _animation.Frames = frames;
+            }
+
             ImGui.Text($"Current Frame: {_animation.CurrentFrameIndex + 1}/{_animation.AnimationFrames + 1}");
             ImGui.Text($"Current Anchor: {(_animation.Anchors.Length > 0 ? _animation.Anchors[_animation.CurrentFrameIndex].ToString() : "Unknown")}");
 
@@ -204,20 +227,30 @@ namespace Emotion.Tools.Windows
                 }
 
                 int frameTime = _animation.TimeBetweenFrames;
-                ImGui.InputInt("MS Between Frames", ref frameTime);
-                if (frameTime != _animation.TimeBetweenFrames) _animation.TimeBetweenFrames = frameTime;
+                if (ImGui.InputInt("MS Between Frames", ref frameTime))
+                {
+                    _animation.TimeBetweenFrames = frameTime;
+                    _animation.Reset();
+                }
+
+                ImGui.Text("Starting and ending frames are 0 indexed and inclusive.");
 
                 int startingFrame = _animation.StartingFrame;
-                ImGui.InputInt("Starting Frame", ref startingFrame);
-                if (startingFrame != _animation.StartingFrame) _animation.StartingFrame = startingFrame;
+                if (ImGui.InputInt("Starting Frame", ref startingFrame))
+                {
+                    _animation.StartingFrame = startingFrame;
+                    _animation.Reset();
+                }
 
                 int endingFrame = _animation.EndingFrame;
-                ImGui.InputInt("Ending Frame", ref endingFrame);
-                if (endingFrame != _animation.EndingFrame) _animation.EndingFrame = endingFrame;
+                if (ImGui.InputInt("Ending Frame", ref endingFrame))
+                {
+                    _animation.EndingFrame = endingFrame;
+                    _animation.Reset();
+                }
 
                 var loopType = (int) _animation.LoopType;
-                ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
-                if ((AnimationLoopType) loopType != _animation.LoopType)
+                if (ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType)))))
                 {
                     _animation.LoopType = (AnimationLoopType) loopType;
                     _animation.Reset();
@@ -271,38 +304,36 @@ namespace Emotion.Tools.Windows
                 var modified = false;
 
                 int frameTime = cur.TimeBetweenFrames;
-                ImGui.InputInt("MS Between Frames", ref frameTime);
-                if (frameTime != cur.TimeBetweenFrames)
+                if (ImGui.InputInt("MS Between Frames", ref frameTime))
                 {
                     cur.TimeBetweenFrames = frameTime;
                     modified = true;
                 }
 
+                ImGui.Text("Starting and ending frames are 0 indexed and inclusive.");
+
                 int startingFrame = cur.StartingFrame;
-                ImGui.InputInt("Starting Frame", ref startingFrame);
-                if (startingFrame != cur.StartingFrame)
+                if (ImGui.InputInt("Starting Frame", ref startingFrame))
                 {
                     cur.StartingFrame = startingFrame;
                     modified = true;
                 }
 
                 int endingFrame = cur.EndingFrame;
-                ImGui.InputInt("Ending Frame", ref endingFrame);
-                if (endingFrame != cur.EndingFrame)
+                if (ImGui.InputInt("Ending Frame", ref endingFrame))
                 {
                     cur.EndingFrame = endingFrame;
                     modified = true;
                 }
 
                 var loopType = (int) cur.LoopType;
-                ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType))));
-                if ((AnimationLoopType) loopType != cur.LoopType)
+                if (ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType)))))
                 {
                     cur.LoopType = (AnimationLoopType) loopType;
                     modified = true;
                 }
 
-                if (modified) _animController.SetAnimation(cur.Name);
+                if (modified) _animController.SetAnimation(cur.Name, true);
             }
         }
 

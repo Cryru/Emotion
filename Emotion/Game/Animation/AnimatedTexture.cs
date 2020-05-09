@@ -19,7 +19,7 @@ namespace Emotion.Game.Animation
     {
         public string SpriteSheetName
         {
-            get => _spriteSheetName;
+            get => string.IsNullOrEmpty(_spriteSheetName) ? TextureAsset?.Name : _spriteSheetName;
             set
             {
                 _spriteSheetName = value;

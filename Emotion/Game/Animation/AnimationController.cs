@@ -65,9 +65,9 @@ namespace Emotion.Game.Animation
         /// Set the current animation.
         /// </summary>
         /// <param name="animName"></param>
-        public void SetAnimation(string animName)
+        public void SetAnimation(string animName, bool force = false)
         {
-            if (CurrentAnimation != null && CurrentAnimation.Name == animName) return;
+            if (!force && CurrentAnimation != null && CurrentAnimation.Name == animName) return;
 
             if (!HasAnimation(animName))
             {
