@@ -416,9 +416,9 @@ namespace Emotion.Game.Tiled
 
             TmxLayer layer = TiledMap.TileLayers[idx];
             var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TiledMap.TileHeight) - SafeArea, 0, layer.Height);
-            int yEnd = yStart + (int) Maths.Clamp(MathF.Ceiling(clipVal.Height / TiledMap.TileHeight) + SafeArea * 2, 0, layer.Height);
+            var yEnd = (int) Maths.Clamp(yStart + MathF.Ceiling(clipVal.Height / TiledMap.TileHeight) + SafeArea * 2, 0, layer.Height);
             var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TiledMap.TileWidth) - SafeArea, 0, layer.Width);
-            int xEnd = xStart + (int) Maths.Clamp(MathF.Ceiling(clipVal.Width / TiledMap.TileWidth) + SafeArea * 2, 0, layer.Width);
+            var xEnd = (int) Maths.Clamp(xStart + MathF.Ceiling(clipVal.Width / TiledMap.TileWidth) + SafeArea * 2, 0, layer.Width);
 
             for (int y = yStart; y < yEnd; y++)
             {
