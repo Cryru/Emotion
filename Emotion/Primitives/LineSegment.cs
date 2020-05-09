@@ -74,20 +74,31 @@ namespace Emotion.Primitives
                    point.Y >= End.Y && point.Y <= Start.Y;
         }
 
-        public Vector2 GetClosestPointOnLineSegment(Vector2 p)
+        /// <summary>
+        /// Find the closest point on the line segment to the specified point.
+        /// </summary>
+        /// <param name="p">The point to find the closest point to.</param>
+        /// <param name="infinite">
+        /// Line segments have a start and beginning, so if the point is further than the start or end it
+        /// will be clamped, unless this is set to true.
+        /// </param>
+        /// <returns></returns>
+        public Vector2 GetClosestPointOnLineSegment(Vector2 p, bool infinite = false)
         {
-            Vector2 AP = p - Start; //Vector from A to P   
-            Vector2 AB = End - Start; //Vector from A to B  
+            Vector2 ap = p - Start; //Vector from A to P   
+            Vector2 ab = End - Start; //Vector from A to B  
 
-            float magnitudeAB = AB.LengthSquared(); // Magnitude of AB vector (it's length squared)     
-            float dAPAB = Vector2.Dot(AP, AB); // The DOT product of a_to_p and a_to_b     
-            float distance = dAPAB / magnitudeAB; // The normalized "distance" from a to your closest point  
+            float magnitudeAb = ab.LengthSquared(); // Magnitude of AB vector (it's length squared)     
+            float dApab = Vector2.Dot(ap, ab); // The DOT product of a_to_p and a_to_b     
+            float distance = dApab / magnitudeAb; // The normalized "distance" from a to your closest point  
 
+            if (infinite) return Start + ab * distance;
             if (distance < 0) // Check if P projection is over the line
                 return Start;
             if (distance > 1)
                 return End;
-            return Start + AB * distance;
+
+            return Start + ab * distance;
         }
 
         /// <summary>
@@ -107,10 +118,7 @@ namespace Emotion.Primitives
             float t1 = v2.Cross(v1) / dot;
             float t2 = Vector2.Dot(v1, v3) / dot;
 
-            if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0))
-            {
-                return ray.Start + ray.Direction * t1;
-            }
+            if (t1 >= 0.0 && t2 >= 0.0 && t2 <= 1.0) return ray.Start + ray.Direction * t1;
 
             return Vector2.Zero;
         }
