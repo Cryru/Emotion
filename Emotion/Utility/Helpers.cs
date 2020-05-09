@@ -104,16 +104,6 @@ namespace Emotion.Utility
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);
         }
 
-        /// <summary>
-        /// Exclusive or conditional. Returns true only if one of the two is true.
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool XOR(bool a, bool b)
-        {
-            return (a || b) && a != b;
-        }
-
         private static readonly byte[] Utf16Le = {0xFF, 0xFE};
         private static readonly byte[] Utf8Le = {0xEF, 0xBB, 0xBF};
         private static readonly byte[] Utf32Le = {0xFF, 0xFE, 0, 0};
@@ -133,7 +123,7 @@ namespace Emotion.Utility
         {
             // "utf-16" - Unicode UTF-16, little endian byte order
             if (BytesEqual(data, Utf16LeAlt)) return Encoding.Unicode.GetString(data);
-            if (XOR(data[2] == 0, data[3] == 0) && BytesEqual(data, Utf16Le))
+            if (data[2] == 0 ^ data[3] == 0 && BytesEqual(data, Utf16Le))
             {
                 return Encoding.Unicode.GetString(data);
             }
