@@ -150,7 +150,7 @@ namespace Emotion.Tools.Windows
 
             for (var i = 0; i <= _animation.TotalFrames; i++)
             {
-                if (i != 0 && i % 5 != 0) ImGui.SameLine(0, 5);
+                if (i != 0 && i % 10 != 0) ImGui.SameLine(0, 5);
 
                 bool current = _animation.CurrentFrameIndex == i;
 
