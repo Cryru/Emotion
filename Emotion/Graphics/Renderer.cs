@@ -242,7 +242,8 @@ namespace Emotion.Graphics
             IndexBuffer.CreateDefaultIndexBuffers();
 
             // Set start state.
-            Gl.ClearColor(0, 0, 0, 0);
+            Vector4 c = Engine.Configuration.ClearColor.ToVec4();
+            Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
 
             ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
             if (defaultProgram == null)
@@ -506,7 +507,6 @@ namespace Emotion.Graphics
 
         public void Update()
         {
-            // Update the camera
             Camera.Update();
         }
 

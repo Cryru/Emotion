@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Platform;
+using Emotion.Primitives;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -74,6 +75,12 @@ namespace Emotion.Common
         /// This is off by default and textures are created with a nearest filter.
         /// </summary>
         public bool TextureDefaultSmooth { get; set; }
+
+        /// <summary>
+        /// The color to clear the default and all other framebuffers to.
+        /// This is transparent by default and is set only once - at the start.
+        /// </summary>
+        public Color ClearColor { get; set; } = new Color(0, 0, 0, 0);
 
         #endregion
 
