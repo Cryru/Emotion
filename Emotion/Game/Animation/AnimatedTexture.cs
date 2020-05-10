@@ -513,5 +513,10 @@ namespace Emotion.Game.Animation
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return $"{_spriteSheetName} @ frame {CurrentFrameIndex} of ({StartingFrame}-{EndingFrame}), Time: {TimeBetweenFrames}, Loop: {LoopType}, Progress: {Progress} ";
+        }
     }
 }
