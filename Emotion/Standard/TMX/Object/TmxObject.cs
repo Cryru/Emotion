@@ -74,8 +74,8 @@ namespace Emotion.Standard.TMX.Object
             else if (xPolyline != null)
             {
                 List<Vector2> points = ParsePoints(xPolyline);
-                Lines = new List<LineSegment>(points.Count / 2);
-                for (var i = 0; i < points.Count; i += 2)
+                Lines = new List<LineSegment>(points.Count - 1);
+                for (var i = 0; i < points.Count - 1; i++)
                 {
                     Lines.Add(new LineSegment(points[i], points[i + 1]));
                 }
@@ -93,7 +93,7 @@ namespace Emotion.Standard.TMX.Object
             Properties = TmxHelpers.GetPropertyDict(xObject.Element("properties"));
         }
 
-        public static List<Vector2> ParsePoints(XMLReader xPoints)
+        public List<Vector2> ParsePoints(XMLReader xPoints)
         {
             var points = new List<Vector2>();
 
@@ -102,6 +102,11 @@ namespace Emotion.Standard.TMX.Object
             foreach (string s in pointStringPair)
             {
                 Vector2 pt = TmxHelpers.GetObjectPoint(s);
+
+                // Point coordinates are relative to the object.
+                pt.X += X;
+                pt.Y += Y;
+
                 points.Add(pt);
             }
 
