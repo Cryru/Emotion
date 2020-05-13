@@ -132,35 +132,31 @@ namespace Emotion.Utility
         /// </summary>
         /// <param name="bytes">The bytes to convert from. Cannot be null.</param>
         /// <param name="bits">The number of bits per value.</param>
+        /// <param name="relativeValue">If true then the value in the bits will be scaled to the byte's range, if false it will be clipped.</param>
         /// <returns>The resulting byte array. Is never null.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="bytes" /> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="bits" /> is greater or equals than zero.</exception>
-        public static Span<byte> ToArrayByBitsLength(Span<byte> bytes, int bits)
+        public static Span<byte> ToArrayByBitsLength(Span<byte> bytes, int bits, bool relativeValue = true)
         {
-            Span<byte> result;
-            if (bits < 8)
+            if (bits >= 8) return bytes;
+
+            Span<byte> result = new byte[bytes.Length * 8 / bits];
+            int factor = (int) Math.Pow(2, bits) - 1;
+            int f = 255 / factor;
+            int mask = 0xFF >> (8 - bits);
+            var resultOffset = 0;
+
+            for (var i = 0; i < bytes.Length; i++)
             {
-                result = new byte[bytes.Length * 8 / bits];
+                byte b = bytes[i];
 
-                int factor = (int) Math.Pow(2, bits) - 1;
-                int mask = 0xFF >> (8 - bits);
-                var resultOffset = 0;
-
-                for (var i = 0; i < bytes.Length; i++)
+                for (var shift = 0; shift < 8; shift += bits)
                 {
-                    for (var shift = 0; shift < 8; shift += bits)
-                    {
-                        int colorIndex = ((i >> (8 - bits - shift)) & mask) * (255 / factor);
-
-                        result[resultOffset] = (byte) colorIndex;
-
-                        resultOffset++;
-                    }
+                    int value = (b >> (8 - bits - shift)) & mask;
+                    if (relativeValue) value *= f;
+                    result[resultOffset] = (byte) value;
+                    resultOffset++;
                 }
-            }
-            else
-            {
-                result = bytes;
             }
 
             return result;

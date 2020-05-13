@@ -59,7 +59,7 @@ Currently supported:
 - File Support
   - Reading and writing of various BMP formats and PNG files.
 	- BMP: 8/16/24/32bit
-	- PNG: GreyScale/PalleteIndex/Color, Adam7 Interlacing (color only), All PNG supported bit depths. 
+	- PNG: All png formats and bit depths are supported.
   - Parsing of "CFF" and "TTF" font formats, rasterizing and preparing an atlas of glyphs using an Emotion parser and rasterizer.
 	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the inluded native library)
 	- Optionally the font can also be rasterized using StbTrueTypeSharp.
@@ -147,6 +147,9 @@ Nine.Imagine (https://github.com/yufeih/Nine.Imaging)
 
 ImageSharp (https://github.com/SixLabors/ImageSharp)
  - Quirky image formats reference.
+
+ PNGSuite (http://www.schaik.com/pngsuite/)
+ - Testing PNG reader implementation
 
 OpenAL-Soft (https://github.com/kcat/openal-soft/)
  - Audio code reference
