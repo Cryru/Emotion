@@ -534,11 +534,11 @@ namespace Emotion.Standard.Image.PNG
                     Span<byte> convertedLine = ConvertBitArray(scanLine, fileHeader);
                     for (var pixel = 0; pixel < pixelsInLine; pixel++)
                     {
-                        int offset = row * channelsPerColor * fileHeader.Width + (Adam7.FirstColumn[i] + pixel * Adam7.ColumnIncrement[i]) * channelsPerColor;
-                        for (var p = 0; p < channelsPerColor; p++)
+                        int offset = row * bytesPerPixel * fileHeader.Width + (Adam7.FirstColumn[i] + pixel * Adam7.ColumnIncrement[i]) * bytesPerPixel;
+                        int offsetSrc = pixel * bytesPerPixel;
+                        for (var p = 0; p < bytesPerPixel; p++)
                         {
-                            if (offset + p >= combination.Length) continue;
-                            combination[offset + p] = convertedLine[pixel + p];
+                            combination[offset + p] = convertedLine[offsetSrc + p];
                         }
                     }
 
@@ -549,7 +549,7 @@ namespace Emotion.Standard.Image.PNG
             }
 
             // Read the combined image.
-            int stride = fileHeader.Width * channelsPerColor;
+            int stride = fileHeader.Width * bytesPerPixel;
             int scanlineCount = combination.Length / stride;
             for (var i = 0; i < scanlineCount; i++)
             {
