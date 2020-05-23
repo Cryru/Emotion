@@ -65,6 +65,7 @@ namespace Emotion.Plugins.ImGuiNet.Windowing
                 }
 
                 win.Parent = this;
+                win.OnOpen();
                 _openWindows.Add(win);
             }
         }
