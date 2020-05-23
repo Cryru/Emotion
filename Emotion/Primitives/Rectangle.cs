@@ -593,7 +593,7 @@ namespace Emotion.Primitives
 
         /// <summary>
         /// returns true if the boxes are colliding
-        /// moveX and moveY will return the movement that b1 must move to avoid the collision
+        /// moveX and moveY will return the movement that this rect must move to avoid the collision
         /// </summary>
         /// <param name="other">Other.</param>
         /// <param name="moveX">Move x.</param>
@@ -602,14 +602,14 @@ namespace Emotion.Primitives
         {
             moveX = moveY = 0.0f;
 
+            // check that there was a collision
+            if (!Intersects(ref other))
+                return false;
+
             float l = other.X - (X + Width);
             float r = other.X + other.Width - X;
             float t = other.Y - (Y + Height);
             float b = other.Y + other.Height - Y;
-
-            // check that there was a collision
-            if (l > 0 || r < 0 || t > 0 || b < 0)
-                return false;
 
             // find the offset of both sides
             moveX = Math.Abs(l) < r ? l : r;
@@ -617,9 +617,15 @@ namespace Emotion.Primitives
 
             // only use whichever offset is the smallest
             if (Math.Abs(moveX) < Math.Abs(moveY))
-                moveY = 0.0f;
+            {
+                if(moveX != 0)
+                    moveY = 0.0f;
+            }
             else
-                moveX = 0.0f;
+            {
+                if(moveY != 0)
+                    moveX = 0.0f;
+            }
 
             return true;
         }
