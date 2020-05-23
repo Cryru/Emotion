@@ -83,7 +83,7 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// The index of the current frame within the total frame count. Zero indexed.
         /// </summary>
-        public int CurrentFrameIndex { get; protected set; }
+        public int CurrentFrameIndex { get; set; }
 
         /// <summary>
         /// The total number of frames in the spritesheet. Zero indexed. Inclusive.
@@ -380,19 +380,6 @@ namespace Emotion.Game.Animation
             ClampFrameParameters();
             CurrentFrameIndex = GetStartingFrame();
             LoopCount = 0;
-        }
-
-        /// <summary>
-        /// Set the current frame to the specified frame.
-        /// Animation will continue from there.
-        /// If the index is invalid it will either be set to the starting or ending frame.
-        /// </summary>
-        /// <param name="index">The index to set the current frame to.</param>
-        public virtual void SetFrame(int index)
-        {
-            CurrentFrameIndex = index;
-            ClampFrameParameters();
-            ClampCurrentFrame();
         }
 
         /// <summary>
