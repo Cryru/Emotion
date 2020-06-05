@@ -182,9 +182,9 @@ namespace Emotion.Tools.Windows
             {
                 ImGui.SameLine();
                 if (!ImGui.Button("SaveToFile")) return;
-                string saveName = _saveName;
+                string saveName = _saveName.ToLower();
                 if (!saveName.Contains(".anim")) saveName += ".anim";
-                if (!saveName.Contains("Player/")) saveName = $"Player/{saveName}";
+                if (!saveName.Contains("player/")) saveName = $"player/{saveName}";
 
                 try
                 {
@@ -471,7 +471,7 @@ namespace Emotion.Tools.Windows
                 }
             }
 
-            return boxes.OrderBy(x => Math.Round((x.Y + x.Height / 2) / 100f)).ThenBy(x => Math.Round((x.X + x.Width / 2) / 100f)).ToArray();
+            return boxes.Where(x => x.Width > 1 && x.Height > 1).OrderBy(x => Math.Round((x.Y + x.Height / 2) / 100f)).ThenBy(x => Math.Round((x.X + x.Width / 2) / 100f)).ToArray();
         }
 
         #endregion
