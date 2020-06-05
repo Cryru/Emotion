@@ -1,4 +1,5 @@
-﻿#region Using
+﻿
+#region Using
 
 using System;
 using System.Runtime.CompilerServices;
@@ -132,6 +133,33 @@ namespace System.Numerics
         {
             v.X = MathF.Ceiling(v.X);
             v.Y = MathF.Ceiling(v.Y);
+            return v;
+        }
+
+        /// <summary>
+        /// Round the vector's components away from 0 even when not at the midpoint.
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 RoundAwayFromZero(this Vector2 v)
+        {
+            v.X = MathF.Round(v.X + 0.5f, MidpointRounding.AwayFromZero);
+            v.Y = MathF.Round(v.Y + 0.5f, MidpointRounding.AwayFromZero);
+            return v;
+        }
+
+        /// <summary>
+        /// Round the vector's components away from 0 even when not at the midpoint.
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 RoundAwayFromZero(this Vector3 v)
+        {
+            v.X = MathF.Round(v.X + 0.5f, MidpointRounding.AwayFromZero);
+            v.Y = MathF.Round(v.Y + 0.5f, MidpointRounding.AwayFromZero);
+            v.Z = MathF.Round(v.Z + 0.5f, MidpointRounding.AwayFromZero);
             return v;
         }
 
