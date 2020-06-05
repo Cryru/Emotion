@@ -285,5 +285,34 @@ namespace Tests.Classes
                 testBuffer.Dispose();
             }).WaitOne();
         }
+
+        /// <summary>
+        /// Test drawing of lines.
+        /// </summary>
+        [Test]
+        public void LineDrawing()
+        {
+            Runner.ExecuteAsLoop(_ =>
+            {
+                RenderComposer composer = Engine.Renderer.StartFrame();
+
+                composer.PushModelMatrix(Matrix4x4.CreateTranslation(200, 200, 0));
+
+                // Test lines in all directions. Z will not be visible though
+                composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(10, 0, 0), Color.Red);
+                composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 10, 0), Color.Green);
+                composer.RenderArrow(new Vector3(0, 0, 0), new Vector3(0, 0, 10), Color.Blue);
+
+                // Lines must be at least 1 pixel thick.
+                composer.RenderArrow(new Vector3(10, 0, 0), new Vector3(100, 0, 0), Color.Red, 0.1f);
+                composer.RenderArrow(new Vector3(0, 10, 0), new Vector3(0, 100, 0), Color.Green, 0.1f);
+                composer.RenderArrow(new Vector3(0, 0, 10), new Vector3(0, 0, 100), Color.Blue, 0.1f);
+
+                composer.PopModelMatrix();
+
+                Engine.Renderer.EndFrame();
+                Runner.VerifyScreenshot(ResultDb.LineDrawing);
+            }).WaitOne();
+        }
     }
 }

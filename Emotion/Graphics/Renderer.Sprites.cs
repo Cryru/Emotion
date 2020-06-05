@@ -76,30 +76,69 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Render a line.
+        /// </summary>
+        /// <param name="segment">The line segment to render.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="thickness">The thickness of the line.</param>
+        public void RenderLine(ref LineSegment segment, Color color, float thickness = 1f)
+        {
+            RenderLine(segment.Start, segment.End, color, thickness);
+        }
+
+        /// <summary>
         /// Render a line made out of quads.
         /// </summary>
         /// <param name="pointOne">The point to start the line.</param>
         /// <param name="pointTwo">The point to end the line at.</param>
         /// <param name="color">The color of the line.</param>
-        /// <param name="thickness">The thickness of the line.</param>
+        /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
             SpriteBatchBase<VertexData> batch = GetBatch();
             Span<VertexData> vertices = batch.GetData(null);
 
-            Vector2 normal = Vector2.Normalize(new Vector2(pointTwo.Y - pointOne.Y, -(pointTwo.X - pointOne.X))) * thickness;
-            float z = Math.Max(pointOne.Z, pointTwo.Z);
+            Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
+            var normal = new Vector3(-direction.Y, direction.X, 0);
+            Vector3 delta = normal * (thickness / 2f);
 
-            vertices[0].Vertex = new Vector3(pointOne.X + normal.X, pointOne.Y + normal.Y, z);
-            vertices[1].Vertex = new Vector3(pointTwo.X + normal.X, pointTwo.Y + normal.Y, z);
-            vertices[2].Vertex = new Vector3(pointTwo.X - normal.X, pointTwo.Y - normal.Y, z);
-            vertices[3].Vertex = new Vector3(pointOne.X - normal.X, pointOne.Y - normal.Y, z);
+            vertices[0].Vertex = (pointOne + delta).RoundAwayFromZero();
+            vertices[1].Vertex = (pointTwo + delta).RoundAwayFromZero();
+            vertices[2].Vertex = (pointTwo - delta).RoundAwayFromZero();
+            vertices[3].Vertex = (pointOne - delta).RoundAwayFromZero();
 
             uint c = color.ToUint();
             vertices[0].Color = c;
             vertices[1].Color = c;
             vertices[2].Color = c;
             vertices[3].Color = c;
+        }
+
+        /// <summary>
+        /// Render a line with an arrow at the end.
+        /// </summary>
+        /// <param name="pointOne">The point to start the line.</param>
+        /// <param name="pointTwo">The point to end the line at.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
+        public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
+        {
+            RenderLine(pointOne, pointTwo, color, thickness);
+
+            Vector3 diff = pointTwo - pointOne;
+            const float maxArrowHeadLength = 10;
+            float length = Math.Min(diff.Length() / 2, maxArrowHeadLength);
+            float width = length / 2;
+
+            Vector3 direction = Vector3.Normalize(diff);
+            var normal = new Vector3(-direction.Y, direction.X, 0);
+            Vector3 lengthDelta = length * direction;
+            Vector3 delta = width * normal;
+            Vector3 arrowPointOne = pointTwo - lengthDelta + delta;
+            Vector3 arrowPointTwo = pointTwo - lengthDelta - delta;
+
+            RenderLine(pointTwo, arrowPointOne, color, thickness);
+            RenderLine(pointTwo, arrowPointTwo, color, thickness);
         }
 
         /// <summary>
