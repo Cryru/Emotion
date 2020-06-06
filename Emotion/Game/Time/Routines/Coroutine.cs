@@ -7,9 +7,9 @@ using System.Collections;
 namespace Emotion.Game.Time.Routines
 {
     /// <summary>
-    /// An object representing a coroutine
-    /// created by the CoroutineManager to keep track of your routine.
-    /// To create a coroutine make a function which returns an IEnumerator.
+    /// An object representing a coroutine created by the CoroutineManager to keep track of your routine.
+    /// To create a coroutine yourself, make a function which returns an IEnumerator and pass it to StartCoroutine.
+    /// This class is also used for subroutines in which case you want to construct it or yield to an IEnumerator.
     /// </summary>
     public sealed class Coroutine : IRoutineWaiter
     {
@@ -17,7 +17,7 @@ namespace Emotion.Game.Time.Routines
         private IRoutineWaiter _currentWaiter;
 
         /// <summary>
-        /// Create a new coroutine.
+        /// Create a new subroutine. Can also be achieved by yielding an IEnumerator.
         /// </summary>
         /// <param name="enumerator">The routine's enumerator.</param>
         public Coroutine(IEnumerator enumerator)
@@ -25,15 +25,19 @@ namespace Emotion.Game.Time.Routines
             _routine = enumerator;
         }
 
-        private void Run()
+        /// <summary>
+        /// Run the coroutine. This is called by either the manager or the parent routine if a subroutine.
+        /// </summary>
+        /// <returns>Whether the routine should be detached from the manager. Doesn't apply to subroutines.</returns>
+        public void Run()
         {
             if (Finished) return;
 
-            // Update the waiter.
-            _currentWaiter?.Update();
-
-            // Check if the current waiter is finished. If not, continue waiting.
-            if (_currentWaiter != null && _currentWaiter?.Finished != true) return;
+            if (_currentWaiter != null) // No waiter, or routine finished
+            {
+                _currentWaiter.Update();
+                if (!_currentWaiter.Finished) return; // Current waiter is not ready. Continue waiting
+            }
 
             // Increment the routine.
             bool? incremented = _routine?.MoveNext();
@@ -53,26 +57,29 @@ namespace Emotion.Game.Time.Routines
                         break;
                 }
 
-                // If the delay is some other object it will delay execution by one loop.
+                // If the delay is any other object it will delay execution by one coroutine tick.
+                return;
             }
-            else
-            {
-                _currentWaiter = null;
-                _routine = null;
-            }
+
+            _currentWaiter = null;
+            _routine = null;
         }
 
         /// <summary>
         /// Whether the routine has finished running.
         /// </summary>
         public bool Finished { get => _routine == null; }
+
+        /// <summary>
+        /// IRoutineWaiter API for subroutines
+        /// </summary>
         public void Update()
         {
             Run();
         }
 
         /// <summary>
-        /// Stop running the routine.
+        /// Stop running the routine. It will be thought of as finished.
         /// </summary>
         public void Stop()
         {

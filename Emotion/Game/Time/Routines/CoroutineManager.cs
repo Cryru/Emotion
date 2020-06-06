@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 #endregion
 
@@ -29,7 +30,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// List of running routines.
         /// </summary>
-        private List<IRoutineWaiter> _runningRoutines = new List<IRoutineWaiter>();
+        private List<Coroutine> _runningRoutines = new List<Coroutine>();
 
         /// <summary>
         /// Start a new coroutine.
@@ -62,23 +63,21 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// Update all running coroutines. Performs cleanup as well.
         /// </summary>
-        /// <returns>Whether any routines were updated.</returns>
+        /// <returns>Whether any routines were ran.</returns>
         public bool Update()
         {
             lock (this)
             {
                 // If no routines are running, do nothing.
-                if (_runningRoutines.Count <= 0) return false;
+                if (_runningRoutines.Count == 0) return false;
 
                 for (var i = 0; i < _runningRoutines.Count; i++)
                 {
-                    IRoutineWaiter current = _runningRoutines[i];
+                    Coroutine current = _runningRoutines[i];
+                    Debug.Assert(current != null);
 
-                    // Update the current delay of the coroutine.
-                    current?.Update();
-
-                    // Check if the current delay is finished. If not, skip.
-                    if (current != null && current.Finished != true) continue;
+                    current.Run();
+                    if (!current.Finished) continue;
 
                     // Remove the routine from the list and decrement.
                     _runningRoutines.RemoveAt(i);

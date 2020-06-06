@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Emotion.Game.Time.Routines
 {
     /// <summary>
-    /// Used to wait for a wait in a coroutine.
+    /// Used to wait for a task in a coroutine continuously.
+    /// Better used for shorter running tasks.
     /// </summary>
     public class TaskRoutineWaiter : IRoutineWaiter
     {
@@ -16,7 +17,7 @@ namespace Emotion.Game.Time.Routines
             get => _task.IsCompleted;
         }
 
-        private Task _task;
+        private readonly Task _task;
 
         public TaskRoutineWaiter(Task task)
         {

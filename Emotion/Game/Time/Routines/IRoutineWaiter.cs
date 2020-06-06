@@ -11,7 +11,7 @@
         bool Finished { get; }
 
         /// <summary>
-        /// Updates the waiter. Should be run once per update loop.
+        /// Runs an update tick on the waiter, must be ran in order for it to finish.
         /// </summary>
         void Update();
     }
