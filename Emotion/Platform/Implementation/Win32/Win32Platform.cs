@@ -253,10 +253,12 @@ namespace Emotion.Platform.Implementation.Win32
             KeyState lShift = User32.GetAsyncKeyState(VirtualKey.LSHIFT);
             KeyState rShift = User32.GetAsyncKeyState(VirtualKey.RSHIFT);
 
-            // Check if it was down, but no longer is.
-            if (_keys[(short) Key.LeftShift] && lShift.Value != 0)
+            // Check if it was held, but no longer is.
+            const short leftShift = (short) Key.LeftShift;
+            const short rightShift = (short) Key.RightShift;
+            if (_keys[leftShift] && _keysPrevious[leftShift] && !lShift.IsPressed)
                 UpdateKeyStatus(Key.LeftShift, false);
-            if (_keys[(short) Key.RightShift] && rShift.Value != 0)
+            if (_keys[rightShift] && _keysPrevious[rightShift] && !rShift.IsPressed)
                 UpdateKeyStatus(Key.RightShift, false);
 
             while (User32.PeekMessage(out Message msg, IntPtr.Zero, 0, 0, PeekMessageFlags.PM_REMOVE))
