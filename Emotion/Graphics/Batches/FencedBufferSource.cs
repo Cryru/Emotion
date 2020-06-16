@@ -98,13 +98,14 @@ namespace Emotion.Graphics.Batches
             if (CurrentBufferIdx == BackingBuffersCount) CurrentBufferIdx = 0;
             CurrentBufferOffset = 0;
 
-            // Wait on the fence for the new buffer.
+            // Check if waiting on a fence.
             int currentFence = _fences[CurrentBufferIdx];
             if (currentFence == 0) return;
             if (Engine.Renderer.CompatibilityMode)
                 if (!Gl.IsSync(currentFence))
                     return;
 
+            // Wait on the fence for the new buffer.
             SyncStatus waitResult = Gl.ClientWaitSync(currentFence, SyncObjectMask.SyncFlushCommandsBit, ulong.MaxValue);
             if (Engine.Configuration.GlDebugMode)
             {

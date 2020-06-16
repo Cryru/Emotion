@@ -1,8 +1,11 @@
 ﻿#region Using
 
 using System;
+using System.Collections;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Common.Threading;
+using Emotion.Game.Time.Routines;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using OpenGL;
@@ -72,6 +75,20 @@ namespace Emotion.Graphics.Objects
         {
             get => DepthStencilAttachment;
         }
+
+        #endregion
+
+        #region Unsynch Sampling
+
+        /// <summary>
+        /// PBO to be used for async sampling.
+        /// </summary>
+        private PixelBuffer _pbo;
+
+        /// <summary>
+        /// The current request if any. Only one can be active.
+        /// </summary>
+        private FrameBufferSampleRequest _sampleRequest;
 
         #endregion
 
@@ -202,12 +219,16 @@ namespace Emotion.Graphics.Objects
             if (!Viewport.Contains(rect)) return data;
 
             rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
+
+            FrameBuffer previouslyBound = Engine.Renderer.CurrentTarget;
             Bind();
             fixed (byte* pixelBuffer = &data[0])
             {
                 Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
                     (IntPtr) pixelBuffer);
             }
+
+            previouslyBound.Bind();
 
             return data;
         }
@@ -221,6 +242,61 @@ namespace Emotion.Graphics.Objects
             var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
                                 Gl.PixelTypeToComponentCount(ColorAttachment?.PixelFormat ?? PixelFormat.Bgra)];
             return Sample(rect, ref data);
+        }
+
+        /// <summary>
+        /// Sample the buffer non-synchronously. Only one sample request can be active at a time, requesting another one before
+        /// the current one is finished will return the current one irregardless if the requested rect is the same.
+        /// </summary>
+        /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
+        /// <param name="data">Optional data pointer to fill with the data.</param>
+        /// <returns>null if invalid request, or a IRoutineWaiter framebuffer sample request otherwise</returns>
+        public FrameBufferSampleRequest SampleUnsynch(Rectangle rect, byte[] data = null)
+        {
+            if (!Viewport.Contains(rect)) return null;
+            if (_sampleRequest != null) return _sampleRequest;
+            _sampleRequest = new FrameBufferSampleRequest();
+
+            uint byteSize = (uint) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
+                            Gl.PixelTypeToComponentCount(ColorAttachment?.PixelFormat ?? PixelFormat.Bgra);
+
+            // Allocate data if needed.
+            if (data == null || data.Length < byteSize) data = new byte[byteSize];
+
+            // Either make a new pbo or resize if needed.
+            if (_pbo == null)
+                _pbo = new PixelBuffer(byteSize);
+            else if (_pbo.Size < byteSize) _pbo.Upload(IntPtr.Zero, byteSize, BufferUsage.StreamCopy);
+
+            // Create a request. This is basically a normal sample with a bound PBO
+            PixelBuffer.EnsureBound(_pbo.Pointer);
+            FrameBuffer previouslyBound = Engine.Renderer.CurrentTarget;
+            Bind();
+            rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
+            Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                IntPtr.Zero);
+            var newFence = new GLFence();
+            PixelBuffer.EnsureBound(0);
+            previouslyBound.Bind();
+
+            // Create a coroutine to poll for whether the request is ready.
+            IEnumerator PollSubroutine()
+            {
+                yield return newFence;
+                GLThread.ExecuteGLThreadAsync(() =>
+                {
+                    PixelBuffer.EnsureBound(_pbo.Pointer);
+                    Span<byte> mapper = _pbo.CreateMapper<byte>(0, (int) byteSize);
+                    mapper.CopyTo(new Span<byte>(data));
+                    _pbo.FinishMapping();
+                    PixelBuffer.EnsureBound(0);
+                    _sampleRequest.Data = data;
+                    _sampleRequest = null;
+                });
+            }
+
+            Engine.CoroutineManager.StartCoroutine(PollSubroutine());
+            return _sampleRequest;
         }
 
         /// <summary>
@@ -279,8 +355,23 @@ namespace Emotion.Graphics.Objects
             ColorAttachment = null;
             DepthStencilAttachment?.Dispose();
             DepthStencilAttachment = null;
+            _pbo?.Dispose();
+            _pbo = null;
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Dummy used by FrameBuffer.SampleUnsynch
+    /// </summary>
+    public class FrameBufferSampleRequest : IRoutineWaiter
+    {
+        public bool Finished { get => Data != null; }
+        public byte[] Data { get; set; }
+
+        public void Update()
+        {
+        }
     }
 }

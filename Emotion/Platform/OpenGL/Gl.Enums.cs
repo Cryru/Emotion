@@ -10154,7 +10154,18 @@ namespace OpenGL
     public enum SyncStatus
     {
         /// <summary>
+        /// Strongly types for value GL_SIGNALED symbol.
+        /// This is the returned value when checking fence status.
+        /// </summary>
+        [RequiredByFeature("GL_VERSION_3_2")]
+        [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
+        [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
+        [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
+        Signaled = Gl.SIGNALED,
+
+        /// <summary>
         /// Strongly typed for value GL_ALREADY_SIGNALED.
+        /// This is the returned value when blocking on a fence.
         /// </summary>
         [RequiredByFeature("GL_VERSION_3_2")]
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]

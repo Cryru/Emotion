@@ -1266,19 +1266,24 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
         [RequiredByFeature("GL_APPLE_sync", Api = "gles1|gles2")]
         [RequiredByFeature("GL_ARB_sync", Api = "gl|glcore")]
-        public static void GetSync(int sync, SyncParameterName pname, out int length, [Out] int[] values)
+        public static unsafe void GetSync(int sync, SyncParameterName pname, out int length, [Out] int[] values)
         {
-            unsafe
+            fixed (int* p_length = &length)
+            fixed (int* p_values = values)
             {
-                fixed (int* p_length = &length)
-                fixed (int* p_values = values)
-                {
-                    Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
-                    Delegates.pglGetSynciv(sync, (int) pname, values.Length, p_length, p_values);
-                }
+                Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
+                Delegates.pglGetSynciv(sync, (int) pname, values.Length, p_length, p_values);
             }
-
             DebugCheckErrors(null);
+        }
+
+        public static unsafe int GetSync(int sync, SyncParameterName pname)
+        {
+            int value = 0;
+            Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
+            Delegates.pglGetSynciv(sync, (int) pname, sizeof(int), (int*)IntPtr.Zero, &value);
+            DebugCheckErrors(null);
+            return value;
         }
 
         /// <summary>

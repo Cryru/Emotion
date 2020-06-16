@@ -15,7 +15,6 @@ namespace Emotion.ExecTest.Examples
 {
     /// <summary>
     /// Basic example for using the built in AStar pathfinding.
-    ///
     /// Click to toggle a tile between walkable and unwalkable, shift click on a tile to path to it.
     /// </summary>
     public class Pathfinding : IScene
