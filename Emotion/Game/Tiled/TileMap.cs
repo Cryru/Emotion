@@ -503,27 +503,6 @@ namespace Emotion.Game.Tiled
 
         #region Internal API
 
-        protected int GetTileImageIdInLayer(int coordinate, int layer, out int tileSet)
-        {
-            // Check if layer is out of bounds.
-            tileSet = -1;
-            if (layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
-
-            // Get the GID of the tile.
-            int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
-            if (tId == 0) return -1;
-
-            // Find the id of tile within the tileset.
-            for (var t = 0; t < TiledMap.Tilesets.Count; t++)
-            {
-                if (tId > TiledMap.Tilesets[t].FirstGid + TiledMap.Tilesets[t].TileCount) continue;
-                tileSet = t;
-                return tId - TiledMap.Tilesets[t].FirstGid;
-            }
-
-            return -1;
-        }
-
         /// <summary>
         /// Converts the two dimensional tile coordinate to a one dimensional one.
         /// </summary>
@@ -640,6 +619,35 @@ namespace Emotion.Game.Tiled
         /// The image id is relative to the tileset's id.
         /// </summary>
         /// <param name="coordinate">The 1D coordinate to lookup the tile id of.</param>
+        /// <param name="layer">The tile layer to check in.</param>
+        /// <param name="tileSet">The id of the tile set in which the image id is.</param>
+        /// <returns></returns>
+        public int GetTileImageIdInLayer(int coordinate, int layer, out int tileSet)
+        {
+            // Check if layer is out of bounds.
+            tileSet = -1;
+            if (layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
+
+            // Get the GID of the tile.
+            int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
+            if (tId == 0) return -1;
+
+            // Find the id of tile within the tileset.
+            for (var t = 0; t < TiledMap.Tilesets.Count; t++)
+            {
+                if (tId > TiledMap.Tilesets[t].FirstGid + TiledMap.Tilesets[t].TileCount) continue;
+                tileSet = t;
+                return tId - TiledMap.Tilesets[t].FirstGid;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Get the image id of the tile in the coordinate.
+        /// The image id is relative to the tileset's id.
+        /// </summary>
+        /// <param name="coordinate">The 21D coordinate to lookup the tile id of.</param>
         /// <param name="layer">The tile layer to check in.</param>
         /// <param name="tileSet">The id of the tile set in which the image id is.</param>
         /// <returns></returns>

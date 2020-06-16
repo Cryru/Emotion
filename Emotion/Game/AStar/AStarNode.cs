@@ -21,6 +21,14 @@ namespace Emotion.Game.AStar
         }
 
         /// <summary>
+        /// The A* algorithm value.
+        /// </summary>
+        public int F
+        {
+            get => G + H;
+        }
+
+        /// <summary>
         /// The X position of the node.
         /// </summary>
         public int X;
@@ -29,19 +37,6 @@ namespace Emotion.Game.AStar
         /// The Y position of the node.
         /// </summary>
         public int Y;
-
-        /// <summary>
-        /// Whether the node is walkable.
-        /// </summary>
-        public bool Walkable;
-
-        /// <summary>
-        /// The A* algorithm value.
-        /// </summary>
-        public int F
-        {
-            get => G + H;
-        }
 
         /// <summary>
         /// The distance to the node.
@@ -63,21 +58,10 @@ namespace Emotion.Game.AStar
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <param name="walkable"></param>
-        public AStarNode(int x, int y, bool walkable)
+        public AStarNode(int x, int y)
         {
             X = x;
             Y = y;
-            Walkable = walkable;
-        }
-
-        /// <summary>
-        /// Copy the node.
-        /// </summary>
-        /// <returns></returns>
-        public AStarNode Clone()
-        {
-            return new AStarNode(X, Y, Walkable);
         }
 
         /// <summary>
@@ -96,34 +80,16 @@ namespace Emotion.Game.AStar
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return X ^ Y;
-        }
-    }
-
-    /// <summary>
-    /// A node which can hold a reference to an object.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class AStarNode<T> : AStarNode
-    {
-        /// <summary>
-        /// An object to store in the node.
-        /// Beware of reference copying.
-        /// </summary>
-        public T Tag;
-
-        public AStarNode(T tag, int x, int y, bool walkable) : base(x, y, walkable)
-        {
-            Tag = tag;
+            return GetHashCode(X, Y);
         }
 
         /// <summary>
-        /// Copy the node, with its tag.
+        /// Get the unique hashcode used for the node.
         /// </summary>
-        /// <returns></returns>
-        public new AStarNode<T> Clone()
+        public static int GetHashCode(int x, int y)
         {
-            return new AStarNode<T>(Tag, X, Y, Walkable);
+            // Cantor-pair
+            return (((x + y) * (x + y + 1)) / 2) + y;
         }
     }
 }
