@@ -173,6 +173,7 @@ namespace Emotion.Graphics
         /// Enables writing to the stencil buffer.
         /// Anything drawn after this call will have the specified value within the stencil buffer.
         /// By default the 0xFF value is written.
+        /// You might want to disable drawing to color buffer while drawing on the stencil buffer.
         /// </summary>
         public void StencilStartDraw(int value = 0xFF)
         {
@@ -211,7 +212,7 @@ namespace Emotion.Graphics
         {
             InvalidateStateBatches();
             Gl.StencilMask(0xFF);
-            Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
+            Gl.StencilFunc(StencilFunction.Lequal, threshold, 0xFF);
         }
 
         public void StencilMask(int filter = 0xFF)
