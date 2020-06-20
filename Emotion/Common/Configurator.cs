@@ -102,7 +102,9 @@ namespace Emotion.Common
         public bool ScaleStepUp { get; set; } = true;
 
         /// <summary>
-        /// Whether to scale the loop speed between double the desired step and 4 times as slow as the desired step.
+        /// If this is enabled and the game is running too slowly the DesiredStep can be reduced up to a quarter,
+        /// in which case your DeltaTime will be doubled or quadrupled.
+        /// If the game is running fast you can get up to twice the amount of updates, and your DeltaTime will be halved.
         /// This is on by default, but so is VSync so the loop will only scale downward.
         /// If this is disabled ScaleStepUp is ignored.
         /// This setting applies only if using the default loop.
@@ -122,7 +124,7 @@ namespace Emotion.Common
         /// <summary>
         /// The function to run as a loop.
         /// The first argument passed is the "RunTick" method which you should call every tick, the second is the "RunFrame" method
-        /// which performs rendering.
+        /// which performs rendering and should be called every frame. It ends in a buffer swap.
         /// If no factory is set the default one will be used. Other loop settings might not apply if not using the default loop.
         /// Platforms are free to override your loop settings.
         /// </summary>
