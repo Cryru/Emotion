@@ -18,11 +18,6 @@ namespace Emotion.Standard.OpenType
     public class AtlasGlyph
     {
         /// <summary>
-        /// The character index of the glyph.
-        /// </summary>
-        public char CharIndex { get; set; }
-
-        /// <summary>
         /// The location of the glyph within the atlas texture.
         /// </summary>
         public Vector2 Location { get; set; }
@@ -57,10 +52,16 @@ namespace Emotion.Standard.OpenType
         /// </summary>
         public float YBearing { get; set; }
 
-        public AtlasGlyph(char charIndex, float advance, float xMin, float yBearing)
-        {
-            CharIndex = charIndex;
+        /// <summary>
+        /// The font glyph this glyph represents.
+        /// </summary>
+        public Glyph FontGlyph { get; set; }
 
+        /// <summary>
+        /// Constructor used to synthesize glyphs for tests.
+        /// </summary>
+        public AtlasGlyph(float advance, float xMin, float yBearing)
+        {
             Advance = advance;
             XMin = xMin;
             YBearing = yBearing;
@@ -68,7 +69,7 @@ namespace Emotion.Standard.OpenType
 
         public AtlasGlyph(Glyph fontGlyph, float scale, float ascend)
         {
-            CharIndex = (char) fontGlyph.CharIndex;
+            FontGlyph = fontGlyph;
             Advance = MathF.Round(fontGlyph.AdvanceWidth * scale);
             XMin = MathF.Floor(fontGlyph.XMin * scale);
             Rectangle bbox = fontGlyph.GetBBox(scale);

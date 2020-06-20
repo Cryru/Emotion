@@ -9,21 +9,18 @@ Logging
 	- Shaking off dependencies - make own logger.
 	- Hooking up a network loggers for certain levels (errors) and sources (engine, game)
 Standard.Text
-	- Improve the CFF dictionary parsing with a class with annotations instead of the dictionary hell happening there.
 	- WOFF table parsing (and whatever else is needed for it to be supported)
-	- Kern table and kerning
+	- Kern and Gpos table and kerning
 	- FDSelect array CFF subr. (No font found which does this.)
 	- LTag parsing (couldn't find such font)
-	- Cff fonts without a CMap (couldn't find such font)
+	- Test Cff fonts without a CMap (couldn't find such font)
 	- GSub table
-	- GPos table
 	- FVar table
 	- Meta table
 	- Long Term: Implement the FreeType rasterizer.
 	- RenderGlyph, "e" variable resizing is not really needed.
 	- Add tests for MeasureString and fix broken stuff there.
-	- Test out the subsampling of the stb rasterizer.
-	- Implement the custom renderer you've been thinking of, wink
+	- Implement the custom rasterizer you've been thinking of, wink
 Emotion.Test
 	- Derivation checks shouldn't straight out check if the components are equal, but rather compare the difference to an epsilon as some drivers round colors differently
 	- The current max derivation % is 400 instead of 100
@@ -48,7 +45,7 @@ Emotion.Game
 	- Bound box for the tile map - used to calculate only visible tiles and map only them.
 Tools
 	- FileExplorer extension matching per asset type (don't show those who don't match)
-	- Modals are reported to not center on 4k screens.
+	- Modals don't recenter on window size change
 XML
 	- Recursive type support (assign handles to recursive values and set as attribute)
 	- Settings per serialization, such as no indentation, no new lines, serialize as binary where possible, smaller closing tags (</>)

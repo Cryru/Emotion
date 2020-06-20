@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -177,7 +176,7 @@ namespace Emotion.Standard.OpenType
 
                     _freeTypeFace = Activator.CreateInstance(_freeTypeFaceType, _freeTypeLibrary, fontData, 0);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Suppress errors.
                     Engine.Log.Error("Couldn't load FreeType.", "Emotion.Standard.FreeType");
@@ -288,27 +287,19 @@ namespace Emotion.Standard.OpenType
                 return;
             }
 
+            // Get the cmap table which defines glyph indices.
+            table = GetTable("cmap");
+            CMapTable cMap = table != null ? new CMapTable(r.Branch(table.Offset, true, table.Length)) : null;
+
             // Glyf - glyph data.
-            // Also reads loca for locations, cmap, and post for glyph names.
+            // Also reads loca for locations, and post for glyph names.
+            Glyph[] glyphs;
             table = GetTable("glyf");
             if (table != null)
             {
-                bool shortVersion = indexToLocFormat == 0;
                 FontTable locaTable = GetTable("loca");
-                int[] locaOffsets = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, shortVersion);
-
-                Glyphs = GlyfTable.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
-
-                // Add glyph names.
-                FontTable cmapTable = GetTable("cmap");
-                FontTable postTable = GetTable("post");
-                if (cmapTable != null && postTable != null)
-                {
-                    var cMap = new CMapTable(r.Branch(cmapTable.Offset, true, cmapTable.Length));
-                    var post = new PostTable(r.Branch(postTable.Offset, true, postTable.Length));
-                    if (cMap.GlyphIndexMap != null)
-                        AddGlyphNames(ref Glyphs, cMap.GlyphIndexMap, post.Names);
-                }
+                int[] locaOffsets = LocaTable.ParseLoca(r.Branch(locaTable.Offset, true, locaTable.Length), numGlyphs, indexToLocFormat == 0);
+                glyphs = GlyfTable.ParseGlyf(r.Branch(table.Offset, true, table.Length), locaOffsets);
             }
             else
             {
@@ -320,37 +311,59 @@ namespace Emotion.Standard.OpenType
                 }
 
                 var cff = new CffTable(r.Branch(table.Offset, true, table.Length));
-                var cffGlyphs = new List<Glyph>();
-
-                FontTable cmapTable = GetTable("cmap");
-                if (cmapTable != null)
+                glyphs = new Glyph[cff.NumberOfGlyphs];
+                for (var i = 0; i < glyphs.Length; i++)
                 {
-                    // Using Cmap encoding.
-                    var cMap = new CMapTable(r.Branch(cmapTable.Offset, true, cmapTable.Length));
-                    foreach (KeyValuePair<uint, uint> glyph in cMap.GlyphIndexMap)
-                    {
-                        Glyph g = cff.CffGlyphLoad((int) glyph.Value);
-                        g.Name = cff.Charset[(int) glyph.Value];
-                        g.MapIndex = glyph.Value;
-                        g.CharIndex = glyph.Key;
-                        cffGlyphs.Add(g);
-                    }
-
-                    Glyphs = cffGlyphs.ToArray();
-                }
-                else
-                {
-                    // Using CFF encoding.
-                    // todo
-                    Debug.Assert(false);
-                    for (var i = 0; i < cff.NumberOfGlyphs; i++)
-                    {
-                        byte[] s = cff.CharStringIndex[i];
-                    }
+                    glyphs[i] = cff.CffGlyphLoad(i);
                 }
             }
 
-            // Add metrics.
+            // Apply the character map.
+            if (cMap?.GlyphIndexMap != null)
+            {
+                var smallestCharIdx = uint.MaxValue;
+                uint highestCharIdx = 0;
+                Glyphs = new Glyph[cMap.GlyphIndexMap.Count];
+
+                // Add glyph names if present.
+                string[] names = null;
+                FontTable postTable = GetTable("post");
+                if (postTable != null)
+                {
+                    var post = new PostTable(r.Branch(postTable.Offset, true, postTable.Length));
+                    names = post.Names;
+                }
+
+                var idx = 0;
+                foreach ((uint key, uint value) in cMap.GlyphIndexMap)
+                {
+                    var valInt = (int) value;
+                    if (valInt >= glyphs.Length) continue; // Should never happen, but it's outside data, soo...
+
+                    Glyph glyph = glyphs[valInt];
+                    if (names != null) glyph.Name = names[valInt];
+
+                    smallestCharIdx = Math.Min(smallestCharIdx, key);
+                    highestCharIdx = Math.Max(highestCharIdx, key);
+
+                    glyph.CharIndex.Add((char) key);
+                    glyph.MapIndex = value;
+                    Glyphs[idx++] = glyph;
+                }
+
+                FirstCharIndex = smallestCharIdx;
+                LastCharIndex = highestCharIdx;
+            }
+            else
+            {
+                Glyphs = glyphs;
+                for (var i = 0; i < Glyphs.Length; i++)
+                {
+                    Glyphs[i].CharIndex.Add((char) i);
+                }
+            }
+
+            // Add metrics. This requires the glyph's to have MapIndices
             table = GetTable("hmtx");
             if (table != null) HmtxTable.ParseHmtx(r.Branch(table.Offset, true, table.Length), NumberOfHMetrics, Glyphs);
 
@@ -362,65 +375,7 @@ namespace Emotion.Standard.OpenType
             // todo: fvar
             // todo: meta
 
-            // Calculate last char index.
-            LastCharIndex = Glyphs.Max(x => x.CharIndex);
-            Array.Sort(Glyphs, _comparer); // todo: Check if all parse paths have them sorted. Some do.
-            FirstCharIndex = Glyphs[0].CharIndex;
-
-            // Check if a space glyph exists, and if not add one.
-            var hasSpace = false;
-            var nonBreakingSpaceIndex = 0;
-            var spaceIndex = 0;
-            for (var i = 0; i < Glyphs.Length; i++)
-            {
-                Glyph g = Glyphs[i];
-
-                // If a space character is found, all is well.
-                if (g.CharIndex == ' ')
-                {
-                    hasSpace = true;
-                    break;
-                }
-
-                // If no space is found, we can synthesize one from the non-breaking space char - 160.
-                if (g.CharIndex == 160)
-                {
-                    nonBreakingSpaceIndex = i;
-                    break;
-                }
-
-                // Find where the space should go.
-                if (g.CharIndex < ' ') spaceIndex++;
-            }
-
-            if (!hasSpace)
-            {
-                Engine.Log.Warning("Font didn't have a space glyph one was synthesized from char 160.", MessageSource.FontParser);
-                var fakeSpace = new Glyph
-                {
-                    Name = "fake-space",
-                    CharIndex = ' ',
-                    MapIndex = Glyphs[nonBreakingSpaceIndex].MapIndex,
-                    AdvanceWidth = Glyphs[nonBreakingSpaceIndex].AdvanceWidth,
-                    Vertices = new GlyphVertex[0]
-                };
-                List<Glyph> asList = Glyphs.ToList();
-                asList.Insert(spaceIndex, fakeSpace);
-                Glyphs = asList.ToArray();
-            }
-
             Valid = true;
-        }
-
-        private static GlyphCompare _comparer = new GlyphCompare();
-
-        private class GlyphCompare : Comparer<Glyph>
-        {
-            public override int Compare(Glyph x, Glyph y)
-            {
-                if (x == null || y == null) return 0;
-                return (int) x.CharIndex - (int) y.CharIndex;
-            }
         }
 
         #region Atlas Rasterization
@@ -462,96 +417,103 @@ namespace Emotion.Standard.OpenType
             if (Glyphs == null || Glyphs.Length == 0) return null;
             if (firstChar < FirstCharIndex) firstChar = FirstCharIndex;
             if (numChars == -1) numChars = (int) (LastCharIndex - firstChar);
+            var lastIdx = (int) (firstChar + numChars);
 
             // The scale to render at.
             float scale = fontSize / Height;
-            var glyphRenders = new List<Task<GlyphRenderer.GlyphCanvas>>();
 
-            // Go through all glyphs who are assumed to be ordered by char index.
-            // Start from the requested first index and go until the processed char index is either above the
-            // start plus the size, or we run out of glyphs.
-            uint glyphIndex = 0;
-            uint lastCharIndex = firstChar;
-            while (lastCharIndex <= firstChar + numChars)
+            var canvases = new List<Task<GlyphRenderer.GlyphCanvas>>();
+            for (var i = 0; i < Glyphs.Length; i++)
             {
-                // Verify that the index is valid.
-                if (glyphIndex >= Glyphs.Length) break;
-                Glyph g = Glyphs[glyphIndex];
-                lastCharIndex = g.CharIndex;
+                Glyph g = Glyphs[i];
+                bool inIndex = g.CharIndex.Any(charIdx => charIdx >= firstChar && charIdx < lastIdx);
+                if (!inIndex) continue;
 
-                // Start rendering this glyph.
                 switch (rasterizer)
                 {
                     case GlyphRasterizer.Emotion:
-                        glyphRenders.Add(Task.Run(() => RenderGlyph(this, g, scale)));
+                        canvases.Add(Task.Run(() => RenderGlyph(this, g, scale)));
                         break;
 #if StbTrueType
                     case GlyphRasterizer.StbTrueType:
-                        glyphRenders.Add(Task.Run(() => RenderGlyphStb(this, g, scale)));
+                        canvases.Add(Task.Run(() => RenderGlyphStb(this, g, scale)));
                         break;
 #endif
 
 #if FreeType
                     case GlyphRasterizer.FreeType:
-                        glyphRenders.Add(Task.Run(() => RenderGlyphFreeType(g, fontSize)));
+                        canvases.Add(Task.Run(() => RenderGlyphFreeType(g, fontSize)));
                         break;
 #endif
                 }
-
-                glyphIndex++;
             }
 
-            // Get rendered canvases.
-            GlyphRenderer.GlyphCanvas[] canvases = Task.WhenAll(glyphRenders).Result;
             const int glyphSpacing = 2;
             float rowSpacing = MathF.Ceiling(Height * scale) + MathF.Abs(Descender * scale);
 
-            // The location of the brush within the bitmap.
-            var pen = new Vector2(glyphSpacing);
-
             // Determine size of the atlas texture based on the largest atlases.
-            int glyphCountSqrt = canvases.Length > 0 ? (int) Math.Ceiling(Math.Sqrt(canvases.Length)) : 0;
-            int atlasWidth = canvases.Length > 0 ? glyphCountSqrt * (canvases.Max(x => x.Width) + glyphSpacing * 2) : 0;
-            int atlasHeight = canvases.Length > 0 ? glyphCountSqrt * (canvases.Max(x => x.Height) + glyphSpacing * 2) : 0;
-            int atlasSize = Math.Max(atlasWidth, atlasHeight); // Square
+            var largestGlyphWidth = 0;
+            var largestGlyphHeight = 0;
+            var nonEmptyCanvases = 0;
+            for (var i = 0; i < canvases.Count; i++)
+            {
+                GlyphRenderer.GlyphCanvas canvas = canvases[i].Result;
+                if (canvas == null) continue;
+
+                nonEmptyCanvases++;
+                largestGlyphWidth = Math.Max(canvas.Width, largestGlyphWidth);
+                largestGlyphHeight = Math.Max(canvas.Height, largestGlyphHeight);
+            }
+
+            largestGlyphWidth += glyphSpacing * 2;
+            largestGlyphHeight += glyphSpacing * 2;
+
+            var glyphCountSqrt = (int) Math.Ceiling(Math.Sqrt(nonEmptyCanvases));
+            int atlasSize = Math.Max(glyphCountSqrt * largestGlyphWidth, glyphCountSqrt * largestGlyphHeight); // Square
 
             // Combine the rasterized glyphs into one atlas.
+            var pen = new Vector2(glyphSpacing);
             var atlas = new byte[atlasSize * atlasSize];
             var atlasObj = new FontAtlas(new Vector2(atlasSize), atlas, rasterizer.ToString(), scale, this);
-            var atlasGlyphs = new AtlasGlyph[canvases.Length];
-            for (var i = 0; i < canvases.Length; i++)
+            for (var i = 0; i < canvases.Count; i++)
             {
-                atlasGlyphs[i] = canvases[i].Glyph;
-                if (canvases[i].Data.Length == 0) continue;
+                GlyphRenderer.GlyphCanvas canvas = canvases[i].Result;
+                if (canvas == null) continue;
+                AtlasGlyph canvasGlyph = canvas.Glyph;
+
+                // Associate canvas with all representing chars.
+                List<char> representingChars = canvas.Glyph.FontGlyph.CharIndex;
+                for (var j = 0; j < representingChars.Count; j++)
+                {
+                    atlasObj.Glyphs[representingChars[j]] = canvasGlyph;
+                }
+
+                // If empty canvas, skip.
+                if (canvas.Data.Length == 0) continue;
 
                 // Check if going over to a new line.
-                if (pen.X + canvases[i].Width >= atlasSize - glyphSpacing)
+                if (pen.X + canvas.Width >= atlasSize - glyphSpacing)
                 {
                     pen.X = glyphSpacing;
                     pen.Y += rowSpacing + glyphSpacing;
                 }
 
-                // Copy pixels.
-                for (var row = 0; row < canvases[i].Height; row++)
+                // Copy pixels and record the location of the glyph.
+                for (var row = 0; row < canvas.Height; row++)
                 {
-                    for (var col = 0; col < canvases[i].Width; col++)
+                    for (var col = 0; col < canvas.Width; col++)
                     {
                         var x = (int) (pen.X + col);
                         var y = (int) (pen.Y + row);
-                        atlas[y * atlasSize + x] = canvases[i].Data[row * canvases[i].Stride + col];
+                        atlas[y * atlasSize + x] = canvas.Data[row * canvas.Stride + col];
                     }
                 }
 
-                atlasGlyphs[i].Location = pen;
-                atlasGlyphs[i].UV = new Vector2(canvases[i].Width, canvases[i].Height);
+                canvasGlyph.Location = pen;
+                canvasGlyph.UV = new Vector2(canvas.Width, canvas.Height);
 
                 // Increment pen. Leave space between glyphs.
-                pen.X += canvases[i].Width + glyphSpacing;
-            }
-
-            foreach (AtlasGlyph glyph in atlasGlyphs)
-            {
-                atlasObj.Glyphs[glyph.CharIndex] = glyph;
+                pen.X += canvas.Width + glyphSpacing;
             }
 
             return atlasObj;
@@ -651,9 +613,12 @@ namespace Emotion.Standard.OpenType
                 dynamic faceSize = _facePropertySize.GetValue(_freeTypeFace);
                 var ascender = (float)faceSize.Metrics.Ascender.ToDouble();
                 float yBearing = ascender - (float)ftGlyph.Metrics.HorizontalBearingY.ToDouble();
-                var glyph = new AtlasGlyph((char) g.CharIndex, advance, minX, yBearing)
+                var glyph = new AtlasGlyph(g, scale, 0)
                 {
-                    Size = new Vector2(bitmapWidth, bitmapHeight)
+                    Size = new Vector2(bitmapWidth, bitmapHeight),
+                    Advance = advance,
+                    XMin = minX,
+                    YBearing = yBearing
                 };
 
                 glyphCanvas = new GlyphRenderer.GlyphCanvas(glyph, bitmapWidth, bitmapHeight);
@@ -677,28 +642,6 @@ namespace Emotion.Standard.OpenType
         #endregion
 
         #region Parse Helpers
-
-        /// <summary>
-        /// Add names and unicode indices to all the glyphs.
-        /// </summary>
-        /// <param name="glyphs">The glyphs themselves.</param>
-        /// <param name="glyphIndexMap">Indices to glyph unicode symbols.</param>
-        /// <param name="glyphNames">The glyph names read from the postscript table.</param>
-        private static void AddGlyphNames(ref Glyph[] glyphs, Dictionary<uint, uint> glyphIndexMap, IReadOnlyList<string> glyphNames)
-        {
-            var glyphsReorder = new List<Glyph>();
-            foreach ((uint key, uint value) in glyphIndexMap)
-            {
-                Glyph glyph = glyphs[value];
-                if (glyphNames != null)
-                    glyph.Name = glyphNames[(int) value];
-                glyph.MapIndex = value;
-                glyph.CharIndex = key;
-                glyphsReorder.Add(glyph);
-            }
-
-            glyphs = glyphsReorder.ToArray();
-        }
 
         /// <summary>
         /// https://docs.microsoft.com/en-us/typography/opentype/spec/cvt

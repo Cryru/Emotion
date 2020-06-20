@@ -46,6 +46,7 @@ namespace Emotion.Standard.OpenType.FontTables
 
         /// <summary>
         /// Parse the `Cff` table. This table stores glyphs in Cff format fonts.
+        /// https://docs.microsoft.com/en-us/typography/opentype/spec/cff
         /// </summary>
         public CffTable(ByteReader reader)
         {
@@ -84,8 +85,8 @@ namespace Emotion.Standard.OpenType.FontTables
 
             if (IsCidFont)
             {
-                int fdArrayOffset = Convert.ToInt32(TopDict["fdArray"]);
-                int fdSelectOffset = Convert.ToInt32(TopDict["fdSelect"]);
+                var fdArrayOffset = Convert.ToInt32(TopDict["fdArray"]);
+                var fdSelectOffset = Convert.ToInt32(TopDict["fdSelect"]);
 
                 if (fdArrayOffset == 0 || fdSelectOffset == 0)
                 {
@@ -109,14 +110,14 @@ namespace Emotion.Standard.OpenType.FontTables
             var offsets = (object[]) TopDict["private"];
             if (offsets.Length > 0)
             {
-                int privateDictOffset = Convert.ToInt32(offsets[1]);
+                var privateDictOffset = Convert.ToInt32(offsets[1]);
                 ByteReader privateDictReader = reader.Branch(privateDictOffset, true, Convert.ToInt32(offsets[0]));
                 Dictionary<string, object> privateDict = ParseCffTopDict(privateDictReader, _privateDictMeta);
 
                 DefaultWidthX = Convert.ToInt32(privateDict["defaultWidthX"]);
                 NominalWidthX = Convert.ToInt32(privateDict["nominalWidthX"]);
 
-                int subrs = Convert.ToInt32(privateDict["subrs"]);
+                var subrs = Convert.ToInt32(privateDict["subrs"]);
 
                 if (subrs != 0)
                 {
@@ -137,14 +138,14 @@ namespace Emotion.Standard.OpenType.FontTables
                 return;
             }
 
-            int charStringsOffset = Convert.ToInt32(TopDict["charStrings"]);
+            var charStringsOffset = Convert.ToInt32(TopDict["charStrings"]);
             CharStringIndex = ReadIndexArray<byte[]>(reader.Branch(charStringsOffset, true));
             NumberOfGlyphs = CharStringIndex.Length;
 
-            int charSetOffset = Convert.ToInt32(TopDict["charset"]);
+            var charSetOffset = Convert.ToInt32(TopDict["charset"]);
             Charset = ParseCffCharset(reader.Branch(charSetOffset, true));
 
-            int encoding = Convert.ToInt32(TopDict["encoding"]);
+            var encoding = Convert.ToInt32(TopDict["encoding"]);
 
             switch (encoding)
             {
@@ -165,7 +166,7 @@ namespace Emotion.Standard.OpenType.FontTables
 
         // Parse the CFF encoding data. Only one encoding can be specified per font.
         // See Adobe TN #5176 chapter 12, "Encodings".
-        private Dictionary<byte, byte> ParseCffEncoding(ByteReader reader)
+        private static Dictionary<byte, byte> ParseCffEncoding(ByteReader reader)
         {
             var encoding = new Dictionary<byte, byte>();
             byte format = reader.ReadByte();
@@ -304,7 +305,7 @@ namespace Emotion.Standard.OpenType.FontTables
                     }
                 }
 
-                reader.Position = objectOffset + (int) offsets[offsets.Count - 1];
+                reader.Position = objectOffset + (int) offsets[^1];
             }
 
             ByteReader objectReader = reader.Branch(objectOffset, true);
@@ -343,15 +344,14 @@ namespace Emotion.Standard.OpenType.FontTables
         {
             var topDicts = new Dictionary<string, object>[index.Length];
 
-            //    const topDictArray = [];
             for (var i = 0; i < index.Length; i++)
             {
                 Dictionary<string, object> topDict = ParseCffTopDict(new ByteReader(index[i]), _topDictMeta);
 
                 var privateData = (object[]) topDict["private"];
 
-                int privateSize = Convert.ToInt32(privateData[0]);
-                int privateOffset = Convert.ToInt32(privateData[1]);
+                var privateSize = Convert.ToInt32(privateData[0]);
+                var privateOffset = Convert.ToInt32(privateData[1]);
 
                 if (privateSize != 0 && privateOffset != 0)
                 {
@@ -411,11 +411,34 @@ namespace Emotion.Standard.OpenType.FontTables
                 }
             }
 
-            return InterpretDict(entries, meta);
+            // Interpret a dictionary and return it with readable keys and values for missing entries.
+            var newDict = new Dictionary<string, object>();
+            foreach (DictMeta m in meta)
+            {
+                string[] types = m.Type.Split(",");
+                var values = new object[types.Length];
+
+                for (var j = 0; j < types.Length; j++)
+                {
+                    if (entries.ContainsKey(m.Op))
+                        if (entries[m.Op].Length - 1 >= j)
+                            values[j] = entries[m.Op][j];
+
+                    if (values[j] == null) values[j] = m.Values != null && m.Values.Length - 1 >= j ? (int?) m.Values[j] : m.Value;
+                    if (types[j] == "SID" && values[j] != null) values[j] = GetCffString(StringIndex, Convert.ToInt32(values[j]));
+                }
+
+                if (values.Length == 1)
+                    newDict[m.Name] = values[0];
+                else
+                    newDict[m.Name] = values;
+            }
+
+            return newDict;
         }
 
         // Parse a `CFF` DICT operand.
-        private float ParseOperand(ByteReader reader, int b0)
+        private static float ParseOperand(ByteReader reader, int b0)
         {
             int b1;
             int b2;
@@ -628,36 +651,6 @@ namespace Emotion.Standard.OpenType.FontTables
         };
         // ReSharper enable StringLiteralTypo
 
-        // Interpret a dictionary and return a new dictionary with readable keys and values for missing entries.
-        private Dictionary<string, object> InterpretDict(Dictionary<int, float[]> entries, DictMeta[] meta)
-        {
-            var newDict = new Dictionary<string, object>();
-
-            foreach (DictMeta m in meta)
-            {
-                string[] types = m.Type.Split(",");
-                var values = new object[types.Length];
-
-                for (var j = 0; j < types.Length; j++)
-                {
-                    if (entries.ContainsKey(m.Op))
-                        if (entries[m.Op].Length - 1 >= j)
-                            values[j] = entries[m.Op][j];
-
-                    if (values[j] == null) values[j] = m.Values != null && m.Values.Length - 1 >= j ? (int?) m.Values[j] : m.Value;
-
-                    if (types[j] == "SID" && values[j] != null) values[j] = GetCffString(StringIndex, Convert.ToInt32(values[j]));
-                }
-
-                if (values.Length == 1)
-                    newDict[m.Name] = values[0];
-                else
-                    newDict[m.Name] = values;
-            }
-
-            return newDict;
-        }
-
         // Given a String Index (SID), return the value of the string.
         // Strings below index 392 are standard CFF strings and are not encoded in the font.
         private static string GetCffString(string[] strings, int index)
@@ -669,9 +662,7 @@ namespace Emotion.Standard.OpenType.FontTables
         {
             var glyphData = new CffGlyphFactory();
             bool successful = RunCharstring(index, glyphData);
-
             if (!successful) Engine.Log.Warning($"Couldn't read CFF glyff - {index}", MessageSource.FontParser);
-
             return glyphData.Glyph;
         }
 
@@ -768,6 +759,10 @@ namespace Emotion.Standard.OpenType.FontTables
             }
         }
 
+        /// <summary>
+        /// Horrible
+        /// https://www.adobe.com/devnet/font.html
+        /// </summary>
         public bool RunCharstring(int glyphIndex, CffGlyphFactory c)
         {
             var inHeader = true;
@@ -987,7 +982,6 @@ namespace Emotion.Standard.OpenType.FontTables
                         float dy4;
                         float dy5;
                         float dy6;
-                        float dx;
                         int b1 = b.ReadByte();
                         switch (b1)
                         {
@@ -1057,7 +1051,7 @@ namespace Emotion.Standard.OpenType.FontTables
                                 dx5 = s[8];
                                 dy5 = s[9];
                                 dx6 = dy6 = s[10];
-                                dx = dx1 + dx2 + dx3 + dx4 + dx5;
+                                float dx = dx1 + dx2 + dx3 + dx4 + dx5;
                                 float dy = dy1 + dy2 + dy3 + dy4 + dy5;
                                 if (MathF.Abs(dx) > MathF.Abs(dy))
                                     dy6 = -dy;
