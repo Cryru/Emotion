@@ -449,7 +449,7 @@ namespace Emotion.Standard.OpenType
             }
 
             const int glyphSpacing = 2;
-            float rowSpacing = MathF.Ceiling(Height * scale) + MathF.Abs(Descender * scale);
+            float rowSpacing = MathF.Ceiling(Height * scale + MathF.Abs(Descender * scale));
 
             // Determine size of the atlas texture based on the largest atlases.
             var largestGlyphWidth = 0;
