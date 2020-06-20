@@ -87,13 +87,9 @@ namespace Emotion.Common
         #region Loop
 
         /// <summary>
-        /// The desired tps and fps. 60 by default.
-        /// You don't want this to be unlimited as that will cause uneven delta time and hiccups.
-        /// If the game is running too slowly it may be throttled to half of this value, in which case your DeltaTime will be
-        /// doubled.
-        /// If the game is running fast (and it is possible to do so) your DeltaTime will be half of this.
+        /// The desired tps. 60 by default.
+        /// You don't want the true time between ticks as that will cause an uneven delta time and hiccups.
         /// This setting applies only if using the default loop.
-        /// If VSync is on it will override the fps.
         /// </summary>
         public byte DesiredStep { get; set; } = 60;
 
@@ -112,6 +108,16 @@ namespace Emotion.Common
         /// This setting applies only if using the default loop.
         /// </summary>
         public bool VariableLoopSpeed { get; set; } = true;
+
+        /// <summary>
+        /// If true frames will be rendered only when at least one update occurs in a tick.
+        /// This will essentially cap the FPS to the DesiredStep (and the variance associated, if any).
+        /// In some cases you might want this, as VSync (such as VSync forced by the driver) can cause
+        /// the loop to be throttled by a wait on what is essentially an unchanged frame. Usually a problem on weaker machines.
+        /// This setting applies only if using the default loop.
+        /// Off by default.
+        /// </summary>
+        public bool DrawOnUpdate { get; set; }
 
         /// <summary>
         /// The function to run as a loop.

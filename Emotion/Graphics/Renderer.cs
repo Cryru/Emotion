@@ -282,6 +282,7 @@ namespace Emotion.Graphics
             Camera = new PixelArtCamera(Vector3.Zero);
 
             CreateGraphicsMemory();
+            ApplySettings();
         }
 
         /// <summary>

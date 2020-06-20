@@ -207,8 +207,10 @@ namespace Emotion.Common
         {
             DetectVSync();
 
+            // Settings
             byte desiredStep = Configuration.DesiredStep;
             if (desiredStep == 0) desiredStep = 60;
+            bool drawOnUpdate = Configuration.DrawOnUpdate;
 
             // Setup tick time trackers.
             Stopwatch timer = Stopwatch.StartNew();
@@ -338,9 +340,7 @@ namespace Emotion.Common
                 }
 
                 if (!Host.IsOpen) break;
-
-                // If vSync is on, only render if updated because we don't want to be throttled by the buffer swap.
-                if (updated) frame();
+                if (!drawOnUpdate || updated) frame();
             }
 
             Quit();
@@ -356,7 +356,7 @@ namespace Emotion.Common
             var timer = new Stopwatch();
 
             // Detect VSync (yes I know)
-            // Because life is unfair and we cannot have nice things in order to detect
+            // Because life is unfair and we cannot have nice things, in order to detect
             // whether the GPU lord has enforced VSync on us (not that we can do anything about it)
             // we have to swap buffers around while messing with the settings and see if it
             // changes anything. If it doesn't - it means VSync is either forced on or off.
