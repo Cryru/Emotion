@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Numerics;
+using Emotion.Graphics;
 using Emotion.Utility;
 using OpenGL;
 using WinApi;
@@ -25,6 +26,8 @@ namespace Emotion.Primitives
             get => BoundingRectangleOfPolygon(Vertices);
         }
 
+        #region Constructors
+
         public Polygon(int vCount)
         {
             Vertices = new Vector3[vCount];
@@ -39,6 +42,19 @@ namespace Emotion.Primitives
         {
             Vertices = vertices.ToArray();
         }
+
+        public static Polygon FromRectangle(Rectangle rect)
+        {
+            var verts = new Vector3[4];
+            verts[0] = rect.Position.ToVec3();
+            verts[1] = (rect.Position + new Vector2(rect.Width, 0)).ToVec3();
+            verts[2] = (rect.Position + rect.Size).ToVec3();
+            verts[3] = (rect.Position + new Vector2(0, rect.Height)).ToVec3();
+
+            return new Polygon(verts);
+        }
+
+        #endregion
 
         /// <summary>
         /// Ensure this polygon's vertices is counter clockwise.
@@ -136,7 +152,7 @@ namespace Emotion.Primitives
         /// <returns>The polygon multiplied.</returns>
         public static Polygon Transform(Polygon poly, Matrix4x4 mat)
         {
-            var clone = (Polygon) poly.MemberwiseClone();
+            var clone = new Polygon(poly.Vertices.ToArray());
             clone.Transform(mat);
             return clone;
         }
@@ -226,7 +242,6 @@ namespace Emotion.Primitives
             return new Polygon(result);
         }
 
-
         /// <summary>
         /// Find the bounding rectangle of a polygon.
         /// </summary>
@@ -234,10 +249,10 @@ namespace Emotion.Primitives
         /// <returns>The bounding rectangle of the polygon.</returns>
         public static Rectangle BoundingRectangleOfPolygon(params Vector3[] vertices)
         {
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minY = float.MaxValue;
-            float maxY = float.MinValue;
+            var minX = float.MaxValue;
+            var maxX = float.MinValue;
+            var minY = float.MaxValue;
+            var maxY = float.MinValue;
 
             for (var i = 0; i < vertices.Length; i++)
             {
@@ -255,19 +270,25 @@ namespace Emotion.Primitives
             return new Rectangle(minX, minY, width, height);
         }
 
-        #region Constructors
-
-        public static Polygon FromRectangle(Rectangle rect)
+        /// <summary>
+        /// Renders the polygon unwound.
+        /// </summary>
+        /// <param name="composer">The composer to render with.</param>
+        /// <param name="color">The color of the polygon.</param>
+        public void Render(RenderComposer composer, Color color)
         {
-            var verts = new Vector3[4];
-            verts[0] = rect.Position.ToVec3();
-            verts[1] = (rect.Position + new Vector2(rect.Width, 0)).ToVec3();
-            verts[2] = (rect.Position + rect.Size).ToVec3();
-            verts[3] = (rect.Position + new Vector2(0, rect.Height)).ToVec3();
+            composer.SetStencilTest(true);
+            composer.StencilWindingStart();
+            composer.ToggleRenderColor(false);
 
-            return new Polygon(verts);
+            composer.RenderVertices(Vertices, Color.White);
+
+            composer.StencilWindingEnd();
+            composer.ToggleRenderColor(true);
+
+            composer.RenderSprite(Bounds2D, color);
+
+            composer.SetStencilTest(false);
         }
-
-        #endregion
     }
 }

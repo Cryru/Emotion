@@ -222,6 +222,24 @@ namespace Emotion.Graphics
             Gl.StencilFunc(StencilFunction.Less, filter, 0xFF);
         }
 
+        public void StencilWindingStart()
+        {
+            InvalidateStateBatches();
+            Gl.StencilMask(0xFF);
+            // Each draw inverts the value in the stencil.
+            Gl.StencilFunc(StencilFunction.Always, 0, 1);
+            Gl.StencilOp(StencilOp.Invert, StencilOp.Invert, StencilOp.Invert);
+        }
+
+        public void StencilWindingEnd()
+        {
+            InvalidateStateBatches();
+            Gl.StencilMask(0xFF);
+            // Enable drawing only where the value is 1.
+            Gl.StencilFunc(StencilFunction.Equal, 1, 1);
+            Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+        }
+
         #endregion
 
         /// <summary>
