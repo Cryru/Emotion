@@ -14,7 +14,7 @@ public static void PatchVersionInfo(string version)
     metaFileContent = new Regex("Version = \\\"0\\.0\\.0\\\"").Replace(metaFileContent, $"Version = \"{version}\"");
     metaFileContent = new Regex("GitHash = \\\"None\\\"").Replace(metaFileContent, $"GitHash = \"{hash}\"");
     File.WriteAllText(metaFile, metaFileContent);
-    nuSpecContent = new Regex("    <version>1\\.0\\.0</version>").Replace(nuSpecContent, $"<version>{version}</version>");
+    nuSpecContent = new Regex("version>1\\.0\\.0</version>").Replace(nuSpecContent, $"version>{version}</version>");
     File.WriteAllText(nuSpec, nuSpecContent);
 }
 
@@ -29,24 +29,25 @@ public static void RunCmd(string command)
 }
 
 Console.WriteLine("Publish script started.");
+
 string version = Environment.GetEnvironmentVariable("GITHUB_RUN_NUMBER");
 Console.WriteLine($"Version is {version}");
-string apiKey = Environment.GetEnvironmentVariable("NUGET_KEY");
-if(string.IsNullOrEmpty(apiKey))
-{
-    Console.WriteLine("API key not found :(");
-    return;
-}
 Directory.SetCurrentDirectory("./Emotion");
 PatchVersionInfo($"1.0.{version}");
 
 Console.WriteLine($"Packing...");
-RunCmd($"dotnet pack --configuration Release");
+RunCmd($"dotnet pack --configuration Debug");
 
-string[] packages = Directory.GetFiles("./bin/Release/", "*.nupkg");
-if(packages.Length == 0)
+string[] packages = Directory.GetFiles("./bin/Debug/", "*.nupkg");
+if (packages.Length == 0)
 {
     Console.WriteLine("No package generated.");
+    return;
+}
+string apiKey = Environment.GetEnvironmentVariable("NUGET_KEY");
+if (string.IsNullOrEmpty(apiKey))
+{
+    Console.WriteLine("API key not found :(");
     return;
 }
 Console.WriteLine($"Publishing package [{packages[0]}]...");
