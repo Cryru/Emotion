@@ -2,6 +2,7 @@
 <img src="EmotionLogo.png" width="128px" />
 
 ![CI-Windows](https://github.com/Cryru/Emotion/workflows/CI-Windows/badge.svg?branch=master)
+[![Gitter](https://badges.gitter.im/EmotionGameEngine/community.svg)](https://gitter.im/EmotionGameEngine/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## What is it?
 
@@ -97,6 +98,7 @@ and many more!
 ## Building and Using
 
 Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
+You can also use the Nuget package - https://www.nuget.org/packages/Emotion
 
 ## Dependencies
 
