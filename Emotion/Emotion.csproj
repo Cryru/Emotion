@@ -9,6 +9,13 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>2.0</OldToolsVersion>
+    <PackageId>Emotion</PackageId>
+    <Authors>Vlad Abadzhiev</Authors>
+    <PackageDescription>Game engine. Check repository for more information.</PackageDescription>
+    <RepositoryUrl>https://github.com/Cryru/Emotion</RepositoryUrl>
+    <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
+    <iconUrl>https://github.com/Cryru/Emotion/blob/master/EmotionLogo.png?raw=true</iconUrl>
+    <tags>game-engine game engine emotion opengl cross-platform game-development linux macos adfectus</tags>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
