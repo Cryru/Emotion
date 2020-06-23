@@ -645,7 +645,7 @@ namespace Emotion.Platform
             PlatformBase platform = null;
 
             // Detect platform.
-            if (engineConfig.PlatformOverride != null) platform = engineConfig.PlatformOverride;
+            if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Win32
