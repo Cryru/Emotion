@@ -114,7 +114,7 @@ namespace Emotion.Common
             Configuration = configurator ?? new Configurator();
 
             Log = Configuration.Logger ?? new DefaultLogger(Configuration.DebugMode);
-            Log.Info("Emotion V0.0.0", MessageSource.Engine);
+            Log.Info($"Emotion V{MetaData.Version} [{MetaData.BuildConfig}] {MetaData.GitHash}", MessageSource.Engine);
             Log.Info("--------------", MessageSource.Engine);
             Log.Info($" CPU Cores: {Environment.ProcessorCount}, SIMD: {Vector.IsHardwareAccelerated}, x64 Process: {Environment.Is64BitProcess}", MessageSource.Engine);
             Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);

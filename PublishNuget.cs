@@ -1,6 +1,22 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
+
+public static void PatchVersionInfo(string version)
+{
+    string hash = Environment.GetEnvironmentVariable("GITHUB_SHA");
+
+    const string metaFile = "./Common/MetaData.cs";
+    const string nuSpec = "./Emotion.nuspec";
+    string metaFileContent = File.ReadAllText(metaFile);
+    string nuSpecContent = File.ReadAllText(nuSpec);
+    metaFileContent = new Regex("Version = \\\"0\\.0\\.0\\\"").Replace(metaFileContent, $"Version = \"{version}\"");
+    metaFileContent = new Regex("GitHash = \\\"None\\\"").Replace(metaFileContent, $"GitHash = \"{hash}\"");
+    File.WriteAllText(metaFile, metaFileContent);
+    nuSpecContent = new Regex("    <version>1\\.0\\.0</version>").Replace(nuSpecContent, $"<version>{version}</version>");
+    File.WriteAllText(nuSpec, nuSpecContent);
+}
 
 public static void RunCmd(string command)
 {
@@ -22,9 +38,10 @@ if(string.IsNullOrEmpty(apiKey))
     return;
 }
 Directory.SetCurrentDirectory("./Emotion");
+PatchVersionInfo($"1.0.{version}");
 
 Console.WriteLine($"Packing...");
-RunCmd($"dotnet pack --configuration Release -p:PackageVersion=1.0.{version}");
+RunCmd($"dotnet pack --configuration Release");
 
 string[] packages = Directory.GetFiles("./bin/Release/", "*.nupkg");
 if(packages.Length == 0)
