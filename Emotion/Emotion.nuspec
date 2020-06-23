@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Emotion</id>
-<version>1.0.55</version>
+    <version>1.0.0</version>
     <title>Emotion</title>
     <authors>Vlad Abadzhiev</authors>
     <owners>Vlad Abadzhiev</owners>
