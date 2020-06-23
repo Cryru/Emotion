@@ -13,6 +13,7 @@
     <Authors>Vlad Abadzhiev</Authors>
     <PackageDescription>Game engine. Check repository for more information.</PackageDescription>
     <RepositoryUrl>https://github.com/Cryru/Emotion</RepositoryUrl>
+    <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
     <iconUrl>https://github.com/Cryru/Emotion/blob/master/EmotionLogo.png?raw=true</iconUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
