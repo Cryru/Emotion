@@ -87,13 +87,9 @@ namespace Emotion.Common
         #region Loop
 
         /// <summary>
-        /// The desired tps and fps. 60 by default.
-        /// You don't want this to be unlimited as that will cause uneven delta time and hiccups.
-        /// If the game is running too slowly it may be throttled to half of this value, in which case your DeltaTime will be
-        /// doubled.
-        /// If the game is running fast (and it is possible to do so) your DeltaTime will be half of this.
+        /// The desired tps. 60 by default.
+        /// You don't want the true time between ticks as that will cause an uneven delta time and hiccups.
         /// This setting applies only if using the default loop.
-        /// If VSync is on it will override the fps.
         /// </summary>
         public byte DesiredStep { get; set; } = 60;
 
@@ -106,7 +102,9 @@ namespace Emotion.Common
         public bool ScaleStepUp { get; set; } = true;
 
         /// <summary>
-        /// Whether to scale the loop speed between double the desired step and 4 times as slow as the desired step.
+        /// If this is enabled and the game is running too slowly the DesiredStep can be reduced up to a quarter,
+        /// in which case your DeltaTime will be doubled or quadrupled.
+        /// If the game is running fast you can get up to twice the amount of updates, and your DeltaTime will be halved.
         /// This is on by default, but so is VSync so the loop will only scale downward.
         /// If this is disabled ScaleStepUp is ignored.
         /// This setting applies only if using the default loop.
@@ -114,9 +112,19 @@ namespace Emotion.Common
         public bool VariableLoopSpeed { get; set; } = true;
 
         /// <summary>
+        /// If true frames will be rendered only when at least one update occurs in a tick.
+        /// This will essentially cap the FPS to the DesiredStep (and the variance associated, if any).
+        /// In some cases you might want this, as VSync (such as VSync forced by the driver) can cause
+        /// the loop to be throttled by a wait on what is essentially an unchanged frame. Usually a problem on weaker machines.
+        /// This setting applies only if using the default loop.
+        /// Off by default.
+        /// </summary>
+        public bool DrawOnUpdate { get; set; }
+
+        /// <summary>
         /// The function to run as a loop.
         /// The first argument passed is the "RunTick" method which you should call every tick, the second is the "RunFrame" method
-        /// which performs rendering.
+        /// which performs rendering and should be called every frame. It ends in a buffer swap.
         /// If no factory is set the default one will be used. Other loop settings might not apply if not using the default loop.
         /// Platforms are free to override your loop settings.
         /// </summary>

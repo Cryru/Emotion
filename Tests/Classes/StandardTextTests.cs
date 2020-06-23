@@ -76,7 +76,7 @@ namespace Tests.Classes
                 270,
                 279,
                 141,
-                2165, // 2164, but Emotion adds a fake-space char.
+                2164,
                 270,
                 270
             };
@@ -120,7 +120,7 @@ namespace Tests.Classes
                 FontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 2, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
-                CompareMetricsWithStb(f, stbFont, emotionAtlas.Scale);
+                CompareMetricsWithStb(f, emotionAtlas, stbFont);
 
                 // Compare render metrics.
                 foreach (KeyValuePair<char, AtlasGlyph> g in emotionAtlas.Glyphs)
@@ -188,7 +188,7 @@ namespace Tests.Classes
                 {
                     float yOff = cd[i].yoff;
                     yOff += MathF.Ceiling(ascent * scaleFactor);
-                    var atlasGlyph = new AtlasGlyph((char) i, (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, 10)
+                    var atlasGlyph = new AtlasGlyph( (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, 10)
                     {
                         Location = new Vector2(cd[i].x0, cd[i].y0),
                         Size = new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0),
@@ -216,7 +216,7 @@ namespace Tests.Classes
             return font;
         }
 
-        public static unsafe void CompareMetricsWithStb(Font f, StbTrueType.stbtt_fontinfo stbFont, float scale)
+        public static unsafe void CompareMetricsWithStb(Font f, FontAtlas atlas, StbTrueType.stbtt_fontinfo stbFont)
         {
             var pc = new StbTrueType.stbtt_pack_context();
             StbTrueType.stbtt_PackBegin(pc, (byte*) 0, 512, 512, 512, 1, null);
@@ -231,7 +231,7 @@ namespace Tests.Classes
                     array_of_unicode_codepoints = null,
                     num_chars = (int) f.LastCharIndex + 1,
                     chardata_for_range = charDataPtr,
-                    font_size = scale * f.Height
+                    font_size = atlas.Scale * f.Height
                 };
 
                 rects = new StbTrueType.stbrp_rect[f.LastCharIndex + 1];
@@ -242,12 +242,13 @@ namespace Tests.Classes
                 }
             }
 
-            foreach (Glyph glyph in f.Glyphs)
+            foreach ((char charIndex, AtlasGlyph atlasGlyph) in atlas.Glyphs)
             {
-                if (glyph.CharIndex == (char) 0) continue;
+                Glyph glyph = atlasGlyph.FontGlyph;
+
                 var advance = 0;
                 var bearing = 0;
-                StbTrueType.stbtt_GetCodepointHMetrics(stbFont, (int) glyph.CharIndex, &advance, &bearing);
+                StbTrueType.stbtt_GetCodepointHMetrics(stbFont, charIndex, &advance, &bearing);
                 Assert.True(advance == glyph.AdvanceWidth);
                 Assert.True(bearing == glyph.LeftSideBearing || glyph.LeftSideBearing == 0); // stb has junk data beyond valid
 
@@ -255,18 +256,18 @@ namespace Tests.Classes
                 var maxX = 0;
                 var minY = 0;
                 var maxY = 0;
-                StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, (int) glyph.CharIndex, scale, scale, 0, 0, &minX, &minY, &maxX, &maxY);
+                StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(stbFont, charIndex, atlas.Scale, atlas.Scale, 0, 0, &minX, &minY, &maxX, &maxY);
 
-                Rectangle bbox = glyph.GetBBox(scale);
+                Rectangle bbox = glyph.GetBBox(atlas.Scale);
 
                 Assert.Equal(minX, bbox.X);
                 Assert.Equal(minY, bbox.Y);
                 Assert.Equal(maxX, bbox.Width);
                 Assert.Equal(maxY, bbox.Height);
 
-                Rectangle drawBox = glyph.GetDrawBox(scale);
+                Rectangle drawBox = glyph.GetDrawBox(atlas.Scale);
                 drawBox.Size += Vector2.One; // Add padding from stb
-                StbTrueType.stbrp_rect rect = rects[glyph.CharIndex];
+                StbTrueType.stbrp_rect rect = rects[charIndex];
                 Assert.Equal(rect.w, drawBox.Width);
                 Assert.Equal(rect.h, drawBox.Height);
 

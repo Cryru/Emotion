@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Utility;
 
@@ -124,7 +125,7 @@ namespace Emotion.Primitives
         /// <returns>Hash code of this <see cref="Color" />.</returns>
         public override int GetHashCode()
         {
-            return R ^ G ^ B ^ A;
+            return (int) ToUint();
         }
 
         /// <summary>
@@ -191,6 +192,18 @@ namespace Emotion.Primitives
             return new Color((byte) (r * a / 255), (byte) (g * a / 255), (byte) (b * a / 255), (byte) a);
         }
 
+        /// <summary>
+        /// Set the color's alpha.
+        /// Since this is a struct you will get a copy of this color with the alpha set.
+        /// </summary>
+        /// <param name="a">The alpha to set to.</param>
+        /// <returns>Returns a copy of the color with the set alpha - for chaining.</returns>
+        public Color SetAlpha(byte a)
+        {
+            A = a;
+            return this;
+        }
+
         #endregion
 
         #region Static Operators
@@ -244,9 +257,15 @@ namespace Emotion.Primitives
                 (byte) (c1.A * c2.A / 255));
         }
 
-        public static Color operator *(Color c1, float f1)
+        public static Color operator *(Color c1, float a)
         {
-            c1.A = (byte) (c1.A * f1);
+            c1.A = (byte) (c1.A * a);
+            return c1;
+        }
+
+        public static Color operator *(Color c1, byte a)
+        {
+            c1.A = (byte) (c1.A * (a / 255.0f));
             return c1;
         }
 

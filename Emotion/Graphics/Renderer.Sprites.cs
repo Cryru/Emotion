@@ -52,6 +52,18 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
+        /// Render a (textured) quad to the screen using its transform.
+        /// </summary>
+        /// <param name="rect">The rectangle to draw.</param>
+        /// <param name="color">The color of the quad.</param>
+        /// <param name="texture">The texture of the quad, if any.</param>
+        /// <param name="textureArea">The texture area of the quad's texture, if any.</param>
+        public void RenderSprite(Rectangle rect, Color color, Texture texture = null, Rectangle? textureArea = null)
+        {
+            RenderSprite(rect.Position.ToVec3(), rect.Size, color, texture, textureArea);
+        }
+
+        /// <summary>
         /// Render a (textured) quad to the screen.
         /// </summary>
         /// <param name="position">The position of the quad.</param>

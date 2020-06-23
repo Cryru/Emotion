@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using Emotion.Standard.Utility;
 
 #endregion
@@ -9,7 +10,7 @@ namespace Emotion.Standard.OpenType.FontTables
 {
     public static class HmtxTable
     {
-        public static void ParseHmtx(ByteReader reader, ushort numberOfHMetrics, Glyph[] glyphs)
+        public static void ParseHmtx(ByteReader reader, ushort numberOfHMetrics, IEnumerable<Glyph> glyphs)
         {
             var metrics = new Tuple<ushort, short>[numberOfHMetrics];
 

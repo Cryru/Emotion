@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using Emotion.Primitives;
 
 #endregion
@@ -12,7 +13,7 @@ namespace Emotion.Standard.OpenType
         /// <summary>
         /// The character this glyph corresponds to.
         /// </summary>
-        public uint CharIndex { get; set; }
+        public List<char> CharIndex { get; set; } = new List<char>(1);
 
         /// <summary>
         /// The internal font index of this glyph.
