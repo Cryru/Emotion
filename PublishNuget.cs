@@ -45,11 +45,14 @@ if (packages.Length == 0)
     return;
 }
 string apiKey = Environment.GetEnvironmentVariable("NUGET_KEY");
-if (string.IsNullOrEmpty(apiKey))
+string githubKey = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(githubKey))
 {
-    Console.WriteLine("API key not found :(");
+    Console.WriteLine("API key or GitHub key not found :(");
     return;
 }
+
 Console.WriteLine($"Publishing package [{packages[0]}]...");
 RunCmd($"dotnet nuget push {packages[0]} -k {apiKey} -s https://api.nuget.org/v3/index.json");
+RunCmd($"dotnet nuget push {packages[0]} -k {githubKey} -s https://nuget.pkg.github.com/Cryru/index.json");
 Console.WriteLine("Script complete!");
