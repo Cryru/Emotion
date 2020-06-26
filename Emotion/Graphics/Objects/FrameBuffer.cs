@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
@@ -105,6 +104,10 @@ namespace Emotion.Graphics.Objects
             Viewport = new Rectangle(0, 0, size);
         }
 
+        /// <summary>
+        /// Create a new frame buffer of the given size.
+        /// </summary>
+        /// <param name="size"></param>
         public FrameBuffer(Vector2 size)
         {
             Pointer = Gl.GenFramebuffer();
@@ -223,17 +226,15 @@ namespace Emotion.Graphics.Objects
             FrameBuffer previouslyBound = Engine.Renderer.CurrentTarget;
             Bind();
             if (data != null)
-            {
                 fixed (byte* pixelBuffer = &data[0])
                 {
-                    Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                    Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra,
+                        ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
                         (IntPtr) pixelBuffer);
                 }
-            }
             else
-            {
-                Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra, ColorAttachment?.PixelType ?? PixelType.UnsignedByte, IntPtr.Zero);
-            }
+                Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                    IntPtr.Zero);
 
             previouslyBound.Bind();
             return true;
@@ -261,7 +262,8 @@ namespace Emotion.Graphics.Objects
         public FrameBufferSampleRequest SampleUnsynch(Rectangle rect, byte[] data = null)
         {
             if (_sampleRequest != null) return _sampleRequest;
-            _sampleRequest = new FrameBufferSampleRequest();
+            var sampleRequest = new FrameBufferSampleRequest();
+            _sampleRequest = sampleRequest;
 
             uint byteSize = (uint) (rect.Width * rect.Height) *
                             Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
@@ -273,7 +275,8 @@ namespace Emotion.Graphics.Objects
             // Either make a new pbo or resize if needed.
             if (_pbo == null)
                 _pbo = new PixelBuffer(byteSize);
-            else if (_pbo.Size < byteSize) _pbo.Upload(IntPtr.Zero, byteSize, BufferUsage.StreamCopy);
+            else if (_pbo.Size < byteSize)
+                _pbo.Upload(IntPtr.Zero, byteSize, BufferUsage.StreamCopy);
 
             // Create a request. This is basically a normal sample with a bound PBO
             PixelBuffer.EnsureBound(_pbo.Pointer);
@@ -283,28 +286,32 @@ namespace Emotion.Graphics.Objects
                 PixelBuffer.EnsureBound(0);
                 return null;
             }
-            var newFence = new GLFence();
+
+            var newFence = new Fence();
             PixelBuffer.EnsureBound(0);
 
-            // Create a coroutine to poll for whether the request is ready.
-            IEnumerator PollSubroutine()
+            // Pool the request until the fence has been signaled.
+            void UpdateRequest()
             {
-                yield return newFence; // The fence will stall until it is signaled.
-                GLThread.ExecuteGLThreadAsync(() =>
+                if (!newFence.IsSignaled())
                 {
-                    // Read the data from the PBO.
-                    PixelBuffer.EnsureBound(_pbo.Pointer);
-                    Span<byte> mapper = _pbo.CreateMapper<byte>(0, (int) byteSize);
-                    mapper.CopyTo(new Span<byte>(data));
-                    _pbo.FinishMapping();
-                    PixelBuffer.EnsureBound(0);
-                    _sampleRequest.Data = data;
-                    _sampleRequest = null;
-                });
+                    // If not ready, reinsert back into the GLThread queue.
+                    GLThread.ExecuteGLThreadAsync(UpdateRequest);
+                    return;
+                }
+
+                // Read the data from the PBO.
+                PixelBuffer.EnsureBound(_pbo.Pointer);
+                Span<byte> mapper = _pbo.CreateMapper<byte>(0, (int) byteSize);
+                mapper.CopyTo(new Span<byte>(data));
+                _pbo.FinishMapping();
+                PixelBuffer.EnsureBound(0);
+                _sampleRequest.Data = data;
+                _sampleRequest = null;
             }
 
-            Engine.CoroutineManager.StartCoroutine(PollSubroutine());
-            return _sampleRequest;
+            UpdateRequest();
+            return sampleRequest;
         }
 
         /// <summary>
@@ -351,8 +358,9 @@ namespace Emotion.Graphics.Objects
             Bound = pointer;
         }
 
-        #region Cleanup
-
+        /// <summary>
+        /// Cleanup used resources.
+        /// </summary>
         public void Dispose()
         {
             if (Pointer == 0 || Engine.Host == null) return;
@@ -366,8 +374,6 @@ namespace Emotion.Graphics.Objects
             _pbo?.Dispose();
             _pbo = null;
         }
-
-        #endregion
     }
 
     /// <summary>
@@ -375,9 +381,18 @@ namespace Emotion.Graphics.Objects
     /// </summary>
     public class FrameBufferSampleRequest : IRoutineWaiter
     {
-        public bool Finished { get => Data != null; }
+        /// <inheritdoc />
+        public bool Finished
+        {
+            get => Data != null;
+        }
+
+        /// <summary>
+        /// Sampled data. If null the sampling isn't done.
+        /// </summary>
         public byte[] Data { get; set; }
 
+        /// <inheritdoc />
         public void Update()
         {
         }

@@ -15,7 +15,7 @@ namespace Emotion.ExecTest.Examples
 {
     internal class FrameBufferSampling : IScene
     {
-        private static byte r;
+        private static byte _r;
         private Color _lastColorResult;
         private FrameBufferSampleRequest _sampleReq;
         private bool _unsych = true;
@@ -34,14 +34,14 @@ namespace Emotion.ExecTest.Examples
                 Engine.Log.Warning($"Unsynch: {_unsych}", "Other");
             }
 
-            r++;
+            _r++;
         }
 
         public void Draw(RenderComposer composer)
         {
             composer.RenderToAndClear(_fbo);
             composer.SetUseViewMatrix(false);
-            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(100, 100), new Color(r, (byte) 50, (byte) 50));
+            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(100, 100), new Color(_r, (byte) 50, (byte) 50));
             composer.RenderTo(null);
             composer.SetUseViewMatrix(true);
 

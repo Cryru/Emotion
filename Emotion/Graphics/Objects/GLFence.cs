@@ -8,7 +8,10 @@ using OpenGL;
 
 namespace Emotion.Graphics.Objects
 {
-    public class GLFence : IRoutineWaiter
+    /// <summary>
+    /// https://www.khronos.org/opengl/wiki/Sync_Object
+    /// </summary>
+    public class Fence
     {
         /// <summary>
         /// The OpenGL pointer to the fence.
@@ -23,33 +26,23 @@ namespace Emotion.Graphics.Objects
         /// <summary>
         /// Create a new GL fence object which lets you know when certain GL commands have executed on the GPU.
         /// </summary>
-        /// <param name="finished">Whether to create the fence as a finished one.</param>
-        public GLFence(bool finished = false)
+        public Fence()
         {
-            if (finished)
-            {
-                Finished = true;
-                return;
-            }
-
             Pointer = Gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, 0);
         }
 
         /// <summary>
         /// Update the fence's Finished status.
         /// </summary>
-        public void Update()
+        public bool IsSignaled()
         {
-            if (Finished) return;
-
-            GLThread.ExecuteGLThread(() =>
-            {
-                var result = (SyncStatus) Gl.GetSync(Pointer, SyncParameterName.SyncStatus);
-                if (result != SyncStatus.Signaled) return;
-                Finished = true;
-            });
+            var result = (SyncStatus) Gl.GetSync(Pointer, SyncParameterName.SyncStatus);
+            return result == SyncStatus.Signaled;
         }
 
+        /// <summary>
+        /// Reset the fence, creating a new unsignaled fence at this position.
+        /// </summary>
         public void Reset()
         {
             Pointer = Gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, 0);
