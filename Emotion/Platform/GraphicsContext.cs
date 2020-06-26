@@ -8,7 +8,10 @@ using System.Runtime.CompilerServices;
 
 namespace Emotion.Platform
 {
-    public abstract class GraphicsContext
+    /// <summary>
+    /// Handles the graphics API context.
+    /// </summary>
+    public abstract class GraphicsContext : IDisposable
     {
         /// <summary>
         /// Whether the context is valid.
@@ -27,9 +30,12 @@ namespace Emotion.Platform
                 SetSwapIntervalPlatform(_swapInterval);
             }
         }
-
         protected int _swapInterval;
 
+        /// <summary>
+        /// Internal function for when SwapInterval is called.
+        /// </summary>
+        /// <param name="interval"></param>
         protected abstract void SetSwapIntervalPlatform(int interval);
 
         /// <summary>
@@ -55,7 +61,7 @@ namespace Emotion.Platform
         /// </summary>
         /// <param name="usableConfigs">A list of supported formats by the context.</param>
         /// <returns>The index of the pixel format to use.</returns>
-        public static FramebufferConfig ChoosePixelFormat(List<FramebufferConfig> usableConfigs)
+        public static FramebufferConfig ChoosePixelFormat(IEnumerable<FramebufferConfig> usableConfigs)
         {
             const sbyte redBits = 8;
             const sbyte greenBits = 8;
@@ -64,9 +70,9 @@ namespace Emotion.Platform
             const sbyte depthBits = 24;
             const sbyte stencilBits = 8;
 
-            int leastMissing = int.MaxValue;
-            int leastColorDiff = int.MaxValue;
-            int leastExtraDiff = int.MaxValue;
+            var leastMissing = int.MaxValue;
+            var leastColorDiff = int.MaxValue;
+            var leastExtraDiff = int.MaxValue;
 
             FramebufferConfig closest = null;
 
@@ -127,6 +133,14 @@ namespace Emotion.Platform
             }
 
             return closest;
+        }
+
+        /// <summary>
+        /// Clean up resources.
+        /// This would probably never be called.
+        /// </summary>
+        public virtual void Dispose()
+        {
         }
     }
 }

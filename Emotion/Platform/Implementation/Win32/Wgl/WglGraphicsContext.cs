@@ -22,6 +22,7 @@ using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 
 namespace Emotion.Platform.Implementation.Win32.Wgl
 {
+    /// <inheritdoc />
     public sealed unsafe class WglGraphicsContext : GraphicsContext
     {
         private IntPtr _openGlLibrary;
@@ -55,11 +56,17 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
         private delegate int RenderDocGetApi(int version, void* api);
 
+        /// <summary>
+        /// Handle to the RenderDoc API, if any is loaded.
+        /// </summary>
         public RenderDocAPI RenderDoc;
         private IntPtr _renderDocModule;
 
         #endregion
 
+        /// <summary>
+        /// Initialize the conflict from the Windows window handle and platform reference.
+        /// </summary>
         public void Init(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
@@ -483,6 +490,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
         #region Graphic Context API
 
+        /// <inheritdoc />
         protected override void SetSwapIntervalPlatform(int interval)
         {
             if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
@@ -507,6 +515,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             _swapIntervalExt?.Invoke(interval);
         }
 
+        /// <inheritdoc />
         public override void SwapBuffers()
         {
             if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
@@ -534,18 +543,21 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             Gdi32.SwapBuffers(_dc);
         }
 
+        /// <inheritdoc />
         public override void MakeCurrent()
         {
             if (!_makeCurrent(_dc, _contextHandle)) Win32Platform.CheckError("WGL: Couldn't make context current.", true);
         }
 
+        /// <inheritdoc />
         public override IntPtr GetProcAddress(string func)
         {
             IntPtr proc = _getProcAddress(func);
             return proc == IntPtr.Zero ? _platform.GetLibrarySymbolPtr(_openGlLibrary, func) : proc;
         }
 
-        public void Dispose()
+        /// <inheritdoc />
+        public override void Dispose()
         {
             if (_contextHandle == IntPtr.Zero) return;
             _deleteContext(_contextHandle);
