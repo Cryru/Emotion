@@ -10,6 +10,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/Cryru/Emotion</projectUrl>
+    <repository type="git" url="https://github.com/cryru/emotion" />
     <icon>images/EmotionLogo.png</icon>
     <description>
       Emotion is a cross-platform game engine written in C# using .NetCore, with the intent of abstracting the lower levels of game programming, without taking away control from the developer. The core principle is that making games as a programmer should be about coding, and not about drag and drop interfaces, or wrestling with linking libraries and making the same interfaces over and over again. I made this to provide indie developers (and mostly myself) with a foundation which can be extended and adapted to a game's needs.
