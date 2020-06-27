@@ -214,7 +214,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             return proc == IntPtr.Zero ? _platform.GetLibrarySymbolPtr(_openGlLibrary, func) : proc;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_contextHandle == IntPtr.Zero) return;
             _deleteContext(_contextHandle);

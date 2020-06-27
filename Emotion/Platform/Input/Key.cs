@@ -1,4 +1,5 @@
-﻿namespace Emotion.Platform.Input
+﻿#pragma warning disable 1591 // No need to document enum members here
+namespace Emotion.Platform.Input
 {
     /// <summary>
     /// Keyboard keys.

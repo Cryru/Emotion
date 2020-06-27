@@ -8,7 +8,7 @@ using System.Text;
 namespace Emotion.Standard.XML.TypeHandlers
 {
     /// <summary>
-    /// Object which knows how to handle the serialization and deserialization of complex types (non primitives).
+    /// Object which knows how to handle the serialization and deserialization of objects.
     /// </summary>
     public abstract class XMLTypeHandler
     {
@@ -22,12 +22,25 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// </summary>
         public string TypeName { get; }
 
+        /// <summary>
+        /// Create a handler for a type.
+        /// </summary>
+        /// <param name="type">The type to handle.</param>
         protected XMLTypeHandler(Type type)
         {
             Type = type;
             TypeName = XMLHelpers.GetTypeName(Type);
         }
 
+        /// <summary>
+        /// Serialize the object.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="output"></param>
+        /// <param name="indentation"></param>
+        /// <param name="recursionChecker"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
         public virtual bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
             if (obj == null) return false;
@@ -38,6 +51,11 @@ namespace Emotion.Standard.XML.TypeHandlers
             return true;
         }
 
+        /// <summary>
+        /// Deserialize the object.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public abstract object Deserialize(XMLReader input);
 
         /// <summary>

@@ -41,9 +41,24 @@ namespace Emotion.Primitives
     /// </summary>
     public struct Rectangle : IEquatable<Rectangle>
     {
+        /// <summary>
+        /// The X position of the rectangle.
+        /// </summary>
         public float X;
+
+        /// <summary>
+        /// The Y position of the rectangle. Up is negative.
+        /// </summary>
         public float Y;
+
+        /// <summary>
+        /// The width of the rectangle.
+        /// </summary>
         public float Width;
+
+        /// <summary>
+        /// The height of the rectangle.
+        /// </summary>
         public float Height;
 
         #region Public Properties
@@ -175,21 +190,33 @@ namespace Emotion.Primitives
 
         #region Public Methods
 
-        public Vector3 LocationZ(float z)
-        {
-            return new Vector3(X, Y, z);
-        }
-
+        /// <summary>
+        /// Create a Vec3 from the rectangle's position with the specified Z value.
+        /// </summary>
         public Vector3 PositionZ(float z)
         {
             return new Vector3(X, Y, z);
         }
 
+        /// <summary>
+        /// Whether the two rectangles are equal.
+        /// </summary>
         public static bool operator ==(Rectangle a, Rectangle b)
         {
             return a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
         }
 
+        /// <summary>
+        /// Whether the two rectangles are not equal.
+        /// </summary>
+        public static bool operator !=(Rectangle a, Rectangle b)
+        {
+            return !(a == b);
+        }
+
+        /// <summary>
+        /// Multiply both the size and location of the rectangle by the given float.
+        /// </summary>
         public static Rectangle operator *(Rectangle a, float f)
         {
             a.X *= f;
@@ -199,6 +226,9 @@ namespace Emotion.Primitives
             return a;
         }
 
+        /// <summary>
+        /// Add the size and location of another rectangle to this one.
+        /// </summary>
         public static Rectangle operator +(Rectangle a, Rectangle b)
         {
             Rectangle n = a.Clone();
@@ -209,6 +239,9 @@ namespace Emotion.Primitives
             return n;
         }
 
+        /// <summary>
+        /// Subtract the size and location of another rectangle to this one.
+        /// </summary>
         public static Rectangle operator -(Rectangle a, Rectangle b)
         {
             Rectangle n = a.Clone();
@@ -219,6 +252,12 @@ namespace Emotion.Primitives
             return n;
         }
 
+        /// <summary>
+        /// Subtract a vector2 two from the position of this rectangle.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public static Rectangle operator -(Rectangle a, Vector2 v)
         {
             a.X -= v.X;
@@ -234,26 +273,36 @@ namespace Emotion.Primitives
             return new Rectangle(X, Y, Width, Height);
         }
 
+        /// <summary>
+        /// Whether the rectangle contains the given point.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public bool Contains(float x, float y)
         {
             return X <= x && x <= X + Width && Y <= y && y <= Y + Height;
         }
 
+        /// <summary>
+        /// Whether the rectangle contains the given point.
+        /// </summary>
         public bool Contains(Vector2 value)
         {
             return X <= value.X && value.X <= X + Width && Y <= value.Y && value.Y <= Y + Height;
         }
 
+        /// <summary>
+        /// Whether the rectangle contains the given rectangle.
+        /// </summary>
         public bool Contains(Rectangle value)
         {
             return X <= value.X && value.X + value.Width <= X + Width && Y <= value.Y && value.Y + value.Height <= Y + Height;
         }
 
-        public static bool operator !=(Rectangle a, Rectangle b)
-        {
-            return !(a == b);
-        }
-
+        /// <summary>
+        /// Increase the size of the rectangle outward.
+        /// </summary>
         public Rectangle Inflate(float horizontalValue, float verticalValue)
         {
             X -= horizontalValue;
@@ -264,6 +313,9 @@ namespace Emotion.Primitives
             return this;
         }
 
+        /// <summary>
+        /// Reduce the size of the rectangle inward.
+        /// </summary>
         public Rectangle Deflate(float horizontalValue, float verticalValue)
         {
             X += horizontalValue;
@@ -274,26 +326,33 @@ namespace Emotion.Primitives
             return this;
         }
 
+        /// <summary>
+        /// Whether the rectangle is 0,0,0,0
+        /// </summary>
         public bool IsEmpty
         {
             get => Width == 0 && Height == 0 && X == 0 && Y == 0;
         }
 
+        /// <inheritdoc />
         public bool Equals(Rectangle other)
         {
             return this == other;
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             return obj is Rectangle rectangle && this == rectangle;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return $"[X:{X} Y:{Y} Width:{Width} Height:{Height}]";
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return (int) Math.Pow(Math.Pow(X, Y), Math.Pow(Width, Height));

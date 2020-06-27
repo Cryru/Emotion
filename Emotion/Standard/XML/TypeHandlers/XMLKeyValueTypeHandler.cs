@@ -11,6 +11,7 @@ using Emotion.Standard.Logging;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
+    /// <inheritdoc />
     public class XMLKeyValueTypeHandler : XMLTypeHandler
     {
         private Lazy<XMLFieldHandler> _keyHandler;
@@ -19,6 +20,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         private object _keyDefault;
         private object _valueDefault;
 
+        /// <inheritdoc />
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public XMLKeyValueTypeHandler(Type type) : base(type)
         {
@@ -33,6 +35,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             _valueDefault = opaque && opaqueValueType.IsValueType ? Activator.CreateInstance(opaqueValueType) : null;
         }
 
+        /// <inheritdoc />
         public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
             if (obj == null) return false;
@@ -52,12 +55,20 @@ namespace Emotion.Standard.XML.TypeHandlers
             return true;
         }
 
+        /// <inheritdoc />
         public override object Deserialize(XMLReader input)
         {
             // This type is expected to be encountered only in the dictionary, where it use DeserializeKeyValue
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Deserialize a key and value objects. These are like any other objects except the two properties are "Key" and "Value"
+        /// and the reflection handlers are for the specific key/value generic tuple pair.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public void DeserializeKeyValue(XMLReader input, out object key, out object value)
         {
             key = _keyDefault;

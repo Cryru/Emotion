@@ -9,8 +9,13 @@ using Emotion.Standard.Utility;
 
 #endregion
 
+#pragma warning disable 1591 // Documentation for this file is found at msdn
+
 namespace Emotion.Standard.OpenType.FontTables
 {
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/typography/opentype/spec/cff
+    /// </summary>
     public class CffTable
     {
         public byte FormatMajor;
@@ -46,7 +51,6 @@ namespace Emotion.Standard.OpenType.FontTables
 
         /// <summary>
         /// Parse the `Cff` table. This table stores glyphs in Cff format fonts.
-        /// https://docs.microsoft.com/en-us/typography/opentype/spec/cff
         /// </summary>
         public CffTable(ByteReader reader)
         {

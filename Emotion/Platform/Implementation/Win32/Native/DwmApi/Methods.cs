@@ -6,6 +6,8 @@ using WinApi.Core;
 
 #endregion
 
+#pragma warning disable 1591 // Documentation for this file is found at msdn
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable once CheckNamespace
 // ReSharper disable IdentifierTypo

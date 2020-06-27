@@ -13,7 +13,14 @@ namespace Emotion.Standard.XML
     /// </summary>
     public sealed partial class XMLReader
     {
+        /// <summary>
+        /// The tag depth at the current position of the reader.
+        /// </summary>
         public int Depth { get; private set; }
+
+        /// <summary>
+        /// Whether the whole file has been read.
+        /// </summary>
         public bool Finished { get; private set; }
 
         private readonly string _source;
@@ -22,6 +29,10 @@ namespace Emotion.Standard.XML
 
         private static readonly Regex AttributeRegex = new Regex("([\\S]+)=\\\"([\\s\\S]*?)\\\"", RegexOptions.Compiled);
 
+        /// <summary>
+        /// Create a new XML reader, used to read XML documents.
+        /// </summary>
+        /// <param name="s">String data for the xml document.</param>
         public XMLReader(string s)
         {
             _source = s;

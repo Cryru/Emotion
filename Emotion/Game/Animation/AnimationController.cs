@@ -65,6 +65,7 @@ namespace Emotion.Game.Animation
         /// Set the current animation.
         /// </summary>
         /// <param name="animName"></param>
+        /// <param name="force">Set the animation even if it the same as the current animation. This will reset it.</param>
         public void SetAnimation(string animName, bool force = false)
         {
             if (!force && CurrentAnimation != null && CurrentAnimation.Name == animName) return;

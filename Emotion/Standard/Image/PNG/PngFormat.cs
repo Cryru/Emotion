@@ -625,29 +625,21 @@ namespace Emotion.Standard.Image.PNG
                 // ReSharper disable InvalidXmlDocComment
                 current[column] = filter switch
                 {
-                    /// <summary>
-                    /// The Sub filter transmits the difference between each byte and the value of the corresponding
-                    /// byte of the prior pixel.
-                    /// </summary>
+                    // The Sub filter transmits the difference between each byte and the value of the corresponding
+                    // byte of the prior pixel.
                     1 => (byte) (pixel + previousPixel),
 
-                    /// <summary>
-                    /// The Up filter is just like the Sub filter except that the pixel immediately above the current
-                    /// pixel, rather than just to its left, is used as the predictor.
-                    /// </summary>
+                    // The Up filter is just like the Sub filter except that the pixel immediately above the current
+                    // pixel, rather than just to its left, is used as the predictor.
                     2 => (byte) (pixel + pixelAbove),
 
-                    /// <summary>
-                    /// The Average filter uses the average of the two neighboring pixels (left and above) to
-                    /// predict the value of a pixel.
-                    /// </summary>
+                    // The Average filter uses the average of the two neighboring pixels (left and above) to
+                    // predict the value of a pixel.
                     3 => (byte) (pixel + (byte) ((previousPixel + pixelAbove) / 2)),
 
-                    /// <summary>
-                    /// The Paeth filter computes a simple linear function of the three neighboring pixels (left, above, upper left),
-                    /// then chooses as predictor the neighboring pixel closest to the computed value.
-                    /// This technique is named after Alan W. Paeth
-                    /// </summary>
+                    // The Paeth filter computes a simple linear function of the three neighboring pixels (left, above, upper left),
+                    // then chooses as predictor the neighboring pixel closest to the computed value.
+                    // This technique is named after Alan W. Paeth
                     4 => (byte) (pixel + PaethPredicator(previousPixel, pixelAbove, upperLeft)),
 
                     // No filter, or unknown.

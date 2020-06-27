@@ -8,12 +8,15 @@ using System.Collections.Generic;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
+    /// <inheritdoc />
     public class XMLListHandler : XMLArrayTypeHandler
     {
+        /// <inheritdoc />
         public XMLListHandler(Type type, Type elementType) : base(type, elementType)
         {
         }
 
+        /// <inheritdoc />
         public override object Deserialize(XMLReader input)
         {
             var backingArr = new List<object>();

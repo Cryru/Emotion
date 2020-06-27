@@ -4,6 +4,8 @@ using System;
 
 #endregion
 
+#pragma warning disable 1591 // Documentation for this file is found at msdn
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable once CheckNamespace
 // ReSharper disable IdentifierTypo
@@ -559,12 +561,12 @@ namespace WinApi.User32
         DT_EXTERNALLEADING = 0x00000200,
 
         /// <summary>
-        /// Ignores the ampersand (&) prefix character in the text. The letter that follows will not be underlined, but other
+        /// Ignores the ampersand (&amp;) prefix character in the text. The letter that follows will not be underlined, but other
         /// mnemonic-prefix characters are still processed.
         /// Example:
-        /// input string: "A&bc&&d"
-        /// normal: "Abc&d"
-        /// DT_HIDEPREFIX: "Abc&d"
+        /// input string: "A&amp;bc&amp;&amp;d"
+        /// normal: "Abc&amp;d"
+        /// DT_HIDEPREFIX: "Abc&amp;"
         /// Compare with DT_NOPREFIX and DT_PREFIXONLY.
         /// </summary>
         DT_HIDEPREFIX = 0x00100000,
@@ -598,13 +600,13 @@ namespace WinApi.User32
         DT_NOFULLWIDTHCHARBREAK = 0x00080000,
 
         /// <summary>
-        /// Turns off processing of prefix characters. Normally, DrawText interprets the mnemonic-prefix character & as a
-        /// directive to underscore the character that follows, and the mnemonic-prefix characters && as a directive to print a
-        /// single &. By specifying DT_NOPREFIX, this processing is turned off. For example,
+        /// Turns off processing of prefix characters. Normally, DrawText interprets the mnemonic-prefix character &amp; as a
+        /// directive to underscore the character that follows, and the mnemonic-prefix characters &amp;&amp; as a directive to print a
+        /// single &amp;. By specifying DT_NOPREFIX, this processing is turned off. For example,
         /// Example:
-        /// input string: "A&bc&&d"
-        /// normal: "Abc&d"
-        /// DT_NOPREFIX: "A&bc&&d"
+        /// input string: "A&amp;bc&amp;&amp;d"
+        /// normal: "Abc&amp;d"
+        /// DT_NOPREFIX: "A&amp;bc&amp;&amp;d"
         /// Compare with DT_HIDEPREFIX and DT_PREFIXONLY.
         /// </summary>
         DT_NOPREFIX = 0x00000800,
@@ -619,11 +621,11 @@ namespace WinApi.User32
         DT_PATH_ELLIPSIS = 0x00004000,
 
         /// <summary>
-        /// Draws only an underline at the position of the character following the ampersand (&) prefix character. Does not
+        /// Draws only an underline at the position of the character following the ampersand (&amp;) prefix character. Does not
         /// draw any other characters in the string. For example,
         /// Example:
-        /// input string: "A&bc&&d"n
-        /// normal: "Abc&d"
+        /// input string: "A&amp;bc&amp;&amp;d"n
+        /// normal: "Abc&amp;d"
         /// DT_PREFIXONLY: " _    "
         /// Compare with DT_HIDEPREFIX and DT_NOPREFIX.
         /// </summary>

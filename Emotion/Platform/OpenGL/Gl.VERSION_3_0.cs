@@ -2628,8 +2628,7 @@ namespace OpenGL
         /// The name of the target program object.
         /// </param>
         /// <param name="varyings">
-        /// An array of <paramref name="count" /> zero-terminated strings specifying the names of the varying variables to use for
-        /// transform feedback.
+        /// An array of zero-terminated strings specifying the names of the varying variables to use for transform feedback.
         /// </param>
         /// <param name="bufferMode">
         /// Identifies the mode used to capture the varying variables when transform feedback is active.
@@ -4367,7 +4366,7 @@ namespace OpenGL
         /// Specifies the location of the uniform variable to be modified.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4401,7 +4400,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4428,7 +4427,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4468,9 +4467,7 @@ namespace OpenGL
         /// Specifies the location of the uniform variable to be modified.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
-        /// used
-        /// to update the specified uniform variable.
+        /// Values that will be used to update the specified uniform variable.
         /// </param>
         [RequiredByFeature("GL_VERSION_3_0")]
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -4503,7 +4500,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4530,7 +4527,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4570,9 +4567,7 @@ namespace OpenGL
         /// Specifies the location of the uniform variable to be modified.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
-        /// used
-        /// to update the specified uniform variable.
+        /// Values that will be used to update the specified uniform variable.
         /// </param>
         [RequiredByFeature("GL_VERSION_3_0")]
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -4605,7 +4600,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4632,7 +4627,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4672,9 +4667,7 @@ namespace OpenGL
         /// Specifies the location of the uniform variable to be modified.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
-        /// used
-        /// to update the specified uniform variable.
+        /// Values that will be used to update the specified uniform variable.
         /// </param>
         [RequiredByFeature("GL_VERSION_3_0")]
         [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -4707,7 +4700,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>
@@ -4734,7 +4727,7 @@ namespace OpenGL
         /// the targeted uniform variable is not an array, and 1 or more if it is an array.
         /// </param>
         /// <param name="value">
-        /// For the vector and matrix commands, specifies a pointer to an array of <paramref name="count" /> values that will be
+        /// Values that will be used to update the specified uniform variable.
         /// used
         /// to update the specified uniform variable.
         /// </param>

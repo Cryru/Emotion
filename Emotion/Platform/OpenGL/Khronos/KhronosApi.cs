@@ -214,7 +214,6 @@ namespace Khronos
         /// <param name="version"></param>
         /// <param name="extensions"></param>
         /// <exception cref="ArgumentNullException">
-        /// Exception thrown if <paramref name="path" /> or <paramref name="getAddress" /> is null.
         /// </exception>
         internal static void BindAPI<T>(KhronosVersion version, ExtensionsCollection extensions)
         {

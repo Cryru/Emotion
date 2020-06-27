@@ -8,6 +8,9 @@ using Emotion.Primitives;
 
 namespace Emotion.Standard.OpenType
 {
+    /// <summary>
+    /// Represents a single font glyph. One glyph can represent multiple characters in a font.
+    /// </summary>
     public class Glyph
     {
         /// <summary>
@@ -32,9 +35,24 @@ namespace Emotion.Standard.OpenType
 
         #region Metrics
 
+        /// <summary>
+        /// The leftmost point of the glyph.
+        /// </summary>
         public short XMin { get; set; }
-        public short YMin { get; set; }
+
+        /// <summary>
+        /// The rightmost point of the glyph.
+        /// </summary>
         public short XMax { get; set; }
+
+        /// <summary>
+        /// The highest point of the glyph. Can extend below the baseline.
+        /// </summary>
+        public short YMin { get; set; }
+
+        /// <summary>
+        /// The highest point of the glyph.
+        /// </summary>
         public short YMax { get; set; }
 
         /// <summary>
@@ -49,12 +67,21 @@ namespace Emotion.Standard.OpenType
 
         #endregion
 
+        /// <summary>
+        /// The draw box for the glyph. This is essentially the rendering canvas.
+        /// </summary>
+        /// <param name="scale">The scale to get the drawing box at.</param>
+        /// <returns></returns>
         public Rectangle GetDrawBox(float scale)
         {
             Rectangle bbox = GetBBox(scale);
             return new Rectangle(0, 0, bbox.Width - bbox.X, bbox.Height - bbox.Y);
         }
 
+        /// <summary>
+        /// The bounding box for the glyph.
+        /// </summary>
+        /// <param name="scale">The scale to get the bounding box at.</param>
         public Rectangle GetBBox(float scale)
         {
             return new Rectangle(

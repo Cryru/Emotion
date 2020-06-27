@@ -527,22 +527,22 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit.
+        /// for target texture unit.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit.
+        /// for target texture unit.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit.
+        /// for target texture unit.
         /// </param>
         /// <param name="q">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit.
+        /// for target texture unit.
         /// </param>
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         public static void MultiTexCoord4(TextureUnit texture, IntPtr s, IntPtr t, IntPtr r, IntPtr q)
@@ -556,17 +556,17 @@ namespace OpenGL
         /// [GLES1.1] glNormal3x: set the current normal vector
         /// </summary>
         /// <param name="nx">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of the new current
+        /// Specify the x, y, and z coordinates of the new current
         /// normal.
         /// The initial value is (0, 0, 1).
         /// </param>
         /// <param name="ny">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of the new current
+        /// Specify the x, y, and z coordinates of the new current
         /// normal.
         /// The initial value is (0, 0, 1).
         /// </param>
         /// <param name="nz">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of the new current
+        /// Specify the x, y, and z coordinates of the new current
         /// normal.
         /// The initial value is (0, 0, 1).
         /// </param>
@@ -690,15 +690,15 @@ namespace OpenGL
         /// Specifies the angle of rotation, in degrees.
         /// </param>
         /// <param name="x">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of a vector,
+        /// Specify the x, y, and z coordinates of a vector,
         /// respectively.
         /// </param>
         /// <param name="y">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of a vector,
+        /// Specify the x, y, and z coordinates of a vector,
         /// respectively.
         /// </param>
         /// <param name="z">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of a vector,
+        /// Specify the x, y, and z coordinates of a vector,
         /// respectively.
         /// </param>
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -732,15 +732,15 @@ namespace OpenGL
         /// [GLES1.1] glScalex: multiply the current matrix by a general scaling matrix
         /// </summary>
         /// <param name="x">
-        /// Specify scale factors along the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> axes,
+        /// Specify scale factors along the x, y, and z axes,
         /// respectively.
         /// </param>
         /// <param name="y">
-        /// Specify scale factors along the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> axes,
+        /// Specify scale factors along the x, y, and z axes,
         /// respectively.
         /// </param>
         /// <param name="z">
-        /// Specify scale factors along the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> axes,
+        /// Specify scale factors along the x, y, and z axes,
         /// respectively.
         /// </param>
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -804,15 +804,15 @@ namespace OpenGL
         /// [GLES1.1] glTranslatex: multiply the current matrix by a translation matrix
         /// </summary>
         /// <param name="x">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of a translation
+        /// Specify the x, y, and z coordinates of a translation
         /// vector.
         /// </param>
         /// <param name="y">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of a translation
+        /// Specify the x, y, and z coordinates of a translation
         /// vector.
         /// </param>
         /// <param name="z">
-        /// Specify the <paramref name="x" />, <paramref name="y" />, and <paramref name="z" /> coordinates of a translation
+        /// Specify the x, y, and z coordinates of a translation
         /// vector.
         /// </param>
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]

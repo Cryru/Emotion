@@ -9,6 +9,8 @@ using Emotion.Primitives;
 
 #endregion
 
+#pragma warning disable 1591 // Forked renderer from StbTrueType, no need to document this as it is not forward facing.
+
 namespace Emotion.Standard.OpenType
 {
     public static class GlyphRenderer

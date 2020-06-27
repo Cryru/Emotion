@@ -1574,7 +1574,7 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1625,7 +1625,7 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1676,7 +1676,7 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1727,7 +1727,7 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1778,12 +1778,12 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1834,12 +1834,12 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1890,12 +1890,12 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -1946,12 +1946,12 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2002,17 +2002,17 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2063,17 +2063,17 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2122,19 +2122,19 @@ namespace OpenGL
         /// Gl.MAX_TEXTURE_COORDS - 1, which is an implementation-dependent value.
         /// </param>
         /// <param name="s">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, and <paramref name="r" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, and <paramref name="r" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, and <paramref name="r" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2183,19 +2183,19 @@ namespace OpenGL
         /// Gl.MAX_TEXTURE_COORDS - 1, which is an implementation-dependent value.
         /// </param>
         /// <param name="s">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, and <paramref name="r" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, and <paramref name="r" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
-        /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
+        /// Specify <paramref name="s" />, <paramref name="t" />, and <paramref name="r" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2246,22 +2246,22 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="q">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2314,22 +2314,22 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="q">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
@@ -2381,22 +2381,22 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="q">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]
@@ -2447,22 +2447,22 @@ namespace OpenGL
         /// <param name="s">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="t">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="r">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         /// <param name="q">
         /// Specify <paramref name="s" />, <paramref name="t" />, <paramref name="r" />, and <paramref name="q" /> texture
         /// coordinates
-        /// for <paramref name="target" /> texture unit. Not all parameters are present in all forms of the command.
+        /// for target texture unit. Not all parameters are present in all forms of the command.
         /// </param>
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_multitexture")]

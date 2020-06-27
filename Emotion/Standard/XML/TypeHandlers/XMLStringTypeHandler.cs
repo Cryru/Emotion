@@ -9,12 +9,15 @@ using System.Text.RegularExpressions;
 
 namespace Emotion.Standard.XML.TypeHandlers
 {
+    /// <inheritdoc />
     public class XMLStringTypeHandler : XMLTypeHandler
     {
+        /// <inheritdoc />
         public XMLStringTypeHandler(Type type) : base(type)
         {
         }
 
+        /// <inheritdoc />
         public override bool Serialize(object obj, StringBuilder output, int indentation = 1, XMLRecursionChecker recursionChecker = null, string fieldName = null)
         {
             if (obj == null) return false;
@@ -23,6 +26,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             return base.Serialize(obj, output, indentation, recursionChecker, fieldName);
         }
 
+        /// <inheritdoc />
         public override object Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();

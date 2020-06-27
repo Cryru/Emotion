@@ -832,7 +832,7 @@ namespace OpenGL
         /// Specifies the program object to be queried.
         /// </param>
         /// <param name="uniformIndices">
-        /// Specifies the address of an array of <paramref name="uniformCount" /> integers containing the indices of uniforms
+        /// Specifies the address of an array of integers containing the indices of uniforms
         /// within
         /// <paramref name="program" /> whose parameter <paramref name="pname" /> should be queried.
         /// </param>
@@ -841,7 +841,7 @@ namespace OpenGL
         /// corresponding element of <paramref name="params" />.
         /// </param>
         /// <param name="params">
-        /// Specifies the address of an array of <paramref name="uniformCount" /> integers which are to receive the value of
+        /// Specifies the address of an array of integers which are to receive the value of
         /// <paramref name="pname" /> for each uniform in <paramref name="uniformIndices" />.
         /// </param>
         [RequiredByFeature("GL_VERSION_3_1")]

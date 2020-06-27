@@ -1,34 +1,61 @@
 ﻿namespace Emotion.Standard.OpenType
 {
+    /// <summary>
+    /// The type of operation this glyph vertex represents.
+    /// </summary>
     public enum VertexTypeFlag : byte
     {
+        /// <summary>
+        /// Moving the pen.
+        /// </summary>
         Move = 1,
+        /// <summary>
+        /// Drawing a line.
+        /// </summary>
         Line = 2,
+        /// <summary>
+        /// Drawing a curve.
+        /// </summary>
         Curve = 3,
+        /// <summary>
+        /// Drawing a cubic curve.
+        /// </summary>
         Cubic = 4
     }
 
+    /// <summary>
+    /// A glyph vertex command.
+    /// </summary>
     public struct GlyphVertex
     {
         /// <summary>
-        /// Coordinate of the point.
+        /// X Coordinate of the point.
         /// </summary>
         public short X;
 
+        /// <summary>
+        /// X Coordinate of the point.
+        /// </summary>
         public short Y;
 
         /// <summary>
-        /// Coordinate of the curve.
+        /// X Coordinate of the curve.
         /// </summary>
         public short Cx;
 
+        /// <summary>
+        /// Y Coordinate of the curve.
+        /// </summary>
         public short Cy;
 
         /// <summary>
-        /// Used for cubic curves.
+        /// X Coordinate of the cubic curve control point.
         /// </summary>
         public short Cx1;
 
+        /// <summary>
+        /// Y Coordinate of the cubic curve control point.
+        /// </summary>
         public short Cy1;
 
         /// <summary>
@@ -38,6 +65,9 @@
         /// </summary>
         public byte Flags;
 
+        /// <summary>
+        /// Flags property as VertexTypeFlag enum
+        /// </summary>
         public VertexTypeFlag TypeFlag
         {
             get => (VertexTypeFlag) Flags;

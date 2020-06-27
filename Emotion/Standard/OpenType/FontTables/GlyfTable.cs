@@ -9,8 +9,13 @@ using Emotion.Standard.Utility;
 
 #endregion
 
+#pragma warning disable 1591 // Documentation for this file is found at msdn
+
 namespace Emotion.Standard.OpenType.FontTables
 {
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
+    /// </summary>
     public static class GlyfTable
     {
         private struct CompositeGlyphRequest

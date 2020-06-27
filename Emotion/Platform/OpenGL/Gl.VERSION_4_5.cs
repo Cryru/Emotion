@@ -2186,7 +2186,7 @@ namespace OpenGL
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureStorage2DMultisample. The effective target of
         /// <paramref name="texture" />
-        /// must be one of the valid non-proxy <paramref name="target" /> values above.
+        /// must be one of the valid non-proxy target values above.
         /// </param>
         /// <param name="samples">
         /// Specify the number of samples in the texture.
@@ -2219,7 +2219,7 @@ namespace OpenGL
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureStorage3DMultisample. The effective target of
         /// <paramref name="texture" />
-        /// must be one of the valid non-proxy <paramref name="target" /> values above.
+        /// must be one of the valid non-proxy target values above.
         /// </param>
         /// <param name="samples">
         /// Specify the number of samples in the texture.
@@ -2254,7 +2254,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureSubImage1D. The effective target of <paramref name="texture" /> must be
-        /// one of the valid <paramref name="target" /> values above.
+        /// one of the valid target values above.
         /// </param>
         /// <param name="level">
         /// Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
@@ -2293,7 +2293,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureSubImage1D. The effective target of <paramref name="texture" /> must be
-        /// one of the valid <paramref name="target" /> values above.
+        /// one of the valid target values above.
         /// </param>
         /// <param name="level">
         /// Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
@@ -2338,7 +2338,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureSubImage2D. The effective target of <paramref name="texture" /> must be
-        /// one of the valid <paramref name="target" /> values above.
+        /// one of the valid target values above.
         /// </param>
         /// <param name="level">
         /// Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
@@ -2383,7 +2383,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureSubImage2D. The effective target of <paramref name="texture" /> must be
-        /// one of the valid <paramref name="target" /> values above.
+        /// one of the valid target values above.
         /// </param>
         /// <param name="level">
         /// Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
@@ -2434,7 +2434,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureSubImage3D. The effective target of <paramref name="texture" /> must be
-        /// one of the valid <paramref name="target" /> values above.
+        /// one of the valid target values above.
         /// </param>
         /// <param name="level">
         /// Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
@@ -2485,7 +2485,7 @@ namespace OpenGL
         /// </summary>
         /// <param name="texture">
         /// Specifies the texture object name for Gl.TextureSubImage3D. The effective target of <paramref name="texture" /> must be
-        /// one of the valid <paramref name="target" /> values above.
+        /// one of the valid target values.
         /// </param>
         /// <param name="level">
         /// Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
@@ -5067,22 +5067,13 @@ namespace OpenGL
         /// Specifies a texel offset in the z direction within the texture array.
         /// </param>
         /// <param name="width">
-        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless the
-        /// <paramref
-        ///     name="offset" />
-        /// is zero and the size equals the texture image size.
+        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless any of the offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="height">
-        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless the
-        /// <paramref
-        ///     name="offset" />
-        /// is zero and the size equals the texture image size.
+        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless any of the offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="depth">
-        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless the
-        /// <paramref
-        ///     name="offset" />
-        /// is zero and the size equals the texture image size.
+        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless any of the offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="bufSize">
         /// Specifies the size of the buffer to receive the retrieved pixel data.
@@ -5122,22 +5113,13 @@ namespace OpenGL
         /// Specifies a texel offset in the z direction within the texture array.
         /// </param>
         /// <param name="width">
-        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless the
-        /// <paramref
-        ///     name="offset" />
-        /// is zero and the size equals the texture image size.
+        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless any of the offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="height">
-        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless the
-        /// <paramref
-        ///     name="offset" />
-        /// is zero and the size equals the texture image size.
+        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless any of the offsets is zeroo and the size equals the texture image size.
         /// </param>
         /// <param name="depth">
-        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless the
-        /// <paramref
-        ///     name="offset" />
-        /// is zero and the size equals the texture image size.
+        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless any of the offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="bufSize">
         /// Specifies the size of the buffer to receive the retrieved pixel data.
