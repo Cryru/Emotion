@@ -1,4 +1,8 @@
-﻿using Emotion.Utility;
+﻿#region Using
+
+using Emotion.Utility;
+
+#endregion
 
 namespace Emotion.Audio.Fading
 {

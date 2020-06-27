@@ -220,9 +220,8 @@ namespace Emotion.Graphics.Objects
                 if (Bound[i] == ptr) Bound[i] = 0;
             }
 
-            if(ptr != 0) 
+            if (ptr != 0)
                 GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
-
     }
 }

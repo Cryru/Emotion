@@ -134,7 +134,6 @@ namespace Emotion.Primitives
         /// </summary>
         private Transform()
         {
-
         }
 
         /// <summary>

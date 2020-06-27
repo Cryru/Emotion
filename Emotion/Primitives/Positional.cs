@@ -129,7 +129,6 @@ namespace Emotion.Primitives
         /// </summary>
         private Positional()
         {
-
         }
 
         /// <summary>

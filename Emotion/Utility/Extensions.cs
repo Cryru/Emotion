@@ -1,5 +1,4 @@
-﻿
-#region Using
+﻿#region Using
 
 using System;
 using System.Runtime.CompilerServices;
@@ -216,7 +215,7 @@ namespace System.Numerics
             return v.X <= comp.X && v.Y <= comp.Y;
         }
 
-        
+
         /// <summary>
         /// Returns whether the components of the second vector are all larger or equal to this vector's.
         /// >=

@@ -10,7 +10,6 @@ using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
-using Emotion.Utility;
 
 #endregion
 

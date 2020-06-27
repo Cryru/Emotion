@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
@@ -96,10 +95,7 @@ namespace Emotion.IO
 
             Atlas = atlas;
 
-            GLThread.ExecuteGLThread(() =>
-            {
-                Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels)) {Smooth = smooth};
-            });
+            GLThread.ExecuteGLThread(() => { Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels)) {Smooth = smooth}; });
 
             // Free memory.
             Atlas.Pixels = null;

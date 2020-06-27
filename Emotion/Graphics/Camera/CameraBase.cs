@@ -3,7 +3,6 @@
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Primitives;
-using Emotion.Utility;
 
 #endregion
 

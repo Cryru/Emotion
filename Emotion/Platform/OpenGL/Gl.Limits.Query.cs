@@ -75,7 +75,7 @@ namespace OpenGL
 
                     if (getMethod == null)
                     {
-                        Engine.Log.Error($"GraphicsLimits field " + field.Name + " doesn't have a OpenGL compatible type.", MessageSource.GL);
+                        Engine.Log.Error("GraphicsLimits field " + field.Name + " doesn't have a OpenGL compatible type.", MessageSource.GL);
                         continue;
                     }
 

@@ -173,13 +173,9 @@ namespace Emotion.Game.Tiled
 
                 string assetPath = AssetLoader.JoinPath(_tilesetFolder, tilesetFile);
                 if (parallel)
-                {
                     assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(assetPath);
-                }
                 else
-                {
                     assets[i] = Task.FromResult(Engine.AssetLoader.Get<TextureAsset>(assetPath));
-                }
             }
 
             // ReSharper disable once CoVariantArrayConversion

@@ -1,4 +1,8 @@
-﻿using Emotion.Utility;
+﻿#region Using
+
+using Emotion.Utility;
+
+#endregion
 
 namespace Emotion.Audio.Fading
 {
@@ -42,6 +46,7 @@ namespace Emotion.Audio.Fading
                 if (progress < activationProgress) return;
                 fadeOutProgress = 1.0f - (progress - activationProgress) / -TimeStamp;
             }
+
             volume *= Maths.Clamp01(fadeOutProgress);
         }
     }

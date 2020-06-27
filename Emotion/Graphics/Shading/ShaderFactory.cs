@@ -58,11 +58,11 @@ namespace Emotion.Graphics.Shading
         {
             uint vertShader = Gl.CreateShader(ShaderType.VertexShader);
             bool vertCompiled = TryCompile(vertShaderSource, vertShader, out string configVert);
-            if(!vertCompiled)  Engine.Log.Warning("Vert shader compilation failed.", MessageSource.Renderer);
+            if (!vertCompiled) Engine.Log.Warning("Vert shader compilation failed.", MessageSource.Renderer);
 
             uint fragShader = Gl.CreateShader(ShaderType.FragmentShader);
             bool fragCompiled = TryCompile(fragShaderSource, fragShader, out string configFrag);
-            if(!fragCompiled) Engine.Log.Warning("Frag shader compilation failed.", MessageSource.Renderer);
+            if (!fragCompiled) Engine.Log.Warning("Frag shader compilation failed.", MessageSource.Renderer);
 
             // Try to compile with shader configurations.
             if (!vertCompiled || !fragCompiled)
@@ -156,6 +156,7 @@ namespace Emotion.Graphics.Shading
                     Engine.Log.Trace($"Shader compilation with config - {configuration.name} failed.", MessageSource.Renderer);
                     continue;
                 }
+
                 config = configuration.name;
 
                 // Swap the first configuration with the one which worked. This will speed up future compilations
@@ -276,26 +277,27 @@ namespace Emotion.Graphics.Shading
         /// Let me tell you a really sad story.
         /// Indexing sampler (and other opaque types) arrays with a varying is not allowed by the GL spec.
         /// Since version 400 (and with the shader5 extension) you can use dynamic uniform expressions to index,
-        /// which basically means through a uniform a variable. The presumption is that the value will be the same for all executions of the
+        /// which basically means through a uniform a variable. The presumption is that the value will be the same for all
+        /// executions of the
         /// shader.
-        ///
         /// There are various workarounds to this, such as looping over the array and stopping to index it with the loop counter
         /// once it has reached the varying value, or creating a large switch case (as the constant "CompatTextureIndex" does).
         /// Theoretically this is still illegal and is a huge performance hit (as branching usually is in shaders).
-        /// 
-        /// HOWEVER, most drivers will actually let you index the array directly and it is assumed that those who stick to the spec,
+        /// HOWEVER, most drivers will actually let you index the array directly and it is assumed that those who stick to the
+        /// spec,
         /// and don't let you do that, will throw an error during shader compilation. The whole shader configuration logic here
         /// exists to try out different variations of the shader until one compiles.
-        /// 
-        /// It turns out some drivers (AMD) compile silently without any errors. While they are technically up to spec, reporting success in such cases is not.
-        /// One way (I've randomly found) of detecting this is to attempt a compilation of a GLES shader, in which case they do throw an error
+        /// It turns out some drivers (AMD) compile silently without any errors. While they are technically up to spec, reporting
+        /// success in such cases is not.
+        /// One way (I've randomly found) of detecting this is to attempt a compilation of a GLES shader, in which case they do
+        /// throw an error
         /// This function will attempt to compile such a shader once, and exclude non-compliant shader configurations if it fails.
         /// </summary>
         /// <param name="source">The shader source.</param>
         /// <returns>null if the shader configuration should be skipped, and the source if it shouldn't.</returns>
         private static string[] ExcludeCompliantRenderer(string[] source)
         {
-            if(_compliantShader != null) return _compliantShader.Value ? null : source;
+            if (_compliantShader != null) return _compliantShader.Value ? null : source;
 
             uint testShader = Gl.CreateShader(ShaderType.FragmentShader);
             Gl.ShaderSource(testShader, _opaqueTypeIndexCheckShader);
@@ -318,6 +320,7 @@ namespace Emotion.Graphics.Shading
         }
 
         private static bool? _compliantShader;
+
         private static string[] _opaqueTypeIndexCheckShader =
         {
             "#version 300 es\n",

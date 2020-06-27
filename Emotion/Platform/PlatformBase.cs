@@ -152,7 +152,7 @@ namespace Emotion.Platform
                 switch (key)
                 {
                     case Key.F11 when state == KeyStatus.Down && ctrl && Window != null:
-                        Window.Size = (Engine.Configuration.RenderSize * 1.999f) - Vector2.One;
+                        Window.Size = Engine.Configuration.RenderSize * 1.999f - Vector2.One;
                         break;
                     case Key.Pause when state == KeyStatus.Down:
                         PerfProfiler.ProfileNextFrame();

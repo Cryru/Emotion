@@ -252,19 +252,13 @@ namespace Emotion.Graphics.Objects
             if (Engine.Renderer.Dsa)
             {
                 bool success = Gl.UnmapNamedBuffer(Pointer);
-                if (!success)
-                {
-                    Engine.Log.Error($"UnmapNamedBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
-                }
+                if (!success) Engine.Log.Error($"UnmapNamedBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
             }
             else
             {
                 EnsureBound(Pointer, Type);
                 bool success = Gl.UnmapBuffer(Type);
-                if (!success)
-                {
-                    Engine.Log.Error($"UnmapBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
-                }
+                if (!success) Engine.Log.Error($"UnmapBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
             }
 
             _mapping = false;
@@ -287,7 +281,7 @@ namespace Emotion.Graphics.Objects
             else
             {
                 EnsureBound(Pointer, Type);
-                Gl.FlushMappedBufferRange(Type, (IntPtr)offset, length);
+                Gl.FlushMappedBufferRange(Type, (IntPtr) offset, length);
             }
         }
 

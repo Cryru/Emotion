@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Text;
 using Emotion.Utility;
 
 #endregion

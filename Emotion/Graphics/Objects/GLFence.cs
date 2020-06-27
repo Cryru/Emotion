@@ -1,7 +1,5 @@
 ﻿#region Using
 
-using Emotion.Common.Threading;
-using Emotion.Game.Time.Routines;
 using OpenGL;
 
 #endregion

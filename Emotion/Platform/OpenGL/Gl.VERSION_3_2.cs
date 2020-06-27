@@ -1274,6 +1274,7 @@ namespace OpenGL
                 Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
                 Delegates.pglGetSynciv(sync, (int) pname, values.Length, p_length, p_values);
             }
+
             DebugCheckErrors(null);
         }
 
@@ -1281,7 +1282,7 @@ namespace OpenGL
         {
             int value = 0;
             Debug.Assert(Delegates.pglGetSynciv != null, "pglGetSynciv not implemented");
-            Delegates.pglGetSynciv(sync, (int) pname, sizeof(int), (int*)IntPtr.Zero, &value);
+            Delegates.pglGetSynciv(sync, (int) pname, sizeof(int), (int*) IntPtr.Zero, &value);
             DebugCheckErrors(null);
             return value;
         }

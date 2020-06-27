@@ -1,8 +1,4 @@
-﻿#region Using
-
-#endregion
-
-namespace Emotion.Standard.TMX.Object
+﻿namespace Emotion.Standard.TMX.Object
 {
     public class TmxAlignment
     {

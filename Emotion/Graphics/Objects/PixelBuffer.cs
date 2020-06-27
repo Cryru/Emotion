@@ -1,10 +1,8 @@
-﻿using Emotion.Game.Time.Routines;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using Emotion.Common.Threading;
+﻿#region Using
+
 using OpenGL;
+
+#endregion
 
 namespace Emotion.Graphics.Objects
 {
@@ -40,12 +38,10 @@ namespace Emotion.Graphics.Objects
 
         public void Sample()
         {
-
         }
 
         public void Check()
         {
-
         }
     }
 }

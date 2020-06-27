@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emotion.Common;
@@ -123,32 +122,17 @@ namespace Emotion.Utility
         {
             // "utf-16" - Unicode UTF-16, little endian byte order
             if (BytesEqual(data, Utf16LeAlt)) return Encoding.Unicode.GetString(data);
-            if (data[2] == 0 ^ data[3] == 0 && BytesEqual(data, Utf16Le))
-            {
-                return Encoding.Unicode.GetString(data);
-            }
+            if ((data[2] == 0) ^ (data[3] == 0) && BytesEqual(data, Utf16Le)) return Encoding.Unicode.GetString(data);
 
             // "utf-8" - Unicode (UTF-8)
-            if (BytesEqual(data, Utf8Le) || BytesEqual(data, Utf8LeAlt))
-            {
-                return Encoding.UTF8.GetString(data);
-            }
+            if (BytesEqual(data, Utf8Le) || BytesEqual(data, Utf8LeAlt)) return Encoding.UTF8.GetString(data);
 
             // "utf-32" - Unicode UTF-32, little endian byte order
-            if (BytesEqual(data, Utf32Le) || BytesEqual(data, Utf32LeAlt))
-            {
-                return Encoding.UTF32.GetString(data);
-            }
+            if (BytesEqual(data, Utf32Le) || BytesEqual(data, Utf32LeAlt)) return Encoding.UTF32.GetString(data);
 
             // "unicodeFFFE" - Unicode UTF-16, big endian byte order
-            if (BytesEqual(data,Utf16BeAlt))
-            {
-                return Encoding.BigEndianUnicode.GetString(data);
-            }
-            if (data[2] != 0 && data[3] != 0 && BytesEqual(data, Utf16Be))
-            {
-                return Encoding.BigEndianUnicode.GetString(data);
-            }
+            if (BytesEqual(data, Utf16BeAlt)) return Encoding.BigEndianUnicode.GetString(data);
+            if (data[2] != 0 && data[3] != 0 && BytesEqual(data, Utf16Be)) return Encoding.BigEndianUnicode.GetString(data);
 
             return Encoding.UTF8.GetString(data);
         }
@@ -166,6 +150,7 @@ namespace Emotion.Utility
             {
                 if (compare[i] != bytes[i]) return false;
             }
+
             return true;
         }
     }

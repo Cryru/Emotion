@@ -102,7 +102,7 @@ namespace WinApi.Kernel32
 
         #endregion
 
-        #region Handle and Object Functions 
+        #region Handle and Object Functions
 
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern bool CloseHandle(IntPtr hObject);

@@ -89,7 +89,7 @@ namespace Emotion.Game.AStar
         public static int GetHashCode(int x, int y)
         {
             // Cantor-pair
-            return (((x + y) * (x + y + 1)) / 2) + y;
+            return (x + y) * (x + y + 1) / 2 + y;
         }
     }
 }

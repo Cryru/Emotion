@@ -38,10 +38,7 @@ namespace Emotion.Standard.TMX
             TileOffset = TmxHelpers.GetVector2(xTileset.Element("tileoffset"));
 
             XMLReader image = xTileset.Element("image");
-            if (image != null)
-            {
-                Source = image.Attribute("source");
-            }
+            if (image != null) Source = image.Attribute("source");
 
             Terrains = new TmxList<TmxTerrain>();
             XMLReader xTerrainType = xTileset.Element("terraintypes");

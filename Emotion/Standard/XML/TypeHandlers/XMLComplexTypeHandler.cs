@@ -54,6 +54,7 @@ namespace Emotion.Standard.XML.TypeHandlers
             {
                 handler.Value.SetDefaultValue(_defaultConstruct);
             }
+
             return fields;
         }
 

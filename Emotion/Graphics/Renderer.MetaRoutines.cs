@@ -59,10 +59,7 @@ namespace Emotion.Graphics
                 pX = x;
                 pY = y;
 
-                if (i == circleDetail - 1)
-                {
-                    RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
-                }
+                if (i == circleDetail - 1) RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
             }
 
             // Remove the model matrix.
@@ -170,7 +167,10 @@ namespace Emotion.Graphics
         /// If you're "blitting" make sure the view matrix is disabled.
         /// </summary>
         /// <param name="buffer">The buffer to render.</param>
-        /// <param name="renderSizeOverwrite">By default the rendered quad will be the same size as the framebuffer. You can change that using this parameter.</param>
+        /// <param name="renderSizeOverwrite">
+        /// By default the rendered quad will be the same size as the framebuffer. You can change
+        /// that using this parameter.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null)
         {

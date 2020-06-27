@@ -58,7 +58,8 @@ namespace Emotion.Game
         }
 
         /// <summary>
-        /// Coroutine for iterating the tree. The leaves of each node are returned as we iterate towards the deepest level and then backward.
+        /// Coroutine for iterating the tree. The leaves of each node are returned as we iterate towards the deepest level and then
+        /// backward.
         /// </summary>
         /// <param name="rootNode">The node to start from.</param>
         /// <returns>The leaf values along the tree.</returns>

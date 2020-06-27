@@ -19,7 +19,7 @@ namespace Emotion.Platform.Implementation.Null
 
         protected override void SetSize(Vector2 size)
         {
-            _size = size;   
+            _size = size;
         }
 
         protected override Vector2 GetSize()

@@ -9,14 +9,17 @@
         /// Moving the pen.
         /// </summary>
         Move = 1,
+
         /// <summary>
         /// Drawing a line.
         /// </summary>
         Line = 2,
+
         /// <summary>
         /// Drawing a curve.
         /// </summary>
         Curve = 3,
+
         /// <summary>
         /// Drawing a cubic curve.
         /// </summary>

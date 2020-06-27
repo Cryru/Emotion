@@ -1,4 +1,8 @@
-﻿using System;
+﻿#region Using
+
+using System;
+
+#endregion
 
 namespace Emotion.Game.Time.Routines
 {

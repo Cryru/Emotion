@@ -290,7 +290,7 @@ namespace Emotion.IO
             path = path.Substring(0, lastBack);
             string directory = GetDirectoryName(relativeTo);
             return directory + "/" + path;
-        }   
+        }
 
         public static string JoinPath(string left, string right)
         {

@@ -601,7 +601,8 @@ namespace WinApi.User32
 
         /// <summary>
         /// Turns off processing of prefix characters. Normally, DrawText interprets the mnemonic-prefix character &amp; as a
-        /// directive to underscore the character that follows, and the mnemonic-prefix characters &amp;&amp; as a directive to print a
+        /// directive to underscore the character that follows, and the mnemonic-prefix characters &amp;&amp; as a directive to
+        /// print a
         /// single &amp;. By specifying DT_NOPREFIX, this processing is turned off. For example,
         /// Example:
         /// input string: "A&amp;bc&amp;&amp;d"

@@ -99,7 +99,7 @@ namespace Emotion.Audio
         /// <param name="track">The track to play next.</param>
         public void PlayNext(AudioTrack track)
         {
-            if(!OwnTrack(track)) return;
+            if (!OwnTrack(track)) return;
 
             lock (_playlist)
             {
@@ -120,7 +120,7 @@ namespace Emotion.Audio
         /// <param name="track">The track to play.</param>
         public void AddToQueue(AudioTrack track)
         {
-            if(!OwnTrack(track)) return;
+            if (!OwnTrack(track)) return;
 
             lock (_playlist)
             {
@@ -141,7 +141,7 @@ namespace Emotion.Audio
         /// </summary>
         public void QuickPlay(AudioTrack track)
         {
-            if(!OwnTrack(track)) return;
+            if (!OwnTrack(track)) return;
 
             lock (_playlist)
             {
@@ -305,6 +305,7 @@ namespace Emotion.Audio
                 Engine.Log.Error("Tried to play a track which is already playing on another layer.", MessageSource.Audio);
                 return false;
             }
+
             track.Layer = this;
             return true;
         }

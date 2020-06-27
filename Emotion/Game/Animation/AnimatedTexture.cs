@@ -26,6 +26,7 @@ namespace Emotion.Game.Animation
                 TextureAsset = Engine.AssetLoader.Get<TextureAsset>(_spriteSheetName);
             }
         }
+
         private string _spriteSheetName;
 
         #region Properties

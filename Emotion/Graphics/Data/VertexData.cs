@@ -116,7 +116,7 @@ namespace Emotion.Graphics.Data
                 vertices[1].UV = vertices[2].UV;
                 vertices[2].UV = temp;
             }
-            
+
             // ReSharper disable once InvertIf
             if (flipX)
             {

@@ -1,4 +1,8 @@
-﻿using Emotion.Standard.XML;
+﻿#region Using
+
+using Emotion.Standard.XML;
+
+#endregion
 
 namespace Emotion.IO
 {

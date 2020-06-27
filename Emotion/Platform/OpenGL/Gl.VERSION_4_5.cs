@@ -5067,13 +5067,16 @@ namespace OpenGL
         /// Specifies a texel offset in the z direction within the texture array.
         /// </param>
         /// <param name="width">
-        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless any of the offsets is zero and the size equals the texture image size.
+        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless any of the
+        /// offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="height">
-        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless any of the offsets is zero and the size equals the texture image size.
+        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless any of the
+        /// offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="depth">
-        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless any of the offsets is zero and the size equals the texture image size.
+        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless any of the
+        /// offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="bufSize">
         /// Specifies the size of the buffer to receive the retrieved pixel data.
@@ -5113,13 +5116,16 @@ namespace OpenGL
         /// Specifies a texel offset in the z direction within the texture array.
         /// </param>
         /// <param name="width">
-        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless any of the offsets is zero and the size equals the texture image size.
+        /// Specifies the width of the texture subimage. Must be a multiple of the compressed block's width, unless any of the
+        /// offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="height">
-        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless any of the offsets is zeroo and the size equals the texture image size.
+        /// Specifies the height of the texture subimage. Must be a multiple of the compressed block's height, unless any of the
+        /// offsets is zeroo and the size equals the texture image size.
         /// </param>
         /// <param name="depth">
-        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless any of the offsets is zero and the size equals the texture image size.
+        /// Specifies the depth of the texture subimage. Must be a multiple of the compressed block's depth, unless any of the
+        /// offsets is zero and the size equals the texture image size.
         /// </param>
         /// <param name="bufSize">
         /// Specifies the size of the buffer to receive the retrieved pixel data.

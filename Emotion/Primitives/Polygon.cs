@@ -3,12 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Utility;
-using OpenGL;
-using WinApi;
 
 #endregion
 
@@ -77,18 +74,12 @@ namespace Emotion.Primitives
             for (var i = 1; i < Vertices.Length; i++)
             {
                 ref Vector3 current = ref Vertices[i];
-                if (current != previous)
-                {
-                    newVertices.Add(current);
-                }
+                if (current != previous) newVertices.Add(current);
                 previous = ref current;
             }
 
             // Check if looping back.
-            if (Vertices[^1] == Vertices[0])
-            {
-                newVertices.RemoveAt(newVertices.Count - 1);
-            }
+            if (Vertices[^1] == Vertices[0]) newVertices.RemoveAt(newVertices.Count - 1);
 
             Vertices = newVertices.ToArray();
         }
@@ -210,10 +201,7 @@ namespace Emotion.Primitives
             for (var v = 0; vertices.Count > 2;)
             {
                 // If we loop, it is probably a non-simple polygon.
-                if (0 >= count--)
-                {
-                    return null;
-                }
+                if (0 >= count--) return null;
 
                 // Three consecutive vertices in current polygon, <u,v,w>
                 // This is the current vertex and the two next ones.

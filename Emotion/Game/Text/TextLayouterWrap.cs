@@ -78,8 +78,8 @@ namespace Emotion.Game.Text
                 {
                     // Update measures.
                     Vector2 lineSize = MeasureString(currentLine);
-                    if(lineSize.X > longestLine) longestLine = lineSize.X;
-                    if(lineSize.Y > lineHeight) lineHeight = textSize.Y;
+                    if (lineSize.X > longestLine) longestLine = lineSize.X;
+                    if (lineSize.Y > lineHeight) lineHeight = textSize.Y;
                     NeededHeight += lineHeight + LineGap;
                     lineHeight = _atlas.FontHeight;
 
@@ -97,13 +97,9 @@ namespace Emotion.Game.Text
             {
                 Vector2 lastLine = MeasureString(currentLine);
                 if (tightHeight)
-                {
                     NeededHeight += lastLine.Y;
-                }
                 else
-                {
                     NeededHeight += lineHeight;
-                }
                 if (lastLine.X > longestLine) longestLine = lastLine.X;
             }
 

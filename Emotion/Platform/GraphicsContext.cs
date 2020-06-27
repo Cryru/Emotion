@@ -30,6 +30,7 @@ namespace Emotion.Platform
                 SetSwapIntervalPlatform(_swapInterval);
             }
         }
+
         protected int _swapInterval;
 
         /// <summary>

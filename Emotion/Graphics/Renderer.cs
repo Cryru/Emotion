@@ -15,7 +15,6 @@ using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
-using Emotion.Utility;
 using OpenGL;
 using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
 
@@ -220,7 +219,7 @@ namespace Emotion.Graphics
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 
             // Attach callback if debug mode is enabled.
-            bool hasDebugSupport = (Gl.CurrentExtensions.DebugOutput_ARB || Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3);
+            bool hasDebugSupport = Gl.CurrentExtensions.DebugOutput_ARB || Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 3;
             if (Engine.Configuration.GlDebugMode && !CompatibilityMode && hasDebugSupport)
             {
                 Gl.Enable(EnableCap.DebugOuput);
@@ -336,7 +335,6 @@ namespace Emotion.Graphics
         }
 
 #if !DEBUG
-
         private static Gl.DebugProc _glErrorCatchCallback = glErrorCatchCallback;
         private static unsafe void glErrorCatchCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
         {

@@ -42,7 +42,7 @@ namespace WinApi.User32
         public Rect PaintRect;
         private int ReservedInternalRestore;
         private int ReservedInternalIncUpdate;
-        private fixed byte ReservedInternalRgb [32];
+        private fixed byte ReservedInternalRgb[32];
 
         public bool ShouldEraseBackground
         {

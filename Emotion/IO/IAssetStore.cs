@@ -1,8 +1,4 @@
-﻿#region Using
-
-#endregion
-
-namespace Emotion.IO
+﻿namespace Emotion.IO
 {
     /// <summary>
     /// A storage for assets. Save files, and user generated stuff.

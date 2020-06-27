@@ -24,7 +24,6 @@ namespace Emotion.IO
 
         public TextureAsset()
         {
-
         }
 
         /// <summary>

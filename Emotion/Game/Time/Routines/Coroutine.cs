@@ -68,7 +68,10 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// Whether the routine has finished running.
         /// </summary>
-        public bool Finished { get => _routine == null; }
+        public bool Finished
+        {
+            get => _routine == null;
+        }
 
         /// <summary>
         /// IRoutineWaiter API for subroutines

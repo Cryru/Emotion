@@ -132,7 +132,10 @@ namespace Emotion.Utility
         /// </summary>
         /// <param name="bytes">The bytes to convert from. Cannot be null.</param>
         /// <param name="bits">The number of bits per value.</param>
-        /// <param name="relativeValue">If true then the value in the bits will be scaled to the byte's range, if false it will be clipped.</param>
+        /// <param name="relativeValue">
+        /// If true then the value in the bits will be scaled to the byte's range, if false it will be
+        /// clipped.
+        /// </param>
         /// <returns>The resulting byte array. Is never null.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="bytes" /> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="bits" /> is greater or equals than zero.</exception>

@@ -2,7 +2,6 @@
 
 using System.Numerics;
 using Emotion.Common.Threading;
-using Emotion.Utility;
 using OpenGL;
 
 #endregion

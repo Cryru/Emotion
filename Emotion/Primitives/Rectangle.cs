@@ -677,12 +677,12 @@ namespace Emotion.Primitives
             // only use whichever offset is the smallest
             if (Math.Abs(moveX) < Math.Abs(moveY))
             {
-                if(moveX != 0)
+                if (moveX != 0)
                     moveY = 0.0f;
             }
             else
             {
-                if(moveY != 0)
+                if (moveY != 0)
                     moveX = 0.0f;
             }
 

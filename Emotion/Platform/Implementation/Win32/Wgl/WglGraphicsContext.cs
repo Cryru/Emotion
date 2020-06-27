@@ -60,6 +60,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// Handle to the RenderDoc API, if any is loaded.
         /// </summary>
         public RenderDocAPI RenderDoc;
+
         private IntPtr _renderDocModule;
 
         #endregion
