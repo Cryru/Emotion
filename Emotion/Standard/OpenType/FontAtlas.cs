@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Numerics;
+using Emotion.Common;
 using Emotion.Primitives;
 using Emotion.Standard.Image.PNG;
 using Emotion.Utility;
@@ -67,6 +68,12 @@ namespace Emotion.Standard.OpenType
             YBearing = yBearing;
         }
 
+        /// <summary>
+        /// Create a new AtlasGlyph which holds metadata about a rasterized glyph within an atlas texture.
+        /// </summary>
+        /// <param name="fontGlyph"></param>
+        /// <param name="scale"></param>
+        /// <param name="ascend"></param>
         public AtlasGlyph(Glyph fontGlyph, float scale, float ascend)
         {
             FontGlyph = fontGlyph;
@@ -116,6 +123,14 @@ namespace Emotion.Standard.OpenType
         /// </summary>
         public float FontHeight { get; set; }
 
+        /// <summary>
+        /// A font atlas containing a rasterized font and meta data about the atlas.
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="pixels"></param>
+        /// <param name="rasterizedBy"></param>
+        /// <param name="scale"></param>
+        /// <param name="f"></param>
         public FontAtlas(Vector2 size, byte[] pixels, string rasterizedBy, float scale, Font f)
         {
             Size = size;
@@ -125,11 +140,17 @@ namespace Emotion.Standard.OpenType
             FontHeight = MathF.Ceiling(f.Height * scale);
         }
 
+        /// <summary>
+        /// Dump the pixel data to a file in the "Player" AssetStore in the DebugDump folder.
+        /// Used for debugging purposes.
+        /// </summary>
+        /// <param name="fileName">The file to save to.</param>
+        [Conditional("DEBUG")]
         public void DebugDump(string fileName)
         {
             byte[] bytes = ImageUtil.AToRgba(Pixels);
             bytes = PngFormat.Encode(bytes, (int) Size.X, (int) Size.Y);
-            File.WriteAllBytes(fileName, bytes);
+            Engine.AssetLoader.Save(bytes, $"Player/DebugDump/{fileName}");
         }
     }
 }

@@ -183,6 +183,10 @@ namespace Emotion.Standard.OpenType
                 }
             }
 #else
+        /// <summary>
+        /// Create a new OpenType font from a font file.
+        /// </summary>
+        /// <param name="fontData">The bytes that make up the font file.</param>
         public Font(byte[] fontData)
         {
 #endif
@@ -380,6 +384,9 @@ namespace Emotion.Standard.OpenType
 
         #region Atlas Rasterization
 
+        /// <summary>
+        /// The renderer for glyph vertices.
+        /// </summary>
         public enum GlyphRasterizer
         {
             /// <summary>
@@ -412,7 +419,15 @@ namespace Emotion.Standard.OpenType
 #endif
         }
 
-        public FontAtlas GetAtlas(float fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
+        /// <summary>
+        /// Create a rasterized atlas from the font.
+        /// </summary>
+        /// <param name="fontSize">The size of glyphs in the font.</param>
+        /// <param name="firstChar">The codepoint of the first character to include in the atlas.</param>
+        /// <param name="numChars">The number of characters to include in the atlas, after the first character.</param>
+        /// <param name="rasterizer">The rasterizer to use.</param>
+        /// <returns>A single channel image representing the rendered glyphs at the specified size.</returns>
+        public FontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
         {
             if (Glyphs == null || Glyphs.Length == 0) return null;
             if (firstChar < FirstCharIndex) firstChar = FirstCharIndex;
@@ -420,7 +435,7 @@ namespace Emotion.Standard.OpenType
             var lastIdx = (int) (firstChar + numChars);
 
             // The scale to render at.
-            float scale = fontSize / Height;
+            float scale = (float) fontSize / Height;
 
             var canvases = new List<Task<GlyphRenderer.GlyphCanvas>>();
             for (var i = 0; i < Glyphs.Length; i++)

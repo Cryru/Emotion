@@ -26,8 +26,19 @@ namespace Emotion.IO
             get => _manifest.Keys.ToArray();
         }
 
+        /// <summary>
+        /// Currently loaded assets.
+        /// </summary>
         protected ConcurrentDictionary<string, Asset> _loadedAssets = new ConcurrentDictionary<string, Asset>();
+
+        /// <summary>
+        /// A list of asset paths and which asset source can serve them.
+        /// </summary>
         protected ConcurrentDictionary<string, AssetSource> _manifest = new ConcurrentDictionary<string, AssetSource>();
+
+        /// <summary>
+        /// A list of asset paths and which asset store handles them.
+        /// </summary>
         protected ConcurrentDictionary<string, IAssetStore> _storage = new ConcurrentDictionary<string, IAssetStore>();
 
         /// <summary>
@@ -273,6 +284,11 @@ namespace Emotion.IO
             return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
         }
 
+        /// <summary>
+        /// Get the name of a directory in an asset path.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public static string GetDirectoryName(string name)
         {
             if (string.IsNullOrEmpty(name)) return name;
@@ -282,6 +298,12 @@ namespace Emotion.IO
             return lastSlash == -1 ? "" : name.Substring(0, lastSlash);
         }
 
+        /// <summary>
+        /// Get an asset path relative to another path.
+        /// </summary>
+        /// <param name="relativeTo"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static string GetRelativePath(string relativeTo, string path)
         {
             int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
@@ -292,6 +314,12 @@ namespace Emotion.IO
             return directory + "/" + path;
         }
 
+        /// <summary>
+        /// Join to asset paths.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static string JoinPath(string left, string right)
         {
             if (string.IsNullOrEmpty(left)) return right;
