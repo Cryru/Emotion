@@ -1,3 +1,5 @@
+#!/usr/bin/env dotnet-script
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -8,14 +10,23 @@ public static void PatchVersionInfo(string version)
     string hash = Environment.GetEnvironmentVariable("GITHUB_SHA");
 
     const string metaFile = "./Common/MetaData.cs";
-    const string nuSpec = "./Emotion.nuspec";
     string metaFileContent = File.ReadAllText(metaFile);
-    string nuSpecContent = File.ReadAllText(nuSpec);
     metaFileContent = new Regex("Version = \\\"0\\.0\\.0\\\"").Replace(metaFileContent, $"Version = \"{version}\"");
     metaFileContent = new Regex("GitHash = \\\"None\\\"").Replace(metaFileContent, $"GitHash = \"{hash}\"");
     File.WriteAllText(metaFile, metaFileContent);
+
+    const string nuSpec = "./Emotion.nuspec";
+    string nuSpecContent = File.ReadAllText(nuSpec);
     nuSpecContent = new Regex("version>1\\.0\\.0</version>").Replace(nuSpecContent, $"version>{version}</version>");
     File.WriteAllText(nuSpec, nuSpecContent);
+}
+
+public static void PatchGitHubToken(string token)
+{
+    const string nugetConfig = "./nuget.config";
+    string nugetConfigContent = File.ReadAllText(nugetConfig);
+    nugetConfigContent = new Regex("GITHUB_TOKEN").Replace(nugetConfigContent, token);
+    File.WriteAllText(nugetConfig, nugetConfigContent);
 }
 
 public static void RunCmd(string command)
@@ -28,31 +39,37 @@ public static void RunCmd(string command)
     cmd.WaitForExit();
 }
 
-Console.WriteLine("Publish script started.");
-
-string version = Environment.GetEnvironmentVariable("GITHUB_RUN_NUMBER");
-Console.WriteLine($"Version is {version}");
-Directory.SetCurrentDirectory("./Emotion");
-PatchVersionInfo($"1.0.{version}");
-
-Console.WriteLine($"Packing...");
-RunCmd($"dotnet pack --configuration Debug");
-
-string[] packages = Directory.GetFiles("./bin/Debug/", "*.nupkg");
-if (packages.Length == 0)
+public static void Main()
 {
-    Console.WriteLine("No package generated.");
-    return;
-}
-string apiKey = Environment.GetEnvironmentVariable("NUGET_KEY");
-string githubKey = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
-if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(githubKey))
-{
-    Console.WriteLine("API key or GitHub key not found :(");
-    return;
+    Console.WriteLine("Publish script started.");
+
+    string version = Environment.GetEnvironmentVariable("GITHUB_RUN_NUMBER");
+    Console.WriteLine($"Version is {version}");
+    Directory.SetCurrentDirectory("./Emotion");
+    PatchVersionInfo($"1.0.{version}");
+
+    Console.WriteLine($"Packing...");
+    RunCmd($"dotnet pack --configuration Debug");
+
+    string[] packages = Directory.GetFiles("./bin/Debug/", "*.nupkg");
+    if (packages.Length == 0)
+    {
+        Console.WriteLine("No package generated.");
+        return;
+    }
+    string apiKey = Environment.GetEnvironmentVariable("NUGET_KEY");
+    string githubKey = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+    if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(githubKey))
+    {
+        Console.WriteLine("API key or GitHub key not found :(");
+        return;
+    }
+
+    Console.WriteLine($"Publishing package [{packages[0]}]...");
+    RunCmd($"dotnet nuget push {packages[0]} -k {apiKey} --source \"microsoft\"");
+    PatchGitHubToken(githubKey);
+    RunCmd($"dotnet nuget push {packages[0]} --source \"github\"");
+    Console.WriteLine("Script complete!");
 }
 
-Console.WriteLine($"Publishing package [{packages[0]}]...");
-RunCmd($"dotnet nuget push {packages[0]} -k {apiKey} -s https://api.nuget.org/v3/index.json");
-RunCmd($"dotnet nuget push {packages[0]} -k {githubKey} -s https://nuget.pkg.github.com/Cryru/index.json");
-Console.WriteLine("Script complete!");
+Main();
