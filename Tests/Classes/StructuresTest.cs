@@ -21,7 +21,7 @@ namespace Tests.Classes
             var tree = new QuadTree<Transform>(0, 0, 100, 100);
 
             // There shouldn't be anything inside.
-            Assert.True(tree.QuadTreeRoot.isEmptyLeaf);
+            Assert.True(tree.QuadTreeRoot.EmptyLeaf);
             Assert.Equal(0, tree.QuadTreeRoot.Count);
 
             // Add a hundred objects in the top left.
@@ -38,14 +38,14 @@ namespace Tests.Classes
             Assert.Equal(100, tree.QuadTreeRoot.TopLeftChild.Count);
 
             // Top right should exist since the root node divided - but should be empty.
-            Assert.True(tree.QuadTreeRoot.TopRightChild.isEmptyLeaf);
-            Assert.True(tree.QuadTreeRoot.BottomLeftChild.isEmptyLeaf);
-            Assert.True(tree.QuadTreeRoot.BottomRightChild.isEmptyLeaf);
+            Assert.True(tree.QuadTreeRoot.TopRightChild.EmptyLeaf);
+            Assert.True(tree.QuadTreeRoot.BottomLeftChild.EmptyLeaf);
+            Assert.True(tree.QuadTreeRoot.BottomRightChild.EmptyLeaf);
 
             // Check if the transform moving is detected as expected.
             tree[0].X += 50;
 
-            Assert.False(tree.QuadTreeRoot.TopRightChild.isEmptyLeaf);
+            Assert.False(tree.QuadTreeRoot.TopRightChild.EmptyLeaf);
             Assert.Equal(1, tree.QuadTreeRoot.TopRightChild.Count);
 
             // Check if querying works.

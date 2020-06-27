@@ -23,7 +23,7 @@ namespace Emotion.Game.QuadTree
         /// <summary>
         /// The area this QuadTree represents.
         /// </summary>
-        public Rectangle QuadRect { get; }
+        public Rectangle QuadRect { get; private set; }
 
         /// <summary>
         /// The top left child for this QuadTree
@@ -61,17 +61,15 @@ namespace Emotion.Game.QuadTree
         /// <summary>
         /// Returns true if this is a empty leaf node
         /// </summary>
-        public bool isEmptyLeaf
+        public bool EmptyLeaf
         {
             get => Count == 0 && TopLeftChild == null;
         }
-
 
         /// <summary>
         /// The objects in this QuadTree
         /// </summary>
         private List<QuadTreeObject<T>> _objects;
-
 
         /// <summary>
         /// Creates a QuadTree for the specified area.
@@ -83,7 +81,6 @@ namespace Emotion.Game.QuadTree
             QuadRect = rect;
             NodeCapacity = nodeCapacity;
         }
-
 
         /// <summary>
         /// Creates a QuadTree for the specified area.
@@ -97,12 +94,10 @@ namespace Emotion.Game.QuadTree
         {
         }
 
-
         private QuadTreeNode(QuadTreeNode<T> parent, Rectangle rect) : this(rect, parent.NodeCapacity)
         {
             Parent = parent;
         }
-
 
         /// <summary>
         /// Add an item to the object list.
@@ -117,7 +112,6 @@ namespace Emotion.Game.QuadTree
             _objects.Add(item);
         }
 
-
         /// <summary>
         /// Remove an item from the object list.
         /// </summary>
@@ -131,14 +125,13 @@ namespace Emotion.Game.QuadTree
             _objects.RemoveAt(_objects.Count - 1);
         }
 
-
         /// <summary>
         /// Get the total for all objects in this QuadTree, including children.
         /// </summary>
         /// <returns>The number of objects contained within this QuadTree and its children.</returns>
         private int ObjectCount()
         {
-            int count = 0;
+            var count = 0;
 
             // Add the objects at this level
             if (_objects != null) count += _objects.Count;
@@ -153,15 +146,14 @@ namespace Emotion.Game.QuadTree
             return count;
         }
 
-
         /// <summary>
         /// Subdivide this QuadTree and move it's children into the appropriate Quads where applicable.
         /// </summary>
         private void Subdivide()
         {
             // We've reached capacity, subdivide...
-            Vector2 size = new Vector2(QuadRect.Width / 2, QuadRect.Height / 2);
-            Vector2 mid = new Vector2(QuadRect.X + size.X, QuadRect.Y + size.Y);
+            var size = new Vector2(QuadRect.Width / 2, QuadRect.Height / 2);
+            var mid = new Vector2(QuadRect.X + size.X, QuadRect.Y + size.Y);
 
             TopLeftChild = new QuadTreeNode<T>(this, new Rectangle(QuadRect.Left, QuadRect.Top, size.X, size.Y));
             TopRightChild = new QuadTreeNode<T>(this, new Rectangle(mid.X, QuadRect.Top, size.X, size.Y));
@@ -169,7 +161,7 @@ namespace Emotion.Game.QuadTree
             BottomRightChild = new QuadTreeNode<T>(this, new Rectangle(mid.X, mid.Y, size.X, size.Y));
 
             // If they're completely contained by the quad, bump objects down
-            for (int i = 0; i < _objects.Count; i++)
+            for (var i = 0; i < _objects.Count; i++)
             {
                 QuadTreeNode<T> destTree = GetDestinationTree(_objects[i]);
 
@@ -181,6 +173,15 @@ namespace Emotion.Game.QuadTree
             }
         }
 
+        /// <summary>
+        /// Reset the node, clearing all objects in it and defining a new quad.
+        /// </summary>
+        /// <param name="rect">The new quad rect.</param>
+        public void Reset(Rectangle rect)
+        {
+            Clear();
+            QuadRect = rect;
+        }
 
         /// <summary>
         /// Get the child Quad that would contain an object.
@@ -202,7 +203,6 @@ namespace Emotion.Game.QuadTree
             // If a child can't contain an object, it will live in this Quad
             return this;
         }
-
 
         private void Relocate(QuadTreeObject<T> item)
         {
@@ -234,7 +234,7 @@ namespace Emotion.Game.QuadTree
             if (TopLeftChild != null)
             {
                 // If all the children are empty leaves, delete all the children
-                if (!TopLeftChild.isEmptyLeaf || !TopRightChild.isEmptyLeaf || !BottomLeftChild.isEmptyLeaf || !BottomRightChild.isEmptyLeaf) return;
+                if (!TopLeftChild.EmptyLeaf || !TopRightChild.EmptyLeaf || !BottomLeftChild.EmptyLeaf || !BottomRightChild.EmptyLeaf) return;
                 TopLeftChild = null;
                 TopRightChild = null;
                 BottomLeftChild = null;
@@ -301,7 +301,6 @@ namespace Emotion.Game.QuadTree
             }
         }
 
-
         /// <summary>
         /// Insert an item into this QuadTree object.
         /// </summary>
@@ -337,7 +336,6 @@ namespace Emotion.Game.QuadTree
                     destTree.Insert(item);
             }
         }
-
 
         /// <summary>
         /// Get the objects in this tree that intersect with the specified rectangle.
@@ -384,7 +382,6 @@ namespace Emotion.Game.QuadTree
                 BottomRightChild.GetObjects(searchRect, ref results);
             }
         }
-
 
         /// <summary>
         /// Get all objects in this Quad, and it's children.

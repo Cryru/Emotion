@@ -70,7 +70,7 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// Holds the objects created by the object factory (if any).
         /// </summary>
-        public QuadTree<T> Objects { get; protected set; }
+        public QuadTree<T> Objects { get; protected set; } = new QuadTree<T>(Rectangle.Empty);
 
         #endregion
 
@@ -254,7 +254,7 @@ namespace Emotion.Game.Tiled
             // Construct all objects.
             if (TiledMap.ObjectLayers != null && TiledMap.ObjectLayers.Count > 0)
             {
-                Objects = new QuadTree<T>(new Rectangle(0, 0, WorldSize));
+                Objects.Reset(new Rectangle(0, 0, WorldSize));
 
                 if (_quadTreeQueryMemory == null) _quadTreeQueryMemory = new List<T>();
 
@@ -735,7 +735,7 @@ namespace Emotion.Game.Tiled
         /// </summary>
         protected virtual void MapUnloading()
         {
-            Objects = null;
+            Objects.Reset(Rectangle.Empty);
 
             // Dispose of old tilesets.
             if (Tilesets.Count <= 0) return;

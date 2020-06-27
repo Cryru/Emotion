@@ -46,7 +46,6 @@ namespace Emotion.Game.QuadTree
             NodeCapacity = nodeCapacity;
         }
 
-
         /// <summary>
         /// Creates a QuadTree for the specified area.
         /// </summary>
@@ -69,7 +68,6 @@ namespace Emotion.Game.QuadTree
             return QuadTreeRoot.GetObjects(rect);
         }
 
-
         /// <summary>
         /// Get the objects in this tree that intersect with the specified rectangle.
         /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
@@ -81,7 +79,6 @@ namespace Emotion.Game.QuadTree
             QuadTreeRoot.GetObjects(rect, ref results);
         }
 
-
         /// <summary>
         /// Get all objects in this Quad, and it's children.
         /// </summary>
@@ -90,6 +87,15 @@ namespace Emotion.Game.QuadTree
             return new List<T>(_wrappedDictionary.Keys);
         }
 
+        /// <summary>
+        /// Recreate the quad tree using a new world rect.
+        /// All old objects are removed.
+        /// </summary>
+        /// <param name="worldRect">The new world rect.</param>
+        public void Reset(Rectangle worldRect)
+        {
+            QuadTreeRoot.Reset(worldRect);
+        }
 
         /// <summary>
         /// Moves the object in the tree
@@ -124,7 +130,6 @@ namespace Emotion.Game.QuadTree
             item.OnMove += (s, _) => Move((T) s);
         }
 
-
         /// <summary>
         /// Removes all items from the <see cref="T:System.Collections.Generic.ICollection`1" />.
         /// </summary>
@@ -138,7 +143,6 @@ namespace Emotion.Game.QuadTree
             QuadTreeRoot.Clear();
         }
 
-
         /// <summary>
         /// Determines whether the QuadTree contains a specific value.
         /// </summary>
@@ -151,7 +155,6 @@ namespace Emotion.Game.QuadTree
         {
             return item != null && _wrappedDictionary.ContainsKey(item);
         }
-
 
         /// <summary>
         /// Copies the elements of the <see cref="T:System.Collections.Generic.ICollection`1" /> to an
@@ -170,7 +173,6 @@ namespace Emotion.Game.QuadTree
             _wrappedDictionary.Keys.CopyTo(array, arrayIndex);
         }
 
-
         /// <summary>
         /// Gets the number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.
         /// </summary>
@@ -182,7 +184,6 @@ namespace Emotion.Game.QuadTree
             get => _wrappedDictionary.Count;
         }
 
-
         /// <summary>
         /// Gets a value indicating whether the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only.
         /// </summary>
@@ -193,7 +194,6 @@ namespace Emotion.Game.QuadTree
         {
             get => false;
         }
-
 
         /// <summary>
         /// Removes the first occurrence of a specific object from the QuadTree
@@ -237,7 +237,6 @@ namespace Emotion.Game.QuadTree
         {
             return _wrappedDictionary.Keys.GetEnumerator();
         }
-
 
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
