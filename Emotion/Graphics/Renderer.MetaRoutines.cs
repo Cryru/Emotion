@@ -140,8 +140,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderUVRect(Vector3 pos, Vector2 size, Color color, Rectangle? uvRect = null)
         {
-            SpriteBatchBase<VertexData> batch = GetBatch();
-            Span<VertexData> vertices = batch.GetData(null);
+            RenderBatch<VertexData> batch = GetBatch();
+            Span<VertexData> vertices = batch.GetData(4, 6);
 
             vertices[0].Vertex = pos;
             vertices[1].Vertex = new Vector3(pos.X + size.X, pos.Y, pos.Z);

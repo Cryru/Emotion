@@ -16,7 +16,7 @@ using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using OpenGL;
-using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
+using VertexDataBatch = Emotion.Graphics.Batches.RenderBatch<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
@@ -55,6 +55,11 @@ namespace Emotion.Graphics
         /// The maximum number of indices in the default Ibo buffers.
         /// </summary>
         public const uint MAX_INDICES = ushort.MaxValue;
+
+        /// <summary>
+        /// The minimum indices a buffer should have.
+        /// </summary>
+        public const byte MINIMUM_INDICES = 6;
 
         #endregion
 
@@ -129,10 +134,8 @@ namespace Emotion.Graphics
         /// </summary>
         public VertexArrayObject CommonVao;
 
-        /// <summary>
-        /// A ring buffer of vertex buffers, for unsynchronized drawing.
-        /// </summary>
-        public FencedBufferSource FencedBufferSource;
+
+        public RenderBatch<VertexData> DefaultSpriteBatch;
 
         /// <summary>
         /// Cached VAOs per structure type. These are all bound to the common VBO.
@@ -292,12 +295,9 @@ namespace Emotion.Graphics
             Debug.Assert(GLThread.IsGLThread());
 
             var size = (int) (MAX_INDICES * VertexData.SizeInBytes);
-            FencedBufferSource = new FencedBufferSource(size, size / 8, 3, s =>
-            {
-                var vbo = new VertexBuffer((uint) s);
-                var vao = new VertexArrayObject<VertexData>(vbo);
-                return new FencedBufferObjects(vbo, vao);
-            });
+
+            DefaultSpriteBatch = new UnsynchronizedBatch<VertexData>();
+
 
             VertexBuffer = new VertexBuffer((uint) size);
             CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);

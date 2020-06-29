@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Text;
@@ -27,7 +28,7 @@ namespace Tests.Classes
     [Test]
     public class RenderTests
     {
-                /// <summary>
+        /// <summary>
         /// Tests whether the composer will switch deal with drawing more than the maximum number of sprites that can be batched.
         /// </summary>
         [Test]
@@ -110,18 +111,22 @@ namespace Tests.Classes
             }).WaitOne();
         }
 
-        public class TestCustomBatch : VertexDataSpriteBatch
+        public class TestCustomBatch : DirectMappingBatch<VertexData>
         {
-            public override unsafe void Render(RenderComposer c)
+            public override unsafe void Render(RenderComposer composer, uint startIndex = 0, int length = -1)
             {
-                var data = new Span<VertexData>((void*) _batchedVertices, _mappedTo);
+                if (_mappedTo == 0 || _memoryPtr == IntPtr.Zero)
+                {
+                    Debug.Assert(false);
+                    return;
+                }
 
+                var data = new Span<VertexData>((void*) _memoryPtr, (int) _mappedTo);
                 for (var i = 0; i < data.Length; i++)
                 {
                     data[i].Color = (new Color(data[i].Color) * Color.Magenta).ToUint();
                 }
-
-                base.Render(c);
+                base.Render(composer, startIndex, length);
             }
         }
 
@@ -272,7 +277,7 @@ namespace Tests.Classes
                 // Set a background so invalid alpha can be seen
                 composer.RenderSprite(new Vector3(0, 0, -1), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
 
-                composer.SetSpriteBatch(new SortedSpriteBatch());
+                composer.SetSpriteBatch(new SortedVertexDataRenderBatch());
 
                 for (var i = 0; i < 50; i++)
                 {

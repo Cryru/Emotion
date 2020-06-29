@@ -13,7 +13,7 @@ using Emotion.Scenography;
 
 namespace Emotion.ExecTest.Examples
 {
-    internal class FrameBufferSampling : IScene
+    internal class CustomVertexData : IScene
     {
         private static byte _r;
         private Color _lastColorResult;
@@ -58,6 +58,7 @@ namespace Emotion.ExecTest.Examples
                 byte[] sampleReq = _fbo.Sample(new Rectangle(0, 0, 1, 1));
                 _lastColorResult = new Color(sampleReq[2], sampleReq[1], sampleReq[0], sampleReq[3]);
             }
+
 
             composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), _lastColorResult);
         }

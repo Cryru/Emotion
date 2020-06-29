@@ -95,7 +95,12 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The render cache of the entire text.
         /// </summary>
-        protected VertexDataSpriteBatch _renderCache { get; set; }
+        protected DirectMappingBatch<VertexData> _renderCache { get; set; }
+
+        /// <summary>
+        /// A pointer to the atlas texture.
+        /// </summary>
+        protected int _atlasTexturePointer;
 
         /// <summary>
         /// The text layouter.
@@ -157,7 +162,8 @@ namespace Emotion.Game.Text
             FontAtlas = fontAtlas;
 
             _layouter = new TextLayouter(fontAtlas.Atlas);
-            _renderCache = new VertexDataSpriteBatch(true);
+            _renderCache = new DirectMappingBatch<VertexData>();
+            _atlasTexturePointer = _renderCache.AddTextureBinding(fontAtlas.Texture);
         }
 
         /// <summary>
@@ -529,8 +535,8 @@ namespace Emotion.Game.Text
             _layouter.AddToPen(new Vector2(xOffset, yOffset));
             Vector2 drawPos = _layouter.AddLetter(c, out AtlasGlyph g);
 
-            Span<VertexData> data = _renderCache.GetData(_fontAtlas.Texture);
-            VertexData.SpriteToVertexData(data, new Vector3(drawPos, 0), g.Size, color, _fontAtlas.Texture, new Rectangle(g.Location, g.UV));
+            Span<VertexData> data = _renderCache.GetData(4, 6);
+            VertexData.SpriteToVertexData(data, new Vector3(drawPos, 0), g.Size, color, _fontAtlas.Texture, _atlasTexturePointer, new Rectangle(g.Location, g.UV));
         }
 
         #endregion
@@ -640,7 +646,7 @@ namespace Emotion.Game.Text
             int spaces = text.Count(x => x == ' ');
 
             // Decrease spaces by one if the last character is a space.
-            bool lastCharacterIsSpace = text.Length > 0 && text[text.Length - 1] == ' ';
+            bool lastCharacterIsSpace = text.Length > 0 && text[^1] == ' ';
             if (lastCharacterIsSpace) spaces--;
 
             return spaces;
@@ -648,13 +654,9 @@ namespace Emotion.Game.Text
 
         #endregion
 
-        #region Cleanup
-
         public void Dispose()
         {
             _renderCache.Dispose();
         }
-
-        #endregion
     }
 }

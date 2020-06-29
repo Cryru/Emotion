@@ -32,10 +32,11 @@ namespace Emotion.Graphics
         /// <param name="flipY">Whether to flip the texture on the y axis.</param>
         public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            SpriteBatchBase<VertexData> batch = GetBatch();
-            Span<VertexData> vertices = batch.GetData(texture);
-            Debug.Assert(vertices.Length >= 4);
-            VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
+            RenderBatch<VertexData> batch = GetBatch();
+            int tid = batch.AddTextureBinding(texture);
+            Span<VertexData> vertices = batch.GetData(4, 6);
+            Debug.Assert(vertices.Length == 4);
+            VertexData.SpriteToVertexData(vertices, position, size, color, texture, tid, textureArea, flipX, flipY);
         }
 
         /// <summary>
@@ -106,8 +107,8 @@ namespace Emotion.Graphics
         /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
-            SpriteBatchBase<VertexData> batch = GetBatch();
-            Span<VertexData> vertices = batch.GetData(null);
+            RenderBatch<VertexData> batch = GetBatch();
+            Span<VertexData> vertices = batch.GetData(4, 6);
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
             var normal = new Vector3(-direction.Y, direction.X, 0);

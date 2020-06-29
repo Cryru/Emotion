@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
-    <NoWarn>1701;1702;1591</NoWarn>
+    <NoWarn>1701;1702;1591;1734</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -77,5 +77,10 @@
     <Folder Include="Platform\Implementation\Cocoa\" />
     <Folder Include="Platform\Implementation\Wayland\" />
     <Folder Include="Platform\Implementation\X11\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Graphics\Batches\SortedVertexDataRenderBatch.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
 </Project>

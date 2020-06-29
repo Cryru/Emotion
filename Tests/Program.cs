@@ -6,6 +6,7 @@ using System.IO;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Test;
+using Emotion.Test.Helpers;
 using Tests.Results;
 
 #endregion

@@ -145,10 +145,16 @@ namespace Emotion.Game.Text
             if (_characterEffectIndex == 0) return;
 
             // Draw the buffer.
-            if (!EffectFinished) _renderCache.SetRenderRange(0, (uint) _characterEffectIndex);
-            else _renderCache.SetRenderRange(0, (uint) _textStripped.Length);
-
-            _renderCache.Render(composer);
+            var upTo = 0;
+            if (!EffectFinished)
+            {
+                upTo = _characterEffectIndex * 6;
+            }
+            else
+            {
+                upTo = _textStripped.Length * 6;
+            }
+            _renderCache.Render(composer, 0, upTo);
         }
 
         #endregion

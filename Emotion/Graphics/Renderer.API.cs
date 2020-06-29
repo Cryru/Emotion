@@ -10,7 +10,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives;
 using OpenGL;
-using VertexDataBatch = Emotion.Graphics.Batches.SpriteBatchBase<Emotion.Graphics.Data.VertexData>;
+using VertexDataBatch = Emotion.Graphics.Batches.RenderBatch<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
@@ -26,7 +26,6 @@ namespace Emotion.Graphics
         public VertexDataBatch GetBatch()
         {
             if (ActiveQuadBatch.Full) InvalidateStateBatches();
-
             return ActiveQuadBatch;
         }
 
@@ -40,7 +39,7 @@ namespace Emotion.Graphics
             if (ActiveQuadBatch == null || ActiveQuadBatch.BatchedSprites == 0) return;
             PerfProfiler.FrameEventStart($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
             ActiveQuadBatch.Render(this);
-            ActiveQuadBatch.Recycle();
+            ActiveQuadBatch.Reset();
             PerfProfiler.FrameEventEnd($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
         }
 
@@ -52,10 +51,6 @@ namespace Emotion.Graphics
         public void SetSpriteBatch(VertexDataBatch batch)
         {
             InvalidateStateBatches();
-
-            // If using shared memory, link to the composer.
-            if (batch is ISharedMemorySpriteBatch sharedMemoryBatch) sharedMemoryBatch.SetMemory(FencedBufferSource);
-
             ActiveQuadBatch = batch;
         }
 
@@ -65,10 +60,7 @@ namespace Emotion.Graphics
         public void SetDefaultSpriteBatch()
         {
             InvalidateStateBatches();
-
-            var defaultBatch = new VertexDataSharedMemorySpriteBatch();
-            defaultBatch.SetMemory(FencedBufferSource);
-            ActiveQuadBatch = defaultBatch;
+            ActiveQuadBatch = DefaultSpriteBatch;
         }
 
         #endregion
