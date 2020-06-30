@@ -463,6 +463,8 @@ namespace Emotion.Standard.OpenType
                 }
             }
 
+            Task.WaitAll(canvases.ToArray());
+
             const int glyphSpacing = 2;
             float rowSpacing = MathF.Ceiling(Height * scale + MathF.Abs(Descender * scale));
 
