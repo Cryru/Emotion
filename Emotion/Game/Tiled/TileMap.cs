@@ -97,7 +97,7 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// Reusable memory for querying the quad tree.
         /// </summary>
-        protected List<T> _quadTreeQueryMemory;
+        protected List<T> _quadTreeQueryMemory = new List<T>();
 
         /// <summary>
         /// The clip rect doesn't have to be tile aligned, so we expand it with a safe area to ensure all visible tiles are
@@ -255,8 +255,6 @@ namespace Emotion.Game.Tiled
             if (TiledMap.ObjectLayers != null && TiledMap.ObjectLayers.Count > 0)
             {
                 Objects.Reset(new Rectangle(0, 0, WorldSize));
-
-                if (_quadTreeQueryMemory == null) _quadTreeQueryMemory = new List<T>();
 
                 // For each layer with objects.
                 for (var i = 0; i < TiledMap.ObjectLayers.Count; i++)
