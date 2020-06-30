@@ -463,7 +463,7 @@ namespace Emotion.Standard.OpenType
                 }
             }
 
-            Task.WaitAll(canvases.ToArray());
+            GlyphRenderer.GlyphCanvas[] result = Task.WhenAll(canvases.ToArray()).Result;
 
             const int glyphSpacing = 2;
             float rowSpacing = MathF.Ceiling(Height * scale + MathF.Abs(Descender * scale));
@@ -472,9 +472,9 @@ namespace Emotion.Standard.OpenType
             var largestGlyphWidth = 0;
             var largestGlyphHeight = 0;
             var nonEmptyCanvases = 0;
-            for (var i = 0; i < canvases.Count; i++)
+            for (var i = 0; i < result.Length; i++)
             {
-                GlyphRenderer.GlyphCanvas canvas = canvases[i].Result;
+                GlyphRenderer.GlyphCanvas canvas = result[i];
                 if (canvas == null) continue;
 
                 nonEmptyCanvases++;
@@ -492,9 +492,9 @@ namespace Emotion.Standard.OpenType
             var pen = new Vector2(glyphSpacing);
             var atlas = new byte[atlasSize * atlasSize];
             var atlasObj = new FontAtlas(new Vector2(atlasSize), atlas, rasterizer.ToString(), scale, this);
-            for (var i = 0; i < canvases.Count; i++)
+            for (var i = 0; i < result.Length; i++)
             {
-                GlyphRenderer.GlyphCanvas canvas = canvases[i].Result;
+                GlyphRenderer.GlyphCanvas canvas = result[i];
                 if (canvas == null) continue;
                 AtlasGlyph canvasGlyph = canvas.Glyph;
 
