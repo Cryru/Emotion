@@ -25,10 +25,12 @@ namespace Emotion.Utility
 
             for (var p = 0; p < pixels.Length * 4; p += 4)
             {
+                byte alpha = pixels[p / 4];
+                if (alpha <= 0) continue;
                 output[p] = 255;
                 output[p + 1] = 255;
                 output[p + 2] = 255;
-                output[p + 3] = pixels[p / 4];
+                output[p + 3] = alpha;
             }
 
             return output;
