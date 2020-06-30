@@ -145,15 +145,11 @@ namespace Emotion.Game.Text
             if (_characterEffectIndex == 0) return;
 
             // Draw the buffer.
-            var upTo = 0;
+            int upTo;
             if (!EffectFinished)
-            {
                 upTo = _characterEffectIndex * 6;
-            }
             else
-            {
                 upTo = _textStripped.Length * 6;
-            }
             _renderCache.Render(composer, 0, upTo);
         }
 

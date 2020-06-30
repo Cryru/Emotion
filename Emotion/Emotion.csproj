@@ -78,9 +78,4 @@
     <Folder Include="Platform\Implementation\Wayland\" />
     <Folder Include="Platform\Implementation\X11\" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Graphics\Batches\SortedVertexDataRenderBatch.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
-  </ItemGroup>
 </Project>

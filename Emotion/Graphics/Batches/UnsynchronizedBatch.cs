@@ -54,10 +54,7 @@ namespace Emotion.Graphics.Batches
         public override void SetBatchMode(BatchMode mode)
         {
             base.SetBatchMode(mode);
-            if (_memory != null)
-            {
-                CacheBufferSizes();
-            }
+            if (_memory != null) CacheBufferSizes();
         }
 
         /// <summary>

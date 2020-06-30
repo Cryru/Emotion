@@ -102,7 +102,7 @@ namespace Emotion.Graphics.Batches
         {
             if (mode == BatchMode.Quad)
             {
-                _indexCapacity = (RenderComposer.MAX_INDICES / 4 * 6);
+                _indexCapacity = RenderComposer.MAX_INDICES / 4 * 6;
                 _indices = _indexCapacity;
                 _ibo = IndexBuffer.QuadIbo;
                 _primitiveRenderingMode = PrimitiveType.Triangles;
@@ -133,7 +133,7 @@ namespace Emotion.Graphics.Batches
             Render(c, 0);
         }
 
-                #region Texture Binding API
+        #region Texture Binding API
 
         /// <summary>
         /// Add the specified texture to the texture binding, if possible.
