@@ -19,7 +19,7 @@ namespace Emotion.Graphics.Batches
         protected VertexArrayObject<T> _vao;
 
         /// <inheritdoc />
-        public DirectMappingBatch(uint size = 0) : base(size)
+        public DirectMappingBatch(uint size = 0) : base(false, size)
         {
         }
 

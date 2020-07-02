@@ -42,15 +42,23 @@ namespace Emotion.Graphics.Batches
         }
 
         /// <summary>
-        /// Pointer to the memory currently being mapped to.
+        /// The number of structs batched.
         /// </summary>
-        protected IntPtr _memoryPtr;
+        public uint BatchedStructs
+        {
+            get => _mappedTo;
+        }
 
         /// <summary>
         /// Whether the batch is full.
         /// This happens when the maximum indices, maximum vertices, or the maximum textures are hit.
         /// </summary>
         public bool Full { get; protected set; }
+
+        /// <summary>
+        /// Pointer to the memory currently being mapped to.
+        /// </summary>
+        protected IntPtr _memoryPtr;
 
         /// <summary>
         /// The number of vertices in use from _batchedVertices.
@@ -78,6 +86,11 @@ namespace Emotion.Graphics.Batches
         protected uint _indices;
 
         /// <summary>
+        /// The minimum number of indices needed to map something.
+        /// </summary>
+        protected uint _minimumIndices;
+
+        /// <summary>
         /// The index buffer to use when rendering. If the VAO provides an IBO it will be used instead.
         /// </summary>
         protected IndexBuffer _ibo;
@@ -88,33 +101,16 @@ namespace Emotion.Graphics.Batches
         protected PrimitiveType _primitiveRenderingMode;
 
         /// <summary>
+        /// The type of batching currently in use.
+        /// This affects the primitive mode, IBO capacity and other internal settings.
+        /// </summary>
+        public BatchMode BatchMode { get; protected set; }
+
+        /// <summary>
         /// Reset the batch, clearing all batched sprites and textures.
         /// Memory is reused if possible.
         /// </summary>
         public abstract void Reset();
-
-        /// <summary>
-        /// Change the type of batching currently in use.
-        /// This affects the primitive mode, IBO capacity and other internal settings.
-        /// </summary>
-        /// <param name="mode"></param>
-        public virtual void SetBatchMode(BatchMode mode)
-        {
-            if (mode == BatchMode.Quad)
-            {
-                _indexCapacity = RenderComposer.MAX_INDICES / 4 * 6;
-                _indices = _indexCapacity;
-                _ibo = IndexBuffer.QuadIbo;
-                _primitiveRenderingMode = PrimitiveType.Triangles;
-            }
-            else
-            {
-                _indexCapacity = RenderComposer.MAX_INDICES;
-                _indices = _indexCapacity;
-                _ibo = IndexBuffer.SequentialIbo;
-                _primitiveRenderingMode = PrimitiveType.TriangleStrip;
-            }
-        }
 
         /// <summary>
         /// Render the batch.
@@ -168,9 +164,6 @@ namespace Emotion.Graphics.Batches
             bindingPointer = TextureSlotUtilization;
             TextureSlotUtilization++;
 
-            // Verify if the texture binding maximum has been reached.
-            if (TextureSlotUtilization == _textureBinding.Length) Full = true;
-
             return true;
         }
 
@@ -217,7 +210,8 @@ namespace Emotion.Graphics.Batches
     public enum BatchMode
     {
         Quad,
-        TriangleStrip
+        TriangleFan,
+        SequentialTriangles
     }
 
     /// <summary>
@@ -225,20 +219,47 @@ namespace Emotion.Graphics.Batches
     /// </summary>
     public abstract class RenderBatch<T> : RenderBatch
     {
+        /// <summary>
+        /// The number of structs that can still fit inside the buffer.
+        /// </summary>
+        public uint SizeLeft
+        {
+            get => (uint) ((_bufferSize - _mappedTo) / _structByteSize);
+        }
+
+        /// <summary>
+        /// The number of indices that can still fit inside the buffer.
+        /// </summary>
+        public uint IndicesLeft
+        {
+            get => _indices - _indicesUsed;
+        }
+
         #region Vertex Type
 
         protected int _structByteSize;
-        protected int _spriteByteSize; // Size of a sprite (4 vertices) in this format. This is the minimum size the buffer can have.
+        protected int _spriteByteSize; // Size of a sprite (4 vertices) in this format.
         protected Type _structType;
 
         #endregion
 
+        #region MultiDraw
+
+        protected int[][] _batchableLengths = new int[2][];
+        protected int _batchableLengthUtilization;
+
+        #endregion
+
+        protected bool _resizable;
+
         /// <summary>
         /// Create a new render batch.
         /// </summary>
+        /// <param name="resizable">Whether the buffer is resizable.</param>
         /// <param name="size">The size of the batch. If set to 0 then the default max indices size is used.</param>
-        protected RenderBatch(uint size = 0)
+        protected RenderBatch(bool resizable = false, uint size = 0)
         {
+            _resizable = resizable;
             _structType = typeof(T);
             _structByteSize = Marshal.SizeOf<T>();
             _spriteByteSize = _structByteSize * 4;
@@ -258,6 +279,54 @@ namespace Emotion.Graphics.Batches
             TextureSlotUtilization = 0;
             _mappedTo = 0;
             _indicesUsed = 0;
+            _batchableLengthUtilization = 0;
+        }
+
+        /// <summary>
+        /// Set the type of batching currently in use.
+        /// This affects the primitive mode, IBO capacity and other internal settings.
+        /// </summary>
+        public virtual void SetBatchMode(BatchMode mode)
+        {
+            switch (mode)
+            {
+                case BatchMode.Quad:
+                    _indexCapacity = RenderComposer.MAX_INDICES / 4 * 6;
+                    _indices = _indexCapacity;
+                    _ibo = IndexBuffer.QuadIbo;
+                    _primitiveRenderingMode = PrimitiveType.Triangles;
+                    _minimumIndices = 6;
+                    break;
+                case BatchMode.SequentialTriangles:
+                    _indexCapacity = RenderComposer.MAX_INDICES;
+                    _indices = _indexCapacity;
+                    _ibo = IndexBuffer.SequentialIbo;
+                    _primitiveRenderingMode = PrimitiveType.Triangles;
+                    _minimumIndices = 3;
+                    break;
+                case BatchMode.TriangleFan:
+                    _indexCapacity = RenderComposer.MAX_INDICES;
+                    _indices = _indexCapacity;
+                    _ibo = IndexBuffer.SequentialIbo;
+                    _primitiveRenderingMode = PrimitiveType.TriangleFan;
+                    _minimumIndices = 3;
+                    break;
+            }
+
+            BatchMode = mode;
+            _batchableLengthUtilization = 0;
+        }
+
+        /// <summary>
+        /// Request for the buffer to be resized.
+        /// Occurs only if nothing is mapped in the buffer and the buffer supports resizing.
+        /// The request doesn't have to be served or the sizes checked afterwards, the parameters are for reference.
+        /// </summary>
+        /// <param name="structsNeeded"></param>
+        /// <param name="indicesNeeded"></param>
+        protected virtual void Resize(uint structsNeeded, uint indicesNeeded)
+        {
+            // default is non-resizable.
         }
 
         /// <summary>
@@ -275,32 +344,63 @@ namespace Emotion.Graphics.Batches
         {
             // Check if marked as full. This happens when either the texture count reaches the limit,
             // or there's not enough memory left to serve a quad (the minimum)
-            if (Full) return null;
-
-            // Minimum of one index per struct.
-            indicesToUse = Math.Max(indicesToUse, structCount);
+            if (Full || structCount == 0) return null;
 
             // Get memory if we don't have any.
             if (_memoryPtr == IntPtr.Zero)
                 _memoryPtr = GetMemoryPointer();
 
             // Check if there is enough memory to serve the request.
-            var memoryUsed = (uint) (_mappedTo * _structByteSize);
-            if (memoryUsed + structCount * _structByteSize > _bufferSize) return null;
+            if (SizeLeft < structCount)
+                if (_mappedTo == 0 && _resizable)
+                {
+                    Resize(structCount, indicesToUse);
+                    if (SizeLeft < structCount) return null;
+                }
+                else
+                {
+                    return null;
+                }
 
             // Check if enough indices to serve the request.
-            if (_indicesUsed + indicesToUse > _indices) return null;
+            Debug.Assert(indicesToUse >= structCount);
+            if (IndicesLeft < indicesToUse)
+                if (_mappedTo == 0 && _resizable)
+                {
+                    Resize(structCount, indicesToUse);
+                    if (IndicesLeft < indicesToUse) return null;
+                }
+                else
+                {
+                    return null;
+                }
 
             // Get the data, and wrap it in a presentable span.
             // ReSharper disable once PossibleNullReferenceException
             // ReSharper disable once RedundantCast
             var data = new Span<T>((void*) &((byte*) _memoryPtr)[_mappedTo * _structByteSize], (int) structCount);
+
+            // Check if using multi draw, in which case record where the mapping started and its length.
+            if (BatchMode == BatchMode.TriangleFan)
+            {
+                // Not enough size.
+                if (_batchableLengthUtilization + 1 >= (_batchableLengths[0]?.Length ?? 0))
+                    for (var i = 0; i < _batchableLengths.Length; i++)
+                    {
+                        if (_batchableLengths[i] == null) _batchableLengths[i] = new int[1];
+                        Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
+                    }
+
+                _batchableLengths[0][_batchableLengthUtilization] = (int) _mappedTo;
+                _batchableLengths[1][_batchableLengthUtilization] = (int) structCount;
+                _batchableLengthUtilization++;
+            }
+
             _mappedTo += structCount;
             _indicesUsed += indicesToUse;
 
-            // Check if one more quad can fit, both in memory and in the IBO. Each sprite is 4 vertices and 6 indices.
-            long memoryLeft = _bufferSize - _mappedTo * _structByteSize;
-            if (memoryLeft < _spriteByteSize || _indicesUsed + RenderComposer.MINIMUM_INDICES > _indices) Full = true;
+            // Check if one more struct can fit, and if we're above the minimum indices.
+            if (SizeLeft < 1 || IndicesLeft < _minimumIndices || TextureSlotUtilization == _textureBinding.Length) Full = true;
 
             return data;
         }
@@ -327,12 +427,19 @@ namespace Emotion.Graphics.Batches
             if (vao.IBO == null) IndexBuffer.EnsureBound(_ibo.Pointer);
             BindTextures();
 
-            // Render specified range.
-            var startIndexInt = (IntPtr) (startIndex * sizeof(ushort));
-            if (length == -1) length = (int) (_indicesUsed - startIndex);
-            Debug.Assert(_mappedTo <= RenderComposer.MAX_INDICES);
-            Debug.Assert(startIndex + length <= _indexCapacity);
-            Gl.DrawElements(_primitiveRenderingMode, length, DrawElementsType.UnsignedShort, startIndexInt);
+            if (BatchMode == BatchMode.TriangleFan)
+            {
+                Gl.MultiDrawArrays(_primitiveRenderingMode, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
+            }
+            else
+            {
+                // Render specified range.
+                var startIndexInt = (IntPtr) (startIndex * sizeof(ushort));
+                if (length == -1) length = (int) (_indicesUsed - startIndex);
+                Debug.Assert(_mappedTo <= RenderComposer.MAX_INDICES);
+                Debug.Assert(startIndex + length <= _indexCapacity);
+                Gl.DrawElements(_primitiveRenderingMode, length, DrawElementsType.UnsignedShort, startIndexInt);
+            }
         }
 
         #endregion

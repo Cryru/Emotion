@@ -1,7 +1,5 @@
 Rendering
 	- Does color have to be uploaded for every sprite's vertex? Most of the time they won't differ per sprite, and most of the time it is white.
-	- Deprecate CommonVAO, VAOCache, and Renderer.VertexBuffer
-	- Implement a memory interface for SharedMemoryBatch
 Standard.Image
 	- Implement ByteWriter and use it to encode the images.
 	- JPEG Support

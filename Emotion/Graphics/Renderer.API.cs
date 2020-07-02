@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics.Batches;
@@ -23,10 +24,12 @@ namespace Emotion.Graphics
         /// <summary>
         /// Returns the current batch, or creates a new one if none.
         /// </summary>
-        public VertexDataBatch GetBatch()
+        public VertexDataBatch GetBatch(BatchMode ensureMode = BatchMode.Quad, uint ensureSize = 1, uint ensureIndices = 1)
         {
-            if (ActiveQuadBatch.Full) InvalidateStateBatches();
-            return ActiveQuadBatch;
+            bool switchMode = ActiveBatch.BatchMode != ensureMode;
+            if (ActiveBatch.Full || switchMode || ActiveBatch.SizeLeft < ensureSize || ActiveBatch.IndicesLeft < Math.Max(ensureSize, ensureIndices)) InvalidateStateBatches();
+            if (switchMode) ActiveBatch.SetBatchMode(ensureMode);
+            return ActiveBatch;
         }
 
         /// <summary>
@@ -36,11 +39,11 @@ namespace Emotion.Graphics
         /// </summary>
         public void InvalidateStateBatches()
         {
-            if (ActiveQuadBatch == null || ActiveQuadBatch.BatchedSprites == 0) return;
-            PerfProfiler.FrameEventStart($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
-            ActiveQuadBatch.Render(this);
-            ActiveQuadBatch.Reset();
-            PerfProfiler.FrameEventEnd($"RenderBatch {ActiveQuadBatch.BatchedSprites} Sprites {ActiveQuadBatch.TextureSlotUtilization} Textures");
+            if (ActiveBatch == null || ActiveBatch.BatchedStructs == 0) return;
+            PerfProfiler.FrameEventStart($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
+            ActiveBatch.Render(this);
+            ActiveBatch.Reset();
+            PerfProfiler.FrameEventEnd($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
         }
 
         /// <summary>
@@ -51,7 +54,7 @@ namespace Emotion.Graphics
         public void SetSpriteBatch(VertexDataBatch batch)
         {
             InvalidateStateBatches();
-            ActiveQuadBatch = batch;
+            ActiveBatch = batch;
         }
 
         /// <summary>
@@ -60,7 +63,7 @@ namespace Emotion.Graphics
         public void SetDefaultSpriteBatch()
         {
             InvalidateStateBatches();
-            ActiveQuadBatch = DefaultSpriteBatch;
+            ActiveBatch = DefaultSpriteBatch;
         }
 
         #endregion
@@ -82,23 +85,17 @@ namespace Emotion.Graphics
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
         public void RenderVertices(Vector3[] vertices, params Color[] colors)
         {
-            InvalidateStateBatches();
+            var vertCount = (uint) vertices.Length;
+            VertexDataBatch batch = GetBatch(BatchMode.TriangleFan, vertCount);
+            Span<VertexData> vertMap = batch.GetData(vertCount, vertCount);
+            Debug.Assert(vertices != null);
 
-            int neededLength = vertices.Length * VertexData.SizeInBytes;
-            if (neededLength > VertexBuffer.Size) VertexBuffer.Upload(IntPtr.Zero, (uint) neededLength);
-
-            Span<VertexData> vertMapper = VertexBuffer.CreateMapper<VertexData>(0, vertices.Length * VertexData.SizeInBytes);
             for (var v = 0; v < vertices.Length; v++)
             {
-                vertMapper[v].Vertex = vertices[v];
-                vertMapper[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint() : colors[v].ToUint();
-                vertMapper[v].Tid = -1;
+                vertMap[v].Vertex = vertices[v];
+                vertMap[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint() : colors[v].ToUint();
+                vertMap[v].Tid = -1;
             }
-
-            VertexBuffer.FinishMapping();
-            VertexArrayObject.EnsureBound(CommonVao);
-            IndexBuffer.EnsureBound(IndexBuffer.SequentialIbo.Pointer);
-            Gl.DrawElements(PrimitiveType.TriangleFan, vertices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
         }
 
         /// <summary>

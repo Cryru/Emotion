@@ -56,11 +56,6 @@ namespace Emotion.Graphics
         /// </summary>
         public const uint MAX_INDICES = ushort.MaxValue;
 
-        /// <summary>
-        /// The minimum indices a buffer should have.
-        /// </summary>
-        public const byte MINIMUM_INDICES = 6;
-
         #endregion
 
         #region Flags
@@ -97,6 +92,16 @@ namespace Emotion.Graphics
         #region Objects
 
         /// <summary>
+        /// The vertex data batch currently active.
+        /// </summary>
+        public VertexDataBatch ActiveBatch { get; private set; }
+
+        /// <summary>
+        /// The default render batch to render with.
+        /// </summary>
+        public VertexDataBatch DefaultSpriteBatch;
+
+        /// <summary>
         /// A representation of the screen's frame buffer.
         /// </summary>
         public FrameBuffer ScreenBuffer { get; private set; }
@@ -116,31 +121,6 @@ namespace Emotion.Graphics
         /// The model matrix stack.
         /// </summary>
         private TransformationStack _matrixStack = new TransformationStack();
-
-        /// <summary>
-        /// The vertex data batch currently active.
-        /// </summary>
-        public VertexDataBatch ActiveQuadBatch { get; private set; }
-
-        /// <summary>
-        /// The common vertex buffer of this composer. Used if the command doesn't care about creating its own.
-        /// Do not use outside of command execution.
-        /// </summary>
-        public VertexBuffer VertexBuffer;
-
-        /// <summary>
-        /// A common VertexData VAO. As that is the most commonly used structure.
-        /// VaoCache[typeof(VertexData)] will also return this object.
-        /// </summary>
-        public VertexArrayObject CommonVao;
-
-
-        public RenderBatch<VertexData> DefaultSpriteBatch;
-
-        /// <summary>
-        /// Cached VAOs per structure type. These are all bound to the common VBO.
-        /// </summary>
-        public Dictionary<Type, VertexArrayObject> VaoCache = new Dictionary<Type, VertexArrayObject>();
 
         #endregion
 
@@ -283,27 +263,11 @@ namespace Emotion.Graphics
             // Put in a default camera.
             Camera = new PixelArtCamera(Vector3.Zero);
 
-            CreateGraphicsMemory();
-            ApplySettings();
-        }
-
-        /// <summary>
-        /// Creates the CommonVao, VertexBuffer, and VaoCache
-        /// </summary>
-        public void CreateGraphicsMemory()
-        {
-            Debug.Assert(GLThread.IsGLThread());
-
-            var size = (int) (MAX_INDICES * VertexData.SizeInBytes);
-
+            // Create generic batch.
             DefaultSpriteBatch = new UnsynchronizedBatch<VertexData>();
+            ActiveBatch = DefaultSpriteBatch;
 
-
-            VertexBuffer = new VertexBuffer((uint) size);
-            CommonVao = new VertexArrayObject<VertexData>(VertexBuffer);
-            VaoCache.Add(typeof(VertexData), CommonVao);
-
-            SetDefaultSpriteBatch();
+            ApplySettings();
         }
 
         #region Event Handles and Sizing
