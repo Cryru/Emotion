@@ -222,9 +222,9 @@ namespace Emotion.Graphics.Batches
         /// <summary>
         /// The number of structs that can still fit inside the buffer.
         /// </summary>
-        public uint SizeLeft
+        public int SizeLeft
         {
-            get => (uint) ((_bufferSize - _mappedTo) / _structByteSize);
+            get => (int) ((_bufferSize / _structByteSize) - _mappedTo);
         }
 
         /// <summary>
@@ -327,6 +327,8 @@ namespace Emotion.Graphics.Batches
         protected virtual void Resize(uint structsNeeded, uint indicesNeeded)
         {
             // default is non-resizable.
+            Debug.Assert(_mappedTo == 0);
+            Debug.Assert(_indicesUsed == 0);
         }
 
         /// <summary>
