@@ -80,7 +80,7 @@ namespace Emotion.Graphics.Batches
                 else if (indexOffset != 0 && mode == BatchMode.Quad)
                 {
                     // When switching from another mode to quads we need to make sure to align the indices.
-                    // To do this we pretend that all vertices mapped until this join have been quads and
+                    // To do this we pretend that all vertices mapped until this point have been quads and
                     // continue from there.
                     uint verticesShouldBeUsed = (uint) MathF.Ceiling(structOffset / 4.0f) * 4;
                     uint indicesShouldBeUsed = verticesShouldBeUsed / 4 * 6;
