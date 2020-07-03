@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using Emotion.Graphics.Data;
 
 #endregion
@@ -11,16 +12,22 @@ namespace Emotion.Graphics.Batches
     /// Sorts batched sprites by their Z position.
     /// Used for semi-opaque sprites.
     /// </summary>
-    public class SortedSpriteBatch : VertexDataSharedMemorySpriteBatch
+    public class SortedVertexDataRenderBatch : DirectMappingBatch<VertexData>
     {
-        public override unsafe void Render(RenderComposer composer)
+        /// <inheritdoc />
+        public override unsafe void Render(RenderComposer composer, uint startIndex = 0, int length = -1)
         {
-            var data = new Span<VertexDataSprite>((void*) _memoryPtr, _mappedTo / 4);
+            if (_mappedTo == 0 || _memoryPtr == IntPtr.Zero)
+            {
+                Debug.Assert(false);
+                return;
+            }
 
+            var data = new Span<VertexDataSprite>((void*) _memoryPtr, (int) (_mappedTo / 4));
             // Temp sort until https://github.com/dotnet/corefx/issues/15329 reaches us.
             QuickSort(data, 0, data.Length - 1);
 
-            base.Render(composer);
+            base.Render(composer, startIndex, length);
         }
 
         #region Temp Sorting

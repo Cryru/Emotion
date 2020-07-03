@@ -342,12 +342,6 @@ namespace Emotion.Game.Tiled
                     Rectangle tiUv = GetUvFromTileImageId(tId, out int tsId);
                     TmxTileset ts = TiledMap.Tilesets[tsId];
 
-                    // Encode the tileset id as a texture id.
-                    for (var i = 0; i < tileData.Length; i++)
-                    {
-                        tileData[i].Tid = tsId;
-                    }
-
                     // Calculate dimensions of the tile.
                     var position = new Vector2(x * TiledMap.TileWidth, y * TiledMap.TileHeight);
                     var size = new Vector2(ts.TileWidth, ts.TileHeight);
@@ -367,7 +361,9 @@ namespace Emotion.Game.Tiled
 
                     var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
                     TextureAsset tileSet = Tilesets[tsId];
-                    VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
+                    int texturePointer = -1;
+                    if (tileSet?.Texture != null) texturePointer = (int) tileSet.Texture.Pointer;
+                    VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, texturePointer, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
                 }
             }
 
@@ -422,10 +418,9 @@ namespace Emotion.Game.Tiled
                     int tileIdx = (yIdx + x) * 4;
                     if (renderCache[tileIdx].Tid == -1) continue;
 
-                    SpriteBatchBase<VertexData> batch = composer.GetBatch();
-                    TextureAsset tileset = Tilesets[(int) renderCache[tileIdx].Tid];
-                    Span<VertexData> vertices = batch.GetData(tileset?.Texture);
-                    float tid = vertices[0].Tid;
+                    RenderBatch<VertexData> batch = composer.GetBatch();
+                    batch.AddTextureBinding((uint) renderCache[tileIdx].Tid, out int tid); // The tid in the cached data is a gl pointer.
+                    Span<VertexData> vertices = batch.GetData(4, 6);
 
                     for (var i = 0; i < vertices.Length; i++)
                     {

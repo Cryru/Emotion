@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Graphics.Batches;
@@ -31,8 +31,7 @@ namespace Emotion.Graphics
         /// <param name="circleDetail">How detailed the circle should be.</param>
         public void RenderCircleOutline(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
         {
-            // Add the circle's model matrix.
-            PushModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
+            Vector3 posOffset = useCenter ? new Vector3(position.X - radius, position.Y - radius, position.Z) : position;
 
             float fX = 0;
             float fY = 0;
@@ -53,17 +52,14 @@ namespace Emotion.Graphics
                 }
                 else
                 {
-                    RenderLine(new Vector3(radius + pX, radius + pY, 0), new Vector3(radius + x, radius + y, 0), color);
+                    RenderLine(posOffset + new Vector3(radius + pX, radius + pY, 0), posOffset + new Vector3(radius + x, radius + y, 0), color);
                 }
 
                 pX = x;
                 pY = y;
 
-                if (i == circleDetail - 1) RenderLine(new Vector3(radius + x, radius + y, 0), new Vector3(radius + fX, radius + fY, 0), color);
+                if (i == circleDetail - 1) RenderLine(posOffset + new Vector3(radius + x, radius + y, 0), posOffset + new Vector3(radius + fX, radius + fY, 0), color);
             }
-
-            // Remove the model matrix.
-            PopModelMatrix();
         }
 
         /// <summary>
@@ -79,15 +75,18 @@ namespace Emotion.Graphics
         /// <param name="circleDetail">How detailed the circle should be.</param>
         public void RenderCircle(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
         {
-            // Add the circle's model matrix.
-            PushModelMatrix(useCenter ? Matrix4x4.CreateTranslation(position.X - radius, position.Y - radius, position.Z) : Matrix4x4.CreateTranslation(position));
+            var vertsNeeded = (uint) ((circleDetail + 1) * 3);
+            RenderBatch<VertexData> batch = GetBatch(BatchMode.SequentialTriangles, vertsNeeded);
+            Span<VertexData> vertices = batch.GetData(vertsNeeded, vertsNeeded);
+            Debug.Assert(vertices != null);
+            var vertexIdx = 0;
+
+            Vector3 posOffset = useCenter ? new Vector3(position.X - radius, position.Y - radius, position.Z) : position;
 
             float pX = 0;
             float pY = 0;
             float fX = 0;
             float fY = 0;
-
-            var vertices = new List<Vector3>();
 
             // Generate triangles.
             for (uint i = 0; i < circleDetail; i++)
@@ -96,18 +95,18 @@ namespace Emotion.Graphics
                 float x = (float) Math.Cos(angle) * radius;
                 float y = (float) Math.Sin(angle) * radius;
 
-                vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                vertices.Add(new Vector3(radius + x, radius + y, 0));
-                vertices.Add(new Vector3(radius, radius, 0));
+                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + pX, radius + pY, 0);
+                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + x, radius + y, 0);
+                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius, radius, 0);
 
                 pX = x;
                 pY = y;
 
                 if (i == circleDetail - 1)
                 {
-                    vertices.Add(new Vector3(radius + pX, radius + pY, 0));
-                    vertices.Add(new Vector3(radius + x, radius + y, 0));
-                    vertices.Add(new Vector3(radius + fX, radius + fY, 0));
+                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + pX, radius + pY, 0);
+                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + fX, radius + fY, 0);
+                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius, radius, 0);
                 }
 
                 if (i != 0) continue;
@@ -115,10 +114,12 @@ namespace Emotion.Graphics
                 fY = y;
             }
 
-            RenderVertices(vertices, color);
-
-            // Remove the model matrix.
-            PopModelMatrix();
+            uint c = color.ToUint();
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i].Color = c;
+                vertices[i].Tid = -1;
+            }
         }
 
         /// <summary>
@@ -140,8 +141,8 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderUVRect(Vector3 pos, Vector2 size, Color color, Rectangle? uvRect = null)
         {
-            SpriteBatchBase<VertexData> batch = GetBatch();
-            Span<VertexData> vertices = batch.GetData(null);
+            RenderBatch<VertexData> batch = GetBatch();
+            Span<VertexData> vertices = batch.GetData(4, 6);
 
             vertices[0].Vertex = pos;
             vertices[1].Vertex = new Vector3(pos.X + size.X, pos.Y, pos.Z);
