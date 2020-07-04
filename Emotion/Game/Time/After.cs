@@ -10,18 +10,19 @@ namespace Emotion.Game.Time
 {
     public class After : ITimer, IRoutineWaiter
     {
+        public virtual float Delay { get; set; }
+
         public virtual float Progress
         {
-            get => _timePassed / _delay;
+            get => _timePassed / Delay;
         }
 
         protected float _timePassed;
-        protected float _delay;
         protected Action _function;
 
         public After(float delay, Action function = null)
         {
-            _delay = delay;
+            Delay = delay;
             _function = function;
         }
 
@@ -30,12 +31,12 @@ namespace Emotion.Game.Time
             if (Finished) return;
 
             _timePassed += timePassed;
-            if (_timePassed >= _delay) End();
+            if (_timePassed >= Delay) End();
         }
 
         public virtual void End()
         {
-            _timePassed = _delay;
+            _timePassed = Delay;
             _function?.Invoke();
             Finished = true;
         }
@@ -59,7 +60,7 @@ namespace Emotion.Game.Time
 
         public override string ToString()
         {
-            return $"Delay: {_delay}, Progress: {Math.Round(Progress, 2)}, Finished: {Finished}";
+            return $"Delay: {Delay}, Progress: {Math.Round(Progress, 2)}, Finished: {Finished}";
         }
     }
 }

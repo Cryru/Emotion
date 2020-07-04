@@ -10,27 +10,27 @@ namespace Emotion.Game.Time
     {
         public override float Progress
         {
-            get => _timePassed / (InReverse ? _reverseDelay : _delay);
+            get => _timePassed / (InReverse ? ReverseDelay : Delay);
         }
 
         public bool InReverse { get; protected set; }
-        private float _reverseDelay;
+        public float ReverseDelay { get; set; }
 
         public AfterAndBack(float delay, Action function = null) : base(delay, function)
         {
-            _reverseDelay = delay;
+            ReverseDelay = delay;
         }
 
         public AfterAndBack(float delay, float reverseDelay, Action function = null) : base(delay, function)
         {
-            _reverseDelay = reverseDelay;
+            ReverseDelay = reverseDelay;
         }
 
         public void GoInReverse()
         {
             Restart();
             InReverse = true;
-            _timePassed = _reverseDelay;
+            _timePassed = ReverseDelay;
         }
 
         public void GoNormal()
@@ -58,7 +58,7 @@ namespace Emotion.Game.Time
             if (InReverse)
                 _timePassed = 0;
             else
-                _timePassed = _delay;
+                _timePassed = Delay;
             _function?.Invoke();
             Finished = true;
         }
