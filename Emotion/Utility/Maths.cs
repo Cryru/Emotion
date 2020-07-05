@@ -290,6 +290,22 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// SmoothStep all components of the vector.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="interpolation"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 SmoothStep(Vector3 start, Vector3 end, float interpolation)
+        {
+            float x = SmoothStep(start.X, end.X, interpolation);
+            float y = SmoothStep(start.Y, end.Y, interpolation);
+            float z = SmoothStep(start.Z, end.Z, interpolation);
+            return new Vector3(x, y, z);
+        }
+
+        /// <summary>
         /// loops t so that it is never larger than length and never smaller than 0
         /// </summary>
         /// <param name="t">T.</param>
