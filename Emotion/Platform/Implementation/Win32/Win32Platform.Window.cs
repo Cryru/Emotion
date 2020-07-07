@@ -14,9 +14,6 @@ namespace Emotion.Platform.Implementation.Win32
 {
     public partial class Win32Platform
     {
-        private DisplayMode _mode = DisplayMode.Initial;
-        private Vector2? _windowModeSize; // When entering a fullscreen mode the window size is stored here so it can be restored later.
-
         /// <inheritdoc />
         public override WindowState WindowState
         {
@@ -46,24 +43,6 @@ namespace Emotion.Platform.Implementation.Win32
                         User32.ShowWindow(_windowHandle, ShowWindowCommands.SW_SHOWNORMAL);
                         break;
                 }
-            }
-        }
-
-        /// <inheritdoc />
-        public override DisplayMode DisplayMode
-        {
-            get => _mode;
-            set
-            {
-                if (value == DisplayMode.Initial) return;
-                if (value == _mode) return;
-                _mode = value;
-
-                if (_mode == DisplayMode.Fullscreen)
-                    // Save window size for when exiting fullscreen.
-                    _windowModeSize = Size;
-
-                UpdateDisplayMode();
             }
         }
 

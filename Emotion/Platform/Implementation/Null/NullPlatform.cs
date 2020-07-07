@@ -36,7 +36,6 @@ namespace Emotion.Platform.Implementation.Null
         }
 
         public override WindowState WindowState { get; set; }
-        public override DisplayMode DisplayMode { get; set; }
         private Vector2 _position { get; set; }
         private Vector2 _size { get; set; }
 

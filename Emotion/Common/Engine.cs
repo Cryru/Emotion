@@ -19,6 +19,10 @@ using Emotion.Platform.Implementation.Win32;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
+#if GLFW
+using Emotion.Platform.Implementation.GlfwImplementation;
+
+#endif
 
 #endregion
 
@@ -152,6 +156,7 @@ namespace Emotion.Common
                 CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
+
             Host.Setup(Configuration);
 
             InputManager = Host;
@@ -482,6 +487,7 @@ namespace Emotion.Common
         /// <returns></returns>
         public static PlatformBase GetInstanceOfDetectedPlatform(Configurator engineConfig)
         {
+            // ReSharper disable once RedundantAssignment
             PlatformBase platform = null;
             if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
 
@@ -560,6 +566,5 @@ namespace Emotion.Common
 
             Quit();
         }
-
     }
 }

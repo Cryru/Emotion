@@ -415,7 +415,7 @@ namespace Emotion.Platform
 
         #endregion
 
-        #region Windowing
+        #region Window API
 
         /// <summary>
         /// The state of the window on the screen.
@@ -428,7 +428,24 @@ namespace Emotion.Platform
         /// The window's display mode. Windowed, fullscreen, borderless fullscreen.
         /// Is originally set by the config.
         /// </summary>
-        public abstract DisplayMode DisplayMode { get; set; }
+        public DisplayMode DisplayMode
+        {
+            get => _mode;
+            set
+            {
+                if (value == DisplayMode.Initial) return;
+                if (value == _mode) return;
+                _mode = value;
+
+                if (_mode == DisplayMode.Fullscreen)
+                    // Save window size for when exiting fullscreen.
+                    _windowModeSize = Size;
+
+                UpdateDisplayMode();
+            }
+        }
+        protected DisplayMode _mode = DisplayMode.Initial;
+        protected Vector2? _windowModeSize; // When entering a fullscreen mode the window size is stored here so it can be restored later.
 
         /// <summary>
         /// The position of the window on the screen.
@@ -483,7 +500,7 @@ namespace Emotion.Platform
         protected bool[] _mouseKeysIM = new bool[3];
         protected bool[] _mouseKeysPreviousIM = new bool[3];
 
-        public void UpdateInput()
+        public virtual void UpdateInput()
         {
             // Transfer key status to previous.
             for (var i = 0; i < _keysIM.Length; i++)
