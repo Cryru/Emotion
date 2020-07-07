@@ -14,7 +14,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 {
     public abstract class DesktopPlatform : PlatformBase
     {
-        internal override void Setup(Configurator config)
+        public override void Setup(Configurator config)
         {
             base.Setup(config);
 

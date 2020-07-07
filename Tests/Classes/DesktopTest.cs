@@ -25,12 +25,13 @@ namespace Tests.Classes
 
             PlatformBase plat = Engine.GetInstanceOfDetectedPlatform(config);
 
-            var deskPlat = (DesktopPlatform) plat;
-            Monitor primaryMonitor = deskPlat.Monitors[0];
-
             Assert.True(plat != null);
             if (plat == null) return;
 
+            plat.Setup(config);
+
+            var deskPlat = (DesktopPlatform) plat;
+            Monitor primaryMonitor = deskPlat.Monitors[0];
             Assert.True(plat.Context != null);
             Assert.True(plat.Size == new Vector2(320, 260));
             Assert.True(plat.IsFocused);

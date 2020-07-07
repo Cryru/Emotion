@@ -91,7 +91,7 @@ namespace Emotion.Platform
         /// Setup the native platform and creates a window.
         /// </summary>
         /// <param name="config">Configuration for the platform - usually passed from the engine.</param>
-        internal virtual void Setup(Configurator config)
+        public virtual void Setup(Configurator config)
         {
             OnMouseScroll.AddListener(scroll =>
             {
