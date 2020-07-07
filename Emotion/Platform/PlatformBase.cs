@@ -644,7 +644,6 @@ namespace Emotion.Platform
         {
             IsOpen = false;
             Audio?.Dispose();
-            Context?.Dispose();
         }
     }
 }

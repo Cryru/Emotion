@@ -99,7 +99,7 @@ namespace Emotion.Platform.Implementation.Win32
             GetFullWindowRect(DEFAULT_WINDOW_STYLE, DEFAULT_WINDOW_STYLE_EX, DEFAULT_DPI, ref windowInitialSize);
             int initialWidth = windowInitialSize.Right - windowInitialSize.Left;
             int initialHeight = windowInitialSize.Bottom - windowInitialSize.Top;
-            _windowHandle = User32.CreateWindowEx(
+            IntPtr windowHandle = User32.CreateWindowEx(
                 DEFAULT_WINDOW_STYLE_EX,
                 CLASS_NAME,
                 config.HostTitle,
@@ -111,7 +111,7 @@ namespace Emotion.Platform.Implementation.Win32
                 Kernel32.GetModuleHandle(null),
                 IntPtr.Zero
             );
-            if (_windowHandle == IntPtr.Zero)
+            if (windowHandle == IntPtr.Zero)
             {
                 CheckError("Couldn't create window.", true);
                 return;
@@ -123,7 +123,7 @@ namespace Emotion.Platform.Implementation.Win32
             try
             {
                 var wgl = new WglGraphicsContext();
-                wgl.Init(_windowHandle, this);
+                wgl.Init(windowHandle, this);
                 if (wgl.Valid) Context = wgl;
             }
             catch (Exception ex)
@@ -135,7 +135,7 @@ namespace Emotion.Platform.Implementation.Win32
                 try
                 {
                     var gallium = new GalliumGraphicsContext();
-                    gallium.Init(_windowHandle, this);
+                    gallium.Init(windowHandle, this);
                     if (gallium.Valid) Context = gallium;
                 }
                 catch (Exception ex)
@@ -153,15 +153,17 @@ namespace Emotion.Platform.Implementation.Win32
             // This cannot be done until we know what monitor it was placed on - so it's done post creation.
             var rect = new Rect
             {
-                Right = (int) config.HostSize.X,
-                Bottom = (int) config.HostSize.Y
+                Right = (int)config.HostSize.X,
+                Bottom = (int)config.HostSize.Y
             };
-            rect.ClientToScreen(_windowHandle);
+            rect.ClientToScreen(windowHandle);
             GetFullWindowRect(ref rect);
             User32.SetWindowPos(_windowHandle, IntPtr.Zero,
                 rect.Left, rect.Top,
                 rect.Right - rect.Left, rect.Bottom - rect.Top,
                 WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOZORDER);
+
+            _windowHandle = windowHandle;
         }
 
         /// <summary>
