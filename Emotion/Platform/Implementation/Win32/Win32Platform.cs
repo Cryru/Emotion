@@ -31,7 +31,21 @@ namespace Emotion.Platform.Implementation.Win32
         public static bool IsWindows10AnniversaryUpdateOrGreaterWin32 { get; private set; }
         public static bool IsWindows10CreatorsUpdateOrGreaterWin32 { get; private set; }
 
-        static Win32Platform()
+        // Default constants
+        internal const string CLASS_NAME = "Emotion";
+        internal const string WINDOW_IDENTIFIER = "EmotionWindow";
+        internal const int DEFAULT_DPI = 96;
+
+        // Resources
+        private IntPtr _windowHandle;
+        public static IntPtr HelperWindowHandle;
+        private IntPtr _deviceNotificationHandle;
+
+        // Input
+        private string[] _keyNames;
+
+        /// <inheritdoc />
+        protected override void SetupPlatform(Configurator config)
         {
             IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
                 NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin7),
@@ -55,24 +69,7 @@ namespace Emotion.Platform.Implementation.Win32
             if (IsWindows10AnniversaryUpdateOrGreaterWin32) windowsVersionFlags.Add(nameof(IsWindows10AnniversaryUpdateOrGreaterWin32));
             if (IsWindows10CreatorsUpdateOrGreaterWin32) windowsVersionFlags.Add(nameof(IsWindows10CreatorsUpdateOrGreaterWin32));
             Engine.Log.Trace(string.Join(", ", windowsVersionFlags), MessageSource.Win32);
-        }
 
-        // Default constants
-        internal const string CLASS_NAME = "Emotion";
-        internal const string WINDOW_IDENTIFIER = "EmotionWindow";
-        internal const int DEFAULT_DPI = 96;
-
-        // Resources
-        private IntPtr _windowHandle;
-        public static IntPtr HelperWindowHandle;
-        private IntPtr _deviceNotificationHandle;
-
-        // Input
-        private string[] _keyNames;
-
-        /// <inheritdoc />
-        protected override void SetupPlatform(Configurator config)
-        {
             // todo: load libraries - if any
             // probably XInput
 
