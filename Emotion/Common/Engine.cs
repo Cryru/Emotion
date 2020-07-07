@@ -14,6 +14,8 @@ using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Platform;
+using Emotion.Platform.Implementation.Null;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
@@ -106,8 +108,6 @@ namespace Emotion.Common
 
             // Correct the startup directory to the directory of the executable.
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
             // If no config provided - use default.
@@ -146,12 +146,13 @@ namespace Emotion.Common
             AssetLoader = LoadDefaultAssetLoader();
 
             // Create the platform, window, audio, and graphics context.
-            Host = PlatformBase.GetInstanceOfDetected(configurator);
+            Host = GetInstanceOfDetectedPlatform(Configuration);
             if (Host == null)
             {
                 SubmitError(new Exception("Platform couldn't initialize."));
                 return;
             }
+            Host.Setup(Configuration);
 
             InputManager = Host;
             Audio = Host.Audio;
@@ -213,7 +214,7 @@ namespace Emotion.Common
             bool drawOnUpdate = Configuration.DrawOnUpdate;
 
             // Setup tick time trackers.
-            Stopwatch timer = Stopwatch.StartNew();
+            var timer = Stopwatch.StartNew();
             double targetTime = 1000f / desiredStep;
             double accumulator = 0f;
             double lastTick = 0f;
@@ -363,17 +364,17 @@ namespace Emotion.Common
             const int jitLoops = 5;
             const int loopCount = 15;
             var timings = new double[(loopCount - jitLoops) * 2];
-            Host.Window.Context.SwapInterval = 0;
+            Host.Context.SwapInterval = 0;
             for (var i = 0; i < timings.Length + jitLoops; i++)
             {
                 timer.Restart();
-                Host.Window.Context.SwapBuffers();
+                Host.Context.SwapBuffers();
                 // Run a couple of loops to get the JIT warmed up.
                 if (i >= jitLoops)
                     timings[i - jitLoops] = timer.ElapsedMilliseconds;
                 // Alright, now turn v-sync on.
                 if (i == loopCount - 1)
-                    Host.Window.Context.SwapInterval = 1;
+                    Host.Context.SwapInterval = 1;
             }
 
             double averageTimeOff = timings.Take(loopCount - jitLoops).Sum() / (timings.Length / 2);
@@ -439,7 +440,7 @@ namespace Emotion.Common
             PerfProfiler.FrameEventEnd("EndFrame");
 
             PerfProfiler.FrameEventStart("BufferSwap");
-            Host.Window.Context.SwapBuffers();
+            Host.Context.SwapBuffers();
             PerfProfiler.FrameEventEnd("BufferSwap");
 #if TIMING_DEBUG
             _frameId++;
@@ -473,6 +474,48 @@ namespace Emotion.Common
         }
 
         #region Helpers
+
+        /// <summary>
+        /// Detect and return the correct platform instance for the engine host.
+        /// </summary>
+        /// <param name="engineConfig"></param>
+        /// <returns></returns>
+        public static PlatformBase GetInstanceOfDetectedPlatform(Configurator engineConfig)
+        {
+            PlatformBase platform = null;
+            if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
+
+#if GLFW
+            platform = new GlfwPlatform();
+#endif
+
+            // Detect platform.
+            if (platform == null)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    // Win32
+                    platform = new Win32Platform();
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    // Cocoa
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // Check for Wayland.
+                    if (Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") != null)
+                    {
+                    }
+                }
+            }
+
+            // If none initialized - fallback to none.
+            if (platform == null) platform = new NullPlatform();
+
+            Log.Info($"Platform is: {platform}", MessageSource.Platform);
+            return platform;
+        }
 
         /// <summary>
         /// Create the default asset loader which loads the engine assembly, the game assembly, the setup calling assembly, and the

@@ -26,7 +26,7 @@ namespace Tests.Classes
             Runner.ExecuteAsLoop(_ =>
             {
                 Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
-                Engine.Host.Window.Size = new Vector2(600, 600);
+                Engine.Host.Size = new Vector2(600, 600);
                 RenderComposer composer = Engine.Renderer.StartFrame();
 
                 composer.SetUseViewMatrix(true);
@@ -49,7 +49,7 @@ namespace Tests.Classes
             Runner.ExecuteAsLoop(_ =>
             {
                 Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
-                Engine.Host.Window.Size = new Vector2(640, 360);
+                Engine.Host.Size = new Vector2(640, 360);
                 RenderComposer composer = Engine.Renderer.StartFrame();
 
                 composer.RenderSprite(new Vector3(_backgroundSize * -1, 0), _backgroundSize, Color.Black);

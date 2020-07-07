@@ -199,7 +199,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 {
                     GLContextDescription current = contextFactory[i];
 
-                    IntPtr handle = CreateContextArb(contextFactory[i]);
+                    IntPtr handle = CreateContextArb(current);
                     if (handle == IntPtr.Zero) continue;
 
                     _contextHandle = handle;
@@ -494,7 +494,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// <inheritdoc />
         protected override void SetSwapIntervalPlatform(int interval)
         {
-            if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
+            if (_platform.DisplayMode != DisplayMode.Fullscreen)
             {
                 bool dwmComposition;
 
@@ -519,7 +519,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// <inheritdoc />
         public override void SwapBuffers()
         {
-            if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
+            if (_platform.DisplayMode != DisplayMode.Fullscreen)
             {
                 bool dwmComposition;
 
