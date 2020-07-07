@@ -105,7 +105,7 @@ namespace Emotion.Platform
             // Check if the platform and graphics initialization was successful.
             if (Context == null)
             {
-                Engine.SubmitError(new Exception("Platform couldn't create context."));
+                Engine.CriticalError(new Exception("Platform couldn't create context."));
                 return;
             }
 

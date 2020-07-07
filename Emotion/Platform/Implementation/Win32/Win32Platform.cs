@@ -143,12 +143,12 @@ namespace Emotion.Platform.Implementation.Win32
                 }
                 catch (Exception ex)
                 {
-                    Engine.SubmitError(new Exception("Couldn't create MESA context.", ex));
+                    Engine.CriticalError(new Exception("Couldn't create MESA context.", ex));
                 }
 
             if (Context == null)
             {
-                Engine.SubmitError(new Exception("Couldn't create graphics context!"));
+                Engine.CriticalError(new Exception("Couldn't create graphics context!"));
                 return;
             }
 
@@ -226,18 +226,6 @@ namespace Emotion.Platform.Implementation.Win32
         #region API
 
         /// <inheritdoc />
-        public override IntPtr LoadLibrary(string path)
-        {
-            return Kernel32.LoadLibrary(path);
-        }
-
-        /// <inheritdoc />
-        public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
-        {
-            return Kernel32.GetProcAddress(library, symbolName);
-        }
-
-        /// <inheritdoc />
         protected override bool UpdatePlatform()
         {
             // Update input.
@@ -274,15 +262,6 @@ namespace Emotion.Platform.Implementation.Win32
             if (!IsFocused && !Engine.Configuration.DebugMode) User32.WaitMessage();
 
             return true;
-        }
-
-        /// <inheritdoc />
-        public override void DisplayMessageBox(string message)
-        {
-            IntPtr parentWindow = _windowHandle;
-            if (parentWindow == IntPtr.Zero && HelperWindowHandle != IntPtr.Zero)
-                parentWindow = HelperWindowHandle;
-            User32.MessageBox(parentWindow, message, "Something went wrong!", (uint) (0x00000000L | 0x00000010L));
         }
 
         #endregion
@@ -496,13 +475,13 @@ namespace Emotion.Platform.Implementation.Win32
             switch (errorCheck)
             {
                 case ERROR_INVALID_VERSION_ARB:
-                    Engine.SubmitError(new Exception($"Driver doesn't support version of {msg}"));
+                    Engine.CriticalError(new Exception($"Driver doesn't support version of {msg}"));
                     break;
                 case ERROR_INVALID_PROFILE_ARB:
-                    Engine.SubmitError(new Exception($"Driver doesn't support profile of {msg}"));
+                    Engine.CriticalError(new Exception($"Driver doesn't support profile of {msg}"));
                     break;
                 default:
-                    Engine.SubmitError(new Exception(msg, new Win32Exception((int) errorCheck)));
+                    Engine.CriticalError(new Exception(msg, new Win32Exception((int) errorCheck)));
                     break;
             }
         }

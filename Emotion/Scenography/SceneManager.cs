@@ -166,7 +166,7 @@ namespace Emotion.Scenography
             catch (Exception ex)
             {
                 if (Debugger.IsAttached) throw;
-                Engine.SubmitError(new Exception($"Couldn't load scene - {scene}.", ex));
+                Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
             }
         }
 
@@ -186,7 +186,7 @@ namespace Emotion.Scenography
             catch (Exception ex)
             {
                 if (Debugger.IsAttached) throw;
-                Engine.SubmitError(new Exception($"Couldn't unload scene - {scene}.", ex));
+                Engine.CriticalError(new Exception($"Couldn't unload scene - {scene}.", ex));
             }
         }
 

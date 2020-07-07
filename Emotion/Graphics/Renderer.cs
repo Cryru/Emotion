@@ -230,7 +230,7 @@ namespace Emotion.Graphics
             ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
             if (defaultProgram == null)
             {
-                Engine.SubmitError(new Exception("Couldn't create default shaders."));
+                Engine.CriticalError(new Exception("Couldn't create default shaders."));
                 return;
             }
 

@@ -1,9 +1,12 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using WinApi.User32;
 
 #endregion
 
@@ -70,6 +73,45 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
                 Monitors.Remove(monitor);
                 UpdateDisplayMode();
+            }
+        }
+
+        /// <inheritdoc />
+        public override IntPtr LoadLibrary(string path)
+        {
+            return NativeLibrary.Load(path);
+        }
+
+        /// <inheritdoc />
+        public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
+        {
+            return NativeLibrary.GetExport(library, symbolName);
+        }
+
+        /// <inheritdoc />
+        public override void DisplayMessageBox(string message)
+        {
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    User32Methods.MessageBox(IntPtr.Zero, message, "Something went wrong!", (uint) (0x00000000L | 0x00000010L));
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    UnixNative.ExecuteBashCommand($"osascript -e 'tell app \"System Events\" to display dialog \"{message}\" buttons {{\"OK\"}} with icon caution'");
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    try
+                    {
+                        // Display a message box using Zenity.
+                        UnixNative.ExecuteBashCommand($"zenity --error --text=\"{message}\" --title=\"Something went wrong!\" 2>/dev/null");
+                    }
+                    catch (Exception)
+                    {
+                        // Fallback to xmessage.
+                        UnixNative.ExecuteBashCommand($"xmessage \"{message}\"");
+                    }
+            }
+            catch (Exception e)
+            {
+                Engine.Log.Error($"Couldn't display error message box - {message}. {e}", MessageSource.Platform);
             }
         }
     }

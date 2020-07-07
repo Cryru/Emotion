@@ -124,7 +124,7 @@ namespace Emotion.Common
 
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
-                AppDomain.CurrentDomain.UnhandledException += (e, a) => { SubmitError((Exception) a.ExceptionObject); };
+                AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject); };
 
             // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
@@ -149,7 +149,7 @@ namespace Emotion.Common
             Host = GetInstanceOfDetectedPlatform(Configuration);
             if (Host == null)
             {
-                SubmitError(new Exception("Platform couldn't initialize."));
+                CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
             Host.Setup(Configuration);
@@ -539,13 +539,11 @@ namespace Emotion.Common
 
         #endregion
 
-        #region Error Handling
-
         /// <summary>
         /// Submit that an error has happened. Handles logging and closing of the engine safely.
         /// </summary>
         /// <param name="ex">The exception connected with the error occured.</param>
-        public static void SubmitError(Exception ex)
+        public static void CriticalError(Exception ex)
         {
             if (Debugger.IsAttached) Debugger.Break();
 
@@ -563,6 +561,5 @@ namespace Emotion.Common
             Quit();
         }
 
-        #endregion
     }
 }
