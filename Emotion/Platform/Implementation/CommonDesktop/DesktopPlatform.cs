@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Primitives;
@@ -14,8 +15,31 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 {
     public abstract class DesktopPlatform : PlatformBase
     {
+        protected string _platformIdentifier;
+        protected string _platformExtension;
+
         public override void Setup(Configurator config)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _platformIdentifier = "win";
+                if (RuntimeInformation.OSArchitecture == Architecture.X64)
+                    _platformIdentifier += "64";
+                else
+                    _platformIdentifier += "32";
+                _platformExtension = ".dll";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                _platformIdentifier = "linux";
+                _platformExtension = ".so";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                _platformIdentifier = "macos";
+                _platformExtension = ".dylib";
+            }
+
             base.Setup(config);
 
             if (Engine.AssetLoader == null) return;
@@ -77,15 +101,44 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         }
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override IntPtr LoadLibrary(string path)
         {
-            return NativeLibrary.Load(path);
+            const string baseFolder = "AssetsNativeLibs";
+            if (path == "glfw")
+            {
+                path = System.IO.Path.Join(baseFolder, "GLFW", _platformIdentifier, $"glfw{_platformExtension}");
+            }
+            else if(path == "libEGL")
+            {
+                path = System.IO.Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libEGL{_platformExtension}");
+            }
+            else if (path == "libGLESv2")
+            {
+                path = System.IO.Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libGLESv2{_platformExtension}");
+            }
+            else if (path == "mesa")
+            {
+                path = System.IO.Path.Join(baseFolder, "Mesa", _platformIdentifier, $"opengl32{_platformExtension}");
+            }
+ 
+            bool loaded = NativeLibrary.TryLoad(path, out IntPtr ptr);
+            if (!loaded)
+            {
+                Engine.Log.Info($"Couldn't load library {path}", MessageSource.Engine);
+                if (!System.IO.File.Exists(path))
+                {
+                    Engine.Log.Info($"File doesn't exist at {path}", MessageSource.Engine);
+                }
+            }
+            return ptr;
         }
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
         {
-            return NativeLibrary.GetExport(library, symbolName);
+            return !NativeLibrary.TryGetExport(library, symbolName, out IntPtr ptr) ? IntPtr.Zero : ptr;
         }
 
         /// <inheritdoc />

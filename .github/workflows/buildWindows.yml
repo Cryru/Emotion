@@ -12,12 +12,6 @@ jobs:
     - name: Build Everything
       run: |
         dotnet build
-    - name: Download OSMesa Binary
-      run: |
-        curl -L http://github.com/pal1000/mesa-dist-win/releases/download/19.1.6/mesa3d-19.1.6-release-mingw.7z -o mesa.7z
-        7z x mesa.7z
-        mkdir .\Tests\bin\Debug\netcoreapp3.0\mesa
-        mv .\x64\opengl32.dll .\Tests\bin\Debug\netcoreapp3.0\mesa\opengl32.dll
     - name: Run Tests
       run: |
         cd .\Tests\bin\Debug\netcoreapp3.0

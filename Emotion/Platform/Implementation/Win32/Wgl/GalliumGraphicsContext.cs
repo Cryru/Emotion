@@ -58,10 +58,10 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             if (counter > 0) Engine.Log.Info($"OpenGL32.dll was unloaded after {counter} attempts.", MessageSource.WGallium);
 
             // Load library.
-            _openGlLibrary = _platform.LoadLibrary("mesa\\opengl32.dll");
+            _openGlLibrary = _platform.LoadLibrary("mesa");
             if (_openGlLibrary == IntPtr.Zero)
             {
-                Engine.Log.Error("mesa\\opengl32.dll not found.", MessageSource.WGallium);
+                Engine.Log.Error("Couldn't load mesa.", MessageSource.WGallium);
                 return;
             }
 

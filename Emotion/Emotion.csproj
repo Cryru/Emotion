@@ -14,7 +14,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>TRACE;GLFW, ANGLE</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
@@ -43,16 +43,22 @@
     <None Update="AssetsNativeLibs\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="AssetsNativeLibs\GLFW\linux\glfw.so" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\macos\glfw.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win32\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\GLFW\win64\glfw3.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\GLFW\win32\glfw3.dll" Condition="$(DefineConstants.Contains('GLFW'))">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AssetsNativeLibs\GLFW\macos\libglfw.3.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
+    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

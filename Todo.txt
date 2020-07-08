@@ -34,9 +34,6 @@ Platform
 	- Linux
 	- Android
 	- Web
-Meta
-	- Nuget Package
-	- Autobuild nuget package, with version patching, and commit hash patching
 Input
 	- Controller Support (Wherever possible)
 Emotion.Game

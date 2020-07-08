@@ -122,9 +122,9 @@ namespace Emotion.Platform.Implementation.Win32
             // Create graphics context - OpenGL.
             try
             {
-                var wgl = new WglGraphicsContext();
-                wgl.Init(windowHandle, this);
-                if (wgl.Valid) Context = wgl;
+                //var wgl = new WglGraphicsContext();
+                //wgl.Init(windowHandle, this);
+                //if (wgl.Valid) Context = wgl;
             }
             catch (Exception ex)
             {

@@ -1,7 +1,7 @@
 ﻿#region Using
 
 using System;
-using Emotion.GLFW;
+using Emotion.Platform.Implementation.GlfwImplementation.Native;
 
 #endregion
 
@@ -9,9 +9,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 {
     public class GlfwGraphicsContext : RenderDocGraphicsContext
     {
-        private IntPtr _win;
+        private Glfw.Window _win;
 
-        public GlfwGraphicsContext(IntPtr window)
+        public GlfwGraphicsContext(Glfw.Window window)
         {
             _win = window;
         }

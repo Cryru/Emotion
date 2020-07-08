@@ -17,7 +17,6 @@ I would recommend checking out the tests in the "Tests" project as examples, and
 ## Requirements for Developers and Players:
 
 - OpenGL 3.3 or higher (might work on 3.0, but needs testing)
-	- If your GPU doesn't support it, you might still be able to run it using [Mesa](https://github.com/pal1000/mesa-dist-win/releases). Place the opengl32.dll file in a "mesa" folder next to the exe.
 - Be able to run the Net Core runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 - A supported platform.
@@ -128,43 +127,38 @@ StbTrueTypeSharp (https://github.com/zwcloud/StbTruetypeSharp) [GPL 3.0]
  - Requires compiling Emotion with the "StbTrueType" symbol.
  - Used by unit tests.
 
-## Projects Referenced
+Google ANGLE (https://github.com/google/angle)
+ - Used for wider support.
+ - Precompiled win64 libraries included.
+ - Requires compiling Emotion with the "ANGLE" symbol.
 
-WinApi (https://github.com/prasannavl/WinApi) [Apache]
- - Windows API Interop Headers
- - Forked
+llvmpipe (https://mesa3d.org/)
+ - Used for wider support in the form of a software renderer.
+ - Included native libraries for Windows_x64, Windows_x32
 
-OpenGL.Net (https://github.com/luca-piccioni/OpenGL.Net) [MIT]
- - Used as a wrapper for OpenGL.
- - Heavily forked, stripped down, and modified.
+GLFW (https://github.com/glfw/glfw)
+ - Used for wider support in terms of window creation.
+ - Requires compiling Emotion with the "GLFW" symbol.
+ - Included native libraries for MacOS_x64, Linux_x64, Windows_x64, Windows_x32
+ - Bindings forked from [Glfw.Net](https://github.com/Chman/Glfw.Net) (Zlib License)
 
-OpenType.JS (https://opentype.js.org/)
- - Font parsing reference.
+## Projects Used
 
-StbTrueType (https://github.com/nothings/stb/blob/master/stb_truetype.h)
- - Font rendering reference.
+This includes dependencies and projects which were used for research references.
 
-Nine.Imagine (https://github.com/yufeih/Nine.Imaging)
- - Image parsing reference.
-
-ImageSharp (https://github.com/SixLabors/ImageSharp)
- - Quirky image formats reference.
-
- PNGSuite (http://www.schaik.com/pngsuite/)
- - Testing PNG reader implementation
-
-OpenAL-Soft (https://github.com/kcat/openal-soft/)
- - Audio code reference
-
-NAudio (https://github.com/naudio/NAudio)
- - Audio code reference
-
-Audacity (https://github.com/audacity)
- - Audio code reference
-
-TiledSharp (https://github.com/marshallward/TiledSharp)
- - TMX file support reference.
- - Was originally forked from, but it has changed too much.
+| Library | License | Used For | Inclusion Form |
+| -- | -- | -- | -- |
+| [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Forked
+| [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Forked with Heavy Edits
+| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) | MIT | Font Rendering Comparison | Referenced by Tests
+| [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Forked to use custom XML and engine integration
+| [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
+| [OpenType.JS](https://opentype.js.org/) | X | Font Parsing Reference | None
+| [Nine.Imagine](https://github.com/yufeih/Nine.Imaging) | X | Image Parsing Comparison | None
+| [ImageSharp](https://github.com/SixLabors/ImageSharp) | X | Quirky Image Format Reference | None
+| [OpenAL-Soft](https://github.com/kcat/openal-soft/) | X | Audio Code Reference | None
+| [NAudio](https://github.com/naudio/NAudio) | X | Audio Code Reference | None
+| [Audacity](https://github.com/audacity) | X | Audio Code Reference | None
 
 ## Inspired Fully, Or In Parts By:
 
