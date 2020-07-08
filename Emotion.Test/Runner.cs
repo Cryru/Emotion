@@ -98,6 +98,8 @@ namespace Emotion.Test
 
         private static Dictionary<string, int> _comparisonImageDuplicate = new Dictionary<string, int>();
 
+        private static object _threadLock = new object();
+
         /// <summary>
         /// Run tests.
         /// </summary>
@@ -398,7 +400,7 @@ namespace Emotion.Test
                 if(counterThisTick == 0) _loopAction = null;
 
                 // Release the lock.
-                lock (_loopWaiter)
+                lock (_threadLock)
                 {
                     _loopWaiter?.Set();
                     if(counterThisTick == 0) _loopWaiter = null;
@@ -421,9 +423,13 @@ namespace Emotion.Test
         /// <returns>A token to await the execution on.</returns>
         public static ManualResetEvent ExecuteAsLoop(Action<float> action, int times = 1)
         {
-            _loopAction = action;
-            _loopWaiter = new ManualResetEvent(false);
-            _loopCounter = times;
+            lock (_threadLock)
+            {
+                Debug.Assert(_loopWaiter == null);
+                _loopAction = action;
+                _loopWaiter = new ManualResetEvent(false);
+                _loopCounter = times;
+            }
             return _loopWaiter;
         }
 
