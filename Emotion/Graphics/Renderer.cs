@@ -230,7 +230,7 @@ namespace Emotion.Graphics
             ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
             if (defaultProgram == null)
             {
-                Engine.SubmitError(new Exception("Couldn't create default shaders."));
+                Engine.CriticalError(new Exception("Couldn't create default shaders."));
                 return;
             }
 
@@ -243,7 +243,7 @@ namespace Emotion.Graphics
             _blitState.ViewMatrix = false;
 
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
-            Vector2 windowSize = Engine.Host.Window.Size;
+            Vector2 windowSize = Engine.Host.Size;
             ScreenBuffer = new FrameBuffer(0, windowSize);
             DrawBuffer = !Engine.Configuration.UseIntermediaryBuffer ? new FrameBuffer(0, windowSize) : new FrameBuffer(windowSize).WithColor().WithDepth();
             _bufferStack.Push(DrawBuffer);
@@ -251,12 +251,12 @@ namespace Emotion.Graphics
             // Decide on scaling mode.
             if (Engine.Configuration.ScaleBlackBars)
             {
-                Engine.Host.Window.OnResize.AddListener(HostResizedBlackBars);
+                Engine.Host.OnResize.AddListener(HostResizedBlackBars);
                 HostResizedBlackBars(windowSize);
             }
             else
             {
-                Engine.Host.Window.OnResize.AddListener(HostResized);
+                Engine.Host.OnResize.AddListener(HostResized);
                 HostResized(windowSize);
             }
 
@@ -315,7 +315,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void ApplySettings()
         {
-            Engine.Host.Window.Context.SwapInterval = _vSync ? 1 : 0;
+            Engine.Host.Context.SwapInterval = _vSync ? 1 : 0;
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Platform;
+using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Test;
 
 #endregion
@@ -22,53 +23,58 @@ namespace Tests.Classes
                 HostSize = new Vector2(320, 260)
             };
 
-            PlatformBase plat = PlatformBase.GetInstanceOfDetected(config);
+            PlatformBase plat = Engine.GetInstanceOfDetectedPlatform(config);
 
             Assert.True(plat != null);
-            Assert.True(plat.Window != null);
-            Assert.True(plat.Window.Context != null);
-            Assert.True(plat.Window.Size == new Vector2(320, 260));
+            if (plat == null) return;
+
+            plat.Setup(config);
+
+            var deskPlat = (DesktopPlatform) plat;
+            Monitor primaryMonitor = deskPlat.Monitors[0];
+            Assert.True(plat.Context != null);
+            Assert.True(plat.Size == new Vector2(320, 260));
             Assert.True(plat.IsFocused);
 
             var resizes = new List<Vector2>();
-            plat.Window.OnResize.AddListener(t =>
+            plat.OnResize.AddListener(t =>
             {
                 resizes.Add(t);
                 return true;
             });
 
-            plat.Window.Position = new Vector2(0, 0);
-            Assert.True(plat.Window.Position == new Vector2(0, 0));
-            Assert.True(plat.Window.Size == new Vector2(320, 260));
+            plat.Position = new Vector2(0, 0);
+            Assert.True(plat.Position == new Vector2(0, 0));
+            Assert.True(plat.Size == new Vector2(320, 260));
 
-            plat.Window.Size = new Vector2(960, 540);
-            Assert.True(plat.Window.Size == new Vector2(960, 540));
+            plat.Size = new Vector2(960, 540);
+            Assert.True(plat.Size == new Vector2(960, 540));
 
-            plat.Window.WindowState = WindowState.Minimized;
+            plat.WindowState = WindowState.Minimized;
             Assert.True(!plat.IsFocused);
 
-            plat.Window.WindowState = WindowState.Maximized;
-            Assert.True(plat.Window.Size.X == plat.Monitors[0].Width);
+            plat.WindowState = WindowState.Maximized;
+            Assert.True(plat.Size.X == primaryMonitor.Width);
             Assert.True(plat.IsFocused);
 
-            plat.Window.WindowState = WindowState.Minimized;
+            plat.WindowState = WindowState.Minimized;
             Assert.True(!plat.IsFocused);
 
-            plat.Window.WindowState = WindowState.Normal;
+            plat.WindowState = WindowState.Normal;
             Assert.True(plat.IsFocused);
 
             // Check that the on resize function was called correctly and with the correct sizes.
             Assert.True(resizes.Count == 3);
             Assert.True(resizes[0] == new Vector2(960, 540)); // initial size set
-            Assert.True(resizes[1].X == plat.Monitors[0].Width); // maximized
+            Assert.True(resizes[1].X == primaryMonitor.Width); // maximized
             Assert.True(resizes[2] == new Vector2(960, 540)); // restoring from the minimized state.
 
-            Vector2 oldSize = plat.Window.Size;
-            plat.Window.DisplayMode = DisplayMode.Fullscreen;
+            Vector2 oldSize = plat.Size;
+            plat.DisplayMode = DisplayMode.Fullscreen;
             Task.Delay(1000).Wait();
-            Assert.True(plat.Window.Size == new Vector2(plat.Monitors[0].Width, plat.Monitors[0].Height));
-            plat.Window.DisplayMode = DisplayMode.Windowed;
-            Assert.True(plat.Window.Size == oldSize);
+            Assert.True(plat.Size == new Vector2(primaryMonitor.Width, primaryMonitor.Height));
+            plat.DisplayMode = DisplayMode.Windowed;
+            Assert.True(plat.Size == oldSize);
         }
     }
 }

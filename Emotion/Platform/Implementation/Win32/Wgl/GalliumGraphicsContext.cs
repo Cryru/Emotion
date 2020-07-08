@@ -178,7 +178,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
 
         public override void SwapBuffers()
         {
-            if (_platform.Window.DisplayMode != DisplayMode.Fullscreen)
+            if (_platform.DisplayMode != DisplayMode.Fullscreen)
             {
                 bool dwmComposition;
 

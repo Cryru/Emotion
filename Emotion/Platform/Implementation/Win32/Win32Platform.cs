@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Common;
@@ -24,7 +23,7 @@ using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 
 namespace Emotion.Platform.Implementation.Win32
 {
-    public class Win32Platform : DesktopPlatform
+    public partial class Win32Platform : DesktopPlatform
     {
         public static bool IsWindows7OrGreater { get; private set; }
         public static bool IsWindows8OrGreater { get; private set; }
@@ -32,7 +31,21 @@ namespace Emotion.Platform.Implementation.Win32
         public static bool IsWindows10AnniversaryUpdateOrGreaterWin32 { get; private set; }
         public static bool IsWindows10CreatorsUpdateOrGreaterWin32 { get; private set; }
 
-        static Win32Platform()
+        // Default constants
+        internal const string CLASS_NAME = "Emotion";
+        internal const string WINDOW_IDENTIFIER = "EmotionWindow";
+        internal const int DEFAULT_DPI = 96;
+
+        // Resources
+        private IntPtr _windowHandle;
+        public static IntPtr HelperWindowHandle;
+        private IntPtr _deviceNotificationHandle;
+
+        // Input
+        private string[] _keyNames;
+
+        /// <inheritdoc />
+        protected override void SetupPlatform(Configurator config)
         {
             IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
                 NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin7),
@@ -49,29 +62,14 @@ namespace Emotion.Platform.Implementation.Win32
             IsWindows10AnniversaryUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(14393);
             IsWindows10CreatorsUpdateOrGreaterWin32 = IsWindows10BuildOrGreaterWin32(15063);
 
-            Engine.Log.Trace($"IsWindows7OrGreater: {IsWindows7OrGreater}", MessageSource.Win32);
-            Engine.Log.Trace($"IsWindows8OrGreater: {IsWindows8OrGreater}", MessageSource.Win32);
-            Engine.Log.Trace($"IsWindows81OrGreater: {IsWindows81OrGreater}", MessageSource.Win32);
-            Engine.Log.Trace($"IsWindows10AnniversaryUpdateOrGreaterWin32: {IsWindows10AnniversaryUpdateOrGreaterWin32}", MessageSource.Win32);
-            Engine.Log.Trace($"IsWindows10CreatorsUpdateOrGreaterWin32: {IsWindows10CreatorsUpdateOrGreaterWin32}", MessageSource.Win32);
-        }
+            var windowsVersionFlags = new List<string>();
+            if (IsWindows7OrGreater) windowsVersionFlags.Add(nameof(IsWindows7OrGreater));
+            if (IsWindows8OrGreater) windowsVersionFlags.Add(nameof(IsWindows8OrGreater));
+            if (IsWindows81OrGreater) windowsVersionFlags.Add(nameof(IsWindows81OrGreater));
+            if (IsWindows10AnniversaryUpdateOrGreaterWin32) windowsVersionFlags.Add(nameof(IsWindows10AnniversaryUpdateOrGreaterWin32));
+            if (IsWindows10CreatorsUpdateOrGreaterWin32) windowsVersionFlags.Add(nameof(IsWindows10CreatorsUpdateOrGreaterWin32));
+            Engine.Log.Trace(string.Join(", ", windowsVersionFlags), MessageSource.Win32);
 
-        // Default constants
-        internal const string CLASS_NAME = "Emotion";
-        internal const string WINDOW_IDENTIFIER = "EmotionWindow";
-        internal const int DEFAULT_DPI = 96;
-
-        // Other
-        public static IntPtr HelperWindowHandle;
-        private IntPtr _deviceNotificationHandle;
-        private WindowProc _wndProcDelegate; // This needs to be assigned so the garbage collector doesn't collect it.
-
-        // Input
-        private string[] _keyNames;
-
-        /// <inheritdoc />
-        protected override void SetupPlatform(Configurator config)
-        {
             // todo: load libraries - if any
             // probably XInput
 
@@ -98,14 +96,14 @@ namespace Emotion.Platform.Implementation.Win32
                 Right = (int) config.HostSize.X,
                 Bottom = (int) config.HostSize.Y
             };
-            Win32Window.GetFullWindowRect(Win32Window.DEFAULT_WINDOW_STYLE, Win32Window.DEFAULT_WINDOW_STYLE_EX, DEFAULT_DPI, ref windowInitialSize);
+            GetFullWindowRect(DEFAULT_WINDOW_STYLE, DEFAULT_WINDOW_STYLE_EX, DEFAULT_DPI, ref windowInitialSize);
             int initialWidth = windowInitialSize.Right - windowInitialSize.Left;
             int initialHeight = windowInitialSize.Bottom - windowInitialSize.Top;
-            IntPtr handle = User32.CreateWindowEx(
-                Win32Window.DEFAULT_WINDOW_STYLE_EX,
+            IntPtr windowHandle = User32.CreateWindowEx(
+                DEFAULT_WINDOW_STYLE_EX,
                 CLASS_NAME,
                 config.HostTitle,
-                Win32Window.DEFAULT_WINDOW_STYLE,
+                DEFAULT_WINDOW_STYLE,
                 (int) CreateWindowFlags.CW_USEDEFAULT, (int) CreateWindowFlags.CW_USEDEFAULT, // Position - default
                 initialWidth, initialHeight, // Size - initial
                 IntPtr.Zero, // No parent window
@@ -113,7 +111,7 @@ namespace Emotion.Platform.Implementation.Win32
                 Kernel32.GetModuleHandle(null),
                 IntPtr.Zero
             );
-            if (handle == IntPtr.Zero)
+            if (windowHandle == IntPtr.Zero)
             {
                 CheckError("Couldn't create window.", true);
                 return;
@@ -122,53 +120,50 @@ namespace Emotion.Platform.Implementation.Win32
             Engine.Log.Trace("Window created.", MessageSource.Win32);
 
             // Create graphics context - OpenGL.
-            GraphicsContext context = null;
             try
             {
                 var wgl = new WglGraphicsContext();
-                wgl.Init(handle, this);
-                if (wgl.Valid) context = wgl;
+                wgl.Init(windowHandle, this);
+                if (wgl.Valid) Context = wgl;
             }
             catch (Exception ex)
             {
                 Engine.Log.Warning($"Couldn't create WGL context, falling back to MESA if possible.\n{ex}", MessageSource.Win32);
             }
 
-            if (context == null)
+            if (Context == null)
                 try
                 {
                     var gallium = new GalliumGraphicsContext();
-                    gallium.Init(handle, this);
-                    if (gallium.Valid) context = gallium;
+                    gallium.Init(windowHandle, this);
+                    if (gallium.Valid) Context = gallium;
                 }
                 catch (Exception ex)
                 {
-                    Engine.SubmitError(new Exception("Couldn't create MESA context.", ex));
+                    Engine.CriticalError(new Exception("Couldn't create MESA context.", ex));
                 }
 
-            if (context == null)
+            if (Context == null)
             {
-                Engine.SubmitError(new Exception("Couldn't create graphics context!"));
+                Engine.CriticalError(new Exception("Couldn't create graphics context!"));
                 return;
             }
-
-            // Create Emotion representation of the window.
-            var windowInstance = new Win32Window(handle, context, this);
 
             // Adjust window size to account for DPI scaling of the window frame and optionally DPI scaling of the content area.
             // This cannot be done until we know what monitor it was placed on - so it's done post creation.
             var rect = new Rect
             {
-                Right = (int) config.HostSize.X,
-                Bottom = (int) config.HostSize.Y
+                Right = (int)config.HostSize.X,
+                Bottom = (int)config.HostSize.Y
             };
-            rect.ClientToScreen(windowInstance.Handle);
-            windowInstance.GetFullWindowRect(ref rect);
-            User32.SetWindowPos(windowInstance.Handle, IntPtr.Zero,
+            rect.ClientToScreen(windowHandle);
+            GetFullWindowRect(ref rect);
+            User32.SetWindowPos(_windowHandle, IntPtr.Zero,
                 rect.Left, rect.Top,
                 rect.Right - rect.Left, rect.Bottom - rect.Top,
                 WindowPositionFlags.SWP_NOACTIVATE | WindowPositionFlags.SWP_NOZORDER);
-            Window = windowInstance;
+
+            _windowHandle = windowHandle;
         }
 
         /// <summary>
@@ -230,18 +225,6 @@ namespace Emotion.Platform.Implementation.Win32
         #region API
 
         /// <inheritdoc />
-        public override IntPtr LoadLibrary(string path)
-        {
-            return Kernel32.LoadLibrary(path);
-        }
-
-        /// <inheritdoc />
-        public override IntPtr GetLibrarySymbolPtr(IntPtr library, string symbolName)
-        {
-            return Kernel32.GetProcAddress(library, symbolName);
-        }
-
-        /// <inheritdoc />
         protected override bool UpdatePlatform()
         {
             // Update input.
@@ -280,220 +263,7 @@ namespace Emotion.Platform.Implementation.Win32
             return true;
         }
 
-        /// <inheritdoc />
-        public override void DisplayMessageBox(string message)
-        {
-            IntPtr parentWindow = IntPtr.Zero;
-
-            if (Window != null)
-                parentWindow = ((Win32Window) Window).Handle;
-            else if (HelperWindowHandle != IntPtr.Zero)
-                parentWindow = HelperWindowHandle;
-
-            User32.MessageBox(parentWindow, message, "Something went wrong!", (uint) (0x00000000L | 0x00000010L));
-        }
-
         #endregion
-
-        /// <summary>
-        /// Handler for messages.
-        /// </summary>
-        private unsafe IntPtr WndProc(IntPtr hWnd, WM msg, IntPtr wParam, IntPtr lParam)
-        {
-            // Check if the message is for the main window.
-            Win32Window win = null;
-            if (Window != null && hWnd == ((Win32Window) Window).Handle)
-                win = (Win32Window) Window;
-
-            if (win == null)
-            {
-                // This is the message handling for the hidden helper window
-                // and for a regular window during its initial creation
-
-                switch (msg)
-                {
-                    case WM.CREATE:
-                        if (IsWindows10AnniversaryUpdateOrGreaterWin32)
-                            User32.EnableNonClientDpiScaling(hWnd);
-                        break;
-                    case WM.DISPLAYCHANGE:
-                        PollMonitors();
-                        break;
-                    case WM.DEVICECHANGE:
-                        break;
-                }
-
-                return User32.DefWindowProc(hWnd, msg, wParam, lParam);
-            }
-
-            switch (msg)
-            {
-                case WM.GETMINMAXINFO:
-                    Rect windowR = win.GetFullWindowRect(0, 0);
-                    // ReSharper disable once NotAccessedVariable
-                    var mmi = (MinMaxInfo*) lParam;
-
-                    int offX = windowR.Right - windowR.Left;
-                    int offY = windowR.Bottom - windowR.Top;
-                    mmi->MinTrackSize.X = (int) Engine.Configuration.RenderSize.X + offX;
-                    mmi->MinTrackSize.Y = (int) Engine.Configuration.RenderSize.Y + offY;
-
-                    return IntPtr.Zero;
-                case WM.SIZE:
-
-                    int width = NativeHelpers.LoWord((uint) lParam);
-                    int height = NativeHelpers.HiWord((uint) lParam);
-
-                    // Don't send resize event when minimized.
-                    if (width != 0 && height != 0) win.OnResize.Invoke(new Vector2(width, height));
-
-                    return IntPtr.Zero;
-                case WM.SETFOCUS:
-                    UpdateFocus(true);
-                    return IntPtr.Zero;
-                case WM.KILLFOCUS:
-                    UpdateFocus(false);
-                    return IntPtr.Zero;
-
-                case WM.SYSCOMMAND:
-
-                    switch ((int) wParam & 0xfff0)
-                    {
-                        case (int) SysCommand.SC_SCREENSAVE:
-                        case (int) SysCommand.SC_MONITORPOWER:
-                            if (Window.DisplayMode == DisplayMode.Fullscreen)
-                                // We are running in full screen mode, so disallow
-                                // screen saver and screen blanking
-                                return IntPtr.Zero;
-
-                            break;
-
-                        // User trying to access application menu using ALT?
-                        case (int) SysCommand.SC_KEYMENU:
-                            return IntPtr.Zero;
-                    }
-
-                    break;
-
-                case WM.CLOSE:
-                    IsOpen = false;
-                    return IntPtr.Zero;
-
-                // ------------------- INPUT -------------------
-                case WM.INPUTLANGCHANGE:
-                    PopulateKeyNames();
-                    break;
-
-                case WM.CHAR:
-                case WM.SYSCHAR:
-                case WM.UNICHAR:
-
-                    if (msg == WM.UNICHAR && (int) wParam == 0xFFFF)
-                        // WM_UNICHAR is not sent by Windows, but is sent by some
-                        // third-party input method engine
-                        // Returning TRUE here announces support for this message
-                        return (IntPtr) 1;
-
-                    OnTextInput.Invoke((char) wParam);
-
-                    break;
-
-                case WM.KEYDOWN:
-                case WM.SYSKEYDOWN:
-                case WM.KEYUP:
-                case WM.SYSKEYUP:
-
-                    var lParamLong = (ulong) lParam;
-                    Key key = TranslateKey((ulong) wParam, lParamLong);
-                    if (key == Key.Unknown) break;
-
-                    // Scan code can be used for debugging purposes.
-                    //uint scanCode = NativeHelpers.HiWord(lParamLong) & (uint) 0x1ff;
-                    bool up = (((ulong) lParam >> 31) & 1) != 0;
-
-                    if (up && (uint) wParam == (uint) VirtualKey.SHIFT)
-                    {
-                        // HACK: Release both Shift keys on Shift up event, as when both
-                        //       are pressed the first release does not emit any event
-                        // NOTE: The other half of this is in Update()
-                        UpdateKeyStatus(Key.LeftShift, false);
-                        UpdateKeyStatus(Key.RightShift, false);
-                    }
-                    else
-                    {
-                        UpdateKeyStatus(key, !up);
-                    }
-
-                    break;
-
-                case WM.MOUSEMOVE:
-
-                    int x = NativeHelpers.LoWord((uint) lParam);
-                    int y = NativeHelpers.HiWord((uint) lParam);
-
-                    var pos = new Vector2(x, y);
-                    MousePosition = Engine.Renderer != null ? Engine.Renderer.ScaleMousePosition(pos) : pos;
-                    return IntPtr.Zero;
-
-                case WM.LBUTTONDOWN:
-                case WM.RBUTTONDOWN:
-                case WM.MBUTTONDOWN:
-                case WM.XBUTTONDOWN:
-                case WM.LBUTTONUP:
-                case WM.RBUTTONUP:
-                case WM.MBUTTONUP:
-                case WM.XBUTTONUP:
-
-                    var mouseKey = MouseKey.Unknown;
-                    var buttonDown = false;
-                    mouseKey = msg switch
-                    {
-                        WM.LBUTTONDOWN => MouseKey.Left,
-                        WM.LBUTTONUP => MouseKey.Left,
-                        WM.RBUTTONDOWN => MouseKey.Right,
-                        WM.RBUTTONUP => MouseKey.Right,
-                        WM.MBUTTONDOWN => MouseKey.Middle,
-                        WM.MBUTTONUP => MouseKey.Middle,
-                        _ => mouseKey
-                    };
-
-                    if (msg == WM.LBUTTONDOWN || msg == WM.RBUTTONDOWN ||
-                        msg == WM.MBUTTONDOWN || msg == WM.XBUTTONDOWN)
-                        buttonDown = true;
-
-                    var nonePressed = true;
-                    foreach (bool keyDown in _mouseKeys)
-                    {
-                        if (keyDown) nonePressed = false;
-                    }
-
-                    if (nonePressed) User32.SetCapture(win.Handle);
-
-                    UpdateMouseKeyStatus(mouseKey, buttonDown);
-
-                    nonePressed = true;
-                    foreach (bool keyDown in _mouseKeys)
-                    {
-                        if (keyDown) nonePressed = false;
-                    }
-
-                    if (nonePressed) User32.ReleaseCapture();
-
-                    if (msg == WM.XBUTTONDOWN || msg == WM.XBUTTONUP)
-                        return (IntPtr) 1;
-
-                    return IntPtr.Zero;
-
-                case WM.MOUSEWHEEL:
-
-                    var scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
-                    UpdateScroll(scrollAmount / 120f);
-
-                    return IntPtr.Zero;
-            }
-
-            return User32.DefWindowProc(hWnd, msg, wParam, lParam);
-        }
 
         #region Helpers
 
@@ -704,13 +474,13 @@ namespace Emotion.Platform.Implementation.Win32
             switch (errorCheck)
             {
                 case ERROR_INVALID_VERSION_ARB:
-                    Engine.SubmitError(new Exception($"Driver doesn't support version of {msg}"));
+                    Engine.CriticalError(new Exception($"Driver doesn't support version of {msg}"));
                     break;
                 case ERROR_INVALID_PROFILE_ARB:
-                    Engine.SubmitError(new Exception($"Driver doesn't support profile of {msg}"));
+                    Engine.CriticalError(new Exception($"Driver doesn't support profile of {msg}"));
                     break;
                 default:
-                    Engine.SubmitError(new Exception(msg, new Win32Exception((int) errorCheck)));
+                    Engine.CriticalError(new Exception(msg, new Win32Exception((int) errorCheck)));
                     break;
             }
         }

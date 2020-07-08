@@ -10,7 +10,6 @@ using Emotion.Common;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
-using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
 using OpenGL;
@@ -39,19 +38,14 @@ namespace Emotion.Platform
         public bool IsFocused { get; private set; }
 
         /// <summary>
-        /// The platform's window.
+        /// The graphics context.
         /// </summary>
-        public Window Window { get; protected set; }
+        public GraphicsContext Context { get; protected set; }
 
         /// <summary>
         /// The platform's audio context. If any.
         /// </summary>
         public AudioContext Audio { get; protected set; }
-
-        /// <summary>
-        /// List of connected monitors.
-        /// </summary>
-        public List<Monitor> Monitors = new List<Monitor>();
 
         /// <summary>
         /// The event is set while the window is focused.
@@ -85,13 +79,19 @@ namespace Emotion.Platform
         /// </summary>
         public EmotionEvent<bool> OnFocusChanged { get; protected set; } = new EmotionEvent<bool>();
 
+        /// <summary>
+        /// This event is called when the platform's display size changes.
+        /// The input parameter is the new size.
+        /// </summary>
+        public EmotionEvent<Vector2> OnResize { get; protected set; } = new EmotionEvent<Vector2>();
+
         #region Internal
 
         /// <summary>
         /// Setup the native platform and creates a window.
         /// </summary>
         /// <param name="config">Configuration for the platform - usually passed from the engine.</param>
-        internal virtual void Setup(Configurator config)
+        public virtual void Setup(Configurator config)
         {
             OnMouseScroll.AddListener(scroll =>
             {
@@ -102,27 +102,21 @@ namespace Emotion.Platform
 
             SetupPlatform(config);
 
-            // Check if the platform initialization was successful.
-            if (Window == null)
+            // Check if the platform and graphics initialization was successful.
+            if (Context == null)
             {
-                Engine.SubmitError(new Exception("Platform couldn't create window."));
-                return;
-            }
-
-            if (Window.Context == null)
-            {
-                Engine.SubmitError(new Exception("Platform couldn't create context."));
+                Engine.CriticalError(new Exception("Platform couldn't create context."));
                 return;
             }
 
             // Bind this window and its context.
             // "There /can/ be only one."
-            Window.Context.MakeCurrent();
-            Gl.BindAPI(Window.Context.GetProcAddress);
+            Context.MakeCurrent();
+            Gl.BindAPI(Context.GetProcAddress);
 
             // Set display mode, show and focus.
-            Window.DisplayMode = config.InitialDisplayMode;
-            Window.WindowState = WindowState.Normal;
+            DisplayMode = config.InitialDisplayMode;
+            WindowState = WindowState.Normal;
 
             // Attach default key behavior.
             OnKey.AddListener(DefaultButtonBehavior);
@@ -141,18 +135,18 @@ namespace Emotion.Platform
                 Engine.Log.Trace($"Key {key} is {state}.", MessageSource.Input);
 
                 bool ctrl = IsKeyHeld(Key.LeftControl) || IsKeyHeld(Key.RightControl);
-                if (key >= Key.F1 && key <= Key.F10 && state == KeyStatus.Down && ctrl && Window != null)
+                if (key >= Key.F1 && key <= Key.F10 && state == KeyStatus.Down && ctrl)
                 {
                     Vector2 chosenSize = _windowSizes[key - Key.F1];
-                    Window.Size = chosenSize;
+                    Size = chosenSize;
                     Engine.Log.Info($"Set window size to {chosenSize}", MessageSource.Platform);
                     return false;
                 }
 
                 switch (key)
                 {
-                    case Key.F11 when state == KeyStatus.Down && ctrl && Window != null:
-                        Window.Size = Engine.Configuration.RenderSize * 1.999f - Vector2.One;
+                    case Key.F11 when state == KeyStatus.Down && ctrl:
+                        Size = Engine.Configuration.RenderSize * 1.999f - Vector2.One;
                         break;
                     case Key.Pause when state == KeyStatus.Down:
                         PerfProfiler.ProfileNextFrame();
@@ -162,7 +156,7 @@ namespace Emotion.Platform
 
             bool alt = IsKeyHeld(Key.LeftAlt) || IsKeyHeld(Key.RightAlt);
 
-            if (key == Key.Enter && state == KeyStatus.Down && alt && Window != null) Window.DisplayMode = Window.DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
+            if (key == Key.Enter && state == KeyStatus.Down && alt) DisplayMode = DisplayMode == DisplayMode.Fullscreen ? DisplayMode.Windowed : DisplayMode.Fullscreen;
 
             return true;
         }
@@ -326,55 +320,6 @@ namespace Emotion.Platform
 
         #region Internal API
 
-        protected void UpdateMonitor(Monitor monitor, bool connected, bool first)
-        {
-            if (connected)
-            {
-                Engine.Log.Info($"Detected monitor - {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
-
-                if (first)
-                {
-                    Monitors.Insert(0, monitor);
-
-                    // Re-initiate fullscreen mode.
-                    if (Window == null || Window.DisplayMode != DisplayMode.Fullscreen) return;
-                    Window.DisplayMode = DisplayMode.Windowed;
-                    Window.DisplayMode = DisplayMode.Fullscreen;
-                }
-                else
-                {
-                    Monitors.Add(monitor);
-                }
-            }
-            else
-            {
-                Engine.Log.Info($"Disconnected monitor - {monitor.Name} ({monitor.Width}x{monitor.Height}){(first ? " Primary" : "")}", MessageSource.Platform);
-
-                Monitors.Remove(monitor);
-                Window.UpdateDisplayMode();
-            }
-        }
-
-        /// <summary>
-        /// Returns the monitor the window is on, or the primary monitor if undetermined.
-        /// </summary>
-        /// <param name="win">The window checked.</param>
-        /// <returns>The monitor the window is on.</returns>
-        internal Monitor GetMonitorOfWindow(Window win)
-        {
-            if (Monitors.Count == 0) return null;
-
-            var rect = new Rectangle(win.Position, win.Size);
-            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach (Monitor monitor in Monitors)
-            {
-                var monitorRect = new Rectangle(monitor.Position.X, monitor.Position.Y, monitor.Width, monitor.Height);
-                if (monitorRect.Contains(rect) || monitorRect.Intersects(rect)) return monitor;
-            }
-
-            return Monitors[0];
-        }
-
         protected void UpdateKeyStatus(Key key, bool down)
         {
             var keyIndex = (short) key;
@@ -470,6 +415,73 @@ namespace Emotion.Platform
 
         #endregion
 
+        #region Window API
+
+        /// <summary>
+        /// The state of the window on the screen.
+        /// Whether it is maximized, minimized etc.
+        /// Is set to "Normal" when the window is created.
+        /// </summary>
+        public abstract WindowState WindowState { get; set; }
+
+        /// <summary>
+        /// The window's display mode. Windowed, fullscreen, borderless fullscreen.
+        /// Is originally set by the config.
+        /// </summary>
+        public DisplayMode DisplayMode
+        {
+            get => _mode;
+            set
+            {
+                if (value == DisplayMode.Initial) return;
+                if (value == _mode) return;
+                _mode = value;
+
+                if (_mode == DisplayMode.Fullscreen)
+                    // Save window size for when exiting fullscreen.
+                    _windowModeSize = Size;
+
+                UpdateDisplayMode();
+            }
+        }
+        protected DisplayMode _mode = DisplayMode.Initial;
+        protected Vector2? _windowModeSize; // When entering a fullscreen mode the window size is stored here so it can be restored later.
+
+        /// <summary>
+        /// The position of the window on the screen.
+        /// </summary>
+        public Vector2 Position
+        {
+            get => GetPosition();
+            set => SetPosition(value);
+        }
+
+        /// <summary>
+        /// The size of the window in pixels. The size must be an even number on both axes.
+        /// </summary>
+        public Vector2 Size
+        {
+            get => GetSize();
+            set
+            {
+                if (DisplayMode != DisplayMode.Windowed) return;
+
+                Vector2 val = value.Floor();
+                if (val.X % 2 != 0) val.X++;
+                if (val.Y % 2 != 0) val.Y++;
+                SetSize(val);
+            }
+        }
+
+        internal abstract void UpdateDisplayMode();
+
+        protected abstract Vector2 GetPosition();
+        protected abstract void SetPosition(Vector2 position);
+        protected abstract Vector2 GetSize();
+        protected abstract void SetSize(Vector2 size);
+
+        #endregion
+
         #region Input API
 
         protected Key[] _keyCodes;
@@ -488,7 +500,7 @@ namespace Emotion.Platform
         protected bool[] _mouseKeysIM = new bool[3];
         protected bool[] _mouseKeysPreviousIM = new bool[3];
 
-        public void UpdateInput()
+        public virtual void UpdateInput()
         {
             // Transfer key status to previous.
             for (var i = 0; i < _keysIM.Length; i++)
@@ -632,44 +644,6 @@ namespace Emotion.Platform
         {
             IsOpen = false;
             Audio?.Dispose();
-            Window?.Dispose();
-        }
-
-        /// <summary>
-        /// Setup a native platform.
-        /// </summary>
-        /// <param name="engineConfig">The engine configuration.</param>
-        /// <returns>The native platform.</returns>
-        public static PlatformBase GetInstanceOfDetected(Configurator engineConfig)
-        {
-            PlatformBase platform = null;
-
-            // Detect platform.
-            if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Win32
-                platform = new Win32Platform();
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                // Cocoa
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                // Check for Wayland.
-                if (Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") != null)
-                {
-                }
-            }
-
-            // If none initialized - fallback to none.
-            if (platform == null) platform = new NullPlatform();
-
-            Engine.Log.Info($"Platform is: {platform}", MessageSource.Platform);
-            platform.Setup(engineConfig);
-
-            return platform;
         }
     }
 }
