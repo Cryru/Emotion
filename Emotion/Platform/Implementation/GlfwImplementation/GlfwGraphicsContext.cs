@@ -7,7 +7,7 @@ using Emotion.GLFW;
 
 namespace Emotion.Platform.Implementation.GlfwImplementation
 {
-    public class GlfwGraphicsContext : GraphicsContext
+    public class GlfwGraphicsContext : RenderDocGraphicsContext
     {
         private IntPtr _win;
 

@@ -182,7 +182,7 @@ namespace Emotion.Graphics.Shading
         {
             var code = new List<string>(source)
             {
-                [0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(Gl.CurrentShadingVersion.IsES() ? " es" : "")}\n"
+                [0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(Gl.CurrentShadingVersion.GLES ? " es" : "")}\n"
             };
 
             // Version string is required.

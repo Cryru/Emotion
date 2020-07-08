@@ -109,6 +109,7 @@ namespace Khronos
             Revision = revision;
             Api = api;
             Profile = profile;
+            GLES = Api == API_GLES1 || Api == API_GLES2 || Api == API_ESSL;
         }
 
         /// <summary>
@@ -127,6 +128,7 @@ namespace Khronos
             Revision = other.Revision;
             Api = other.Api;
             Profile = other.Profile;
+            GLES = other.GLES;
         }
 
         /// <summary>
@@ -223,6 +225,11 @@ namespace Khronos
         ///     </para>
         /// </remarks>
         public readonly string Api;
+
+        /// <summary>
+        /// Whether the API is a version of OpenGL ES
+        /// </summary>
+        public readonly bool GLES;
 
         #endregion
 
@@ -573,15 +580,6 @@ namespace Khronos
         #endregion
 
         #region Compatibility
-
-        /// <summary>
-        /// Whether the current api is a version of OpenGL ES.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsES()
-        {
-            return Api == API_GLES1 || Api == API_GLES2 || Api == API_ESSL;
-        }
 
         /// <summary>
         /// Check whether this version is compatible with another instance.

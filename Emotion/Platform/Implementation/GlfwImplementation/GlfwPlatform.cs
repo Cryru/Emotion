@@ -9,6 +9,7 @@ using Emotion.GLFW;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
+using WinApi.Kernel32;
 
 #endregion
 
@@ -44,9 +45,6 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                 return;
             }
 
-            string angleLib = Path.Join("AssetsNativeLibs", "ANGLE", "win64");
-            LoadLibrary(Path.Join(angleLib, "libEGL.dll"));
-            LoadLibrary(Path.Join(angleLib, "libGLESv2.dll"));
             int initSuccess = Glfw.Init(_glfwLibrary);
             if (initSuccess != 1)
             {
@@ -57,10 +55,17 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             _errorCallback = ErrorCallback;
             Glfw.SetErrorCallback(_errorCallback);
 
+#if ANGLE
+            string angleLib = Path.Join("AssetsNativeLibs", "ANGLE", "win64");
+            LoadLibrary(Path.Join(angleLib, "libEGL.dll"));
+            LoadLibrary(Path.Join(angleLib, "libGLESv2.dll"));
+
             Glfw.WindowHint(Glfw.ClientApi, Glfw.OpenglEsApi);
             Glfw.WindowHint(Glfw.ContextCreationApi, Glfw.EglContextApi);
             Glfw.WindowHint(Glfw.ContextVersionMajor, 3);
-            Glfw.WindowHint(Glfw.ContextVersionMinor, 1);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Kernel32Methods.GetModuleHandle("renderdoc.dll") != IntPtr.Zero) Glfw.WindowHint(Glfw.ContextVersionMinor, 1);
+#endif
+
             _win = Glfw.CreateWindow((int) config.HostSize.X, (int) config.HostSize.Y, config.HostTitle, IntPtr.Zero, IntPtr.Zero);
             if (_win == IntPtr.Zero)
             {
@@ -77,6 +82,18 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
             _keyInputCallback = KeyInput;
             Glfw.SetKeyCallback(_win, _keyInputCallback);
+
+            IntPtr[] monitorPtrs = Glfw.GetMonitors(out int count);
+            for (int i = 0; i < count; i++)
+            {
+                Glfw.GetMonitorPos(monitorPtrs[i], out int x, out int y);
+                Glfw.VidMode videoMode = Glfw.GetVideoMode(monitorPtrs[i]);
+                var mon = new GlfwMonitor(new Vector2(x, y), new Vector2(videoMode.Width, videoMode.Height));
+                UpdateMonitor(mon, true, i == 0);
+            }
+
+            UpdateFocus(true);
+            Glfw.FocusWindow(_win);
         }
 
         protected override bool UpdatePlatform()
@@ -121,22 +138,18 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         #region Window API
 
-        public override WindowState WindowState { get; set; }
-
         internal override void UpdateDisplayMode()
         {
             IntPtr monitor = Glfw.GetWindowMonitor(_win);
-            if (monitor == IntPtr.Zero)
-            {
-                monitor = Glfw.GetPrimaryMonitor();
-            }
+            if (monitor == IntPtr.Zero) monitor = Glfw.GetPrimaryMonitor();
 
             Glfw.GetMonitorPos(monitor, out int mX, out int mY);
             Glfw.VidMode vidMode = Glfw.GetVideoMode(monitor);
             switch (DisplayMode)
             {
                 case DisplayMode.Fullscreen:
-                    Glfw.SetWindowMonitor(_win, IntPtr.Zero, 0, 0, vidMode.Width, vidMode.Height, vidMode.RefreshRate);
+                    // This is not actually borderless windowed :(
+                    Glfw.SetWindowMonitor(_win, monitor, 0, 0, vidMode.Width, vidMode.Height, vidMode.RefreshRate);
                     break;
                 case DisplayMode.Windowed:
                     Vector2 size = _windowModeSize ?? GetSize();
@@ -144,6 +157,40 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                     Vector2 pos = new Vector2(mX, mY) + (new Vector2(vidMode.Width, vidMode.Height) / 2 - size / 2);
                     Glfw.SetWindowMonitor(_win, IntPtr.Zero, (int) pos.X, (int) pos.Y, (int) size.X, (int) size.Y, Glfw.DontCare);
                     break;
+            }
+        }
+
+        private bool _suppressResize = false;
+
+        /// <inheritdoc />
+        public override WindowState WindowState
+        {
+            get
+            {
+                int iconified = Glfw.GetWindowAttrib(_win, Glfw.Iconified);
+                if (iconified > 0) return WindowState.Minimized;
+
+                int maximized = Glfw.GetWindowAttrib(_win, Glfw.Maximized);
+                return maximized > 0 ? WindowState.Maximized : WindowState.Normal;
+            }
+            set
+            {
+                switch (value)
+                {
+                    case WindowState.Minimized:
+                        Glfw.IconifyWindow(_win);
+                        break;
+                    case WindowState.Maximized:
+                        Glfw.MaximizeWindow(_win);
+                        break;
+                    case WindowState.Normal:
+                        _suppressResize = true;
+                        if (WindowState == WindowState.Minimized) Glfw.RestoreWindow(_win);
+                        _suppressResize = false;
+                        Glfw.RestoreWindow(_win);
+                        Glfw.FocusWindow(_win);
+                        break;
+                }
             }
         }
 
@@ -171,6 +218,8 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         private void ResizeCallback(IntPtr _, int newSizeX, int newSizeY)
         {
+            if(_suppressResize) return;
+
             // Check if minimized.
             if (newSizeX == 0 && newSizeY == 0) return;
             OnResize.Invoke(new Vector2(newSizeX, newSizeY));

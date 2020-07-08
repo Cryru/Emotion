@@ -14,7 +14,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>TRACE;GLFW</DefineConstants>
+    <DefineConstants>TRACE;GLFW, ANGLE</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
@@ -25,10 +25,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll">
+    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll">
+    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="AssetsNativeLibs\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">

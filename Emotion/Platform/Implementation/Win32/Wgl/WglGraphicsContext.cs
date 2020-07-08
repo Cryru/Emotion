@@ -23,7 +23,7 @@ using Kernel32 = WinApi.Kernel32.Kernel32Methods;
 namespace Emotion.Platform.Implementation.Win32.Wgl
 {
     /// <inheritdoc />
-    public sealed unsafe class WglGraphicsContext : GraphicsContext
+    public sealed unsafe class WglGraphicsContext : RenderDocGraphicsContext
     {
         private IntPtr _openGlLibrary;
         private const int FLAG_NUMBER_PIXEL_FORMATS_ARB = 0x2000;
@@ -50,46 +50,12 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private IntPtr _dc;
         private Win32Platform _platform;
 
-        #region RenderDoc
-
-        // https://renderdoc.org/
-
-        private delegate int RenderDocGetApi(int version, void* api);
-
-        /// <summary>
-        /// Handle to the RenderDoc API, if any is loaded.
-        /// </summary>
-        public RenderDocAPI RenderDoc;
-
-        private IntPtr _renderDocModule;
-
-        #endregion
-
         /// <summary>
         /// Initialize the conflict from the Windows window handle and platform reference.
         /// </summary>
         public void Init(IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
-
-            // Check for RenderDoc
-            _renderDocModule = Kernel32.GetModuleHandle("renderdoc.dll");
-            if (_renderDocModule != IntPtr.Zero)
-            {
-                // Get a handle to the RenderDoc API
-                IntPtr api = Kernel32.GetProcAddress(_renderDocModule, "RENDERDOC_GetAPI");
-                if (api != IntPtr.Zero)
-                {
-                    var getApiFunc = Marshal.GetDelegateForFunctionPointer<RenderDocGetApi>(api);
-                    void* apiPointers;
-                    int ret = getApiFunc(10102, &apiPointers);
-                    if (ret == 1)
-                    {
-                        Debug.Assert(ret == 1);
-                        RenderDoc = Marshal.PtrToStructure<RenderDocAPI>((IntPtr) apiPointers);
-                    }
-                }
-            }
 
             // Load WGL.
             _openGlLibrary = _platform.LoadLibrary("opengl32.dll");
