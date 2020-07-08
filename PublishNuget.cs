@@ -23,9 +23,9 @@ public static void PatchVersionInfo(string version)
 
 public static void PatchGitHubToken(string token)
 {
-    const string nugetConfigContent = "./_nuget.config";
+    const string nugetConfigContentFile = "./_nuget.config";
     const string nugetConfig = "./nuget.config";
-    string nugetConfigContent = File.ReadAllText(nugetConfigContent);
+    string nugetConfigContent = File.ReadAllText(nugetConfigContentFile);
     nugetConfigContent = new Regex("GITHUB_TOKEN").Replace(nugetConfigContent, token);
     File.WriteAllText(nugetConfig, nugetConfigContent);
 }

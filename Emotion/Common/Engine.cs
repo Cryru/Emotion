@@ -19,6 +19,10 @@ using Emotion.Platform.Implementation.Win32;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
+#if GLFW
+using Emotion.Platform.Implementation.GlfwImplementation;
+
+#endif
 
 #if GLFW
 using Emotion.Platform.Implementation.GlfwImplementation;
