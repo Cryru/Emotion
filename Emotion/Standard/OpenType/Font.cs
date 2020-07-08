@@ -151,7 +151,7 @@ namespace Emotion.Standard.OpenType
                 {
                     if (_freeTypeLib == IntPtr.Zero)
                     {
-                        Assembly freeTypeSupportAssembly = Assembly.LoadFrom(Path.Combine("Standard", "OpenType", "Freetype", "Emotion.Standard.FreeType.dll"));
+                        Assembly freeTypeSupportAssembly = Assembly.LoadFrom(Path.Combine("AssetsNativeLibs", "Emotion.Standard.FreeType.dll"));
                         MethodInfo initFunc = freeTypeSupportAssembly.GetType("SharpFont.FT").GetMethod("Init");
                         _freeTypeLib = Engine.Host.LoadLibrary(Path.Combine("Standard", "OpenType", "Freetype", "freetype6"));
                         if (_freeTypeLib != IntPtr.Zero)

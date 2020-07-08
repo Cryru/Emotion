@@ -168,6 +168,24 @@ namespace Emotion.Graphics.Objects
             else
                 PixelType = (PixelType) pixelType;
 
+            if (Gl.CurrentVersion.IsES())
+            {
+                if (pixelFormat == PixelFormat.Bgra)
+                {
+                    pixelFormat = PixelFormat.Rgba;
+                    if (data != null)
+                    {
+                        for (var i = 0; i < data.Length / 4; i += 4)
+                        {
+                            byte r = data[i + 2];
+                            byte b = data[i];
+                            data[i + 2] = b;
+                            data[i] = r;
+                        }
+                    }
+                }
+            }
+
             EnsureBound(Pointer);
             if (data == null)
                 Gl.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat) internalFormat, (int) Size.X, (int) Size.Y, 0, (PixelFormat) pixelFormat,

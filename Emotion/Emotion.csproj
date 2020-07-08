@@ -14,26 +14,45 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;GLFW</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
     <NoWarn>1701;1702;1591;1734</NoWarn>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Update="Standard\OpenType\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\OpenType\Freetype\freetype6.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\OpenType\Freetype\freetype6.dylib" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\OpenType\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\Freetype\freetype6.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Freetype\freetype6.dylib" Condition="$(DefineConstants.Contains('FreeType'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win64\glfw3.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win32\glfw3.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\macos\libglfw.3.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

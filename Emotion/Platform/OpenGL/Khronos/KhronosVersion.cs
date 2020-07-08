@@ -575,6 +575,15 @@ namespace Khronos
         #region Compatibility
 
         /// <summary>
+        /// Whether the current api is a version of OpenGL ES.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsES()
+        {
+            return Api == API_GLES1 || Api == API_GLES2 || Api == API_ESSL;
+        }
+
+        /// <summary>
         /// Check whether this version is compatible with another instance.
         /// </summary>
         /// <param name="other">

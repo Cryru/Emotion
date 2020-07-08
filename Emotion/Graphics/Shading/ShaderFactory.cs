@@ -8,6 +8,7 @@ using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
+using Khronos;
 using OpenGL;
 
 #endregion
@@ -181,7 +182,7 @@ namespace Emotion.Graphics.Shading
         {
             var code = new List<string>(source)
             {
-                [0] = $"#version {Gl.CurrentShadingVersion.VersionId}\n"
+                [0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(Gl.CurrentShadingVersion.IsES() ? " es" : "")}\n"
             };
 
             // Version string is required.
