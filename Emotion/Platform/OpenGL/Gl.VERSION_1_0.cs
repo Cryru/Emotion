@@ -2942,24 +2942,6 @@ namespace OpenGL
         }
 
         /// <summary>
-        /// [GL4] glDrawBuffer: specify which color buffers are to be drawn into
-        /// </summary>
-        /// <param name="buf">
-        /// For default framebuffer, the argument specifies up to four color buffers to be drawn into. Symbolic constants Gl.NONE,
-        /// Gl.FRONT_LEFT, Gl.FRONT_RIGHT, Gl.BACK_LEFT, Gl.BACK_RIGHT, Gl.FRONT, Gl.BACK, Gl.LEFT, Gl.RIGHT, and Gl.FRONT_AND_BACK
-        /// are accepted. The initial value is Gl.FRONT for single-buffered contexts, and Gl.BACK for double-buffered contexts. For
-        /// framebuffer objects, Gl.COLOR_ATTACHMENT$m$ and Gl.NONE enums are accepted, where Gl. is a value between 0 and
-        /// Gl.MAX_COLOR_ATTACHMENTS.
-        /// </param>
-        [RequiredByFeature("GL_VERSION_1_0")]
-        public static void DrawBuffer(DrawBufferMode buf)
-        {
-            Debug.Assert(Delegates.pglDrawBuffer != null, "pglDrawBuffer not implemented");
-            Delegates.pglDrawBuffer((int) buf);
-            DebugCheckErrors(null);
-        }
-
-        /// <summary>
         ///     <para>
         ///     [GL4|GLES3.2] glClear: clear buffers to preset values
         ///     </para>

@@ -4,7 +4,7 @@
 precision highp float; 
 #endif 
  
-uniform sampler2D textures[16]; 
+uniform sampler2D textures[TEXTURE_COUNT]; 
 uniform vec3 iResolution; // viewport resolution (in pixels)
  
 // Comes in from the vertex shader. 
@@ -13,7 +13,6 @@ in vec4 vertColor;
 flat in int Tid;
  
 out vec4 fragColor; 
-in vec4 gl_FragCoord;
 
 //GetTextureColor
  

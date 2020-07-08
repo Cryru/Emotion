@@ -27,7 +27,7 @@ namespace Emotion.Graphics.Objects
             InternalFormat = internalFormat;
         }
 
-        public FrameBufferTexture(Vector2 size, InternalFormat internalFormat, PixelFormat pixelFormat) : base(size, false, internalFormat, pixelFormat)
+        public FrameBufferTexture(Vector2 size, InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType) : base(size, false, internalFormat, pixelFormat, pixelType)
         {
         }
 

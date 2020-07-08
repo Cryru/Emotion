@@ -259,8 +259,10 @@ namespace Emotion.Test
                 // Run test.
                 Engine.Log.Info($"  Running test {func.Name}...", CustomMSource.TestRunner);
                 timeTracker.Restart();
+#if !THROW_EXCEPTIONS
                 try
                 {
+#endif
                     func.Invoke(currentClassInstance, new object[] { });
 
                     // Check if errored in the loop.
@@ -270,6 +272,7 @@ namespace Emotion.Test
                         _loopException = null;
                         throw wrapped;
                     }
+#if !THROW_EXCEPTIONS
                 }
                 catch (ImageDerivationException)
                 {
@@ -287,6 +290,7 @@ namespace Emotion.Test
                     Engine.Log.Error($" Test {func.Name} failed - {ex}", CustomMSource.TestRunner);
                     Debug.Assert(false);
                 }
+#endif
 
                 Engine.Log.Info($"  Test {func.Name} completed in {timeTracker.ElapsedMilliseconds}ms!", CustomMSource.TestRunner);
                 classTimer += timeTracker.ElapsedMilliseconds;
@@ -379,33 +383,41 @@ namespace Emotion.Test
 
         private static bool TestLoopUpdate()
         {
+#if !THROW_EXCEPTIONS
             try
             {
+#endif
                 // Check running loops.
                 if (_loopAction == null) return true;
 
+#if !THROW_EXCEPTIONS
                 try
                 {
+#endif
                     _loopAction.Invoke(Engine.DeltaTime);
+#if !THROW_EXCEPTIONS
                 }
                 catch (Exception ex)
                 {
                     _loopException = ex;
                 }
+#endif
 
                 _loopCounter--;
                 int counterThisTick = _loopCounter;
 
                 if (counterThisTick > 0) return false;
-                if(counterThisTick == 0) _loopAction = null;
+                if (counterThisTick == 0) _loopAction = null;
 
                 // Release the lock.
                 lock (_threadLock)
                 {
                     _loopWaiter?.Set();
-                    if(counterThisTick == 0) _loopWaiter = null;
+                    if (counterThisTick == 0) _loopWaiter = null;
                 }
+
                 return true;
+#if !THROW_EXCEPTIONS
             }
             catch (Exception ex)
             {
@@ -413,6 +425,7 @@ namespace Emotion.Test
                 Debug.Assert(false);
                 return false;
             }
+#endif
         }
 
         /// <summary>
@@ -441,7 +454,7 @@ namespace Emotion.Test
         /// <param name="count">The number of times to run the loop.</param>
         public static void RunLoop(int count = 1)
         {
-            ExecuteAsLoop((f) => { }, count).WaitOne();
+            ExecuteAsLoop(f => { }, count).WaitOne();
         }
 
         /// <summary>

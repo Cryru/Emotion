@@ -172,10 +172,11 @@ namespace Emotion.Graphics
         /// By default the rendered quad will be the same size as the framebuffer. You can change
         /// that using this parameter.
         /// </param>
+        /// <param name="pos">The position to render to. By default this is 0,0</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null)
+        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null, Vector3? pos = null)
         {
-            RenderSprite(Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, new Rectangle(0, 0, buffer.Size));
+            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, new Rectangle(0, 0, buffer.Size));
         }
     }
 }

@@ -120,11 +120,12 @@ namespace Emotion.Graphics.Objects
         /// <param name="smooth">Whether to apply linear interpolation to the surface's texture.</param>
         /// <param name="internalFormat">The internal format of the texture.</param>
         /// <param name="pixelFormat">The pixel format of the texture.</param>
+        /// <param name="pixelType">The data type of individual pixel components.</param>
         public Texture(Vector2 size, bool? smooth = null, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Bgra) : this()
+            PixelFormat pixelFormat = PixelFormat.Bgra, PixelType pixelType = PixelType.UnsignedByte) : this()
         {
             _smooth = smooth ?? Engine.Configuration.TextureDefaultSmooth;
-            Upload(size, null, internalFormat, pixelFormat);
+            Upload(size, null, internalFormat, pixelFormat, pixelType);
         }
 
         /// <summary>
@@ -167,6 +168,32 @@ namespace Emotion.Graphics.Objects
                 pixelType = PixelType;
             else
                 PixelType = (PixelType) pixelType;
+
+            if (Gl.CurrentVersion.GLES)
+            {
+                // ES doesn't support BGRA so convert it to RGBA on the CPU
+                var stride = 0;
+                switch (pixelFormat)
+                {
+                    case PixelFormat.Bgra:
+                        pixelFormat = PixelFormat.Rgba;
+                        stride = 4;
+                        break;
+                    case PixelFormat.Bgr:
+                        pixelFormat = PixelFormat.Rgb;
+                        stride = 3;
+                        break;
+                }
+
+                if (stride != 0 && data != null)
+                    for (var i = 0; i < data.Length; i += stride)
+                    {
+                        byte r = data[i + 2];
+                        byte b = data[i];
+                        data[i + 2] = b;
+                        data[i] = r;
+                    }
+            }
 
             EnsureBound(Pointer);
             if (data == null)

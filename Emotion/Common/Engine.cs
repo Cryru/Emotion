@@ -24,6 +24,11 @@ using Emotion.Platform.Implementation.GlfwImplementation;
 
 #endif
 
+#if GLFW
+using Emotion.Platform.Implementation.GlfwImplementation;
+
+#endif
+
 #endregion
 
 namespace Emotion.Common
@@ -133,6 +138,9 @@ namespace Emotion.Common
             // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
 
+            // Mount default assets. The platform should add it's own specific sources and stores.
+            AssetLoader = LoadDefaultAssetLoader();
+            NativeLibrary.SetDllImportResolver(typeof(Engine).Assembly, (libName, assembly, _) => Host?.LoadLibrary(libName) ?? NativeLibrary.Load(libName));
             Status = EngineStatus.LightSetup;
         }
 
@@ -145,9 +153,6 @@ namespace Emotion.Common
             // Call light setup if needed.
             if (Status < EngineStatus.LightSetup) LightSetup(configurator);
             if (Status >= EngineStatus.Setup) return;
-
-            // Mount default assets. The platform should add it's own specific sources and stores.
-            AssetLoader = LoadDefaultAssetLoader();
 
             // Create the platform, window, audio, and graphics context.
             Host = GetInstanceOfDetectedPlatform(Configuration);
@@ -554,16 +559,7 @@ namespace Emotion.Common
             if (Debugger.IsAttached) Debugger.Break();
 
             Log.Error(ex);
-
-            try
-            {
-                Host?.DisplayMessageBox($"Fatal error occured!\n{ex}");
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Couldn't natively display error message {ex} because of {e}", MessageSource.Engine);
-            }
-
+            Host?.DisplayMessageBox($"Fatal error occured!\n{ex}");
             Quit();
         }
     }

@@ -426,7 +426,7 @@ namespace Tests.Classes
                 composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(500, 500), Color.Green);
                 composer.RenderTo(null);
 
-                composer.RenderSprite(new Vector3(100, 0, 0), new Vector2(100, 100), Color.White, testBuffer.Texture, new Rectangle(0, 0, testBuffer.Size));
+                composer.RenderFrameBuffer(testBuffer, new Vector2(100, 100), new Vector3(100, 0, 0));
 
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.FramebufferResizing);

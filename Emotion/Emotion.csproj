@@ -19,21 +19,46 @@
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
     <NoWarn>1701;1702;1591;1734</NoWarn>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Update="Standard\OpenType\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\ANGLE\win64\libEGL.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\OpenType\Freetype\freetype6.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\ANGLE\win64\libGLESv2.dll" Condition="$(DefineConstants.Contains('ANGLE'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\OpenType\Freetype\freetype6.dylib" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\Freetype\Emotion.Standard.FreeType.dll" Condition="$(DefineConstants.Contains('FreeType'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Standard\OpenType\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
+    <None Update="AssetsNativeLibs\Freetype\freetype6.dll" Condition="$(DefineConstants.Contains('FreeType'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Freetype\freetype6.dylib" Condition="$(DefineConstants.Contains('FreeType'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Freetype\freetype6.so" Condition="$(DefineConstants.Contains('FreeType'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\linux\glfw.so" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\macos\glfw.dylib" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win32\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

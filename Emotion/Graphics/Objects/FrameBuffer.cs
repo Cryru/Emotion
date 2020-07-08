@@ -129,7 +129,7 @@ namespace Emotion.Graphics.Objects
             if (!bindable)
                 DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment), Size, InternalFormat.DepthComponent24);
             else
-                DepthStencilAttachment = CreateTexture(InternalFormat.DepthComponent24, PixelFormat.DepthComponent, FramebufferAttachment.DepthAttachment);
+                DepthStencilAttachment = CreateTexture(InternalFormat.DepthComponent24, PixelFormat.DepthComponent, PixelType.UnsignedInt, FramebufferAttachment.DepthAttachment);
 
             return this;
         }
@@ -145,7 +145,7 @@ namespace Emotion.Graphics.Objects
             if (!bindable)
                 DepthStencilAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Depth24Stencil8, FramebufferAttachment.DepthStencilAttachment), Size, InternalFormat.Depth24Stencil8);
             else
-                DepthStencilAttachment = CreateTexture(InternalFormat.Depth24Stencil8, PixelFormat.DepthStencil, FramebufferAttachment.DepthStencilAttachment);
+                DepthStencilAttachment = CreateTexture(InternalFormat.Depth24Stencil8, PixelFormat.DepthStencil, PixelType.UnsignedInt248, FramebufferAttachment.DepthStencilAttachment);
 
             return this;
         }
@@ -163,7 +163,7 @@ namespace Emotion.Graphics.Objects
             if (!bindable)
                 ColorAttachment = new FrameBufferTexture(CreateRenderBuffer(InternalFormat.Rgba, FramebufferAttachment.ColorAttachment0), Size, InternalFormat.Rgba);
             else
-                ColorAttachment = CreateTexture(InternalFormat.Rgba, PixelFormat.Bgra, FramebufferAttachment.ColorAttachment0);
+                ColorAttachment = CreateTexture(InternalFormat.Rgba, PixelFormat.Bgra, PixelType.UnsignedByte, FramebufferAttachment.ColorAttachment0);
 
             Gl.DrawBuffers(ColorModes);
 
@@ -189,9 +189,9 @@ namespace Emotion.Graphics.Objects
             return buffer;
         }
 
-        private FrameBufferTexture CreateTexture(InternalFormat internalFormat, PixelFormat pixelFormat, FramebufferAttachment attachment)
+        private FrameBufferTexture CreateTexture(InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType, FramebufferAttachment attachment)
         {
-            var texture = new FrameBufferTexture(Size, internalFormat, pixelFormat)
+            var texture = new FrameBufferTexture(Size, internalFormat, pixelFormat, pixelType)
             {
                 FlipY = true // Framebuffer textures are always flipped.
             };
@@ -208,7 +208,7 @@ namespace Emotion.Graphics.Objects
         public void Bind()
         {
             EnsureBound(Pointer);
-            if (ColorAttachment == null && Pointer != 0) Gl.DrawBuffer(DrawBufferMode.None);
+            if (ColorAttachment == null && Pointer != 0) Gl.DrawBuffers((int) DrawBufferMode.None);
             Gl.Viewport((int) Viewport.X, (int) Viewport.Y, (int) Viewport.Width, (int) Viewport.Height);
         }
 
@@ -356,6 +356,9 @@ namespace Emotion.Graphics.Objects
 
             Gl.BindFramebuffer(FramebufferTarget.Framebuffer, pointer);
             Bound = pointer;
+
+            // Some drivers invalidate bound textures if they are framebuffer textures once the framebuffer changes.
+            Texture.Bound[0] = 0;
         }
 
         /// <summary>
