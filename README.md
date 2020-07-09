@@ -16,7 +16,9 @@ I would recommend checking out the tests in the "Tests" project as examples, and
 
 ## Requirements for Developers and Players:
 
-- OpenGL 3.3 or higher (might work on 3.0, but needs testing)
+- OpenGL 3.0 or higher
+  - Or DirectX 11 if ANGLE is enabled
+  - Unless the Mesa software renderer is enabled
 - Be able to run the Net Core runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 - A supported platform.
@@ -32,10 +34,9 @@ The goal is for the following platforms to be supported:
   - Debian 9+ x64 +
     - Linux Mint 18 +
     - Ubuntu 17.10 +
-  - Windows 7 x64 +
 
 Currently supported:
-  - Windows 7 x64 +
+  - Windows 7+ x64 & x86
 
 ### Configurations Tested On:
 
@@ -46,6 +47,7 @@ Currently supported:
   - Intel UHD Graphics 620
   - Nvidia GeForce 940MX
   - AMD Radeon HD 5700 Series
+  - GPU-less (Microsoft Basic Render Driver)
 - Windows 7 x86
   - Intel 4 Series Express (using Mesa)
 
@@ -53,8 +55,9 @@ Currently supported:
 
 - Custom platform code.
   - Window creation, keyboard, mouse, and text input.
-  - Borderless fullscreen, and windowed support.
+  - Borderless fullscreen, and windowed support. (terms and conditions may apply)
   - Pause when focus is lost, lowering resource usage in the background.
+  - Google ANGLE support
   - Software renderer fallback. Windows only
 - File Support
   - Reading and writing of various BMP formats and PNG files.
@@ -64,33 +67,36 @@ Currently supported:
 	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the inluded native library)
 	- Optionally the font can also be rasterized using StbTrueTypeSharp.
   - "WAV" files for audio.
-- Asset loading and managements
+- Asset loading and managements, virtual file system
 - Layer-based audio system with playlists and a custom resampler.
-- Camera system, and a model matrix stack.
-- Draw order independent texture alpha testing and blending. You'll still need to order semi-transparent objects.
+- Extensible camera system.
 - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
-- Unsynchronized rendering.
-- Easy drawing of vertices, and 2D primitives like lines, rectangles, triangles, and circles.
+  - Unsynchronized rendering
+  - Draw order independent texture alpha testing and blending. You'll still need to order semi-transparent objects.
+  - GPU is never starved!
+  - Easy drawing of vertices, and 2D primitives like lines, rectangles, triangles, and circles.
 - Spritesheet based animation in either a grid or freeform format.
   - The animation editor allows you to easily detect frames in a spritesheet and name animations.
+  - The animation controller allows you to easily keep track of which animations are playing and transition.
 - Custom text rendering with atlases created at runtime.
-  - Extensible Richtext and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
-- Different types of scaling, with pixel art in mind, allowing your game to look good on all resolutions.
-- Framebuffer (RenderTarget) stack allowing for easy rendering to textures and side buffers.
+  - Extensible RichText and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
+- Different types of out of the box scaling, allowing your game to look good on all resolutions.
 - Shader Pipeline
   - Try multiple preprocessors to increase the compatibility of your shader.
   - Specify fallbacks!
   - Predefined uniforms based on ShaderToy allow for easily making cool effects.
-- An implementation of A*, with the ability to add a custom heuristics function, and perform other customizations.
-- QuadTree Implementation
+- Various data structures and algorithms implemented.
+  - A* with custom heuristic support
+  - Generic QuadTree
 - Logging, easily extendible and modifiable.
   - Runs on another thread as not to interrupt your game.
-  - Remote logging to PaperTrail and other services which support the protocol.
-- Framerate independent timing with a semi-fixed step. Automatically switches to a faster mode and slower mode depending on runtime performance.
-- Easy tilemap drawing and handling, including layer opacity, multiple tilesets, animated tiles, and more
-  - Integration with the "Tiled" application.
-- ImGui Integration through a plugin.
-- Custom fast XML serializer/deserializer with support for derived types, dictionaries, and others. Compliant with the .Net XML one.
+  - Remote logging to PaperTrail and other services which support UDP logging.
+- Framerate independent timing with a semi-fixed step.
+  - Automatically switches to a faster mode and slower mode depending on runtime performance.
+- Easy tilemap drawing and handling, animated tiles, object handling and lookup, and more.
+  - .TMX support and integration with [Tiled](https://www.mapeditor.org/)
+- Custom fast XML serializer/deserializer with support for derived types, dictionaries, and others.
+  - Compliant with .Net System.Text.XML
 
 and many more!
 
@@ -99,59 +105,28 @@ and many more!
 Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
 You can also use the Nuget package - https://www.nuget.org/packages/Emotion
 
-## Dependencies
-
-.NetCore 3.1 and .Net Standard 2.1 [MIT]
- - System.Numerics (Data Structures)
-
-Serilog (https://github.com/serilog/serilog) [Apache 2.0]
- - Used for logging.
-
-## Optional Dependencies
-
-Emotion.Plugins.CSharpScripting
- - Uses Roslyn
- - Allows you to easily write scripts in C#
-
-Emotion.Plugins.ImGuiNet
- - Uses CimGui and CimGuiNet
- - Dev Mode UI
- - Included native libraries for MacOS_x64, Linux_x64, Windows_x64
-
-Emotion.Standard.FreeType (Found in the Plugins folder)
- - Custom wrapper utilizing .NetCore 3.0, based on [SharpFontStandard](https://github.com/jmazouri/SharpFontStandard/) which itself is based on [SharpFont](https://github.com/Robmaister/SharpFont)
- - Included native libraries for MacOS_x64, Linux_x64, Windows_x64
- - Requires compiling Emotion with the "FreeType" symbol.
-
-StbTrueTypeSharp (https://github.com/zwcloud/StbTruetypeSharp) [GPL 3.0]
- - Requires compiling Emotion with the "StbTrueType" symbol.
- - Used by unit tests.
-
-Google ANGLE (https://github.com/google/angle)
- - Used for wider support.
- - Precompiled win64 libraries included.
- - Requires compiling Emotion with the "ANGLE" symbol.
-
-llvmpipe (https://mesa3d.org/)
- - Used for wider support in the form of a software renderer.
- - Included native libraries for Windows_x64, Windows_x32
-
-GLFW (https://github.com/glfw/glfw)
- - Used for wider support in terms of window creation.
- - Requires compiling Emotion with the "GLFW" symbol.
- - Included native libraries for MacOS_x64, Linux_x64, Windows_x64, Windows_x32
- - Bindings forked from [Glfw.Net](https://github.com/Chman/Glfw.Net) (Zlib License)
-
 ## Projects Used
 
 This includes dependencies and projects which were used for research references.
 
-| Library | License | Used For | Inclusion Form |
+| Library | License | Used For | Inclusion |
 | -- | -- | -- | -- |
-| [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Forked
-| [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Forked with Heavy Edits
-| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) | MIT | Font Rendering Comparison | Referenced by Tests
-| [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Forked to use custom XML and engine integration
+| .Net Core | MIT | Runtime | Nuget
+| System.Numerics | MIT | Data structures and hardware intrinsics | Nuget
+| [Serilog](https://github.com/serilog/serilog) | Apache2.0 | Logging | Nuget
+| Forks
+| [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Platform/Implementation/Win32/Native
+| [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Platform/OpenGL
+| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) & [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp) | MIT & GPL3 | Font Rendering Comparison | Referenced by Tests @ Tests/StbTrueType
+| [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Uses custom XML and engine integration @ Standard/TMX
+| Optional
+| [Roslyn/Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn) | MIT | Runtime C# Script Compilation | Emotion.Plugins.CSharpScripting
+| [CimGui](https://github.com/cimgui/cimgui) & [CimGui.Net](https://github.com/mellinoe/ImGui.NET) | MIT | Developer UI | Emotion.Plugins.ImGuiNet, Precompiled for Mac64, Linux64, and Win64
+| [FreeType](https://www.freetype.org/) & [SharpFont](https://github.com/Robmaister/SharpFont) | GPLv3 | Alternate Font Renderer | Emotion.Standard.FreeType, Precompiled for Mac64, Linux64, Win64, Add "FreeType" symbol
+| [ANGLE](https://github.com/google/angle) | Google License | Compatibility | Precompiled for Win32 and Win64, Add "ANGLE" symbol
+| [llvmpipe / Gallium / Mesa](https://mesa3d.org/) | MIT | Compatibility via Software Renderer | Precompiled for Win32 and Win64
+| [Glfw](https://github.com/glfw/glfw) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
+| References
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
 | [OpenType.JS](https://opentype.js.org/) | X | Font Parsing Reference | None
 | [Nine.Imagine](https://github.com/yufeih/Nine.Imaging) | X | Image Parsing Comparison | None
@@ -159,6 +134,8 @@ This includes dependencies and projects which were used for research references.
 | [OpenAL-Soft](https://github.com/kcat/openal-soft/) | X | Audio Code Reference | None
 | [NAudio](https://github.com/naudio/NAudio) | X | Audio Code Reference | None
 | [Audacity](https://github.com/audacity) | X | Audio Code Reference | None
+
+If you're distributing code using this project include the "LICENSE THIRD-PARTY" file from the repository.
 
 ## Inspired Fully, Or In Parts By:
 
