@@ -18,7 +18,11 @@ namespace Tests
         {
             {"compat", c => { c.RendererCompatMode = true; }},
             {
-                "tag=ResizeTest", c => { c.RenderSize = new Vector2(320, 180); }
+                "tag=ResizeTest", c =>
+                {
+                    c.RenderSize = new Vector2(320, 180);
+                    c.UseIntermediaryBuffer = true;
+                }
             },
             {"tag=EmotionDesktop testOnly", null},
             {

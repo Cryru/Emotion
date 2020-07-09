@@ -27,18 +27,15 @@ namespace Tests.Classes
             {
                 Engine.Renderer.Camera = new PixelArtCamera(Vector3.Zero);
                 Engine.Host.Size = new Vector2(600, 600);
-                RenderComposer composer = Engine.Renderer.StartFrame();
 
+                RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.SetUseViewMatrix(true);
                 composer.RenderSprite(new Vector3(_backgroundSize * -1, 0), _backgroundSize, Color.Black);
                 composer.RenderSprite(new Vector3(0, 0, 0), _backgroundSize, Color.CornflowerBlue);
                 composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
                 composer.RenderSprite(new Vector3(_backgroundSize - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
-
                 Engine.Renderer.EndFrame();
 
-                // Force the screen buffer to be screenshot.
-                Engine.Renderer.ScreenBuffer.Bind();
                 Runner.VerifyScreenshot(ResultDb.TestFullScale);
             }).WaitOne();
         }
@@ -56,11 +53,8 @@ namespace Tests.Classes
                 composer.RenderSprite(new Vector3(0, 0, 0), _backgroundSize, Color.CornflowerBlue);
                 composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
                 composer.RenderSprite(new Vector3(_backgroundSize - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
-
                 Engine.Renderer.EndFrame();
 
-                // Force the screen buffer to be screenshot.
-                Engine.Renderer.ScreenBuffer.Bind();
                 Runner.VerifyScreenshot(ResultDb.TestFullScaleInteger);
             }).WaitOne();
         }

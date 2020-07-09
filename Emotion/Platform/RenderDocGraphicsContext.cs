@@ -18,7 +18,7 @@ namespace Emotion.Platform
         /// <summary>
         /// Handle to the RenderDoc API, if any is loaded.
         /// </summary>
-        public RenderDocAPI RenderDoc;
+        public RenderDocAPI? RenderDoc;
 
         protected RenderDocGraphicsContext()
         {

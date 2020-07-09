@@ -32,6 +32,7 @@
         public static string WGallium = "Win32-Gallium";
         public static string WasApi = "WasApi";
         public static string Glfw = "Glfw";
+        public static string Egl = "Egl";
 
         // Other
         public static string ScriptingEngine = "Scripting";

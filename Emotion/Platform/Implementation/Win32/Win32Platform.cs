@@ -18,6 +18,7 @@ using WinApi.Kernel32;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
+using Emotion.Platform.Implementation.EglAngle;
 
 #endregion
 
@@ -128,8 +129,22 @@ namespace Emotion.Platform.Implementation.Win32
             }
             catch (Exception ex)
             {
-                Engine.Log.Warning($"Couldn't create WGL context, falling back to MESA if possible.\n{ex}", MessageSource.Win32);
+                Engine.Log.Warning($"Couldn't create WGL context, falling back if possible.\n{ex}", MessageSource.Win32);
             }
+
+#if ANGLE
+            if (Context == null)
+                try
+                {
+                    var egl = new EglGraphicsContext();
+                    egl.Init(User32.GetDC(windowHandle), windowHandle, this);
+                    if (egl.Valid) Context = egl;
+                }
+                catch (Exception ex)
+                {
+                    Engine.Log.Warning($"Couldn't create EGL context, falling back if possible.\n{ex}", MessageSource.Win32);
+                }
+#endif
 
             if (Context == null)
                 try
