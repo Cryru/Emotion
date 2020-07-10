@@ -141,6 +141,7 @@ namespace Emotion.Plugins.ImGuiNet
             // Let ImGui know where to find the texture.
             io.Fonts.SetTexID(new IntPtr(ImGuiFontTexture.Pointer));
             io.Fonts.ClearTexData();
+            if (!Gl.CurrentVersion.GLES) io.BackendFlags = ImGuiBackendFlags.RendererHasVtxOffset;
 
             // Setup the stream buffer which will render the gui.
             IBO = new IndexBuffer(RenderComposer.MAX_INDICES * sizeof(ushort), BufferUsage.DynamicDraw);
@@ -149,7 +150,7 @@ namespace Emotion.Plugins.ImGuiNet
 
             Engine.Host.OnTextInput.AddListener(c =>
             {
-                if(c == '\t') return true;
+                if (c == '\t') return true;
 
                 _textInput.Add(c);
                 return true;
@@ -221,39 +222,22 @@ namespace Emotion.Plugins.ImGuiNet
             ImGuiIOPtr io = ImGui.GetIO();
 
             // Copy vertices and indices.
-            uint vtxOffset = 0;
-            uint idxOffset = 0;
             VertexArrayObject.EnsureBound(VAO);
+            drawPointer.ScaleClipRects(io.DisplayFramebufferScale);
 
+            // Go through command lists and render.
             for (var i = 0; i < drawPointer.CmdListsCount; i++)
             {
+                // Get the current draw list.
                 ImDrawListPtr drawList = drawPointer.CmdListsRange[i];
-
-                // Check if any command lists.
-                if (drawList.CmdBuffer.Size == 0) continue;
 
                 // Copy vertex and index buffers to the stream buffer.
                 var vtxSize = (uint) (drawList.VtxBuffer.Size * sizeof(ImDrawVert));
                 uint idxSize = (uint) drawList.IdxBuffer.Size * sizeof(ushort);
 
                 // Upload.
-                VBO.UploadPartial(drawList.VtxBuffer.Data, vtxSize, vtxOffset);
-                IBO.UploadPartial(drawList.IdxBuffer.Data, idxSize, idxOffset);
-
-                // Increment the offset trackers.
-                vtxOffset += vtxSize;
-                idxOffset += idxSize;
-            }
-
-            drawPointer.ScaleClipRects(io.DisplayFramebufferScale);
-
-            // Go through command lists and render.
-            uint offset = 0;
-            uint indicesOffset = 0;
-            for (var i = 0; i < drawPointer.CmdListsCount; i++)
-            {
-                // Get the current draw list.
-                ImDrawListPtr drawList = drawPointer.CmdListsRange[i];
+                VBO.UploadPartial(drawList.VtxBuffer.Data, vtxSize);
+                IBO.UploadPartial(drawList.IdxBuffer.Data, idxSize);
 
                 for (var cmdList = 0; cmdList < drawList.CmdBuffer.Size; cmdList++)
                 {
@@ -270,19 +254,18 @@ namespace Emotion.Plugins.ImGuiNet
                     ));
 
                     // Set the draw range of this specific command, and draw it.
-                    Gl.DrawElementsBaseVertex(
-                        PrimitiveType.Triangles,
-                        (int) currentCommandList.ElemCount,
-                        DrawElementsType.UnsignedShort,
-                        (IntPtr) (offset * sizeof(ushort)),
-                        (int) indicesOffset
-                    );
-
-                    // Set drawing offset.
-                    offset += currentCommandList.ElemCount;
+                    if (Gl.CurrentVersion.GLES)
+                        Gl.DrawElements(PrimitiveType.Triangles, (int) currentCommandList.ElemCount, DrawElementsType.UnsignedShort,
+                            (IntPtr) (currentCommandList.IdxOffset * sizeof(ushort)));
+                    else
+                        Gl.DrawElementsBaseVertex(
+                            PrimitiveType.Triangles,
+                            (int) currentCommandList.ElemCount,
+                            DrawElementsType.UnsignedShort,
+                            (IntPtr) (currentCommandList.IdxOffset * sizeof(ushort)),
+                            (int) currentCommandList.VtxOffset
+                        );
                 }
-
-                indicesOffset += (uint) drawList.VtxBuffer.Size;
             }
 
             composer.PopModelMatrix();
@@ -378,7 +361,6 @@ namespace Emotion.Plugins.ImGuiNet
 
         public void Dispose()
         {
-
         }
     }
 }
