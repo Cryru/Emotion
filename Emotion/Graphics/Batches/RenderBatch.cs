@@ -224,7 +224,7 @@ namespace Emotion.Graphics.Batches
         /// </summary>
         public int SizeLeft
         {
-            get => (int) ((_bufferSize / _structByteSize) - _mappedTo);
+            get => (int) (_bufferSize / _structByteSize - _mappedTo);
         }
 
         /// <summary>
@@ -431,7 +431,13 @@ namespace Emotion.Graphics.Batches
 
             if (BatchMode == BatchMode.TriangleFan)
             {
-                Gl.MultiDrawArrays(_primitiveRenderingMode, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
+                if (Gl.CurrentVersion.GLES)
+                    for (var i = 0; i < _batchableLengthUtilization; i += 2)
+                    {
+                        Gl.DrawArrays(_primitiveRenderingMode, _batchableLengths[0][i], _batchableLengths[1][i]);
+                    }
+                else
+                    Gl.MultiDrawArrays(_primitiveRenderingMode, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
             }
             else
             {
