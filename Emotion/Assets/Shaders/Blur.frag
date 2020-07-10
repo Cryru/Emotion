@@ -41,14 +41,11 @@ vec4 gaussianBlur(int image, vec2 uv, vec2 imageSize, vec2 direction, float dire
         vec2 sampleCoordLeftUp = uv - i * blurSizeDirection;
         vec2 sampleCoordRightDown = uv + i * blurSizeDirection;
         // Clamp samples to within texture.
-        if(sampleCoordLeftUp.y < 0.0 || sampleCoordLeftUp.x < 0.0 || sampleCoordRightDown.y > 1.0 || sampleCoordRightDown.x > 1.0)
-        {
-            continue;
-        }
+        if(sampleCoordLeftUp.y < 0.0 || sampleCoordLeftUp.x < 0.0 || sampleCoordRightDown.y > 1.0 || sampleCoordRightDown.x > 1.0) continue;
 
         avgValue += getTextureColor(image, sampleCoordLeftUp) * incrementalGaussian.x;
         avgValue += getTextureColor(image, sampleCoordRightDown) * incrementalGaussian.x;
-        coefficientSum += 2 * incrementalGaussian.x;
+        coefficientSum += 2.0 * incrementalGaussian.x;
         incrementalGaussian.xy *= incrementalGaussian.yz;
     }
 

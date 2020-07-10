@@ -19,10 +19,10 @@ void main() {
   vec4 accum = vec4(0.0, 0.0, 0.0, 0.0);
   
   ivec2 textureSize = getTextureSize(Tid);
-  float dx = 1.0/textureSize.x;
-  float dy = 1.0/textureSize.y;
+  float dx = 1.0/float(textureSize.x);
+  float dy = 1.0/float(textureSize.y);
 
-  int kernelSize = int(textureSize.x / drawSize.x) / 2;
+  int kernelSize = int((float(textureSize.x) / drawSize.x) / 2.0);
   kernelSize = max(kernelSize, 1);
   int sampleSize = 0;
   for (int y=-kernelSize; y<=kernelSize; y++)
