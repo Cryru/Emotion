@@ -59,8 +59,9 @@ namespace Emotion.Graphics.Objects
             //    return;
             //}
 
-            Gl.BindVertexArray(vao.Pointer);
-            Bound = vao.Pointer;
+            uint ptr = vao?.Pointer ?? 0;
+            Gl.BindVertexArray(ptr);
+            Bound = ptr;
 
             // Reset the cached binding of VertexBuffers and IndexBuffers as the VAO just bound something else.
             // This does disable the cache until the binding, but otherwise we will be binding twice.
@@ -69,7 +70,7 @@ namespace Emotion.Graphics.Objects
 
             // Some Intel drivers don't bind the IBO when the VAO is bound.
             // https://stackoverflow.com/questions/8973690/vao-and-element-array-buffer-state
-            if (vao.IBO != null) IndexBuffer.EnsureBound(vao.IBO.Pointer);
+            if (vao?.IBO != null) IndexBuffer.EnsureBound(vao.IBO.Pointer);
         }
 
         /// <summary>
@@ -93,6 +94,11 @@ namespace Emotion.Graphics.Objects
                     return VertexAttribType.UnsignedByte;
             }
         }
+
+        /// <summary>
+        /// Setup vertex attributes.
+        /// </summary>
+        public abstract void SetupAttributes();
 
         #region Cleanup
 
@@ -126,7 +132,12 @@ namespace Emotion.Graphics.Objects
             Pointer = Gl.GenVertexArray();
             VBO = vbo;
             IBO = ibo;
+            SetupAttributes();
+            EnsureBound(null);
+        }
 
+        public override void SetupAttributes()
+        {
             EnsureBound(this);
 
             Type structFormat = typeof(T);
@@ -157,8 +168,6 @@ namespace Emotion.Graphics.Objects
                 Gl.EnableVertexAttribArray(position);
                 Gl.VertexAttribPointer(position, vertexAttributeData.ComponentCount, GetAttribTypeFromManagedType(fieldType), vertexAttributeData.Normalized, ByteSize, offset);
             }
-
-            Gl.BindVertexArray(0);
         }
     }
 }
