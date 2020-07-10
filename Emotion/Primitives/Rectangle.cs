@@ -707,8 +707,8 @@ namespace Emotion.Primitives
             float halfHeightB = r2.Height / 2.0f;
 
             // calculate centers
-            var centerA = Center;
-            var centerB = r2.Center;
+            Vector2 centerA = Center;
+            Vector2 centerB = r2.Center;
 
             // calculate current and minimum-non-intersecting distances between centers
             float distanceX = centerA.X - centerB.X;
@@ -795,6 +795,23 @@ namespace Emotion.Primitives
                 res.X = Right;
 
             return res;
+        }
+
+        /// <summary>
+        /// Clamp another rectangle to fit in this one.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public Rectangle ClampTo(Rectangle other)
+        {
+            if (other.Contains(this)) return this;
+
+            if (X < other.X) X = other.X;
+            if (Y < other.Y) Y = other.Y;
+            if (Right > other.Right) Width = other.Width - X;
+            if (Bottom > other.Bottom) Height = other.Height - Y;
+
+            return this;
         }
 
         #endregion

@@ -219,8 +219,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
         public unsafe bool Sample(Rectangle rect, byte[] data)
         {
-            if (!Viewport.Contains(rect)) return false;
-
+            rect = rect.ClampTo(Viewport);
             rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
 
             FrameBuffer previouslyBound = Engine.Renderer.CurrentTarget;
