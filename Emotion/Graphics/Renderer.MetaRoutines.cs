@@ -173,10 +173,21 @@ namespace Emotion.Graphics
         /// that using this parameter.
         /// </param>
         /// <param name="pos">The position to render to. By default this is 0,0</param>
+        /// <param name="uv">The part of the framebuffer to render. By default this is the whole thing.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null, Vector3? pos = null)
+        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null, Vector3? pos = null, Rectangle? uv = null)
         {
-            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, new Rectangle(0, 0, buffer.Size));
+            Rectangle renderUv;
+            if (uv == null)
+            {
+                renderUv = new Rectangle(0, 0, buffer.Size);
+            }
+            else
+            {
+                renderUv = uv.Value;
+                renderUv.Y = buffer.Size.Y - (renderUv.Y + renderUv.Height);
+            }
+            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, renderUv);
         }
     }
 }
