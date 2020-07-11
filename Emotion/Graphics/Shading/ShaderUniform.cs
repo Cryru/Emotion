@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -53,6 +54,24 @@ namespace Emotion.Graphics.Shading
         /// <returns></returns>
         public static object ParseValue(string type, string value)
         {
+            float[] floatVals = null;
+            if (type == "vec2" || type == "vec3" || type == "vec4")
+            {
+                int startIdx = value.IndexOf("(", StringComparison.Ordinal);
+                int endIdx = value.LastIndexOf(")", StringComparison.Ordinal);
+                if (startIdx != -1 && endIdx != -1)
+                {
+                    value = value.Substring(startIdx + 1, endIdx - startIdx - 1);
+                }
+                string[] values = value.Split(",");
+                floatVals = new float[values.Length];
+                for (var i = 0; i < values.Length; i++)
+                {
+                    float.TryParse(values[i].Trim(), out float floatVal);
+                    floatVals[i] = floatVal;
+                }
+            }
+
             switch (type)
             {
                 case "float":
@@ -63,31 +82,24 @@ namespace Emotion.Graphics.Shading
                 case "int":
                     int.TryParse(value, out int intVal);
                     return intVal;
-                case "vec4":
-                {
-                    string[] values = value.Split(",");
-                    var floatVals = new float[4];
-                    for (var i = 0; i < values.Length; i++)
-                    {
-                        float.TryParse(values[i].Trim(), out float floatVal);
-                        floatVals[i] = floatVal;
-                    }
-
-                    // vec4(0.0) or vec4(0.0, 0.0, 0.0, 0.0)
-                    return values.Length == 1 ? new Vector4(floatVals[0]) : new Vector4(floatVals[0], floatVals[1], floatVals[2], floatVals[3]);
-                }
                 case "vec2":
                 {
-                    string[] values = value.Split(",");
-                    var floatVals = new float[2];
-                    for (var i = 0; i < values.Length; i++)
-                    {
-                        float.TryParse(values[i].Trim(), out float floatVal);
-                        floatVals[i] = floatVal;
-                    }
+                    if (floatVals == null || floatVals.Length == 0) floatVals = new float[2];
 
                     // vec2(0.0) or vec2(0.0, 0.0)
-                    return values.Length == 1 ? new Vector2(floatVals[0]) : new Vector2(floatVals[0], floatVals[1]);
+                    return floatVals.Length == 1 ? new Vector2(floatVals[0]) : new Vector2(floatVals[0], floatVals[1]);
+                }
+                case "vec3":
+                {
+                    if (floatVals == null) floatVals = new float[3];
+                    if (floatVals.Length == 2) Array.Resize(ref floatVals, 3);
+                    return floatVals.Length == 1 ? new Vector3(floatVals[0]) : new Vector3(floatVals[0], floatVals[1], floatVals[2]);
+                }
+                case "vec4":
+                {
+                    if (floatVals == null) floatVals = new float[3];
+                    if (floatVals.Length == 2 || floatVals.Length == 3) Array.Resize(ref floatVals, 4);
+                    return floatVals.Length == 1 ? new Vector4(floatVals[0]) : new Vector4(floatVals[0], floatVals[1], floatVals[2], floatVals[3]);
                 }
                 default:
                     return null;
@@ -105,14 +117,17 @@ namespace Emotion.Graphics.Shading
                 case "float":
                     program.SetUniformFloat(Name, (float) Value);
                     break;
-                case "vec4":
-                    program.SetUniformVector4(Name, (Vector4) Value);
-                    break;
                 case "int":
                     program.SetUniformInt(Name, (int) Value);
                     break;
                 case "vec2":
                     program.SetUniformVector2(Name, (Vector2) Value);
+                    break;
+                case "vec3":
+                    program.SetUniformVector3(Name, (Vector3) Value);
+                    break;
+                case "vec4":
+                    program.SetUniformVector4(Name, (Vector4) Value);
                     break;
                 default:
                     Engine.Log.Warning($"Unknown shader uniform type {Type}. Default value will probably be missing.", MessageSource.Renderer);
