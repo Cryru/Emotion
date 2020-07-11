@@ -24,20 +24,28 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// The folder relative to the executable where file assets will be loaded from.
         /// </summary>
         /// <param name="folder">The folder to load assets from.</param>
-        public FileAssetSource(string folder)
+        /// <param name="includeFolderInManifest">Whether to include the source's folder in the asset paths. Off by default.</param>
+        public FileAssetSource(string folder, bool includeFolderInManifest = false)
         {
             Folder = folder;
 
             // Check if folder exists.
             if (!Directory.Exists(Folder)) Directory.CreateDirectory(Folder);
-            PopulateInternalManifest();
+            PopulateInternalManifest(includeFolderInManifest);
         }
 
-        protected void PopulateInternalManifest()
+        protected void PopulateInternalManifest(bool includeFolder)
         {
             InternalManifest.Clear();
             string[] files = Directory.GetFiles(Folder, "*", SearchOption.AllDirectories);
-            files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x), x));
+            if (!includeFolder)
+            {
+                files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x), x));
+            }
+            else
+            {
+                files.AsParallel().ForAll(x => InternalManifest.TryAdd(AssetLoader.NameToEngineName(x), x));
+            }
         }
 
         /// <inheritdoc />
