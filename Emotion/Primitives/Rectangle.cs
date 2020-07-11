@@ -808,8 +808,8 @@ namespace Emotion.Primitives
 
             if (X < other.X) X = other.X;
             if (Y < other.Y) Y = other.Y;
-            if (Right > other.Right) Width = other.Width - X;
-            if (Bottom > other.Bottom) Height = other.Height - Y;
+            if (Right > other.Right) X = Right - Width;
+            if (Bottom > other.Bottom) Y = other.Bottom - Height;
 
             return this;
         }
