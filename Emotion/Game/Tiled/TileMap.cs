@@ -32,6 +32,11 @@ namespace Emotion.Game.Tiled
         /// The range of the map to render. If null then the camera range will be used.
         /// </summary>
         public Rectangle? Clip;
+        
+        /// <summary>
+        /// The currently loaded file name.
+        /// </summary>
+        public string FileName { get; protected set; }
 
         /// <summary>
         /// The TiledSharp object the map is using.
@@ -224,6 +229,7 @@ namespace Emotion.Game.Tiled
             // Load the map from the data as a stream.
             try
             {
+                FileName = mapFile.Name;
                 TiledMap = new TmxMap(new XMLReader(mapFile.Content));
             }
             catch (Exception ex)
