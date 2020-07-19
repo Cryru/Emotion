@@ -2,8 +2,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
+using Emotion.Graphics.Objects;
+using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.XML;
 
@@ -25,6 +28,12 @@ namespace Emotion.Game.Animation
         /// The animated texture in which all animations are stored.
         /// </summary>
         public AnimatedTexture AnimTex;
+
+        /// <summary>
+        /// Anchors in case the texture needs to be mirrored along the X axis.
+        /// Optionally specified.
+        /// </summary>
+        public Vector2[] MirrorXAnchors { get; set; } = null;
 
         /// <summary>
         /// Possible animations.
@@ -84,6 +93,29 @@ namespace Emotion.Game.Animation
             AnimTex.Reset();
 
             CurrentAnimation = n;
+        }
+
+        /// <summary>
+        /// Get the data needed to draw the current frame.
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="uv"></param>
+        /// <param name="anchor"></param>
+        /// <param name="xMirror"></param>
+        public void GetCurrentFrameData(out Texture image, out Rectangle uv, out Vector2 anchor, bool xMirror = false)
+        {
+            image = null;
+            uv = Rectangle.Empty;
+            anchor = Vector2.Zero;
+            if (CurrentAnimation == null) return;
+
+            uv = AnimTex.CurrentFrame;
+            int frameIdx = AnimTex.CurrentFrameIndex;
+            if (xMirror && MirrorXAnchors != null && MirrorXAnchors.Length > frameIdx)
+                anchor = MirrorXAnchors[frameIdx];
+            else
+                anchor = AnimTex.Anchors[frameIdx];
+            image = AnimTex.Texture;
         }
 
         /// <summary>

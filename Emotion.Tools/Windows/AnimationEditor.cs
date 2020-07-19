@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -27,6 +28,7 @@ namespace Emotion.Tools.Windows
     {
         public int Scale = 1;
         private bool _playing = true;
+        private AnimationNode _overlayAnimation;
 
         private string _saveName = "";
 
@@ -41,8 +43,8 @@ namespace Emotion.Tools.Windows
 
         // Files
         private TextureAsset _spriteSheetTexture;
-        private AnimatedTexture _animation;
-        protected AnimationController _animController;
+        public AnimatedTexture Animation;
+        public AnimationController AnimController;
 
         public AnimationEditor() : base("Animation Editor")
         {
@@ -73,14 +75,14 @@ namespace Emotion.Tools.Windows
             }
 
             if (_spriteSheetTexture == null) return;
-            if (_animation == null)
+            if (Animation == null)
             {
                 ImGui.Text("How are the frames contained in your spritesheet?");
 
                 if (ImGui.Button("Grid"))
                 {
-                    var win = new GridSettingsWindow(this, (fs, s) => { _animation = new AnimatedTexture(_spriteSheetTexture, fs, s, AnimationLoopType.Normal, 1000); },
-                        (r, c) => { _animation = new AnimatedTexture(_spriteSheetTexture, c, r, AnimationLoopType.Normal, 1000); });
+                    var win = new GridSettingsWindow(this, (fs, s) => { Animation = new AnimatedTexture(_spriteSheetTexture, fs, s, AnimationLoopType.Normal, 1000); },
+                        (r, c) => { Animation = new AnimatedTexture(_spriteSheetTexture, c, r, AnimationLoopType.Normal, 1000); });
                     Parent.AddWindow(win);
                 }
 
@@ -89,7 +91,7 @@ namespace Emotion.Tools.Windows
                 if (ImGui.Button("Auto Detect Frames"))
                 {
                     Rectangle[] frames = AutoDetectFrames(_spriteSheetTexture.Texture);
-                    _animation = new AnimatedTexture(_spriteSheetTexture, frames, AnimationLoopType.Normal, 1000);
+                    Animation = new AnimatedTexture(_spriteSheetTexture, frames, AnimationLoopType.Normal, 1000);
                 }
 
                 return;
@@ -116,15 +118,15 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
-                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, _animation));
+                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, Animation));
 
             if (ImGui.Button("Order Frames"))
                 if (_orderWindow == null || !_orderWindow.Open)
-                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, _animation));
+                    Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, Animation));
 
             if (ImGui.Button("Redetect Frames"))
             {
-                Rectangle[] previousFrames = _animation.Frames;
+                Rectangle[] previousFrames = Animation.Frames;
                 Rectangle[] frames = AutoDetectFrames(_spriteSheetTexture.Texture);
 
                 // Try to maintain the old order.
@@ -132,33 +134,31 @@ namespace Emotion.Tools.Windows
                 {
                     for (var old = 0; old < previousFrames.Length; old++)
                     {
-                        if (frames[i] == previousFrames[old] && i != old && old < frames.Length - 1)
-                        {
-                            Rectangle temp = frames[i];
-                            frames[i] = frames[old];
-                            frames[old] = temp;
-                            break;
-                        }
+                        if (frames[i] != previousFrames[old] || i == old || old >= frames.Length - 1) continue;
+                        Rectangle temp = frames[i];
+                        frames[i] = frames[old];
+                        frames[old] = temp;
+                        break;
                     }
                 }
 
-                _animation.Frames = frames;
+                Animation.Frames = frames;
             }
 
-            ImGui.Text($"Current Frame: {_animation.CurrentFrameIndex + 1}/{_animation.AnimationFrames + 1}");
-            ImGui.Text($"Current Anchor: {(_animation.Anchors.Length > 0 ? _animation.Anchors[_animation.CurrentFrameIndex].ToString() : "Unknown")}");
+            ImGui.Text($"Current Frame: {Animation.CurrentFrameIndex - Animation.StartingFrame + 1}/{Animation.AnimationFrames + 1} (Total: {Animation.TotalFrames})");
+            ImGui.Text($"Current Anchor: {(Animation.Anchors.Length > 0 ? Animation.Anchors[Animation.CurrentFrameIndex].ToString() : "Unknown")}");
 
-            for (var i = 0; i <= _animation.TotalFrames; i++)
+            for (var i = 0; i <= Animation.TotalFrames; i++)
             {
                 if (i != 0 && i % 10 != 0) ImGui.SameLine(0, 5);
 
-                bool current = _animation.CurrentFrameIndex == i;
+                bool current = Animation.CurrentFrameIndex == i;
 
-                Rectangle frameBounds = _animation.GetFrameBounds(i);
-                (Vector2 u1, Vector2 u2) = _animation.Texture.GetImGuiUV(frameBounds);
+                Rectangle frameBounds = Animation.GetFrameBounds(i);
+                (Vector2 u1, Vector2 u2) = Animation.Texture.GetImGuiUV(frameBounds);
 
-                ImGui.Image(new IntPtr(_animation.Texture.Pointer), frameBounds.Size / 2f, u1, u2, Vector4.One,
-                    current ? new Vector4(1, 0, 0, 1) : Vector4.Zero);
+                ImGui.Image(new IntPtr(Animation.Texture.Pointer), frameBounds.Size / 2f, u1, u2, Vector4.One,
+                    current ? new Vector4(1, 0, 0, 1) : new Vector4(0, 0, 0, 1));
             }
 
             RenderCurrentAnimationSettings();
@@ -190,12 +190,13 @@ namespace Emotion.Tools.Windows
                 {
                     string saveData;
                     // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
-                    if (_animController != null)
-                        saveData = XMLFormat.To(_animController);
+                    if (AnimController != null)
+                        saveData = XMLFormat.To(AnimController);
                     else
-                        saveData = XMLFormat.To(_animation);
+                        saveData = XMLFormat.To(Animation);
 
                     Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
+                    Process.Start("explorer.exe", $".\\{AssetLoader.GetDirectoryName(saveName).Replace("/", "\\")}");
                 }
                 catch (Exception ex)
                 {
@@ -206,101 +207,126 @@ namespace Emotion.Tools.Windows
 
         private void RenderAnimation(RenderComposer composer)
         {
+            if (_overlayAnimation != null)
+            {
+                Rectangle uv = Animation.Frames[_overlayAnimation.StartingFrame];
+                Vector2 anchor = Animation.Anchors[_overlayAnimation.StartingFrame];
+                composer.RenderSprite(new Vector3(new Vector2(100, 100) + anchor * Scale, 1), uv.Size * Scale, Color.Red, Animation.Texture, uv);
+            }
+
             var offset = new Vector2(100, 100);
-            if (_animation.Anchors.Length > 0) offset += _animation.Anchors[_animation.CurrentFrameIndex] * Scale;
-            composer.RenderSprite(new Vector3(offset, 1), _animation.CurrentFrame.Size * Scale, Color.White, _animation.Texture, _animation.CurrentFrame, _mirrored);
+
+            // Animation has a controller.
+            if (AnimController != null)
+            {
+                AnimController.GetCurrentFrameData(out Texture texture, out Rectangle uv, out Vector2 anchor, _mirrored);
+                composer.RenderSprite(new Vector3(offset + anchor * Scale, 1), uv.Size * Scale, Color.White, texture, uv, _mirrored);
+                return;
+            }
+
+            // Animation is just a texture.
+            if (Animation.Anchors.Length > 0) offset += Animation.Anchors[Animation.CurrentFrameIndex] * Scale;
+            composer.RenderSprite(new Vector3(offset, 1), Animation.CurrentFrame.Size * Scale, Color.White, Animation.Texture, Animation.CurrentFrame, _mirrored);
         }
 
         private void RenderCurrentAnimationSettings()
         {
-            if (_animController == null)
+            if (AnimController == null)
             {
                 if (ImGui.Button("Create Controller"))
                 {
-                    _animController = new AnimationController(_animation);
-                    _animController.AddAnimation(new AnimationNode("Default")
+                    AnimController = new AnimationController(Animation);
+                    AnimController.AddAnimation(new AnimationNode("Default")
                     {
-                        EndingFrame = _animation.EndingFrame,
-                        StartingFrame = _animation.StartingFrame,
-                        LoopType = _animation.LoopType
+                        EndingFrame = Animation.EndingFrame,
+                        StartingFrame = Animation.StartingFrame,
+                        LoopType = Animation.LoopType
                     });
                 }
 
-                int frameTime = _animation.TimeBetweenFrames;
+                int frameTime = Animation.TimeBetweenFrames;
                 if (ImGui.InputInt("MS Between Frames", ref frameTime))
                 {
-                    _animation.TimeBetweenFrames = frameTime;
-                    _animation.Reset();
+                    Animation.TimeBetweenFrames = frameTime;
+                    Animation.Reset();
                 }
 
                 ImGui.Text("Starting and ending frames are 0 indexed and inclusive.");
 
-                int startingFrame = _animation.StartingFrame;
+                int startingFrame = Animation.StartingFrame;
                 if (ImGui.InputInt("Starting Frame", ref startingFrame))
                 {
-                    _animation.StartingFrame = startingFrame;
-                    _animation.Reset();
+                    Animation.StartingFrame = startingFrame;
+                    Animation.Reset();
                 }
 
-                int endingFrame = _animation.EndingFrame;
+                int endingFrame = Animation.EndingFrame;
                 if (ImGui.InputInt("Ending Frame", ref endingFrame))
                 {
-                    _animation.EndingFrame = endingFrame;
-                    _animation.Reset();
+                    Animation.EndingFrame = endingFrame;
+                    Animation.Reset();
                 }
 
-                var loopType = (int) _animation.LoopType;
+                var loopType = (int) Animation.LoopType;
                 if (ImGui.Combo("Loop Type", ref loopType, string.Join('\0', Enum.GetNames(typeof(AnimationLoopType)))))
                 {
-                    _animation.LoopType = (AnimationLoopType) loopType;
-                    _animation.Reset();
+                    Animation.LoopType = (AnimationLoopType) loopType;
+                    Animation.Reset();
                 }
             }
             else
             {
                 ImGui.Text("Animations");
                 ImGui.PushID("animList");
-                foreach (AnimationNode n in _animController.Animations.Values)
+                foreach (AnimationNode n in AnimController.Animations.Values)
                 {
-                    if (n == _animController.CurrentAnimation)
+                    bool activeOverlay = _overlayAnimation == n;
+                    ImGui.PushID(n.Name);
+                    if (n == AnimController.CurrentAnimation)
                     {
                         ImGui.Text(n.Name);
                     }
                     else
                     {
-                        if (ImGui.Button(n.Name)) _animController.SetAnimation(n.Name);
+                        if (ImGui.Button(n.Name)) AnimController.SetAnimation(n.Name);
                     }
+
+                    ImGui.SameLine();
+                    ImGui.Text($"({n.StartingFrame}-{n.EndingFrame})");
+                    ImGui.SameLine();
+                    if (ImGui.Checkbox("Overlay", ref activeOverlay)) _overlayAnimation = activeOverlay ? n : null;
+                    ImGui.PopID();
                 }
 
-                if (ImGui.Button("Create") && _animController.Animations.All(x => x.Key != "NewAnim"))
+                if (ImGui.Button("Create") && AnimController.Animations.All(x => x.Key != "NewAnim"))
                 {
                     var newNode = new AnimationNode("NewAnim");
-                    _animController.AddAnimation(newNode);
+                    AnimController.AddAnimation(newNode);
                 }
 
                 ImGui.SameLine();
-                if (_animController.CurrentAnimation == null)
+                if (AnimController.CurrentAnimation == null)
                 {
                     ImGui.PopID();
                     return;
                 }
 
-                if (ImGui.Button("Remove")) _animController.RemoveAnimation(_animController.CurrentAnimation.Name);
+                if (ImGui.Button("Remove")) AnimController.RemoveAnimation(AnimController.CurrentAnimation.Name);
                 ImGui.SameLine();
                 if (ImGui.Button("Rename"))
                 {
                     var newName = new StringInputModal(s =>
                         {
-                            _animController.CurrentAnimation.Name = s;
-                            _animController.Reindex();
+                            AnimController.CurrentAnimation.Name = s;
+                            AnimController.Reindex();
                         },
-                        $"New name for {_animController.CurrentAnimation.Name}");
+                        $"New name for {AnimController.CurrentAnimation.Name}");
                     Parent.AddWindow(newName);
                 }
 
                 ImGui.PopID();
 
-                AnimationNode cur = _animController.CurrentAnimation;
+                AnimationNode cur = AnimController.CurrentAnimation;
                 var modified = false;
 
                 int frameTime = cur.TimeBetweenFrames;
@@ -333,14 +359,14 @@ namespace Emotion.Tools.Windows
                     modified = true;
                 }
 
-                if (modified) _animController.SetAnimation(cur.Name, true);
+                if (modified) AnimController.SetAnimation(cur.Name, true);
             }
         }
 
         public override void Update()
         {
             if (_playing)
-                _animation?.Update(Engine.DeltaTime);
+                Animation?.Update(Engine.DeltaTime);
         }
 
         #region IO
@@ -351,8 +377,8 @@ namespace Emotion.Tools.Windows
             _spriteSheetTexture?.Dispose();
             _spriteSheetTexture = f;
 
-            _animation = null;
-            _animController = null;
+            Animation = null;
+            AnimController = null;
         }
 
         private void LoadAnimatedTexture(XMLAsset<AnimatedTexture> f)
@@ -361,18 +387,19 @@ namespace Emotion.Tools.Windows
 
             AnimatedTexture anim = f.Content;
             _spriteSheetTexture = anim.TextureAsset;
-            _animation = anim;
-            _animController = null;
+            Animation = anim;
+            AnimController = null;
             _saveName = f.Name;
         }
 
         private void LoadAnimationController(XMLAsset<AnimationController> f)
         {
             if (f?.Content == null) return;
-            _animController = f.Content;
-            _spriteSheetTexture = _animController.AnimTex.TextureAsset;
-            _animation = _animController.AnimTex;
+            AnimController = f.Content;
+            _spriteSheetTexture = AnimController.AnimTex.TextureAsset;
+            Animation = AnimController.AnimTex;
             _saveName = f.Name;
+            AnimController.SetAnimation(AnimController.Animations.First().Key);
         }
 
         #endregion
