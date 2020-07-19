@@ -39,7 +39,7 @@ namespace Emotion.Standard.Logging
                 // Limit to 10 files, and maximum of 100mb per file.
                 .WriteTo.Async(a => a.File(fileName, fileSizeLimitBytes: 10000000, retainedFileCountLimit: 10, outputTemplate: template));
 
-            // Keep only the last 10 logs.
+            // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
             string[] fileCount = Directory.GetFiles(logFolder);
             if (fileCount.Length > 10)
             {
@@ -67,7 +67,7 @@ namespace Emotion.Standard.Logging
         /// <inheritdoc />
         public override void Log(MessageType type, string source, string message)
         {
-            string fullMessage = $"{Engine.TotalTime} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}";
+            string fullMessage = $"{Engine.TotalTime:0} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}";
 
             switch (type)
             {
