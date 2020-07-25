@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Globalization;
 using System.Text;
 
 #endregion
@@ -47,7 +48,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
-            output.Append($"<{fieldName}>{obj}</{fieldName}>\n");
+            output.Append($"<{fieldName}>{Convert.ToString(obj, CultureInfo.InvariantCulture)}</{fieldName}>\n");
             return true;
         }
 

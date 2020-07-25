@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Globalization;
 using System.Text;
 
 #endregion
@@ -32,7 +33,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         public override object Deserialize(XMLReader input)
         {
             string readValue = input.GoToNextTag();
-            return string.IsNullOrEmpty(readValue) ? _defaultValue : Convert.ChangeType(readValue, Type);
+            return string.IsNullOrEmpty(readValue) ? _defaultValue : Convert.ChangeType(readValue, Type, CultureInfo.InvariantCulture);
         }
     }
 }
