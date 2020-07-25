@@ -174,8 +174,10 @@ namespace Emotion.Graphics
         /// </param>
         /// <param name="pos">The position to render to. By default this is 0,0</param>
         /// <param name="uv">The part of the framebuffer to render. By default this is the whole thing.</param>
+        /// <param name="attachment">The buffer attachment to render. ColorAttachment by default.</param>
+        /// <param name="color">The color to render in. White by default.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null, Vector3? pos = null, Rectangle? uv = null)
+        public void RenderFrameBuffer(FrameBuffer buffer, Vector2? renderSizeOverwrite = null, Vector3? pos = null, Rectangle? uv = null, Texture attachment = null, Color? color = null)
         {
             Rectangle renderUv;
             if (uv == null)
@@ -187,7 +189,7 @@ namespace Emotion.Graphics
                 renderUv = uv.Value;
                 renderUv.Y = buffer.Size.Y - (renderUv.Y + renderUv.Height);
             }
-            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, Color.White, buffer.ColorAttachment, renderUv);
+            RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, color ?? Color.White, attachment ?? buffer.ColorAttachment, renderUv);
         }
     }
 }
