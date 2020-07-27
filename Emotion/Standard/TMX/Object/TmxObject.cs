@@ -14,9 +14,9 @@ namespace Emotion.Standard.TMX.Object
         public int Id { get; private set; }
         public string Name { get; private set; }
         public TmxObjectType ObjectType { get; private set; }
-        public string Type { get; private set; }
-        public float X { get; private set; }
-        public float Y { get; private set; }
+        public string Type { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
         public float Width { get; private set; }
         public float Height { get; private set; }
         public float Rotation { get; private set; }

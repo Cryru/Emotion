@@ -32,7 +32,7 @@ namespace Emotion.Game.Tiled
         /// The range of the map to render. If null then the camera range will be used.
         /// </summary>
         public Rectangle? Clip;
-        
+
         /// <summary>
         /// The currently loaded file name.
         /// </summary>
@@ -255,7 +255,7 @@ namespace Emotion.Game.Tiled
             PerfProfiler.ProfilerEventEnd("TileMap: Loading Tilesets", "Loading");
 
             // Find animated tiles.
-            CacheAnimatedTiles();
+            CacheTilesetData();
 
             // Construct all objects.
             if (TiledMap.ObjectLayers != null && TiledMap.ObjectLayers.Count > 0)
@@ -269,16 +269,37 @@ namespace Emotion.Game.Tiled
                     for (var j = 0; j < TiledMap.ObjectLayers[i].Objects.Count; j++)
                     {
                         TmxObject objDef = TiledMap.ObjectLayers[i].Objects[j];
-                        TextureAsset asset = null;
-                        Rectangle? uv = null;
-                        if (objDef.Gid != null)
-                        {
-                            uv = GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
-                            if (tsId > 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
-                        }
+                        CreateObjectInternal(objDef, i);
+                    }
+                }
+            }
 
-                        T factoryObject = CreateObject(objDef, asset, uv, i);
-                        if (factoryObject != null) Objects.Add(factoryObject);
+            // Construct all objects associated with tiles. These are usually collisions.
+            for (var i = 0; i < TiledMap.TileLayers.Count; i++)
+            {
+                TmxLayer layer = TiledMap.TileLayers[i];
+                for (var t = 0; t < layer.Tiles.Count; t++)
+                {
+                    TmxLayerTile tile = layer.Tiles[t];
+                    int tId = tile.Gid;
+                    if (tId == 0) continue; // Quick out for empty tiles.
+
+                    int tsId = GetTilesetIdFromTid(tId, out int tsOffset);
+                    TmxTileset ts = TiledMap.Tilesets[tsId];
+                    TmxTilesetTile tileData = ts.Tiles.GetValueOrDefault(tsOffset);
+                    if (tileData?.ObjectGroups == null) continue;
+                    foreach (TmxObjectLayer groups in tileData.ObjectGroups)
+                    {
+                        for (var o = 0; o < groups.Objects.Count; o++)
+                        {
+                            TmxObject obj = groups.Objects[o];
+                            if (string.IsNullOrEmpty(obj.Type)) obj.Type = "TileObject";
+                            // Patch in position of the current tile.
+                            Vector2 coord = GetTile2DFromTile1D(t, i);
+                            obj.X = layer.OffsetX + coord.X * TiledMap.TileWidth;
+                            obj.Y = layer.OffsetY + coord.Y * TiledMap.TileHeight;
+                            CreateObjectInternal(obj, i);
+                        }
                     }
                 }
             }
@@ -465,19 +486,22 @@ namespace Emotion.Game.Tiled
         #region Animated Tiles
 
         /// <summary>
-        /// Cached all animated tiles in memory and tracks their animations.
+        /// Reads additional meta per tile for all tilesets.
+        /// Caches all animated tiles.
         /// </summary>
-        private void CacheAnimatedTiles()
+        private void CacheTilesetData()
         {
-            foreach (TmxTileset tileset in TiledMap.Tilesets)
+            for (var layer = 0; layer < TiledMap.Tilesets.Count; layer++)
             {
-                // Check if the tileset has animated tiles.
+                TmxTileset tileset = TiledMap.Tilesets[layer];
+
+                // Check if the tileset has tile data.
                 if (tileset.Tiles.Count <= 0) continue;
 
-                // Cache them all.
-                foreach (KeyValuePair<int, TmxTilesetTile> animatedTile in tileset.Tiles)
+                foreach ((int _, TmxTilesetTile tileData) in tileset.Tiles)
                 {
-                    _animatedTiles.Add(new AnimatedTile(animatedTile.Value.Id, animatedTile.Value.AnimationFrames));
+                    // Cache animated tiles.
+                    if (tileData.AnimationFrames != null) _animatedTiles.Add(new AnimatedTile(tileData.Id, tileData.AnimationFrames));
                 }
             }
         }
@@ -497,6 +521,20 @@ namespace Emotion.Game.Tiled
         #endregion
 
         #region Internal API
+
+        protected void CreateObjectInternal(TmxObject objDef, int layerId)
+        {
+            TextureAsset asset = null;
+            Rectangle? uv = null;
+            if (objDef.Gid != null)
+            {
+                uv = GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
+                if (tsId > 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
+            }
+
+            T factoryObject = CreateObject(objDef, asset, uv, layerId);
+            if (factoryObject != null) Objects.Add(factoryObject);
+        }
 
         /// <summary>
         /// Converts the two dimensional tile coordinate to a one dimensional one.

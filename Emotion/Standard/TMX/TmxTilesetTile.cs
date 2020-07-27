@@ -60,20 +60,26 @@ namespace Emotion.Standard.TMX
 
             Probability = xTile.AttributeFloatN("probability") ?? 1.0f;
             Type = xTile.Attribute("type");
-            Image = xTile.Element("image").CurrentContents();
+            Image = xTile.Element("image")?.CurrentContents();
 
-            ObjectGroups = new TmxList<TmxObjectLayer>();
-            foreach (XMLReader e in xTile.Elements("objectgroup"))
+            List<XMLReader> objectGroupList = xTile.Elements("objectgroup");
+            if(objectGroupList.Count > 0)
             {
-                ObjectGroups.Add(new TmxObjectLayer(e));
+                ObjectGroups = new TmxList<TmxObjectLayer>();
+                foreach (XMLReader e in objectGroupList)
+                {
+                    ObjectGroups.Add(new TmxObjectLayer(e));
+                }
             }
 
-            AnimationFrames = new Collection<TmxAnimationFrame>();
             if (xTile.Element("animation") != null)
+            {
+                AnimationFrames = new Collection<TmxAnimationFrame>();
                 foreach (XMLReader e in xTile.Element("animation").Elements("frame"))
                 {
                     AnimationFrames.Add(new TmxAnimationFrame(e));
                 }
+            }
 
             Properties = TmxHelpers.GetPropertyDict(xTile.Element("properties"));
         }

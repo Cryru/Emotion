@@ -27,7 +27,7 @@ namespace Emotion.Standard.TMX.Layer
 
         public TmxLayer(XMLReader xLayer, int width, int height)
         {
-            Name = xLayer.Attribute("name");
+            Name = xLayer.Attribute("name") ?? "";
             Width = width;
             Height = height;
 
