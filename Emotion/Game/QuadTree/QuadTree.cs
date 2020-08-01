@@ -94,6 +94,7 @@ namespace Emotion.Game.QuadTree
         /// <param name="worldRect">The new world rect.</param>
         public void Reset(Rectangle worldRect)
         {
+            _wrappedDictionary.Clear();
             QuadTreeRoot.Reset(worldRect);
         }
 
