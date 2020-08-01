@@ -84,7 +84,7 @@ namespace Emotion.Graphics
         /// <param name="thickness">The thickness of the line.</param>
         public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
         {
-            RenderLine(new Vector3(pointOne, 0), new Vector3(pointTwo, 0), color, thickness);
+            RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
         }
 
         /// <summary>
@@ -129,6 +129,18 @@ namespace Emotion.Graphics
             {
                 vertices[i].Tid = -1;
             }
+        }
+
+        /// <summary>
+        /// Render a line with an arrow at the end.
+        /// </summary>
+        /// <param name="pointOne">The point to start the line.</param>
+        /// <param name="pointTwo">The point to end the line at.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
+        public void RenderArrow(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
+        {
+            RenderArrow(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
         }
 
         /// <summary>
