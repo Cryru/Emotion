@@ -40,6 +40,15 @@ namespace Emotion.Primitives
             Vertices = vertices.ToArray();
         }
 
+        public Polygon(IReadOnlyList<Vector2> vertices)
+        {
+            Vertices = new Vector3[vertices.Count];
+            for (var i = 0; i < vertices.Count; i++)
+            {
+                Vertices[i] = vertices[i].ToVec3();
+            }
+        }
+
         public static Polygon FromRectangle(Rectangle rect)
         {
             var verts = new Vector3[4];
@@ -119,6 +128,33 @@ namespace Emotion.Primitives
             }
 
             return a * 0.5f;
+        }
+
+        /// <summary>
+        /// Get the 2d line segments between the points on the polygon.
+        /// </summary>
+        /// <returns></returns>
+        public List<LineSegment> Get2DContour()
+        {
+            var newList = new List<LineSegment>();
+            Get2DContour(ref newList);
+            return newList;
+        }
+
+        /// <summary>
+        /// Get the 2d line segments between the points on the polygon.
+        /// </summary>
+        /// <param name="memory">Memory to re-use.</param>
+        /// <returns></returns>
+        public void Get2DContour(ref List<LineSegment> memory)
+        {
+            memory.Clear();
+            for (var i = 0; i < Vertices.Length - 1; i++)
+            {
+                memory.Add(new LineSegment(Vertices[i].ToVec2(), Vertices[i + 1].ToVec2()));
+            }
+
+            memory.Add(new LineSegment(Vertices[0].ToVec2(), Vertices[^1].ToVec2()));
         }
 
         /// <summary>
@@ -246,6 +282,41 @@ namespace Emotion.Primitives
             {
                 float x = vertices[i].X;
                 float y = vertices[i].Y;
+                minX = Math.Min(minX, x);
+                maxX = Math.Max(maxX, x);
+                minY = Math.Min(minY, y);
+                maxY = Math.Max(maxY, y);
+            }
+
+            float width = maxX - minX;
+            float height = maxY - minY;
+
+            return new Rectangle(minX, minY, width, height);
+        }
+
+        /// <summary>
+        /// Find the bounding rectangle of a line segment contour.
+        /// </summary>
+        /// <param name="lines">The lines which make up the contour.</param>
+        /// <returns>The bounding rectangle of the contour.</returns>
+        public static Rectangle BoundingRectangleOfContour(params LineSegment[] lines)
+        {
+            var minX = float.MaxValue;
+            var maxX = float.MinValue;
+            var minY = float.MaxValue;
+            var maxY = float.MinValue;
+
+            float x = lines[0].Start.X;
+            float y = lines[0].Start.Y;
+            minX = Math.Min(minX, x);
+            maxX = Math.Max(maxX, x);
+            minY = Math.Min(minY, y);
+            maxY = Math.Max(maxY, y);
+
+            for (var i = 0; i < lines.Length; i++)
+            {
+                x = lines[i].End.X;
+                y = lines[i].End.Y;
                 minX = Math.Min(minX, x);
                 maxX = Math.Max(maxX, x);
                 minY = Math.Min(minY, y);
