@@ -72,7 +72,7 @@ Currently supported:
 - Extensible camera system.
 - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
   - Unsynchronized rendering
-  - Draw order independent texture alpha testing and blending. You'll still need to order semi-transparent objects.
+  - Sensible defaults
   - GPU is never starved!
   - Easy drawing of vertices, and 2D primitives like lines, rectangles, triangles, and circles.
 - Spritesheet based animation in either a grid or freeform format.
