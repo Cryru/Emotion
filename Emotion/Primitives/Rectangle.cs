@@ -449,6 +449,21 @@ namespace Emotion.Primitives
             return true;
         }
 
+        /// <summary>
+        /// Get the line segments making up the rectangle.
+        /// </summary>
+        /// <returns></returns>
+        public LineSegment[] GetLineSegments()
+        {
+            return new[]
+            {
+                new LineSegment(TopLeft, TopRight),
+                new LineSegment(TopRight, BottomRight),
+                new LineSegment(BottomRight, BottomLeft),
+                new LineSegment(BottomLeft, TopLeft)
+            };
+        }
+
         #endregion
 
         // Taken from Nez and Modified
