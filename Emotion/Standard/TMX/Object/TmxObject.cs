@@ -112,5 +112,10 @@ namespace Emotion.Standard.TMX.Object
 
             return points;
         }
+
+        public TmxObject Clone()
+        {
+            return (TmxObject) MemberwiseClone();
+        }
     }
 }

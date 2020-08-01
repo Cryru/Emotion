@@ -296,9 +296,10 @@ namespace Emotion.Game.Tiled
                             if (string.IsNullOrEmpty(obj.Type)) obj.Type = "TileObject";
                             // Patch in position of the current tile.
                             Vector2 coord = GetTile2DFromTile1D(t, i);
-                            obj.X = layer.OffsetX + coord.X * TiledMap.TileWidth;
-                            obj.Y = layer.OffsetY + coord.Y * TiledMap.TileHeight;
-                            CreateObjectInternal(obj, i);
+                            TmxObject clone = obj.Clone(); // Don't pollute obj def
+                            clone.X = obj.X + layer.OffsetX + coord.X * TiledMap.TileWidth;
+                            clone.Y = obj.Y + layer.OffsetY + coord.Y * TiledMap.TileHeight;
+                            CreateObjectInternal(clone, i);
                         }
                     }
                 }
@@ -345,16 +346,13 @@ namespace Emotion.Game.Tiled
             for (var y = 0; y < layer.Height; y++)
             {
                 int yIdx = y * layer.Width;
-
                 for (var x = 0; x < layer.Width; x++)
                 {
                     int tileIdx = yIdx + x;
                     Span<VertexData> tileData = dataSpan.Slice(tileIdx * 4, 4);
 
-                    // Get the id of the tile.
+                    // Get the id of the tile, and if empty skip it
                     int tId = layer.Tiles[tileIdx].Gid;
-
-                    // If the tile is empty skip it.
                     if (tId == 0)
                     {
                         for (var i = 0; i < tileData.Length; i++)
@@ -400,7 +398,7 @@ namespace Emotion.Game.Tiled
 
         public override void Render(RenderComposer composer)
         {
-            RenderTileLayerRange(composer);
+            RenderTileLayerRange(composer, 0, -1, true);
             RenderObjects(composer);
         }
 
@@ -410,13 +408,15 @@ namespace Emotion.Game.Tiled
         /// <param name="composer"></param>
         /// <param name="start">The layer to start from, inclusive.</param>
         /// <param name="end">The layer to render to, exclusive. -1 for until end</param>
-        public void RenderTileLayerRange(RenderComposer composer, int start = 0, int end = -1)
+        /// <param name="renderBackground">Whether to render a solid color background first.</param>
+        public void RenderTileLayerRange(RenderComposer composer, int start = 0, int end = -1, bool renderBackground = false)
         {
             // Check if anything is loaded.
             if (TiledMap == null || !_loaded) return;
             end = end == -1 ? TiledMap.TileLayers.Count : end;
 
             Rectangle clipRect = Clip ?? composer.Camera.GetWorldBoundingRect();
+            if (renderBackground) composer.RenderSprite(clipRect, TiledMap.BackgroundColor);
 
             for (int layer = start; layer < end; layer++)
             {
@@ -429,7 +429,7 @@ namespace Emotion.Game.Tiled
         private void RenderLayer(RenderComposer composer, int idx, Rectangle clipVal)
         {
             VertexData[] renderCache = _cachedTileRenderData[idx];
-            if (renderCache == null) return;
+            if (renderCache == null || TiledMap == null) return;
 
             TmxLayer layer = TiledMap.TileLayers[idx];
             var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TiledMap.TileHeight) - SafeArea, 0, layer.Height);
@@ -541,7 +541,7 @@ namespace Emotion.Game.Tiled
         /// </summary>
         /// <param name="coordinate">The coordinate to convert.</param>
         /// <returns>A one dimensional tile coordinate.</returns>
-        protected int GetTile1DFromTile2D(Vector2 coordinate)
+        public int GetTile1DFromTile2D(Vector2 coordinate)
         {
             var top = (int) coordinate.Y;
             var left = (int) coordinate.X;
@@ -555,7 +555,7 @@ namespace Emotion.Game.Tiled
         /// <param name="coordinate">The one dimensional tile coordinate.</param>
         /// <param name="layer">The layer the tile is on.</param>
         /// <returns>The two dimensional coordinate equivalent of the one dimensional coordinate provided.</returns>
-        protected Vector2 GetTile2DFromTile1D(int coordinate, int layer = 0)
+        public Vector2 GetTile2DFromTile1D(int coordinate, int layer = 0)
         {
             TmxLayer tileLayer = TiledMap.Layers[layer];
             int x = coordinate % tileLayer.Width;
@@ -678,9 +678,9 @@ namespace Emotion.Game.Tiled
 
         /// <summary>
         /// Get the image id of the tile in the coordinate.
-        /// The image id is relative to the tileset's id.
+        /// The image id is relative to the tileset.
         /// </summary>
-        /// <param name="coordinate">The 21D coordinate to lookup the tile id of.</param>
+        /// <param name="coordinate">The 2D coordinate to lookup the tile id of.</param>
         /// <param name="layer">The tile layer to check in.</param>
         /// <param name="tileSet">The id of the tile set in which the image id is.</param>
         /// <returns></returns>
