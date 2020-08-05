@@ -176,7 +176,7 @@ namespace Emotion.Game.Tiled
                 tilesetFile = AssetLoader.NameToEngineName(tilesetFile);
                 if (tilesetFile[0] == '/') tilesetFile = tilesetFile.Substring(1);
 
-                string assetPath = AssetLoader.JoinPath(_tilesetFolder, tilesetFile);
+                string assetPath = tilesetFile.Contains("..") ? AssetLoader.GetNonRelativePath(_tilesetFolder, tilesetFile) : AssetLoader.JoinPath(_tilesetFolder, tilesetFile);
                 if (parallel)
                     assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(assetPath);
                 else
@@ -472,13 +472,14 @@ namespace Emotion.Game.Tiled
             PerfProfiler.FrameEventEnd("TileMap: Objects");
         }
 
-        protected virtual void QueryObjectsToRender()
+        protected virtual void QueryObjectsToRender(List<T> memory = null)
         {
-            _quadTreeQueryMemory.Clear();
+            if (memory == null) memory = _quadTreeQueryMemory;
+            memory.Clear();
             Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
             clipRect = clipRect.Inflate(SafeArea * 25, SafeArea * 25);
-            Objects.GetObjects(clipRect, ref _quadTreeQueryMemory);
-            _quadTreeQueryMemory.Sort(ObjectSort);
+            Objects.GetObjects(clipRect, ref memory);
+            memory.Sort(ObjectSort);
         }
 
         #endregion
@@ -529,7 +530,7 @@ namespace Emotion.Game.Tiled
             if (objDef.Gid != null)
             {
                 uv = GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
-                if (tsId > 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
+                if (tsId >= 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
             }
 
             T factoryObject = CreateObject(objDef, asset, uv, layerId);

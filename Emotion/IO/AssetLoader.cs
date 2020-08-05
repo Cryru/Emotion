@@ -315,6 +315,38 @@ namespace Emotion.IO
         }
 
         /// <summary>
+        /// Get the non-relative path from a path relative to another.
+        /// </summary>
+        /// <param name="relativeTo"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string GetNonRelativePath(string relativeTo, string path)
+        {
+            int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
+            if (lastBack == -1) return path;
+
+            string[] folders = relativeTo.Split("/");
+            var relativeIdx = 0;
+            var times = 0;
+            while (true)
+            {
+                int nextRelative = path.IndexOf("../", relativeIdx, StringComparison.Ordinal);
+                if(nextRelative == -1) break;
+                relativeIdx = nextRelative + "../".Length;
+                times++;
+            }
+
+            if (times > folders.Length) return path;
+            var construct = "";
+            for (var i = 0; i < folders.Length - times; i++)
+            {
+                construct = JoinPath(construct, folders[i]);
+            }
+            construct = JoinPath(construct, path.Substring(relativeIdx));
+            return construct;
+        }
+
+        /// <summary>
         /// Join to asset paths.
         /// </summary>
         /// <param name="left"></param>
