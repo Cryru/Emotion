@@ -779,6 +779,7 @@ namespace Emotion.Game.Tiled
             if (Tilesets.Count <= 0) return;
             foreach (TextureAsset tileset in Tilesets)
             {
+                if (tileset == null) continue;
                 Engine.AssetLoader.Destroy(tileset.Name);
             }
         }
