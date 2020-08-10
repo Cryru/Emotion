@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,6 +45,10 @@ namespace Emotion.Game.Time.Routines
             lock (this)
             {
                 _runningRoutines.Add(routine);
+
+#if DEBUG
+                routine.DebugStackTrace = Environment.StackTrace;
+#endif
             }
 
             return routine;

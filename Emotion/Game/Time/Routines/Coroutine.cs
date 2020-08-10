@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections;
+using System.Reflection;
 
 #endregion
 
@@ -15,6 +16,26 @@ namespace Emotion.Game.Time.Routines
     {
         private IEnumerator _routine;
         private IRoutineWaiter _currentWaiter;
+
+#if DEBUG
+        public string DebugStackTrace;
+
+        private int GetCoroutineStack()
+        {
+            FieldInfo[] fields = _routine.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            FieldInfo stateField = null;
+            for (var i = 0; i < fields.Length; i++)
+            {
+                if (fields[i].Name != "<>1__state") continue;
+                stateField = fields[i];
+                break;
+            }
+
+            if (stateField == null) return -1;
+
+            return (int) stateField.GetValue(_routine);
+        }
+#endif
 
         /// <summary>
         /// Create a new subroutine. Can also be achieved by yielding an IEnumerator.
@@ -53,7 +74,11 @@ namespace Emotion.Game.Time.Routines
                         break;
                     // Check if adding a subroutine.
                     case IEnumerator subroutine:
-                        _currentWaiter = new Coroutine(subroutine);
+                        var subRtn = new Coroutine(subroutine);
+                        _currentWaiter = subRtn;
+#if DEBUG
+                        subRtn.DebugStackTrace = $"At {GetCoroutineStack()} branched subroutine\n" + DebugStackTrace;
+#endif
                         break;
                 }
 
