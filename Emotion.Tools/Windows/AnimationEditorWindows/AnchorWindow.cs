@@ -33,8 +33,11 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             if (_parent.AnimController != null)
             {
                 ImGui.Checkbox("Assign Mirror Anchors", ref _mirrorAnchors);
-                if (_parent.AnimController.MirrorXAnchors == null) _parent.AnimController.MirrorXAnchors = new Vector2[_anim.Anchors.Length];
-                if (_mirrorAnchors) anchorArray = _mirrorAnchors ? _parent.AnimController.MirrorXAnchors : anchorArray;
+                if (_mirrorAnchors)
+                {
+                    if (_parent.AnimController.MirrorXAnchors == null) _parent.AnimController.MirrorXAnchors = new Vector2[_anim.Anchors.Length];
+                    anchorArray = _mirrorAnchors ? _parent.AnimController.MirrorXAnchors : anchorArray;
+                }
 
                 if (_mirrorAnchors)
                 {
