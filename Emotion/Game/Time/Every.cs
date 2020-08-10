@@ -8,6 +8,11 @@ namespace Emotion.Game.Time
 {
     public class Every : ITimer
     {
+        public bool Finished
+        {
+            get => _currentCount >= _count && _count > 0;
+        }
+
         public float Progress
         {
             get => _timePassed / _delay;
@@ -45,7 +50,7 @@ namespace Emotion.Game.Time
                 CallFunc();
 
                 // Check if the current count is sufficient.
-                if (_currentCount >= _count && _count > 0) _after?.Invoke();
+                if (Finished) _after?.Invoke();
             }
         }
 

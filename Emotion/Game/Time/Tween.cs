@@ -10,6 +10,11 @@ namespace Emotion.Game.Time
 {
     public class TweenTimer<TTimer> : ITimer where TTimer : ITimer
     {
+        public bool Finished
+        {
+            get => InnerTimer.Finished;
+        }
+
         public float Progress
         {
             get => _tweenFunc(InnerTimer.Progress);

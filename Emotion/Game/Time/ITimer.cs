@@ -6,6 +6,11 @@
         /// The timer progress from 0 to 1.
         /// </summary>
         float Progress { get; }
+        
+        /// <summary>
+        /// Whether the timer is finished.
+        /// </summary>
+        bool Finished { get; }
 
         /// <summary>
         /// Advance time for the timer.
