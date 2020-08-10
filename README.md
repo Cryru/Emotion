@@ -102,8 +102,10 @@ and many more!
 
 ## Building and Using
 
-Clone and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
-You can also use the Nuget package - https://www.nuget.org/packages/Emotion
+If you want to use all of Emotion's features such as, the testing library (Emotion.Test) to create unit/intergration tests for your game, the tools library (Emotion.Tools) to easily create developer tools, or any of the plugins, you should clone the repo and build using Visual Studio 2019 or higher. Then reference the "Emotion" project in your project. It shouldn't take more than that.
+
+If you just want to write some code or take it for a spin you can use the Nuget package - https://www.nuget.org/packages/Emotion
+The package includes a precompiled debug version of Emotion, but doesn't include any of the native libraries. You don't really need those for most use cases, but you can download them seperately from the repo at [Emotion/AssetsNativeLibs](https://github.com/Cryru/Emotion/tree/master/Emotion/AssetsNativeLibs).
 
 ## Projects Used
 
