@@ -114,6 +114,7 @@ namespace Emotion.Common
         public static void LightSetup(Configurator configurator = null)
         {
             if (Status >= EngineStatus.LightSetup) return;
+            PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
 
             // Correct the startup directory to the directory of the executable.
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
@@ -142,6 +143,8 @@ namespace Emotion.Common
             AssetLoader = LoadDefaultAssetLoader();
             NativeLibrary.SetDllImportResolver(typeof(Engine).Assembly, (libName, assembly, _) => Host?.LoadLibrary(libName) ?? NativeLibrary.Load(libName));
             Status = EngineStatus.LightSetup;
+
+            PerfProfiler.ProfilerEventEnd("LightSetup", "Loading");
         }
 
         /// <summary>
@@ -153,22 +156,21 @@ namespace Emotion.Common
             // Call light setup if needed.
             if (Status < EngineStatus.LightSetup) LightSetup(configurator);
             if (Status >= EngineStatus.Setup) return;
+            PerfProfiler.ProfilerEventStart("Setup", "Loading");
 
             // Create the platform, window, audio, and graphics context.
+            PerfProfiler.ProfilerEventStart("Platform Creation", "Loading");
             Host = GetInstanceOfDetectedPlatform(Configuration);
             if (Host == null)
             {
                 CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
-
             Host.Setup(Configuration);
-
             InputManager = Host;
             Audio = Host.Audio;
-
-            // Errors in host initialization can cause this.
-            if (Status == EngineStatus.Stopped) return;
+            if (Status == EngineStatus.Stopped) return; // Errors in host initialization can cause this.
+            PerfProfiler.ProfilerEventEnd("Platform Creation", "Loading");
 
             // Now that the context is created, the renderer can be created.
             GLThread.BindThread();
@@ -179,13 +181,17 @@ namespace Emotion.Common
             SceneManager = new SceneManager();
 
             // Setup plugins.
+            PerfProfiler.ProfilerEventStart("Plugin Setup", "Loading");
             foreach (IPlugin p in Configuration.Plugins)
             {
                 p.Initialize();
             }
+            PerfProfiler.ProfilerEventEnd("Plugin Setup", "Loading");
 
             if (Status == EngineStatus.Stopped) return;
             Status = EngineStatus.Setup;
+
+            PerfProfiler.ProfilerEventEnd("Setup", "Loading");
         }
 
         public static void Run()

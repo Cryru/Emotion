@@ -10,6 +10,9 @@ using System.Threading;
 
 namespace Emotion.Common
 {
+    /// <summary>
+    /// Load files into chrome://tracing
+    /// </summary>
     public static class PerfProfiler
     {
         private static bool _profileFrame;

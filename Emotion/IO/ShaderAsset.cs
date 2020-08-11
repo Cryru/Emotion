@@ -99,8 +99,7 @@ namespace Emotion.IO
             // Deserialize the shader description.
             base.CreateInternal(data);
             // Fallback to default.
-            if (Content == null) Content = new ShaderDescription();
-
+            Content ??= new ShaderDescription();
             Compile();
         }
 
@@ -140,7 +139,9 @@ namespace Emotion.IO
             Engine.Log.Info($"Creating shader - v:{vertShader.Name}, f:{fragShader.Name}", MessageSource.AssetLoader);
 
             // Create the shader, or at least try to.
+            PerfProfiler.ProfilerEventStart("Compilation", "Loading");
             GLThread.ExecuteGLThread(() => { Shader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content); });
+            PerfProfiler.ProfilerEventEnd("Compilation", "Loading");
 
             // Free text assets as they are no longer needed.
             if (ownVert) Engine.AssetLoader.Destroy(vertShader.Name);
