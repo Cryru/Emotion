@@ -65,6 +65,10 @@ namespace Emotion.Primitives
             double t = (otherD.X * (Start.Y - line.Start.Y) - otherD.Y * (Start.X - line.Start.X)) / (-otherD.X * d.Y + d.X * otherD.Y);
             return s >= 0 && s <= 1 && t >= 0 && t <= 1;
         }
+        public bool Intersects(ref Circle c)
+        {
+            return c.Intersects(ref this);
+        }
 
         public bool PointIsOnLine(Vector2 point)
         {

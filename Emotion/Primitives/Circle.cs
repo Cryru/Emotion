@@ -14,7 +14,6 @@ namespace Emotion.Primitives
         public float Radius;
 
         #region Constructors
-
         public Circle(Vector2 center, float radius)
         {
             X = center.X;
@@ -125,5 +124,6 @@ namespace Emotion.Primitives
 
             return r.Intersects(Center) || Intersects(ref top) || Intersects(ref right) || Intersects(ref bottom) || Intersects(ref left);
         }
+        public static Circle Empty { get; } = new Circle();
     }
 }
