@@ -190,6 +190,20 @@ namespace System.Numerics
         }
 
         /// <summary>
+        /// Round the vector by casting it's components to ints.
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 IntCastRound(this Vector3 v)
+        {
+            v.X = (int) v.X;
+            v.Y = (int) v.Y;
+            v.Z = (int) v.Z;
+            return v;
+        }
+
+        /// <summary>
         /// Returns whether the components of the second vector are all larger or equal to this vector's.
         /// >=
         /// </summary>

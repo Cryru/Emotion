@@ -110,6 +110,9 @@ namespace Emotion.Graphics
             RenderBatch<VertexData> batch = GetBatch();
             Span<VertexData> vertices = batch.GetData(4, 6);
 
+            pointOne = pointOne.IntCastRound();
+            pointTwo = pointTwo.IntCastRound();
+
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
             var normal = new Vector3(-direction.Y, direction.X, 0);
             Vector3 delta = normal * (thickness / 2f);

@@ -93,24 +93,32 @@ namespace Emotion.Primitives
             set => Y = value - Height;
         }
 
+        [DontSerialize]
         public Vector2 TopLeft
         {
             get => new Vector2(X, Y);
+            set => Position = value;
         }
 
+        [DontSerialize]
         public Vector2 TopRight
         {
             get => new Vector2(Right, Y);
+            set => Position = new Vector2(value.X - Right, value.Y);
         }
 
+        [DontSerialize]
         public Vector2 BottomLeft
         {
             get => new Vector2(X, Bottom);
+            set => Position = new Vector2(value.X, value.Y - Bottom);
         }
 
+        [DontSerialize]
         public Vector2 BottomRight
         {
             get => new Vector2(Right, Bottom);
+            set => Position = value - BottomRight;
         }
 
         [DontSerialize]

@@ -20,13 +20,13 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
         private int _row;
         private int _columns;
-        private Action<int, int> _callbackRC;
+        private Action<int, int> _callbackRc;
 
         public GridSettingsWindow(AnimationEditor parent, Action<Vector2, Vector2> callback, Action<int, int> callbackRc) : base("Grid Frames")
         {
             _parent = parent;
             _callback = callback;
-            _callbackRC = callbackRc;
+            _callbackRc = callbackRc;
         }
 
         public override void Update()
@@ -49,7 +49,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             ImGui.InputInt("Columns", ref _columns);
             if (ImGui.Button("Create From Row/Columns"))
             {
-                _callbackRC(_row, _columns);
+                _callbackRc(_row, _columns);
                 Open = false;
             }
         }
