@@ -11,7 +11,7 @@ namespace Emotion.Primitives
     /// <summary>
     /// Represents a line.
     /// </summary>
-    public struct LineSegment
+    public struct LineSegment : IEquatable<LineSegment>
     {
         public Vector2 Start;
         public Vector2 End;
@@ -178,6 +178,11 @@ namespace Emotion.Primitives
             float yt = (1 - t) * Start.Y + t * End.Y;
 
             return new Vector2(xt, yt);
+        }
+
+        public bool Equals(LineSegment other)
+        {
+            return other.Start == Start && other.End == End;
         }
     }
 }

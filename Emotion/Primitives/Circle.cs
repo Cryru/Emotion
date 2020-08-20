@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace Emotion.Primitives
 {
-    public struct Circle
+    public struct Circle : IShape
     {
         public float X;
         public float Y;
@@ -79,6 +79,7 @@ namespace Emotion.Primitives
             return $"Circle - X:{X}, Y:{Y}, Radius: {Radius}";
         }
 
+        /// <inheritdoc />
         public bool Intersects(ref LineSegment l)
         {
             Vector2 d = l.End - l.Start;
@@ -124,6 +125,18 @@ namespace Emotion.Primitives
 
             return r.Intersects(Center) || Intersects(ref top) || Intersects(ref right) || Intersects(ref bottom) || Intersects(ref left);
         }
+
+        public Circle Clone()
+        {
+            return new Circle(Center, Radius);
+        }
+
+        /// <inheritdoc />
+        public IShape CloneShape()
+        {
+            return Clone();
+        }
+
         public static Circle Empty { get; } = new Circle();
     }
 }

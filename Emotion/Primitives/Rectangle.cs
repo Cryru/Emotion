@@ -39,7 +39,7 @@ namespace Emotion.Primitives
     /// <summary>
     /// A rectangle object
     /// </summary>
-    public struct Rectangle : IEquatable<Rectangle>
+    public struct Rectangle : IEquatable<Rectangle>, IShape
     {
         /// <summary>
         /// The X position of the rectangle.
@@ -274,11 +274,17 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// clones and returns a new Rectangle with the same data as the current rectangle
+        /// Returns a new Rectangle with the same data as the current rectangle
         /// </summary>
         public Rectangle Clone()
         {
             return new Rectangle(X, Y, Width, Height);
+        }
+
+        /// <inheritdoc />
+        public IShape CloneShape()
+        {
+            return Clone();
         }
 
         /// <summary>
@@ -396,6 +402,12 @@ namespace Emotion.Primitives
                    Left <= r2.Right &&
                    r2.Top <= Bottom &&
                    Top <= r2.Bottom;
+        }
+
+        /// <inheritdoc />
+        public bool Intersects(ref LineSegment line)
+        {
+            return line.Intersects(ref this);
         }
 
         /// <summary>
