@@ -5,7 +5,6 @@ using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Standard.XML;
-using Emotion.Utility;
 
 #endregion
 
@@ -61,9 +60,17 @@ namespace Emotion.Primitives
         /// </summary>
         public float Height;
 
-        #region Public Properties
+        #region Properties
 
         public static Rectangle Empty { get; } = new Rectangle();
+
+        /// <summary>
+        /// Whether the rectangle is 0,0,0,0
+        /// </summary>
+        public bool IsEmpty
+        {
+            get => Width == 0 && Height == 0 && X == 0 && Y == 0;
+        }
 
         [DontSerialize]
         public float Left
@@ -196,15 +203,7 @@ namespace Emotion.Primitives
 
         #endregion Constructors
 
-        #region Public Methods
-
-        /// <summary>
-        /// Create a Vec3 from the rectangle's position with the specified Z value.
-        /// </summary>
-        public Vector3 PositionZ(float z)
-        {
-            return new Vector3(X, Y, z);
-        }
+        #region Operators
 
         /// <summary>
         /// Whether the two rectangles are equal.
@@ -273,45 +272,152 @@ namespace Emotion.Primitives
             return a;
         }
 
-        /// <summary>
-        /// Returns a new Rectangle with the same data as the current rectangle
-        /// </summary>
-        public Rectangle Clone()
+        #endregion
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Contains(ref Vector2 value)
         {
-            return new Rectangle(X, Y, Width, Height);
+            return X < value.X && value.X < X + Width && Y < value.Y && value.Y < Y + Height;
         }
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ContainsInclusive(ref Vector2 value)
+        {
+            return X <= value.X && value.X <= X + Width && Y <= value.Y && value.Y <= Y + Height;
+        }
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(ref LineSegment line)
+        {
+            return line.Intersects(ref this);
+        }
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2 GetIntersectionPoint(ref LineSegment l)
+        {
+            return l.GetIntersectionPoint(ref this);
+        }
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IShape CloneShape()
         {
             return Clone();
         }
 
         /// <summary>
-        /// Whether the rectangle contains the given point.
+        /// Returns a new Rectangle with the same data as the current rectangle
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public bool Contains(float x, float y)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Rectangle Clone()
         {
-            return X <= x && x <= X + Width && Y <= y && y <= Y + Height;
+            return new Rectangle(X, Y, Width, Height);
         }
 
         /// <summary>
-        /// Whether the rectangle contains the given point.
+        /// Create a Vec3 from the rectangle's position with the specified Z value.
         /// </summary>
-        public bool Contains(Vector2 value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 PositionZ(float z)
         {
-            return X <= value.X && value.X <= X + Width && Y <= value.Y && value.Y <= Y + Height;
+            return new Vector3(X, Y, z);
+        }
+
+        /// <summary>
+        /// Get the line segments making up the rectangle.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LineSegment[] GetLineSegments()
+        {
+            var arr = new LineSegment[4];
+            GetLineSegments(arr);
+            return arr;
+        }
+
+        /// <summary>
+        /// Get the line segments making up the rectangle.
+        /// </summary>
+        /// <param name="array">The array to fill with the segments.</param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void GetLineSegments(Span<LineSegment> array)
+        {
+            array[0] = new LineSegment(TopLeft, TopRight);
+            array[1] = new LineSegment(TopRight, BottomRight);
+            array[2] = new LineSegment(BottomRight, BottomLeft);
+            array[3] = new LineSegment(BottomLeft, TopLeft);
+        }
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Equals(Rectangle other)
+        {
+            return this == other;
+        }
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override bool Equals(object obj)
+        {
+            return obj is Rectangle rectangle && this == rectangle;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"[X:{X} Y:{Y} Width:{Width} Height:{Height}]";
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return (int) Math.Pow(Math.Pow(X, Y), Math.Pow(Width, Height));
         }
 
         /// <summary>
         /// Whether the rectangle contains the given rectangle.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(Rectangle value)
         {
+            return X < value.X && value.X + value.Width < X + Width && Y < value.Y && value.Y + value.Height < Y + Height;
+        }
+
+        /// <summary>
+        /// Whether the rectangle contains the given rectangle.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ContainsInclusive(Rectangle value)
+        {
             return X <= value.X && value.X + value.Width <= X + Width && Y <= value.Y && value.Y + value.Height <= Y + Height;
+        }
+
+        /// <summary>
+        /// Whether the rectangle intersects with the other rectangle.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(ref Rectangle r2)
+        {
+            return r2.Left < Right &&
+                   Left < r2.Right &&
+                   r2.Top < Bottom &&
+                   Top < r2.Bottom;
+        }
+
+        /// <summary>
+        /// Whether the rectangle intersects with the other rectangle inclusively.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IntersectsInclusive(ref Rectangle r2)
+        {
+            return r2.Left <= Right &&
+                   Left <= r2.Right &&
+                   r2.Top <= Bottom &&
+                   Top <= r2.Bottom;
         }
 
         /// <summary>
@@ -341,156 +447,41 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// Whether the rectangle is 0,0,0,0
+        /// Find the closest point of intersection between the ray and the rectangle's surfaces,
+        /// and the distance. If the ray doesn't intersect with the rect Vector2.Zero is returned.
         /// </summary>
-        public bool IsEmpty
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2 GetIntersectionPoint(ref Ray2D ray)
         {
-            get => Width == 0 && Height == 0 && X == 0 && Y == 0;
-        }
-
-        /// <inheritdoc />
-        public bool Equals(Rectangle other)
-        {
-            return this == other;
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            return obj is Rectangle rectangle && this == rectangle;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"[X:{X} Y:{Y} Width:{Width} Height:{Height}]";
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return (int) Math.Pow(Math.Pow(X, Y), Math.Pow(Width, Height));
-        }
-
-        public bool Intersects(ref Vector2 v2)
-        {
-            return v2.X < Right &&
-                   v2.X > Left &&
-                   v2.Y < Bottom &&
-                   v2.Y > Top;
-        }
-
-        public bool Intersects(ref Rectangle r2)
-        {
-            return r2.Left < Right &&
-                   Left < r2.Right &&
-                   r2.Top < Bottom &&
-                   Top < r2.Bottom;
-        }
-
-        public bool IntersectsInclusive(ref Vector2 v2)
-        {
-            return v2.X <= Right &&
-                   v2.X >= Left &&
-                   v2.Y <= Bottom &&
-                   v2.Y >= Top;
-        }
-
-        public bool IntersectsInclusive(ref Rectangle r2)
-        {
-            return r2.Left <= Right &&
-                   Left <= r2.Right &&
-                   r2.Top <= Bottom &&
-                   Top <= r2.Bottom;
-        }
-
-        /// <inheritdoc />
-        public bool Intersects(ref LineSegment line)
-        {
-            return line.Intersects(ref this);
+            return GetIntersectionPointAndDistance(ref ray, out float _);
         }
 
         /// <summary>
-        /// Whether the ray intersects with the rectangle, and at what distance.
+        /// Find the closest point of intersection between the ray and the rectangle's surfaces,
+        /// and the distance. If the ray doesn't intersect with the rect Vector2.Zero is returned.
         /// </summary>
-        /// <param name="ray">The ray or line.</param>
-        /// <param name="distance">The distance at which the ray will intersect with the rectangle.</param>
-        /// <returns>Whether the ray intersects with the rectangle.</returns>
-        public bool RayIntersects(ref Ray2D ray, out float distance)
+        public Vector2 GetIntersectionPointAndDistance(ref Ray2D ray, out float distance)
         {
-            var maxValue = float.MaxValue;
-            distance = 0f;
-
-            if (Math.Abs(ray.Direction.X) < Maths.EPSILON)
+            Vector2 closestPoint = Vector2.Zero;
+            distance = float.MaxValue;
+            Span<LineSegment> surfaces = stackalloc LineSegment[4];
+            GetLineSegments(surfaces);
+            for (var i = 0; i < surfaces.Length; i++)
             {
-                if (ray.Start.X < X || ray.Start.X > X + Width)
-                    return false;
-            }
-            else
-            {
-                float num11 = 1f / ray.Direction.X;
-                float num8 = (X - ray.Start.X) * num11;
-                float num7 = (X + Width - ray.Start.X) * num11;
-                if (num8 > num7)
-                {
-                    float num14 = num8;
-                    num8 = num7;
-                    num7 = num14;
-                }
-
-                distance = Math.Max(num8, distance);
-                maxValue = Math.Min(num7, maxValue);
-                if (distance > maxValue)
-                    return false;
+                Vector2 surfacePoint = surfaces[i].GetIntersectionPointAndDistance(ref ray, out float dist);
+                if (surfacePoint == Vector2.Zero || !(dist < distance)) continue;
+                distance = dist;
+                closestPoint = surfacePoint;
             }
 
-            if (Math.Abs(ray.Direction.Y) < Maths.EPSILON)
-            {
-                if (ray.Start.Y < Y || ray.Start.Y > Y + Height) return false;
-            }
-            else
-            {
-                float num10 = 1f / ray.Direction.Y;
-                float num6 = (Y - ray.Start.Y) * num10;
-                float num5 = (Y + Height - ray.Start.Y) * num10;
-                if (num6 > num5)
-                {
-                    float num13 = num6;
-                    num6 = num5;
-                    num5 = num13;
-                }
-
-                distance = Math.Max(num6, distance);
-                maxValue = Math.Min(num5, maxValue);
-                if (distance > maxValue)
-                    return false;
-            }
-
-            return true;
+            return closestPoint;
         }
 
-        /// <summary>
-        /// Get the line segments making up the rectangle.
-        /// </summary>
-        /// <returns></returns>
-        public LineSegment[] GetLineSegments()
-        {
-            return new[]
-            {
-                new LineSegment(TopLeft, TopRight),
-                new LineSegment(TopRight, BottomRight),
-                new LineSegment(BottomRight, BottomLeft),
-                new LineSegment(BottomLeft, TopLeft)
-            };
-        }
-
-        #endregion
+        #region NEZ Extensions
 
         // Taken from Nez and Modified
         // MIT License
         // https://github.com/prime31/Nez
-
-        #region Extensions
 
         /// <summary>
         /// Get a rectangle representing half of the rectangle - cut from a certain side.
@@ -624,35 +615,6 @@ namespace Emotion.Primitives
         public static Rectangle FromMinMaxPoints(Point min, Point max)
         {
             return new Rectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
-        }
-
-        /// <summary>
-        /// given the points of a polygon calculates the bounds
-        /// </summary>
-        /// <returns>The from polygon points.</returns>
-        /// <param name="points">Points.</param>
-        public static Rectangle BoundsFromPolygonPoints(Vector2[] points)
-        {
-            // we need to find the min/max x/y values
-            float minX = float.PositiveInfinity;
-            float minY = float.PositiveInfinity;
-            float maxX = float.NegativeInfinity;
-            float maxY = float.NegativeInfinity;
-
-            foreach (Vector2 pt in points)
-            {
-                if (pt.X < minX)
-                    minX = pt.X;
-                if (pt.X > maxX)
-                    maxX = pt.X;
-
-                if (pt.Y < minY)
-                    minY = pt.Y;
-                if (pt.Y > maxY)
-                    maxY = pt.Y;
-            }
-
-            return FromMinMaxPoints(new Point((int) minX, (int) minY), new Point((int) maxX, (int) maxY));
         }
 
         /// <summary>
@@ -854,21 +816,9 @@ namespace Emotion.Primitives
         #region Overloads
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Intersects(Vector2 v2)
-        {
-            return Intersects(ref v2);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Intersects(Rectangle r2)
         {
             return Intersects(ref r2);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IntersectsInclusive(Vector2 v2)
-        {
-            return IntersectsInclusive(ref v2);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -881,6 +831,32 @@ namespace Emotion.Primitives
         public Vector2 GetIntersectionDepth(Rectangle r2)
         {
             return GetIntersectionDepth(ref r2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Contains(Vector2 value)
+        {
+            return Contains(ref value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ContainsInclusive(Vector2 value)
+        {
+            return ContainsInclusive(ref value);
+        }
+
+        [Obsolete("Did you mean Rectangle.Contains(Vector2)?")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(Vector2 value)
+        {
+            return Contains(ref value);
+        }
+
+        [Obsolete("Did you mean Rectangle.Contains(ref Vector2)?")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(ref Vector2 value)
+        {
+            return Contains(ref value);
         }
 
         #endregion

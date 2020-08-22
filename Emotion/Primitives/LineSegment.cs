@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Utility;
 
 #endregion
@@ -38,38 +39,18 @@ namespace Emotion.Primitives
             End = end;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float Length()
         {
             return MathF.Sqrt(MathF.Pow(MathF.Abs(End.X - Start.X), 2) + MathF.Pow(MathF.Abs(End.Y - Start.Y), 2));
         }
 
-        public bool Intersects(ref Rectangle r)
-        {
-            var top = new LineSegment(r.TopLeft, r.TopRight);
-            var right = new LineSegment(r.TopRight, r.BottomRight);
-            var bottom = new LineSegment(r.BottomLeft, r.BottomRight);
-            var left = new LineSegment(r.BottomLeft, r.TopLeft);
-
-            return Intersects(ref top) || Intersects(ref right) || Intersects(ref bottom) || Intersects(ref left);
-        }
-
         /// <summary>
-        /// https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+        /// Returns whether the specified point is on the line.
         /// </summary>
-        public bool Intersects(ref LineSegment line)
-        {
-            Vector2 d = End - Start;
-            Vector2 otherD = line.End - line.Start;
-
-            double s = (-d.Y * (Start.X - line.Start.X) + d.X * (Start.Y - line.Start.Y)) / (-otherD.X * d.Y + d.X * otherD.Y);
-            double t = (otherD.X * (Start.Y - line.Start.Y) - otherD.Y * (Start.X - line.Start.X)) / (-otherD.X * d.Y + d.X * otherD.Y);
-            return s >= 0 && s <= 1 && t >= 0 && t <= 1;
-        }
-        public bool Intersects(ref Circle c)
-        {
-            return c.Intersects(ref this);
-        }
-
+        /// <param name="point"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PointIsOnLine(Vector2 point)
         {
             return point.X >= Start.X && point.X <= End.X &&
@@ -103,28 +84,6 @@ namespace Emotion.Primitives
                 return End;
 
             return Start + ab * distance;
-        }
-
-        /// <summary>
-        /// Find the point of intersection between a ray and this line segment.
-        /// If the ray doesn't hit the line 0,0 is returned.
-        /// </summary>
-        public Vector2 FindIntersectionPoint(Ray2D ray)
-        {
-            Vector2 v1 = ray.Start - Start;
-            Vector2 v2 = End - Start;
-            var v3 = new Vector2(-ray.Direction.Y, ray.Direction.X);
-
-            float dot = Vector2.Dot(v2, v3);
-            if (MathF.Abs(dot) < 0.000001)
-                return Vector2.Zero;
-
-            float t1 = v2.Cross(v1) / dot;
-            float t2 = Vector2.Dot(v1, v3) / dot;
-
-            if (t1 >= 0.0 && t2 >= 0.0 && t2 <= 1.0) return ray.Start + ray.Direction * t1;
-
-            return Vector2.Zero;
         }
 
         /// <summary>
@@ -169,6 +128,12 @@ namespace Emotion.Primitives
             return null;
         }
 
+        /// <summary>
+        /// Get a point on the line at a specified distance from the start.
+        /// Min 0 = Start, and Max Length() = End
+        /// </summary>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         public Vector2 PointOnLineAtDistance(float distance)
         {
             float d = Length();
@@ -180,9 +145,166 @@ namespace Emotion.Primitives
             return new Vector2(xt, yt);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(LineSegment other)
         {
             return other.Start == Start && other.End == End;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LineSegment Clone()
+        {
+            return new LineSegment(Start, End);
+        }
+
+        #region Line
+
+        /// <summary>
+        /// https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+        /// </summary>
+        public bool Intersects(ref LineSegment line)
+        {
+            Vector2 d = End - Start;
+            Vector2 otherD = line.End - line.Start;
+
+            float s = (-d.Y * (Start.X - line.Start.X) + d.X * (Start.Y - line.Start.Y)) / (-otherD.X * d.Y + d.X * otherD.Y);
+            float t = (otherD.X * (Start.Y - line.Start.Y) - otherD.Y * (Start.X - line.Start.X)) / (-otherD.X * d.Y + d.X * otherD.Y);
+            return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+        }
+
+        public Vector2 GetIntersectionPoint(ref LineSegment other)
+        {
+            float s10X = End.X - Start.X;
+            float s10Y = End.Y - Start.Y;
+            float s32X = other.End.X - other.Start.X;
+            float s32Y = other.End.Y - other.Start.Y;
+
+            float denom = s10X * s32Y - s32X * s10Y;
+            if (denom == 0f) return Vector2.Zero; // Collinear.
+
+            bool denomIsPositive = denom > 0;
+            float s02X = Start.X - other.Start.X;
+            float s02Y = Start.Y - other.Start.Y;
+
+            float sNumer = s10X * s02Y - s10Y * s02X;
+            if (sNumer < 0 == denomIsPositive) return Vector2.Zero;
+
+            float tNumer = s32X * s02Y - s32Y * s02X;
+            if (tNumer < 0 == denomIsPositive) return Vector2.Zero;
+            if (sNumer > denom == denomIsPositive || tNumer > denom == denomIsPositive) return Vector2.Zero;
+
+            float t = tNumer / denom;
+            return new Vector2(Start.X + t * s10X, Start.Y + t * s10Y);
+        }
+
+        #endregion
+
+        #region Circle
+
+        /// <summary>
+        /// Whether this line insects the circle.
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Intersects(ref Circle c)
+        {
+            // 3x HIT cases:
+            //          -o->             --|-->  |            |  --|->
+            // Impale(t1 hit,t2 hit), Poke(t1 hit,t2>1), ExitWound(t1<0, t2 hit), 
+
+            // 3x MISS cases:
+            //       ->  o                     o ->              | -> |
+            // FallShort (t1>1,t2>1), Past (t1<0,t2<0), CompletelyInside(t1<0, t2>1)
+
+            Vector2 closestPoint = GetClosestPointOnLineSegment(c.Center);
+            return Vector2.Distance(closestPoint, c.Center) < c.Radius;
+        }
+
+        /// <summary>
+        /// The intersection point between the circle and this line. If they don't intersect
+        /// Vector2.Zero is returned instead.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2 GetIntersectionPoint(ref Circle c)
+        {
+            Vector2 closestPoint = GetClosestPointOnLineSegment(c.Center);
+            return Vector2.Distance(closestPoint, c.Center) < c.Radius ? closestPoint : Vector2.Zero;
+        }
+
+        #endregion
+
+        #region Rectangle
+
+        /// <summary>
+        /// Whether this line intersects the rectangle.
+        /// </summary>
+        public bool Intersects(ref Rectangle r)
+        {
+            Span<LineSegment> surfaces = stackalloc LineSegment[4];
+            r.GetLineSegments(surfaces);
+            for (var i = 0; i < surfaces.Length; i++)
+            {
+                if (Intersects(ref surfaces[i])) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get the intersection point between the rectangle and the line segment.
+        /// </summary>
+        public Vector2 GetIntersectionPoint(ref Rectangle r)
+        {
+            Span<LineSegment> surfaces = stackalloc LineSegment[4];
+            r.GetLineSegments(surfaces);
+            Vector2 intersectionPoint = Vector2.Zero;
+            for (var i = 0; i < surfaces.Length; i++)
+            {
+                intersectionPoint = GetIntersectionPoint(ref surfaces[i]);
+                if (intersectionPoint != Vector2.Zero) return intersectionPoint;
+            }
+
+            return intersectionPoint;
+        }
+
+        #endregion
+
+        #region Ray
+
+        /// <summary>
+        /// Find the point of intersection between a ray and this line segment.
+        /// If the ray doesn't hit the line 0,0 is returned.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2 GetIntersectionPoint(ref Ray2D ray)
+        {
+            return GetIntersectionPointAndDistance(ref ray, out float _);
+        }
+
+        /// <summary>
+        /// Find the point of intersection between a ray and this line segment, and the distance of intersection.
+        /// If the ray doesn't hit the line 0,0 is returned.
+        /// </summary>
+        public Vector2 GetIntersectionPointAndDistance(ref Ray2D ray, out float dist)
+        {
+            dist = float.MaxValue;
+
+            Vector2 v1 = ray.Start - Start;
+            Vector2 v2 = End - Start;
+            var v3 = new Vector2(-ray.Direction.Y, ray.Direction.X);
+
+            float dot = Vector2.Dot(v2, v3);
+            if (MathF.Abs(dot) < 0.000001) return Vector2.Zero;
+
+            dist = v2.Cross(v1) / dot;
+            float t2 = Vector2.Dot(v1, v3) / dot;
+
+            if (dist >= 0.0 && t2 >= 0.0 && t2 <= 1.0) return ray.Start + ray.Direction * dist;
+            return Vector2.Zero;
+        }
+
+
+        #endregion
     }
 }

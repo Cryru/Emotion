@@ -50,7 +50,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
                 clickCapture.Location += _lastOffset;
 
                 clickCapture.Size *= _parent.Scale;
-                if (!clickCapture.Intersects(mousePos)) continue;
+                if (!clickCapture.Contains(mousePos)) continue;
                 if (_holdingIdx == -1)
                 {
                     _holdingIdx = i;

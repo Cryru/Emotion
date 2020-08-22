@@ -267,11 +267,60 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
+        /// Renders the polygon unwound.
+        /// </summary>
+        /// <param name="composer">The composer to render with.</param>
+        /// <param name="color">The color of the polygon.</param>
+        public void Render(RenderComposer composer, Color color)
+        {
+            composer.SetStencilTest(true);
+            composer.StencilWindingStart();
+            composer.ToggleRenderColor(false);
+
+            composer.RenderVertices(Vertices, Color.White);
+
+            composer.StencilWindingEnd();
+            composer.ToggleRenderColor(true);
+
+            composer.RenderSprite(Bounds2D, color);
+
+            composer.SetStencilTest(false);
+        }
+
+        /// <summary>
         /// Find the bounding rectangle of a polygon.
         /// </summary>
         /// <param name="vertices">The vertices which make up the polygon.</param>
         /// <returns>The bounding rectangle of the polygon.</returns>
         public static Rectangle BoundingRectangleOfPolygon(params Vector3[] vertices)
+        {
+            var minX = float.MaxValue;
+            var maxX = float.MinValue;
+            var minY = float.MaxValue;
+            var maxY = float.MinValue;
+
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                float x = vertices[i].X;
+                float y = vertices[i].Y;
+                minX = Math.Min(minX, x);
+                maxX = Math.Max(maxX, x);
+                minY = Math.Min(minY, y);
+                maxY = Math.Max(maxY, y);
+            }
+
+            float width = maxX - minX;
+            float height = maxY - minY;
+
+            return new Rectangle(minX, minY, width, height);
+        }
+
+        /// <summary>
+        /// Find the bounding rectangle of a polygon.
+        /// </summary>
+        /// <param name="vertices">The vertices which make up the polygon.</param>
+        /// <returns>The bounding rectangle of the polygon.</returns>
+        public static Rectangle BoundingRectangleOfPolygon(params Vector2[] vertices)
         {
             var minX = float.MaxValue;
             var maxX = float.MinValue;
@@ -327,27 +376,6 @@ namespace Emotion.Primitives
             float height = maxY - minY;
 
             return new Rectangle(minX, minY, width, height);
-        }
-
-        /// <summary>
-        /// Renders the polygon unwound.
-        /// </summary>
-        /// <param name="composer">The composer to render with.</param>
-        /// <param name="color">The color of the polygon.</param>
-        public void Render(RenderComposer composer, Color color)
-        {
-            composer.SetStencilTest(true);
-            composer.StencilWindingStart();
-            composer.ToggleRenderColor(false);
-
-            composer.RenderVertices(Vertices, Color.White);
-
-            composer.StencilWindingEnd();
-            composer.ToggleRenderColor(true);
-
-            composer.RenderSprite(Bounds2D, color);
-
-            composer.SetStencilTest(false);
         }
     }
 }

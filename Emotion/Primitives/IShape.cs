@@ -18,5 +18,20 @@ namespace Emotion.Primitives
         /// Whether the shape intersects with the line.
         /// </summary>
         bool Intersects(ref LineSegment line);
+
+        /// <summary>
+        /// The point of intersection between the shape and a line segment.
+        /// </summary>
+        Vector2 GetIntersectionPoint(ref LineSegment line);
+
+        /// <summary>
+        /// Whether the shape contains the specified point.
+        /// </summary>
+        bool Contains(ref Vector2 point);
+
+        /// <summary>
+        /// Whether the shape contains the specified point.
+        /// </summary>
+        bool ContainsInclusive(ref Vector2 point);
     }
 }
