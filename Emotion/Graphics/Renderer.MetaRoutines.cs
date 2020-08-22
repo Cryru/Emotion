@@ -191,5 +191,11 @@ namespace Emotion.Graphics
             }
             RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, color ?? Color.White, attachment ?? buffer.ColorAttachment, renderUv);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RenderFrameBuffer(FrameBuffer buffer, Color? color)
+        {
+            RenderFrameBuffer(buffer, null, null, null, null, color);
+        }
     }
 }
