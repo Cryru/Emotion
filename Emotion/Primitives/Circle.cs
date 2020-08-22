@@ -80,6 +80,13 @@ namespace Emotion.Primitives
 
         #endregion
 
+        public Vector2 PointOnCircle(float angle)
+        {
+            float x = Radius * angle + X;
+            float y = Radius * angle + Y;
+            return new Vector2(x, y);
+        }
+
         /// <inheritdoc />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Intersects(ref LineSegment l)
