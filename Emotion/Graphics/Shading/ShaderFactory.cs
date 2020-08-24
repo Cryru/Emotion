@@ -30,7 +30,7 @@ namespace Emotion.Graphics.Shading
             ("shader5", s => ExcludeCompliantRenderer(AddExtensionConstant(s, "GL_ARB_gpu_shader5"))),
             ("CompatTextureIndex", s => ApplyIndexUnwrap(AddPreprocessorConstant(s, "CompatTextureIndex"))),
             ("AttribLocationExtension", s => ExcludeEs(AddExtensionConstant(s, "GL_ARB_explicit_attrib_location"))),
-            ("CompatTextureIndex&AttribLocationExtension", s => ExcludeEs(ApplyIndexUnwrap(AddExtensionConstant(AddPreprocessorConstant(s, "CompatTextureIndex"), "GL_ARB_explicit_attrib_location"))))
+            ("CompatTextureIndex&AttribLocationExtension", s => ExcludeEs(ApplyIndexUnwrap(AddPreprocessorConstant(AddExtensionConstant(s, "GL_ARB_explicit_attrib_location"), "CompatTextureIndex"))))
         };
 
         /// <summary>
@@ -211,6 +211,7 @@ namespace Emotion.Graphics.Shading
             code.Insert(4, "#endif\n");
             code.Insert(5, "#line 2\n");
 
+            var dependencyIdx = 1;
             for (var i = 5; i < code.Count; i++)
             {
                 // Legacy texture uniform definition.
@@ -239,26 +240,27 @@ namespace Emotion.Graphics.Shading
                 {
                     string line = code[i].Trim();
                     string file = line.Replace("#using \"", "");
-                    file = file.Substring(0, file.Length - 1);
+                    file = file[..^1];
 
-                    code[i] = ResolveShaderDependency(file);
+                    code[i] = $"#line 0 {dependencyIdx} // {file}\n{ResolveShaderDependency(file)}\n// End";
                     codeAdded = true;
+                    dependencyIdx++;
                 }
 
                 // Old using
                 if (code[i].StartsWith("//GetTextureColor"))
                 {
-                    code[i] = ResolveShaderDependency("Shaders/GetTextureColor.c");
+                    code[i] = $"#line 0 {dependencyIdx} // Legacy Import GetTextureColor\n{ResolveShaderDependency("Shaders/GetTextureColor.c")}\n// End";
                     codeAdded = true;
                 }
                 else if (code[i].StartsWith("//GetTextureSize"))
                 {
-                    code[i] = ResolveShaderDependency("Shaders/GetTextureSize.c");
+                    code[i] = $"#line 0 {dependencyIdx} // Legacy Import GetTextureSize\n{ResolveShaderDependency("Shaders/GetTextureSize.c")}\n// End";
                     codeAdded = true;
                 }
 
                 // Ensure shader errors are reported for the correct lines.
-                if (codeAdded) code[i] += $"\n#line {i - 2}";
+                if (codeAdded) code[i] += $"\n#line {i - 4} 0";
 
                 code[i] = code[i].Trim() + "\n";
             }

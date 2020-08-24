@@ -14,6 +14,5 @@ out vec4 fragColor;
 
 void main() { 
     fragColor = getTextureColor(Tid, UV) * vertColor;
-    
     if (fragColor.a < 0.01)discard;
 }
