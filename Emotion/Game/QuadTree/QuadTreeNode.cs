@@ -191,13 +191,13 @@ namespace Emotion.Game.QuadTree
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
         private QuadTreeNode<T> GetDestinationTree(QuadTreeObject<T> item)
         {
-            if (TopLeftChild.QuadRect.Contains(item.Data.Bounds))
+            if (TopLeftChild.QuadRect.ContainsInclusive(item.Data.Bounds))
                 return TopLeftChild;
-            if (TopRightChild.QuadRect.Contains(item.Data.Bounds))
+            if (TopRightChild.QuadRect.ContainsInclusive(item.Data.Bounds))
                 return TopRightChild;
-            if (BottomLeftChild.QuadRect.Contains(item.Data.Bounds))
+            if (BottomLeftChild.QuadRect.ContainsInclusive(item.Data.Bounds))
                 return BottomLeftChild;
-            if (BottomRightChild.QuadRect.Contains(item.Data.Bounds))
+            if (BottomRightChild.QuadRect.ContainsInclusive(item.Data.Bounds))
                 return BottomRightChild;
 
             // If a child can't contain an object, it will live in this Quad
@@ -207,7 +207,7 @@ namespace Emotion.Game.QuadTree
         private void Relocate(QuadTreeObject<T> item)
         {
             // Are we still inside our parent?
-            if (QuadRect.Contains(item.Data.Bounds))
+            if (QuadRect.ContainsInclusive(item.Data.Bounds))
             {
                 // Good, have we moved inside any of our children?
                 if (TopLeftChild == null) return;
@@ -308,7 +308,7 @@ namespace Emotion.Game.QuadTree
         internal void Insert(QuadTreeObject<T> item)
         {
             // If this quad doesn't contain the items rectangle, do nothing, unless we are the root
-            if (!QuadRect.Contains(item.Data.Bounds))
+            if (!QuadRect.ContainsInclusive(item.Data.Bounds))
             {
                 if (Parent == null)
                     // This object is outside of the QuadTree bounds, we should add it at the root level
@@ -357,7 +357,7 @@ namespace Emotion.Game.QuadTree
         {
             // We can't do anything if the results list doesn't exist
             if (results == null) return;
-            if (searchRect.Contains(QuadRect))
+            if (searchRect.ContainsInclusive(QuadRect))
             {
                 // If the search area completely contains this quad, just get every object this quad and all it's children have
                 GetAllObjects(ref results);
