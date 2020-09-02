@@ -569,6 +569,9 @@ namespace Emotion.Primitives
         /// <param name="value2">Second.</param>
         public static Rectangle Union(Rectangle value1, Rectangle value2)
         {
+            if (value1 == Empty) return value2;
+            if (value2 == Empty) return value1;
+
             var result = new Rectangle {X = Math.Min(value1.X, value2.X), Y = Math.Min(value1.Y, value2.Y)};
             result.Width = Math.Max(value1.Right, value2.Right) - result.X;
             result.Height = Math.Max(value1.Bottom, value2.Bottom) - result.Y;
