@@ -74,22 +74,21 @@ namespace Emotion.Game.Text
                 }
 
                 // Break line if we don't have enough space to fit all the text to the next break, or if the current character is a break.
-                if (textSize.X > bounds.X || text[i] == '\n')
+                bool lineBreakChar = text[i] == '\n';
+                if (textSize.X > bounds.X || lineBreakChar)
                 {
                     // Update measures.
                     Vector2 lineSize = MeasureString(currentLine);
                     if (lineSize.X > longestLine) longestLine = lineSize.X;
-                    if (lineSize.Y > lineHeight) lineHeight = textSize.Y;
-                    NeededHeight += lineHeight + LineGap;
-                    lineHeight = _atlas.FontHeight;
+                    NeededHeight += MathF.Max(lineHeight, lineSize.Y) + LineGap;
 
                     // Push new line.
-                    if (text[i] != '\n') _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
+                    if (!lineBreakChar) _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
                     currentLine = "";
                 }
 
                 // Add the current character to the current line string.
-                currentLine += text[i].ToString();
+                if (!lineBreakChar) currentLine += text[i].ToString();
             }
 
             // If there is text left, push it onto the measurement too.
