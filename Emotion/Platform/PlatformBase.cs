@@ -338,7 +338,7 @@ namespace Emotion.Platform
         protected void UpdateMouseKeyStatus(MouseKey key, bool down)
         {
             if (key == MouseKey.Unknown) return;
-            int keyIndex = (short) key - 1;
+            int keyIndex = (short) key;
             if (keyIndex > _mouseKeys.Length - 1) return;
 
             // If it was down, but no longer is - it was let go.
@@ -488,8 +488,8 @@ namespace Emotion.Platform
         protected bool[] _keys;
         protected bool[] _keysPrevious;
         protected short[] _scanCodes;
-        protected bool[] _mouseKeys = new bool[3];
-        protected bool[] _mouseKeysPrevious = new bool[3];
+        protected bool[] _mouseKeys = new bool[(int) MouseKey.Last];
+        protected bool[] _mouseKeysPrevious = new bool[(int) MouseKey.Last];
         protected float _mouseScroll;
         protected float _mouseScrollThisFrame;
         protected float _mouseScrollAccum;
@@ -497,8 +497,8 @@ namespace Emotion.Platform
         // Immediate-mode input
         protected bool[] _keysIM;
         protected bool[] _keysPreviousIM;
-        protected bool[] _mouseKeysIM = new bool[3];
-        protected bool[] _mouseKeysPreviousIM = new bool[3];
+        protected bool[] _mouseKeysIM = new bool[(int) MouseKey.Last];
+        protected bool[] _mouseKeysPreviousIM = new bool[(int) MouseKey.Last];
 
         public virtual void UpdateInput()
         {
@@ -562,7 +562,7 @@ namespace Emotion.Platform
         public bool IsMouseKeyDown(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key - 1;
+            int keyIndex = (short) key;
             return _mouseKeysIM[keyIndex] && !_mouseKeysPreviousIM[keyIndex];
         }
 
@@ -570,7 +570,7 @@ namespace Emotion.Platform
         public bool IsMouseKeyHeld(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key - 1;
+            int keyIndex = (short) key;
             return _mouseKeysIM[keyIndex] && _mouseKeysPreviousIM[keyIndex];
         }
 
@@ -578,7 +578,7 @@ namespace Emotion.Platform
         public bool IsMouseKeyUp(MouseKey key)
         {
             if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key - 1;
+            int keyIndex = (short) key;
             return !_mouseKeysIM[keyIndex] && _mouseKeysPreviousIM[keyIndex];
         }
 

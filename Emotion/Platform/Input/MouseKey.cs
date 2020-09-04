@@ -5,6 +5,7 @@
         Unknown,
         Left,
         Right,
-        Middle
+        Middle,
+        Last
     }
 }
