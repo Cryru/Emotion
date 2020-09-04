@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using Emotion.Common;
 using Emotion.Standard.Logging;
