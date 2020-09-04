@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Emotion.Primitives;
 
@@ -122,6 +123,7 @@ namespace Emotion.Game.QuadTree
         public void Add(T item)
         {
             if (item == null) return;
+            Debug.Assert(!_wrappedDictionary.ContainsKey(item));
 
             var wrappedObject = new QuadTreeObject<T>(item);
             _wrappedDictionary.Add(item, wrappedObject);

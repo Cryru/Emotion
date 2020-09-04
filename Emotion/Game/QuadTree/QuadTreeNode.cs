@@ -1,6 +1,8 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Emotion.Primitives;
@@ -105,9 +107,9 @@ namespace Emotion.Game.QuadTree
         /// <param name="item">The item to add.</param>
         private void Add(QuadTreeObject<T> item)
         {
-            if (_objects == null)
-                _objects = new List<QuadTreeObject<T>>();
+            _objects ??= new List<QuadTreeObject<T>>();
 
+            Debug.Assert(_objects.IndexOf(item) == -1);
             item.Owner = this;
             _objects.Add(item);
         }
@@ -121,7 +123,7 @@ namespace Emotion.Game.QuadTree
             if (_objects == null) return;
             int removeIndex = _objects.IndexOf(item);
             if (removeIndex < 0) return;
-            _objects[removeIndex] = _objects[_objects.Count - 1];
+            _objects[removeIndex] = _objects[^1];
             _objects.RemoveAt(_objects.Count - 1);
         }
 
@@ -325,11 +327,15 @@ namespace Emotion.Game.QuadTree
             else
             {
                 // No quads, create them and bump objects down where appropriate
-                if (TopLeftChild == null)
-                    Subdivide();
+                if (TopLeftChild == null) Subdivide();
 
                 // Find out which tree this object should go in and add it there
                 QuadTreeNode<T> destTree = GetDestinationTree(item);
+
+                // If the item is already there, don't add it again.
+                // This can happen when an out of bounds item is redirected due to a subdivision.
+                if (item.Owner == destTree) return;
+
                 if (destTree == this)
                     Add(item);
                 else
@@ -370,6 +376,7 @@ namespace Emotion.Game.QuadTree
                     for (var i = 0; i < _objects.Count; i++)
                     {
                         QuadTreeObject<T> obj = _objects[i];
+                        Debug.Assert(results.IndexOf(obj.Data) == -1);
                         if (searchRect.Intersects(obj.Data.Bounds))
                             results.Add(obj.Data);
                     }
