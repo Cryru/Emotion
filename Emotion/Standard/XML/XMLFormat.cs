@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -32,19 +33,29 @@ namespace Emotion.Standard.XML
             if (string.IsNullOrEmpty(xml)) return default;
             Type type = typeof(T);
 
-            // Handler is gotten first so it can index type names.
-            XMLTypeHandler handler = XMLHelpers.GetTypeHandler(type);
-            if (handler == null) return default;
+            // This is called first in order to index the type.
+            XMLTypeHandler requestedType = XMLHelpers.GetTypeHandler(type);
 
             var reader = new XMLReader(xml);
-
-            // Verify first tag is the provided type.
             reader.GoToNextTag();
-            string currentTag = reader.ReadTagWithoutAttribute();
-            Type tagType = XMLHelpers.GetTypeByName(currentTag);
-            if (tagType != null && tagType == type) return (T) handler.Deserialize(reader);
-            Engine.Log.Warning($"Serializing XML of type {tagType}({currentTag}) while expecting {type}.", MessageSource.XML);
-            return default;
+
+            // Check if the handler is supposed to be of a derived type. Otherwise use the handler of the requested type.
+            XMLTypeHandler handler = XMLHelpers.GetDerivedTypeHandlerFromXMLTag(reader, out string tag) ?? requestedType;
+            Type headerTagType = XMLHelpers.GetTypeByName(tag);
+            if (headerTagType == null || headerTagType != type)
+            {
+                Engine.Log.Warning($"Tried to deserialize a document with header type {headerTagType}({tag}) while expecting derivative of {type}.", MessageSource.XML);
+                return default;
+            }
+
+            // Verify whether document is of an assignable type.
+            if (!type.IsAssignableFrom(handler.Type))
+            {
+                Engine.Log.Warning($"Tried to deserialize a document of type {handler.TypeName} while expecting derivative of {type}.", MessageSource.XML);
+                return default;
+            }
+
+            return (T) handler.Deserialize(reader);
         }
 
         public static T From<T>(byte[] data)
