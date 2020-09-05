@@ -426,7 +426,7 @@ namespace Emotion.Game.Tiled
             }
         }
 
-        private void RenderLayer(RenderComposer composer, int idx, Rectangle clipVal)
+        protected virtual void RenderLayer(RenderComposer composer, int idx, Rectangle clipVal)
         {
             VertexData[] renderCache = _cachedTileRenderData[idx];
             if (renderCache == null || TiledMap == null) return;
