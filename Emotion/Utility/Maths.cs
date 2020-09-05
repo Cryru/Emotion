@@ -74,6 +74,33 @@ namespace Emotion.Utility
         public static Matrix4x4 FlipMatY = Matrix4x4.CreateScale(1, -1, 1);
 
         /// <summary>
+        /// The four 2d directions.
+        /// </summary>
+        public static Vector2[] CardinalDirections2D =
+        {
+            new Vector2(-1, 0),
+            new Vector2(1, 0),
+            new Vector2(0, -1),
+            new Vector2(0, 1)
+        };
+
+        /// <summary>
+        /// The four 2d diagonals.
+        /// </summary>
+        public static Vector2[] Diagonals2D =
+        {
+            new Vector2(-1, -1),
+            new Vector2(1, 1),
+            new Vector2(-1, 1),
+            new Vector2(1, -1)
+        };
+
+        /// <summary>
+        /// The four 2d directions and the four diagonals.
+        /// </summary>
+        public static Vector2[] CardinalDirectionsAndDiagonals2D = Extensions.JoinArrays(CardinalDirections2D , Diagonals2D);
+
+        /// <summary>
         /// Ceiling round the float to the nearest int value above y. note that this only works for values in the range of short.
         /// </summary>
         /// <returns>The ceil to int.</returns>

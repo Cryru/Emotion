@@ -293,16 +293,23 @@ namespace Emotion.Utility
         /// <summary>
         /// Adds an element to an array. This is worse than using a list and will resize the array.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="array"></param>
-        /// <param name="element"></param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] AddToArray<T>(this T[] array, T element)
         {
             Array.Resize(ref array, array.Length + 1);
             array[^1] = element;
             return array;
+        }
+
+        /// <summary>
+        /// Join two arrays to create a new array contains the items of both.
+        /// </summary>
+        public static T[] JoinArrays<T>(T[] arrayOne, T[] arrayTwo)
+        {
+            T[] newArray = new T[arrayOne.Length + arrayTwo.Length];
+            Array.Copy(arrayOne, 0, newArray, 0, arrayOne.Length);
+            Array.Copy(arrayTwo, 0, newArray, arrayOne.Length, arrayTwo.Length);
+            return newArray;
         }
 
         /// <summary>
