@@ -117,20 +117,24 @@ namespace Emotion.Primitives
 
         /// <inheritdoc />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IShape CloneShape()
+        public bool Contains(ref Rectangle rect)
         {
-            return Clone();
+            if (Vector2.Distance(rect.TopLeft, Center) > Radius) return false;
+            if (Vector2.Distance(rect.TopRight, Center) > Radius) return false;
+            if (Vector2.Distance(rect.BottomLeft, Center) > Radius) return false;
+            if (Vector2.Distance(rect.BottomRight, Center) > Radius) return false;
+            return true;
         }
 
+        /// <inheritdoc />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Circle Clone()
+        public bool ContainsInclusive(ref Rectangle rect)
         {
-            return new Circle(Center, Radius);
-        }
-
-        public override string ToString()
-        {
-            return $"Circle [X:{X}, Y:{Y}, Radius:{Radius}]";
+            if (Vector2.Distance(rect.TopLeft, Center) >= Radius) return false;
+            if (Vector2.Distance(rect.TopRight, Center) >= Radius) return false;
+            if (Vector2.Distance(rect.BottomLeft, Center) >= Radius) return false;
+            if (Vector2.Distance(rect.BottomRight, Center) >= Radius) return false;
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -146,6 +150,24 @@ namespace Emotion.Primitives
             }
 
             return false;
+        }
+
+        /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IShape CloneShape()
+        {
+            return Clone();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Circle Clone()
+        {
+            return new Circle(Center, Radius);
+        }
+
+        public override string ToString()
+        {
+            return $"Circle [X:{X}, Y:{Y}, Radius:{Radius}]";
         }
     }
 }

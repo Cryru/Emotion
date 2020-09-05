@@ -382,7 +382,7 @@ namespace Emotion.Primitives
         /// Whether the rectangle contains the given rectangle.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(Rectangle value)
+        public bool Contains(ref Rectangle value)
         {
             return X < value.X && value.X + value.Width < X + Width && Y < value.Y && value.Y + value.Height < Y + Height;
         }
@@ -391,7 +391,7 @@ namespace Emotion.Primitives
         /// Whether the rectangle contains the given rectangle.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsInclusive(Rectangle value)
+        public bool ContainsInclusive(ref Rectangle value)
         {
             return X <= value.X && value.X + value.Width <= X + Width && Y <= value.Y && value.Y + value.Height <= Y + Height;
         }
@@ -844,6 +844,18 @@ namespace Emotion.Primitives
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ContainsInclusive(Vector2 value)
+        {
+            return ContainsInclusive(ref value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Contains(Rectangle value)
+        {
+            return Contains(ref value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ContainsInclusive(Rectangle value)
         {
             return ContainsInclusive(ref value);
         }

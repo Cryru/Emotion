@@ -33,5 +33,20 @@ namespace Emotion.Primitives
         /// Whether the shape contains the specified point.
         /// </summary>
         bool ContainsInclusive(ref Vector2 point);
+
+        /// <summary>
+        /// Whether the shape contains the specified rectangle.
+        /// </summary>
+        bool Contains(ref Rectangle rect);
+
+        /// <summary>
+        /// Whether the shape contains the specified rectangle.
+        /// </summary>
+        bool ContainsInclusive(ref Rectangle rect);
+
+        /// <summary>
+        /// Whether the shape intersects with the specified rectangle.
+        /// </summary>
+        bool Intersects(ref Rectangle rect);
     }
 }

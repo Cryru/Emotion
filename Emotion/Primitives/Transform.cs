@@ -10,6 +10,7 @@ namespace Emotion.Primitives
 {
     /// <summary>
     /// An object with a position and size.
+    /// Named transform for more traditional than rational-model matrix reasons.
     /// </summary>
     public class Transform : Positional
     {

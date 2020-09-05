@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -25,7 +24,12 @@ namespace Emotion.Game.QuadTree
         /// <summary>
         /// The area this QuadTree represents.
         /// </summary>
-        public Rectangle QuadRect { get; private set; }
+        public Rectangle QuadRect
+        {
+            get => _quadRect;
+        }
+
+        protected Rectangle _quadRect;
 
         /// <summary>
         /// The top left child for this QuadTree
@@ -80,7 +84,7 @@ namespace Emotion.Game.QuadTree
         /// <param name="nodeCapacity">The number of objects a node can contain before it subdivides.</param>
         public QuadTreeNode(Rectangle rect, int nodeCapacity)
         {
-            QuadRect = rect;
+            _quadRect = rect;
             NodeCapacity = nodeCapacity;
         }
 
@@ -182,7 +186,7 @@ namespace Emotion.Game.QuadTree
         public void Reset(Rectangle rect)
         {
             Clear();
-            QuadRect = rect;
+            _quadRect = rect;
         }
 
         /// <summary>
@@ -343,50 +347,53 @@ namespace Emotion.Game.QuadTree
             }
         }
 
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// </summary>
-        /// <param name="searchRect">The rectangle to find objects in.</param>
-        internal List<T> GetObjects(Rectangle searchRect)
+        internal List<T> GetObjects(ref Rectangle searchRect)
         {
             var results = new List<T>();
-            GetObjects(searchRect, ref results);
+            GetObjects(ref searchRect, ref results);
+            return results;
+        }
+
+        internal List<T> GetObjects(ref Circle searchCircle)
+        {
+            var results = new List<T>();
+            GetObjects(ref searchCircle, ref results);
             return results;
         }
 
         /// <summary>
         /// Get the objects in this tree that intersect with the specified rectangle.
         /// </summary>
-        /// <param name="searchRect">The rectangle to find objects in.</param>
+        /// <param name="searchArea">The rectangle to find objects in.</param>
         /// <param name="results">A reference to a list that will be populated with the results.</param>
-        internal void GetObjects(Rectangle searchRect, ref List<T> results)
+        internal void GetObjects<TBound>(ref TBound searchArea, ref List<T> results) where TBound : IShape
         {
             // We can't do anything if the results list doesn't exist
             if (results == null) return;
-            if (searchRect.ContainsInclusive(QuadRect))
+
+            if (searchArea.ContainsInclusive(ref _quadRect))
             {
-                // If the search area completely contains this quad, just get every object this quad and all it's children have
+                // If the search area completely contains this quad, just get every object in this quad and all its children
                 GetAllObjects(ref results);
             }
-            else if (searchRect.Intersects(QuadRect))
+            else if (searchArea.Intersects(ref _quadRect))
             {
-                // Otherwise, if the quad isn't fully contained, only add objects that intersect with the search rectangle
+                // Otherwise, check intersections between the search area and the objects in this quad.
                 if (_objects != null)
-                    // ReSharper disable once LoopCanBeConvertedToQuery
                     for (var i = 0; i < _objects.Count; i++)
                     {
                         QuadTreeObject<T> obj = _objects[i];
-                        Debug.Assert(results.IndexOf(obj.Data) == -1);
-                        if (searchRect.Intersects(obj.Data.Bounds))
-                            results.Add(obj.Data);
+                        Debug.Assert(results.IndexOf(obj.Data) == -1, "QuadTree object found twice in query. Was it added twice?");
+                        Rectangle bounds = obj.Data.Bounds;
+                        if (searchArea.Intersects(ref bounds)) results.Add(obj.Data);
                     }
 
-                // Get the objects for the search rectangle from the children
+                // Search for objects in the children (if any)
                 if (TopLeftChild == null) return;
-                TopLeftChild.GetObjects(searchRect, ref results);
-                TopRightChild.GetObjects(searchRect, ref results);
-                BottomLeftChild.GetObjects(searchRect, ref results);
-                BottomRightChild.GetObjects(searchRect, ref results);
+                TopLeftChild.GetObjects(ref searchArea, ref results);
+                TopRightChild.GetObjects(ref searchArea, ref results);
+                BottomLeftChild.GetObjects(ref searchArea, ref results);
+                BottomRightChild.GetObjects(ref searchArea, ref results);
             }
         }
 

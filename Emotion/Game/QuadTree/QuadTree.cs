@@ -66,18 +66,50 @@ namespace Emotion.Game.QuadTree
         /// <param name="rect">The rectangle to find objects in.</param>
         public List<T> GetObjects(Rectangle rect)
         {
-            return QuadTreeRoot.GetObjects(rect);
+            return QuadTreeRoot.GetObjects(ref rect);
+        }
+
+        /// <summary>
+        /// Get the objects in the tree that intersect with the specified circle.
+        /// </summary>
+        /// <returns></returns>
+        public List<T> GetObjects(Circle searchCircle)
+        {
+            return QuadTreeRoot.GetObjects(ref searchCircle);
         }
 
         /// <summary>
         /// Get the objects in this tree that intersect with the specified rectangle.
         /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
         /// </summary>
-        /// <param name="rect">The rectangle to find objects in.</param>
-        /// <param name="results">A reference to a list that will be populated with the results.</param>
+        public void GetObjects(ref Rectangle rect, ref List<T> results)
+        {
+            QuadTreeRoot.GetObjects(ref rect, ref results);
+        }
+
+        /// <summary>
+        /// Get the objects in the tree that intersect with the specified circle.
+        /// </summary>
+        public void GetObjects(ref Circle searchCircle, ref List<T> results)
+        {
+            QuadTreeRoot.GetObjects(ref searchCircle, ref results);
+        }
+
+        /// <summary>
+        /// Get the objects in this tree that intersect with the specified rectangle.
+        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
+        /// </summary>
         public void GetObjects(Rectangle rect, ref List<T> results)
         {
-            QuadTreeRoot.GetObjects(rect, ref results);
+            QuadTreeRoot.GetObjects(ref rect, ref results);
+        }
+
+        /// <summary>
+        /// Get the objects in the tree that intersect with the specified circle.
+        /// </summary>
+        public void GetObjects(Circle searchCircle, ref List<T> results)
+        {
+            QuadTreeRoot.GetObjects(ref searchCircle, ref results);
         }
 
         /// <summary>
