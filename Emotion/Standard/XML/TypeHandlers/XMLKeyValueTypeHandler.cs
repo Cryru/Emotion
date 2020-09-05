@@ -14,11 +14,11 @@ namespace Emotion.Standard.XML.TypeHandlers
     /// <inheritdoc />
     public class XMLKeyValueTypeHandler : XMLTypeHandler
     {
-        private Lazy<XMLFieldHandler> _keyHandler;
-        private Lazy<XMLFieldHandler> _valueHandler;
+        private readonly Lazy<XMLFieldHandler> _keyHandler;
+        private readonly Lazy<XMLFieldHandler> _valueHandler;
 
-        private object _keyDefault;
-        private object _valueDefault;
+        private readonly object _keyDefault;
+        private readonly object _valueDefault;
 
         /// <inheritdoc />
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]

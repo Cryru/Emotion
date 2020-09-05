@@ -27,14 +27,14 @@ namespace Emotion.Utility
         /// <summary>
         /// Regex for capturing Windows line endings.
         /// </summary>
-        private static Regex _newlineRegex = new Regex("\r\n");
+        private static readonly Regex NewlineRegex = new Regex("\r\n");
 
         /// <summary>
         /// Replaces windows new lines with unix new lines.
         /// </summary>
         public static string NormalizeNewLines(string source)
         {
-            return _newlineRegex.Replace(source, "\n");
+            return NewlineRegex.Replace(source, "\n");
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Emotion.Utility
         /// <summary>
         /// The generator to be used for generating randomness.
         /// </summary>
-        private static Random _generator = new Random();
+        private static readonly Random Generator = new Random();
 
         /// <summary>
         /// Returns a randomly generated number within specified constraints.
@@ -83,7 +83,7 @@ namespace Emotion.Utility
         public static int GenerateRandomNumber(int min = 0, int max = 100)
         {
             //We add one because Random.Next does not include max.
-            return _generator.Next(min, max + 1);
+            return Generator.Next(min, max + 1);
         }
 
         /// <summary>

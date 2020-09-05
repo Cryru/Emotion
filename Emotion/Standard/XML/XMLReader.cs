@@ -141,7 +141,7 @@ namespace Emotion.Standard.XML
             }
 
             if (_offset - _startOffset == _length - 1) Finished = true;
-            return _source.Substring(tagStart, tagEnd - tagStart) + (immediatelyClosing ? "/" : "");
+            return _source[tagStart..tagEnd] + (immediatelyClosing ? "/" : "");
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace Emotion.Standard.XML
             if (tagEnd == 0) tagEnd = _offset;
 
             if (_offset - _startOffset == _length - 1) Finished = true;
-            return _source.Substring(tagStart, tagEnd - tagStart);
+            return _source[tagStart..tagEnd];
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace Emotion.Standard.XML
             }
 
             if (_offset - _startOffset == _length - 1) Finished = true;
-            return _source.Substring(tagStart, tagEnd - tagStart) + (immediatelyClosing ? "/" : "");
+            return _source[tagStart..tagEnd] + (immediatelyClosing ? "/" : "");
         }
 
         /// <summary>

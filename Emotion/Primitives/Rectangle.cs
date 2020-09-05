@@ -490,19 +490,14 @@ namespace Emotion.Primitives
         /// <returns></returns>
         public Rectangle GetHalfRect(RectSide rectSide)
         {
-            switch (rectSide)
+            return rectSide switch
             {
-                case RectSide.Top:
-                    return new Rectangle(X, Y, Width, Height / 2);
-                case RectSide.Bottom:
-                    return new Rectangle(X, Y + Height / 2, Width, Height / 2);
-                case RectSide.Left:
-                    return new Rectangle(X, Y, Width / 2, Height);
-                case RectSide.Right:
-                    return new Rectangle(X + Width / 2, Y, Width / 2, Height);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                RectSide.Top => new Rectangle(X, Y, Width, Height / 2),
+                RectSide.Bottom => new Rectangle(X, Y + Height / 2, Width, Height / 2),
+                RectSide.Left => new Rectangle(X, Y, Width / 2, Height),
+                RectSide.Right => new Rectangle(X + Width / 2, Y, Width / 2, Height),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         /// <summary>
@@ -515,19 +510,14 @@ namespace Emotion.Primitives
         /// <param name="size">Size.</param>
         public Rectangle GetRectPortion(RectSide rectSide, int size = 1)
         {
-            switch (rectSide)
+            return rectSide switch
             {
-                case RectSide.Top:
-                    return new Rectangle(X, Y, Width, size);
-                case RectSide.Bottom:
-                    return new Rectangle(X, Y + Height - size, Width, size);
-                case RectSide.Left:
-                    return new Rectangle(X, Y, size, Height);
-                case RectSide.Right:
-                    return new Rectangle(X + Width - size, Y, size, Height);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                RectSide.Top => new Rectangle(X, Y, Width, size),
+                RectSide.Bottom => new Rectangle(X, Y + Height - size, Width, size),
+                RectSide.Left => new Rectangle(X, Y, size, Height),
+                RectSide.Right => new Rectangle(X + Width - size, Y, size, Height),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         /// <summary>

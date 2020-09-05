@@ -33,7 +33,7 @@ namespace Emotion.Standard.XML.TypeHandlers
         /// <summary>
         /// The handler for this type's base class (if any).
         /// </summary>
-        private XMLComplexTypeHandler _baseClass;
+        private readonly XMLComplexTypeHandler _baseClass;
 
         /// <summary>
         /// The default value of the complex type when constructed.
@@ -129,7 +129,7 @@ namespace Emotion.Standard.XML.TypeHandlers
                 var nullValue = false;
                 if (currentTag[^1] == '/')
                 {
-                    currentTag = currentTag.Substring(0, currentTag.Length - 1);
+                    currentTag = currentTag[..^1];
                     nullValue = true;
                 }
 

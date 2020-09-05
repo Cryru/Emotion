@@ -12,7 +12,7 @@ namespace Emotion.Utility
     /// </summary>
     public class EmotionEvent<T, T2>
     {
-        private List<Func<T, T2, bool>> _listeners = new List<Func<T, T2, bool>>();
+        private readonly List<Func<T, T2, bool>> _listeners = new List<Func<T, T2, bool>>();
 
         /// <summary>
         /// Invokes all listeners, until one returns false.
@@ -59,7 +59,7 @@ namespace Emotion.Utility
 
     public class EmotionEvent<T>
     {
-        private List<Func<T, bool>> _listeners = new List<Func<T, bool>>();
+        private readonly List<Func<T, bool>> _listeners = new List<Func<T, bool>>();
 
         /// <summary>
         /// Invokes all listeners, until one returns false.
@@ -105,7 +105,7 @@ namespace Emotion.Utility
 
     public class EmotionEvent
     {
-        private List<Func<bool>> _listeners = new List<Func<bool>>();
+        private readonly List<Func<bool>> _listeners = new List<Func<bool>>();
 
         /// <summary>
         /// Invokes all listeners, until one returns false.

@@ -153,7 +153,7 @@ namespace Emotion.Game.Tiled
             if (!string.IsNullOrEmpty(tileSetFolder))
             {
                 tileSetFolder = AssetLoader.NameToEngineName(tileSetFolder);
-                if (tileSetFolder[^1] == '/') tileSetFolder = tileSetFolder.Substring(0, tileSetFolder.Length - 1);
+                if (tileSetFolder[^1] == '/') tileSetFolder = tileSetFolder[..^1];
             }
 
             _tilesetFolder = tileSetFolder;
@@ -708,9 +708,8 @@ namespace Emotion.Game.Tiled
         /// Get the bounds of a tile from its tile coordinate.
         /// </summary>
         /// <param name="coordinate">The tile coordinate.</param>
-        /// <param name="layer">The layer the tile is on.</param>
         /// <returns>The in-world position of the tile.</returns>
-        public Rectangle GetTileBounds(Vector2 coordinate, int layer = 0)
+        public Rectangle GetTileBounds(Vector2 coordinate)
         {
             // Check if out of range.
             if (coordinate.X > TiledMap.Width || coordinate.Y > TiledMap.Height) return Rectangle.Empty;

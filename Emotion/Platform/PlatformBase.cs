@@ -56,7 +56,7 @@ namespace Emotion.Platform
         /// The sizes to switch between in debug mode by using ctrl + F1-F9
         /// Debug functionality.
         /// </summary>
-        private Vector2[] _windowSizes =
+        private readonly Vector2[] _windowSizes =
         {
             new Vector2(640, 360), // Lowest 16:9 good integer scaling potential
             new Vector2(960, 540), // Low 16:9
