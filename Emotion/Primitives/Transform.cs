@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Standard.XML;
 
 #endregion
@@ -28,7 +29,7 @@ namespace Emotion.Primitives
                 if (_width == value) return;
 
                 _width = value;
-                OnResize?.Invoke(this, EventArgs.Empty);
+                Resized();
             }
         }
 
@@ -44,7 +45,7 @@ namespace Emotion.Primitives
                 if (_height == value) return;
 
                 _height = value;
-                OnResize?.Invoke(this, EventArgs.Empty);
+                Resized();
             }
         }
 
@@ -57,15 +58,15 @@ namespace Emotion.Primitives
         /// </summary>
         public virtual Vector2 Size
         {
-            get => new Vector2(Width, Height);
+            get => new Vector2(_width, _height);
             set
             {
-                if (Width == value.X && Height == value.Y) return;
+                if (_width == value.X && _height == value.Y) return;
 
-                Width = value.X;
-                Height = value.Y;
+                _width = value.X;
+                _height = value.Y;
 
-                OnResize?.Invoke(this, EventArgs.Empty);
+                Resized();
             }
         }
 
@@ -75,11 +76,11 @@ namespace Emotion.Primitives
         [DontSerialize]
         public virtual Vector2 Center
         {
-            get => new Vector2(X + Width / 2, Y + Height / 2);
+            get => new Vector2(_x + _width / 2, _y + _height / 2);
             set
             {
-                X = value.X - Width / 2;
-                Y = value.Y - Height / 2;
+                _x = value.X - _width / 2;
+                _y = value.Y - _height / 2;
 
                 Moved();
             }
@@ -91,7 +92,7 @@ namespace Emotion.Primitives
         [DontSerialize]
         public virtual Vector2 CenterRelative
         {
-            get => new Vector2(Width / 2, Height / 2);
+            get => new Vector2(_width / 2, _height / 2);
         }
 
         /// <summary>
@@ -100,13 +101,16 @@ namespace Emotion.Primitives
         [DontSerialize]
         public virtual Rectangle Bounds
         {
-            get => new Rectangle(X, Y, Width, Height);
+            get => new Rectangle(_x, _y, _width, _height);
             set
             {
-                X = value.X;
-                Y = value.Y;
-                Width = value.Width;
-                Height = value.Height;
+                _x = value.X;
+                _y = value.Y;
+                _width = value.Width;
+                _height = value.Height;
+
+                Moved();
+                Resized();
             }
         }
 
@@ -178,6 +182,12 @@ namespace Emotion.Primitives
         public Rectangle ToRectangle()
         {
             return new Rectangle(X, Y, Width, Height);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void Resized()
+        {
+            OnResize?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>

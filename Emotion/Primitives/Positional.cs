@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Emotion.Standard.XML;
 
 #endregion
@@ -27,7 +28,7 @@ namespace Emotion.Primitives
                 if (_x == value) return;
 
                 _x = value;
-                OnMove?.Invoke(this, EventArgs.Empty);
+                Moved();
             }
         }
 
@@ -43,7 +44,7 @@ namespace Emotion.Primitives
                 if (_y == value) return;
 
                 _y = value;
-                OnMove?.Invoke(this, EventArgs.Empty);
+                Moved();
             }
         }
 
@@ -59,7 +60,7 @@ namespace Emotion.Primitives
                 if (_z == value) return;
 
                 _z = value;
-                OnMove?.Invoke(this, EventArgs.Empty);
+                Moved();
             }
         }
 
@@ -73,15 +74,15 @@ namespace Emotion.Primitives
         [DontSerialize]
         public Vector2 Position2
         {
-            get => new Vector2(X, Y);
+            get => new Vector2(_x, _y);
             set
             {
-                if (X == value.X && Y == value.Y) return;
+                if (_x == value.X && _y == value.Y) return;
 
-                X = value.X;
-                Y = value.Y;
+                _x = value.X;
+                _y = value.Y;
 
-                OnMove?.Invoke(this, EventArgs.Empty);
+                Moved();
             }
         }
 
@@ -90,16 +91,16 @@ namespace Emotion.Primitives
         /// </summary>
         public Vector3 Position
         {
-            get => new Vector3(X, Y, Z);
+            get => new Vector3(_x, _y, _z);
             set
             {
-                if (X == value.X && Y == value.Y && Z == value.Z) return;
+                if (_x == value.X && _y == value.Y && _z == value.Z) return;
 
-                X = value.X;
-                Y = value.Y;
-                Z = value.Z;
+                _x = value.X;
+                _y = value.Y;
+                _z = value.Z;
 
-                OnMove?.Invoke(this, EventArgs.Empty);
+                Moved();
             }
         }
 
@@ -151,9 +152,7 @@ namespace Emotion.Primitives
 
         #endregion
 
-        /// <summary>
-        /// Provides a way for inheritors to invoke the move event.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void Moved()
         {
             OnMove?.Invoke(this, EventArgs.Empty);
