@@ -35,6 +35,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
         public override void Update()
         {
             if(!_parent.Open) Open = false;
+            if(ImGuiNetPlugin.Focused) return;
 
             if (Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Right))
             {
