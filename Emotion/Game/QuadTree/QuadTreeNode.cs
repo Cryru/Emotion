@@ -314,18 +314,13 @@ namespace Emotion.Game.QuadTree
         internal void Insert(QuadTreeObject<T> item)
         {
             // This object is outside of the QuadTree bounds, add it if at root level.
-            if (!QuadRect.ContainsInclusive(item.Data.Bounds))
+            if (!QuadRect.ContainsInclusive(item.Data.Bounds) && Parent == null)
             {
-                if (Parent == null)
-                {
-                    Add(item);
-                    return;
-                }
+                Add(item);
             }
-
-            if (_objects == null || TopLeftChild == null && _objects.Count + 1 <= NodeCapacity)
+            // If there's room to add the object, just add it
+            else if (_objects == null || TopLeftChild == null && _objects.Count + 1 <= NodeCapacity)
             {
-                // If there's room to add the object, just add it
                 Add(item);
             }
             else
