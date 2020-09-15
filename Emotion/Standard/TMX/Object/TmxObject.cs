@@ -61,6 +61,8 @@ namespace Emotion.Standard.TMX.Object
             if (Gid != null)
             {
                 ObjectType = TmxObjectType.Image;
+                // In Tiled an image's X,Y coordinates represent the bottom-left corner of the image
+                Y -= Height;
             }
             else if (xEllipse != null)
             {
