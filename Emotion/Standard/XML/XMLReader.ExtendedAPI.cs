@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 #endregion
 
@@ -149,7 +150,7 @@ namespace Emotion.Standard.XML
         {
             if (!_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
-            if (!int.TryParse(value, out int result)) return null;
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result)) return null;
             return result;
         }
 
@@ -168,7 +169,7 @@ namespace Emotion.Standard.XML
         {
             if (!_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
-            if (!uint.TryParse(value, out uint result)) return null;
+            if (!uint.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint result)) return null;
             return result;
         }
 
@@ -187,7 +188,7 @@ namespace Emotion.Standard.XML
         {
             if (!_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
-            if (!double.TryParse(value, out double result)) return null;
+            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)) return null;
             return result;
         }
 
@@ -206,7 +207,7 @@ namespace Emotion.Standard.XML
         {
             if (!_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
-            if (!float.TryParse(value, out float result)) return null;
+            if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result)) return null;
             return result;
         }
 
