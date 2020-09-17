@@ -32,7 +32,7 @@ namespace Emotion.Game.Time.Tweening
         {
             Func<float, float> methodFunc = In(method);
 
-            return s => 1f - methodFunc(1 - s);
+            return s => 1f - methodFunc(s);
         }
 
         public static Func<float, float> InOut(TweenMethod method)
