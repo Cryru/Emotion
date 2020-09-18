@@ -112,7 +112,11 @@ namespace Emotion.Tools.Windows
                     _playing = true;
             }
 
-            ImGui.InputInt("Display Scale", ref Scale);
+            ImGui.Text($"Display Scale: {Scale}");
+            ImGui.SameLine();
+            if (ImGui.Button("-")) Scale -= 1;
+            ImGui.SameLine();
+            if (ImGui.Button("+")) Scale += 1;
             ImGui.SameLine();
             if (ImGui.Button($"Mirror (Currently: {(Mirrored ? "Mirrored" : "Not Mirrored")})")) Mirrored = !Mirrored;
 
