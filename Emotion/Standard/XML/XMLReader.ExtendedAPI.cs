@@ -6,6 +6,8 @@ using System.Globalization;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.XML
 {
     /// <summary>
@@ -20,7 +22,7 @@ namespace Emotion.Standard.XML
 
         private int _startOffset;
         private int _startDepth;
-        private Dictionary<string, string> _attributes;
+        private Dictionary<string, string>? _attributes;
 
         private XMLReader(string source, int startOffset, int startDepth, Dictionary<string, string> attributes) : this(source)
         {
@@ -45,7 +47,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         /// <param name="tagName">The tag name of the element to return.</param>
         /// <returns>The xml element with the specified name.</returns>
-        public XMLReader Element(string tagName)
+        public XMLReader? Element(string tagName)
         {
             Reset();
             return NextElement(tagName);
@@ -55,7 +57,7 @@ namespace Emotion.Standard.XML
         /// Returns the next XML element from the current read position.
         /// </summary>
         /// <returns></returns>
-        public XMLReader Element()
+        public XMLReader? Element()
         {
             return NextElement(null);
         }
@@ -63,12 +65,12 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Returns the next element with the specified tag name.
         /// </summary>
-        /// <param name="tagName">The tag name to search for.</param>
+        /// <param name="tagName">The tag name to search for. If null returns the current element.</param>
         /// <returns></returns>
-        public XMLReader NextElement(string tagName)
+        public XMLReader? NextElement(string? tagName)
         {
             int searchDepth = Depth;
-            XMLReader foundTag = null;
+            XMLReader? foundTag = null;
             while (!Finished)
             {
                 // Only search at the same depth.
@@ -109,7 +111,7 @@ namespace Emotion.Standard.XML
             var result = new List<XMLReader>();
             while (!Finished)
             {
-                XMLReader element = NextElement(elementTag);
+                XMLReader? element = NextElement(elementTag);
                 if (element != null) result.Add(element);
             }
 
@@ -127,7 +129,7 @@ namespace Emotion.Standard.XML
             var result = new List<XMLReader>();
             while (!Finished)
             {
-                XMLReader element = Element();
+                XMLReader? element = Element();
                 if (element != null) result.Add(element);
             }
 
@@ -138,8 +140,9 @@ namespace Emotion.Standard.XML
         /// Get the attribute of this name as a string (its pure format) or null if it doesn't exist.
         /// </summary>
         /// <param name="attributeName">The attribute of this tag of this name.</param>
-        public string Attribute(string attributeName)
+        public string? Attribute(string attributeName)
         {
+            if (_attributes == null) return null;
             return _attributes.ContainsKey(attributeName) ? _attributes[attributeName] : null;
         }
 
@@ -148,7 +151,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         public int? AttributeIntN(string attributeName)
         {
-            if (!_attributes.ContainsKey(attributeName)) return null;
+            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
             if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result)) return null;
             return result;
@@ -167,7 +170,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         public uint? AttributeUIntN(string attributeName)
         {
-            if (!_attributes.ContainsKey(attributeName)) return null;
+            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
             if (!uint.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint result)) return null;
             return result;
@@ -186,7 +189,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         public double? AttributeDoubleN(string attributeName)
         {
-            if (!_attributes.ContainsKey(attributeName)) return null;
+            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
             if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)) return null;
             return result;
@@ -205,7 +208,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         public float? AttributeFloatN(string attributeName)
         {
-            if (!_attributes.ContainsKey(attributeName)) return null;
+            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
             if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result)) return null;
             return result;
@@ -224,7 +227,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         public bool? AttributeBoolN(string attributeName)
         {
-            if (!_attributes.ContainsKey(attributeName)) return null;
+            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
             string value = _attributes[attributeName];
             // 0 and 1 aren't handled by bool.Parse but are valid.
             switch (value)
@@ -252,9 +255,9 @@ namespace Emotion.Standard.XML
         /// </summary>
         public T AttributeEnum<T>(string attributeName) where T : Enum
         {
-            if (!_attributes.ContainsKey(attributeName)) return default;
-            if (!Enum.TryParse(typeof(T), _attributes[attributeName], true, out object value)) return default;
-            return (T) value;
+            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return default!;
+            if (!Enum.TryParse(typeof(T), _attributes[attributeName], true, out object? value)) return default!;
+            return (T) value!;
         }
     }
 }
