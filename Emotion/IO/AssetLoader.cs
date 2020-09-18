@@ -18,6 +18,14 @@ namespace Emotion.IO
     /// </summary>
     public class AssetLoader
     {
+        // ***************************************************************************************************************
+        // All paths the AssetLoader works with are "engine paths"
+        // They conform to the following rules.
+        // - The only legal directory separator character is "/"
+        // - Relative paths (../) are legal but are not supported by most functions. Use GetNonRelativePath to convert.
+        // - Files without extensions are illegal. They are considered directories.
+        // ***************************************************************************************************************
+
         /// <summary>
         /// List of all assets in all sources.
         /// </summary>
@@ -287,23 +295,18 @@ namespace Emotion.IO
         /// <summary>
         /// Get the name of a directory in an asset path.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
         public static string GetDirectoryName(string name)
         {
             if (string.IsNullOrEmpty(name)) return name;
             if (name[^1] == '/') return name;
 
             int lastSlash = name.LastIndexOf("/", StringComparison.Ordinal);
-            return lastSlash == -1 ? "" : name.Substring(0, lastSlash);
+            return lastSlash == -1 ? name : name.Substring(0, lastSlash);
         }
 
         /// <summary>
         /// Get an asset path relative to another path.
         /// </summary>
-        /// <param name="relativeTo"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
         public static string GetRelativePath(string relativeTo, string path)
         {
             int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
@@ -316,14 +319,17 @@ namespace Emotion.IO
 
         /// <summary>
         /// Get the non-relative path from a path relative to another.
+        /// [Folder/OneFile.ext] + [../File.ext] = File.ext
+        /// [Folder/OneFile.ext] + [File.ext] = Folder/File.ext
         /// </summary>
-        /// <param name="relativeTo"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
         public static string GetNonRelativePath(string relativeTo, string path)
         {
             int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
-            if (lastBack == -1) return path;
+            if (lastBack == -1)
+            {
+                string folderName = GetDirectoryName(relativeTo);
+                return JoinPath(folderName, path);
+            }
 
             string[] folders = relativeTo.Split("/");
             var relativeIdx = 0;
@@ -331,7 +337,7 @@ namespace Emotion.IO
             while (true)
             {
                 int nextRelative = path.IndexOf("../", relativeIdx, StringComparison.Ordinal);
-                if(nextRelative == -1) break;
+                if (nextRelative == -1) break;
                 relativeIdx = nextRelative + "../".Length;
                 times++;
             }
@@ -342,6 +348,7 @@ namespace Emotion.IO
             {
                 construct = JoinPath(construct, folders[i]);
             }
+
             construct = JoinPath(construct, path.Substring(relativeIdx));
             return construct;
         }
@@ -349,9 +356,6 @@ namespace Emotion.IO
         /// <summary>
         /// Join to asset paths.
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
         public static string JoinPath(string left, string right)
         {
             if (string.IsNullOrEmpty(left)) return right;
