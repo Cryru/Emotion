@@ -15,7 +15,6 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
     {
         private AnimationEditor _parent;
         private AnimatedTexture _anim;
-        private bool _mirrorAnchors;
 
         public AnchorPlacer(AnimationEditor parent, AnimatedTexture anim) : base("Anchor Placer")
         {
@@ -32,16 +31,14 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             Vector2[] anchorArray = _anim.Anchors;
             if (_parent.AnimController != null)
             {
-                ImGui.Checkbox("Assign Mirror Anchors", ref _mirrorAnchors);
-                if (_mirrorAnchors)
+                if (_parent.Mirrored)
                 {
-                    if (_parent.AnimController.MirrorXAnchors == null) _parent.AnimController.MirrorXAnchors = new Vector2[_anim.Anchors.Length];
-                    anchorArray = _mirrorAnchors ? _parent.AnimController.MirrorXAnchors : anchorArray;
+                    _parent.AnimController.MirrorXAnchors ??= new Vector2[_anim.Anchors.Length];
+                    anchorArray = _parent.Mirrored ? _parent.AnimController.MirrorXAnchors : anchorArray;
                 }
 
-                if (_mirrorAnchors)
+                if (_parent.Mirrored)
                 {
-                    ImGui.SameLine();
                     if (ImGui.Button("Copy Non-Mirror Anchors"))
                         for (int i = _anim.StartingFrame; i <= _anim.EndingFrame; i++)
                         {

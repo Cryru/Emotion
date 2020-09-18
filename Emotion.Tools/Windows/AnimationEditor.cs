@@ -39,7 +39,7 @@ namespace Emotion.Tools.Windows
         // Lookup only.
         private AnchorPlacer _anchorPlacerWindow;
         private FrameOrderWindow _orderWindow;
-        private bool _mirrored;
+        public bool Mirrored;
 
         // Files
         private TextureAsset _spriteSheetTexture;
@@ -114,7 +114,7 @@ namespace Emotion.Tools.Windows
 
             ImGui.InputInt("Display Scale", ref Scale);
             ImGui.SameLine();
-            if (ImGui.Button("Mirror")) _mirrored = !_mirrored;
+            if (ImGui.Button($"Mirror (Currently: {(Mirrored ? "Mirrored" : "Not Mirrored")})")) Mirrored = !Mirrored;
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
@@ -219,14 +219,14 @@ namespace Emotion.Tools.Windows
             // Animation has a controller.
             if (AnimController != null)
             {
-                AnimController.GetCurrentFrameData(out Texture texture, out Rectangle uv, out Vector2 anchor, _mirrored);
-                composer.RenderSprite(new Vector3(offset + anchor * Scale, 1), uv.Size * Scale, Color.White, texture, uv, _mirrored);
+                AnimController.GetCurrentFrameData(out Texture texture, out Rectangle uv, out Vector2 anchor, Mirrored);
+                composer.RenderSprite(new Vector3(offset + anchor * Scale, 1), uv.Size * Scale, Color.White, texture, uv, Mirrored);
                 return;
             }
 
             // Animation is just a texture.
             if (Animation.Anchors.Length > 0) offset += Animation.Anchors[Animation.CurrentFrameIndex] * Scale;
-            composer.RenderSprite(new Vector3(offset, 1), Animation.CurrentFrame.Size * Scale, Color.White, Animation.Texture, Animation.CurrentFrame, _mirrored);
+            composer.RenderSprite(new Vector3(offset, 1), Animation.CurrentFrame.Size * Scale, Color.White, Animation.Texture, Animation.CurrentFrame, Mirrored);
         }
 
         private void RenderCurrentAnimationSettings()
