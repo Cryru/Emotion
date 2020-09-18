@@ -22,6 +22,8 @@ using Emotion.Utility;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Game.Tiled
 {
     public class TileMap<T> : TransformRenderable, IDisposable where T : TransformRenderable
@@ -36,24 +38,25 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// The currently loaded file name.
         /// </summary>
-        public string FileName { get; protected set; }
+        public string? FileName { get; protected set; }
 
         /// <summary>
         /// The TiledSharp object the map is using.
         /// </summary>
-        public TmxMap TiledMap { get; protected set; }
+        public TmxMap? TiledMap { get; protected set; }
 
         /// <summary>
         /// Loaded tileset textures.
+        /// Missing textures are null.
         /// </summary>
-        public List<TextureAsset> Tilesets { get; private set; } = new List<TextureAsset>();
+        public List<TextureAsset?> Tilesets { get; private set; } = new List<TextureAsset?>();
 
         /// <summary>
         /// The size of a tile in pixels.
         /// </summary>
         public Vector2 TileSize
         {
-            get => new Vector2(TiledMap.TileWidth, TiledMap.TileHeight);
+            get => TiledMap == null ? Vector2.Zero : new Vector2(TiledMap.TileWidth, TiledMap.TileHeight);
         }
 
         /// <summary>
@@ -61,7 +64,7 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public Vector2 SizeInTiles
         {
-            get => new Vector2(TiledMap.Width, TiledMap.Height);
+            get => TiledMap == null ? Vector2.Zero : new Vector2(TiledMap.Width, TiledMap.Height);
         }
 
         /// <summary>
@@ -69,7 +72,7 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public Vector2 WorldSize
         {
-            get => new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
+            get => TiledMap == null ? Vector2.Zero : new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
         }
 
         /// <summary>
@@ -92,12 +95,12 @@ namespace Emotion.Game.Tiled
         /// <summary>
         /// The folder to load tilesets from.
         /// </summary>
-        protected string _tilesetFolder;
+        protected string? _tilesetFolder;
 
         /// <summary>
         /// Cached render data for tiles per layer.
         /// </summary>
-        protected VertexData[][] _cachedTileRenderData;
+        protected VertexData[]?[]? _cachedTileRenderData;
 
         /// <summary>
         /// Reusable memory for querying the quad tree.
@@ -162,6 +165,7 @@ namespace Emotion.Game.Tiled
 
         protected virtual void LoadTilesets()
         {
+            if (TiledMap?.Tilesets == null) return;
             if (TiledMap.Tilesets.Count == 0) return;
 
             // Don't load the assets in parallel if running on the draw thread. This might cause a deadlock as assets will wait on
@@ -171,12 +175,12 @@ namespace Emotion.Game.Tiled
             var assets = new Task<TextureAsset>[TiledMap.Tilesets.Count];
             for (var i = 0; i < assets.Length; i++)
             {
-                string tilesetFile = TiledMap.Tilesets[i].Source;
+                string? tilesetFile = TiledMap.Tilesets[i]?.Source;
                 if (string.IsNullOrEmpty(tilesetFile)) continue;
                 tilesetFile = AssetLoader.NameToEngineName(tilesetFile);
                 if (tilesetFile[0] == '/') tilesetFile = tilesetFile.Substring(1);
 
-                string assetPath = tilesetFile.Contains("..") ? AssetLoader.GetNonRelativePath(_tilesetFolder, tilesetFile) : AssetLoader.JoinPath(_tilesetFolder, tilesetFile);
+                string assetPath = AssetLoader.GetNonRelativePath(_tilesetFolder, tilesetFile);
                 if (parallel)
                     assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(assetPath);
                 else
@@ -200,17 +204,19 @@ namespace Emotion.Game.Tiled
         /// </summary>
         public void Reload()
         {
+            if (TiledMap == null) return;
+
             TmxMap map = TiledMap;
             MapUnloadInternal();
             TiledMap = map;
-            ResetInternal(map);
+            ResetInternal();
         }
 
         /// <summary>
         /// Reset the tile map with another map and tileset. If an empty string is provided the map is reset to an unloaded state.
         /// </summary>
         /// <param name="mapPath">The path to the new map.</param>
-        public void Reset(string mapPath)
+        public void Reset(string? mapPath)
         {
             Reset(mapPath != null ? Engine.AssetLoader.Get<TextAsset>(mapPath) : null);
         }
@@ -219,7 +225,7 @@ namespace Emotion.Game.Tiled
         /// Reset the tile map with another map and tileset. If an empty string is provided the map is reset to an unloaded state.
         /// </summary>
         /// <param name="mapFile">The new map file.</param>
-        public virtual void Reset(TextAsset mapFile)
+        public virtual void Reset(TextAsset? mapFile)
         {
             MapUnloadInternal();
 
@@ -230,7 +236,7 @@ namespace Emotion.Game.Tiled
             try
             {
                 FileName = mapFile.Name;
-                TiledMap = new TmxMap(new XMLReader(mapFile.Content));
+                TiledMap = new TmxMap(new XMLReader(mapFile.Content), mapFile.Name);
             }
             catch (Exception ex)
             {
@@ -240,12 +246,12 @@ namespace Emotion.Game.Tiled
 
             if (string.IsNullOrEmpty(_tilesetFolder)) _tilesetFolder = AssetLoader.GetDirectoryName(mapFile.Name);
 
-            ResetInternal(TiledMap);
+            ResetInternal();
         }
 
-        protected void ResetInternal(TmxMap map)
+        protected void ResetInternal()
         {
-            if (map == null) return;
+            if (TiledMap == null) return;
 
             MapPreLoad();
 
@@ -286,7 +292,7 @@ namespace Emotion.Game.Tiled
 
                     int tsId = GetTilesetIdFromTid(tId, out int tsOffset);
                     TmxTileset ts = TiledMap.Tilesets[tsId];
-                    TmxTilesetTile tileData = ts.Tiles.GetValueOrDefault(tsOffset);
+                    TmxTilesetTile? tileData = ts?.Tiles.GetValueOrDefault(tsOffset);
                     if (tileData?.ObjectGroups == null) continue;
                     foreach (TmxObjectLayer groups in tileData.ObjectGroups)
                     {
@@ -304,6 +310,7 @@ namespace Emotion.Game.Tiled
                     }
                 }
             }
+
 
             // Construct render cache.
             _cachedTileRenderData = null;
@@ -334,11 +341,11 @@ namespace Emotion.Game.Tiled
 
         #region Rendering
 
-        private VertexData[] SetupRenderCacheForTileLayer(int layerIdx, TmxLayer layer)
+        private VertexData[]? SetupRenderCacheForTileLayer(int layerIdx, TmxLayer layer)
         {
             PerfProfiler.ProfilerEventStart($"TileMap: RenderCache for layer {layerIdx}", "Loading");
 
-            if (!layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return null;
+            if (TiledMap == null || Tilesets == null || !layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return null;
 
             var currentCache = new VertexData[layer.Width * layer.Height * 4];
             var dataSpan = new Span<VertexData>(currentCache);
@@ -385,7 +392,7 @@ namespace Emotion.Game.Tiled
                     var v3 = new Vector3(position, CalculateZOrder(position, size, new Vector2(x, y), layerIdx, tId, tsId));
 
                     var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
-                    TextureAsset tileSet = Tilesets[tsId];
+                    TextureAsset? tileSet = Tilesets[tsId];
                     int texturePointer = -1;
                     if (tileSet?.Texture != null) texturePointer = (int) tileSet.Texture.Pointer;
                     VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, texturePointer, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
@@ -428,7 +435,7 @@ namespace Emotion.Game.Tiled
 
         protected virtual void RenderLayer(RenderComposer composer, int idx, Rectangle clipVal)
         {
-            VertexData[] renderCache = _cachedTileRenderData[idx];
+            VertexData[]? renderCache = _cachedTileRenderData?[idx];
             if (renderCache == null || TiledMap == null) return;
 
             TmxLayer layer = TiledMap.TileLayers[idx];
@@ -472,9 +479,9 @@ namespace Emotion.Game.Tiled
             PerfProfiler.FrameEventEnd("TileMap: Objects");
         }
 
-        protected virtual void QueryObjectsToRender(List<T> memory = null)
+        protected virtual void QueryObjectsToRender(List<T>? memory = null)
         {
-            if (memory == null) memory = _quadTreeQueryMemory;
+            memory ??= _quadTreeQueryMemory;
             memory.Clear();
             Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
             clipRect = clipRect.Inflate(SafeArea * 25, SafeArea * 25);
@@ -492,6 +499,8 @@ namespace Emotion.Game.Tiled
         /// </summary>
         private void CacheTilesetData()
         {
+            if (TiledMap == null) return;
+
             for (var layer = 0; layer < TiledMap.Tilesets.Count; layer++)
             {
                 TmxTileset tileset = TiledMap.Tilesets[layer];
@@ -525,7 +534,7 @@ namespace Emotion.Game.Tiled
 
         protected void CreateObjectInternal(TmxObject objDef, int layerId)
         {
-            TextureAsset asset = null;
+            TextureAsset? asset = null;
             Rectangle? uv = null;
             if (objDef.Gid != null)
             {
@@ -533,7 +542,7 @@ namespace Emotion.Game.Tiled
                 if (tsId >= 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
             }
 
-            T factoryObject = CreateObject(objDef, asset, uv, layerId);
+            T? factoryObject = CreateObject(objDef, asset, uv, layerId);
             if (factoryObject != null) Objects.Add(factoryObject);
         }
 
@@ -544,6 +553,8 @@ namespace Emotion.Game.Tiled
         /// <returns>A one dimensional tile coordinate.</returns>
         public int GetTile1DFromTile2D(Vector2 coordinate)
         {
+            if (TiledMap == null) return -1;
+
             var top = (int) coordinate.Y;
             var left = (int) coordinate.X;
 
@@ -558,6 +569,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The two dimensional coordinate equivalent of the one dimensional coordinate provided.</returns>
         public Vector2 GetTile2DFromTile1D(int coordinate, int layer = 0)
         {
+            if (TiledMap == null) return Vector2.Zero;
+
             TmxLayer tileLayer = TiledMap.Layers[layer];
             int x = coordinate % tileLayer.Width;
             int y = coordinate / tileLayer.Width;
@@ -574,6 +587,8 @@ namespace Emotion.Game.Tiled
         {
             var tsId = 0;
             tsOffset = tid;
+
+            if (TiledMap == null) return -1;
             for (var i = 0; i < TiledMap.Tilesets.Count; i++)
             {
                 // Check if the id we need is beyond the current tileset.
@@ -607,6 +622,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The UV of the tid within the tsId.</returns>
         public Rectangle GetUVFromTileImageIdAndTileset(int tId, int tsId)
         {
+            if (TiledMap == null) return Rectangle.Empty;
+
             TmxTileset ts = TiledMap.Tilesets[tsId];
 
             // Check if the current tileset has animated tiles.
@@ -640,6 +657,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The id of the layer matching the specified name or -1 if none found.</returns>
         public int GetLayerIdFromName(string name)
         {
+            if (TiledMap == null) return -1;
+
             for (var i = 0; i < TiledMap.Layers.Count; i++)
             {
                 if (string.Equals(TiledMap.Layers[i].Name, name, StringComparison.CurrentCultureIgnoreCase)) return i;
@@ -660,7 +679,7 @@ namespace Emotion.Game.Tiled
         {
             // Check if layer is out of bounds.
             tileSet = -1;
-            if (layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
+            if (TiledMap == null || layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
 
             // Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
@@ -698,6 +717,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The id of a singular tile in which the provided coordinates lay.</returns>
         public Vector2 GetTileCoordinateFromLocation(Vector2 location)
         {
+            if (TiledMap == null) return Vector2.Zero;
+
             var left = (int) Math.Max(0, (location.X - X) / (TiledMap.TileWidth * Size.X));
             var top = (int) Math.Max(0, (location.Y - Y) / (TiledMap.TileHeight * Size.Y));
 
@@ -711,6 +732,8 @@ namespace Emotion.Game.Tiled
         /// <returns>The in-world position of the tile.</returns>
         public Rectangle GetTileBounds(Vector2 coordinate)
         {
+            if (TiledMap == null) return Rectangle.Empty;
+
             // Check if out of range.
             if (coordinate.X > TiledMap.Width || coordinate.Y > TiledMap.Height) return Rectangle.Empty;
 
@@ -743,7 +766,7 @@ namespace Emotion.Game.Tiled
 
         #region Override Interface
 
-        protected virtual T CreateObject(TmxObject objDef, TextureAsset image, Rectangle? uv, int layerId)
+        protected virtual T? CreateObject(TmxObject objDef, TextureAsset? image, Rectangle? uv, int layerId)
         {
             return null;
         }
@@ -775,8 +798,8 @@ namespace Emotion.Game.Tiled
             Objects.Reset(Rectangle.Empty);
 
             // Dispose of old tilesets.
-            if (Tilesets.Count <= 0) return;
-            foreach (TextureAsset tileset in Tilesets)
+            if (Tilesets == null || Tilesets.Count == 0) return;
+            foreach (TextureAsset? tileset in Tilesets)
             {
                 if (tileset == null) continue;
                 Engine.AssetLoader.Destroy(tileset.Name);

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Common;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.TMX.Enum;
@@ -11,12 +12,14 @@ using Emotion.Standard.XML;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Standard.TMX
 {
     public class TmxMap
     {
-        public string Version { get; private set; }
-        public string TiledVersion { get; private set; }
+        public string? Version { get; private set; }
+        public string? TiledVersion { get; private set; }
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int TileWidth { get; private set; }
@@ -29,18 +32,20 @@ namespace Emotion.Standard.TMX
         public Color BackgroundColor { get; private set; }
         public int? NextObjectId { get; private set; }
 
-        public TmxList<TmxTileset> Tilesets { get; private set; }
-        public TmxList<TmxLayer> TileLayers { get; private set; }
-        public TmxList<TmxObjectLayer> ObjectLayers { get; private set; }
-        public TmxList<TmxImageLayer> ImageLayers { get; private set; }
-        public TmxList<TmxGroupedLayers> Groups { get; private set; }
-        public Dictionary<string, string> Properties { get; private set; }
+        public TmxList<TmxTileset> Tilesets { get; private set; } = new TmxList<TmxTileset>();
+        public TmxList<TmxLayer> TileLayers { get; private set; } = new TmxList<TmxLayer>();
+        public TmxList<TmxObjectLayer> ObjectLayers { get; private set; } = new TmxList<TmxObjectLayer>();
+        public TmxList<TmxImageLayer> ImageLayers { get; private set; } = new TmxList<TmxImageLayer>();
+        public TmxList<TmxGroupedLayers> Groups { get; private set; } = new TmxList<TmxGroupedLayers>();
+        public Dictionary<string, string>? Properties { get; private set; }
 
-        public TmxList<TmxLayer> Layers { get; private set; }
+        public TmxList<TmxLayer> Layers { get; private set; } = new TmxList<TmxLayer>();
 
-        public TmxMap(XMLReader reader)
+        public TmxMap(XMLReader reader, string? filePath = null)
         {
-            XMLReader xMap = reader.Element("map");
+            XMLReader? xMap = reader.Element("map");
+            if (xMap == null) return;
+
             Version = xMap.Attribute("version");
             TiledVersion = xMap.Attribute("tiledversion");
 
@@ -58,17 +63,32 @@ namespace Emotion.Standard.TMX
 
             Properties = TmxHelpers.GetPropertyDict(xMap.Element("properties"));
 
-            Tilesets = new TmxList<TmxTileset>();
             foreach (XMLReader e in xMap.Elements("tileset"))
             {
-                Tilesets.Add(new TmxTileset(e));
+                string? fileSource = e.Attribute("source");
+                int firstGid = e.AttributeInt("firstgid");
+
+                // Check if external file.
+                if (!string.IsNullOrEmpty(fileSource))
+                {
+                    if (filePath != null) fileSource = AssetLoader.GetNonRelativePath(filePath, fileSource);
+                    var textAsset = Engine.AssetLoader.Get<TextAsset>(fileSource);
+                    if (textAsset?.Content == null)
+                    {
+                        Engine.Log.Warning("Couldn't load external tileset.", MessageSource.TMX);
+                        continue;
+                    }
+
+                    var externalReader = new XMLReader(textAsset.Content);
+                    XMLReader? tileSetElement = externalReader.Element("tileset");
+                    if (tileSetElement == null) continue;
+                    Tilesets.Add(new TmxTileset(firstGid, tileSetElement));
+                    continue;
+                }
+
+                Tilesets.Add(new TmxTileset(firstGid, e));
             }
 
-            Layers = new TmxList<TmxLayer>();
-            TileLayers = new TmxList<TmxLayer>();
-            ObjectLayers = new TmxList<TmxObjectLayer>();
-            ImageLayers = new TmxList<TmxImageLayer>();
-            Groups = new TmxList<TmxGroupedLayers>();
             foreach (XMLReader e in xMap.Elements().Where(x => x.Name == "layer" || x.Name == "objectgroup" || x.Name == "imagelayer" || x.Name == "group"))
             {
                 TmxLayer layer;
