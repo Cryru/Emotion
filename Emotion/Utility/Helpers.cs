@@ -118,23 +118,23 @@ namespace Emotion.Utility
         /// Guess the string encoding of the data array.
         /// https://stackoverflow.com/questions/581318/c-sharp-detect-xml-encoding-from-byte-array
         /// </summary>
-        public static string GuessStringEncoding(byte[] data)
+        public static Encoding GuessStringEncoding(byte[] data)
         {
             // "utf-16" - Unicode UTF-16, little endian byte order
-            if (BytesEqual(data, Utf16LeAlt)) return Encoding.Unicode.GetString(data);
-            if ((data[2] == 0) ^ (data[3] == 0) && BytesEqual(data, Utf16Le)) return Encoding.Unicode.GetString(data);
+            if (BytesEqual(data, Utf16LeAlt)) return Encoding.Unicode;
+            if ((data[2] == 0) ^ (data[3] == 0) && BytesEqual(data, Utf16Le)) return Encoding.Unicode;
 
             // "utf-8" - Unicode (UTF-8)
-            if (BytesEqual(data, Utf8Le) || BytesEqual(data, Utf8LeAlt)) return Encoding.UTF8.GetString(data);
+            if (BytesEqual(data, Utf8Le) || BytesEqual(data, Utf8LeAlt)) return Encoding.UTF8;
 
             // "utf-32" - Unicode UTF-32, little endian byte order
-            if (BytesEqual(data, Utf32Le) || BytesEqual(data, Utf32LeAlt)) return Encoding.UTF32.GetString(data);
+            if (BytesEqual(data, Utf32Le) || BytesEqual(data, Utf32LeAlt)) return Encoding.UTF32;
 
             // "unicodeFFFE" - Unicode UTF-16, big endian byte order
-            if (BytesEqual(data, Utf16BeAlt)) return Encoding.BigEndianUnicode.GetString(data);
-            if (data[2] != 0 && data[3] != 0 && BytesEqual(data, Utf16Be)) return Encoding.BigEndianUnicode.GetString(data);
+            if (BytesEqual(data, Utf16BeAlt)) return Encoding.BigEndianUnicode;
+            if (data[2] != 0 && data[3] != 0 && BytesEqual(data, Utf16Be)) return Encoding.BigEndianUnicode;
 
-            return Encoding.UTF8.GetString(data);
+            return Encoding.UTF8;
         }
 
         /// <summary>

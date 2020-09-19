@@ -59,7 +59,8 @@ namespace Emotion.Standard.XML
 
         public static T From<T>(byte[] data)
         {
-            return From<T>(Helpers.GuessStringEncoding(data));
+            Encoding encoding = Helpers.GuessStringEncoding(data);
+            return From<T>(encoding.GetString(data));
         }
     }
 }
