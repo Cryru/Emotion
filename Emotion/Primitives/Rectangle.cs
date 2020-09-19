@@ -477,6 +477,17 @@ namespace Emotion.Primitives
             return closestPoint;
         }
 
+        /// <summary>
+        /// Snap the rectangle to a grid.
+        /// </summary>
+        public void SnapToGrid(Vector2 gridSize)
+        {
+            Vector2 p = (Position / gridSize).Floor();
+            Vector2 s = ((Position + Size) / gridSize).Ceiling();
+            Position = p * gridSize;
+            Size = (s - p) * gridSize;
+        }
+
         #region NEZ Extensions
 
         // Taken from Nez and Modified
