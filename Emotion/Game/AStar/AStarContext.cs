@@ -104,10 +104,12 @@ namespace Emotion.Game.AStar
                 _closedSet.Add(current);
 
                 // Get neighbors of current.
-                IEnumerable<AStarNode> neighbors = GetNeighbors(current.X, current.Y, diagonalMovement);
-
-                foreach (AStarNode neighbor in neighbors)
+                IEnumerator<AStarNode> neighbors = GetNeighborsRoutine(current.X, current.Y, diagonalMovement);
+                while (neighbors.MoveNext())
                 {
+                    AStarNode neighbor = neighbors.Current;
+                    if (neighbor == null) continue;
+
                     // Check if the neighbor is done with, in which case we skip.
                     if (_closedSet.Contains(neighbor)) continue;
 
@@ -119,6 +121,7 @@ namespace Emotion.Game.AStar
                     {
                         // Check if we have found a more efficient way to the neighbor node.
                         if (tentativeG < neighbor.G) neighbor.G = tentativeG;
+                        else continue;
                     }
                     else
                     {
@@ -169,10 +172,8 @@ namespace Emotion.Game.AStar
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IEnumerable<AStarNode> GetNeighbors(int x, int y, bool diagonal)
+        private IEnumerator<AStarNode> GetNeighborsRoutine(int x, int y, bool diagonal)
         {
-            var neighbors = new List<AStarNode>();
-
             bool hasLeft = x > 0 && x <= _pathingGrid.Width - 1;
             bool hasRight = x >= 0 && x < _pathingGrid.Width - 1;
             bool hasTop = y > 0 && y <= _pathingGrid.Height - 1;
@@ -182,13 +183,13 @@ namespace Emotion.Game.AStar
             if (hasLeft)
             {
                 AStarNode left = CreateNodeFromIfValid(x - 1, y);
-                if (left != null) neighbors.Add(left);
+                if (left != null) yield return left;
 
                 // Check top left diagonal.
                 if (diagonal && hasTop)
                 {
                     AStarNode topLeft = CreateNodeFromIfValid(x - 1, y - 1);
-                    if (topLeft != null) neighbors.Add(topLeft);
+                    if (topLeft != null) yield return topLeft;
                 }
             }
 
@@ -196,13 +197,13 @@ namespace Emotion.Game.AStar
             if (hasRight)
             {
                 AStarNode right = CreateNodeFromIfValid(x + 1, y);
-                if (right != null) neighbors.Add(right);
+                if (right != null) yield return right;
 
                 // Check top right diagonal.
                 if (diagonal && hasTop)
                 {
                     AStarNode topRight = CreateNodeFromIfValid(x + 1, y - 1);
-                    if (topRight != null) neighbors.Add(topRight);
+                    if (topRight != null) yield return topRight;
                 }
             }
 
@@ -210,7 +211,7 @@ namespace Emotion.Game.AStar
             if (hasTop)
             {
                 AStarNode top = CreateNodeFromIfValid(x, y - 1);
-                if (top != null) neighbors.Add(top);
+                if (top != null) yield return top;
             }
 
             // Check for bottom.
@@ -218,13 +219,13 @@ namespace Emotion.Game.AStar
             if (hasBottom)
             {
                 AStarNode bottom = CreateNodeFromIfValid(x, y + 1);
-                if (bottom != null) neighbors.Add(bottom);
+                if (bottom != null) yield return bottom;
 
                 // Check bottom left diagonal.
                 if (diagonal && hasLeft)
                 {
                     AStarNode bottomLeft = CreateNodeFromIfValid(x - 1, y + 1);
-                    if (bottomLeft != null) neighbors.Add(bottomLeft);
+                    if (bottomLeft != null) yield return bottomLeft;
                 }
 
                 // Check bottom right diagonal.
@@ -232,11 +233,9 @@ namespace Emotion.Game.AStar
                 if (diagonal && hasRight)
                 {
                     AStarNode bottomRight = CreateNodeFromIfValid(x + 1, y + 1);
-                    if (bottomRight != null) neighbors.Add(bottomRight);
+                    if (bottomRight != null) yield return bottomRight;
                 }
             }
-
-            return neighbors;
         }
 
         #endregion
