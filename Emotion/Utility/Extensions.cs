@@ -176,6 +176,19 @@ namespace System.Numerics
         }
 
         /// <summary>
+        /// Round off any amounts smaller than epsilon.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 EpsilonRound(this Vector2 v)
+        {
+            Vector2 floor = v.Floor();
+            Vector2 subTract = v - floor;
+            if(subTract.X < Maths.EPSILON) v.X = floor.X;
+            if(subTract.Y < Maths.EPSILON) v.Y = floor.Y;
+            return v;
+        }
+
+        /// <summary>
         /// Round the vector's components using Maths.RoundClosest.
         /// </summary>
         /// <param name="v"></param>
