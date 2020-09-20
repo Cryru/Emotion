@@ -73,7 +73,7 @@ namespace Emotion.Standard.Audio.WAV
         /// <param name="wavData">The data to decode.</param>
         /// <param name="format">The audio format.</param>
         /// <returns>The sound data.</returns>
-        public static Memory<byte> Decode(byte[] wavData, out AudioFormat format)
+        public static Span<byte> Decode(byte[] wavData, out AudioFormat format)
         {
             format = new AudioFormat();
 
@@ -141,7 +141,7 @@ namespace Emotion.Standard.Audio.WAV
             }
 
             // Get the data and return it. This won't copy it.
-            return new Memory<byte>(wavData, (int) stream.Position, dataLength);
+            return new Span<byte>(wavData, (int) stream.Position, dataLength);
         }
     }
 }

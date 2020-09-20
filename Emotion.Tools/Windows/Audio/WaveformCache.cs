@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Audio;
 using Emotion.Graphics;
@@ -41,10 +42,12 @@ namespace Emotion.Tools.Windows.Audio
             float interval = Track.File.Duration / _cacheWidth;
             var sampleCount = (int) (1f / interval);
             _cache = new Vector2[sampleCount];
+            Span<float> soundDataSpan = Track.SoundData.Span;
+
             for (var i = 0; i < sampleCount; i++)
             {
                 float location = i == sampleCount - 1 ? 1 : i * interval;
-                float sample = Track.GetSampleAsFloat((int) ((Track.SourceSamples - 1) * location));
+                float sample = soundDataSpan[(int) ((Track.SourceSamples - 1) * location)];
                 _cache[i] = new Vector2(_cacheWidth * location, _cacheHeight * ((1.0f + sample) / 2f));
             }
 

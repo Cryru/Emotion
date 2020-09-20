@@ -12,7 +12,7 @@ using Emotion.Standard.Logging;
 namespace Emotion.Standard.Audio
 {
     /// <summary>
-    /// An object which converts to the specified format at runtime.
+    /// Converts audio of one sample rate to another.
     /// Optimized for feeding the sound device buffer audio data.
     /// Frame - Samples * Channels
     /// Sample - Sound, one for each channel
@@ -20,7 +20,7 @@ namespace Emotion.Standard.Audio
     public class AudioStreamer
     {
         public int SourceSamples { get; protected set; }
-        public Memory<byte> SoundData { get; protected set; }
+        public Memory<float> SoundData { get; protected set; }
         public AudioFormat SourceFormat { get; protected set; }
 
         public float ResampleRatio { get; protected set; }
@@ -47,11 +47,14 @@ namespace Emotion.Standard.Audio
         protected int _convQuality2;
         protected double _resampleStep;
 
-        public AudioStreamer(AudioFormat srcFormat, Memory<byte> audioData)
+        public AudioStreamer(AudioFormat srcFormat, Memory<float> floatAudioData)
         {
             SourceFormat = srcFormat;
-            SourceSamples = audioData.Length / srcFormat.SampleSize;
-            SoundData = audioData;
+            SourceSamples = floatAudioData.Length / srcFormat.SampleSize;
+            SoundData = floatAudioData;
+
+            Debug.Assert(srcFormat.BitsPerSample == 32);
+            Debug.Assert(srcFormat.IsFloat);
         }
 
         /// <summary>
@@ -88,12 +91,12 @@ namespace Emotion.Standard.Audio
         }
 
         /// <summary>
-        /// Get the next number of specified frames.
+        /// Get the next N frames in the buffer - resampled.
         /// </summary>
         /// <param name="frameCount">The frames to get.</param>
         /// <param name="buffer">The buffer to fill with the samples.</param>
         /// <returns>How many frames were gotten.</returns>
-        public virtual int GetNextFrames(int frameCount, Span<byte> buffer)
+        public virtual int GetNextFrames(int frameCount, Span<float> buffer)
         {
             // Gets the resampled samples.
             int sampleCount = frameCount * ConvFormat.Channels;
@@ -113,7 +116,7 @@ namespace Emotion.Standard.Audio
         /// <param name="getSamples">The number of resampled samples to return.</param>
         /// <param name="samples">The buffer to fill with data.</param>
         /// <returns>How many samples were returned. Can not be more than the ones requested.</returns>
-        protected int PartialResample(ref double x, ref int i, int getSamples, Span<byte> samples)
+        protected int PartialResample(ref double x, ref int i, int getSamples, Span<float> samples)
         {
             int channels = ConvFormat.Channels;
 
@@ -129,7 +132,7 @@ namespace Emotion.Standard.Audio
             // Verify that the number of samples will fit.
             int outputBps = ConvFormat.BitsPerSample / 8;
             int outputLength = samples.Length / outputBps;
-            if (outputLength < getSamples)
+            if (samples.Length < getSamples)
             {
                 Engine.Log.Warning($"The provided buffer to the audio streamer is of invalid size {samples.Length} while {getSamples} were requested.", MessageSource.Audio);
                 getSamples = outputLength;
@@ -154,11 +157,11 @@ namespace Emotion.Standard.Audio
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
                         if (j < 0 || j >= _sourceConvLength / channels) continue;
-                        rY += rG * rW * rSnc * GetSampleAsFloat(j * channels + c);
+                        rY += rG * rW * rSnc * GetChannelConvertedSample(j * channels + c);
                     }
 
                     float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
-                    SetSampleAsFloat(i + c, targetBufferIdx + c, value, samples);
+                    samples[targetBufferIdx + c] = value;
                 }
 
                 x += _resampleStep;
@@ -176,70 +179,25 @@ namespace Emotion.Standard.Audio
         /// Returns the specified sample from the source as a float, converted into the output channel format.
         /// </summary>
         /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
-        /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
         /// <returns>The specified sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
+        public virtual float GetChannelConvertedSample(int sampleIdx)
         {
             // Check if simulating stereo from mono.
-            if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
+            if (SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
 
             // Check if simulating mono from stereo.
             bool simulatingMono = SourceFormat.Channels == 2 && ConvFormat.Channels == 1;
-            if (!trueIndex && simulatingMono) sampleIdx *= 2;
+            if (simulatingMono) sampleIdx *= 2;
 
-            float output = GetSampleAsFloat(sampleIdx, SoundData.Span, SourceFormat);
-
-            //Span<byte> data = ;
-            //switch (SourceFormat.BitsPerSample)
-            //{
-            //    case 8: // ubyte (C# byte)
-            //        output = (float) data[sampleIdx] / byte.MaxValue;
-            //        break;
-            //    case 16: // short
-            //        var dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
-            //        if (dataShort < 0)
-            //            output = (float) -dataShort / short.MinValue;
-            //        else
-            //            output = (float) dataShort / short.MaxValue;
-            //        break;
-            //    case 32 when !SourceFormat.IsFloat: // int
-            //        var dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
-            //        if (dataInt < 0)
-            //            output = (float) -dataInt / int.MinValue;
-            //        else
-            //            output = (float) dataInt / int.MaxValue;
-            //        break;
-            //    case 32: // float
-            //        output = BitConverter.ToSingle(data.Slice(sampleIdx * 4, 4));
-            //        break;
-            //    default:
-            //        Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat  - {SourceFormat.BitsPerSample}", MessageSource.Audio);
-            //        return 0;
-            //}
-
-            // If getting a sample by true index, skip the transformations below as they will cause an infinite loop.
-            if (trueIndex) return output;
+            float output = SoundData.Span[sampleIdx];
 
             // If simulating mono from stereo get the other channel and average them.
             if (!simulatingMono) return output;
-            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true);
+            float outputRightChannel = SoundData.Span[sampleIdx + 1];
             output = (output + outputRightChannel) / 2f;
 
             return output;
-        }
-
-        /// <summary>
-        /// Sets the specified sample in the specified buffer from a float to the destination format.
-        /// </summary>
-        /// <param name="trueSampleIdx">The index within the destination buffer - as f it was all floats. Used for processing.</param>
-        /// <param name="index">The index within the buffer - as if it was all floats.</param>
-        /// <param name="value">The value to set.</param>
-        /// <param name="buffer">The buffer to set in.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void SetSampleAsFloat(int trueSampleIdx, int index, float value, Span<byte> buffer)
-        {
-            SetSampleAsFloat(index, value, buffer, ConvFormat);
         }
 
         /// <summary>

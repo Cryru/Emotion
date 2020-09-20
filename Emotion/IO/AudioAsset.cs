@@ -24,9 +24,9 @@ namespace Emotion.IO
         public float Duration { get; private set; }
 
         /// <summary>
-        /// The sound data itself.
+        /// The raw PCM as floats.
         /// </summary>
-        public Memory<byte> SoundData { get; private set; }
+        public Memory<float> SoundData { get; private set; }
 
         /// <summary>
         /// The sound format.
@@ -40,7 +40,21 @@ namespace Emotion.IO
             // Check if WAV.
             if (WavFormat.IsWav(data))
             {
-                SoundData = WavFormat.Decode(data, out AudioFormat format);
+                // Get the data.
+                Span<byte> pcm = WavFormat.Decode(data, out AudioFormat format);
+                if (pcm == null) return;
+
+                // Convert to float, for easier resampling and post processing.
+                int sourceSamples = pcm.Length / format.SampleSize;
+                var soundDataFloat = new float[sourceSamples];
+                for (var i = 0; i < sourceSamples; i++)
+                {
+                    soundDataFloat[i] = AudioStreamer.GetSampleAsFloat(i, pcm, format);
+                }
+                format.IsFloat = true;
+                format.BitsPerSample = 32;
+                SoundData = soundDataFloat;
+
                 Format = format;
                 Duration = format.GetSoundDuration(data.Length);
             }
