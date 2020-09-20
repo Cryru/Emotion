@@ -2,7 +2,6 @@
 
 using System;
 using Emotion.Audio;
-using Emotion.Audio.Fading;
 using Emotion.Graphics;
 using Emotion.IO;
 using Emotion.Plugins.ImGuiNet.Windowing;
@@ -19,6 +18,8 @@ namespace Emotion.Tools.Windows.Audio
         private float _fadeInTimestamp;
         private bool _fadeOut;
         private float _fadeOutTimestamp;
+        private bool _crossFade;
+        private float _crossFadeTimestamp;
 
         private Action<AudioTrack> _trackCallback;
 
@@ -30,7 +31,6 @@ namespace Emotion.Tools.Windows.Audio
 
         public override void Update()
         {
-
         }
 
         protected override void RenderContent(RenderComposer composer)
@@ -49,6 +49,13 @@ namespace Emotion.Tools.Windows.Audio
                 ImGui.DragFloat("FadeOut Duration", ref _fadeOutTimestamp, 0.5f, 0.0f, _asset.Duration);
             }
 
+            ImGui.Checkbox("CrossFade", ref _crossFade);
+            if (_crossFade)
+            {
+                ImGui.SameLine();
+                ImGui.DragFloat("CrossFade Duration", ref _crossFadeTimestamp, 0.5f, 0.0f, _asset.Duration);
+            }
+
             if (ImGui.Button("Ok"))
             {
                 _trackCallback(GetTrack());
@@ -60,15 +67,9 @@ namespace Emotion.Tools.Windows.Audio
         {
             var track = new AudioTrack(_asset);
 
-            if (_fadeIn)
-            {
-                track.AddAudioModulation(new AudioFadeIn(_fadeInTimestamp));
-            }
-
-            if (_fadeOut)
-            {
-                track.AddAudioModulation(new AudioFadeOut(_fadeOutTimestamp));
-            }
+            if (_fadeIn) track.FadeIn = _fadeInTimestamp;
+            if (_fadeOut) track.FadeOut = _fadeOutTimestamp;
+            if (_crossFade) track.CrossFade = _crossFadeTimestamp;
 
             return track;
         }

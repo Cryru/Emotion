@@ -19,7 +19,7 @@ namespace Emotion.Tools.Windows.Audio
     public class AudioMixer : ImGuiWindow
     {
         private FileExplorer<AudioAsset> _explorer;
-        private string _newLayerName = "";
+        private string _newLayerName = "New Layer";
         private int _waveFormHeight = 200;
 
         private Dictionary<AudioLayer, WaveformCache> _waveFormCache = new Dictionary<AudioLayer, WaveformCache>();
@@ -54,6 +54,12 @@ namespace Emotion.Tools.Windows.Audio
                 {
                     cache.Value.Recreate();
                 }
+            }
+
+            bool mono = Engine.Configuration.ForceMono;
+            if (ImGui.Checkbox("Force Mono", ref mono))
+            {
+                Engine.Configuration.ForceMono = mono;
             }
 
             // Push waveforms down.

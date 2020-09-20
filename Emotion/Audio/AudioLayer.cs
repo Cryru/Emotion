@@ -219,11 +219,87 @@ namespace Emotion.Audio
 
             if (currentTrack == null) return 0;
 
+            Stopwatch test = Stopwatch.StartNew();
+
             // Set the conversion format to the requested one - if it doesn't match.
             if (!format.Equals(currentTrack.ConvFormat)) currentTrack.SetConvertFormat(format);
 
             // Get frames from the streamer.
-            int framesOutput = currentTrack.GetNextFrames(framesRequested, dest.Slice(framesOffset * format.FrameSize));
+            Span<byte> destBuffer = dest.Slice(framesOffset * format.FrameSize);
+            int framesOutput = currentTrack.GetNextFrames(framesRequested, destBuffer);
+
+            // If cross fading and there is another track afterward.
+            if (currentTrack.CrossFade.HasValue && _currentTrack < playlistCount - 1)
+            {
+                AudioTrack nextTrack;
+                lock (_playlist)
+                {
+                    nextTrack = _playlist[_currentTrack + 1];
+                }
+
+                if (nextTrack != null)
+                {
+                    float progress = currentTrack.Progress;
+                    float playback = currentTrack.Playback;
+                    float currentTrackDuration = currentTrack.File.Duration;
+                    float val = currentTrack.CrossFade.Value;
+                    var crossFade = false;
+
+
+                    // Make sure there is enough duration in the next track to crossfade into.
+                    if (val > 0.0)
+                    {
+                        float activationTimeStamp = currentTrackDuration - val;
+                        if (playback >= activationTimeStamp)
+                        {
+                            float timeLeft = currentTrackDuration - activationTimeStamp;
+                            crossFade = timeLeft < nextTrack.File.Duration;
+                        }
+                    }
+                    else
+                    {
+                        float activationProgress = 1.0f + val;
+                        if (progress >= activationProgress)
+                        {
+                            float activationTimeStamp = currentTrackDuration - (currentTrackDuration * -val);
+                            float timeLeft = currentTrackDuration - activationTimeStamp;
+                            crossFade = timeLeft < nextTrack.File.Duration;
+                        }
+                    }
+
+                    if (crossFade)
+                    {
+                        if (nextTrack.FadeIn == null)
+                        {
+                            nextTrack.FadeIn = val;
+                        }
+
+                        // Match convert format and get frames from the next track.
+                        if (!format.Equals(nextTrack.ConvFormat)) nextTrack.SetConvertFormat(format);
+                        var nextTrackDest = new Span<byte>(new byte[destBuffer.Length]);
+                        int nextTrackFrameCount = nextTrack.GetNextFrames(framesOutput, nextTrackDest);
+                        Debug.Assert(nextTrackFrameCount == framesOutput);
+
+                        int channels = format.Channels;
+                        for (int i = 0; i < nextTrackFrameCount; i++)
+                        {
+                            for (int c = 0; c < channels; c++)
+                            {
+                                int sampleIdx = (i * channels) + c;
+                                //float sampleCurrentTrack = AudioStreamer.GetSampleAsFloat(sampleIdx, destBuffer, format);
+                                //float sampleNextTrack = AudioStreamer.GetSampleAsFloat(sampleIdx, nextTrackDest, format);
+
+                                //sampleCurrentTrack = (sampleCurrentTrack + sampleNextTrack) / 2f;
+                                //AudioStreamer.SetSampleAsFloat(sampleIdx, sampleCurrentTrack, destBuffer, format);
+                            }
+                        }
+
+                    }
+
+                }
+            }
+
+            Engine.Log.Info($"{test.ElapsedMilliseconds}", "Benchmark");
 
             // Check if the buffer was filled.
             Debug.Assert(framesOutput <= framesRequested);
@@ -279,7 +355,7 @@ namespace Emotion.Audio
         private void TransitionStatus(PlaybackStatus newStatus)
         {
             // If wasn't playing - but now am, and the current track is invalid, set the current track.
-            if (Status == PlaybackStatus.NotPlaying && newStatus == PlaybackStatus.Playing && _currentTrack == -1)
+            if ((Status == PlaybackStatus.NotPlaying || Status == PlaybackStatus.Paused) && newStatus == PlaybackStatus.Playing && _currentTrack == -1)
             {
                 // Check if there is anything in the playlist.
                 if (_playlist.Count == 0)

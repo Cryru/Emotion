@@ -172,6 +172,12 @@ namespace Emotion.Common
         /// The exponential transform is not applied to it.
         /// </summary>
         public float MasterVolume { get; set; } = 1f;
+        
+        /// <summary>
+        /// If enabled stereo audio will be played as mono.
+        /// This can be set, and will take affect at any time.
+        /// </summary>
+        public bool ForceMono { get; set; } = false;
 
         #endregion
 

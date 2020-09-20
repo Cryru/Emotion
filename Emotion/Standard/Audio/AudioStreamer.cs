@@ -14,6 +14,9 @@ namespace Emotion.Standard.Audio
     /// <summary>
     /// An object which converts to the specified format at runtime.
     /// Optimized for feeding the sound device buffer audio data.
+    ///
+    /// Frame - Samples * Channels
+    /// Sample - Sound, one for each channel
     /// </summary>
     public class AudioStreamer
     {
@@ -154,7 +157,8 @@ namespace Emotion.Standard.Audio
                         rY += rG * rW * rSnc * GetSampleAsFloat(j * channels + c);
                     }
 
-                    SetSampleAsFloat(i - iStart + c, MathF.Min(MathF.Max(-1, (float) rY), 1), samples);
+                    float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
+                    SetSampleAsFloat(i - iStart + c, value, samples);
                 }
 
                 x += _resampleStep;
@@ -168,21 +172,87 @@ namespace Emotion.Standard.Audio
             return _dstLength - iStart;
         }
 
+        public static float GetSampleAsFloat(int sampleIdx, Span<byte> data, AudioFormat sourceFormat)
+        {
+            float output;
+            switch (sourceFormat.BitsPerSample)
+            {
+                case 8: // ubyte (C# byte)
+                    output = (float) data[sampleIdx] / byte.MaxValue;
+                    break;
+                case 16: // short
+                    var dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
+                    if (dataShort < 0)
+                        output = (float) -dataShort / short.MinValue;
+                    else
+                        output = (float) dataShort / short.MaxValue;
+                    break;
+                case 32 when !sourceFormat.IsFloat: // int
+                    var dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
+                    if (dataInt < 0)
+                        output = (float) -dataInt / int.MinValue;
+                    else
+                        output = (float) dataInt / int.MaxValue;
+                    break;
+                case 32: // float
+                    output = BitConverter.ToSingle(data.Slice(sampleIdx * 4, 4));
+                    break;
+                default:
+                    Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat - {sourceFormat.BitsPerSample}", MessageSource.Audio);
+                    return 0;
+            }
+            return output;
+        }
+
+        public static void SetSampleAsFloat(int sampleIdx, float value, Span<byte> data, AudioFormat destFormat)
+        {
+            switch (destFormat.BitsPerSample)
+            {
+                case 8: // ubyte (C# byte)
+                    sampleIdx /= 4;
+                    data[sampleIdx] = (byte) (value * byte.MaxValue);
+                    break;
+                case 16: // short
+                    sampleIdx /= 2;
+                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(data);
+                    if (value < 0)
+                        dataShort[sampleIdx] = (short) (-value * short.MinValue);
+                    else
+                        dataShort[sampleIdx] = (short) (value * short.MaxValue);
+                    break;
+                case 32 when !destFormat.IsFloat: // int
+                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(data);
+                    if (value < 0)
+                        dataInt[sampleIdx] = (int) (-value * int.MinValue);
+                    else
+                        dataInt[sampleIdx] = (int) (value * int.MaxValue);
+
+                    break;
+                case 32:
+                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(data);
+                    dataFloat[sampleIdx] = value;
+                    break;
+                default:
+                    Engine.Log.Warning($"Unsupported source bits per sample format by DestinationFormat - {destFormat.BitsPerSample}", MessageSource.Audio);
+                    break;
+            }
+        }
+
         /// <summary>
         /// Returns the specified sample from the source as a float, converted into the output channel format.
         /// </summary>
         /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
         /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
-        /// <param name="secondChannel">Whether sampling for a second channel. Used internally.</param>
         /// <returns>The specified sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false, bool secondChannel = false)
+        public virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
         {
             // Check if simulating stereo from mono.
             if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
 
             // Check if simulating mono from stereo.
-            if (!trueIndex && SourceFormat.Channels == 2 && ConvFormat.Channels == 1) sampleIdx *= 2;
+            bool simulatingMono = SourceFormat.Channels == 2 && ConvFormat.Channels == 1;
+            if (!trueIndex && simulatingMono) sampleIdx *= 2;
 
             float output;
 
@@ -193,14 +263,14 @@ namespace Emotion.Standard.Audio
                     output = (float) data[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
-                    short dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
+                    var dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
                     if (dataShort < 0)
                         output = (float) -dataShort / short.MinValue;
                     else
                         output = (float) dataShort / short.MaxValue;
                     break;
                 case 32 when !SourceFormat.IsFloat: // int
-                    int dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
+                    var dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
                     if (dataInt < 0)
                         output = (float) -dataInt / int.MinValue;
                     else
@@ -210,15 +280,28 @@ namespace Emotion.Standard.Audio
                     output = BitConverter.ToSingle(data.Slice(sampleIdx * 4, 4));
                     break;
                 default:
-                    Engine.Log.Warning($"Unsupported source bits per sample format by ConvertFormat  - {SourceFormat.BitsPerSample}", MessageSource.Audio);
+                    Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat  - {SourceFormat.BitsPerSample}", MessageSource.Audio);
                     return 0;
             }
 
+            // If getting a sample by true index, skip the transformations below as they will cause an infinite loop.
+            if (trueIndex) return output;
+
+            // Check if forcing mono sound. This matters only if both the source and destination formats are stereo.
+            // In this case pretend the source is mono for both channels.
+            bool mergeChannels = Engine.Configuration.ForceMono && SourceFormat.Channels == 2 && ConvFormat.Channels == 2;
+            if (mergeChannels)
+            {
+                int channel = sampleIdx % 2;
+                int offset = channel == 1 ? -1 : 1;
+                float otherChannelSample = GetSampleAsFloat(sampleIdx + offset, true);
+                output = (output + otherChannelSample) / 2f;
+                return output;
+            }
+
             // If simulating mono from stereo get the other channel and average them.
-            // Without the "secondChannel" boolean you cannot get the value of the other channel
-            // as it will loop in trying to convert it to mono as well.
-            if (secondChannel || SourceFormat.Channels != 2 || ConvFormat.Channels != 1) return output;
-            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true, true);
+            if (!simulatingMono) return output;
+            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true);
             output = (output + outputRightChannel) / 2f;
 
             return output;
