@@ -228,6 +228,20 @@ namespace Emotion.Audio
             Span<byte> destBuffer = dest.Slice(framesOffset * format.FrameSize);
             int framesOutput = currentTrack.GetNextFrames(framesRequested, destBuffer);
 
+            // Check if forcing mono sound. This matters only if both the source and destination formats are stereo.
+            bool mergeChannels = Engine.Configuration.ForceMono && currentTrack.SourceFormat.Channels == 2 && currentTrack.ConvFormat.Channels == 2;
+            if (mergeChannels)
+                for (var i = 0; i < framesOutput; i++)
+                {
+                    int sampleIdx = i * 2;
+                    float left = AudioStreamer.GetSampleAsFloat(sampleIdx, destBuffer, format);
+                    float right = AudioStreamer.GetSampleAsFloat(sampleIdx + 1, destBuffer, format);
+
+                    float merged = (left + right) / 2f;
+                    AudioStreamer.SetSampleAsFloat(sampleIdx, merged, destBuffer, format);
+                    AudioStreamer.SetSampleAsFloat(sampleIdx + 1, merged, destBuffer, format);
+                }
+
             // If cross fading and there is another track afterward.
             if (currentTrack.CrossFade.HasValue && _currentTrack < playlistCount - 1)
             {
@@ -239,40 +253,24 @@ namespace Emotion.Audio
 
                 if (nextTrack != null)
                 {
-                    float progress = currentTrack.Progress;
                     float playback = currentTrack.Playback;
                     float currentTrackDuration = currentTrack.File.Duration;
                     float val = currentTrack.CrossFade.Value;
-                    var crossFade = false;
+                    float crossFadeProgress = 0;
 
+                    if (val < 0.0) val = currentTrackDuration - currentTrackDuration * -val;
 
-                    // Make sure there is enough duration in the next track to crossfade into.
-                    if (val > 0.0)
+                    // Make sure there is enough duration in the next track to cross fade into.
+                    float activationTimeStamp = currentTrackDuration - val;
+                    if (playback >= activationTimeStamp)
                     {
-                        float activationTimeStamp = currentTrackDuration - val;
-                        if (playback >= activationTimeStamp)
-                        {
-                            float timeLeft = currentTrackDuration - activationTimeStamp;
-                            crossFade = timeLeft < nextTrack.File.Duration;
-                        }
-                    }
-                    else
-                    {
-                        float activationProgress = 1.0f + val;
-                        if (progress >= activationProgress)
-                        {
-                            float activationTimeStamp = currentTrackDuration - (currentTrackDuration * -val);
-                            float timeLeft = currentTrackDuration - activationTimeStamp;
-                            crossFade = timeLeft < nextTrack.File.Duration;
-                        }
+                        float timeLeft = currentTrackDuration - playback;
+                        if (timeLeft < nextTrack.File.Duration) crossFadeProgress = timeLeft / val;
                     }
 
-                    if (crossFade)
+                    if (crossFadeProgress != 0.0f)
                     {
-                        if (nextTrack.FadeIn == null)
-                        {
-                            nextTrack.FadeIn = val;
-                        }
+                        nextTrack.FadeIn ??= val;
 
                         // Match convert format and get frames from the next track.
                         if (!format.Equals(nextTrack.ConvFormat)) nextTrack.SetConvertFormat(format);
@@ -281,21 +279,18 @@ namespace Emotion.Audio
                         Debug.Assert(nextTrackFrameCount == framesOutput);
 
                         int channels = format.Channels;
-                        for (int i = 0; i < nextTrackFrameCount; i++)
+                        for (var i = 0; i < nextTrackFrameCount; i++)
                         {
-                            for (int c = 0; c < channels; c++)
+                            for (var c = 0; c < channels; c++)
                             {
-                                int sampleIdx = (i * channels) + c;
-                                //float sampleCurrentTrack = AudioStreamer.GetSampleAsFloat(sampleIdx, destBuffer, format);
-                                //float sampleNextTrack = AudioStreamer.GetSampleAsFloat(sampleIdx, nextTrackDest, format);
-
-                                //sampleCurrentTrack = (sampleCurrentTrack + sampleNextTrack) / 2f;
-                                //AudioStreamer.SetSampleAsFloat(sampleIdx, sampleCurrentTrack, destBuffer, format);
+                                int sampleIdx = i * channels + c;
+                                float sampleCurrentTrack = AudioStreamer.GetSampleAsFloat(sampleIdx, destBuffer, format);
+                                float sampleNextTrack = AudioStreamer.GetSampleAsFloat(sampleIdx, nextTrackDest, format);
+                                sampleCurrentTrack = Maths.Lerp(sampleNextTrack, sampleCurrentTrack, crossFadeProgress);
+                                AudioStreamer.SetSampleAsFloat(sampleIdx, sampleCurrentTrack, destBuffer, format);
                             }
                         }
-
                     }
-
                 }
             }
 

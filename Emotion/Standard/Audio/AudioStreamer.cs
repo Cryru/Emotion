@@ -14,7 +14,6 @@ namespace Emotion.Standard.Audio
     /// <summary>
     /// An object which converts to the specified format at runtime.
     /// Optimized for feeding the sound device buffer audio data.
-    ///
     /// Frame - Samples * Channels
     /// Sample - Sound, one for each channel
     /// </summary>
@@ -139,6 +138,7 @@ namespace Emotion.Standard.Audio
             // Resample the needed amount.
             for (; i < _dstLength; i += channels)
             {
+                int targetBufferIdx = i - iStart;
                 for (var c = 0; c < channels; c++)
                 {
                     var rY = 0.0;
@@ -158,7 +158,7 @@ namespace Emotion.Standard.Audio
                     }
 
                     float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
-                    SetSampleAsFloat(i - iStart + c, value, samples);
+                    SetSampleAsFloat(i + c, targetBufferIdx + c, value, samples);
                 }
 
                 x += _resampleStep;
@@ -172,6 +172,95 @@ namespace Emotion.Standard.Audio
             return _dstLength - iStart;
         }
 
+        /// <summary>
+        /// Returns the specified sample from the source as a float, converted into the output channel format.
+        /// </summary>
+        /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
+        /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
+        /// <returns>The specified sample as a float.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
+        {
+            // Check if simulating stereo from mono.
+            if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
+
+            // Check if simulating mono from stereo.
+            bool simulatingMono = SourceFormat.Channels == 2 && ConvFormat.Channels == 1;
+            if (!trueIndex && simulatingMono) sampleIdx *= 2;
+
+            float output = GetSampleAsFloat(sampleIdx, SoundData.Span, SourceFormat);
+
+            //Span<byte> data = ;
+            //switch (SourceFormat.BitsPerSample)
+            //{
+            //    case 8: // ubyte (C# byte)
+            //        output = (float) data[sampleIdx] / byte.MaxValue;
+            //        break;
+            //    case 16: // short
+            //        var dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
+            //        if (dataShort < 0)
+            //            output = (float) -dataShort / short.MinValue;
+            //        else
+            //            output = (float) dataShort / short.MaxValue;
+            //        break;
+            //    case 32 when !SourceFormat.IsFloat: // int
+            //        var dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
+            //        if (dataInt < 0)
+            //            output = (float) -dataInt / int.MinValue;
+            //        else
+            //            output = (float) dataInt / int.MaxValue;
+            //        break;
+            //    case 32: // float
+            //        output = BitConverter.ToSingle(data.Slice(sampleIdx * 4, 4));
+            //        break;
+            //    default:
+            //        Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat  - {SourceFormat.BitsPerSample}", MessageSource.Audio);
+            //        return 0;
+            //}
+
+            // If getting a sample by true index, skip the transformations below as they will cause an infinite loop.
+            if (trueIndex) return output;
+
+            // If simulating mono from stereo get the other channel and average them.
+            if (!simulatingMono) return output;
+            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true);
+            output = (output + outputRightChannel) / 2f;
+
+            return output;
+        }
+
+        /// <summary>
+        /// Sets the specified sample in the specified buffer from a float to the destination format.
+        /// </summary>
+        /// <param name="trueSampleIdx">The index within the destination buffer - as f it was all floats. Used for processing.</param>
+        /// <param name="index">The index within the buffer - as if it was all floats.</param>
+        /// <param name="value">The value to set.</param>
+        /// <param name="buffer">The buffer to set in.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void SetSampleAsFloat(int trueSampleIdx, int index, float value, Span<byte> buffer)
+        {
+            SetSampleAsFloat(index, value, buffer, ConvFormat);
+        }
+
+        /// <summary>
+        /// Restart the streamer's pointer.
+        /// </summary>
+        public virtual void Reset()
+        {
+            _dstResume = 0;
+            _srcResume = 0;
+        }
+
+        #region Static API
+
+        /// <summary>
+        /// Get a sample from a PCM as a float.
+        /// </summary>
+        /// <param name="sampleIdx">The index of the sample.</param>
+        /// <param name="data">The PCM</param>
+        /// <param name="sourceFormat">The audio format of the PCM</param>
+        /// <returns>The requested sample as a float.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetSampleAsFloat(int sampleIdx, Span<byte> data, AudioFormat sourceFormat)
         {
             float output;
@@ -201,9 +290,18 @@ namespace Emotion.Standard.Audio
                     Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat - {sourceFormat.BitsPerSample}", MessageSource.Audio);
                     return 0;
             }
+
             return output;
         }
 
+        /// <summary>
+        /// Set a sample in the PCM from a float.
+        /// </summary>
+        /// <param name="sampleIdx">The index of the sample.</param>
+        /// <param name="value">The value of the sample to set, as a float.</param>
+        /// <param name="data">The PCM</param>
+        /// <param name="destFormat">The audio format of the PCM</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetSampleAsFloat(int sampleIdx, float value, Span<byte> data, AudioFormat destFormat)
         {
             switch (destFormat.BitsPerSample)
@@ -238,123 +336,6 @@ namespace Emotion.Standard.Audio
             }
         }
 
-        /// <summary>
-        /// Returns the specified sample from the source as a float, converted into the output channel format.
-        /// </summary>
-        /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
-        /// <param name="trueIndex">Whether the index is within the source buffer before channel conversion instead.</param>
-        /// <returns>The specified sample as a float.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
-        {
-            // Check if simulating stereo from mono.
-            if (!trueIndex && SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
-
-            // Check if simulating mono from stereo.
-            bool simulatingMono = SourceFormat.Channels == 2 && ConvFormat.Channels == 1;
-            if (!trueIndex && simulatingMono) sampleIdx *= 2;
-
-            float output;
-
-            Span<byte> data = SoundData.Span;
-            switch (SourceFormat.BitsPerSample)
-            {
-                case 8: // ubyte (C# byte)
-                    output = (float) data[sampleIdx] / byte.MaxValue;
-                    break;
-                case 16: // short
-                    var dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
-                    if (dataShort < 0)
-                        output = (float) -dataShort / short.MinValue;
-                    else
-                        output = (float) dataShort / short.MaxValue;
-                    break;
-                case 32 when !SourceFormat.IsFloat: // int
-                    var dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
-                    if (dataInt < 0)
-                        output = (float) -dataInt / int.MinValue;
-                    else
-                        output = (float) dataInt / int.MaxValue;
-                    break;
-                case 32: // float
-                    output = BitConverter.ToSingle(data.Slice(sampleIdx * 4, 4));
-                    break;
-                default:
-                    Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat  - {SourceFormat.BitsPerSample}", MessageSource.Audio);
-                    return 0;
-            }
-
-            // If getting a sample by true index, skip the transformations below as they will cause an infinite loop.
-            if (trueIndex) return output;
-
-            // Check if forcing mono sound. This matters only if both the source and destination formats are stereo.
-            // In this case pretend the source is mono for both channels.
-            bool mergeChannels = Engine.Configuration.ForceMono && SourceFormat.Channels == 2 && ConvFormat.Channels == 2;
-            if (mergeChannels)
-            {
-                int channel = sampleIdx % 2;
-                int offset = channel == 1 ? -1 : 1;
-                float otherChannelSample = GetSampleAsFloat(sampleIdx + offset, true);
-                output = (output + otherChannelSample) / 2f;
-                return output;
-            }
-
-            // If simulating mono from stereo get the other channel and average them.
-            if (!simulatingMono) return output;
-            float outputRightChannel = GetSampleAsFloat(sampleIdx + 1, true);
-            output = (output + outputRightChannel) / 2f;
-
-            return output;
-        }
-
-        /// <summary>
-        /// Sets the specified sample in the specified buffer from a float to the destination format.
-        /// </summary>
-        /// <param name="index">The index within the buffer - as if it was all floats.</param>
-        /// <param name="value">The value to set.</param>
-        /// <param name="buffer">The buffer to set in.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void SetSampleAsFloat(int index, float value, Span<byte> buffer)
-        {
-            switch (ConvFormat.BitsPerSample)
-            {
-                case 8: // ubyte (C# byte)
-                    index /= 4;
-                    buffer[index] = (byte) (value * byte.MaxValue);
-                    break;
-                case 16: // short
-                    index /= 2;
-                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(buffer);
-                    if (value < 0)
-                        dataShort[index] = (short) (-value * short.MinValue);
-                    else
-                        dataShort[index] = (short) (value * short.MaxValue);
-                    break;
-                case 32 when !ConvFormat.IsFloat: // int
-                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(buffer);
-                    if (value < 0)
-                        dataInt[index] = (int) (-value * int.MinValue);
-                    else
-                        dataInt[index] = (int) (value * int.MaxValue);
-
-                    break;
-                case 32:
-                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(buffer);
-                    dataFloat[index] = value;
-                    break;
-                default:
-                    Engine.Log.Warning($"Unsupported source bits per sample format by ConvertFormat - {ConvFormat.BitsPerSample}", MessageSource.Audio);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Restart the streamer's pointer.
-        /// </summary>
-        public virtual void Reset()
-        {
-            _dstResume = 0;
-            _srcResume = 0;
-        }
+        #endregion
     }
 }

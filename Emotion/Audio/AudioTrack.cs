@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Emotion.Common;
 using Emotion.IO;
@@ -54,14 +53,13 @@ namespace Emotion.Audio
             File = file;
         }
 
-        public override float GetSampleAsFloat(int sampleIdx, bool trueIndex = false)
+        protected override void SetSampleAsFloat(int trueIndex, int index, float sample, Span<byte> buffer)
         {
             float volume = Layer.Volume * Engine.Configuration.MasterVolume;
-            float sample = base.GetSampleAsFloat(sampleIdx, trueIndex);
 
             // The member properties Progress and Playback aren't used here
             // as we can make a more precise measurement using the sample index
-            float progress = (float) sampleIdx / _sourceConvLength;
+            float progress = (float) trueIndex / _dstLength;
             float playback = progress * File.Duration;
             Debug.Assert(progress >= 0.0f && progress <= 1.0f);
 
@@ -80,26 +78,20 @@ namespace Emotion.Audio
             {
                 float val = FadeOut ?? CrossFade.Value;
                 var fadeProgress = 1.0f;
+                float fileDuration = File.Duration;
 
-                if (val > 0.0)
-                {
-                    float activationTimeStamp = File.Duration - val;
-                    if (playback >= activationTimeStamp)
-                        fadeProgress = 1.0f - (playback - activationTimeStamp) / val;
-                }
-                else
-                {
-                    float activationProgress = 1.0f + val;
-                    if (progress >= activationProgress)
-                        fadeProgress = 1.0f - (progress - activationProgress) / -val;
-                }
+                if (val < 0.0) val = fileDuration * -val;
+                float activationTimeStamp = fileDuration - val;
+                if (playback >= activationTimeStamp)
+                    fadeProgress = 1.0f - (playback - activationTimeStamp) / val;
 
                 volume *= Maths.Clamp01(fadeProgress);
             }
 
             volume = MathF.Pow(volume, Engine.Configuration.AudioCurve);
             sample *= volume;
-            return sample;
+
+            base.SetSampleAsFloat(trueIndex, index, sample, buffer);
         }
     }
 }
