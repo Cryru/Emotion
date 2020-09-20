@@ -133,6 +133,12 @@ namespace Emotion.Standard.Audio.WAV
 
             // Read the data chunk length.
             int dataLength = reader.ReadInt32();
+            // If invalid length, interpret the reset of the file as the data.
+            if (dataLength == -1 || dataLength == 0)
+            {
+                reader.BaseStream.Position -= 4;
+                dataLength = (int) (reader.BaseStream.Length - reader.BaseStream.Position);
+            }
 
             // Get the data and return it. This won't copy it.
             return new Memory<byte>(wavData, (int) stream.Position, dataLength);
