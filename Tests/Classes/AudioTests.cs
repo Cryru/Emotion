@@ -58,7 +58,7 @@ namespace Tests.Classes
             AudioAsset[] playlist = layer.Playlist;
             Assert.True(playlist[0] == pepsi);
             Assert.True(playlist[1] == money);
-            Assert.True(playlist[0] == pepsi);
+            Assert.True(playlist[2] == pepsi);
             Assert.True(layer.CurrentTrack.File == pepsi);
 
             ((NullAudioLayer) layer).AdvanceTime((int) MathF.Ceiling(pepsi.Duration) + 1);

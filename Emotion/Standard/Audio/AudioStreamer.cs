@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 
 #endregion
 
@@ -50,7 +51,7 @@ namespace Emotion.Standard.Audio
         public AudioStreamer(AudioFormat srcFormat, Memory<float> floatAudioData)
         {
             SourceFormat = srcFormat;
-            SourceSamples = floatAudioData.Length / srcFormat.SampleSize;
+            SourceSamples = floatAudioData.Length;
             SoundData = floatAudioData;
 
             Debug.Assert(srcFormat.BitsPerSample == 32);
@@ -111,12 +112,12 @@ namespace Emotion.Standard.Audio
         /// Returns the specified amount of resampled samples.
         /// Note that resampling may reduce or increase the number of samples.
         /// </summary>
-        /// <param name="x">The source sample to resume from/</param>
-        /// <param name="i">The destination sample to resume from.</param>
+        /// <param name="srcStartIdx">The source sample to resume from/</param>
+        /// <param name="dstSampleIdx">The destination sample to resume from.</param>
         /// <param name="getSamples">The number of resampled samples to return.</param>
         /// <param name="samples">The buffer to fill with data.</param>
         /// <returns>How many samples were returned. Can not be more than the ones requested.</returns>
-        protected int PartialResample(ref double x, ref int i, int getSamples, Span<float> samples)
+        protected int PartialResample(ref double srcStartIdx, ref int dstSampleIdx, int getSamples, Span<float> samples)
         {
             int channels = ConvFormat.Channels;
 
@@ -124,10 +125,10 @@ namespace Emotion.Standard.Audio
             const double fMaxDivSr = 0.5f;
             const double rG = 2 * fMaxDivSr;
 
-            int iStart = i;
+            int iStart = dstSampleIdx;
 
             // Snap if more samples requested than left.
-            if (i + getSamples >= _dstLength) getSamples = _dstLength - i;
+            if (dstSampleIdx + getSamples >= _dstLength) getSamples = _dstLength - dstSampleIdx;
 
             // Verify that the number of samples will fit.
             int outputBps = ConvFormat.BitsPerSample / 8;
@@ -139,9 +140,9 @@ namespace Emotion.Standard.Audio
             }
 
             // Resample the needed amount.
-            for (; i < _dstLength; i += channels)
+            for (; dstSampleIdx < _dstLength; dstSampleIdx += channels)
             {
-                int targetBufferIdx = i - iStart;
+                int targetBufferIdx = dstSampleIdx - iStart;
                 for (var c = 0; c < channels; c++)
                 {
                     var rY = 0.0;
@@ -149,11 +150,11 @@ namespace Emotion.Standard.Audio
                     for (tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
                         // input sample index.
-                        var j = (int) (x + tau);
+                        var j = (int) (srcStartIdx + tau);
 
                         // Hann Window. Scale and calculate sinc
-                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - x) / _convQuality2));
-                        double rA = 2 * Math.PI * (j - x) * fMaxDivSr;
+                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - srcStartIdx) / _convQuality2));
+                        double rA = 2 * Math.PI * (j - srcStartIdx) * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
                         if (j < 0 || j >= _sourceConvLength / channels) continue;
@@ -164,11 +165,11 @@ namespace Emotion.Standard.Audio
                     samples[targetBufferIdx + c] = value;
                 }
 
-                x += _resampleStep;
+                srcStartIdx += _resampleStep;
 
                 // Check if gotten enough samples for the partial resampling.
-                if (i + channels - iStart < getSamples) continue;
-                i += channels;
+                if (dstSampleIdx + channels - iStart < getSamples) continue;
+                dstSampleIdx += channels;
                 return getSamples;
             }
 
@@ -215,37 +216,37 @@ namespace Emotion.Standard.Audio
         /// Get a sample from a PCM as a float.
         /// </summary>
         /// <param name="sampleIdx">The index of the sample.</param>
-        /// <param name="data">The PCM</param>
-        /// <param name="sourceFormat">The audio format of the PCM</param>
+        /// <param name="srcData">The PCM</param>
+        /// <param name="srcFormat">The audio format of the PCM</param>
         /// <returns>The requested sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float GetSampleAsFloat(int sampleIdx, Span<byte> data, AudioFormat sourceFormat)
+        public static float GetSampleAsFloat(int sampleIdx, Span<byte> srcData, AudioFormat srcFormat)
         {
             float output;
-            switch (sourceFormat.BitsPerSample)
+            switch (srcFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
-                    output = (float) data[sampleIdx] / byte.MaxValue;
+                    output = (float) srcData[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
-                    var dataShort = BitConverter.ToInt16(data.Slice(sampleIdx * 2, 2));
+                    var dataShort = BitConverter.ToInt16(srcData.Slice(sampleIdx * 2, 2));
                     if (dataShort < 0)
                         output = (float) -dataShort / short.MinValue;
                     else
                         output = (float) dataShort / short.MaxValue;
                     break;
-                case 32 when !sourceFormat.IsFloat: // int
-                    var dataInt = BitConverter.ToInt32(data.Slice(sampleIdx * 4, 4));
+                case 32 when !srcFormat.IsFloat: // int
+                    var dataInt = BitConverter.ToInt32(srcData.Slice(sampleIdx * 4, 4));
                     if (dataInt < 0)
                         output = (float) -dataInt / int.MinValue;
                     else
                         output = (float) dataInt / int.MaxValue;
                     break;
                 case 32: // float
-                    output = BitConverter.ToSingle(data.Slice(sampleIdx * 4, 4));
+                    output = BitConverter.ToSingle(srcData.Slice(sampleIdx * 4, 4));
                     break;
                 default:
-                    Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat - {sourceFormat.BitsPerSample}", MessageSource.Audio);
+                    Engine.Log.Warning($"Unsupported source bits per sample format by SourceFormat - {srcFormat.BitsPerSample}", MessageSource.Audio);
                     return 0;
             }
 
@@ -257,27 +258,27 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="sampleIdx">The index of the sample.</param>
         /// <param name="value">The value of the sample to set, as a float.</param>
-        /// <param name="data">The PCM</param>
-        /// <param name="destFormat">The audio format of the PCM</param>
+        /// <param name="dstData">The PCM</param>
+        /// <param name="dstFormat">The audio format of the PCM</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetSampleAsFloat(int sampleIdx, float value, Span<byte> data, AudioFormat destFormat)
+        public static void SetSampleAsFloat(int sampleIdx, float value, Span<byte> dstData, AudioFormat dstFormat)
         {
-            switch (destFormat.BitsPerSample)
+            switch (dstFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
                     sampleIdx /= 4;
-                    data[sampleIdx] = (byte) (value * byte.MaxValue);
+                    dstData[sampleIdx] = (byte) (value * byte.MaxValue);
                     break;
                 case 16: // short
                     sampleIdx /= 2;
-                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(data);
+                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(dstData);
                     if (value < 0)
                         dataShort[sampleIdx] = (short) (-value * short.MinValue);
                     else
                         dataShort[sampleIdx] = (short) (value * short.MaxValue);
                     break;
-                case 32 when !destFormat.IsFloat: // int
-                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(data);
+                case 32 when !dstFormat.IsFloat: // int
+                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(dstData);
                     if (value < 0)
                         dataInt[sampleIdx] = (int) (-value * int.MinValue);
                     else
@@ -285,11 +286,11 @@ namespace Emotion.Standard.Audio
 
                     break;
                 case 32:
-                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(data);
+                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(dstData);
                     dataFloat[sampleIdx] = value;
                     break;
                 default:
-                    Engine.Log.Warning($"Unsupported source bits per sample format by DestinationFormat - {destFormat.BitsPerSample}", MessageSource.Audio);
+                    Engine.Log.Warning($"Unsupported source bits per sample format by DestinationFormat - {dstFormat.BitsPerSample}", MessageSource.Audio);
                     break;
             }
         }

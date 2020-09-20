@@ -19,18 +19,20 @@ namespace Tests.Classes
         [Test]
         public void ReadWav()
         {
+            // Internally all audio files are held as a 32bit float PCM
+
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
             Assert.True(pepsi.Format.SampleRate == 44100);
             Assert.True(pepsi.Format.Channels == 2);
-            Assert.True(pepsi.Format.BitsPerSample == 16);
-            Assert.False(pepsi.Format.IsFloat);
+            Assert.True(pepsi.Format.BitsPerSample == 32); // 16
+            Assert.True(pepsi.Format.IsFloat); // false
             Assert.False(pepsi.SoundData.IsEmpty);
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
             Assert.True(money.Format.SampleRate == 22050);
             Assert.True(money.Format.Channels == 1);
-            Assert.True(money.Format.BitsPerSample == 16);
-            Assert.False(money.Format.IsFloat);
+            Assert.True(money.Format.BitsPerSample == 32); // 16
+            Assert.True(money.Format.IsFloat);
             Assert.False(money.SoundData.IsEmpty);
         }
 
@@ -39,24 +41,27 @@ namespace Tests.Classes
         {
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
 
-            var copy = new byte[pepsi.SoundData.Length];
-            pepsi.SoundData.CopyTo(copy);
-            AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(32, true, 2, 44100), ref copy);
-            Assert.True(copy.Length == pepsi.SoundData.Length * 2);
+            var copy = new byte[pepsi.SoundData.Length * 4];
+            CopyToByteBuffer(pepsi, copy);
 
-            copy = new byte[pepsi.SoundData.Length];
-            pepsi.SoundData.CopyTo(copy);
-            AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
+            AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(8, true, 2, 44100), ref copy);
+            Assert.Equal(copy.Length, pepsi.SoundData.Length); // Same number of samples as sample rate is the same
+
+            copy = new byte[pepsi.SoundData.Length * 4];
+            CopyToByteBuffer(pepsi, copy);
+
+            AudioUtil.ConvertFormat(pepsi.Format, new AudioFormat(32, true, 2, 48000), ref copy);
             float ratio = 48000f / pepsi.Format.SampleRate;
-            Assert.True(copy.Length == (int) (pepsi.SoundData.Length * ratio));
+            Assert.Equal(copy.Length / 4, (int) (pepsi.SoundData.Length * ratio)); // divided by 4 because copy is a byte array
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
 
-            copy = new byte[money.SoundData.Length];
-            money.SoundData.CopyTo(copy);
-            AudioUtil.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true.
+            copy = new byte[money.SoundData.Length * 4];
+            CopyToByteBuffer(money, copy);
+
+            AudioUtil.ConvertFormat(money.Format, new AudioFormat(16, true, 2, 48000), ref copy); // isFloat is intentionally true. (and invalid here)
             ratio = 48000f / money.Format.SampleRate;
-            Assert.True(copy.Length == (int) (money.SoundData.Length * 2 * ratio));
+            Assert.Equal(copy.Length / 4, (int) (money.SoundData.Length * ratio)); // divided by 4, 2 because 16 bit and 2 because going from mono to stereo
         }
 
         /// <summary>
@@ -69,8 +74,8 @@ namespace Tests.Classes
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
 
             var format = new AudioFormat(32, true, 2, 48000);
-            var copy = new byte[pepsi.SoundData.Length];
-            pepsi.SoundData.CopyTo(copy);
+            var copy = new byte[pepsi.SoundData.Length * 4];
+            CopyToByteBuffer(pepsi, copy);
             AudioUtil.ConvertFormat(pepsi.Format, format, ref copy);
 
             var testTasks = new List<Task>();
@@ -88,11 +93,10 @@ namespace Tests.Classes
                     DateTime start = DateTime.Now;
                     while (DateTime.Now.Subtract(start).TotalMinutes < minutesTimeout) // timeout
                     {
-                        var data = new byte[framesGet * format.FrameSize];
-                        var spanData = new Span<byte>(data);
-                        int frameAmount = streamer.GetNextFrames(framesGet, spanData);
+                        var spanData = new Span<byte>(new byte[framesGet * format.FrameSize]);
+                        int frameAmount = streamer.GetNextFramesByte(framesGet, spanData);
                         if (frameAmount == 0) break;
-                        Assert.True(data.Length >= frameAmount * format.FrameSize);
+                        Assert.True(spanData.Length >= frameAmount * format.FrameSize);
                         segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
                     }
 
@@ -110,8 +114,8 @@ namespace Tests.Classes
             testTasks.Clear();
 
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
-            copy = new byte[money.SoundData.Length];
-            money.SoundData.CopyTo(copy);
+            copy = new byte[money.SoundData.Length * 4];
+            CopyToByteBuffer(money, copy);
             AudioUtil.ConvertFormat(money.Format, format, ref copy);
 
             for (var io = 0; io < 5; io++)
@@ -130,7 +134,7 @@ namespace Tests.Classes
                     {
                         var data = new byte[framesGet * format.FrameSize];
                         var spanData = new Span<byte>(data);
-                        int frameAmount = streamer.GetNextFrames(framesGet, spanData);
+                        int frameAmount = streamer.GetNextFramesByte(framesGet, spanData);
                         if (frameAmount == 0) break;
                         Assert.True(data.Length >= frameAmount * format.FrameSize);
                         segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
@@ -158,13 +162,40 @@ namespace Tests.Classes
             // Higher to lower.
             var testData = new byte[format.SampleRate * format.FrameSize];
             var spanData = new Span<byte>(testData);
-            streamer.GetNextFrames(format.SampleRate, spanData);
+            streamer.GetNextFramesByte(format.SampleRate, spanData);
 
             format = new AudioFormat(8, true, 1, 12000);
             streamer.SetConvertFormat(format);
-            streamer.GetNextFrames(format.SampleRate, spanData);
-            streamer.GetNextFrames(format.SampleRate, spanData);
-            streamer.GetNextFrames(format.SampleRate, spanData);
+            streamer.GetNextFramesByte(format.SampleRate, spanData);
+            streamer.GetNextFramesByte(format.SampleRate, spanData);
+            streamer.GetNextFramesByte(format.SampleRate, spanData);
+        }
+
+        private static void CopyToByteBuffer(AudioAsset src, byte[] dst)
+        {
+            for (var i = 0; i < src.SoundData.Length; i++)
+            {
+                AudioStreamer.SetSampleAsFloat(i, src.SoundData.Span[i], dst, src.Format);
+            }
+        }
+    }
+
+    public static class TestsExtensions
+    {
+        public static int GetNextFramesByte(this AudioStreamer streamer, int frameCount, Span<byte> buffer)
+        {
+            int sampleCount = frameCount * streamer.ConvFormat.Channels;
+            var conversionBuffer = new Span<float>(new float[sampleCount]);
+            int convertedFrames = streamer.GetNextFrames(frameCount, conversionBuffer);
+            if (convertedFrames == 0) return 0;
+
+            int samplesGotten = convertedFrames * streamer.ConvFormat.Channels;
+            for (var i = 0; i < samplesGotten; i++)
+            {
+                AudioStreamer.SetSampleAsFloat(i, conversionBuffer[i], buffer, streamer.ConvFormat);
+            }
+
+            return convertedFrames;
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Emotion.IO
                 SoundData = soundDataFloat;
 
                 Format = format;
-                Duration = format.GetSoundDuration(data.Length);
+                Duration = format.GetSoundDuration(SoundData.Length * 4);
             }
 
             if (Format == null || SoundData.IsEmpty) Engine.Log.Warning($"Couldn't load audio file - {Name}.", MessageSource.AssetLoader);

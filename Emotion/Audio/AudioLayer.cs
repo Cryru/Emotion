@@ -287,8 +287,6 @@ namespace Emotion.Audio
             // Check if there are more tracks.
             if (playlistCount > 0)
             {
-                framesOutput += GetDataForCurrentTrack(format, framesRequested - framesOutput, dest, framesOutput);
-
                 AudioTrack newTrack;
                 lock (_playlist)
                 {
@@ -296,6 +294,7 @@ namespace Emotion.Audio
                 }
 
                 OnTrackChanged.Invoke(currentTrack.File, newTrack.File);
+                framesOutput += GetDataForCurrentTrack(format, framesRequested - framesOutput, dest, framesOutput);
             }
             else
             {
