@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
-using Emotion.Utility;
 
 #endregion
 
@@ -21,9 +20,11 @@ namespace Emotion.Standard.Audio
     public class AudioStreamer
     {
         public int SourceSamples { get; protected set; }
+        public int SourceConvFormatSamples { get; protected set; }
         public Memory<float> SoundData { get; protected set; }
         public AudioFormat SourceFormat { get; protected set; }
 
+        public int ConvSamples { get; protected set; }
         public float ResampleRatio { get; protected set; }
         public int ConvQuality { get; protected set; } = 10;
         public AudioFormat ConvFormat { get; protected set; }
@@ -31,20 +32,18 @@ namespace Emotion.Standard.Audio
         /// <summary>
         /// The resampling progress.
         /// </summary>
-        public virtual float Progress
+        public float Progress
         {
             get
             {
                 int channels = ConvFormat?.Channels ?? SourceFormat.Channels;
-                return (float) _srcResume / _sourceConvLength * channels;
+                return (float) _srcResume / SourceConvFormatSamples * channels;
             }
         }
 
         protected double _srcResume;
         protected int _dstResume;
 
-        protected int _sourceConvLength;
-        protected int _dstLength;
         protected int _convQuality2;
         protected double _resampleStep;
 
@@ -71,19 +70,19 @@ namespace Emotion.Standard.Audio
             _convQuality2 = quality * 2;
             ResampleRatio = (float) dstFormat.SampleRate / SourceFormat.SampleRate;
 
-            _sourceConvLength = SourceSamples;
+            SourceConvFormatSamples = SourceSamples;
             switch (ConvFormat.Channels)
             {
                 case 2 when SourceFormat.Channels == 1:
-                    _sourceConvLength *= 2;
+                    SourceConvFormatSamples *= 2;
                     break;
                 case 1 when SourceFormat.Channels == 2:
-                    _sourceConvLength /= 2;
+                    SourceConvFormatSamples /= 2;
                     break;
             }
 
-            _dstLength = (int) (_sourceConvLength * ResampleRatio);
-            _resampleStep = (double) (_sourceConvLength / ConvFormat.Channels) / (_dstLength / ConvFormat.Channels);
+            ConvSamples = (int) (SourceConvFormatSamples * ResampleRatio);
+            _resampleStep = (double) (SourceConvFormatSamples / ConvFormat.Channels) / (ConvSamples / ConvFormat.Channels);
 
             if (keepProgress)
                 _dstResume = (int) (_srcResume / _resampleStep * ConvFormat.Channels);
@@ -128,7 +127,7 @@ namespace Emotion.Standard.Audio
             int iStart = dstSampleIdx;
 
             // Snap if more samples requested than left.
-            if (dstSampleIdx + getSamples >= _dstLength) getSamples = _dstLength - dstSampleIdx;
+            if (dstSampleIdx + getSamples >= ConvSamples) getSamples = ConvSamples - dstSampleIdx;
 
             // Verify that the number of samples will fit.
             if (samples.Length < getSamples)
@@ -138,7 +137,7 @@ namespace Emotion.Standard.Audio
             }
 
             // Resample the needed amount.
-            for (; dstSampleIdx < _dstLength; dstSampleIdx += channels)
+            for (; dstSampleIdx < ConvSamples; dstSampleIdx += channels)
             {
                 int targetBufferIdx = dstSampleIdx - iStart;
                 for (var c = 0; c < channels; c++)
@@ -155,7 +154,7 @@ namespace Emotion.Standard.Audio
                         double rA = 2 * Math.PI * (j - srcStartIdx) * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (j < 0 || j >= _sourceConvLength / channels) continue;
+                        if (j < 0 || j >= SourceConvFormatSamples / channels) continue;
                         rY += rG * rW * rSnc * GetChannelConvertedSample(j * channels + c);
                     }
 
@@ -171,7 +170,7 @@ namespace Emotion.Standard.Audio
                 return getSamples;
             }
 
-            return _dstLength - iStart;
+            return ConvSamples - iStart;
         }
 
         /// <summary>

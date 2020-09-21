@@ -312,7 +312,7 @@ namespace Emotion.Audio
         protected static int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, float baseVolume)
         {
             // Set the conversion format to the requested one - if it doesn't match.
-            if (!format.Equals(track.ConvFormat)) track.SetConvertFormat(format);
+            track.EnsureAudioFormat(format);
 
             // Get data.
             int framesOutput = track.GetNextFrames(frames, memory);
@@ -320,7 +320,7 @@ namespace Emotion.Audio
 
             // Preprocess data.
             int channels = format.Channels;
-            bool mergeChannels = Engine.Configuration.ForceMono && track.SourceFormat.Channels == 2 && channels == 2;
+            bool mergeChannels = Engine.Configuration.ForceMono && track.File.Format.Channels == 2 && channels == 2;
             if (mergeChannels) PostProcessForceMono(framesOutput, memory);
             PostProcessApplyFading(baseVolume, track, framesOutput, channels, memory);
 

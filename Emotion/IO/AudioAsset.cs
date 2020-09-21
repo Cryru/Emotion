@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Audio.WAV;
@@ -32,6 +33,11 @@ namespace Emotion.IO
         /// The sound format.
         /// </summary>
         public AudioFormat Format { get; private set; }
+
+        /// <summary>
+        /// A cached version of the track. Resampled and converted to a specific format.
+        /// </summary>
+        public TrackResampleCache ResampleCache { get; set; }
 
         #endregion
 
