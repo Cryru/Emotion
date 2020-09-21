@@ -17,6 +17,8 @@ namespace Emotion.Tools.Windows.HelpWindows
 {
     public class FileExplorer<T> : ImGuiModal where T : Asset, new()
     {
+        public bool UseAssetLoaderCache;
+
         private Action<T> _fileSelected;
         private string _customFile = "";
         private Task _loadingTask;
@@ -27,9 +29,12 @@ namespace Emotion.Tools.Windows.HelpWindows
         /// Create a file explorer dialog.
         /// </summary>
         /// <param name="fileSelected">The callback to receive the selected file.</param>
-        public FileExplorer(Action<T> fileSelected) : base($"Pick a [{typeof(T)}]")
+        /// <param name="useAssetLoaderCache">Whether to load the file from the asset loader cache, if possible.</param>
+        public FileExplorer(Action<T> fileSelected, bool useAssetLoaderCache = false) : base($"Pick a [{typeof(T)}]")
         {
             _fileSelected = fileSelected;
+            UseAssetLoaderCache = useAssetLoaderCache;
+
             _fileSystem = new Tree<string, string>();
             string[] assets = Engine.AssetLoader.AllAssets;
             foreach (string a in assets)
@@ -61,7 +66,7 @@ namespace Emotion.Tools.Windows.HelpWindows
             {
                 _loadingTask = Task.Run(async () =>
                 {
-                    T file = await ExplorerLoadAssetAsync(_customFile);
+                    T file = await ExplorerLoadAssetAsync(_customFile, UseAssetLoaderCache);
                     if (file == null)
                     {
                         _loadingTask = null;
@@ -100,7 +105,7 @@ namespace Emotion.Tools.Windows.HelpWindows
                 // Load the asset custom so the asset loader's caching doesn't get in the way.
                 _loadingTask = Task.Run(async () =>
                 {
-                    T file = await ExplorerLoadAssetAsync(name);
+                    T file = await ExplorerLoadAssetAsync(name, UseAssetLoaderCache);
                     if (file == null)
                     {
                         _loadingTask = null;
@@ -112,19 +117,19 @@ namespace Emotion.Tools.Windows.HelpWindows
                 });
             }
 
-            if(!skipFold) ImGui.TreePop();
+            if (!skipFold) ImGui.TreePop();
         }
 
         public override void Update()
         {
         }
 
-        public static async Task<T> ExplorerLoadAssetAsync(string name)
+        public static async Task<T> ExplorerLoadAssetAsync(string name, bool useAssetLoaderCache = false)
         {
-            return await Task.Run(() => ExplorerLoadAsset(name));
+            return await Task.Run(() => ExplorerLoadAsset(name, useAssetLoaderCache));
         }
 
-        public static T ExplorerLoadAsset(string name)
+        public static T ExplorerLoadAsset(string name, bool useAssetLoaderCache = false)
         {
             try
             {
@@ -143,6 +148,8 @@ namespace Emotion.Tools.Windows.HelpWindows
 
                     // Not found
                 }
+
+                if (useAssetLoaderCache) return Engine.AssetLoader.Get<T>(name);
 
                 {
                     var file = new T
