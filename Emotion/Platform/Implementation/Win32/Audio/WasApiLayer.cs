@@ -38,7 +38,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         private void LayerThread()
         {
-            if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = $"Audio Layer - {Name}";
+            Thread.CurrentThread.Name ??= $"Audio Layer - {Name}";
             Engine.Log.Trace($"Layer {Name} started.", MessageSource.Audio);
             while (_alive && Engine.Status != EngineStatus.Stopped)
             {
@@ -91,6 +91,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     // Audio device has disappeared or whatever.
                     if ((uint) ex.ErrorCode == 0x88890004)
                     {
+                        Engine.Log.Info("Audio device modified.", MessageSource.WasApi);
                         _updateDevice = true;
                         continue;
                     }

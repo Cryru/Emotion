@@ -59,7 +59,6 @@ namespace Emotion.Audio
             int sampleEndIdx = Math.Min(fromIdx + frameCount * channels, ConvSamples);
             if (sampleEndIdx > _cachePtr)
             {
-                Engine.Log.Trace($"Trying to emit samples which aren't ready. Requested: {sampleEndIdx}, CachePtr: {_cachePtr}", MessageSource.Audio);
                 while (sampleEndIdx > _cachePtr)
                 {
                     if (_resampleEmit.WaitOne(5000)) continue;
