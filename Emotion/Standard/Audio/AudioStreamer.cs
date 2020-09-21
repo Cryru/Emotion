@@ -31,7 +31,7 @@ namespace Emotion.Standard.Audio
         /// <summary>
         /// The resampling progress.
         /// </summary>
-        public float Progress
+        public virtual float Progress
         {
             get
             {
@@ -131,12 +131,10 @@ namespace Emotion.Standard.Audio
             if (dstSampleIdx + getSamples >= _dstLength) getSamples = _dstLength - dstSampleIdx;
 
             // Verify that the number of samples will fit.
-            int outputBps = ConvFormat.BitsPerSample / 8;
-            int outputLength = samples.Length / outputBps;
             if (samples.Length < getSamples)
             {
                 Engine.Log.Warning($"The provided buffer to the audio streamer is of invalid size {samples.Length} while {getSamples} were requested.", MessageSource.Audio);
-                getSamples = outputLength;
+                getSamples = samples.Length;
             }
 
             // Resample the needed amount.
