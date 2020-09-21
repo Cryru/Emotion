@@ -139,6 +139,8 @@ namespace Emotion.Standard.Audio
             // Resample the needed amount.
             for (; dstSampleIdx < ConvSamples; dstSampleIdx += channels)
             {
+                if (dstSampleIdx + channels - iStart > getSamples) return getSamples;
+
                 int targetBufferIdx = dstSampleIdx - iStart;
                 for (var c = 0; c < channels; c++)
                 {
@@ -163,11 +165,6 @@ namespace Emotion.Standard.Audio
                 }
 
                 srcStartIdx += _resampleStep;
-
-                // Check if gotten enough samples for the partial resampling.
-                if (dstSampleIdx + channels - iStart < getSamples) continue;
-                dstSampleIdx += channels;
-                return getSamples;
             }
 
             return ConvSamples - iStart;

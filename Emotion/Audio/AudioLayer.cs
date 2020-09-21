@@ -285,7 +285,7 @@ namespace Emotion.Audio
             }
 
             // Check if there are more tracks.
-            if (playlistCount > 0)
+            if (playlistCount > 0 && _currentTrack != -1)
             {
                 AudioTrack newTrack;
                 lock (_playlist)
@@ -343,11 +343,14 @@ namespace Emotion.Audio
             if (crossFadeVal < 0.0) crossFadeVal = currentTrackDuration - currentTrackDuration * -crossFadeVal;
 
             // Make sure there is enough duration in the next track to cross fade into.
+            float nextTrackDuration = nextTrack.File.Duration;
+            crossFadeVal = Math.Min(crossFadeVal, nextTrackDuration - 1); // Take one second so we don't exhaust the track.
             float activationTimeStamp = currentTrackDuration - crossFadeVal;
             if (playback >= activationTimeStamp)
             {
                 float timeLeft = currentTrackDuration - playback;
-                if (timeLeft < nextTrack.File.Duration) crossFadeProgress = timeLeft / crossFadeVal;
+                if (timeLeft < nextTrackDuration)
+                    crossFadeProgress = timeLeft / crossFadeVal;
             }
 
             if (crossFadeProgress == 0.0f) return;

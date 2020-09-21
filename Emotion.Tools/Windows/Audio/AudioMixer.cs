@@ -42,7 +42,7 @@ namespace Emotion.Tools.Windows.Audio
                 {
                     var modifyModal = new AudioTrackModifyModal(asset, func);
                     Parent.AddWindow(modifyModal);
-                });
+                }, true);
                 Parent.AddWindow(_explorer);
             }
 

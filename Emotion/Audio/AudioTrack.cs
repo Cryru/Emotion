@@ -1,12 +1,8 @@
 ﻿#region Using
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Emotion.Common;
 using Emotion.IO;
 using Emotion.Standard.Audio;
-using Emotion.Standard.Logging;
 
 #endregion
 
@@ -81,10 +77,7 @@ namespace Emotion.Audio
 
         public void EnsureAudioFormat(AudioFormat format)
         {
-            if (!format.Equals(_cache.ConvFormat))
-            {
-                _emitPtr = _cache.SetConvertFormatAndCacheFrom(format, Progress);
-            }
+            if (!format.Equals(_cache.ConvFormat)) _emitPtr = _cache.SetConvertFormatAndCacheFrom(format, Progress);
         }
 
         public int GetNextFrames(int frameCount, Span<float> buffer)

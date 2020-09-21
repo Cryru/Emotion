@@ -42,6 +42,7 @@ namespace Emotion.Audio
                 Engine.Log.Trace("Resample cache is dirty, will resample again.", MessageSource.Audio);
                 CacheDirty = 0;
                 _cachePtr = 0;
+                Reset();
 
                 // Stop if running.
                 if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
@@ -176,7 +177,6 @@ namespace Emotion.Audio
             {
                 if (dstSampleIdx + channels - iStart > getSamples) return getSamples;
                 srcStartIdx += _resampleStep;
-                dstSampleIdx += channels;
             }
 
             return ConvSamples - iStart;
