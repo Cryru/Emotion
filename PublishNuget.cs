@@ -67,7 +67,7 @@ public static void Main()
     }
 
     Console.WriteLine($"Publishing package [{packages[0]}]...");
-    RunCmd($"dotnet nuget push {packages[0]} -k {apiKey} --source \"microsoft\"");
+    RunCmd($"dotnet nuget push {packages[0]} -k {apiKey}");
     PatchGitHubToken(githubKey);
     RunCmd($"dotnet nuget push {packages[0]} --source \"github\"");
     Console.WriteLine("Script complete!");
