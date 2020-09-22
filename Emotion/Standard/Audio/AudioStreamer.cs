@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 
 #endregion
 
@@ -21,6 +22,7 @@ namespace Emotion.Standard.Audio
     {
         public int SourceSamples { get; protected set; }
         public int SourceConvFormatSamples { get; protected set; }
+        public int SourceSamplesPerChannel { get; protected set; }
         public Memory<float> SoundData { get; protected set; }
         public AudioFormat SourceFormat { get; protected set; }
 
@@ -81,7 +83,8 @@ namespace Emotion.Standard.Audio
 
             _channelConversion = ChannelConversion.None;
             SourceConvFormatSamples = SourceSamples;
-            switch (ConvFormat.Channels)
+            int channels = ConvFormat.Channels;
+            switch (channels)
             {
                 case 2 when SourceFormat.Channels == 1:
                     SourceConvFormatSamples *= 2;
@@ -93,8 +96,9 @@ namespace Emotion.Standard.Audio
                     break;
             }
 
+            SourceSamplesPerChannel = SourceConvFormatSamples / channels;
             ConvSamples = (int) (SourceConvFormatSamples * ResampleRatio);
-            _resampleStep = (double) (SourceConvFormatSamples / ConvFormat.Channels) / (ConvSamples / ConvFormat.Channels);
+            _resampleStep = (double) SourceSamplesPerChannel / (ConvSamples / channels);
 
             if (keepProgress)
                 _dstResume = (int) (_srcResume / _resampleStep * ConvFormat.Channels);
@@ -148,11 +152,12 @@ namespace Emotion.Standard.Audio
                 getSamples = samples.Length;
             }
 
-            Span<float> soundData = SoundData.Span;
 
             // Resample the needed amount.
+            Span<float> soundData = SoundData.Span;
             for (; dstSampleIdx < ConvSamples; dstSampleIdx += channels)
             {
+                // Check if gotten enough samples.
                 if (dstSampleIdx + channels - iStart > getSamples) return getSamples;
 
                 int targetBufferIdx = dstSampleIdx - iStart;
@@ -162,16 +167,16 @@ namespace Emotion.Standard.Audio
                     int tau;
                     for (tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
-                        // input sample index.
-                        var j = (int) (srcStartIdx + tau);
+                        var inputSampleIdx = (int) (srcStartIdx + tau);
+                        double relativeIdx = inputSampleIdx - srcStartIdx;
 
                         // Hann Window. Scale and calculate sinc
-                        double rW = 0.5 - 0.5 * Math.Cos(2 * Math.PI * (0.5 + (j - srcStartIdx) / _convQuality2));
-                        double rA = 2 * Math.PI * (j - srcStartIdx) * fMaxDivSr;
+                        double rW = 0.5 - 0.5 * Math.Cos(Maths.TWO_PI_DOUBLE * (0.5 + relativeIdx / _convQuality2));
+                        double rA = Maths.TWO_PI_DOUBLE * relativeIdx * fMaxDivSr;
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
-                        if (j < 0 || j >= SourceConvFormatSamples / channels) continue;
-                        rY += rG * rW * rSnc * GetChannelConvertedSample(j * channels + c, soundData);
+                        if (inputSampleIdx < 0 || inputSampleIdx >= SourceSamplesPerChannel) continue;
+                        rY += rG * rW * rSnc * GetChannelConvertedSample(inputSampleIdx * channels + c, soundData);
                     }
 
                     float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
