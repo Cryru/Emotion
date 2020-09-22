@@ -47,6 +47,15 @@ namespace Emotion.Standard.Audio
         protected int _convQuality2;
         protected double _resampleStep;
 
+        protected enum ChannelConversion : byte
+        {
+            SimulateMono,
+            SimulateStereo,
+            None
+        }
+
+        protected ChannelConversion _channelConversion;
+
         public AudioStreamer(AudioFormat srcFormat, Memory<float> floatAudioData)
         {
             SourceFormat = srcFormat;
@@ -70,14 +79,17 @@ namespace Emotion.Standard.Audio
             _convQuality2 = quality * 2;
             ResampleRatio = (float) dstFormat.SampleRate / SourceFormat.SampleRate;
 
+            _channelConversion = ChannelConversion.None;
             SourceConvFormatSamples = SourceSamples;
             switch (ConvFormat.Channels)
             {
                 case 2 when SourceFormat.Channels == 1:
                     SourceConvFormatSamples *= 2;
+                    _channelConversion = ChannelConversion.SimulateStereo;
                     break;
                 case 1 when SourceFormat.Channels == 2:
                     SourceConvFormatSamples /= 2;
+                    _channelConversion = ChannelConversion.SimulateMono;
                     break;
             }
 
@@ -136,6 +148,8 @@ namespace Emotion.Standard.Audio
                 getSamples = samples.Length;
             }
 
+            Span<float> soundData = SoundData.Span;
+
             // Resample the needed amount.
             for (; dstSampleIdx < ConvSamples; dstSampleIdx += channels)
             {
@@ -157,7 +171,7 @@ namespace Emotion.Standard.Audio
                         var rSnc = 1.0;
                         if (rA != 0) rSnc = Math.Sin(rA) / rA;
                         if (j < 0 || j >= SourceConvFormatSamples / channels) continue;
-                        rY += rG * rW * rSnc * GetChannelConvertedSample(j * channels + c);
+                        rY += rG * rW * rSnc * GetChannelConvertedSample(j * channels + c, soundData);
                     }
 
                     float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
@@ -174,25 +188,26 @@ namespace Emotion.Standard.Audio
         /// Returns the specified sample from the source as a float, converted into the output channel format.
         /// </summary>
         /// <param name="sampleIdx">The sample index (in the converted format) to return.</param>
+        /// <param name="soundData">The source sound data to get the sample from.</param>
         /// <returns>The specified sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual float GetChannelConvertedSample(int sampleIdx)
+        protected virtual float GetChannelConvertedSample(int sampleIdx, Span<float> soundData)
         {
-            // Check if simulating stereo from mono.
-            if (SourceFormat.Channels == 1 && ConvFormat.Channels == 2) sampleIdx /= 2;
-
-            // Check if simulating mono from stereo.
-            bool simulatingMono = SourceFormat.Channels == 2 && ConvFormat.Channels == 1;
-            if (simulatingMono) sampleIdx *= 2;
-
-            float output = SoundData.Span[sampleIdx];
-
-            // If simulating mono from stereo get the other channel and average them.
-            if (!simulatingMono) return output;
-            float outputRightChannel = SoundData.Span[sampleIdx + 1];
-            output = (output + outputRightChannel) / 2f;
-
-            return output;
+            switch (_channelConversion)
+            {
+                case ChannelConversion.SimulateMono:
+                    sampleIdx *= 2;
+                    // If simulating mono from stereo get the other channel and average them.
+                    float left = soundData[sampleIdx];
+                    float right = soundData[sampleIdx + 1];
+                    return (left + right) / 2f;
+                case ChannelConversion.SimulateStereo:
+                    sampleIdx /= 2;
+                    return soundData[sampleIdx];
+                case ChannelConversion.None:
+                default:
+                    return soundData[sampleIdx];
+            }
         }
 
         /// <summary>

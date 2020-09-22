@@ -49,6 +49,16 @@ namespace Emotion.Utility
         public const float TWO_PI = (float) (Math.PI * 2.0);
 
         /// <summary>
+        /// The mathematical constant Pi - as a double.
+        /// </summary>
+        public const double PI_DOUBLE = Math.PI;
+
+        /// <summary>
+        /// The mathematical constant Pi - as a double, multiplied by 2.
+        /// </summary>
+        public const double TWO_PI_DOUBLE = Math.PI * 2;
+
+        /// <summary>
         /// Constant for converting degrees to radians.
         /// </summary>
         public const float DEG2_RAD = 0.0174532924f;
