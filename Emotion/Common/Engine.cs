@@ -25,11 +25,6 @@ using Emotion.Platform.Implementation.GlfwImplementation;
 
 #endif
 
-#if GLFW
-using Emotion.Platform.Implementation.GlfwImplementation;
-
-#endif
-
 #endregion
 
 namespace Emotion.Common

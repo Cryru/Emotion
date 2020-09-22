@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.GlfwImplementation.Native;
+using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 using WinApi.Kernel32;
@@ -30,8 +31,11 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private Glfw.FramebufferSizeFunc _resizeCallback;
 
-        [DllImport("msvcrt")]
-        public static extern int _putenv_s(string e, string v);
+        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+        private Glfw.MouseButtonFunc _mouseButtonFunc;
+
+        //[DllImport("msvcrt")]
+        //public static extern int _putenv_s(string e, string v);
 
         protected override void SetupPlatform(Configurator config)
         {
@@ -71,6 +75,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             _keyInputCallback = KeyInput;
             Glfw.SetKeyCallback(_win, _keyInputCallback);
 
+            _mouseButtonFunc = MouseButtonKeyInput;
+            Glfw.SetMouseButtonCallback(_win, _mouseButtonFunc);
+
             Glfw.Monitor[] monitors = Glfw.GetMonitors();
             for (var i = 0; i < monitors.Length; i++)
             {
@@ -82,12 +89,16 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
             UpdateFocus(true);
             Glfw.FocusWindow(_win);
+
+            Audio = new NullAudioContext();
         }
 
         protected override bool UpdatePlatform()
         {
             IsOpen = !Glfw.WindowShouldClose(_win);
             Glfw.PollEvents();
+            Glfw.GetCursorPos(_win, out double xPos, out double yPos);
+            MousePosition = new Vector2((float) xPos, (float) yPos);
             return true;
         }
 
@@ -104,6 +115,11 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private void KeyInput(Glfw.Window window, Glfw.KeyCode key, int scancode, Glfw.InputState action, Glfw.KeyMods mods)
         {
             UpdateKeyStatus((Key) key, action == Glfw.InputState.Press || action == Glfw.InputState.Repeat);
+        }
+
+        private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)
+        {
+            UpdateMouseKeyStatus((MouseKey) ((int) button + 1), state == Glfw.InputState.Press || state == Glfw.InputState.Repeat);
         }
 
         #region Window API
