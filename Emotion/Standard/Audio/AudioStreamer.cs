@@ -127,7 +127,7 @@ namespace Emotion.Standard.Audio
         /// Returns the specified amount of resampled samples.
         /// Note that resampling may reduce or increase the number of samples.
         /// </summary>
-        /// <param name="srcStartIdx">The source sample to resume from/</param>
+        /// <param name="srcStartIdx">The source sample to resume from.</param>
         /// <param name="dstSampleIdx">The destination sample to resume from.</param>
         /// <param name="getSamples">The number of resampled samples to return.</param>
         /// <param name="samples">The buffer to fill with data.</param>
@@ -152,6 +152,7 @@ namespace Emotion.Standard.Audio
                 getSamples = samples.Length;
             }
 
+            // srcStartIdx == (dstSampleIdx / channels) *_resampleStep;
 
             // Resample the needed amount.
             Span<float> soundData = SoundData.Span;

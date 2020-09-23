@@ -13,7 +13,7 @@ namespace Emotion.Game.AStar
     /// <summary>
     /// An AStar path.
     /// </summary>
-    public sealed class AStarContext : IDisposable
+    public class AStarContext : IDisposable
     {
         /// <summary>
         /// The function to be used for determining the heuristic value of each node. The first argument is the subject, and the
@@ -152,7 +152,7 @@ namespace Emotion.Game.AStar
         #region Helpers
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private AStarNode CreateNodeFromIfValid(Vector2 loc)
+        protected virtual AStarNode CreateNodeFromIfValid(Vector2 loc)
         {
             var x = (int) loc.X;
             var y = (int) loc.Y;
@@ -160,7 +160,7 @@ namespace Emotion.Game.AStar
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private AStarNode CreateNodeFromIfValid(int x, int y)
+        protected virtual AStarNode CreateNodeFromIfValid(int x, int y)
         {
             if (!_pathingGrid.IsWalkable(x, y)) return null;
 
@@ -172,7 +172,7 @@ namespace Emotion.Game.AStar
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IEnumerator<AStarNode> GetNeighborsRoutine(int x, int y, bool diagonal)
+        protected virtual IEnumerator<AStarNode> GetNeighborsRoutine(int x, int y, bool diagonal)
         {
             bool hasLeft = x > 0 && x <= _pathingGrid.Width - 1;
             bool hasRight = x >= 0 && x < _pathingGrid.Width - 1;
