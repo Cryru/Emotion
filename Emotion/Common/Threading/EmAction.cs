@@ -34,6 +34,7 @@ namespace Emotion.Common.Threading
         /// </summary>
         public EmAction()
         {
+            _mutex = new ManualResetEvent(false);
         }
 
         /// <summary>
@@ -44,6 +45,7 @@ namespace Emotion.Common.Threading
         {
             _contAction = null;
             _actionToExec = action;
+            _mutex = new ManualResetEvent(false);
         }
 
         /// <summary>
@@ -89,6 +91,7 @@ namespace Emotion.Common.Threading
             // Release the holder.
             _mutex?.Set();
             _mutex = null;
+
             // Run next action.
             _contAction?.Invoke();
             _contAction = null;
@@ -99,9 +102,6 @@ namespace Emotion.Common.Threading
         /// </summary>
         public void Wait()
         {
-            // Create a mutex if needed.
-            if (_mutex == null && !Finished) _mutex = new ManualResetEvent(false);
-
             _mutex?.WaitOne();
         }
 
