@@ -141,7 +141,7 @@ namespace Emotion.Tools.Windows.HelpWindows
             var nameInput = new StringInputModal(fileName =>
             {
                 string dirName = AssetLoader.GetDirectoryName(fileName);
-                if (dirName == "Assets") fileName.Replace("Assets", "../../../../Assets");
+                if (dirName == "Assets") fileName = fileName.Replace("Assets/", "../../../../Assets");
                 if (!fileName.Contains(".")) fileName = fileName + "." + defaultExtension;
                 Engine.AssetLoader.Save(getDefault(), fileName);
                 fileCreated(fileName);

@@ -17,7 +17,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <summary>
         /// The folder assets will be read from.
         /// </summary>
-        public string Folder { get; private set; }
+        public string Folder { get; protected set; }
 
         /// <inheritdoc />
         /// <summary>
