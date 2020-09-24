@@ -115,7 +115,6 @@ This includes dependencies and projects which were used for research references.
 | -- | -- | -- | -- |
 | .Net Core | MIT | Runtime | Nuget
 | System.Numerics | MIT | Data structures and hardware intrinsics | Nuget
-| [Serilog](https://github.com/serilog/serilog) | Apache2.0 | Logging | Nuget
 | Forks
 | [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | Platform/Implementation/Win32/Native
 | [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | Platform/OpenGL

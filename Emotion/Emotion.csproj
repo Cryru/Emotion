@@ -66,12 +66,6 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.Sinks.Async" Version="1.4.0" />
-    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="Assets\DefaultFrag.frag" />
     <None Remove="Assets\DefaultShader.xml" />
     <None Remove="Assets\DefaultVert.vert" />

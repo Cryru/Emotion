@@ -23,10 +23,6 @@
     <tags>game-engine game engine emotion opengl gles cross-platform game-development linux macos adfectus</tags>
     <dependencies>
       <group targetFramework="netcoreapp3.0">
-        <dependency id="Serilog" version="2.10.0" exclude="Build,Analyzers" />
-        <dependency id="Serilog.Sinks.File" version="4.1.0" exclude="Build,Analyzers" />
-        <dependency id="Serilog.Sinks.Async" version="1.4.0" exclude="Build,Analyzers" />
-        <dependency id="Serilog.Sinks.ColoredConsole" version="3.0.1" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
