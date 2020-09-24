@@ -270,7 +270,10 @@ namespace Emotion.Game.QuadTree
         /// <filterpriority>1</filterpriority>
         public IEnumerator<T> GetEnumerator()
         {
-            return _wrappedDictionary.Keys.GetEnumerator();
+            foreach (KeyValuePair<T, QuadTreeObject<T>> keyValue in _wrappedDictionary)
+            {
+                yield return keyValue.Key;
+            }
         }
 
         /// <summary>
