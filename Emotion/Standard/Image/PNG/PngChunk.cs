@@ -94,8 +94,10 @@ namespace Emotion.Standard.Image.PNG
             crc.Update(typeBuffer);
             crc.Update(Data);
 
-            if (crc.Value != Crc)
-                Engine.Log.Warning($"CRC Error. PNG Image chunk {Type} is corrupt!", "ImagePng");
+            // PNGs saved with Gimp spam the log with warnings.
+            // https://gitlab.gnome.org/GNOME/gimp/-/issues/2111
+            //if (crc.Value != Crc)
+            //    Engine.Log.Warning($"CRC Error. PNG Image chunk {Type} is corrupt!", "ImagePng");
 
             Valid = true;
         }
