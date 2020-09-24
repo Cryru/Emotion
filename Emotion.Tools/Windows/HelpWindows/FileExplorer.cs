@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,21 +35,7 @@ namespace Emotion.Tools.Windows.HelpWindows
         {
             _fileSelected = fileSelected;
             UseAssetLoaderCache = useAssetLoaderCache;
-
-            _fileSystem = new Tree<string, string>();
-            string[] assets = Engine.AssetLoader.AllAssets;
-            foreach (string a in assets)
-            {
-                if (a.Contains('/'))
-                {
-                    string[] folderPath = a.Split('/')[..^1];
-                    _fileSystem.Add(folderPath, a);
-                }
-                else
-                {
-                    _fileSystem.Leaves.Add(a);
-                }
-            }
+            _fileSystem = FileExplorer.FilesToTree(Engine.AssetLoader.AllAssets);
         }
 
         protected override void RenderContent(RenderComposer composer)
@@ -80,29 +67,8 @@ namespace Emotion.Tools.Windows.HelpWindows
                 return;
             }
 
-            RenderTree(_fileSystem, 0, true);
-        }
-
-        private void RenderTree(Tree<string, string> tree, int depth, bool skipFold = false)
-        {
-            // Add branches
-            Tree<string, string> current = tree;
-
-            bool open = skipFold || ImGui.TreeNode(string.IsNullOrEmpty(current.Name) ? "/" : current.Name);
-            if (!open) return;
-
-            // Render branches.
-            foreach (Tree<string, string> b in current.Branches)
+            void OnClick(string name)
             {
-                ImGui.PushID(depth);
-                RenderTree(b, depth++);
-                ImGui.PopID();
-            }
-
-            // Render leaves. (Some LINQ magic here to not render past the clicked button)
-            foreach (string name in current.Leaves.Where(name => ImGui.Button(Path.GetFileName(name))))
-            {
-                // Load the asset custom so the asset loader's caching doesn't get in the way.
                 _loadingTask = Task.Run(async () =>
                 {
                     T file = await ExplorerLoadAssetAsync(name, UseAssetLoaderCache);
@@ -117,7 +83,7 @@ namespace Emotion.Tools.Windows.HelpWindows
                 });
             }
 
-            if (!skipFold) ImGui.TreePop();
+            FileExplorer.RenderTree(_fileSystem, 0, OnClick, true);
         }
 
         public override void Update()
@@ -165,6 +131,67 @@ namespace Emotion.Tools.Windows.HelpWindows
                 Engine.Log.Warning($"Couldn't load asset - {ex}", "FileExplorerTool");
                 throw;
             }
+        }
+    }
+
+    public static class FileExplorer
+    {
+        public static void CreateNewFileModal(WindowManager manager, string defaultExtension, Func<byte[]> getDefault, Action<string> fileCreated)
+        {
+            var nameInput = new StringInputModal(fileName =>
+            {
+                string dirName = AssetLoader.GetDirectoryName(fileName);
+                if (dirName == "Assets") fileName.Replace("Assets", "../../../../Assets");
+                if (!fileName.Contains(".")) fileName = fileName + "." + defaultExtension;
+                Engine.AssetLoader.Save(getDefault(), fileName);
+                fileCreated(fileName);
+            }, "Enter Name");
+            manager.AddWindow(nameInput);
+        }
+
+        public static Tree<string, string> FilesToTree(IEnumerable<string> assets)
+        {
+            var tree = new Tree<string, string>();
+            foreach (string a in assets)
+            {
+                if (a.Contains('/'))
+                {
+                    string[] folderPath = a.Split('/')[..^1];
+                    tree.Add(folderPath, a);
+                }
+                else
+                {
+                    tree.Leaves.Add(a);
+                }
+            }
+
+            return tree;
+        }
+
+        public static void RenderTree(Tree<string, string> tree, int depth, Action<string> onClick, bool skipFold = false)
+        {
+            // Add branches
+            Tree<string, string> current = tree;
+
+            bool open = skipFold || ImGui.TreeNode(string.IsNullOrEmpty(current.Name) ? "/" : current.Name);
+            if (!open) return;
+
+            // Render branches.
+            foreach (Tree<string, string> b in current.Branches)
+            {
+                ImGui.PushID(depth);
+                RenderTree(b, depth++, onClick);
+                ImGui.PopID();
+            }
+
+            // Render leaves. (Some LINQ magic here to not render past the clicked button)
+            foreach (string name in current.Leaves.Where(name => ImGui.Button(Path.GetFileName(name))))
+            {
+                // Load the asset custom so the asset loader's caching doesn't get in the way.
+                onClick(name);
+            }
+
+            if (!skipFold) ImGui.TreePop();
         }
     }
 }
