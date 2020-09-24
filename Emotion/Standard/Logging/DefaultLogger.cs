@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
@@ -14,21 +13,18 @@ using Emotion.Common;
 namespace Emotion.Standard.Logging
 {
     /// <summary>
-    /// The default logger. Uses SeriLog.
+    /// The default desktop-platform based logger.
     /// </summary>
     public class DefaultLogger : LoggingProvider
     {
-        /// <summary>
-        /// SeriLog logger instance.
-        /// </summary>
-        //private Logger _logger;
         private ConcurrentQueue<(MessageType, string)> _logQueue = new ConcurrentQueue<(MessageType, string)>();
-
         private AutoResetEvent _queueEvent = new AutoResetEvent(false);
         private bool _stdOut;
         private string _logFolder;
         private Task _logThread;
         private bool _logThreadRun = true;
+        private const int MAX_LOG_FILES = 10;
+        private const int MAX_LOG_SIZE = 10000000;
 
         /// <summary>
         /// Create a default logger.
@@ -41,15 +37,16 @@ namespace Emotion.Standard.Logging
             _logFolder = logFolder;
 
             // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
+            Directory.CreateDirectory(logFolder);
             string[] fileCount = Directory.GetFiles(logFolder);
-            if (fileCount.Length > 10)
+            if (fileCount.Length > MAX_LOG_FILES)
             {
                 FileInfo[] filesWithDates = fileCount.Select(x => new FileInfo(x)).OrderBy(x => x.LastWriteTime.ToFileTime()).ToArray();
 
-                // Delete oldest, until number is back to 10.
+                // Delete oldest.
                 try
                 {
-                    for (var i = 0; i < filesWithDates.Length - 10; i++)
+                    for (var i = 0; i < filesWithDates.Length - MAX_LOG_FILES; i++)
                     {
                         filesWithDates[i].Delete();
                     }
@@ -114,7 +111,7 @@ namespace Emotion.Standard.Logging
                     stdOut?.WriteLine(line);
                     fileSizeCounter += line.Length;
 
-                    if (fileSizeCounter <= 10000000) continue;
+                    if (fileSizeCounter <= MAX_LOG_SIZE) continue;
                     fileName = GenerateLogName();
                     currentFileStream = File.CreateText(fileName);
                     fileSizeCounter = 0;
