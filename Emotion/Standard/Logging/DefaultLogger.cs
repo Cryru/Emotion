@@ -139,6 +139,7 @@ namespace Emotion.Standard.Logging
         public override void Dispose()
         {
             _logThreadRun = false;
+            _queueEvent.Set();
             _logThread.Wait();
         }
     }
