@@ -22,6 +22,12 @@ namespace Emotion.Game.QuadTree
         public readonly int NodeCapacity;
 
         /// <summary>
+        /// Whether the node will cleanup and deallocate the four quadrants
+        /// when empty.
+        /// </summary>
+        public bool CleanupWhenEmpty { get; set; } = false;
+
+        /// <summary>
         /// The area this QuadTree represents.
         /// </summary>
         public Rectangle QuadRect
@@ -237,24 +243,16 @@ namespace Emotion.Game.QuadTree
 
         private void CleanUpwards()
         {
-            if (TopLeftChild != null)
+            if (TopLeftChild != null && CleanupWhenEmpty && TopLeftChild.EmptyLeaf && TopRightChild!.EmptyLeaf && BottomLeftChild!.EmptyLeaf && BottomRightChild!.EmptyLeaf)
             {
-                // If all the children are empty leaves, delete all the children
-                if (!TopLeftChild.EmptyLeaf || !TopRightChild.EmptyLeaf || !BottomLeftChild.EmptyLeaf || !BottomRightChild.EmptyLeaf) return;
                 TopLeftChild = null;
                 TopRightChild = null;
                 BottomLeftChild = null;
                 BottomRightChild = null;
+            }
 
-                if (Parent != null && Count == 0)
-                    Parent.CleanUpwards();
-            }
-            else
-            {
-                // I could be one of 4 empty leaves, tell my parent to clean up
-                if (Parent != null && Count == 0)
-                    Parent.CleanUpwards();
-            }
+            if (Parent != null && Count == 0)
+                Parent.CleanUpwards();
         }
 
         /// <summary>
@@ -298,8 +296,7 @@ namespace Emotion.Game.QuadTree
             if (item.Owner == this)
             {
                 Remove(item);
-                if (clean)
-                    CleanUpwards();
+                if (clean) CleanUpwards();
             }
             else
             {

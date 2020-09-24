@@ -289,5 +289,21 @@ namespace Emotion.Game.QuadTree
         }
 
         #endregion
+
+        public void RenderDebug(Graphics.RenderComposer c, Color color)
+        {
+            Queue<QuadTreeNode<T>> treeTraverse = new Queue<QuadTreeNode<T>>();
+            treeTraverse.Enqueue(QuadTreeRoot);
+            while (treeTraverse.TryDequeue(out QuadTreeNode<T> quadTree))
+            {
+                c.RenderOutline(quadTree.QuadRect, color);
+
+                if (quadTree.TopLeftChild == null) continue;
+                treeTraverse.Enqueue(quadTree.TopLeftChild);
+                treeTraverse.Enqueue(quadTree.TopRightChild);
+                treeTraverse.Enqueue(quadTree.BottomLeftChild);
+                treeTraverse.Enqueue(quadTree.BottomRightChild);
+            }
+        }
     }
 }
