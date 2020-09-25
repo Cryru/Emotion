@@ -499,36 +499,24 @@ namespace Emotion.Common
             // ReSharper disable once RedundantAssignment
             PlatformBase platform = null;
             if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
+            if (platform != null)
+            {
+                Log.Info($"Platform override accepted. Platform is {platform}", MessageSource.Engine);
+            }
 
 #if GLFW
             platform = new GlfwPlatform();
+#else
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                platform = new Win32Platform();
+            }
 #endif
 
-            // Detect platform.
-            if (platform == null)
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    // Win32
-                    platform = new Win32Platform();
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    // Cocoa
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    // Check for Wayland.
-                    if (Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") != null)
-                    {
-                    }
-                }
-            }
-
-            // If none initialized - fallback to none.
+            // If none initialized - fallback to null.
             if (platform == null) platform = new NullPlatform();
 
-            Log.Info($"Platform is: {platform}", MessageSource.Platform);
+            Log.Info($"Platform is: {platform}", MessageSource.Engine);
             return platform;
         }
 

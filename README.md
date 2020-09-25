@@ -126,7 +126,8 @@ This includes dependencies and projects which were used for research references.
 | [FreeType](https://www.freetype.org/) & [SharpFont](https://github.com/Robmaister/SharpFont) | GPLv3 | Alternate Font Renderer | Emotion.Standard.FreeType, Precompiled for Mac64, Linux64, Win64, Add "FreeType" symbol
 | [ANGLE](https://github.com/google/angle) | Google License | Compatibility | Precompiled for Win32 and Win64, Add "ANGLE" symbol
 | [llvmpipe / Gallium / Mesa](https://mesa3d.org/) | MIT | Compatibility via Software Renderer | Precompiled for Win32 and Win64
-| [Glfw](https://github.com/glfw/glfw) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
+| [Glfw](https://github.com/glfw/glfw) & [Glfw.Net](https://github.com/Chman/Glfw.Net) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
+| [OpenAL-Soft](https://github.com/kcat/openal-soft) & [OpenAL.NetCore](https://github.com/nsglover/OpenAL.NETCore) | LGPL & MIT | Mac and Linux Audio | Precompiled for Mac64, Linux64, Win64, Add "OpenAL" symbol
 | References
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
 | [OpenType.JS](https://opentype.js.org/) | X | Font Parsing Reference | None

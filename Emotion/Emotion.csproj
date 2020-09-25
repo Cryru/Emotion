@@ -55,26 +55,36 @@
     <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll">
+    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll">
+    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\linux\openal32.so" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\macos\openal32.dylib" Condition="$(DefineConstants.Contains('OpenAL'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="Assets\DefaultFrag.frag" />
-    <None Remove="Assets\DefaultShader.xml" />
-    <None Remove="Assets\DefaultVert.vert" />
-    <None Remove="Assets\GetTextureColor.c" />
-    <None Remove="Assets\Shaders\Blur.frag" />
-    <None Remove="Assets\Shaders\Blur.xml" />
-    <None Remove="Assets\Shaders\GetTextureSize.c" />
-    <None Remove="Assets\Shaders\SSAA.frag" />
-    <None Remove="Assets\Shaders\SSAA.xml" />
+  <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
+    <Compile Remove="Platform\Implementation\OpenAL\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(DefineConstants.Contains('GLFW'))">
+    <Compile Remove="Platform\Implementation\GlfwImplementation\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(DefineConstants.Contains('ANGLE'))">
+    <Compile Remove="Platform\Implementation\EglAngle\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\Shaders\Blur.frag">
@@ -90,10 +100,5 @@
     <EmbeddedResource Include="Assets\Shaders\GetTextureSize.c" />
     <EmbeddedResource Include="Assets\Shaders\SSAA.frag" />
     <EmbeddedResource Include="Assets\Shaders\SSAA.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Platform\Implementation\Cocoa\" />
-    <Folder Include="Platform\Implementation\Wayland\" />
-    <Folder Include="Platform\Implementation\X11\" />
   </ItemGroup>
 </Project>

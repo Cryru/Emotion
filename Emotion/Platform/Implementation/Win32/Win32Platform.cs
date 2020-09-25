@@ -18,7 +18,10 @@ using WinApi.Kernel32;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
+
+#if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
+#endif
 
 #endregion
 

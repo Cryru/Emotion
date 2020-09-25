@@ -10,53 +10,9 @@ namespace Emotion.Platform.Implementation.Null
 {
     public sealed class NullAudioContext : AudioContext
     {
-        private List<AudioLayer> _layers = new List<AudioLayer>();
-
-        public override string[] GetLayers()
+        protected override AudioLayer CreateLayerInternal(string layerName)
         {
-            string[] names;
-            lock (_layers)
-            {
-                names = new string[_layers.Count];
-                for (var i = 0; i < _layers.Count; i++)
-                {
-                    names[i] = _layers[i].Name;
-                }
-            }
-
-            return names;
-        }
-
-        public override AudioLayer CreateLayer(string layerName, float layerVolume = 1)
-        {
-            var newLayer = new NullAudioLayer(layerName) {Volume = layerVolume};
-            lock (_layers)
-            {
-                _layers.Add(newLayer);
-            }
-
-            return newLayer;
-        }
-
-        public override void RemoveLayer(string layerName)
-        {
-            AudioLayer layer = GetLayer(layerName);
-            if (layer == null) return;
-
-            layer.Stop();
-            layer.Dispose();
-            lock (_layers)
-            {
-                _layers.Remove(layer);
-            }
-        }
-
-        public override AudioLayer GetLayer(string layerName)
-        {
-            lock (_layers)
-            {
-                return _layers.FirstOrDefault(layer => layer.Name == layerName);
-            }
+            return new NullAudioLayer(layerName);
         }
     }
 }

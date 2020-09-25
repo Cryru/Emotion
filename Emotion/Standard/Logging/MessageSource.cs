@@ -33,6 +33,7 @@
         public static string WasApi = "WasApi";
         public static string Glfw = "Glfw";
         public static string Egl = "Egl";
+        public static string OpenAL = "OpenAL";
 
         // Other
         public static string ScriptingEngine = "Scripting";

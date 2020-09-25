@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
+using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using WinApi.User32;
@@ -45,6 +47,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (Engine.AssetLoader == null) return;
             Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
             Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
+            if (Engine.Configuration.DebugMode) Engine.AssetLoader.AddStore(new DebugAssetStore());
         }
 
         /// <summary>
@@ -105,33 +108,38 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         public override IntPtr LoadLibrary(string path)
         {
             const string baseFolder = "AssetsNativeLibs";
-            if (path == "glfw")
+            switch (path)
             {
-                path = System.IO.Path.Join(baseFolder, "GLFW", _platformIdentifier, $"glfw{_platformExtension}");
-            }
-            else if(path == "libEGL")
-            {
-                path = System.IO.Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libEGL{_platformExtension}");
-            }
-            else if (path == "libGLESv2")
-            {
-                path = System.IO.Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libGLESv2{_platformExtension}");
-            }
-            else if (path == "mesa")
-            {
-                path = System.IO.Path.Join(baseFolder, "Mesa", _platformIdentifier, $"opengl32{_platformExtension}");
-            }
- 
-            bool loaded = NativeLibrary.TryLoad(path, out IntPtr ptr);
-            if (!loaded)
-            {
-                Engine.Log.Info($"Couldn't load library {path}", MessageSource.Engine);
-                if (!System.IO.File.Exists(path))
+                case "glfw":
+                    path = Path.Join(baseFolder, "GLFW", _platformIdentifier, $"glfw{_platformExtension}");
+                    break;
+                case "libEGL":
+                    path = Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libEGL{_platformExtension}");
+                    break;
+                case "libGLESv2":
+                    path = Path.Join(baseFolder, "ANGLE", _platformIdentifier, $"libGLESv2{_platformExtension}");
+                    break;
+                case "mesa":
+                    path = Path.Join(baseFolder, "Mesa", _platformIdentifier, $"opengl32{_platformExtension}");
+                    break;
+                case "OpenAL":
                 {
-                    Engine.Log.Info($"File doesn't exist at {path}", MessageSource.Engine);
+                    path = Path.Join(baseFolder, "OpenAL", _platformIdentifier);
+
+                    // Linux only dependency, located in the same folder.
+                    if (_platformIdentifier == "linux") LoadLibrary(Path.Join(path, "libsndio.so.6.1"));
+
+                    path = Path.Join(path, $"openal32{_platformExtension}");
+                    break;
                 }
             }
-            return ptr;
+
+            bool loaded = NativeLibrary.TryLoad(path, out IntPtr ptr);
+            if (loaded) return ptr;
+
+            Engine.Log.Info($"Couldn't load library {path}", MessageSource.Engine);
+            if (!File.Exists(path)) Engine.Log.Info($"File doesn't exist at {path}", MessageSource.Engine);
+            return IntPtr.Zero;
         }
 
         /// <inheritdoc />

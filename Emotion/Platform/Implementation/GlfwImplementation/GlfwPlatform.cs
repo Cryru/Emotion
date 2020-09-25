@@ -10,6 +10,10 @@ using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 using WinApi.Kernel32;
+#if OpenAL
+using Emotion.Platform.Implementation.OpenAL;
+
+#endif
 
 #endregion
 
@@ -65,6 +69,8 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                 return;
             }
 
+            Glfw.SetWindowSizeLimits(_win, (int) config.RenderSize.X, (int) config.RenderSize.Y, -1, -1);
+
             _focusCallback = FocusCallback;
             Glfw.SetWindowFocusCallback(_win, _focusCallback);
             _resizeCallback = ResizeCallback;
@@ -90,7 +96,11 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             UpdateFocus(true);
             Glfw.FocusWindow(_win);
 
+#if OpenAL
+            Audio = OpenALAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
+#else
             Audio = new NullAudioContext();
+#endif
         }
 
         protected override bool UpdatePlatform()
@@ -115,6 +125,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private void KeyInput(Glfw.Window window, Glfw.KeyCode key, int scancode, Glfw.InputState action, Glfw.KeyMods mods)
         {
             UpdateKeyStatus((Key) key, action == Glfw.InputState.Press || action == Glfw.InputState.Repeat);
+            if (action == Glfw.InputState.Press) OnTextInput.Invoke((char) key);
         }
 
         private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)

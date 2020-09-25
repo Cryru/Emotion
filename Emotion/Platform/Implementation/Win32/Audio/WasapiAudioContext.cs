@@ -69,6 +69,11 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             return new AudioFormat(fmt.BitsPerSample, fmt.IsFloat(), fmt.Channels, fmt.SampleRate);
         }
 
+        protected override AudioLayer CreateLayerInternal(string layerName)
+        {
+            return new WasApiLayer(layerName, this);
+        }
+
         #region Events
 
         public void OnDeviceStateChanged(string deviceId, DeviceState newState)
@@ -219,54 +224,5 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         }
 
         #endregion
-
-        public override string[] GetLayers()
-        {
-            string[] names;
-            lock (_layers)
-            {
-                names = new string[_layers.Count];
-                for (var i = 0; i < _layers.Count; i++)
-                {
-                    names[i] = _layers[i].Name;
-                }
-            }
-
-            return names;
-        }
-
-        private List<WasApiLayer> _layers = new List<WasApiLayer>();
-
-        public override AudioLayer CreateLayer(string layerName, float layerVolume = 1)
-        {
-            var newLayer = new WasApiLayer(layerName, this) {Volume = layerVolume};
-            lock (_layers)
-            {
-                _layers.Add(newLayer);
-            }
-
-            return newLayer;
-        }
-
-        public override void RemoveLayer(string layerName)
-        {
-            var layer = (WasApiLayer) GetLayer(layerName);
-            if (layer == null) return;
-
-            layer.Stop();
-            layer.Dispose();
-            lock (_layers)
-            {
-                _layers.Remove(layer);
-            }
-        }
-
-        public override AudioLayer GetLayer(string layerName)
-        {
-            lock (_layers)
-            {
-                return _layers.FirstOrDefault(layer => layer.Name == layerName);
-            }
-        }
     }
 }
