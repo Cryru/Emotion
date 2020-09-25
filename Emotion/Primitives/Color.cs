@@ -299,7 +299,6 @@ namespace Emotion.Primitives
         /// Converts the color object to an uint.
         /// </summary>
         /// <returns>A uint packed value representing the color.</returns>
-        [Pure]
         public uint ToUint()
         {
             return ((uint) A << 24) | ((uint) B << 16) | ((uint) G << 8) | R;
@@ -309,7 +308,6 @@ namespace Emotion.Primitives
         /// Create a normalized vec4 from the color.
         /// </summary>
         /// <returns>A normalized vec4 from the color.</returns>
-        [Pure]
         public Vector4 ToVec4()
         {
             return new Vector4(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f);
