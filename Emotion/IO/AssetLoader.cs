@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -205,21 +206,15 @@ namespace Emotion.IO
             name = NameToEngineName(name);
 
             // Find a store which matches the name folder.
-            IAssetStore store;
-            int folderIndex = name.IndexOf('/');
-            if (folderIndex == -1)
+            IAssetStore store = GetStore(name);
+            if (store == null)
             {
-                store = _storage.First().Value;
-                name = $"{store.Folder}/{name}";
-            }
-            else
-            {
-                string folder = name.Substring(0, folderIndex);
-                bool found = _storage.TryGetValue(folder, out store);
-                if (!found)
+                // If root path and in debug mode, save to the project assets.
+                if (!Engine.Configuration.DebugMode || !_storage.TryGetValue("../../../assets", out store))
                 {
-                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service folder {folder}.", MessageSource.AssetLoader);
-                    return false;
+                    store = _storage.First().Value;
+                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to default store {store.Folder}.", MessageSource.AssetLoader);
+                    if(store == null) return false;
                 }
             }
 
@@ -251,6 +246,18 @@ namespace Emotion.IO
         }
 
         /// <summary>
+        /// Get the asset store an asset with this filename would be stored in.
+        /// </summary>
+        /// <param name="name">The name of the asset.</param>
+        /// <returns>The store which this asset would end up in, or null if none.</returns>
+        public IAssetStore GetStore(string name)
+        {
+            string folder = GetDirectoryName(name);
+            bool found = _storage.TryGetValue(folder, out IAssetStore store);
+            return found ? store : null;
+        }
+
+        /// <summary>
         /// Get a loaded asset by its name or load it asynchronously.
         /// </summary>
         /// <typeparam name="T">The type of asset.</typeparam>
@@ -258,7 +265,11 @@ namespace Emotion.IO
         /// <returns>The loaded or cached asset.</returns>
         public Task<T> GetAsync<T>(string name) where T : Asset, new()
         {
-            return Task.Run(() => Get<T>(name));
+            return Task.Run(() =>
+            {
+                Thread.CurrentThread.Name ??= $"AssetLoading Thread {name}";
+                return Get<T>(name);
+            });
         }
 
         /// <summary>
