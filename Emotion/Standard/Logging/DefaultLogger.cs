@@ -84,19 +84,19 @@ namespace Emotion.Standard.Logging
                     switch (logItem.type)
                     {
                         case MessageType.Error:
-                            stdOut?.Write("\x1b[38;5;0015m\x1b[48;5;0196m[ERR]\x1b[38;5;0015m ");
+                            stdOut?.Write("\x1b[38;5;0045m[ERR]\x1b[38;5;0015m ");
                             currentFileStream?.Write("[ERR] ");
                             break;
                         case MessageType.Info:
-                            stdOut?.Write("\x1b[38;5;0015m[INF]\x1b[38;5;0015m ");
+                            stdOut?.Write("\x1b[38;5;0007m[INF]\x1b[38;5;0015m ");
                             currentFileStream?.Write("[INF] ");
                             break;
                         case MessageType.Trace:
-                            stdOut?.Write("\x1b[38;5;0007m[DBG]\x1b[38;5;0015m ");
+                            stdOut?.Write("\x1b[38;5;0008m[DBG]\x1b[38;5;0015m ");
                             currentFileStream?.Write("[DBG] ");
                             break;
                         case MessageType.Warning:
-                            stdOut?.Write("\x1b[38;5;0011m[48;5;0196m[WRN]\x1b[38;5;0015m ");
+                            stdOut?.Write("\x1b[38;5;0011m[WRN]\x1b[38;5;0015m ");
                             currentFileStream?.Write("[WRN] ");
                             break;
                         default:
