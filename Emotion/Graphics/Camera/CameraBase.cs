@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Primitives;
@@ -12,7 +13,7 @@ namespace Emotion.Graphics.Camera
     /// The basis for a camera object. Intended to be used for 2D environments and optimized for pixel art.
     /// Will automatically scale based on the "IntScale" property of the Renderer.
     /// </summary>
-    public abstract class CameraBase : Positional
+    public abstract class CameraBase : Positional, IDisposable
     {
         #region Properties
 
@@ -93,6 +94,13 @@ namespace Emotion.Graphics.Camera
                 start,
                 ScreenToWorld(Engine.Renderer.DrawBuffer.Size) - start
             );
+        }
+
+        /// <summary>
+        /// Destroy the camera and any internal resources it owns.
+        /// </summary>
+        public virtual void Dispose()
+        {
         }
     }
 }

@@ -111,6 +111,13 @@ namespace Emotion.Graphics
         /// </summary>
         public CameraBase Camera;
 
+#if DEBUG
+        /// <summary>
+        /// Camera used to debug the current camera.
+        /// </summary>
+        public DebugCamera DebugCamera;
+#endif
+
         /// <summary>
         /// The stack of frame buffers.
         /// The screen buffer is not a part of this stack.
@@ -268,6 +275,10 @@ namespace Emotion.Graphics
             ActiveBatch = DefaultSpriteBatch;
 
             ApplySettings();
+
+#if DEBUG
+            Engine.Host.OnKey.AddListener(DebugFunctionalityKeyInput);
+#endif
         }
 
         #region Event Handles and Sizing
@@ -456,6 +467,22 @@ namespace Emotion.Graphics
             // Check if running on the GL Thread.
             Debug.Assert(GLThread.IsGLThread());
 
+#if DEBUG
+
+            if (DebugCamera != null)
+            {
+                SetUseViewMatrix(true);
+                Rectangle actualCameraBounds = Camera.GetWorldBoundingRect();
+                RenderOutline(actualCameraBounds, Color.Red);
+                RenderCircle(Camera.Position, 5, Color.Red, true);
+                RenderLine(Camera.Position, actualCameraBounds.TopLeft.ToVec3(), Color.Red);
+                RenderLine(Camera.Position, actualCameraBounds.TopRight.ToVec3(), Color.Red);
+                RenderLine(Camera.Position, actualCameraBounds.BottomLeft.ToVec3(), Color.Red);
+                RenderLine(Camera.Position, actualCameraBounds.BottomRight.ToVec3(), Color.Red);
+            }
+
+#endif
+
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
                 // Push a blit from the draw buffer to the screen buffer.
@@ -471,6 +498,9 @@ namespace Emotion.Graphics
         public void Update()
         {
             Camera.Update();
+#if DEBUG
+            DebugCamera?.Update();
+#endif
         }
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
@@ -509,8 +539,22 @@ namespace Emotion.Graphics
         /// </summary>
         private void SyncViewMatrix()
         {
-            Matrix4x4 viewMat = Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault() ? Camera.ViewMatrix : Matrix4x4.Identity;
-            CurrentState.Shader.SetUniformMatrix4("viewMatrix", viewMat);
+            // Check if the view matrix is off.
+            if (!Engine.Renderer.CurrentState.ViewMatrix.GetValueOrDefault())
+            {
+                CurrentState.Shader.SetUniformMatrix4("viewMatrix", Matrix4x4.Identity);
+                return;
+            }
+
+#if DEBUG
+            if (DebugCamera != null)
+            {
+                CurrentState.Shader.SetUniformMatrix4("viewMatrix", DebugCamera.ViewMatrix);
+                return;
+            }
+#endif
+
+            CurrentState.Shader.SetUniformMatrix4("viewMatrix", Camera.ViewMatrix);
         }
 
         /// <summary>
@@ -552,5 +596,36 @@ namespace Emotion.Graphics
         }
 
         #endregion
+
+#if DEBUG
+
+        #region Debug Functionality
+
+        public bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
+        {
+            if (state != KeyStatus.Down) return true;
+
+            bool ctrl = Engine.Host.IsCtrlModifierHeld();
+            if (key == Key.F1 && !ctrl) ToggleDebugCamera();
+            return true;
+        }
+
+        public void ToggleDebugCamera()
+        {
+            if (DebugCamera != null)
+            {
+                Engine.Log.Info("Debug camera turned off.", MessageSource.Debug);
+                DebugCamera.Dispose();
+                DebugCamera = null;
+                return;
+            }
+
+            DebugCamera = new DebugCamera(Camera.Position, Camera.Zoom);
+            Engine.Log.Info("Debug camera turned on. Use the numpad keys 8462 to move and mouse scroll to zoom.", MessageSource.Debug);
+        }
+
+        #endregion
+
+#endif
     }
 }
