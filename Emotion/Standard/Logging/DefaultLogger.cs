@@ -35,29 +35,35 @@ namespace Emotion.Standard.Logging
         {
             _stdOut = stdOut;
             _logFolder = logFolder;
-
-            // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
-            Directory.CreateDirectory(logFolder);
-            string[] fileCount = Directory.GetFiles(logFolder);
-            if (fileCount.Length > MAX_LOG_FILES)
+            try
             {
-                FileInfo[] filesWithDates = fileCount.Select(x => new FileInfo(x)).OrderBy(x => x.LastWriteTime.ToFileTime()).ToArray();
-
-                // Delete oldest.
-                try
+                // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
+                Directory.CreateDirectory(logFolder);
+                string[] fileCount = Directory.GetFiles(logFolder);
+                if (fileCount.Length > MAX_LOG_FILES)
                 {
-                    for (var i = 0; i < filesWithDates.Length - MAX_LOG_FILES; i++)
+                    FileInfo[] filesWithDates = fileCount.Select(x => new FileInfo(x)).OrderBy(x => x.LastWriteTime.ToFileTime()).ToArray();
+
+                    // Delete oldest.
+                    try
                     {
-                        filesWithDates[i].Delete();
+                        for (var i = 0; i < filesWithDates.Length - MAX_LOG_FILES; i++)
+                        {
+                            filesWithDates[i].Delete();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
                     }
                 }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            }
 
-            _logThread = Task.Run(LogThread);
+                _logThread = Task.Run(LogThread);
+            }
+            catch (Exception)
+            {
+                // ignored - no where to log it
+            }
         }
 
         private string GenerateLogName()
