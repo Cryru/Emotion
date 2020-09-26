@@ -9,9 +9,12 @@ using Emotion.Platform.Implementation.GlfwImplementation.Native;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
-using WinApi.Kernel32;
 #if OpenAL
 using Emotion.Platform.Implementation.OpenAL;
+
+#endif
+#if ANGLE
+using WinApi.Kernel32;
 
 #endif
 
@@ -61,6 +64,15 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             Glfw.WindowHint(Glfw.Hint.ContextVersionMajor, 3);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Kernel32Methods.GetModuleHandle("renderdoc.dll") != IntPtr.Zero) Glfw.WindowHint(Glfw.Hint.ContextVersionMinor, 1);
 #endif
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // Macs need a specific context to be requested.
+                Glfw.WindowHint(Glfw.Hint.ContextVersionMajor, 3);
+                Glfw.WindowHint(Glfw.Hint.ContextVersionMinor, 2);
+                Glfw.WindowHint(Glfw.Hint.OpenglForwardCompat, true);
+                Glfw.WindowHint(Glfw.Hint.OpenglProfile, Glfw.OpenGLProfile.Core);
+            }
 
             _win = Glfw.CreateWindow((int) config.HostSize.X, (int) config.HostSize.Y, config.HostTitle);
             if (_win == null)
