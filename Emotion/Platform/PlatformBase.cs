@@ -134,7 +134,7 @@ namespace Emotion.Platform
             {
                 Engine.Log.Trace($"Key {key} is {state}.", MessageSource.Input);
 
-                bool ctrl = IsKeyHeld(Key.LeftControl) || IsKeyHeld(Key.RightControl);
+                bool ctrl = IsCtrlModifierHeld();
                 if (key >= Key.F1 && key <= Key.F10 && state == KeyStatus.Down && ctrl)
                 {
                     Vector2 chosenSize = _windowSizes[key - Key.F1];
@@ -604,6 +604,21 @@ namespace Emotion.Platform
         public float GetMouseScrollRelative()
         {
             return _mouseScrollThisFrame - _mouseScroll;
+        }
+
+        public bool IsCtrlModifierHeld()
+        {
+            return IsKeyHeld(Key.LeftControl) || IsKeyHeld(Key.RightControl);
+        }
+
+        public bool IsShiftModifierHeld()
+        {
+            return IsKeyHeld(Key.LeftShift) || IsKeyHeld(Key.RightShift);
+        }
+
+        public bool IsAltModifierHeld()
+        {
+            return IsKeyHeld(Key.LeftAlt) || IsKeyHeld(Key.RightAlt);
         }
 
         #endregion
