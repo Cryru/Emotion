@@ -19,8 +19,6 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         public virtual void SaveAsset(byte[] data, string name, bool backup)
         {
             string filePath = EnginePathToFilePath(name);
-            string filePathFolder = EnginePathToFilePath(Folder);
-            filePath = Path.Join(filePathFolder, filePath);
 
             if (!File.Exists(filePath))
                 // If new - add to the internal manifest.

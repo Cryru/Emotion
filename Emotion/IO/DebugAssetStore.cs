@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System.IO;
 using Emotion.Platform.Implementation.CommonDesktop;
 
 #endregion
@@ -16,10 +17,10 @@ namespace Emotion.IO
         {
             string oldFolder = Folder;
             // Save to project folder.
-            base.SaveAsset(data, name, false);
+            base.SaveAsset(data, Path.Join(Folder, name), false);
             // Save to exe folder.
             Folder = "Assets";
-            base.SaveAsset(data, name, false);
+            base.SaveAsset(data, Path.Join(Folder, name), false);
             Folder = oldFolder;
         }
     }
