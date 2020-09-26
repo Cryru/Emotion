@@ -47,7 +47,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             if (Engine.AssetLoader == null) return;
             Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
             Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
-            if (Engine.Configuration.DebugMode) Engine.AssetLoader.AddStore(new DebugAssetStore());
+            if (Engine.Configuration.DebugMode && Directory.Exists(DebugAssetStore.AssetDevPath)) Engine.AssetLoader.AddStore(new DebugAssetStore());
         }
 
         /// <summary>

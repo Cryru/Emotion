@@ -27,7 +27,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <param name="includeFolderInManifest">Whether to include the source's folder in the asset paths. Off by default.</param>
         public FileAssetSource(string folder, bool includeFolderInManifest = false)
         {
-            Folder = folder;
+            Folder = Path.Join(".", folder);
 
             // Check if folder exists.
             if (!Directory.Exists(Folder)) Directory.CreateDirectory(Folder);
@@ -93,7 +93,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
         public override string ToString()
         {
-            return $".Net System.IO @ ./{Folder}";
+            return $".Net System.IO @ {Folder}";
         }
     }
 }

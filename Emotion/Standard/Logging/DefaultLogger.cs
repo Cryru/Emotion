@@ -34,12 +34,12 @@ namespace Emotion.Standard.Logging
         public DefaultLogger(bool stdOut, string logFolder = "Logs")
         {
             _stdOut = stdOut;
-            _logFolder = logFolder;
+            _logFolder = Path.Join(".", logFolder);
             try
             {
                 // Keep only the last 10 logs. (retainedFileCountLimit doesn't work reliably)
-                Directory.CreateDirectory(logFolder);
-                string[] fileCount = Directory.GetFiles(logFolder);
+                Directory.CreateDirectory(_logFolder);
+                string[] fileCount = Directory.GetFiles(_logFolder);
                 if (fileCount.Length > MAX_LOG_FILES)
                 {
                     FileInfo[] filesWithDates = fileCount.Select(x => new FileInfo(x)).OrderBy(x => x.LastWriteTime.ToFileTime()).ToArray();
