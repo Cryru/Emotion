@@ -56,7 +56,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
 
         public override string ToString()
         {
-            return $".Net System.IO Store @ {Folder}";
+            return $".Net System.IO Store @ {_folderFs}";
         }
     }
 }

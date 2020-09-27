@@ -19,6 +19,11 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// </summary>
         public string Folder { get; protected set; }
 
+        /// <summary>
+        /// The folder on the file system, as opposed to how it is represented in the AssetLoader.
+        /// </summary>
+        protected string _folderFs;
+
         /// <inheritdoc />
         /// <summary>
         /// The folder relative to the executable where file assets will be loaded from.
@@ -27,17 +32,18 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <param name="includeFolderInManifest">Whether to include the source's folder in the asset paths. Off by default.</param>
         public FileAssetSource(string folder, bool includeFolderInManifest = false)
         {
-            Folder = Path.Join(".", folder);
+            Folder = folder;
+            _folderFs = Path.Join(".", folder);
 
             // Check if folder exists.
-            if (!Directory.Exists(Folder)) Directory.CreateDirectory(Folder);
+            if (!Directory.Exists(_folderFs)) Directory.CreateDirectory(_folderFs);
             PopulateInternalManifest(includeFolderInManifest);
         }
 
         protected void PopulateInternalManifest(bool includeFolder)
         {
             InternalManifest.Clear();
-            string[] files = Directory.GetFiles(Folder, "*", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(_folderFs, "*", SearchOption.AllDirectories);
             if (!includeFolder)
             {
                 files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x), x));
@@ -88,12 +94,12 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <returns>The engine path corresponding to the specified file path.</returns>
         protected virtual string FilePathToEnginePath(string filePath)
         {
-            return AssetLoader.NameToEngineName(filePath.Replace(Folder + Path.DirectorySeparatorChar, ""));
+            return AssetLoader.NameToEngineName(filePath.Replace(_folderFs + Path.DirectorySeparatorChar, ""));
         }
 
         public override string ToString()
         {
-            return $".Net System.IO @ {Folder}";
+            return $".Net System.IO @ {_folderFs}";
         }
     }
 }
