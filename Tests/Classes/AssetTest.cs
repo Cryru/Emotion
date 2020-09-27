@@ -133,9 +133,9 @@ namespace Tests.Classes
             var save = Engine.AssetLoader.Get<SaveFile<TestStorage>>("saveFile.save");
             Assert.True(save == null);
 
-            string saveFilePath = "Player/saveFile.save";
-            var saveFile = new SaveFile<TestStorage>("Player/saveFile.save");
-            Assert.True(File.Exists(Path.Join("./Player", "saveFile.save")));
+            var saveFilePath = "Player/saveFile.save";
+            var saveFile = new SaveFile<TestStorage>(saveFilePath);
+            Assert.True(File.Exists(Path.Join(".", "Player", "saveFile.save")));
 
             saveFile.Content.Text = "Wassaa";
             saveFile.Save();
