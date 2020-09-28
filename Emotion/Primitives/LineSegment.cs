@@ -70,11 +70,11 @@ namespace Emotion.Primitives
         /// <returns></returns>
         public Vector2 GetClosestPointOnLineSegment(Vector2 p, bool infinite = false)
         {
-            Vector2 ap = p - Start; //Vector from A to P   
-            Vector2 ab = End - Start; //Vector from A to B  
+            Vector2 ap = p - Start;
+            Vector2 ab = End - Start;
 
-            float magnitudeAb = ab.LengthSquared(); // Magnitude of AB vector (it's length squared)     
-            float dApab = Vector2.Dot(ap, ab); // The DOT product of a_to_p and a_to_b     
+            float magnitudeAb = ab.LengthSquared();
+            float dApab = Vector2.Dot(ap, ab);
             float distance = dApab / magnitudeAb; // The normalized "distance" from a to your closest point  
 
             if (infinite) return Start + ab * distance;
@@ -87,7 +87,8 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// Returns the normal vector on the left side of the line.
+        /// Returns the normal vector on the left side of the line. For more information on what left and right means
+        /// refer to the documentation of IsPointLeftOf
         /// </summary>
         /// <param name="getRightNormal">Whether to return the normal on the right side instead.</param>
         public Vector2 GetNormal(bool getRightNormal = false)
@@ -97,7 +98,8 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// Whether the provided point is left (or above) the line, and false if it is right or below.
+        /// Whether the provided point is left (when top to bottom) or below (when left to right) of the line.
+        /// If the line directions are reversed, the result is flipped as well.
         /// If the point is on the line, returns null
         /// </summary>
         public bool? IsPointLeftOf(Vector2 c)
@@ -303,7 +305,6 @@ namespace Emotion.Primitives
             if (dist >= 0.0 && t2 >= 0.0 && t2 <= 1.0) return ray.Start + ray.Direction * dist;
             return Vector2.Zero;
         }
-
 
         #endregion
     }

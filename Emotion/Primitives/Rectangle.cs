@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Standard.XML;
@@ -488,6 +487,26 @@ namespace Emotion.Primitives
             Size = (s - p) * gridSize;
         }
 
+        /// <summary>
+        /// Get a line which goes through the center of the rectangle to it's two smaller sides.
+        /// </summary>
+        /// <param name="vertical">Whether the line is vertical.</param>
+        /// <returns></returns>
+        public LineSegment GetCenterLine(out bool vertical)
+        {
+            if (Height > Width)
+            {
+                vertical = true;
+                var p1 = new Vector2(X + Width / 2, Y);
+                var p2 = new Vector2(p1.X, Y + Height);
+                return new LineSegment(p1, p2);
+            }
+
+            vertical = false;
+            var p1W = new Vector2(X, Y + Height / 2);
+            var p2W = new Vector2(X + Width, p1W.Y);
+            return new LineSegment(p1W, p2W);
+        }
         #region NEZ Extensions
 
         // Taken from Nez and Modified
@@ -616,7 +635,7 @@ namespace Emotion.Primitives
         /// <returns>The minimum max points.</returns>
         /// <param name="min">Minimum.</param>
         /// <param name="max">Max.</param>
-        public static Rectangle FromMinMaxPoints(Point min, Point max)
+        public static Rectangle FromMinMaxPoints(Vector2 min, Vector2 max)
         {
             return new Rectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
         }
