@@ -24,19 +24,21 @@ namespace Emotion.Standard.TMX
             return new Color(r, g, b);
         }
 
-        public static Dictionary<string, string> GetPropertyDict(XMLReader containingElement)
+        public static TmxProperties GetPropertyDict(XMLReader containingElement)
         {
+            if (containingElement == null) return new TmxProperties(null);
             var attributes = new Dictionary<string, string>();
-            if (containingElement == null) return attributes;
             List<XMLReader> properties = containingElement.Elements("property");
             for (var i = 0; i < properties.Count; i++)
             {
                 XMLReader p = properties[i];
+                string name = p.Attribute("name");
+                if (name == null) continue;
                 string value = p.Attribute("value") ?? p.CurrentContents();
-                attributes.Add(p.Attribute("name"), value);
+                attributes.Add(name, value);
             }
 
-            return attributes;
+            return new TmxProperties(attributes);
         }
 
         public static Vector2 GetVector2(XMLReader element)

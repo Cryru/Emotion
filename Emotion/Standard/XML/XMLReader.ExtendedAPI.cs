@@ -1,8 +1,6 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 #endregion
 
@@ -13,7 +11,7 @@ namespace Emotion.Standard.XML
     /// <summary>
     /// This is the X-Document like API of the XMLReader used outside the serialization logic.
     /// </summary>
-    public partial class XMLReader
+    public partial class XMLReader : XMLReaderAttributeHandler
     {
         /// <summary>
         /// Name of the tag containing this XML element, if derived from a document.
@@ -136,128 +134,11 @@ namespace Emotion.Standard.XML
             return result;
         }
 
-        /// <summary>
-        /// Get the attribute of this name as a string (its pure format) or null if it doesn't exist.
-        /// </summary>
-        /// <param name="attributeName">The attribute of this tag of this name.</param>
-        public string? Attribute(string attributeName)
+        /// <inheritdoc />
+        public override string? Attribute(string attributeName)
         {
             if (_attributes == null) return null;
             return _attributes.ContainsKey(attributeName) ? _attributes[attributeName] : null;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a nullable int.
-        /// </summary>
-        public int? AttributeIntN(string attributeName)
-        {
-            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
-            string value = _attributes[attributeName];
-            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result)) return null;
-            return result;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as an int.
-        /// </summary>
-        public int AttributeInt(string attributeName)
-        {
-            return AttributeIntN(attributeName) ?? default;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a nullable uint.
-        /// </summary>
-        public uint? AttributeUIntN(string attributeName)
-        {
-            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
-            string value = _attributes[attributeName];
-            if (!uint.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint result)) return null;
-            return result;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a uint.
-        /// </summary>
-        public uint AttributeUInt(string attributeName)
-        {
-            return AttributeUIntN(attributeName) ?? default;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a nullable double.
-        /// </summary>
-        public double? AttributeDoubleN(string attributeName)
-        {
-            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
-            string value = _attributes[attributeName];
-            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)) return null;
-            return result;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a double.
-        /// </summary>
-        public double AttributeDouble(string attributeName)
-        {
-            return AttributeDoubleN(attributeName) ?? default;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a nullable float.
-        /// </summary>
-        public float? AttributeFloatN(string attributeName)
-        {
-            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
-            string value = _attributes[attributeName];
-            if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result)) return null;
-            return result;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a float.
-        /// </summary>
-        public float AttributeFloat(string attributeName)
-        {
-            return AttributeFloatN(attributeName) ?? default;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a nullable bool.
-        /// </summary>
-        public bool? AttributeBoolN(string attributeName)
-        {
-            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return null;
-            string value = _attributes[attributeName];
-            // 0 and 1 aren't handled by bool.Parse but are valid.
-            switch (value)
-            {
-                case "0":
-                    return false;
-                case "1":
-                    return true;
-            }
-
-            if (!bool.TryParse(value, out bool result)) return null;
-            return result;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as a bool.
-        /// </summary>
-        public bool AttributeBool(string attributeName)
-        {
-            return AttributeBoolN(attributeName) ?? default;
-        }
-
-        /// <summary>
-        /// Get the attribute of this name as an enum value.
-        /// </summary>
-        public T AttributeEnum<T>(string attributeName) where T : Enum
-        {
-            if (_attributes == null || !_attributes.ContainsKey(attributeName)) return default!;
-            if (!Enum.TryParse(typeof(T), _attributes[attributeName], true, out object? value)) return default!;
-            return (T) value!;
         }
     }
 }

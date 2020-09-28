@@ -17,7 +17,7 @@ namespace Emotion.Standard.TMX
         public string Type { get; private set; }
         public string Image { get; private set; }
 
-        public Dictionary<string, string> Properties { get; private set; }
+        public TmxProperties Properties { get; private set; }
         public TmxList<TmxObjectLayer> ObjectGroups { get; private set; }
         public Collection<TmxAnimationFrame> AnimationFrames { get; private set; }
 

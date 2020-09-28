@@ -23,7 +23,7 @@ namespace Emotion.Standard.TMX.Layer
         public float OffsetY { get; private set; }
 
         public Collection<TmxLayerTile> Tiles { get; private set; }
-        public Dictionary<string, string> Properties { get; private set; }
+        public TmxProperties Properties { get; private set; }
 
         public TmxLayer(XMLReader xLayer, int width, int height)
         {

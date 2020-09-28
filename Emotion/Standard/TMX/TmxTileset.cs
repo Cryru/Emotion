@@ -24,7 +24,7 @@ namespace Emotion.Standard.TMX
 
         public Dictionary<int, TmxTilesetTile> Tiles { get; private set; } = new Dictionary<int, TmxTilesetTile>();
         public Vector2 TileOffset { get; private set; }
-        public Dictionary<string, string>? Properties { get; private set; }
+        public TmxProperties? Properties { get; private set; }
         public TmxList<TmxTerrain>? Terrains { get; private set; }
 
         public TmxTileset(int firstGid, XMLReader xTileset)

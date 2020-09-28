@@ -21,7 +21,7 @@ namespace Emotion.Standard.TMX.Object
         public float Height { get; private set; }
         public float Rotation { get; private set; }
         public bool Visible { get; private set; }
-        public Dictionary<string, string> Properties { get; private set; }
+        public TmxProperties Properties { get; private set; }
 
         // Image object.
         public int? Gid { get; private set; }
@@ -100,6 +100,7 @@ namespace Emotion.Standard.TMX.Object
             var points = new List<Vector2>();
 
             string pointString = xPoints.Attribute("points");
+            if (pointString == null) return points;
             string[] pointStringPair = pointString.Split(' ');
             foreach (string s in pointStringPair)
             {

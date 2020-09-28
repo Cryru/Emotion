@@ -12,7 +12,7 @@ namespace Emotion.Standard.TMX
         public string Name { get; private set; }
         public int Tile { get; private set; }
 
-        public Dictionary<string, string> Properties { get; private set; }
+        public TmxProperties Properties { get; private set; }
 
         public TmxTerrain(XMLReader xTerrain)
         {

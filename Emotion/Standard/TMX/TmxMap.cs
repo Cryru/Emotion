@@ -37,7 +37,7 @@ namespace Emotion.Standard.TMX
         public TmxList<TmxObjectLayer> ObjectLayers { get; private set; } = new TmxList<TmxObjectLayer>();
         public TmxList<TmxImageLayer> ImageLayers { get; private set; } = new TmxList<TmxImageLayer>();
         public TmxList<TmxGroupedLayers> Groups { get; private set; } = new TmxList<TmxGroupedLayers>();
-        public Dictionary<string, string>? Properties { get; private set; }
+        public TmxProperties? Properties { get; private set; }
 
         public TmxList<TmxLayer> Layers { get; private set; } = new TmxList<TmxLayer>();
 
