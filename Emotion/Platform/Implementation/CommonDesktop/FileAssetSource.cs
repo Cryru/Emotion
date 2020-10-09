@@ -44,14 +44,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         {
             InternalManifest.Clear();
             string[] files = Directory.GetFiles(_folderFs, "*", SearchOption.AllDirectories);
-            if (!includeFolder)
-            {
-                files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x), x));
-            }
-            else
-            {
-                files.AsParallel().ForAll(x => InternalManifest.TryAdd(AssetLoader.NameToEngineName(x), x));
-            }
+            files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x, includeFolder), x));
         }
 
         /// <inheritdoc />
@@ -91,10 +84,13 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// Convert a file path of any type to an engine path.
         /// </summary>
         /// <param name="filePath">The file path to convert.</param>
+        /// <param name="keepFolder">Whether to keep the folder in the path.</param>
         /// <returns>The engine path corresponding to the specified file path.</returns>
-        protected virtual string FilePathToEnginePath(string filePath)
+        protected virtual string FilePathToEnginePath(string filePath, bool keepFolder = false)
         {
-            return AssetLoader.NameToEngineName(filePath.Replace(_folderFs + Path.DirectorySeparatorChar, ""));
+            filePath = filePath.Replace(_folderFs + Path.DirectorySeparatorChar, "");
+            if (keepFolder) filePath = AssetLoader.JoinPath(Folder, filePath);
+            return AssetLoader.NameToEngineName(filePath);
         }
 
         public override string ToString()

@@ -11,7 +11,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
     public class FileAssetStore : FileAssetSource, IAssetStore
     {
         /// <inheritdoc />
-        public FileAssetStore(string folder) : base(folder)
+        public FileAssetStore(string folder) : base(folder, true)
         {
         }
 
@@ -48,11 +48,11 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             return enginePath.Replace('/', Path.DirectorySeparatorChar);
         }
 
-        /// <inheritdoc />
-        protected override string FilePathToEnginePath(string filePath)
-        {
-            return AssetLoader.NameToEngineName(filePath);
-        }
+        ///// <inheritdoc />
+        //protected override string FilePathToEnginePath(string filePath, bool includeFolder = false)
+        //{
+        //    return AssetLoader.NameToEngineName(filePath);
+        //}
 
         public override string ToString()
         {

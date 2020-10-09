@@ -28,14 +28,9 @@ namespace Emotion.Game
         /// Create a new save file.
         /// </summary>
         /// <param name="filePath">The path to the save file.</param>
-        public SaveFile(string filePath)
+        protected SaveFile(string filePath)
         {
             Name = filePath;
-
-            // If the file doesn't exist - create it.
-            if (Engine.AssetLoader.Exists(Name)) return;
-            Content = Activator.CreateInstance<T>();
-            Save();
         }
 
         /// <summary>
@@ -45,6 +40,20 @@ namespace Emotion.Game
         {
             string data = XMLFormat.To(Content);
             if (!Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), Name)) Engine.Log.Warning($"Couldn't save file {Name}.", MessageSource.Other);
+        }
+
+        /// <summary>
+        /// Load a save file via the asset loader, or create a new one, if missing.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static SaveFile<T> LoadSaveOrCreate(string name)
+        {
+            if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<SaveFile<T>>(name);
+            // If the file doesn't exist - create it.
+            var newFile = new SaveFile<T>(name) {Content = Activator.CreateInstance<T>()};
+            newFile.Save();
+            return newFile;
         }
     }
 }

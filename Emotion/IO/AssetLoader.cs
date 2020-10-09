@@ -252,7 +252,7 @@ namespace Emotion.IO
         /// <returns>The store which this asset would end up in, or null if none.</returns>
         public IAssetStore GetStore(string name)
         {
-            string folder = GetDirectoryName(name);
+            string folder = GetFirstDirectoryName(name);
             bool found = _storage.TryGetValue(folder, out IAssetStore store);
             return found ? store : null;
         }
@@ -312,6 +312,16 @@ namespace Emotion.IO
             if (name[^1] == '/') return name;
 
             int lastSlash = name.LastIndexOf("/", StringComparison.Ordinal);
+            return lastSlash == -1 ? name : name.Substring(0, lastSlash);
+        }
+
+        /// <summary>
+        /// Get the name of the first directory in the asset path.
+        /// </summary>
+        public static string GetFirstDirectoryName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return name;
+            int lastSlash = name.IndexOf("/", StringComparison.Ordinal);
             return lastSlash == -1 ? name : name.Substring(0, lastSlash);
         }
 
