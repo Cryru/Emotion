@@ -183,8 +183,8 @@ namespace System.Numerics
         {
             Vector2 floor = v.Floor();
             Vector2 subTract = v - floor;
-            if(subTract.X < Maths.EPSILON) v.X = floor.X;
-            if(subTract.Y < Maths.EPSILON) v.Y = floor.Y;
+            if (subTract.X < Maths.EPSILON) v.X = floor.X;
+            if (subTract.Y < Maths.EPSILON) v.Y = floor.Y;
             return v;
         }
 
@@ -213,6 +213,19 @@ namespace System.Numerics
             v.X = (int) v.X;
             v.Y = (int) v.Y;
             v.Z = (int) v.Z;
+            return v;
+        }
+
+        /// <summary>
+        /// Transform a two dimensional vector2 to a one dimensional in whichever direction the larger component is.
+        /// </summary>
+        public static Vector2 OneDirectionOnly(this Vector2 v)
+        {
+            float x = MathF.Abs(v.X);
+            float y = MathF.Abs(v.Y);
+            if (x > y)
+                v.Y = 0;
+            else if (y > x) v.X = 0;
             return v;
         }
 
@@ -319,7 +332,7 @@ namespace Emotion.Utility
         /// </summary>
         public static T[] JoinArrays<T>(T[] arrayOne, T[] arrayTwo)
         {
-            T[] newArray = new T[arrayOne.Length + arrayTwo.Length];
+            var newArray = new T[arrayOne.Length + arrayTwo.Length];
             Array.Copy(arrayOne, 0, newArray, 0, arrayOne.Length);
             Array.Copy(arrayTwo, 0, newArray, arrayOne.Length, arrayTwo.Length);
             return newArray;
