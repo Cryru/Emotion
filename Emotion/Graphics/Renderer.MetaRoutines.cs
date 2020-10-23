@@ -4,9 +4,11 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Emotion.Common;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.IO;
 using Emotion.Primitives;
 
 #endregion
@@ -196,6 +198,35 @@ namespace Emotion.Graphics
         public void RenderFrameBuffer(FrameBuffer buffer, Color? color)
         {
             RenderFrameBuffer(buffer, null, null, null, null, color);
+        }
+
+        public void RenderRoundedRect(Vector3 pos, Vector2 size, Color c, float radius = 7f)
+        {
+            float mn = MathF.Min(size.X, size.Y) / 2.0f;
+            radius = MathF.Min(mn, radius);
+
+            float z = pos.Z;
+            var r = new Rectangle(pos.X, pos.Y, size.X, size.Y);
+            Rectangle inner = r.Clone().Deflate(radius, radius);
+
+            RenderCircle(inner.TopLeft.ToVec3(z), radius, c, true);
+            RenderCircle(inner.TopRight.ToVec3(z), radius, c, true);
+            RenderCircle(inner.BottomLeft.ToVec3(z), radius, c, true);
+            RenderCircle(inner.BottomRight.ToVec3(z), radius, c, true);
+
+            RenderSprite(new Vector3(r.X + radius, r.Y, z), new Vector2(r.Width - radius * 2, r.Height), c);
+            RenderSprite(new Vector3(r.X, r.Y + radius, z), new Vector2(r.Width, r.Height - radius * 2), c);
+        }
+
+        public void RenderRoundedRectSdf(Vector3 pos, Vector2 size, Color c, float radius = 7f)
+        {
+            var roundedRectShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
+
+            SetShader(roundedRectShader.Shader);
+            roundedRectShader.Shader.SetUniformVector2("RectSize", size);
+            roundedRectShader.Shader.SetUniformFloat("RadiusPixels", radius * 2);
+            RenderUVRect(pos, size, c);
+            SetShader();
         }
     }
 }
