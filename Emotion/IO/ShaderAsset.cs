@@ -119,6 +119,8 @@ namespace Emotion.IO
             {
                 vertShader = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
                 ownVert = false;
+
+                if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Vert}. Using default.", MessageSource.AssetLoader);
             }
 
             TextAsset fragShader = null;
@@ -128,6 +130,8 @@ namespace Emotion.IO
             {
                 fragShader = Engine.AssetLoader.Get<TextAsset>(Content.Frag);
                 ownFrag = true;
+
+                if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Frag}. Using default.", MessageSource.AssetLoader);
             }
 
             if (fragShader == null)
