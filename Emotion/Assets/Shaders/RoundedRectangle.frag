@@ -41,4 +41,5 @@ void main() {
     d = opUnion(d, sdBox(uv, vec2(left.x, deflatedRect.y + radiusInRatio)));
 
     fragColor = mix(vertColor, vec4(0.0), smoothstep(0.0, 0.10, sign(d)));
+    if (fragColor.a < 0.01)discard;
 }
