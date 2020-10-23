@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -429,6 +430,10 @@ namespace Emotion.Standard.OpenType
         /// <returns>A single channel image representing the rendered glyphs at the specified size.</returns>
         public FontAtlas GetAtlas(int fontSize, uint firstChar = 0, int numChars = -1, GlyphRasterizer rasterizer = GlyphRasterizer.Emotion)
         {
+#if RASTERIZER_PROFILER
+            var sw = Stopwatch.StartNew();
+#endif
+
             if (Glyphs == null || Glyphs.Length == 0) return null;
             if (firstChar < FirstCharIndex) firstChar = FirstCharIndex;
             if (numChars == -1) numChars = (int) (LastCharIndex - firstChar);
@@ -532,6 +537,10 @@ namespace Emotion.Standard.OpenType
                 // Increment pen. Leave space between glyphs.
                 pen.X += canvas.Width + glyphSpacing;
             }
+
+#if RASTERIZER_PROFILER
+            Engine.Log.Warning($"Rasterized font {FullName} of size {fontSize} in {sw.ElapsedMilliseconds}ms", MessageSource.Debug);
+#endif
 
             return atlasObj;
         }
