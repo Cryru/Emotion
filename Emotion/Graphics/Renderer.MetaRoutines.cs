@@ -163,6 +163,11 @@ namespace Emotion.Graphics
             vertices[1].UV = new Vector2(uv.Width, uv.Y);
             vertices[2].UV = new Vector2(uv.Width, uv.Height);
             vertices[3].UV = new Vector2(uv.X, uv.Height);
+
+            vertices[0].Tid = -1;
+            vertices[1].Tid = -1;
+            vertices[2].Tid = -1;
+            vertices[3].Tid = -1;
         }
 
         /// <summary>
