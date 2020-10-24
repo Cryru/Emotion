@@ -36,6 +36,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Assets\Shaders\RoundedRectangle.frag" />
+    <None Remove="Assets\Shaders\RoundedRectangle.xml" />
     <None Remove="Assets\Shaders\TextureColorMask.frag" />
     <None Remove="Assets\Shaders\TextureColorMask.xml" />
   </ItemGroup>
@@ -88,12 +90,6 @@
     <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\Shaders\RoundedRectangle.frag">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Shaders\RoundedRectangle.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -112,6 +108,12 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\Blur.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\RoundedRectangle.frag">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Shaders\RoundedRectangle.xml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Shaders\TextureColorMask.frag" />

@@ -20,7 +20,13 @@ float sdCircle(vec2 p, float r)
 
 float opUnion(float d1, float d2) { return min(d1,d2); }
 
-void main() {
+float map(float value, float leftMin, float leftMax, float rightMin, float rightMax)
+{
+    return rightMin + (value - leftMin) * (rightMax - rightMin) / (leftMax - leftMin);
+}
+
+void main()
+{
     float aspect = RectSize.x / RectSize.y;
     vec2 ratio = vec2(aspect, 1.0); // The actual resolution here.
     vec2 uv = ((2 * UV) - 1.) * ratio;
@@ -40,6 +46,18 @@ void main() {
     d = opUnion(d, sdBox(uv, vec2(deflatedRect.x + radiusInRatio, left.y)));
     d = opUnion(d, sdBox(uv, vec2(left.x, deflatedRect.y + radiusInRatio)));
 
-    fragColor = mix(vertColor, vec4(0.0), smoothstep(0.0, 0.10, sign(d)));
+    // AA
+    d = 1.0 + d;
+    fragColor = vertColor;
+    const float aaPixels = 1.0;
+    float aaStrength = (aaPixels / RectSize.x) * ratio.x;
+    float aaThreshold = ratio.y - aaStrength;
+    if (d > aaThreshold)
+    {
+        float d10 = map(d, 1.0 - aaStrength, 1.0, 0.0, 1.0);
+        fragColor.a *= smoothstep(1.0, 0.0, d10);
+    }
+
+    // Discard invisible
     if (fragColor.a < 0.01)discard;
 }
