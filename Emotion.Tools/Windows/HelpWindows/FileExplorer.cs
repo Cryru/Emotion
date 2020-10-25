@@ -86,10 +86,6 @@ namespace Emotion.Tools.Windows.HelpWindows
             FileExplorer.RenderTree(_fileSystem, 0, OnClick, true);
         }
 
-        public override void Update()
-        {
-        }
-
         public static async Task<T> ExplorerLoadAssetAsync(string name, bool useAssetLoaderCache = false)
         {
             return await Task.Run(() => ExplorerLoadAsset(name, useAssetLoaderCache));
@@ -99,38 +95,28 @@ namespace Emotion.Tools.Windows.HelpWindows
         {
             try
             {
-                // Try to load through the asset loader.
-                AssetSource source = Engine.AssetLoader.GetSource(name);
-                if (source == null)
+                // Load through the asset loader.
+                var asset = Engine.AssetLoader.Get<T>(name, useAssetLoaderCache);
+                if (asset != null) return asset;
+
+                // Try the file system.
+                if (!File.Exists(name)) return default;
+                var file = new T
                 {
-                    // Try the file system.
-                    if (!File.Exists(name)) return default;
-                    var file = new T
-                    {
-                        Name = name
-                    };
-                    file.Create(File.ReadAllBytes(name));
-                    return file;
-
-                    // Not found
-                }
-
-                if (useAssetLoaderCache) return Engine.AssetLoader.Get<T>(name);
-
-                {
-                    var file = new T
-                    {
-                        Name = name
-                    };
-                    file.Create(source.GetAsset(name));
-                    return file;
-                }
+                    Name = name
+                };
+                file.Create(File.ReadAllBytes(name));
+                return file;
             }
             catch (Exception ex)
             {
                 Engine.Log.Warning($"Couldn't load asset - {ex}", "FileExplorerTool");
                 throw;
             }
+        }
+
+        public override void Update()
+        {
         }
     }
 

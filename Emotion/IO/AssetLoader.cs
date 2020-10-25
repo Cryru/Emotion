@@ -144,8 +144,9 @@ namespace Emotion.IO
         /// </summary>
         /// <typeparam name="T">The type of asset.</typeparam>
         /// <param name="name">The name of the asset within any loaded source.</param>
+        /// <param name="cache">If set to false the asset will neither be fetched from cache, neither cached.</param>
         /// <returns>The loaded or cached asset.</returns>
-        public T Get<T>(string name) where T : Asset, new()
+        public T Get<T>(string name, bool cache = true) where T : Asset, new()
         {
             if (string.IsNullOrEmpty(name)) return default;
 
@@ -153,12 +154,16 @@ namespace Emotion.IO
             name = NameToEngineName(name);
 
             // Check if loaded.
-            bool loaded = _loadedAssets.TryGetValue(name, out Asset asset);
-            // If loaded and not disposed - return it.
-            if (loaded && !asset.Disposed)
+            Asset asset;
+            if (cache)
             {
-                Debug.Assert(asset is T, "Asset was requested twice as different types.");
-                return (T) asset;
+                bool loaded = _loadedAssets.TryGetValue(name, out asset);
+                // If loaded and not disposed - return it.
+                if (loaded && !asset.Disposed)
+                {
+                    Debug.Assert(asset is T, "Asset was requested twice as different types.");
+                    return (T) asset;
+                }
             }
 
             // Get the source which contains it, if any.
@@ -183,7 +188,7 @@ namespace Emotion.IO
             // Load the asset.
             asset = new T {Name = name};
             asset.Create(data);
-            _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
+            if (cache) _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
             PerfProfiler.ProfilerEventEnd($"InternalLoading {name}", "Loading");
             PerfProfiler.ProfilerEventEnd($"Loading {name}", "Loading");
@@ -208,15 +213,13 @@ namespace Emotion.IO
             // Find a store which matches the name folder.
             IAssetStore store = GetStore(name);
             if (store == null)
-            {
                 // If root path and in debug mode, save to the project assets.
                 if (!Engine.Configuration.DebugMode || !_storage.TryGetValue("../../../assets", out store))
                 {
                     store = _storage.First().Value;
                     Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to default store {store.Folder}.", MessageSource.AssetLoader);
-                    if(store == null) return false;
+                    if (store == null) return false;
                 }
-            }
 
             // Store the asset.
             try
