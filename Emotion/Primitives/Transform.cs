@@ -121,7 +121,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// Is invoked when the transform's size is changed.
         /// </summary>
-        public event EventHandler<EventArgs> OnResize;
+        public event EventHandler OnResize;
 
         #endregion
 
@@ -185,7 +185,7 @@ namespace Emotion.Primitives
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void Resized()
+        protected virtual void Resized()
         {
             OnResize?.Invoke(this, EventArgs.Empty);
         }

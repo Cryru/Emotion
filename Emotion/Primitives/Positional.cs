@@ -111,7 +111,7 @@ namespace Emotion.Primitives
         /// <summary>
         /// Is invoked when the position is changed.
         /// </summary>
-        public event EventHandler<EventArgs> OnMove;
+        public event EventHandler OnMove;
 
         #endregion
 
@@ -153,7 +153,7 @@ namespace Emotion.Primitives
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void Moved()
+        protected virtual void Moved()
         {
             OnMove?.Invoke(this, EventArgs.Empty);
         }
