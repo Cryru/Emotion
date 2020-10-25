@@ -33,7 +33,7 @@ namespace Emotion.Game.Time.Routines
 
             if (stateField == null) return -1;
 
-            return (int) stateField.GetValue(_routine);
+            return (int) (stateField.GetValue(_routine) ?? 1);
         }
 #endif
 
