@@ -77,7 +77,7 @@ namespace Emotion.Common
             _frameTimer.Stop();
             _capturedFrames++;
 
-            string name = $"ProfilerResults{DateTime.Now.ToBinary()}.json";
+            string name = $"Player/Profiler/ProfilerResults{DateTime.Now.ToBinary()}.json";
 
             string traceEvents = _captureSoFar + string.Join(",", _onGoingEventCaptures) + "]";
             string json = "{" +
