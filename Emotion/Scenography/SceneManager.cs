@@ -38,6 +38,11 @@ namespace Emotion.Scenography
         /// </summary>
         public IScene LoadingScreen { get; private set; }
 
+        /// <summary>
+        /// When the scene changes.
+        /// </summary>
+        public EventHandler SceneChanged;
+
         #endregion
 
         #region Private Holders
@@ -201,6 +206,7 @@ namespace Emotion.Scenography
         {
             lock (_swapMutex)
             {
+                // The scene is swapped on the next update.
                 if (_swapScene != null)
                 {
                     IScene old = _swapScene;
@@ -215,7 +221,7 @@ namespace Emotion.Scenography
         }
 
         /// <summary>
-        /// Check whether swapping the scene is needed.
+        /// Check whether swapping the scene is needed, and perform it.
         /// </summary>
         private void SwapCheck()
         {
@@ -225,6 +231,8 @@ namespace Emotion.Scenography
                 Current = _swapScene;
                 _swapScene = null;
             }
+
+            SceneChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
