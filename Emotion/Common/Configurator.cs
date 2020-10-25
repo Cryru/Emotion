@@ -150,7 +150,7 @@ namespace Emotion.Common
         /// The starting size of the host. On desktop platforms the host is the window.
         /// On some platforms this is ignored as the host is either always fullscreen or unresizable.
         /// </summary>
-        public Vector2 HostSize { get; set; } = new Vector2(640, 360);
+        public Vector2 HostSize { get; set; } = new Vector2(1280, 720);
 
         /// <summary>
         /// The display mode to start the host in.
