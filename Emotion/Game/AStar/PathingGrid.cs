@@ -3,6 +3,7 @@
 using System.Numerics;
 using Emotion.Game.Tiled;
 using Emotion.Primitives;
+using Emotion.Standard.TMX.Layer;
 using Emotion.Utility;
 
 #endregion
@@ -52,13 +53,15 @@ namespace Emotion.Game.AStar
         /// <param name="unwalkableTiles">The list of image ids considered unwalkable.</param>
         public static PathingGrid FromTileMap<T>(TileMap<T> tileMap, int layerId, int[] unwalkableTiles) where T : TransformRenderable
         {
-            var newGrid = new PathingGrid((int) tileMap.SizeInTiles.X, (int) tileMap.SizeInTiles.Y);
+            if (layerId == -1 || tileMap.TiledMap == null || layerId > tileMap.TiledMap.TileLayers.Count - 1) return null;
+            TmxLayer layer = tileMap.TiledMap.TileLayers[layerId];
 
+            var newGrid = new PathingGrid((int) layer.Width, (int) layer.Height);
             for (var x = 0; x < newGrid.Width; x++)
             {
                 for (var y = 0; y < newGrid.Height; y++)
                 {
-                    int tileId = x + y * (int) tileMap.SizeInTiles.Y;
+                    int tileId = x + y * (int) layer.Height;
                     int imageId = tileMap.GetTileImageIdInLayer(tileId, layerId, out int _);
                     bool solid = unwalkableTiles.IndexOf(imageId) != -1;
                     if (solid) newGrid.SetWalkable(x, y, false);
