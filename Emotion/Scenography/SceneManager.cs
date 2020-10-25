@@ -167,7 +167,7 @@ namespace Emotion.Scenography
                 Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
             }
 
-            if (Engine.Configuration.DebugMode)
+            if (Engine.Configuration.DebugMode && Debugger.IsAttached)
             {
                 LoadFunc();
             }
