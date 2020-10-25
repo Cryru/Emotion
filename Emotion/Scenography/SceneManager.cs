@@ -160,18 +160,29 @@ namespace Emotion.Scenography
 
         private static void Load(IScene scene)
         {
-            try
+            void LoadFunc()
             {
                 Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
-
                 scene.Load();
-
                 Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
             }
-            catch (Exception ex)
+
+            if (Engine.Configuration.DebugMode)
             {
-                if (Debugger.IsAttached) throw;
-                Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
+                LoadFunc();
+            }
+            else
+            {
+                // This try doesn't actually prevent a crash. It just makes sure the exception is logged.
+                try
+                {
+                    LoadFunc();
+                }
+                catch (Exception ex)
+                {
+                    if (Debugger.IsAttached) throw;
+                    Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
+                }
             }
         }
 
