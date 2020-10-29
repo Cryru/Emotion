@@ -173,7 +173,7 @@ namespace OpenGL
         #region Error Handling
 
         /// <summary>
-        /// Whether GL errors are being supressed.
+        /// Whether GL errors are being suppressed.
         /// </summary>
         public static bool SuppressingErrors = false;
 

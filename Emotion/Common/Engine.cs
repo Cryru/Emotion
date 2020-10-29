@@ -20,6 +20,7 @@ using Emotion.Platform.Implementation.Win32;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
+
 #if GLFW
 using Emotion.Platform.Implementation.GlfwImplementation;
 
@@ -93,6 +94,15 @@ namespace Emotion.Common
         /// </summary>
         public static float TotalTime { get; set; }
 
+#if DEBUG
+
+        public static event EventHandler DebugOnUpdateStart;
+        public static event EventHandler DebugOnUpdateEnd;
+        public static event EventHandler DebugOnFrameStart;
+        public static event EventHandler DebugOnFrameEnd;
+
+#endif
+
         static Engine()
         {
             Helpers.AssociatedAssemblies = new List<Assembly>
@@ -164,6 +174,7 @@ namespace Emotion.Common
                 CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
+
             Host.Setup(Configuration);
             InputManager = Host;
             Audio = Host.Audio;
@@ -184,6 +195,7 @@ namespace Emotion.Common
             {
                 p.Initialize();
             }
+
             PerfProfiler.ProfilerEventEnd("Plugin Setup", "Loading");
 
             if (Status == EngineStatus.Stopped) return;
@@ -245,6 +257,7 @@ namespace Emotion.Common
             byte currentSampleIdx = 0;
             float averageUpdates = 0;
             float lastUpdateTimeStamp = 0;
+            var updated = false;
 
             while (Status == EngineStatus.Running)
             {
@@ -258,6 +271,9 @@ namespace Emotion.Common
                     break;
                 }
 
+                // Render last frame.
+                if (!drawOnUpdate || updated) frame();
+
                 double curTime = timer.ElapsedMilliseconds;
                 double deltaTime = curTime - lastTick;
                 lastTick = curTime;
@@ -269,8 +285,8 @@ namespace Emotion.Common
                 accumulator += deltaTime;
 
                 // Update as many times as needed.
+                updated = false;
                 byte updates = 0;
-                var updated = false;
                 while (accumulator > targetTimeFuzzyUpper)
                 {
                     tick();
@@ -355,7 +371,7 @@ namespace Emotion.Common
                 }
 
                 if (!Host.IsOpen) break;
-                if (!drawOnUpdate || updated) frame();
+
             }
 
             Quit();
@@ -401,6 +417,10 @@ namespace Emotion.Common
 
         private static void RunTick()
         {
+#if DEBUG
+            DebugOnUpdateStart?.Invoke(null, EventArgs.Empty);
+#endif
+
 #if TIMING_DEBUG
             if(_curFrameId == _frameId)
             {
@@ -424,6 +444,10 @@ namespace Emotion.Common
             {
                 p.Update();
             }
+
+#if DEBUG
+            DebugOnUpdateEnd?.Invoke(null, EventArgs.Empty);
+#endif
         }
 
 #if TIMING_DEBUG
@@ -434,6 +458,10 @@ namespace Emotion.Common
 
         private static void RunFrame()
         {
+#if DEBUG
+            DebugOnFrameStart?.Invoke(null, EventArgs.Empty);
+#endif
+
             PerfProfiler.FrameStart();
 
             // Run the GLThread queued commands.
@@ -462,6 +490,10 @@ namespace Emotion.Common
 #endif
 
             PerfProfiler.FrameEnd();
+
+#if DEBUG
+            DebugOnFrameEnd?.Invoke(null, EventArgs.Empty);
+#endif
         }
 
         #endregion
@@ -499,18 +531,12 @@ namespace Emotion.Common
             // ReSharper disable once RedundantAssignment
             PlatformBase platform = null;
             if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
-            if (platform != null)
-            {
-                Log.Info($"Platform override accepted. Platform is {platform}", MessageSource.Engine);
-            }
+            if (platform != null) Log.Info($"Platform override accepted. Platform is {platform}", MessageSource.Engine);
 
 #if GLFW
             platform = new GlfwPlatform();
 #else
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                platform = new Win32Platform();
-            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) platform = new Win32Platform();
 #endif
 
             // If none initialized - fallback to null.
