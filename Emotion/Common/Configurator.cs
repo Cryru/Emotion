@@ -94,24 +94,6 @@ namespace Emotion.Common
         public byte DesiredStep { get; set; } = 60;
 
         /// <summary>
-        /// Whether to scale the step up if the game is running fast enough. This causes more frequent updates with smaller
-        /// DeltaTime increments.
-        /// If VSync is on this is not possible.
-        /// This setting applies only if using the default loop.
-        /// </summary>
-        public bool ScaleStepUp { get; set; } = true;
-
-        /// <summary>
-        /// If this is enabled and the game is running too slowly the DesiredStep can be reduced up to a quarter,
-        /// in which case your DeltaTime will be doubled or quadrupled.
-        /// If the game is running fast you can get up to twice the amount of updates, and your DeltaTime will be halved.
-        /// This is on by default, but so is VSync so the loop will only scale downward.
-        /// If this is disabled ScaleStepUp is ignored.
-        /// This setting applies only if using the default loop.
-        /// </summary>
-        public bool VariableLoopSpeed { get; set; } = true;
-
-        /// <summary>
         /// If true frames will be rendered only when at least one update occurs in a tick.
         /// This will essentially cap the FPS to the DesiredStep (and the variance associated, if any).
         /// In some cases you might want this, as VSync (such as VSync forced by the driver) can cause

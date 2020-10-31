@@ -251,14 +251,6 @@ namespace Emotion.Common
 
             DeltaTime = (float) targetTime;
 
-            // Tracks slow updates to switch the desired step.
-            const byte sampleSize = 100;
-            const float loopSwapCooldown = 1000 * 10;
-            byte currentSampleIdx = 0;
-            float averageUpdates = 0;
-            float lastUpdateTimeStamp = 0;
-            var updated = false;
-
             while (Status == EngineStatus.Running)
             {
 #if SIMULATE_LAG
@@ -271,9 +263,6 @@ namespace Emotion.Common
                     break;
                 }
 
-                // Render last frame.
-                if (!drawOnUpdate || updated) frame();
-
                 double curTime = timer.ElapsedMilliseconds;
                 double deltaTime = curTime - lastTick;
                 lastTick = curTime;
@@ -285,7 +274,7 @@ namespace Emotion.Common
                 accumulator += deltaTime;
 
                 // Update as many times as needed.
-                updated = false;
+                var updated = false;
                 byte updates = 0;
                 while (accumulator > targetTimeFuzzyUpper)
                 {
@@ -302,76 +291,9 @@ namespace Emotion.Common
                     break;
                 }
 
-                // Don't check for loop speed up, slow down if loading, not focused, or a loop speed swap occured recently.
-                if (Configuration.VariableLoopSpeed && !SceneManager.Loading && Host.IsFocused && TotalTime - lastUpdateTimeStamp > loopSwapCooldown)
-                {
-                    // Sample the current update count.
-                    averageUpdates += updates;
-                    currentSampleIdx++;
-                    // If enough sample are gathered, average them.
-                    if (currentSampleIdx == sampleSize)
-                    {
-                        averageUpdates /= sampleSize;
-                        byte speedDirection = 0;
-
-                        // If churning out less than one update per cycle that means we're running fast, if
-                        // we are having to update twice per cycle that means we're running slow.
-                        if (averageUpdates < 1)
-                            speedDirection = 1;
-                        else if (averageUpdates > 2)
-                            speedDirection = 2;
-
-                        // Check if any differences in the direction are needed.
-                        if (speedDirection != 0)
-                        {
-                            byte newLoopStep = 0;
-
-                            // If going up...
-                            if (speedDirection == 1)
-                            {
-                                // If currently at the desired step, that means we're going faster - this is impossible if vSync is on.
-                                if (desiredStep == Configuration.DesiredStep)
-                                {
-                                    if (Configuration.ScaleStepUp && !(Renderer.ForcedVSync || Renderer.VSync))
-                                        // Go at twice the speed.
-                                        newLoopStep = (byte) (desiredStep * 2);
-                                }
-                                // If going slower than the desired step, this means we're recovering from a slowdown.
-                                else if (desiredStep < Configuration.DesiredStep)
-                                {
-                                    newLoopStep = Configuration.DesiredStep;
-                                }
-                            }
-                            else
-                                // If going down...
-                            {
-                                // Don't go slower than that.
-                                if (desiredStep > Configuration.DesiredStep / 4)
-                                    // Go twice as slow.
-                                    newLoopStep = (byte) (desiredStep / 2);
-                            }
-
-                            // Apply changes if any.
-                            if (newLoopStep != 0)
-                            {
-                                desiredStep = newLoopStep;
-                                targetTime = 1000f / desiredStep;
-                                targetTimeFuzzyLower = 1000f / (desiredStep - 1);
-                                targetTimeFuzzyUpper = 1000f / (desiredStep + 1);
-                                DeltaTime = (float) targetTime;
-
-                                Log.Info($"Loop speed swapped to {desiredStep} because average updates are {averageUpdates}.", MessageSource.Engine);
-                            }
-                        }
-
-                        lastUpdateTimeStamp = TotalTime;
-                        currentSampleIdx = 0;
-                        averageUpdates = 0;
-                    }
-                }
-
                 if (!Host.IsOpen) break;
 
+                if (!drawOnUpdate || updated) frame();
             }
 
             Quit();
@@ -421,17 +343,6 @@ namespace Emotion.Common
             DebugOnUpdateStart?.Invoke(null, EventArgs.Empty);
 #endif
 
-#if TIMING_DEBUG
-            if(_curFrameId == _frameId)
-            {
-                _curUpdateC++;
-            }
-            else
-            {
-                _curUpdateC = 1;
-                _curFrameId = _frameId;
-            }
-#endif
             TotalTime += DeltaTime;
 
             Host.UpdateInput();
@@ -449,12 +360,6 @@ namespace Emotion.Common
             DebugOnUpdateEnd?.Invoke(null, EventArgs.Empty);
 #endif
         }
-
-#if TIMING_DEBUG
-        private static int _curFrameId = 0;
-        private static int _curUpdateC = 0;
-        private static int _frameId = 0;
-#endif
 
         private static void RunFrame()
         {
@@ -481,19 +386,15 @@ namespace Emotion.Common
             Renderer.EndFrame();
             PerfProfiler.FrameEventEnd("EndFrame");
 
-            PerfProfiler.FrameEventStart("BufferSwap");
-            Host.Context.SwapBuffers();
-            PerfProfiler.FrameEventEnd("BufferSwap");
-#if TIMING_DEBUG
-            _frameId++;
-            Console.Write(_curUpdateC);
-#endif
-
-            PerfProfiler.FrameEnd();
-
 #if DEBUG
             DebugOnFrameEnd?.Invoke(null, EventArgs.Empty);
 #endif
+
+            PerfProfiler.FrameEventStart("BufferSwap");
+            Host.Context.SwapBuffers();
+            PerfProfiler.FrameEventEnd("BufferSwap");
+
+            PerfProfiler.FrameEnd();
         }
 
         #endregion

@@ -21,10 +21,18 @@ namespace Emotion.Common
         private static StringBuilder _captureSoFar;
         private static int _capturedFrames;
 
-        private static BlockingCollection<string> _onGoingEventCaptures;
+        private static BlockingCollection<string> _ongoingEventCaptures;
 
         private static Stopwatch _timer = Stopwatch.StartNew();
         private static Stopwatch _frameTimer;
+
+        public static bool LagSpikeMonitor = false;
+
+        public static void LagSpikeProfileFrame()
+        {
+            if (!LagSpikeMonitor) return;
+            _profileFrame = true;
+        }
 
         private static long GetElapsedMicroseconds(this Stopwatch timer)
         {
@@ -41,29 +49,37 @@ namespace Emotion.Common
         [Conditional("PROFILER")]
         public static void ProfilerEventStart(string eventName, string eventGroup)
         {
-            if (_onGoingEventCaptures == null) _onGoingEventCaptures = new BlockingCollection<string>();
-            _onGoingEventCaptures.Add(GetEventJSON(eventName, eventGroup));
+            if (_ongoingEventCaptures == null) _ongoingEventCaptures = new BlockingCollection<string>();
+            _ongoingEventCaptures.Add(GetEventJSON(eventName, eventGroup));
         }
 
         [Conditional("PROFILER")]
         public static void ProfilerEventEnd(string eventName, string eventGroup)
         {
-            _onGoingEventCaptures.Add(GetEventJSON(eventName, eventGroup, false));
+            _ongoingEventCaptures.Add(GetEventJSON(eventName, eventGroup, false));
         }
 
         [Conditional("PROFILER")]
         public static void FrameStart()
         {
-            if (!_profileNextFrame) return;
-
             if (_frameTimer == null) _frameTimer = Stopwatch.StartNew();
             else
                 _frameTimer.Restart();
 
+            _captureSoFar ??= new StringBuilder("[", 50 * 100);
+
+            if (!_profileNextFrame && !LagSpikeMonitor) return;
+
             _captureSoFar.Append(GetEventJSON("FrameStart", $"Frame Capture {_capturedFrames}", true, 0));
             _captureSoFar.Append(",");
-            _profileFrame = true;
+            _profileFrame = _profileNextFrame;
             _profileNextFrame = false;
+
+            if (LagSpikeMonitor)
+            {
+                _captureSoFar.Clear();
+                _captureSoFar.Append("[");
+            }
         }
 
         [Conditional("PROFILER")]
@@ -79,7 +95,7 @@ namespace Emotion.Common
 
             string name = $"Player/Profiler/ProfilerResults{DateTime.Now.ToBinary()}.json";
 
-            string traceEvents = _captureSoFar + string.Join(",", _onGoingEventCaptures) + "]";
+            string traceEvents = _captureSoFar + string.Join(",", _ongoingEventCaptures) + "]";
             string json = "{" +
                           $"\"traceEvents\":{traceEvents}," +
                           "\"displayTimeUnit\":\"ms\"" +
@@ -93,15 +109,12 @@ namespace Emotion.Common
         public static void ProfileNextFrame()
         {
             _profileNextFrame = true;
-
-            if (_captureSoFar == null)
-                _captureSoFar = new StringBuilder("[", 50 * 100);
         }
 
         [Conditional("PROFILER")]
         public static void FrameEventStart(string name)
         {
-            if (!_profileFrame) return;
+            if (!_profileFrame && !LagSpikeMonitor) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", true, _frameTimer.GetElapsedMicroseconds()));
             _captureSoFar.Append(",");
         }
@@ -109,7 +122,7 @@ namespace Emotion.Common
         [Conditional("PROFILER")]
         public static void FrameEventEnd(string name)
         {
-            if (!_profileFrame) return;
+            if (!_profileFrame && !LagSpikeMonitor) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", false, _frameTimer.GetElapsedMicroseconds()));
             _captureSoFar.Append(",");
         }

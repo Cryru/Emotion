@@ -74,6 +74,12 @@ namespace Emotion.Tools.Windows
                 _eventDrawTracker[_eventDrawIdx] = _eventDrawTimer.ElapsedMilliseconds;
                 _eventDrawIdx++;
                 if (_eventDrawIdx >= resolution) _eventDrawIdx = 0;
+
+                if (_eventDrawTimer.ElapsedMilliseconds > 5)
+                {
+                    Engine.Log.Warning($"Lag spike detected! Draw took {_eventDrawTimer.ElapsedMilliseconds}ms", "Profiler");
+                    PerfProfiler.LagSpikeProfileFrame();
+                }
             };
 #endif
         }
@@ -93,6 +99,9 @@ namespace Emotion.Tools.Windows
             ImGui.PlotLines("Precise Update (Ticks)", ref _eventUpdateTracker[0], _eventUpdateTracker.Length, 0, "", 0, 3000);
             ImGui.PlotLines("Precise Render (Ms)", ref _eventDrawTracker[0], _eventDrawTracker.Length, 0, "", 0, 30);
             ImGui.PlotLines("Precise DeltaTime (Ms)", ref _eventDeltaTimeTracker[0], _eventDeltaTimeTracker.Length, 0, "", 0, 30);
+
+            ImGui.Text("This option requires Emotion to have been compiled with the `PROFILER` flag.");
+            ImGui.Checkbox("Profiler LagSpike Monitor", ref PerfProfiler.LagSpikeMonitor);
 #else
             ImGui.Text("Compile in debug mode for more detailed info.");
 #endif
