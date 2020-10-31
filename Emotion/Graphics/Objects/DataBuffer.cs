@@ -313,7 +313,7 @@ namespace Emotion.Graphics.Objects
             if (Bound[type] == pointer)
             {
                 // If in debug mode, verify this with OpenGL.
-                if (!Engine.Configuration.DebugMode) return;
+                if (!Engine.Configuration.GlDebugMode) return;
 
                 bool foundBindingName = Enum.TryParse($"{type}Binding", true, out GetPName bindingName);
                 if (!foundBindingName) Engine.Log.Warning($"Couldn't find binding name for data buffer of type {type}", MessageSource.GL);

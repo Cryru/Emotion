@@ -346,7 +346,7 @@ namespace Emotion.Graphics.Objects
             if (Bound == pointer && pointer != 0)
             {
                 // If in debug mode, verify this with OpenGL.
-                if (!Engine.Configuration.DebugMode) return;
+                if (!Engine.Configuration.GlDebugMode) return;
 
                 Gl.GetInteger(GetPName.DrawFramebufferBinding, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed frame buffer was {pointer} but it was {actualBound}.", MessageSource.GL);

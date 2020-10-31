@@ -290,7 +290,7 @@ namespace Emotion.Graphics.Shading
             if (Bound == pointer)
             {
                 // If in debug mode, verify this with OpenGL.
-                if (!Engine.Configuration.DebugMode) return;
+                if (!Engine.Configuration.GlDebugMode) return;
 
                 Gl.GetInteger(GetPName.CurrentProgram, out int actualBound);
                 if (actualBound != pointer) Engine.Log.Error($"Assumed bound shader was {pointer} but it was {actualBound}.", MessageSource.GL);

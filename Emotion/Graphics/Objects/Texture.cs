@@ -218,7 +218,7 @@ namespace Emotion.Graphics.Objects
             if (Bound[slot] == pointer && pointer != 0)
             {
                 // If in debug mode, verify this with OpenGL.
-                if (!Engine.Configuration.DebugMode) return;
+                if (!Engine.Configuration.GlDebugMode) return;
 
                 Gl.ActiveTexture(TextureUnit.Texture0 + (int) slot);
                 Gl.GetInteger(GetPName.TextureBinding2d, out int actualBound);
