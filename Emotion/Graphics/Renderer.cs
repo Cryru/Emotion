@@ -436,11 +436,15 @@ namespace Emotion.Graphics
             }
 
             // Reset to the default state.
+            PerfProfiler.FrameEventStart("DefaultStateSet");
             SetState(RenderState.Default, true);
+            PerfProfiler.FrameEventEnd("DefaultStateSet");
 
             // Clear the screen.
+            PerfProfiler.FrameEventStart("Clear");
             ScreenBuffer.Bind();
             ClearFrameBuffer();
+            PerfProfiler.FrameEventEnd("Clear");
 
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
@@ -512,6 +516,7 @@ namespace Emotion.Graphics
         {
             ShaderProgram currentShader = CurrentState.Shader;
             if (CurrentState.Shader == null) return;
+            PerfProfiler.FrameEventStart("ShaderSync");
 
             currentShader.SetUniformMatrix4("projectionMatrix", Matrix4x4.CreateOrthographicOffCenter(0, CurrentTarget.Size.X, CurrentTarget.Size.Y, 0, NearZ, FarZ));
 
@@ -522,6 +527,8 @@ namespace Emotion.Graphics
             currentShader.SetUniformVector3("iResolution", new Vector3(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0));
             currentShader.SetUniformVector4("iMouse",
                 new Vector4(Engine.Host.MousePosition, Engine.Host.IsMouseKeyDown(MouseKey.Left) ? 1 : 0, Engine.Host.IsMouseKeyDown(MouseKey.Right) ? 1 : 0));
+
+            PerfProfiler.FrameEventEnd("ShaderSync");
         }
 
         /// <summary>

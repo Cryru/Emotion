@@ -348,18 +348,25 @@ namespace Emotion.Graphics
             InvalidateStateBatches();
 
             // Check which state changes should apply, by checking which were set and which differ from the current.
+            PerfProfiler.FrameEventStart("ShaderSet");
             if (newState.Shader != null && (force || newState.Shader != Engine.Renderer.CurrentState.Shader))
             {
                 ShaderProgram.EnsureBound(newState.Shader.Pointer);
                 Engine.Renderer.CurrentState.Shader = newState.Shader;
                 Engine.Renderer.SyncShader();
             }
+            PerfProfiler.FrameEventEnd("ShaderSet");
 
+            PerfProfiler.FrameEventStart("Depth/Stencil/Blend Set");
             if (newState.DepthTest != null && (force || newState.DepthTest != Engine.Renderer.CurrentState.DepthTest)) SetDepthTest((bool) newState.DepthTest);
             if (newState.StencilTest != null && (force || newState.StencilTest != Engine.Renderer.CurrentState.StencilTest)) SetStencilTest((bool) newState.StencilTest);
             if (newState.AlphaBlending != null && (force || newState.AlphaBlending != Engine.Renderer.CurrentState.AlphaBlending)) SetAlphaBlend((bool) newState.AlphaBlending);
+            PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
+
+            PerfProfiler.FrameEventStart("View/Clip Set");
             if (newState.ViewMatrix != null && (force || newState.ViewMatrix != Engine.Renderer.CurrentState.ViewMatrix)) SetUseViewMatrix((bool) newState.ViewMatrix);
             if (force || newState.ClipRect != Engine.Renderer.CurrentState.ClipRect) SetClipRect(newState.ClipRect);
+            PerfProfiler.FrameEventEnd("Depth/Stencil/Blend Set");
         }
 
         /// <summary>
