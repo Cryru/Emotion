@@ -26,6 +26,9 @@ namespace Emotion.Game.Time
             ReverseDelay = reverseDelay;
         }
 
+        /// <summary>
+        /// Restart the timer, and go in reverse.
+        /// </summary>
         public void GoInReverse()
         {
             Restart();

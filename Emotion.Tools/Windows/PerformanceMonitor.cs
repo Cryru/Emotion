@@ -75,7 +75,7 @@ namespace Emotion.Tools.Windows
                 _eventDrawIdx++;
                 if (_eventDrawIdx >= resolution) _eventDrawIdx = 0;
 
-                if (_eventDrawTimer.ElapsedMilliseconds > 5)
+                if (PerfProfiler.LagSpikeMonitor && _eventDrawTimer.ElapsedMilliseconds > 5)
                 {
                     Engine.Log.Warning($"Lag spike detected! Draw took {_eventDrawTimer.ElapsedMilliseconds}ms", "Profiler");
                     PerfProfiler.LagSpikeProfileFrame();
