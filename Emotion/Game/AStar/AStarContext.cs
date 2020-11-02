@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -25,6 +24,7 @@ namespace Emotion.Game.AStar
         private HashSet<AStarNode> _openSet;
         private HashSet<AStarNode> _closedSet;
         private Dictionary<int, AStarNode> _cache;
+        private List<AStarNode> _neighbors = new List<AStarNode>();
 
         private PathingGrid _pathingGrid;
 
@@ -57,13 +57,13 @@ namespace Emotion.Game.AStar
         /// <summary>
         /// Find a path within the grid.
         /// </summary>
-        /// <param name="memory">The memory to fill with the path output.</param>
+        /// <param name="pathMemory">The memory to fill with the path output.</param>
         /// <param name="start">The location to start pathing from</param>
         /// <param name="end">The location to path to.</param>
         /// <param name="diagonalMovement">Whether diagonal movement is allowed.</param>
-        public void FindPath(List<Vector2> memory, Vector2 start, Vector2 end, bool diagonalMovement = false)
+        public void FindPath(List<Vector2> pathMemory, Vector2 start, Vector2 end, bool diagonalMovement = false)
         {
-            memory.Clear();
+            pathMemory.Clear();
 
             AStarNode startNode = CreateNodeFromIfValid(start);
             AStarNode endNode = CreateNodeFromIfValid(end);
@@ -73,28 +73,45 @@ namespace Emotion.Game.AStar
             _closedSet.Clear();
             _openSet.Add(startNode);
 
+            // Reset cache.
+            foreach ((int _, AStarNode cachedNode) in _cache)
+            {
+                cachedNode.CameFrom = null;
+                cachedNode.G = 0;
+                cachedNode.H = 0;
+            }
+
             // Loop while there are nodes in the open set, if there are none left and a path hasn't been found then there is no path.
             while (_openSet.Count > 0)
             {
                 // Get the node with the lowest score. (F)
-                AStarNode current = _openSet.OrderBy(x => x.F).First();
+                AStarNode current = null;
+                var closestF = 0;
+                foreach (AStarNode node in _openSet)
+                {
+                    if (current != null && closestF <= node.F) continue;
+                    current = node;
+                    closestF = node.F;
+                }
+
+                if (current == null) break; // Should never occur.
 
                 // Check if the current node is the end, in which case the path has been found.
                 if (current.Equals(endNode))
                 {
-                    memory.Add(endNode.Location);
+                    pathMemory.Add(endNode.Location);
 
                     // Trace the path backwards.
                     AStarNode trace = endNode;
                     while (trace.CameFrom != null)
                     {
                         AStarNode nextNode = trace.CameFrom;
-                        memory.Add(nextNode.Location);
+                        pathMemory.Add(nextNode.Location);
                         trace = nextNode;
                     }
 
                     // Reverse so the goal isn't at the 0 index but is last node.
-                    memory.Reverse();
+                    pathMemory.Reverse();
 
                     return;
                 }
@@ -104,10 +121,20 @@ namespace Emotion.Game.AStar
                 _closedSet.Add(current);
 
                 // Get neighbors of current.
-                IEnumerator<AStarNode> neighbors = GetNeighborsRoutine(current.X, current.Y, diagonalMovement);
-                while (neighbors.MoveNext())
+                GetNeighborsRoutine(_neighbors, current, diagonalMovement);
+
+                // Apply heuristics to neighbors.
+                for (var i = 0; i < _neighbors.Count; i++)
                 {
-                    AStarNode neighbor = neighbors.Current;
+                    AStarNode node = _neighbors[i];
+                    node.H = HeuristicFunction(node, endNode);
+                }
+
+                _neighbors.Sort();
+
+                for (var i = 0; i < _neighbors.Count; i++)
+                {
+                    AStarNode neighbor = _neighbors[i];
                     if (neighbor == null) continue;
 
                     // Check if the neighbor is done with, in which case we skip.
@@ -130,7 +157,6 @@ namespace Emotion.Game.AStar
                         _openSet.Add(neighbor);
                     }
 
-                    neighbor.H = HeuristicFunction(neighbor, endNode);
                     neighbor.CameFrom = current;
                 }
             }
@@ -172,8 +198,13 @@ namespace Emotion.Game.AStar
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual IEnumerator<AStarNode> GetNeighborsRoutine(int x, int y, bool diagonal)
+        protected virtual void GetNeighborsRoutine(List<AStarNode> memory, AStarNode current, bool diagonal)
         {
+            memory.Clear();
+
+            int x = current.X;
+            int y = current.Y;
+
             bool hasLeft = x > 0 && x <= _pathingGrid.Width - 1;
             bool hasRight = x >= 0 && x < _pathingGrid.Width - 1;
             bool hasTop = y > 0 && y <= _pathingGrid.Height - 1;
@@ -183,13 +214,13 @@ namespace Emotion.Game.AStar
             if (hasLeft)
             {
                 AStarNode left = CreateNodeFromIfValid(x - 1, y);
-                if (left != null) yield return left;
+                if (left != null) _neighbors.Add(left);
 
                 // Check top left diagonal.
                 if (diagonal && hasTop)
                 {
                     AStarNode topLeft = CreateNodeFromIfValid(x - 1, y - 1);
-                    if (topLeft != null) yield return topLeft;
+                    if (topLeft != null) _neighbors.Add(topLeft);
                 }
             }
 
@@ -197,13 +228,13 @@ namespace Emotion.Game.AStar
             if (hasRight)
             {
                 AStarNode right = CreateNodeFromIfValid(x + 1, y);
-                if (right != null) yield return right;
+                if (right != null) _neighbors.Add(right);
 
                 // Check top right diagonal.
                 if (diagonal && hasTop)
                 {
                     AStarNode topRight = CreateNodeFromIfValid(x + 1, y - 1);
-                    if (topRight != null) yield return topRight;
+                    if (topRight != null) _neighbors.Add(topRight);
                 }
             }
 
@@ -211,7 +242,7 @@ namespace Emotion.Game.AStar
             if (hasTop)
             {
                 AStarNode top = CreateNodeFromIfValid(x, y - 1);
-                if (top != null) yield return top;
+                if (top != null) _neighbors.Add(top);
             }
 
             // Check for bottom.
@@ -219,13 +250,13 @@ namespace Emotion.Game.AStar
             if (hasBottom)
             {
                 AStarNode bottom = CreateNodeFromIfValid(x, y + 1);
-                if (bottom != null) yield return bottom;
+                if (bottom != null) _neighbors.Add(bottom);
 
                 // Check bottom left diagonal.
                 if (diagonal && hasLeft)
                 {
                     AStarNode bottomLeft = CreateNodeFromIfValid(x - 1, y + 1);
-                    if (bottomLeft != null) yield return bottomLeft;
+                    if (bottomLeft != null) _neighbors.Add(bottomLeft);
                 }
 
                 // Check bottom right diagonal.
@@ -233,7 +264,7 @@ namespace Emotion.Game.AStar
                 if (diagonal && hasRight)
                 {
                     AStarNode bottomRight = CreateNodeFromIfValid(x + 1, y + 1);
-                    if (bottomRight != null) yield return bottomRight;
+                    if (bottomRight != null) _neighbors.Add(bottomRight);
                 }
             }
         }

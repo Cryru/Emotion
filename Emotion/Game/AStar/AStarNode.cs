@@ -10,7 +10,7 @@ namespace Emotion.Game.AStar
     /// <summary>
     /// An AStar node.
     /// </summary>
-    public class AStarNode : IEquatable<AStarNode>
+    public class AStarNode : IEquatable<AStarNode>, IComparable<AStarNode>
     {
         /// <summary>
         /// The location of the node within the parental grid.
@@ -31,12 +31,12 @@ namespace Emotion.Game.AStar
         /// <summary>
         /// The X position of the node.
         /// </summary>
-        public int X;
+        public int X { get; }
 
         /// <summary>
         /// The Y position of the node.
         /// </summary>
-        public int Y;
+        public int Y { get; }
 
         /// <summary>
         /// The distance to the node.
@@ -90,6 +90,11 @@ namespace Emotion.Game.AStar
         {
             // Cantor-pair
             return (x + y) * (x + y + 1) / 2 + y;
+        }
+
+        public int CompareTo(AStarNode other)
+        {
+            return Math.Sign(other.F - F);
         }
     }
 }
