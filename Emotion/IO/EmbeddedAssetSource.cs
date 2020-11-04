@@ -40,15 +40,16 @@ namespace Emotion.IO
             Assembly = assembly;
 
             string assemblyFullName = assembly.FullName;
-            Name = assemblyFullName.Substring(0, assemblyFullName.IndexOf(",", StringComparison.Ordinal));
+            Name = assemblyFullName?.Substring(0, assemblyFullName.IndexOf(",", StringComparison.Ordinal)) ?? "";
 
             // Populate internal manifest.
-            Assembly.GetManifestResourceNames().AsParallel().ForAll(x =>
+            string[] resources = Assembly.GetManifestResourceNames();
+            for (var i = 0; i < resources.Length; i++)
             {
-                string enginePath = EmbeddedPathToEnginePath(x);
-
-                if (enginePath != null) InternalManifest.TryAdd(enginePath, x);
-            });
+                string resource = resources[i];
+                string enginePath = EmbeddedPathToEnginePath(resource);
+                if (enginePath != null) InternalManifest.TryAdd(enginePath, resource);
+            }
         }
 
         /// <inheritdoc />

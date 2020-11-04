@@ -44,7 +44,11 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         {
             InternalManifest.Clear();
             string[] files = Directory.GetFiles(_folderFs, "*", SearchOption.AllDirectories);
-            files.AsParallel().ForAll(x => InternalManifest.TryAdd(FilePathToEnginePath(x, includeFolder), x));
+            for (var i = 0; i < files.Length; i++)
+            {
+                string file = files[i];
+                InternalManifest.TryAdd(FilePathToEnginePath(file, includeFolder), file);
+            }
         }
 
         /// <inheritdoc />
