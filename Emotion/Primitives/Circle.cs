@@ -4,7 +4,6 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
-using Emotion.Standard.XML;
 
 #endregion
 

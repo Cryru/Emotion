@@ -4,7 +4,6 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
-using Emotion.Standard.XML;
 
 #endregion
 
@@ -508,6 +507,7 @@ namespace Emotion.Primitives
             var p2W = new Vector2(X + Width, p1W.Y);
             return new LineSegment(p1W, p2W);
         }
+
         #region NEZ Extensions
 
         // Taken from Nez and Modified
