@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Common.Serialization;
 using Emotion.Standard.XML.TypeHandlers;
 
 #endregion
@@ -18,7 +19,7 @@ namespace Emotion.Standard.XML
         /// Contains information on how to set/get the value of this field, and its type.
         /// Within arrays this only contains the type.
         /// </summary>
-        public XMLReflectionHandler ReflectionInfo { get; private set; }
+        public ReflectedMemberHandler ReflectionInfo { get; private set; }
 
         /// <summary>
         /// Knows how to handle the type this field is of.
@@ -30,7 +31,7 @@ namespace Emotion.Standard.XML
         /// </summary>
         public object DefaultValue { get; set; }
 
-        public XMLFieldHandler(XMLReflectionHandler field, XMLTypeHandler typeHandler)
+        public XMLFieldHandler(ReflectedMemberHandler field, XMLTypeHandler typeHandler)
         {
             ReflectionInfo = field;
             TypeHandler = typeHandler;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Standard.Logging;
 using Emotion.Standard.XML.TypeHandlers;
 using Emotion.Utility;
@@ -175,10 +176,33 @@ namespace Emotion.Standard.XML
         /// <param name="property">The reflection handler for the field.</param>
         /// <returns>A handler for the specified field.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static XMLFieldHandler ResolveFieldHandler(Type type, XMLReflectionHandler property)
+        public static XMLFieldHandler ResolveFieldHandler(Type type, ReflectedMemberHandler property)
         {
             XMLTypeHandler typeHandler = GetTypeHandler(type);
             return typeHandler == null ? null : new XMLFieldHandler(property, typeHandler); // TypeHandler is null if an excluded type.
+        }
+
+        /// <summary>
+        /// Resolve the handler for a specified complex field, and apply excluded members..
+        /// </summary>
+        /// <param name="type">The field type.</param>
+        /// <param name="property">The reflection handler for the field.</param>
+        /// <param name="exclusions">The exclusions to apply.</param>
+        /// <returns>A handler for the specified field.</returns>
+        public static XMLFieldHandler ResolveFieldHandlerWithExclusions(Type type, ReflectedMemberHandler property, ExcludeMembersAttribute exclusions = null)
+        {
+            XMLTypeHandler typeHandler = GetTypeHandler(type);
+            if (typeHandler == null) return null;
+
+            if (exclusions != null)
+            {
+                if (typeHandler is XMLComplexBaseTypeHandler complexHandler)
+                    typeHandler = complexHandler.DeriveWithExclusions(exclusions);
+                else
+                    Engine.Log.Warning($"Trying to apply exclusions to {property.Name} but it isn't a complex type.", MessageSource.XML);
+            }
+
+            return new XMLFieldHandler(property, typeHandler);
         }
 
         /// <summary>

@@ -3,9 +3,9 @@
 using System;
 using System.Numerics;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Standard.Logging;
-using Emotion.Standard.XML;
 using OpenGL;
 
 #endregion

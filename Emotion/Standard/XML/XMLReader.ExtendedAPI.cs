@@ -16,7 +16,7 @@ namespace Emotion.Standard.XML
         /// <summary>
         /// Name of the tag containing this XML element, if derived from a document.
         /// </summary>
-        public string Name { get; private set; }
+        public string? Name { get; private set; }
 
         private int _startOffset;
         private int _startDepth;

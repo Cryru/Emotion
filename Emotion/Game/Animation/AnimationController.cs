@@ -5,10 +5,10 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
-using Emotion.Standard.XML;
 
 #endregion
 
@@ -27,6 +27,7 @@ namespace Emotion.Game.Animation
         /// <summary>
         /// The animated texture in which all animations are stored.
         /// </summary>
+        [ExcludeMembers("LoopType", "StartingFrame", "EndingFrame", "TimeBetweenFrames", "CurrentFrameIndex")] // These properties are provided by the current animation node.
         public AnimatedTexture AnimTex;
 
         /// <summary>

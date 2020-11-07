@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using Emotion.Common;
+using Emotion.Common.Serialization;
 using Emotion.Standard.Logging;
 
 #endregion
@@ -25,9 +26,9 @@ namespace Emotion.Standard.XML.TypeHandlers
         public XMLKeyValueTypeHandler(Type type) : base(type)
         {
             PropertyInfo keyProperty = Type.GetProperty("Key");
-            _keyHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(keyProperty.PropertyType, new XMLReflectionHandler(keyProperty)));
+            _keyHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(keyProperty.PropertyType, new ReflectedMemberHandler(keyProperty)));
             PropertyInfo valueProperty = Type.GetProperty("Value");
-            _valueHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(valueProperty.PropertyType, new XMLReflectionHandler(valueProperty)));
+            _valueHandler = new Lazy<XMLFieldHandler>(() => XMLHelpers.ResolveFieldHandler(valueProperty.PropertyType, new ReflectedMemberHandler(valueProperty)));
 
             Type opaqueKeyType = XMLHelpers.GetOpaqueType(keyProperty.PropertyType, out bool opaque);
             _keyDefault = opaque && opaqueKeyType.IsValueType ? Activator.CreateInstance(opaqueKeyType) : null;

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -28,7 +29,15 @@ namespace Emotion.Standard.XML.TypeHandlers
             fieldName ??= TypeName;
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append($"<{fieldName}>\n");
-            SerializeFields(obj, output, indentation + 1, recursionChecker);
+
+            Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
+            foreach ((string _, XMLFieldHandler field) in fieldHandlers)
+            {
+                if (IsFieldExcluded(field)) continue;
+                object propertyVal = field.ReflectionInfo.GetValue(obj);
+                field.TypeHandler.Serialize(propertyVal, output, indentation + 1, recursionChecker, field.Name);
+            }
+
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append($"</{fieldName}>\n");
 

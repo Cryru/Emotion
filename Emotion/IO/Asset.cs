@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using Emotion.Standard.XML;
+using Emotion.Common.Serialization;
 
 #endregion
 

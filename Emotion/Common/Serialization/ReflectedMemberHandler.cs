@@ -5,12 +5,12 @@ using System.Runtime.CompilerServices;
 
 #endregion
 
-namespace Emotion.Standard.XML
+namespace Emotion.Common.Serialization
 {
     /// <summary>
     /// Handles the interop between the serializers and C# reflection.
     /// </summary>
-    public class XMLReflectionHandler
+    public class ReflectedMemberHandler
     {
         /// <summary>
         /// The name of the property this object handles.
@@ -24,7 +24,7 @@ namespace Emotion.Standard.XML
         /// Create a new reflection handler for the specified property.
         /// </summary>
         /// <param name="prop"></param>
-        public XMLReflectionHandler(PropertyInfo prop)
+        public ReflectedMemberHandler(PropertyInfo prop)
         {
             _prop = prop;
             Name = _prop.Name;
@@ -34,7 +34,7 @@ namespace Emotion.Standard.XML
         /// Create a new reflection handler for the specified field.
         /// </summary>
         /// <param name="field"></param>
-        public XMLReflectionHandler(FieldInfo field)
+        public ReflectedMemberHandler(FieldInfo field)
         {
             _field = field;
             Name = _field.Name;

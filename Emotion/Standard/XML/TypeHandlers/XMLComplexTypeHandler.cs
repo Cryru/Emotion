@@ -64,7 +64,7 @@ namespace Emotion.Standard.XML.TypeHandlers
 
             if (RecursiveType)
             {
-                if (recursionChecker == null) recursionChecker = new XMLRecursionChecker();
+                recursionChecker ??= new XMLRecursionChecker();
                 if (recursionChecker.PushReference(obj))
                 {
                     Engine.Log.Warning($"Recursive reference in field {fieldName}.", MessageSource.XML);
@@ -83,17 +83,19 @@ namespace Emotion.Standard.XML.TypeHandlers
             output.AppendJoin(XMLFormat.IndentChar, new string[indentation]);
             output.Append($"</{fieldName}>\n");
 
-            if (RecursiveType) recursionChecker.PopReference(obj);
+            if (RecursiveType) recursionChecker!.PopReference(obj);
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        protected void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
         {
             _baseClass?.SerializeFields(obj, output, indentation, recursionChecker);
             Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
             foreach ((string _, XMLFieldHandler field) in fieldHandlers)
             {
+                if (IsFieldExcluded(field)) continue;
+
                 object propertyVal = field.ReflectionInfo.GetValue(obj);
                 string fieldName = field.Name;
                 bool serialized = field.TypeHandler.Serialize(propertyVal, output, indentation, recursionChecker, fieldName);

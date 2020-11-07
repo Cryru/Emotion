@@ -4,7 +4,7 @@ using System;
 
 #endregion
 
-namespace Emotion.Standard.XML
+namespace Emotion.Common.Serialization
 {
     /// <summary>
     /// Marker for a field/property which should not be serialized.

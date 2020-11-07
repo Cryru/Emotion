@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Emotion.Common.Serialization;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
 using Emotion.Test;
@@ -465,7 +466,7 @@ namespace Tests.Classes
 
             nullableComplex = new NullableComplexContainer
             {
-                Stuff = new ComplexNullableSubject()
+                Stuff = new ComplexNullableSubject
                 {
                     Number = 0
                 }
@@ -620,7 +621,7 @@ namespace Tests.Classes
             public string Str = "Test";
             public Rectangle Rect = new Rectangle(1, 2, 3, 4);
             public Transform Transform = new Transform(5, 6, 7, 8, 9);
-            public float[] Array = new float[] {10, 20.5f, 30};
+            public float[] Array = {10, 20.5f, 30};
             public Positional Derived = new Transform(10, 11, 12, 13);
             public double? Nullable = 10;
         }
@@ -628,7 +629,7 @@ namespace Tests.Classes
         [Test]
         public void ComplexTypeWithCustomDefaults()
         {
-            string xml = XMLFormat.To(new CustomDefaultsComplex()
+            string xml = XMLFormat.To(new CustomDefaultsComplex
             {
                 Test = TestEnum.A,
                 Number = 0,

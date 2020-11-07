@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
+using Emotion.Common.Serialization;
 
 #endregion
 
@@ -41,7 +41,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                 if (!property.CanRead || !property.CanWrite || readMethod == null || writeMethod == null || !readMethod.IsPublic || !writeMethod.IsPublic ||
                     property.CustomAttributes.Any(x => x.AttributeType == XMLHelpers.DontSerializeAttributeType)) continue;
 
-                XMLFieldHandler handler = XMLHelpers.ResolveFieldHandler(property.PropertyType, new XMLReflectionHandler(property));
+                var excludeProp = property.GetCustomAttribute<ExcludeMembersAttribute>();
+                XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(property.PropertyType, new ReflectedMemberHandler(property), excludeProp);
                 if (handler == null) continue;
                 fieldHandlers.TryAdd(property.Name, handler);
             }
@@ -53,7 +54,8 @@ namespace Emotion.Standard.XML.TypeHandlers
                 // Exclude fields marked as "DontSerialize"
                 if (field.CustomAttributes.Any(x => x.AttributeType == XMLHelpers.DontSerializeAttributeType)) continue;
 
-                XMLFieldHandler handler = XMLHelpers.ResolveFieldHandler(field.FieldType, new XMLReflectionHandler(field));
+                var excludeProp = field.GetCustomAttribute<ExcludeMembersAttribute>();
+                XMLFieldHandler handler = XMLHelpers.ResolveFieldHandlerWithExclusions(field.FieldType, new ReflectedMemberHandler(field), excludeProp);
                 if (handler == null) continue;
                 fieldHandlers.TryAdd(field.Name, handler);
             }
@@ -61,16 +63,26 @@ namespace Emotion.Standard.XML.TypeHandlers
             return fieldHandlers;
         }
 
+        #region Exclusion Support
+
+        /// <summary>
+        /// Any applied exclusions.
+        /// </summary>
+        protected HashSet<string> _exclusions;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void SerializeFields(object obj, StringBuilder output, int indentation, XMLRecursionChecker recursionChecker)
+        public bool IsFieldExcluded(XMLFieldHandler fieldHandler)
         {
-            Dictionary<string, XMLFieldHandler> fieldHandlers = _fieldHandlers.Value;
-            foreach ((string _, XMLFieldHandler field) in fieldHandlers)
-            {
-                object propertyVal = field.ReflectionInfo.GetValue(obj);
-                string fieldName = field.Name;
-                field.TypeHandler.Serialize(propertyVal, output, indentation, recursionChecker, fieldName);
-            }
+            return _exclusions != null && _exclusions.Contains(fieldHandler.Name);
         }
+
+        public XMLComplexBaseTypeHandler DeriveWithExclusions(ExcludeMembersAttribute exclusions)
+        {
+            var clone = (XMLComplexBaseTypeHandler) MemberwiseClone();
+            clone._exclusions = exclusions.Members;
+            return clone;
+        }
+
+        #endregion
     }
 }
