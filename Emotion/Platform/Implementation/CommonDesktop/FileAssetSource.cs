@@ -39,7 +39,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         {
             Folder = folder;
             FolderInPath = includeFolderInManifest;
-            _folderFs = Path.Join(".", folder);
+            _folderFs = Path.Join(".", folder).ToLower();
 
             // Check if folder exists.
             if (!Directory.Exists(_folderFs)) Directory.CreateDirectory(_folderFs);
@@ -98,7 +98,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <returns>The engine path corresponding to the specified file path.</returns>
         protected virtual string FilePathToEnginePath(string filePath, bool keepFolder = false)
         {
-            filePath = filePath.Replace(_folderFs + Path.DirectorySeparatorChar, "");
+            filePath = filePath.ToLower().Replace(_folderFs + Path.DirectorySeparatorChar, "");
             if (keepFolder) filePath = AssetLoader.JoinPath(Folder, filePath);
             return AssetLoader.NameToEngineName(filePath);
         }

@@ -45,7 +45,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <returns>The file path corresponding to the specified engine path.</returns>
         protected static string EnginePathToFilePath(string enginePath)
         {
-            return enginePath.Replace('/', Path.DirectorySeparatorChar);
+            return "." + Path.DirectorySeparatorChar + enginePath.Replace('/', Path.DirectorySeparatorChar);
         }
 
         ///// <inheritdoc />

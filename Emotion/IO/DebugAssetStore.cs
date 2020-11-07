@@ -1,7 +1,10 @@
 ﻿#region Using
 
+using System.Diagnostics;
 using System.IO;
+using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
+using Emotion.Platform.Implementation.Win32;
 
 #endregion
 
@@ -21,6 +24,8 @@ namespace Emotion.IO
             base.SaveAsset(data, Path.Join(_folderFs, name), false);
             // Save to exe folder.
             base.SaveAsset(data, Path.Join(".", "Assets", name), false);
+
+            if (Engine.Host is Win32Platform) Process.Start("explorer.exe", $"{Path.GetDirectoryName(Path.Join(_folderFs, name))}");
         }
 
         public override byte[] GetAsset(string enginePath)
