@@ -20,6 +20,11 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         public string Folder { get; protected set; }
 
         /// <summary>
+        /// Whether to include the source's folder in the asset paths.
+        /// </summary>
+        public bool FolderInPath { get; protected set; }
+
+        /// <summary>
         /// The folder on the file system, as opposed to how it is represented in the AssetLoader.
         /// </summary>
         protected string _folderFs;
@@ -33,21 +38,22 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         public FileAssetSource(string folder, bool includeFolderInManifest = false)
         {
             Folder = folder;
+            FolderInPath = includeFolderInManifest;
             _folderFs = Path.Join(".", folder);
 
             // Check if folder exists.
             if (!Directory.Exists(_folderFs)) Directory.CreateDirectory(_folderFs);
-            PopulateInternalManifest(includeFolderInManifest);
+            PopulateInternalManifest();
         }
 
-        protected void PopulateInternalManifest(bool includeFolder)
+        protected void PopulateInternalManifest()
         {
             InternalManifest.Clear();
             string[] files = Directory.GetFiles(_folderFs, "*", SearchOption.AllDirectories);
             for (var i = 0; i < files.Length; i++)
             {
                 string file = files[i];
-                InternalManifest.TryAdd(FilePathToEnginePath(file, includeFolder), file);
+                InternalManifest.TryAdd(FilePathToEnginePath(file, FolderInPath), file);
             }
         }
 

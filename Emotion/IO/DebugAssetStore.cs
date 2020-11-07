@@ -22,5 +22,11 @@ namespace Emotion.IO
             // Save to exe folder.
             base.SaveAsset(data, Path.Join(".", "Assets", name), false);
         }
+
+        public override byte[] GetAsset(string enginePath)
+        {
+            enginePath = AssetLoader.JoinPath(AssetLoader.NameToEngineName(Folder), enginePath);
+            return base.GetAsset(enginePath);
+        }
     }
 }

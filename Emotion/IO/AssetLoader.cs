@@ -181,6 +181,7 @@ namespace Emotion.IO
 
             // Load it from the source.
             byte[] data = source.GetAsset(name);
+            if (data == null || data.Length == 0) return default;
 
             PerfProfiler.ProfilerEventEnd($"SourceLoading {name}", "Loading");
             PerfProfiler.ProfilerEventStart($"InternalLoading {name}", "Loading");
@@ -214,7 +215,7 @@ namespace Emotion.IO
             IAssetStore store = GetStore(name);
             if (store == null)
                 // If root path and in debug mode, save to the project assets.
-                if (!Engine.Configuration.DebugMode || !_storage.TryGetValue("../../../assets", out store))
+                if (!Engine.Configuration.DebugMode || !_storage.TryGetValue(AssetLoader.NameToEngineName(DebugAssetStore.AssetDevPath), out store))
                 {
                     store = _storage.First().Value;
                     Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to default store {store.Folder}.", MessageSource.AssetLoader);
