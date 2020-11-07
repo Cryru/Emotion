@@ -188,7 +188,6 @@ namespace Emotion.Tools.Windows
                 if (!ImGui.Button("SaveToFile")) return;
                 string saveName = _saveName.ToLower();
                 if (!saveName.Contains(".anim")) saveName += ".anim";
-                if (!saveName.Contains("player/")) saveName = $"player/{saveName}";
 
                 try
                 {
@@ -200,7 +199,6 @@ namespace Emotion.Tools.Windows
                         saveData = XMLFormat.To(Animation);
 
                     Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
-                    Process.Start("explorer.exe", $".\\{AssetLoader.GetDirectoryName(saveName).Replace("/", "\\")}");
                 }
                 catch (Exception ex)
                 {
@@ -420,7 +418,7 @@ namespace Emotion.Tools.Windows
                 Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Rgba, PixelType.UnsignedByte, new IntPtr(p));
             }
 
-            // Convert to 1 bit.
+            // Convert to A8 from BGRA8.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {
                 pixels[w] = (byte) (pixels[i + 3] > 10 ? 1 : 0);
