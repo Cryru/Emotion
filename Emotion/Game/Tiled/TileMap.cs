@@ -36,7 +36,7 @@ namespace Emotion.Game.Tiled
         public Rectangle? Clip;
 
         /// <summary>
-        /// The currently loaded file name.
+        /// The currently loaded map asset name. This is the engine path which AssetLoader.Get was called with.
         /// </summary>
         public string? FileName { get; protected set; }
 
@@ -168,6 +168,8 @@ namespace Emotion.Game.Tiled
             if (TiledMap?.Tilesets == null) return;
             if (TiledMap.Tilesets.Count == 0) return;
 
+            string tileSetFolder = _tilesetFolder ?? AssetLoader.GetDirectoryName(FileName);
+
             // Don't load the assets in parallel if running on the draw thread. This might cause a deadlock as assets will wait on
             // the draw thread to wake up in order to upload data.
             bool parallel = !GLThread.IsGLThread();
@@ -180,7 +182,7 @@ namespace Emotion.Game.Tiled
                 tilesetFile = AssetLoader.NameToEngineName(tilesetFile);
                 if (tilesetFile[0] == '/') tilesetFile = tilesetFile.Substring(1);
 
-                string assetPath = AssetLoader.GetNonRelativePath(_tilesetFolder, tilesetFile);
+                string assetPath = AssetLoader.GetNonRelativePath(tileSetFolder, tilesetFile);
                 if (parallel)
                     assets[i] = Engine.AssetLoader.GetAsync<TextureAsset>(assetPath);
                 else
@@ -243,8 +245,6 @@ namespace Emotion.Game.Tiled
                 Engine.Log.Warning($"Couldn't parse tilemap - {ex}.", MessageSource.Other);
                 return;
             }
-
-            if (string.IsNullOrEmpty(_tilesetFolder)) _tilesetFolder = AssetLoader.GetDirectoryName(mapFile.Name);
 
             ResetInternal();
         }
