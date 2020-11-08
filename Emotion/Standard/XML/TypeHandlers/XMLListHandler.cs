@@ -12,7 +12,7 @@ namespace Emotion.Standard.XML.TypeHandlers
     public class XMLListHandler : XMLArrayTypeHandler
     {
         /// <inheritdoc />
-        public XMLListHandler(Type type, Type elementType) : base(type, elementType)
+        public XMLListHandler(Type type, Type nonOpaqueElementType, XMLTypeHandler elementTypeHandler) : base(type, nonOpaqueElementType, elementTypeHandler)
         {
         }
 

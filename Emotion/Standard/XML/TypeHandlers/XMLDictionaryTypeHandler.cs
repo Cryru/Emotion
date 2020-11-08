@@ -11,10 +11,11 @@ namespace Emotion.Standard.XML.TypeHandlers
     {
         private Type _dictGenericType;
 
-        public XMLDictionaryTypeHandler(Type type, Type elementType) : base(type, elementType)
+        public XMLDictionaryTypeHandler(Type type, XMLTypeHandler elementTypeHandler) : base(type, elementTypeHandler.Type, elementTypeHandler)
         {
+            // Make a dictionary type with the arguments of the Key/Value generic element type.
             Type genericTypeDef = Type.GetGenericTypeDefinition();
-            _dictGenericType = genericTypeDef.MakeGenericType(elementType.GetGenericArguments());
+            _dictGenericType = genericTypeDef.MakeGenericType(elementTypeHandler.Type.GetGenericArguments());
         }
 
         public override object Deserialize(XMLReader input)

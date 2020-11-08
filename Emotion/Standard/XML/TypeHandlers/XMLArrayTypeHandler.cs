@@ -15,10 +15,10 @@ namespace Emotion.Standard.XML.TypeHandlers
         protected Type _elementType;
         protected bool _nonOpaque;
 
-        public XMLArrayTypeHandler(Type type, Type elementType) : base(type)
+        public XMLArrayTypeHandler(Type type, Type nonOpaqueElementType, XMLTypeHandler elementTypeHandler) : base(type)
         {
-            _elementTypeHandler = XMLHelpers.GetTypeHandler(elementType);
-            _elementType = elementType; // non-opaque
+            _elementTypeHandler = elementTypeHandler;
+            _elementType = nonOpaqueElementType;
         }
 
         public override bool IsRecursiveWith(Type type)

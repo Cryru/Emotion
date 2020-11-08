@@ -63,12 +63,16 @@ namespace Emotion.Standard.XML
                 if (type.IsArray)
                 {
                     elementType = type.GetElementType();
-                    newHandler = new XMLArrayTypeHandler(type, elementType);
+                    XMLTypeHandler elementTypeHandler = GetTypeHandler(elementType);
+                    if (elementTypeHandler == null) return null; // DontSerialize element type.
+                    newHandler = new XMLArrayTypeHandler(type, elementType, elementTypeHandler);
                 }
                 else if (type.GetInterface("IList") != null)
                 {
                     elementType = type.GetGenericArguments().FirstOrDefault();
-                    newHandler = new XMLListHandler(type, elementType);
+                    XMLTypeHandler elementTypeHandler = GetTypeHandler(elementType);
+                    if (elementTypeHandler == null) return null; // DontSerialize element type.
+                    newHandler = new XMLListHandler(type, elementType, elementTypeHandler);
                 }
                 else if (type.GetInterface("IDictionary") != null)
                 {
@@ -77,7 +81,8 @@ namespace Emotion.Standard.XML
                     Type keyType = generics[0];
                     Type valueType = generics[1];
                     elementType = KeyValuePairType.MakeGenericType(keyType, valueType);
-                    newHandler = new XMLDictionaryTypeHandler(type, elementType);
+                    XMLTypeHandler elementTypeHandler = GetTypeHandler(elementType);
+                    newHandler = new XMLDictionaryTypeHandler(type, elementTypeHandler);
                 }
             }
 
