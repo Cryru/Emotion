@@ -37,7 +37,7 @@ namespace Emotion.Standard.XML
         public static XMLTypeHandler GetTypeHandler(Type type)
         {
             // Check if type is excluded.
-            if (type.CustomAttributes.Any(x => x.AttributeType == DontSerializeAttributeType)) return null;
+            if (type.GetCustomAttributes(true).Any(x => x is DontSerializeAttribute)) return null;
             return Handlers.GetOrAddValue(type, TypeHandlerFactory);
         }
 

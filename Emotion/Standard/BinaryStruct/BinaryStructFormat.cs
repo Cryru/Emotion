@@ -28,7 +28,7 @@ namespace Emotion.Standard.BinaryStruct
     ///         }
     ///         set
     ///         {
-    ///             for (var i = 0; i < value.Length; i++)
+    ///             for (var i = 0; i &lt; value.Length; i++)
     ///             {
     ///                 MyName[i] = value[i];
     ///             }
