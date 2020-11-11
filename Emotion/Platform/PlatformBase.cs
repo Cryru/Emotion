@@ -107,7 +107,7 @@ namespace Emotion.Platform
                 return;
             }
 
-            // Bind this window and its context.
+            // Make this the current context, and bind it.
             // "There /can/ be only one."
             Context.MakeCurrent();
             Gl.BindAPI(Context);
