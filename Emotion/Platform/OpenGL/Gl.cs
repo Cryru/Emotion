@@ -6,8 +6,10 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
+using Emotion.Platform;
 using Emotion.Utility;
 using Khronos;
 
@@ -54,6 +56,11 @@ namespace OpenGL
         public static string CurrentRenderer { get; private set; }
 
         /// <summary>
+        /// Whether the current OpenGL renderer is a software one, such as Mesa3D's llvmpipe.
+        /// </summary>
+        public static bool SoftwareRenderer { get; private set; }
+
+        /// <summary>
         /// OpenGL extension support.
         /// </summary>
         public static Extensions CurrentExtensions { get; private set; }
@@ -68,26 +75,18 @@ namespace OpenGL
         #region API Binding
 
         /// <summary>
-        /// Bind the OpenGL delegates for the API corresponding to the current OpenGL context.
+        /// Bind OpenGL delegates.
         /// </summary>
-        /// <param name="procLoadFunction">
-        /// The function OpenGL functions will be loaded through. Should be provided by your context creator.
-        /// </param>
-        public static void BindAPI(Func<string, IntPtr> procLoadFunction)
+        /// <param name="context">The Emotion graphics context.</param>
+        public static void BindAPI(GraphicsContext context)
         {
-            // Set the function loading function.
-            ProcLoadFunction = procLoadFunction;
+            // Bind minimal API to query version, and do it.
+            BindAPIFunction("glGetError", Version100, null, context);
+            BindAPIFunction("glGetString", Version100, null, context);
+            BindAPIFunction("glGetIntegerv", Version100, null, context);
+            BindAPIFunction("glGetFloatv", Version100, null, context);
 
-            // Get version.
-            CurrentVersion = QueryContextVersion();
-            BindAPI<Gl>(CurrentVersion, CurrentExtensions);
-
-            // Query OpenGL extensions (current OpenGL implementation, CurrentCaps)
-            CurrentExtensions = new Extensions();
-            CurrentExtensions.Query();
-
-            // Query OpenGL limits
-            CurrentLimits = Limits.Query(CurrentVersion, CurrentExtensions);
+            CurrentVersion = QueryContextVersionInternal();
 
             // Obtain current OpenGL Shading Language version
             string glslVersion = null;
@@ -106,26 +105,35 @@ namespace OpenGL
             if (glslVersion != null)
                 CurrentShadingVersion = GlslVersion.Parse(glslVersion, CurrentVersion.Api);
 
-            // Vendor/Render information
-            CurrentVendor = GetString(StringName.Vendor);
-            CurrentRenderer = GetString(StringName.Renderer);
+            // Query OpenGL extensions (current OpenGL implementation, CurrentCaps)
+            if (CurrentVersion.Major >= 3) BindAPIFunction("glGetStringi", Version300, null, context); // Try to get extensions indexed.
+            CurrentExtensions = new Extensions();
+            CurrentExtensions.Query();
+
+            // Query OpenGL limits
+            CurrentLimits = Limits.Query(CurrentVersion, CurrentExtensions);
+
+            // Bind all functions.
+            foreach (FieldInfo fi in _functionContext.Delegates)
+            {
+                BindAPIFunction(fi, CurrentVersion, CurrentExtensions, context);
+            }
         }
 
         /// <summary>
-        /// Query the version of the current OpenGL context.
+        /// Query the OpenGL version. Requires some information lookup functions to be bound.
         /// </summary>
-        /// <returns>
-        /// It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this thread.
-        /// </returns>
-        public static KhronosVersion QueryContextVersion()
+        /// <returns>The version of the current OpenGL context.</returns>
+        private static KhronosVersion QueryContextVersionInternal()
         {
-            BindAPIFunction<Gl>("glGetError", Version100, null);
-            BindAPIFunction<Gl>("glGetString", Version100, null);
-            BindAPIFunction<Gl>("glGetIntegerv", Version100, null);
-
             // Parse version string (effective for detecting Desktop and ES contextes)
             string str = GetString(StringName.Version);
             KhronosVersion glVersion = KhronosVersion.Parse(str);
+
+            // Vendor/Render information
+            CurrentVendor = GetString(StringName.Vendor);
+            CurrentRenderer = GetString(StringName.Renderer);
+            SoftwareRenderer = CurrentRenderer.Contains("llvmpipe");
 
             // Context profile
             if (glVersion.Api == KhronosVersion.API_GL && glVersion >= Version320)
@@ -150,13 +158,13 @@ namespace OpenGL
         }
 
         /// <summary>
-        /// Query the OpenGL version without binding the API.
+        /// Query the OpenGL version without requiring any functions to be bound.
         /// </summary>
-        /// <param name="procLoadFunction">The function OpenGL functions will be loaded through (in this case glGetString only).</param>
-        /// <returns>
-        /// It returns the <see cref="KhronosVersion" /> specifying the actual version of the context current on this
-        /// thread.
-        /// </returns>
+        /// <param name="procLoadFunction">
+        /// The function OpenGL functions will be loaded through, in this case only glGetString
+        /// only.
+        /// </param>
+        /// <returns>The version of the current OpenGL context.</returns>
         public static KhronosVersion QueryVersionExternal(Func<string, IntPtr> procLoadFunction)
         {
             IntPtr func = procLoadFunction("glGetString");

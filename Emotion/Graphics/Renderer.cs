@@ -66,11 +66,6 @@ namespace Emotion.Graphics
         public bool ForcedVSync { get; internal set; }
 
         /// <summary>
-        /// Whether the software renderer is being used.
-        /// </summary>
-        public bool SoftwareRenderer { get; private set; }
-
-        /// <summary>
         /// Whether the renderer is running in compatibility mode, falling back to older features.
         /// </summary>
         public bool CompatibilityMode { get; private set; }
@@ -201,10 +196,9 @@ namespace Emotion.Graphics
             Engine.Log.Info($" Shader: {Gl.CurrentShadingVersion}", MessageSource.Renderer);
 
             // Set flags.
-            SoftwareRenderer = Gl.CurrentRenderer.Contains("llvmpipe");
-            CompatibilityMode = SoftwareRenderer || Engine.Configuration.RendererCompatMode;
+            CompatibilityMode = Gl.SoftwareRenderer || Engine.Configuration.RendererCompatMode;
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
-            TextureArrayLimit = SoftwareRenderer ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
+            TextureArrayLimit = Gl.SoftwareRenderer ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
 
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 

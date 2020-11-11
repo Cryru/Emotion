@@ -7,7 +7,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using DelegateList = System.Collections.Generic.List<System.Reflection.FieldInfo>;
+using Emotion.Platform;
+using Emotion.Platform.OpenGL.Khronos;
+using OpenGL;
 
 #endregion
 
@@ -17,63 +19,21 @@ namespace Khronos
     /// <summary>
     /// Base class for loading external routines.
     /// </summary>
-    /// <remarks>
-    ///     <para>
-    ///     This class is used for basic operations of automatic generated classes Gl, Wgl, Glx and Egl. The main
-    ///     functions of this class allows:
-    ///     - To parse OpenGL extensions string
-    ///     - To query import functions using reflection
-    ///     - To query delegate functions using reflection
-    ///     - To link imported functions into delegates functions.
-    ///     </para>
-    ///     <para>
-    ///     Argument of the methods with 'internal' modifier are not checked.
-    ///     </para>
-    /// </remarks>
     public class KhronosApi
     {
         #region Function Linkage
 
         /// <summary>
-        /// The function OpenGL calls will be loaded by.
+        /// The function context for delegates in the Gl class.
         /// </summary>
-        public static Func<string, IntPtr> ProcLoadFunction;
+        public static ReflectionFunctionContext _functionContext = new ReflectionFunctionContext(typeof(Gl));
 
-        /// <summary>
-        /// Delegate used for getting a procedure address.
-        /// </summary>
-        /// <param name="path">
-        /// A <see cref="string" /> that specifies the path of the library to load the procedure from.
-        /// </param>
-        /// <param name="function">
-        /// A <see cref="string" /> that specifies the name of the procedure to be loaded.
-        /// </param>
-        /// <returns>
-        /// It returns a <see cref="IntPtr" /> that specifies the function pointer. If not defined, it
-        /// returns <see cref="IntPtr.Zero" />.
-        /// </returns>
-        internal delegate IntPtr GetAddressDelegate(string path, string function);
-
-        /// <summary>
-        /// Link delegates field using import declaration, using platform specific method for determining procedures address.
-        /// </summary>
-        internal static void BindAPIFunction<T>(string functionName, KhronosVersion version, ExtensionsCollection extensions)
+        public static void BindAPIFunction(string functionName, KhronosVersion version, ExtensionsCollection extensions, GraphicsContext context)
         {
-            FunctionContext functionContext = GetFunctionContext(typeof(T));
-            Debug.Assert(functionContext != null);
-
-            BindAPIFunction(functionContext.GetFunction(functionName), version, extensions);
+            BindAPIFunction(_functionContext.GetFunction(functionName), version, extensions, context);
         }
 
-        /// <summary>
-        /// Link delegates fields using import declarations.
-        /// </summary>
-        /// <param name="function">
-        /// A <see cref="FieldInfo" /> that specifies the underlying function field to be updated.
-        /// </param>
-        /// <param name="version"></param>
-        /// <param name="extensions"></param>
-        private static void BindAPIFunction(FieldInfo function, KhronosVersion version, ExtensionsCollection extensions)
+        public static void BindAPIFunction(FieldInfo function, KhronosVersion version, ExtensionsCollection extensions, GraphicsContext context)
         {
             Debug.Assert(function != null);
 
@@ -87,11 +47,7 @@ namespace Khronos
 
                 #region Check Requirement
 
-#if NETSTANDARD1_1 || NETSTANDARD1_4 || NETCORE
-				IEnumerable<Attribute> attrRequired = new List<Attribute>(function.GetCustomAttributes(typeof(RequiredByFeatureAttribute)));
-#else
-                IEnumerable<Attribute> attrRequired = Attribute.GetCustomAttributes(function, typeof(RequiredByFeatureAttribute));
-#endif
+                IEnumerable<Attribute> attrRequired = new List<Attribute>(function.GetCustomAttributes(typeof(RequiredByFeatureAttribute)));
                 // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
                 foreach (RequiredByFeatureAttribute attr in attrRequired)
                 {
@@ -156,6 +112,7 @@ namespace Khronos
 
             // Load function pointer
             IntPtr importAddress;
+            Delegate importDelegate;
 
             if (requiredByFeature != null || version == null)
             {
@@ -165,10 +122,21 @@ namespace Khronos
                 if (requiredByFeature?.EntryPoint != null)
                     functionName = requiredByFeature.EntryPoint;
 
-                if ((importAddress = ProcLoadFunction(functionName)) != IntPtr.Zero)
+                if (context.Native)
                 {
-                    BindAPIFunction(function, importAddress);
-                    return;
+                    if ((importAddress = context.GetProcAddress(functionName)) != IntPtr.Zero)
+                    {
+                        BindNativeAPIFunction(function, importAddress);
+                        return;
+                    }
+                }
+                else
+                {
+                    if ((importDelegate = context.GetProcAddressNonNative(functionName)) != null)
+                    {
+                        function.SetValue(null, importDelegate);
+                        return;
+                    }
                 }
             }
 
@@ -177,10 +145,21 @@ namespace Khronos
             {
                 string functionName = extensionFeature.EntryPoint ?? defaultName;
 
-                if ((importAddress = ProcLoadFunction(functionName)) != IntPtr.Zero)
+                if (context.Native)
                 {
-                    BindAPIFunction(function, importAddress);
-                    return;
+                    if ((importAddress = context.GetProcAddress(functionName)) != IntPtr.Zero)
+                    {
+                        BindNativeAPIFunction(function, importAddress);
+                        return;
+                    }
+                }
+                else
+                {
+                    if ((importDelegate = context.GetProcAddressNonNative(functionName)) != null)
+                    {
+                        function.SetValue(null, importDelegate);
+                        return;
+                    }
                 }
             }
 
@@ -188,16 +167,7 @@ namespace Khronos
             function.SetValue(null, null);
         }
 
-        /// <summary>
-        /// Set fields using import declarations.
-        /// </summary>
-        /// <param name="function">
-        /// A <see cref="FieldInfo" /> that specifies the underlying function field to be updated.
-        /// </param>
-        /// <param name="importAddress">
-        /// A <see cref="IntPtr" /> that specifies the function pointer.
-        /// </param>
-        private static void BindAPIFunction(FieldInfo function, IntPtr importAddress)
+        private static void BindNativeAPIFunction(FieldInfo function, IntPtr importAddress)
         {
             Debug.Assert(function != null);
             Debug.Assert(importAddress != IntPtr.Zero);
@@ -206,24 +176,6 @@ namespace Khronos
 
             Debug.Assert(delegatePtr != null);
             function.SetValue(null, delegatePtr);
-        }
-
-        /// <summary>
-        /// Link delegates fields using import declarations.
-        /// </summary>
-        /// <param name="version"></param>
-        /// <param name="extensions"></param>
-        /// <exception cref="ArgumentNullException">
-        /// </exception>
-        internal static void BindAPI<T>(KhronosVersion version, ExtensionsCollection extensions)
-        {
-            FunctionContext functionContext = GetFunctionContext(typeof(T));
-            Debug.Assert(functionContext != null);
-
-            foreach (FieldInfo fi in functionContext.Delegates)
-            {
-                BindAPIFunction(fi, version, extensions);
-            }
         }
 
         /// <summary>
@@ -240,7 +192,7 @@ namespace Khronos
         /// The <see cref="ExtensionsCollection" /> that specifies the API extensions registry.
         /// </param>
         /// <returns>
-        /// It returns a <see cref="Boolean" /> that specifies whether <paramref name="function" /> is supported by the
+        /// It returns a <see cref="bool" /> that specifies whether <paramref name="function" /> is supported by the
         /// API having the version <paramref name="version" /> and the extensions registry <paramref name="extensions" />.
         /// </returns>
         internal static bool IsCompatibleField(FieldInfo function, KhronosVersion version, ExtensionsCollection extensions)
@@ -301,96 +253,6 @@ namespace Khronos
 
             return false;
         }
-
-        /// <summary>
-        /// Get the delegates methods for the specified type.
-        /// </summary>
-        /// <param name="type">
-        /// A <see cref="Type" /> that specifies the type used for detecting delegates declarations.
-        /// </param>
-        /// <returns>
-        /// It returns the <see cref="DelegateList" /> for <paramref name="type" />.
-        /// </returns>
-        private static DelegateList GetDelegateList(Type type)
-        {
-            Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.NonPublic);
-            Debug.Assert(delegatesClass != null);
-
-            return new DelegateList(delegatesClass.GetFields(BindingFlags.Static | BindingFlags.NonPublic));
-        }
-
-        /// <summary>
-        /// Get the <see cref="Khronos.KhronosApi.FunctionContext" /> corresponding to a specific type.
-        /// </summary>
-        /// <param name="type">
-        /// A <see cref="Type" /> that specifies the type used for loading function pointers.
-        /// </param>
-        /// <returns></returns>
-        private static FunctionContext GetFunctionContext(Type type)
-        {
-            if (FunctionContexts.TryGetValue(type, out FunctionContext functionContext))
-                return functionContext;
-
-            functionContext = new FunctionContext(type);
-            FunctionContexts.Add(type, functionContext);
-
-            return functionContext;
-        }
-
-        /// <summary>
-        /// Information required for loading function pointers.
-        /// </summary>
-        private class FunctionContext
-        {
-            /// <summary>
-            /// Construct a FunctionContext on a specific <see cref="Type" />.
-            /// </summary>
-            /// <param name="type">
-            /// The <see cref="Type" /> deriving from <see cref="KhronosApi" />.
-            /// </param>
-            public FunctionContext(Type type)
-            {
-                Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.NonPublic);
-                Debug.Assert(delegatesClass != null);
-                _delegateType = delegatesClass;
-                Delegates = GetDelegateList(type);
-            }
-
-            /// <summary>
-            /// Get the field representing the delegate for an API function.
-            /// </summary>
-            /// <param name="functionName">
-            /// A <see cref="string" /> that specifies the native function name.
-            /// </param>
-            /// <returns>
-            /// It returns the <see cref="FieldInfo" /> for the function.
-            /// </returns>
-            public FieldInfo GetFunction(string functionName)
-            {
-                if (functionName == null)
-                    throw new ArgumentNullException(nameof(functionName));
-
-                FieldInfo functionField = _delegateType.GetField("p" + functionName, BindingFlags.Static | BindingFlags.NonPublic);
-                Debug.Assert(functionField != null);
-
-                return functionField;
-            }
-
-            /// <summary>
-            /// Type containing all delegates.
-            /// </summary>
-            private readonly Type _delegateType;
-
-            /// <summary>
-            /// The delegate fields list for the underlying type.
-            /// </summary>
-            public readonly DelegateList Delegates;
-        }
-
-        /// <summary>
-        /// Mapping between <see cref="Khronos.KhronosApi.FunctionContext" /> and the underlying <see cref="Type" />.
-        /// </summary>
-        private static readonly Dictionary<Type, FunctionContext> FunctionContexts = new Dictionary<Type, FunctionContext>();
 
         #endregion
 
@@ -651,9 +513,6 @@ namespace Khronos
         /// Check whether commands implemented by the current driver have a corresponding extension declaring the
         /// support of them.
         /// </summary>
-        /// <typeparam name="T">
-        /// The type of the KhronosApi to inspect for commands.
-        /// </typeparam>
         /// <param name="version">
         /// The <see cref="KhronosVersion" /> currently implemented by the current context on this thread.
         /// </param>
@@ -661,20 +520,17 @@ namespace Khronos
         /// The <see cref="ExtensionsCollection" /> that specifies the extensions supported by the driver.
         /// </param>
         /// <param name="enableExtensions"></param>
-        protected static void CheckExtensionCommands<T>(KhronosVersion version, ExtensionsCollection extensions, bool enableExtensions) where T : KhronosApi
+        protected static void CheckExtensionCommands(KhronosVersion version, ExtensionsCollection extensions, bool enableExtensions)
         {
             if (version == null)
                 throw new ArgumentNullException(nameof(version));
             if (extensions == null)
                 throw new ArgumentNullException(nameof(extensions));
 
-            FunctionContext functionContext = GetFunctionContext(typeof(T));
-            Debug.Assert(functionContext != null);
-
             var hiddenVersions = new Dictionary<string, List<Type>>();
             var hiddenExtensions = new Dictionary<string, bool>();
 
-            foreach (FieldInfo fi in functionContext.Delegates)
+            foreach (FieldInfo fi in _functionContext.Delegates)
             {
                 var fiDelegateType = (Delegate) fi.GetValue(null);
                 bool commandDefined = fiDelegateType != null;

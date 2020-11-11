@@ -110,7 +110,7 @@ namespace Emotion.Platform
             // Bind this window and its context.
             // "There /can/ be only one."
             Context.MakeCurrent();
-            Gl.BindAPI(Context.GetProcAddress);
+            Gl.BindAPI(Context);
 
             // Set display mode, show and focus.
             DisplayMode = config.InitialDisplayMode;

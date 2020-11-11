@@ -98,7 +98,7 @@ namespace OpenGL
         /// <exception cref="ArgumentException">
         /// Exception thrown if no pattern is recognized in <paramref name="input" />.
         /// </exception>
-        public new static GlslVersion Parse(string input, string api)
+        public static GlslVersion Parse(string input, string api)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));

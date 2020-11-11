@@ -161,11 +161,6 @@ namespace Khronos
         public const string API_WGL = "wgl";
 
         /// <summary>
-        /// OpenGL on X11 API.
-        /// </summary>
-        public const string API_GLX = "glx";
-
-        /// <summary>
         /// OpenGL on EGL API.
         /// </summary>
         public const string API_EGL = "egl";
@@ -218,12 +213,6 @@ namespace Khronos
         /// <summary>
         /// The Khronos API description.
         /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///     This is the main discriminant of the KhronosVersion instances. Two KhronoVersion instances
-        ///     are not comparable if their API doesn't match.
-        ///     </para>
-        /// </remarks>
         public readonly string Api;
 
         /// <summary>
@@ -489,9 +478,6 @@ namespace Khronos
                 case "WGL":
                     api = API_WGL;
                     break;
-                case "GLX":
-                    api = API_GLX;
-                    break;
                 case "EGL":
                     api = API_EGL;
                     break;
@@ -503,43 +489,7 @@ namespace Khronos
         /// <summary>
         /// Parse a KhronosVersion from a string.
         /// </summary>
-        /// <param name="input">
-        /// A <see cref="String" /> that specifies the API version.
-        /// </param>
-        /// <returns>
-        /// It returns a <see cref="KhronosVersion" /> based on the pattern recognized in <paramref name="input" />.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Exception thrown if <paramref name="input" /> is null.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Exception thrown if no pattern is recognized in <paramref name="input" />.
-        /// </exception>
         public static KhronosVersion Parse(string input)
-        {
-            return Parse(input, null);
-        }
-
-        /// <summary>
-        /// Parse a KhronosVersion from a string.
-        /// </summary>
-        /// <param name="input">
-        /// A <see cref="String" /> that specifies the API version.
-        /// </param>
-        /// <param name="api">
-        /// A <see cref="String" /> that specifies the API string to be set to the returned value. If null, it
-        /// will be determined automatically from <paramref name="input" />, or set to <see cref="API_GL" />.
-        /// </param>
-        /// <returns>
-        /// It returns a <see cref="KhronosVersion" /> based on the pattern recognized in <paramref name="input" />.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Exception thrown if <paramref name="input" /> is null.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Exception thrown if no pattern is recognized in <paramref name="input" />.
-        /// </exception>
-        public static KhronosVersion Parse(string input, string api)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -549,6 +499,7 @@ namespace Khronos
             if (versionMatch.Success == false)
                 throw new ArgumentException($"unrecognized pattern '{input}'", nameof(input));
 
+            string api = null;
             int versionMajor = int.Parse(versionMatch.Groups["Major"].Value);
             int versionMinor = int.Parse(versionMatch.Groups["Minor"].Value);
             int versionRev = versionMatch.Groups["Rev"].Success ? int.Parse(versionMatch.Groups["Rev"].Value) : 0;
@@ -557,7 +508,6 @@ namespace Khronos
                 versionMinor /= 10;
 
             if (Regex.IsMatch(input, "ES"))
-            {
                 switch (versionMajor)
                 {
                     case 1:
@@ -567,12 +517,8 @@ namespace Khronos
                         api = API_GLES2;
                         break;
                 }
-            }
             else
-            {
-                if (api == null)
-                    api = API_GL;
-            }
+                api = API_GL;
 
             return new KhronosVersion(versionMajor, versionMinor, versionRev, api);
         }

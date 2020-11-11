@@ -14,6 +14,13 @@ namespace Emotion.Platform
     public abstract class GraphicsContext : IDisposable
     {
         /// <summary>
+        /// Whether this graphics context came from native code.
+        /// On by default, determines how the GL functions will be loaded.
+        /// Todo: Currently the native function is required to be implemented.
+        /// </summary>
+        public bool Native { get; protected set; } = true;
+
+        /// <summary>
         /// Whether the context is valid.
         /// </summary>
         public bool Valid { get; protected set; }
@@ -56,6 +63,17 @@ namespace Emotion.Platform
         /// <param name="func">The name of the function to return.</param>
         /// <returns>The pointer to the function.</returns>
         public abstract IntPtr GetProcAddress(string func);
+
+        /// <summary>
+        /// Returns the delegate of an OpenGL function from its name.
+        /// Used only if "Native" is set to false.
+        /// </summary>
+        /// <param name="func">The name of the function to return.</param>
+        /// <returns>The delegate to the function.</returns>
+        public virtual Delegate GetProcAddressNonNative(string func)
+        {
+            return null;
+        }
 
         /// <summary>
         /// Finds the index of the supported pixel format closest to the requested pixel format.
