@@ -7,8 +7,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Emotion.Common;
-using Emotion.Platform.Implementation.Null;
-using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
@@ -105,7 +103,7 @@ namespace Emotion.Platform
             // Check if the platform and graphics initialization was successful.
             if (Context == null)
             {
-                Engine.CriticalError(new Exception("Platform couldn't create context."));
+                Engine.CriticalError(new Exception("Platform couldn't create graphics context."));
                 return;
             }
 
@@ -444,6 +442,7 @@ namespace Emotion.Platform
                 UpdateDisplayMode();
             }
         }
+
         protected DisplayMode _mode = DisplayMode.Initial;
         protected Vector2? _windowModeSize; // When entering a fullscreen mode the window size is stored here so it can be restored later.
 
@@ -473,8 +472,7 @@ namespace Emotion.Platform
             }
         }
 
-        internal abstract void UpdateDisplayMode();
-
+        protected abstract void UpdateDisplayMode();
         protected abstract Vector2 GetPosition();
         protected abstract void SetPosition(Vector2 position);
         protected abstract Vector2 GetSize();

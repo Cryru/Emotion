@@ -123,11 +123,14 @@ namespace Emotion.Common
             PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
 
             // Correct the startup directory to the directory of the executable.
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            if (RuntimeInformation.OSDescription != "Browser")
+            {
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            }
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
+            
             // If no config provided - use default.
             Configuration = configurator ?? new Configurator();
 
@@ -432,7 +435,7 @@ namespace Emotion.Common
             // ReSharper disable once RedundantAssignment
             PlatformBase platform = null;
             if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
-            if (platform != null) Log.Info($"Platform override accepted. Platform is {platform}", MessageSource.Engine);
+            if (platform != null) Log.Info($"Platform override of \"{platform}\" accepted", MessageSource.Engine);
 
 #if GLFW
             platform = new GlfwPlatform();
@@ -443,7 +446,7 @@ namespace Emotion.Common
             // If none initialized - fallback to null.
             if (platform == null) platform = new NullPlatform();
 
-            Log.Info($"Platform is: {platform}", MessageSource.Engine);
+            Log.Info($"Platform loaded: {platform}", MessageSource.Engine);
             return platform;
         }
 

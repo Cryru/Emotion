@@ -59,7 +59,7 @@ namespace Emotion.Platform.Implementation.Null
             return _size;
         }
 
-        internal override void UpdateDisplayMode()
+        protected override void UpdateDisplayMode()
         {
         }
     }

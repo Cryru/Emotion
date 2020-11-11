@@ -74,12 +74,13 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                 Glfw.WindowHint(Glfw.Hint.OpenglProfile, Glfw.OpenGLProfile.Core);
             }
 
-            _win = Glfw.CreateWindow((int) config.HostSize.X, (int) config.HostSize.Y, config.HostTitle);
-            if (_win == null)
+            Glfw.Window? win = Glfw.CreateWindow((int) config.HostSize.X, (int) config.HostSize.Y, config.HostTitle);
+            if (win == null)
             {
                 Engine.Log.Error("Couldn't create window.", MessageSource.Glfw);
                 return;
             }
+            _win = win.Value;
 
             Glfw.SetWindowSizeLimits(_win, (int) config.RenderSize.X, (int) config.RenderSize.Y, -1, -1);
 
@@ -147,7 +148,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         #region Window API
 
-        internal override void UpdateDisplayMode()
+        protected override void UpdateDisplayMode()
         {
             Glfw.Monitor monitor = Glfw.GetWindowMonitor(_win);
             if (monitor.Ptr == IntPtr.Zero) monitor = Glfw.GetPrimaryMonitor();

@@ -626,7 +626,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         ///     </para>
         /// </remarks>
         /// <seealso cref="DestroyWindow(Window)" />
-        public static Window CreateWindow(int width, int height, string title, Monitor? monitor = null, Window? share = null)
+        public static Window? CreateWindow(int width, int height, string title, Monitor? monitor = null, Window? share = null)
         {
             return glfwCreateWindow(
                 width,

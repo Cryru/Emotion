@@ -167,7 +167,7 @@ namespace Emotion.Platform.Implementation.Win32
             return new Vector2(rect.Right, rect.Bottom);
         }
 
-        internal override void UpdateDisplayMode()
+        protected override void UpdateDisplayMode()
         {
             // Get the monitor
             Monitor monitor = GetMonitorOfWindow();
