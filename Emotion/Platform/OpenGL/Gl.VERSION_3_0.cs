@@ -6525,7 +6525,7 @@ namespace OpenGL
             return retValue;
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6533,7 +6533,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glColorMaski(uint index, [MarshalAs(UnmanagedType.I1)] bool r, [MarshalAs(UnmanagedType.I1)] bool g, [MarshalAs(UnmanagedType.I1)] bool b,
+            public delegate void glColorMaski(uint index, [MarshalAs(UnmanagedType.I1)] bool r, [MarshalAs(UnmanagedType.I1)] bool g, [MarshalAs(UnmanagedType.I1)] bool b,
                 [MarshalAs(UnmanagedType.I1)] bool a);
 
             [RequiredByFeature("GL_VERSION_3_0")]
@@ -6542,21 +6542,21 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2", EntryPoint = "glColorMaskiEXT")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glColorMaskiOES")]
             [ThreadStatic]
-            internal static glColorMaski pglColorMaski;
+            public static glColorMaski pglColorMaski;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
             [RequiredByFeature("GL_EXT_direct_state_access", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_draw_buffers2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetBooleani_v(int target, uint index, byte* data);
+            public delegate void glGetBooleani_v(int target, uint index, byte* data);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
             [RequiredByFeature("GL_EXT_direct_state_access", Api = "gl|glcore", EntryPoint = "glGetBooleanIndexedvEXT")]
             [RequiredByFeature("GL_EXT_draw_buffers2", EntryPoint = "glGetBooleanIndexedvEXT")]
             [ThreadStatic]
-            internal static glGetBooleani_v pglGetBooleani_v;
+            public static glGetBooleani_v pglGetBooleani_v;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_VERSION_3_1")]
@@ -6565,7 +6565,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_direct_state_access", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_draw_buffers2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetIntegeri_v(int target, uint index, int* data);
+            public delegate void glGetIntegeri_v(int target, uint index, int* data);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_VERSION_3_1")]
@@ -6574,7 +6574,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_direct_state_access", Api = "gl|glcore", EntryPoint = "glGetIntegerIndexedvEXT")]
             [RequiredByFeature("GL_EXT_draw_buffers2", EntryPoint = "glGetIntegerIndexedvEXT")]
             [ThreadStatic]
-            internal static glGetIntegeri_v pglGetIntegeri_v;
+            public static glGetIntegeri_v pglGetIntegeri_v;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6585,7 +6585,7 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glEnablei(int target, uint index);
+            public delegate void glEnablei(int target, uint index);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6596,7 +6596,7 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glEnableiOES")]
             [RequiredByFeature("GL_OES_viewport_array", Api = "gles2", EntryPoint = "glEnableiOES")]
             [ThreadStatic]
-            internal static glEnablei pglEnablei;
+            public static glEnablei pglEnablei;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6607,7 +6607,7 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDisablei(int target, uint index);
+            public delegate void glDisablei(int target, uint index);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6618,7 +6618,7 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glDisableiOES")]
             [RequiredByFeature("GL_OES_viewport_array", Api = "gles2", EntryPoint = "glDisableiOES")]
             [ThreadStatic]
-            internal static glDisablei pglDisablei;
+            public static glDisablei pglDisablei;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6630,7 +6630,7 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_viewport_array", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal delegate bool glIsEnabledi(int target, uint index);
+            public delegate bool glIsEnabledi(int target, uint index);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -6641,35 +6641,35 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glIsEnablediOES")]
             [RequiredByFeature("GL_OES_viewport_array", Api = "gles2", EntryPoint = "glIsEnablediOES")]
             [ThreadStatic]
-            internal static glIsEnabledi pglIsEnabledi;
+            public static glIsEnabledi pglIsEnabledi;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback")]
             [RequiredByFeature("GL_NV_transform_feedback")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBeginTransformFeedback(int primitiveMode);
+            public delegate void glBeginTransformFeedback(int primitiveMode);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glBeginTransformFeedbackEXT")]
             [RequiredByFeature("GL_NV_transform_feedback", EntryPoint = "glBeginTransformFeedbackNV")]
             [ThreadStatic]
-            internal static glBeginTransformFeedback pglBeginTransformFeedback;
+            public static glBeginTransformFeedback pglBeginTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback")]
             [RequiredByFeature("GL_NV_transform_feedback")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glEndTransformFeedback();
+            public delegate void glEndTransformFeedback();
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glEndTransformFeedbackEXT")]
             [RequiredByFeature("GL_NV_transform_feedback", EntryPoint = "glEndTransformFeedbackNV")]
             [ThreadStatic]
-            internal static glEndTransformFeedback pglEndTransformFeedback;
+            public static glEndTransformFeedback pglEndTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_VERSION_3_1")]
@@ -6678,7 +6678,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_transform_feedback")]
             [RequiredByFeature("GL_NV_transform_feedback")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindBufferRange(int target, uint index, uint buffer, IntPtr offset, uint size);
+            public delegate void glBindBufferRange(int target, uint index, uint buffer, IntPtr offset, uint size);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_VERSION_3_1")]
@@ -6687,7 +6687,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glBindBufferRangeEXT")]
             [RequiredByFeature("GL_NV_transform_feedback", EntryPoint = "glBindBufferRangeNV")]
             [ThreadStatic]
-            internal static glBindBufferRange pglBindBufferRange;
+            public static glBindBufferRange pglBindBufferRange;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_VERSION_3_1")]
@@ -6696,7 +6696,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_transform_feedback")]
             [RequiredByFeature("GL_NV_transform_feedback")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindBufferBase(int target, uint index, uint buffer);
+            public delegate void glBindBufferBase(int target, uint index, uint buffer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_VERSION_3_1")]
@@ -6705,376 +6705,376 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glBindBufferBaseEXT")]
             [RequiredByFeature("GL_NV_transform_feedback", EntryPoint = "glBindBufferBaseNV")]
             [ThreadStatic]
-            internal static glBindBufferBase pglBindBufferBase;
+            public static glBindBufferBase pglBindBufferBase;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTransformFeedbackVaryings(uint program, int count, string[] varyings, int bufferMode);
+            public delegate void glTransformFeedbackVaryings(uint program, int count, string[] varyings, int bufferMode);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glTransformFeedbackVaryingsEXT")]
             [ThreadStatic]
-            internal static glTransformFeedbackVaryings pglTransformFeedbackVaryings;
+            public static glTransformFeedbackVaryings pglTransformFeedbackVaryings;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTransformFeedbackVarying(uint program, uint index, int bufSize, int* length, int* size, int* type, StringBuilder name);
+            public delegate void glGetTransformFeedbackVarying(uint program, uint index, int bufSize, int* length, int* size, int* type, StringBuilder name);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glGetTransformFeedbackVaryingEXT")]
             [ThreadStatic]
-            internal static glGetTransformFeedbackVarying pglGetTransformFeedbackVarying;
+            public static glGetTransformFeedbackVarying pglGetTransformFeedbackVarying;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ARB_color_buffer_float")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClampColor(int target, int clamp);
+            public delegate void glClampColor(int target, int clamp);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ARB_color_buffer_float", EntryPoint = "glClampColorARB")] [ThreadStatic]
-            internal static glClampColor pglClampColor;
+            public static glClampColor pglClampColor;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_conditional_render", Api = "gl|glcore|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBeginConditionalRender(uint id, int mode);
+            public delegate void glBeginConditionalRender(uint id, int mode);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_conditional_render", Api = "gl|glcore|gles2", EntryPoint = "glBeginConditionalRenderNV")] [ThreadStatic]
-            internal static glBeginConditionalRender pglBeginConditionalRender;
+            public static glBeginConditionalRender pglBeginConditionalRender;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NVX_conditional_render")]
             [RequiredByFeature("GL_NV_conditional_render", Api = "gl|glcore|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glEndConditionalRender();
+            public delegate void glEndConditionalRender();
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NVX_conditional_render", EntryPoint = "glEndConditionalRenderNVX")]
             [RequiredByFeature("GL_NV_conditional_render", Api = "gl|glcore|gles2", EntryPoint = "glEndConditionalRenderNV")]
             [ThreadStatic]
-            internal static glEndConditionalRender pglEndConditionalRender;
+            public static glEndConditionalRender pglEndConditionalRender;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribIPointer(uint index, int size, int type, int stride, IntPtr pointer);
+            public delegate void glVertexAttribIPointer(uint index, int size, int type, int stride, IntPtr pointer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribIPointerEXT")]
             [ThreadStatic]
-            internal static glVertexAttribIPointer pglVertexAttribIPointer;
+            public static glVertexAttribIPointer pglVertexAttribIPointer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetVertexAttribIiv(uint index, int pname, int* @params);
+            public delegate void glGetVertexAttribIiv(uint index, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glGetVertexAttribIivEXT")]
             [ThreadStatic]
-            internal static glGetVertexAttribIiv pglGetVertexAttribIiv;
+            public static glGetVertexAttribIiv pglGetVertexAttribIiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetVertexAttribIuiv(uint index, int pname, uint* @params);
+            public delegate void glGetVertexAttribIuiv(uint index, int pname, uint* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glGetVertexAttribIuivEXT")]
             [ThreadStatic]
-            internal static glGetVertexAttribIuiv pglGetVertexAttribIuiv;
+            public static glGetVertexAttribIuiv pglGetVertexAttribIuiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI1i(uint index, int x);
+            public delegate void glVertexAttribI1i(uint index, int x);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI1iEXT")] [ThreadStatic]
-            internal static glVertexAttribI1i pglVertexAttribI1i;
+            public static glVertexAttribI1i pglVertexAttribI1i;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI2i(uint index, int x, int y);
+            public delegate void glVertexAttribI2i(uint index, int x, int y);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI2iEXT")] [ThreadStatic]
-            internal static glVertexAttribI2i pglVertexAttribI2i;
+            public static glVertexAttribI2i pglVertexAttribI2i;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI3i(uint index, int x, int y, int z);
+            public delegate void glVertexAttribI3i(uint index, int x, int y, int z);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI3iEXT")] [ThreadStatic]
-            internal static glVertexAttribI3i pglVertexAttribI3i;
+            public static glVertexAttribI3i pglVertexAttribI3i;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4i(uint index, int x, int y, int z, int w);
+            public delegate void glVertexAttribI4i(uint index, int x, int y, int z, int w);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4iEXT")]
             [ThreadStatic]
-            internal static glVertexAttribI4i pglVertexAttribI4i;
+            public static glVertexAttribI4i pglVertexAttribI4i;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI1ui(uint index, uint x);
+            public delegate void glVertexAttribI1ui(uint index, uint x);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI1uiEXT")] [ThreadStatic]
-            internal static glVertexAttribI1ui pglVertexAttribI1ui;
+            public static glVertexAttribI1ui pglVertexAttribI1ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI2ui(uint index, uint x, uint y);
+            public delegate void glVertexAttribI2ui(uint index, uint x, uint y);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI2uiEXT")] [ThreadStatic]
-            internal static glVertexAttribI2ui pglVertexAttribI2ui;
+            public static glVertexAttribI2ui pglVertexAttribI2ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI3ui(uint index, uint x, uint y, uint z);
+            public delegate void glVertexAttribI3ui(uint index, uint x, uint y, uint z);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI3uiEXT")] [ThreadStatic]
-            internal static glVertexAttribI3ui pglVertexAttribI3ui;
+            public static glVertexAttribI3ui pglVertexAttribI3ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4ui(uint index, uint x, uint y, uint z, uint w);
+            public delegate void glVertexAttribI4ui(uint index, uint x, uint y, uint z, uint w);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4uiEXT")]
             [ThreadStatic]
-            internal static glVertexAttribI4ui pglVertexAttribI4ui;
+            public static glVertexAttribI4ui pglVertexAttribI4ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI1iv(uint index, int* v);
+            public delegate void glVertexAttribI1iv(uint index, int* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI1ivEXT")] [ThreadStatic]
-            internal static glVertexAttribI1iv pglVertexAttribI1iv;
+            public static glVertexAttribI1iv pglVertexAttribI1iv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI2iv(uint index, int* v);
+            public delegate void glVertexAttribI2iv(uint index, int* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI2ivEXT")] [ThreadStatic]
-            internal static glVertexAttribI2iv pglVertexAttribI2iv;
+            public static glVertexAttribI2iv pglVertexAttribI2iv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI3iv(uint index, int* v);
+            public delegate void glVertexAttribI3iv(uint index, int* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI3ivEXT")] [ThreadStatic]
-            internal static glVertexAttribI3iv pglVertexAttribI3iv;
+            public static glVertexAttribI3iv pglVertexAttribI3iv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4iv(uint index, int* v);
+            public delegate void glVertexAttribI4iv(uint index, int* v);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4ivEXT")]
             [ThreadStatic]
-            internal static glVertexAttribI4iv pglVertexAttribI4iv;
+            public static glVertexAttribI4iv pglVertexAttribI4iv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI1uiv(uint index, uint* v);
+            public delegate void glVertexAttribI1uiv(uint index, uint* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI1uivEXT")] [ThreadStatic]
-            internal static glVertexAttribI1uiv pglVertexAttribI1uiv;
+            public static glVertexAttribI1uiv pglVertexAttribI1uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI2uiv(uint index, uint* v);
+            public delegate void glVertexAttribI2uiv(uint index, uint* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI2uivEXT")] [ThreadStatic]
-            internal static glVertexAttribI2uiv pglVertexAttribI2uiv;
+            public static glVertexAttribI2uiv pglVertexAttribI2uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI3uiv(uint index, uint* v);
+            public delegate void glVertexAttribI3uiv(uint index, uint* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI3uivEXT")] [ThreadStatic]
-            internal static glVertexAttribI3uiv pglVertexAttribI3uiv;
+            public static glVertexAttribI3uiv pglVertexAttribI3uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4uiv(uint index, uint* v);
+            public delegate void glVertexAttribI4uiv(uint index, uint* v);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4uivEXT")]
             [ThreadStatic]
-            internal static glVertexAttribI4uiv pglVertexAttribI4uiv;
+            public static glVertexAttribI4uiv pglVertexAttribI4uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4bv(uint index, sbyte* v);
+            public delegate void glVertexAttribI4bv(uint index, sbyte* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4bvEXT")] [ThreadStatic]
-            internal static glVertexAttribI4bv pglVertexAttribI4bv;
+            public static glVertexAttribI4bv pglVertexAttribI4bv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4sv(uint index, short* v);
+            public delegate void glVertexAttribI4sv(uint index, short* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4svEXT")] [ThreadStatic]
-            internal static glVertexAttribI4sv pglVertexAttribI4sv;
+            public static glVertexAttribI4sv pglVertexAttribI4sv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4ubv(uint index, byte* v);
+            public delegate void glVertexAttribI4ubv(uint index, byte* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4ubvEXT")] [ThreadStatic]
-            internal static glVertexAttribI4ubv pglVertexAttribI4ubv;
+            public static glVertexAttribI4ubv pglVertexAttribI4ubv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_NV_vertex_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glVertexAttribI4usv(uint index, ushort* v);
+            public delegate void glVertexAttribI4usv(uint index, ushort* v);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_NV_vertex_program4", EntryPoint = "glVertexAttribI4usvEXT")] [ThreadStatic]
-            internal static glVertexAttribI4usv pglVertexAttribI4usv;
+            public static glVertexAttribI4usv pglVertexAttribI4usv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetUniformuiv(uint program, int location, uint* @params);
+            public delegate void glGetUniformuiv(uint program, int location, uint* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glGetUniformuivEXT")] [ThreadStatic]
-            internal static glGetUniformuiv pglGetUniformuiv;
+            public static glGetUniformuiv pglGetUniformuiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_EXT_blend_func_extended", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindFragDataLocation(uint program, uint color, string name);
+            public delegate void glBindFragDataLocation(uint program, uint color, string name);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_EXT_blend_func_extended", Api = "gles2", EntryPoint = "glBindFragDataLocationEXT")]
             [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glBindFragDataLocationEXT")]
             [ThreadStatic]
-            internal static glBindFragDataLocation pglBindFragDataLocation;
+            public static glBindFragDataLocation pglBindFragDataLocation;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate int glGetFragDataLocation(uint program, string name);
+            public delegate int glGetFragDataLocation(uint program, string name);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glGetFragDataLocationEXT")]
             [ThreadStatic]
-            internal static glGetFragDataLocation pglGetFragDataLocation;
+            public static glGetFragDataLocation pglGetFragDataLocation;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform1ui(int location, uint v0);
+            public delegate void glUniform1ui(int location, uint v0);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform1uiEXT")] [ThreadStatic]
-            internal static glUniform1ui pglUniform1ui;
+            public static glUniform1ui pglUniform1ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform2ui(int location, uint v0, uint v1);
+            public delegate void glUniform2ui(int location, uint v0, uint v1);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform2uiEXT")] [ThreadStatic]
-            internal static glUniform2ui pglUniform2ui;
+            public static glUniform2ui pglUniform2ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform3ui(int location, uint v0, uint v1, uint v2);
+            public delegate void glUniform3ui(int location, uint v0, uint v1, uint v2);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform3uiEXT")] [ThreadStatic]
-            internal static glUniform3ui pglUniform3ui;
+            public static glUniform3ui pglUniform3ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform4ui(int location, uint v0, uint v1, uint v2, uint v3);
+            public delegate void glUniform4ui(int location, uint v0, uint v1, uint v2, uint v3);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform4uiEXT")] [ThreadStatic]
-            internal static glUniform4ui pglUniform4ui;
+            public static glUniform4ui pglUniform4ui;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform1uiv(int location, int count, uint* value);
+            public delegate void glUniform1uiv(int location, int count, uint* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform1uivEXT")] [ThreadStatic]
-            internal static glUniform1uiv pglUniform1uiv;
+            public static glUniform1uiv pglUniform1uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform2uiv(int location, int count, uint* value);
+            public delegate void glUniform2uiv(int location, int count, uint* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform2uivEXT")] [ThreadStatic]
-            internal static glUniform2uiv pglUniform2uiv;
+            public static glUniform2uiv pglUniform2uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform3uiv(int location, int count, uint* value);
+            public delegate void glUniform3uiv(int location, int count, uint* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform3uivEXT")] [ThreadStatic]
-            internal static glUniform3uiv pglUniform3uiv;
+            public static glUniform3uiv pglUniform3uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_gpu_shader4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform4uiv(int location, int count, uint* value);
+            public delegate void glUniform4uiv(int location, int count, uint* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_gpu_shader4", EntryPoint = "glUniform4uivEXT")] [ThreadStatic]
-            internal static glUniform4uiv pglUniform4uiv;
+            public static glUniform4uiv pglUniform4uiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7082,7 +7082,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexParameterIiv(int target, int pname, int* @params);
+            public delegate void glTexParameterIiv(int target, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7090,7 +7090,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer", EntryPoint = "glTexParameterIivEXT")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2", EntryPoint = "glTexParameterIivOES")]
             [ThreadStatic]
-            internal static glTexParameterIiv pglTexParameterIiv;
+            public static glTexParameterIiv pglTexParameterIiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7098,7 +7098,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexParameterIuiv(int target, int pname, uint* @params);
+            public delegate void glTexParameterIuiv(int target, int pname, uint* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7106,7 +7106,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer", EntryPoint = "glTexParameterIuivEXT")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2", EntryPoint = "glTexParameterIuivOES")]
             [ThreadStatic]
-            internal static glTexParameterIuiv pglTexParameterIuiv;
+            public static glTexParameterIuiv pglTexParameterIuiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7114,7 +7114,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexParameterIiv(int target, int pname, int* @params);
+            public delegate void glGetTexParameterIiv(int target, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7122,7 +7122,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer", EntryPoint = "glGetTexParameterIivEXT")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2", EntryPoint = "glGetTexParameterIivOES")]
             [ThreadStatic]
-            internal static glGetTexParameterIiv pglGetTexParameterIiv;
+            public static glGetTexParameterIiv pglGetTexParameterIiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7130,7 +7130,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexParameterIuiv(int target, int pname, uint* @params);
+            public delegate void glGetTexParameterIuiv(int target, int pname, uint* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -7138,47 +7138,47 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_integer", EntryPoint = "glGetTexParameterIuivEXT")]
             [RequiredByFeature("GL_OES_texture_border_clamp", Api = "gles2", EntryPoint = "glGetTexParameterIuivOES")]
             [ThreadStatic]
-            internal static glGetTexParameterIuiv pglGetTexParameterIuiv;
+            public static glGetTexParameterIuiv pglGetTexParameterIuiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearBufferiv(int buffer, int drawbuffer, int* value);
+            public delegate void glClearBufferiv(int buffer, int drawbuffer, int* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [ThreadStatic]
-            internal static glClearBufferiv pglClearBufferiv;
+            public static glClearBufferiv pglClearBufferiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearBufferuiv(int buffer, int drawbuffer, uint* value);
+            public delegate void glClearBufferuiv(int buffer, int drawbuffer, uint* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [ThreadStatic]
-            internal static glClearBufferuiv pglClearBufferuiv;
+            public static glClearBufferuiv pglClearBufferuiv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearBufferfv(int buffer, int drawbuffer, float* value);
+            public delegate void glClearBufferfv(int buffer, int drawbuffer, float* value);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [ThreadStatic]
-            internal static glClearBufferfv pglClearBufferfv;
+            public static glClearBufferfv pglClearBufferfv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearBufferfi(int buffer, int drawbuffer, float depth, int stencil);
+            public delegate void glClearBufferfi(int buffer, int drawbuffer, float depth, int stencil);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [ThreadStatic]
-            internal static glClearBufferfi pglClearBufferfi;
+            public static glClearBufferfi pglClearBufferfi;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate IntPtr glGetStringi(int name, uint index);
+            public delegate IntPtr glGetStringi(int name, uint index);
 
             [RequiredByFeature("GL_VERSION_3_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [ThreadStatic]
-            internal static glGetStringi pglGetStringi;
+            public static glGetStringi pglGetStringi;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7186,42 +7186,42 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal delegate bool glIsRenderbuffer(uint renderbuffer);
+            public delegate bool glIsRenderbuffer(uint renderbuffer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glIsRenderbufferEXT")]
             [ThreadStatic]
-            internal static glIsRenderbuffer pglIsRenderbuffer;
+            public static glIsRenderbuffer pglIsRenderbuffer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindRenderbuffer(int target, uint renderbuffer);
+            public delegate void glBindRenderbuffer(int target, uint renderbuffer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [ThreadStatic]
-            internal static glBindRenderbuffer pglBindRenderbuffer;
+            public static glBindRenderbuffer pglBindRenderbuffer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDeleteRenderbuffers(int n, uint* renderbuffers);
+            public delegate void glDeleteRenderbuffers(int n, uint* renderbuffers);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glDeleteRenderbuffersEXT")]
             [ThreadStatic]
-            internal static glDeleteRenderbuffers pglDeleteRenderbuffers;
+            public static glDeleteRenderbuffers pglDeleteRenderbuffers;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7229,7 +7229,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGenRenderbuffers(int n, uint* renderbuffers);
+            public delegate void glGenRenderbuffers(int n, uint* renderbuffers);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7237,7 +7237,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glGenRenderbuffersEXT")]
             [ThreadStatic]
-            internal static glGenRenderbuffers pglGenRenderbuffers;
+            public static glGenRenderbuffers pglGenRenderbuffers;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7245,7 +7245,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glRenderbufferStorage(int target, int internalformat, int width, int height);
+            public delegate void glRenderbufferStorage(int target, int internalformat, int width, int height);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7253,7 +7253,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glRenderbufferStorageEXT")]
             [ThreadStatic]
-            internal static glRenderbufferStorage pglRenderbufferStorage;
+            public static glRenderbufferStorage pglRenderbufferStorage;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7261,7 +7261,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetRenderbufferParameteriv(int target, int pname, int* @params);
+            public delegate void glGetRenderbufferParameteriv(int target, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7269,7 +7269,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glGetRenderbufferParameterivEXT")]
             [ThreadStatic]
-            internal static glGetRenderbufferParameteriv pglGetRenderbufferParameteriv;
+            public static glGetRenderbufferParameteriv pglGetRenderbufferParameteriv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7277,42 +7277,42 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal delegate bool glIsFramebuffer(uint framebuffer);
+            public delegate bool glIsFramebuffer(uint framebuffer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glIsFramebufferEXT")]
             [ThreadStatic]
-            internal static glIsFramebuffer pglIsFramebuffer;
+            public static glIsFramebuffer pglIsFramebuffer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindFramebuffer(int target, uint framebuffer);
+            public delegate void glBindFramebuffer(int target, uint framebuffer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [ThreadStatic]
-            internal static glBindFramebuffer pglBindFramebuffer;
+            public static glBindFramebuffer pglBindFramebuffer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDeleteFramebuffers(int n, uint* framebuffers);
+            public delegate void glDeleteFramebuffers(int n, uint* framebuffers);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glDeleteFramebuffersEXT")]
             [ThreadStatic]
-            internal static glDeleteFramebuffers pglDeleteFramebuffers;
+            public static glDeleteFramebuffers pglDeleteFramebuffers;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7320,7 +7320,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGenFramebuffers(int n, uint* framebuffers);
+            public delegate void glGenFramebuffers(int n, uint* framebuffers);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7328,7 +7328,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glGenFramebuffersEXT")]
             [ThreadStatic]
-            internal static glGenFramebuffers pglGenFramebuffers;
+            public static glGenFramebuffers pglGenFramebuffers;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7336,7 +7336,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate int glCheckFramebufferStatus(int target);
+            public delegate int glCheckFramebufferStatus(int target);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7344,19 +7344,19 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glCheckFramebufferStatusEXT")]
             [ThreadStatic]
-            internal static glCheckFramebufferStatus pglCheckFramebufferStatus;
+            public static glCheckFramebufferStatus pglCheckFramebufferStatus;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFramebufferTexture1D(int target, int attachment, int textarget, uint texture, int level);
+            public delegate void glFramebufferTexture1D(int target, int attachment, int textarget, uint texture, int level);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glFramebufferTexture1DEXT")]
             [ThreadStatic]
-            internal static glFramebufferTexture1D pglFramebufferTexture1D;
+            public static glFramebufferTexture1D pglFramebufferTexture1D;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7364,7 +7364,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFramebufferTexture2D(int target, int attachment, int textarget, uint texture, int level);
+            public delegate void glFramebufferTexture2D(int target, int attachment, int textarget, uint texture, int level);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7372,19 +7372,19 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glFramebufferTexture2DEXT")]
             [ThreadStatic]
-            internal static glFramebufferTexture2D pglFramebufferTexture2D;
+            public static glFramebufferTexture2D pglFramebufferTexture2D;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFramebufferTexture3D(int target, int attachment, int textarget, uint texture, int level, int zoffset);
+            public delegate void glFramebufferTexture3D(int target, int attachment, int textarget, uint texture, int level, int zoffset);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glFramebufferTexture3DEXT")]
             [ThreadStatic]
-            internal static glFramebufferTexture3D pglFramebufferTexture3D;
+            public static glFramebufferTexture3D pglFramebufferTexture3D;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7392,7 +7392,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFramebufferRenderbuffer(int target, int attachment, int renderbuffertarget, uint renderbuffer);
+            public delegate void glFramebufferRenderbuffer(int target, int attachment, int renderbuffertarget, uint renderbuffer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7400,7 +7400,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glFramebufferRenderbufferEXT")]
             [ThreadStatic]
-            internal static glFramebufferRenderbuffer pglFramebufferRenderbuffer;
+            public static glFramebufferRenderbuffer pglFramebufferRenderbuffer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7408,7 +7408,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetFramebufferAttachmentParameteriv(int target, int attachment, int pname, int* @params);
+            public delegate void glGetFramebufferAttachmentParameteriv(int target, int attachment, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7416,7 +7416,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glGetFramebufferAttachmentParameterivEXT")]
             [ThreadStatic]
-            internal static glGetFramebufferAttachmentParameteriv pglGetFramebufferAttachmentParameteriv;
+            public static glGetFramebufferAttachmentParameteriv pglGetFramebufferAttachmentParameteriv;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7424,7 +7424,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGenerateMipmap(int target);
+            public delegate void glGenerateMipmap(int target);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -7432,7 +7432,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_framebuffer_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_framebuffer_object", EntryPoint = "glGenerateMipmapEXT")]
             [ThreadStatic]
-            internal static glGenerateMipmap pglGenerateMipmap;
+            public static glGenerateMipmap pglGenerateMipmap;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7440,7 +7440,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_framebuffer_blit")]
             [RequiredByFeature("GL_NV_framebuffer_blit", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, uint mask, int filter);
+            public delegate void glBlitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, uint mask, int filter);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7448,7 +7448,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_framebuffer_blit", EntryPoint = "glBlitFramebufferEXT")]
             [RequiredByFeature("GL_NV_framebuffer_blit", Api = "gles2", EntryPoint = "glBlitFramebufferNV")]
             [ThreadStatic]
-            internal static glBlitFramebuffer pglBlitFramebuffer;
+            public static glBlitFramebuffer pglBlitFramebuffer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7457,7 +7457,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_multisampled_render_to_texture", Api = "gles1|gles2")]
             [RequiredByFeature("GL_NV_framebuffer_multisample", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glRenderbufferStorageMultisample(int target, int samples, int internalformat, int width, int height);
+            public delegate void glRenderbufferStorageMultisample(int target, int samples, int internalformat, int width, int height);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7466,7 +7466,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_multisampled_render_to_texture", Api = "gles1|gles2", EntryPoint = "glRenderbufferStorageMultisampleEXT")]
             [RequiredByFeature("GL_NV_framebuffer_multisample", Api = "gles2", EntryPoint = "glRenderbufferStorageMultisampleNV")]
             [ThreadStatic]
-            internal static glRenderbufferStorageMultisample pglRenderbufferStorageMultisample;
+            public static glRenderbufferStorageMultisample pglRenderbufferStorageMultisample;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7475,7 +7475,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_array")]
             [RequiredByFeature("GL_NV_geometry_program4")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFramebufferTextureLayer(int target, int attachment, uint texture, int level, int layer);
+            public delegate void glFramebufferTextureLayer(int target, int attachment, uint texture, int level, int layer);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7484,21 +7484,21 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_texture_array", EntryPoint = "glFramebufferTextureLayerEXT")]
             [RequiredByFeature("GL_NV_geometry_program4", EntryPoint = "glFramebufferTextureLayerEXT")]
             [ThreadStatic]
-            internal static glFramebufferTextureLayer pglFramebufferTextureLayer;
+            public static glFramebufferTextureLayer pglFramebufferTextureLayer;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_map_buffer_range", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_map_buffer_range", Api = "gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate IntPtr glMapBufferRange(int target, IntPtr offset, uint length, uint access);
+            public delegate IntPtr glMapBufferRange(int target, IntPtr offset, uint length, uint access);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_map_buffer_range", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_map_buffer_range", Api = "gles1|gles2", EntryPoint = "glMapBufferRangeEXT")]
             [ThreadStatic]
-            internal static glMapBufferRange pglMapBufferRange;
+            public static glMapBufferRange pglMapBufferRange;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7506,7 +7506,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_map_buffer_range", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_map_buffer_range", Api = "gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFlushMappedBufferRange(int target, IntPtr offset, uint length);
+            public delegate void glFlushMappedBufferRange(int target, IntPtr offset, uint length);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7514,21 +7514,21 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_map_buffer_range", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_map_buffer_range", Api = "gles1|gles2", EntryPoint = "glFlushMappedBufferRangeEXT")]
             [ThreadStatic]
-            internal static glFlushMappedBufferRange pglFlushMappedBufferRange;
+            public static glFlushMappedBufferRange pglFlushMappedBufferRange;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindVertexArray(uint array);
+            public delegate void glBindVertexArray(uint array);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2", EntryPoint = "glBindVertexArrayOES")]
             [ThreadStatic]
-            internal static glBindVertexArray pglBindVertexArray;
+            public static glBindVertexArray pglBindVertexArray;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7536,7 +7536,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDeleteVertexArrays(int n, uint* arrays);
+            public delegate void glDeleteVertexArrays(int n, uint* arrays);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7544,7 +7544,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2", EntryPoint = "glDeleteVertexArraysOES")]
             [ThreadStatic]
-            internal static glDeleteVertexArrays pglDeleteVertexArrays;
+            public static glDeleteVertexArrays pglDeleteVertexArrays;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7552,7 +7552,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGenVertexArrays(int n, uint* arrays);
+            public delegate void glGenVertexArrays(int n, uint* arrays);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7560,7 +7560,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2", EntryPoint = "glGenVertexArraysOES")]
             [ThreadStatic]
-            internal static glGenVertexArrays pglGenVertexArrays;
+            public static glGenVertexArrays pglGenVertexArrays;
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7569,7 +7569,7 @@ namespace OpenGL
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal delegate bool glIsVertexArray(uint array);
+            public delegate bool glIsVertexArray(uint array);
 
             [RequiredByFeature("GL_VERSION_3_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -7577,7 +7577,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_vertex_array_object", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_vertex_array_object", Api = "gles1|gles2", EntryPoint = "glIsVertexArrayOES")]
             [ThreadStatic]
-            internal static glIsVertexArray pglIsVertexArray;
+            public static glIsVertexArray pglIsVertexArray;
         }
     }
 }

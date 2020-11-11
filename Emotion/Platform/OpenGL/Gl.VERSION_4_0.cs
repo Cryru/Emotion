@@ -2842,21 +2842,21 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
             [RequiredByFeature("GL_ARB_sample_shading", Api = "gl|glcore")]
             [RequiredByFeature("GL_OES_sample_shading", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMinSampleShading(float value);
+            public delegate void glMinSampleShading(float value);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
             [RequiredByFeature("GL_ARB_sample_shading", Api = "gl|glcore", EntryPoint = "glMinSampleShadingARB")]
             [RequiredByFeature("GL_OES_sample_shading", Api = "gles2", EntryPoint = "glMinSampleShadingOES")]
             [ThreadStatic]
-            internal static glMinSampleShading pglMinSampleShading;
+            public static glMinSampleShading pglMinSampleShading;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2865,7 +2865,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendEquationi(uint buf, int mode);
+            public delegate void glBlendEquationi(uint buf, int mode);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2874,7 +2874,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendEquationiEXT")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendEquationiOES")]
             [ThreadStatic]
-            internal static glBlendEquationi pglBlendEquationi;
+            public static glBlendEquationi pglBlendEquationi;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2883,7 +2883,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendEquationSeparatei(uint buf, int modeRGB, int modeAlpha);
+            public delegate void glBlendEquationSeparatei(uint buf, int modeRGB, int modeAlpha);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2892,7 +2892,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendEquationSeparateiEXT")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendEquationSeparateiOES")]
             [ThreadStatic]
-            internal static glBlendEquationSeparatei pglBlendEquationSeparatei;
+            public static glBlendEquationSeparatei pglBlendEquationSeparatei;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2901,7 +2901,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendFunci(uint buf, int src, int dst);
+            public delegate void glBlendFunci(uint buf, int src, int dst);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2910,7 +2910,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendFunciEXT")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendFunciOES")]
             [ThreadStatic]
-            internal static glBlendFunci pglBlendFunci;
+            public static glBlendFunci pglBlendFunci;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2919,7 +2919,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendFuncSeparatei(uint buf, int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
+            public delegate void glBlendFuncSeparatei(uint buf, int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -2928,233 +2928,233 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendFuncSeparateiEXT")]
             [RequiredByFeature("GL_OES_draw_buffers_indexed", Api = "gles2", EntryPoint = "glBlendFuncSeparateiOES")]
             [ThreadStatic]
-            internal static glBlendFuncSeparatei pglBlendFuncSeparatei;
+            public static glBlendFuncSeparatei pglBlendFuncSeparatei;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
             [RequiredByFeature("GL_ARB_draw_indirect", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDrawArraysIndirect(int mode, IntPtr indirect);
+            public delegate void glDrawArraysIndirect(int mode, IntPtr indirect);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_ARB_draw_indirect", Api = "gl|glcore")] [ThreadStatic]
-            internal static glDrawArraysIndirect pglDrawArraysIndirect;
+            public static glDrawArraysIndirect pglDrawArraysIndirect;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
             [RequiredByFeature("GL_ARB_draw_indirect", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDrawElementsIndirect(int mode, int type, IntPtr indirect);
+            public delegate void glDrawElementsIndirect(int mode, int type, IntPtr indirect);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_ARB_draw_indirect", Api = "gl|glcore")] [ThreadStatic]
-            internal static glDrawElementsIndirect pglDrawElementsIndirect;
+            public static glDrawElementsIndirect pglDrawElementsIndirect;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform1d(int location, double x);
+            public delegate void glUniform1d(int location, double x);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform1d pglUniform1d;
+            public static glUniform1d pglUniform1d;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform2d(int location, double x, double y);
+            public delegate void glUniform2d(int location, double x, double y);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform2d pglUniform2d;
+            public static glUniform2d pglUniform2d;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform3d(int location, double x, double y, double z);
+            public delegate void glUniform3d(int location, double x, double y, double z);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform3d pglUniform3d;
+            public static glUniform3d pglUniform3d;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform4d(int location, double x, double y, double z, double w);
+            public delegate void glUniform4d(int location, double x, double y, double z, double w);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform4d pglUniform4d;
+            public static glUniform4d pglUniform4d;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform1dv(int location, int count, double* value);
+            public delegate void glUniform1dv(int location, int count, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform1dv pglUniform1dv;
+            public static glUniform1dv pglUniform1dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform2dv(int location, int count, double* value);
+            public delegate void glUniform2dv(int location, int count, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform2dv pglUniform2dv;
+            public static glUniform2dv pglUniform2dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform3dv(int location, int count, double* value);
+            public delegate void glUniform3dv(int location, int count, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform3dv pglUniform3dv;
+            public static glUniform3dv pglUniform3dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniform4dv(int location, int count, double* value);
+            public delegate void glUniform4dv(int location, int count, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniform4dv pglUniform4dv;
+            public static glUniform4dv pglUniform4dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix2dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix2dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix2dv pglUniformMatrix2dv;
+            public static glUniformMatrix2dv pglUniformMatrix2dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix3dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix3dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix3dv pglUniformMatrix3dv;
+            public static glUniformMatrix3dv pglUniformMatrix3dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix4dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix4dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix4dv pglUniformMatrix4dv;
+            public static glUniformMatrix4dv pglUniformMatrix4dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix2x3dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix2x3dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix2x3dv pglUniformMatrix2x3dv;
+            public static glUniformMatrix2x3dv pglUniformMatrix2x3dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix2x4dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix2x4dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix2x4dv pglUniformMatrix2x4dv;
+            public static glUniformMatrix2x4dv pglUniformMatrix2x4dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix3x2dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix3x2dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix3x2dv pglUniformMatrix3x2dv;
+            public static glUniformMatrix3x2dv pglUniformMatrix3x2dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix3x4dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix3x4dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix3x4dv pglUniformMatrix3x4dv;
+            public static glUniformMatrix3x4dv pglUniformMatrix3x4dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix4x2dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix4x2dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix4x2dv pglUniformMatrix4x2dv;
+            public static glUniformMatrix4x2dv pglUniformMatrix4x2dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix4x3dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
+            public delegate void glUniformMatrix4x3dv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, double* value);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformMatrix4x3dv pglUniformMatrix4x3dv;
+            public static glUniformMatrix4x3dv pglUniformMatrix4x3dv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetUniformdv(uint program, int location, double* @params);
+            public delegate void glGetUniformdv(uint program, int location, double* @params);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetUniformdv pglGetUniformdv;
+            public static glGetUniformdv pglGetUniformdv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate int glGetSubroutineUniformLocation(uint program, int shadertype, string name);
+            public delegate int glGetSubroutineUniformLocation(uint program, int shadertype, string name);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetSubroutineUniformLocation pglGetSubroutineUniformLocation;
+            public static glGetSubroutineUniformLocation pglGetSubroutineUniformLocation;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate uint glGetSubroutineIndex(uint program, int shadertype, string name);
+            public delegate uint glGetSubroutineIndex(uint program, int shadertype, string name);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetSubroutineIndex pglGetSubroutineIndex;
+            public static glGetSubroutineIndex pglGetSubroutineIndex;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetActiveSubroutineUniformiv(uint program, int shadertype, uint index, int pname, int* values);
+            public delegate void glGetActiveSubroutineUniformiv(uint program, int shadertype, uint index, int pname, int* values);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetActiveSubroutineUniformiv pglGetActiveSubroutineUniformiv;
+            public static glGetActiveSubroutineUniformiv pglGetActiveSubroutineUniformiv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetActiveSubroutineUniformName(uint program, int shadertype, uint index, int bufsize, int* length, StringBuilder name);
+            public delegate void glGetActiveSubroutineUniformName(uint program, int shadertype, uint index, int bufsize, int* length, StringBuilder name);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetActiveSubroutineUniformName pglGetActiveSubroutineUniformName;
+            public static glGetActiveSubroutineUniformName pglGetActiveSubroutineUniformName;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetActiveSubroutineName(uint program, int shadertype, uint index, int bufsize, int* length, StringBuilder name);
+            public delegate void glGetActiveSubroutineName(uint program, int shadertype, uint index, int bufsize, int* length, StringBuilder name);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetActiveSubroutineName pglGetActiveSubroutineName;
+            public static glGetActiveSubroutineName pglGetActiveSubroutineName;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformSubroutinesuiv(int shadertype, int count, uint* indices);
+            public delegate void glUniformSubroutinesuiv(int shadertype, int count, uint* indices);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glUniformSubroutinesuiv pglUniformSubroutinesuiv;
+            public static glUniformSubroutinesuiv pglUniformSubroutinesuiv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetUniformSubroutineuiv(int shadertype, int location, uint* @params);
+            public delegate void glGetUniformSubroutineuiv(int shadertype, int location, uint* @params);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetUniformSubroutineuiv pglGetUniformSubroutineuiv;
+            public static glGetUniformSubroutineuiv pglGetUniformSubroutineuiv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetProgramStageiv(uint program, int shadertype, int pname, int* values);
+            public delegate void glGetProgramStageiv(uint program, int shadertype, int pname, int* values);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_shader_subroutine", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetProgramStageiv pglGetProgramStageiv;
+            public static glGetProgramStageiv pglGetProgramStageiv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -3162,7 +3162,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_tessellation_shader", Api = "gles2")]
             [RequiredByFeature("GL_OES_tessellation_shader", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPatchParameteri(int pname, int value);
+            public delegate void glPatchParameteri(int pname, int value);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
@@ -3170,52 +3170,52 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_tessellation_shader", Api = "gles2", EntryPoint = "glPatchParameteriEXT")]
             [RequiredByFeature("GL_OES_tessellation_shader", Api = "gles2", EntryPoint = "glPatchParameteriOES")]
             [ThreadStatic]
-            internal static glPatchParameteri pglPatchParameteri;
+            public static glPatchParameteri pglPatchParameteri;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_tessellation_shader", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPatchParameterfv(int pname, float* values);
+            public delegate void glPatchParameterfv(int pname, float* values);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_tessellation_shader", Api = "gl|glcore")] [ThreadStatic]
-            internal static glPatchParameterfv pglPatchParameterfv;
+            public static glPatchParameterfv pglPatchParameterfv;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBindTransformFeedback(int target, uint id);
+            public delegate void glBindTransformFeedback(int target, uint id);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")] [ThreadStatic]
-            internal static glBindTransformFeedback pglBindTransformFeedback;
+            public static glBindTransformFeedback pglBindTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDeleteTransformFeedbacks(int n, uint* ids);
+            public delegate void glDeleteTransformFeedbacks(int n, uint* ids);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2", EntryPoint = "glDeleteTransformFeedbacksNV")]
             [ThreadStatic]
-            internal static glDeleteTransformFeedbacks pglDeleteTransformFeedbacks;
+            public static glDeleteTransformFeedbacks pglDeleteTransformFeedbacks;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGenTransformFeedbacks(int n, uint* ids);
+            public delegate void glGenTransformFeedbacks(int n, uint* ids);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2", EntryPoint = "glGenTransformFeedbacksNV")]
             [ThreadStatic]
-            internal static glGenTransformFeedbacks pglGenTransformFeedbacks;
+            public static glGenTransformFeedbacks pglGenTransformFeedbacks;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
@@ -3223,88 +3223,88 @@ namespace OpenGL
             [RequiredByFeature("GL_NV_transform_feedback2")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal delegate bool glIsTransformFeedback(uint id);
+            public delegate bool glIsTransformFeedback(uint id);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2", EntryPoint = "glIsTransformFeedbackNV")]
             [ThreadStatic]
-            internal static glIsTransformFeedback pglIsTransformFeedback;
+            public static glIsTransformFeedback pglIsTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPauseTransformFeedback();
+            public delegate void glPauseTransformFeedback();
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2", EntryPoint = "glPauseTransformFeedbackNV")]
             [ThreadStatic]
-            internal static glPauseTransformFeedback pglPauseTransformFeedback;
+            public static glPauseTransformFeedback pglPauseTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glResumeTransformFeedback();
+            public delegate void glResumeTransformFeedback();
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_NV_transform_feedback2", EntryPoint = "glResumeTransformFeedbackNV")]
             [ThreadStatic]
-            internal static glResumeTransformFeedback pglResumeTransformFeedback;
+            public static glResumeTransformFeedback pglResumeTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_draw_transform_feedback", Api = "gles2")]
             [RequiredByFeature("GL_NV_transform_feedback2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDrawTransformFeedback(int mode, uint id);
+            public delegate void glDrawTransformFeedback(int mode, uint id);
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_transform_feedback2", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_draw_transform_feedback", Api = "gles2", EntryPoint = "glDrawTransformFeedbackEXT")]
             [RequiredByFeature("GL_NV_transform_feedback2", EntryPoint = "glDrawTransformFeedbackNV")]
             [ThreadStatic]
-            internal static glDrawTransformFeedback pglDrawTransformFeedback;
+            public static glDrawTransformFeedback pglDrawTransformFeedback;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDrawTransformFeedbackStream(int mode, uint id, uint stream);
+            public delegate void glDrawTransformFeedbackStream(int mode, uint id, uint stream);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")] [ThreadStatic]
-            internal static glDrawTransformFeedbackStream pglDrawTransformFeedbackStream;
+            public static glDrawTransformFeedbackStream pglDrawTransformFeedbackStream;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBeginQueryIndexed(int target, uint index, uint id);
+            public delegate void glBeginQueryIndexed(int target, uint index, uint id);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")] [ThreadStatic]
-            internal static glBeginQueryIndexed pglBeginQueryIndexed;
+            public static glBeginQueryIndexed pglBeginQueryIndexed;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glEndQueryIndexed(int target, uint index);
+            public delegate void glEndQueryIndexed(int target, uint index);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")] [ThreadStatic]
-            internal static glEndQueryIndexed pglEndQueryIndexed;
+            public static glEndQueryIndexed pglEndQueryIndexed;
 
             [RequiredByFeature("GL_VERSION_4_0")]
             [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetQueryIndexediv(int target, uint index, int pname, int* @params);
+            public delegate void glGetQueryIndexediv(int target, uint index, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_4_0")] [RequiredByFeature("GL_ARB_transform_feedback3", Api = "gl|glcore")] [ThreadStatic]
-            internal static glGetQueryIndexediv pglGetQueryIndexediv;
+            public static glGetQueryIndexediv pglGetQueryIndexediv;
         }
     }
 }

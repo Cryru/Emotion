@@ -823,51 +823,51 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static partial class Delegates
+        public static partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_1_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_EXT_draw_range_elements")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDrawRangeElements(int mode, uint start, uint end, int count, int type, IntPtr indices);
+            public delegate void glDrawRangeElements(int mode, uint start, uint end, int count, int type, IntPtr indices);
 
             [RequiredByFeature("GL_VERSION_1_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_EXT_draw_range_elements", EntryPoint = "glDrawRangeElementsEXT")]
             [ThreadStatic]
-            internal static glDrawRangeElements pglDrawRangeElements;
+            public static glDrawRangeElements pglDrawRangeElements;
 
             [RequiredByFeature("GL_VERSION_1_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_texture3D")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, int format, int type, IntPtr pixels);
+            public delegate void glTexImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_texture3D", EntryPoint = "glTexImage3DEXT")] [ThreadStatic]
-            internal static glTexImage3D pglTexImage3D;
+            public static glTexImage3D pglTexImage3D;
 
             [RequiredByFeature("GL_VERSION_1_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_texture3D")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, int format, int type, IntPtr pixels);
+            public delegate void glTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_2")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [RequiredByFeature("GL_EXT_texture3D", EntryPoint = "glTexSubImage3DEXT")] [ThreadStatic]
-            internal static glTexSubImage3D pglTexSubImage3D;
+            public static glTexSubImage3D pglTexSubImage3D;
 
             [RequiredByFeature("GL_VERSION_1_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_copy_texture")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCopyTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int x, int y, int width, int height);
+            public delegate void glCopyTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int x, int y, int width, int height);
 
             [RequiredByFeature("GL_VERSION_1_2")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_EXT_copy_texture", EntryPoint = "glCopyTexSubImage3DEXT")]
             [ThreadStatic]
-            internal static glCopyTexSubImage3D pglCopyTexSubImage3D;
+            public static glCopyTexSubImage3D pglCopyTexSubImage3D;
         }
     }
 }

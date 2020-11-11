@@ -4772,242 +4772,242 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCullFace(int mode);
+            public delegate void glCullFace(int mode);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glCullFace pglCullFace;
+            public static glCullFace pglCullFace;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFrontFace(int mode);
+            public delegate void glFrontFace(int mode);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glFrontFace pglFrontFace;
+            public static glFrontFace pglFrontFace;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glHint(int target, int mode);
+            public delegate void glHint(int target, int mode);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glHint pglHint;
+            public static glHint pglHint;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glLineWidth(float width);
+            public delegate void glLineWidth(float width);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glLineWidth pglLineWidth;
+            public static glLineWidth pglLineWidth;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPointSize(float size);
+            public delegate void glPointSize(float size);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")] [ThreadStatic]
-            internal static glPointSize pglPointSize;
+            public static glPointSize pglPointSize;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPolygonMode(int face, int mode);
+            public delegate void glPolygonMode(int face, int mode);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2", EntryPoint = "glPolygonModeNV")] [ThreadStatic]
-            internal static glPolygonMode pglPolygonMode;
+            public static glPolygonMode pglPolygonMode;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glScissor(int x, int y, int width, int height);
+            public delegate void glScissor(int x, int y, int width, int height);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glScissor pglScissor;
+            public static glScissor pglScissor;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexParameterf(int target, int pname, float param);
+            public delegate void glTexParameterf(int target, int pname, float param);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glTexParameterf pglTexParameterf;
+            public static glTexParameterf pglTexParameterf;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexParameterfv(int target, int pname, float* @params);
+            public delegate void glTexParameterfv(int target, int pname, float* @params);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glTexParameterfv pglTexParameterfv;
+            public static glTexParameterfv pglTexParameterfv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexParameteri(int target, int pname, int param);
+            public delegate void glTexParameteri(int target, int pname, int param);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glTexParameteri pglTexParameteri;
+            public static glTexParameteri pglTexParameteri;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexParameteriv(int target, int pname, int* @params);
+            public delegate void glTexParameteriv(int target, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glTexParameteriv pglTexParameteriv;
+            public static glTexParameteriv pglTexParameteriv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexImage1D(int target, int level, int internalformat, int width, int border, int format, int type, IntPtr pixels);
+            public delegate void glTexImage1D(int target, int level, int internalformat, int width, int border, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glTexImage1D pglTexImage1D;
+            public static glTexImage1D pglTexImage1D;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, IntPtr pixels);
+            public delegate void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [ThreadStatic]
-            internal static glTexImage2D pglTexImage2D;
+            public static glTexImage2D pglTexImage2D;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDrawBuffer(int buf);
+            public delegate void glDrawBuffer(int buf);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glDrawBuffer pglDrawBuffer;
+            public static glDrawBuffer pglDrawBuffer;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClear(uint mask);
+            public delegate void glClear(uint mask);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glClear pglClear;
+            public static glClear pglClear;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearColor(float red, float green, float blue, float alpha);
+            public delegate void glClearColor(float red, float green, float blue, float alpha);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glClearColor pglClearColor;
+            public static glClearColor pglClearColor;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearStencil(int s);
+            public delegate void glClearStencil(int s);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glClearStencil pglClearStencil;
+            public static glClearStencil pglClearStencil;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClearDepth(double depth);
+            public delegate void glClearDepth(double depth);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glClearDepth pglClearDepth;
+            public static glClearDepth pglClearDepth;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glStencilMask(uint mask);
+            public delegate void glStencilMask(uint mask);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glStencilMask pglStencilMask;
+            public static glStencilMask pglStencilMask;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glColorMask([MarshalAs(UnmanagedType.I1)] bool red, [MarshalAs(UnmanagedType.I1)] bool green, [MarshalAs(UnmanagedType.I1)] bool blue,
+            public delegate void glColorMask([MarshalAs(UnmanagedType.I1)] bool red, [MarshalAs(UnmanagedType.I1)] bool green, [MarshalAs(UnmanagedType.I1)] bool blue,
                 [MarshalAs(UnmanagedType.I1)] bool alpha);
 
             [RequiredByFeature("GL_VERSION_1_0")]
@@ -5015,307 +5015,307 @@ namespace OpenGL
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glColorMask pglColorMask;
+            public static glColorMask pglColorMask;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDepthMask([MarshalAs(UnmanagedType.I1)] bool flag);
+            public delegate void glDepthMask([MarshalAs(UnmanagedType.I1)] bool flag);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glDepthMask pglDepthMask;
+            public static glDepthMask pglDepthMask;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDisable(int cap);
+            public delegate void glDisable(int cap);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glDisable pglDisable;
+            public static glDisable pglDisable;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glEnable(int cap);
+            public delegate void glEnable(int cap);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glEnable pglEnable;
+            public static glEnable pglEnable;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFinish();
+            public delegate void glFinish();
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glFinish pglFinish;
+            public static glFinish pglFinish;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFlush();
+            public delegate void glFlush();
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glFlush pglFlush;
+            public static glFlush pglFlush;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendFunc(int sfactor, int dfactor);
+            public delegate void glBlendFunc(int sfactor, int dfactor);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glBlendFunc pglBlendFunc;
+            public static glBlendFunc pglBlendFunc;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glLogicOp(int opcode);
+            public delegate void glLogicOp(int opcode);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [ThreadStatic]
-            internal static glLogicOp pglLogicOp;
+            public static glLogicOp pglLogicOp;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glStencilFunc(int func, int @ref, uint mask);
+            public delegate void glStencilFunc(int func, int @ref, uint mask);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glStencilFunc pglStencilFunc;
+            public static glStencilFunc pglStencilFunc;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glStencilOp(int fail, int zfail, int zpass);
+            public delegate void glStencilOp(int fail, int zfail, int zpass);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glStencilOp pglStencilOp;
+            public static glStencilOp pglStencilOp;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDepthFunc(int func);
+            public delegate void glDepthFunc(int func);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glDepthFunc pglDepthFunc;
+            public static glDepthFunc pglDepthFunc;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPixelStoref(int pname, float param);
+            public delegate void glPixelStoref(int pname, float param);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glPixelStoref pglPixelStoref;
+            public static glPixelStoref pglPixelStoref;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPixelStorei(int pname, int param);
+            public delegate void glPixelStorei(int pname, int param);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glPixelStorei pglPixelStorei;
+            public static glPixelStorei pglPixelStorei;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glReadBuffer(int src);
+            public delegate void glReadBuffer(int src);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")] [ThreadStatic]
-            internal static glReadBuffer pglReadBuffer;
+            public static glReadBuffer pglReadBuffer;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glReadPixels(int x, int y, int width, int height, int format, int type, IntPtr pixels);
+            public delegate void glReadPixels(int x, int y, int width, int height, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [ThreadStatic]
-            internal static glReadPixels pglReadPixels;
+            public static glReadPixels pglReadPixels;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetBooleanv(int pname, byte* data);
+            public delegate void glGetBooleanv(int pname, byte* data);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetBooleanv pglGetBooleanv;
+            public static glGetBooleanv pglGetBooleanv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetDoublev(int pname, double* data);
+            public delegate void glGetDoublev(int pname, double* data);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glGetDoublev pglGetDoublev;
+            public static glGetDoublev pglGetDoublev;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate int glGetError();
+            public delegate int glGetError();
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetError pglGetError;
+            public static glGetError pglGetError;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetFloatv(int pname, float* data);
+            public delegate void glGetFloatv(int pname, float* data);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetFloatv pglGetFloatv;
+            public static glGetFloatv pglGetFloatv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetIntegerv(int pname, int* data);
+            public delegate void glGetIntegerv(int pname, int* data);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetIntegerv pglGetIntegerv;
+            public static glGetIntegerv pglGetIntegerv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate IntPtr glGetString(int name);
+            public delegate IntPtr glGetString(int name);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetString pglGetString;
+            public static glGetString pglGetString;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexImage(int target, int level, int format, int type, IntPtr pixels);
+            public delegate void glGetTexImage(int target, int level, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glGetTexImage pglGetTexImage;
+            public static glGetTexImage pglGetTexImage;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexParameterfv(int target, int pname, float* @params);
+            public delegate void glGetTexParameterfv(int target, int pname, float* @params);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetTexParameterfv pglGetTexParameterfv;
+            public static glGetTexParameterfv pglGetTexParameterfv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexParameteriv(int target, int pname, int* @params);
+            public delegate void glGetTexParameteriv(int target, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glGetTexParameteriv pglGetTexParameteriv;
+            public static glGetTexParameteriv pglGetTexParameteriv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexLevelParameterfv(int target, int level, int pname, float* @params);
+            public delegate void glGetTexLevelParameterfv(int target, int level, int pname, float* @params);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [ThreadStatic]
-            internal static glGetTexLevelParameterfv pglGetTexLevelParameterfv;
+            public static glGetTexLevelParameterfv pglGetTexLevelParameterfv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetTexLevelParameteriv(int target, int level, int pname, int* @params);
+            public delegate void glGetTexLevelParameteriv(int target, int level, int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [ThreadStatic]
-            internal static glGetTexLevelParameteriv pglGetTexLevelParameteriv;
+            public static glGetTexLevelParameteriv pglGetTexLevelParameteriv;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -5323,35 +5323,35 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
             [return: MarshalAs(UnmanagedType.I1)]
-            internal delegate bool glIsEnabled(int cap);
+            public delegate bool glIsEnabled(int cap);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glIsEnabled pglIsEnabled;
+            public static glIsEnabled pglIsEnabled;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glDepthRange(double near, double far);
+            public delegate void glDepthRange(double near, double far);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
-            internal static glDepthRange pglDepthRange;
+            public static glDepthRange pglDepthRange;
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glViewport(int x, int y, int width, int height);
+            public delegate void glViewport(int x, int y, int width, int height);
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [ThreadStatic]
-            internal static glViewport pglViewport;
+            public static glViewport pglViewport;
         }
     }
 }

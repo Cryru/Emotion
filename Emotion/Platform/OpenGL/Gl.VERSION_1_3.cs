@@ -2754,7 +2754,7 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -2762,7 +2762,7 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glActiveTexture(int texture);
+            public delegate void glActiveTexture(int texture);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -2770,7 +2770,7 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glActiveTextureARB")]
             [ThreadStatic]
-            internal static glActiveTexture pglActiveTexture;
+            public static glActiveTexture pglActiveTexture;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -2778,7 +2778,7 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_multisample")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSampleCoverage(float value, [MarshalAs(UnmanagedType.I1)] bool invert);
+            public delegate void glSampleCoverage(float value, [MarshalAs(UnmanagedType.I1)] bool invert);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -2786,53 +2786,53 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_multisample", EntryPoint = "glSampleCoverageARB")]
             [ThreadStatic]
-            internal static glSampleCoverage pglSampleCoverage;
+            public static glSampleCoverage pglSampleCoverage;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCompressedTexImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, int imageSize, IntPtr data);
+            public delegate void glCompressedTexImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, int imageSize, IntPtr data);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glCompressedTexImage3DARB")]
             [ThreadStatic]
-            internal static glCompressedTexImage3D pglCompressedTexImage3D;
+            public static glCompressedTexImage3D pglCompressedTexImage3D;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCompressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, int imageSize, IntPtr data);
+            public delegate void glCompressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, int imageSize, IntPtr data);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glCompressedTexImage2DARB")]
             [ThreadStatic]
-            internal static glCompressedTexImage2D pglCompressedTexImage2D;
+            public static glCompressedTexImage2D pglCompressedTexImage2D;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCompressedTexImage1D(int target, int level, int internalformat, int width, int border, int imageSize, IntPtr data);
+            public delegate void glCompressedTexImage1D(int target, int level, int internalformat, int width, int border, int imageSize, IntPtr data);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glCompressedTexImage1DARB")] [ThreadStatic]
-            internal static glCompressedTexImage1D pglCompressedTexImage1D;
+            public static glCompressedTexImage1D pglCompressedTexImage1D;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCompressedTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, int format, int imageSize, IntPtr data);
+            public delegate void glCompressedTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, int format, int imageSize, IntPtr data);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glCompressedTexSubImage3DARB")]
             [ThreadStatic]
-            internal static glCompressedTexSubImage3D pglCompressedTexSubImage3D;
+            public static glCompressedTexSubImage3D pglCompressedTexSubImage3D;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -2840,7 +2840,7 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCompressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int imageSize, IntPtr data);
+            public delegate void glCompressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int imageSize, IntPtr data);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
@@ -2848,378 +2848,378 @@ namespace OpenGL
             [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
             [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glCompressedTexSubImage2DARB")]
             [ThreadStatic]
-            internal static glCompressedTexSubImage2D pglCompressedTexSubImage2D;
+            public static glCompressedTexSubImage2D pglCompressedTexSubImage2D;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glCompressedTexSubImage1D(int target, int level, int xoffset, int width, int format, int imageSize, IntPtr data);
+            public delegate void glCompressedTexSubImage1D(int target, int level, int xoffset, int width, int format, int imageSize, IntPtr data);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glCompressedTexSubImage1DARB")] [ThreadStatic]
-            internal static glCompressedTexSubImage1D pglCompressedTexSubImage1D;
+            public static glCompressedTexSubImage1D pglCompressedTexSubImage1D;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_texture_compression")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glGetCompressedTexImage(int target, int level, IntPtr img);
+            public delegate void glGetCompressedTexImage(int target, int level, IntPtr img);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_texture_compression", EntryPoint = "glGetCompressedTexImageARB")] [ThreadStatic]
-            internal static glGetCompressedTexImage pglGetCompressedTexImage;
+            public static glGetCompressedTexImage pglGetCompressedTexImage;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glClientActiveTexture(int texture);
+            public delegate void glClientActiveTexture(int texture);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glClientActiveTextureARB")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glClientActiveTexture pglClientActiveTexture;
+            public static glClientActiveTexture pglClientActiveTexture;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1d(int target, double s);
+            public delegate void glMultiTexCoord1d(int target, double s);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1dARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1d pglMultiTexCoord1d;
+            public static glMultiTexCoord1d pglMultiTexCoord1d;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1dv(int target, double* v);
+            public delegate void glMultiTexCoord1dv(int target, double* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1dvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1dv pglMultiTexCoord1dv;
+            public static glMultiTexCoord1dv pglMultiTexCoord1dv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1f(int target, float s);
+            public delegate void glMultiTexCoord1f(int target, float s);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1fARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1f pglMultiTexCoord1f;
+            public static glMultiTexCoord1f pglMultiTexCoord1f;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1fv(int target, float* v);
+            public delegate void glMultiTexCoord1fv(int target, float* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1fvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1fv pglMultiTexCoord1fv;
+            public static glMultiTexCoord1fv pglMultiTexCoord1fv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1i(int target, int s);
+            public delegate void glMultiTexCoord1i(int target, int s);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1iARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1i pglMultiTexCoord1i;
+            public static glMultiTexCoord1i pglMultiTexCoord1i;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1iv(int target, int* v);
+            public delegate void glMultiTexCoord1iv(int target, int* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1ivARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1iv pglMultiTexCoord1iv;
+            public static glMultiTexCoord1iv pglMultiTexCoord1iv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1s(int target, short s);
+            public delegate void glMultiTexCoord1s(int target, short s);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1sARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1s pglMultiTexCoord1s;
+            public static glMultiTexCoord1s pglMultiTexCoord1s;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord1sv(int target, short* v);
+            public delegate void glMultiTexCoord1sv(int target, short* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord1svARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord1sv pglMultiTexCoord1sv;
+            public static glMultiTexCoord1sv pglMultiTexCoord1sv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2d(int target, double s, double t);
+            public delegate void glMultiTexCoord2d(int target, double s, double t);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2dARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2d pglMultiTexCoord2d;
+            public static glMultiTexCoord2d pglMultiTexCoord2d;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2dv(int target, double* v);
+            public delegate void glMultiTexCoord2dv(int target, double* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2dvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2dv pglMultiTexCoord2dv;
+            public static glMultiTexCoord2dv pglMultiTexCoord2dv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2f(int target, float s, float t);
+            public delegate void glMultiTexCoord2f(int target, float s, float t);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2fARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2f pglMultiTexCoord2f;
+            public static glMultiTexCoord2f pglMultiTexCoord2f;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2fv(int target, float* v);
+            public delegate void glMultiTexCoord2fv(int target, float* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2fvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2fv pglMultiTexCoord2fv;
+            public static glMultiTexCoord2fv pglMultiTexCoord2fv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2i(int target, int s, int t);
+            public delegate void glMultiTexCoord2i(int target, int s, int t);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2iARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2i pglMultiTexCoord2i;
+            public static glMultiTexCoord2i pglMultiTexCoord2i;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2iv(int target, int* v);
+            public delegate void glMultiTexCoord2iv(int target, int* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2ivARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2iv pglMultiTexCoord2iv;
+            public static glMultiTexCoord2iv pglMultiTexCoord2iv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2s(int target, short s, short t);
+            public delegate void glMultiTexCoord2s(int target, short s, short t);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2sARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2s pglMultiTexCoord2s;
+            public static glMultiTexCoord2s pglMultiTexCoord2s;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord2sv(int target, short* v);
+            public delegate void glMultiTexCoord2sv(int target, short* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord2svARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord2sv pglMultiTexCoord2sv;
+            public static glMultiTexCoord2sv pglMultiTexCoord2sv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3d(int target, double s, double t, double r);
+            public delegate void glMultiTexCoord3d(int target, double s, double t, double r);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3dARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3d pglMultiTexCoord3d;
+            public static glMultiTexCoord3d pglMultiTexCoord3d;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3dv(int target, double* v);
+            public delegate void glMultiTexCoord3dv(int target, double* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3dvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3dv pglMultiTexCoord3dv;
+            public static glMultiTexCoord3dv pglMultiTexCoord3dv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3f(int target, float s, float t, float r);
+            public delegate void glMultiTexCoord3f(int target, float s, float t, float r);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3fARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3f pglMultiTexCoord3f;
+            public static glMultiTexCoord3f pglMultiTexCoord3f;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3fv(int target, float* v);
+            public delegate void glMultiTexCoord3fv(int target, float* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3fvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3fv pglMultiTexCoord3fv;
+            public static glMultiTexCoord3fv pglMultiTexCoord3fv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3i(int target, int s, int t, int r);
+            public delegate void glMultiTexCoord3i(int target, int s, int t, int r);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3iARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3i pglMultiTexCoord3i;
+            public static glMultiTexCoord3i pglMultiTexCoord3i;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3iv(int target, int* v);
+            public delegate void glMultiTexCoord3iv(int target, int* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3ivARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3iv pglMultiTexCoord3iv;
+            public static glMultiTexCoord3iv pglMultiTexCoord3iv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3s(int target, short s, short t, short r);
+            public delegate void glMultiTexCoord3s(int target, short s, short t, short r);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3sARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3s pglMultiTexCoord3s;
+            public static glMultiTexCoord3s pglMultiTexCoord3s;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord3sv(int target, short* v);
+            public delegate void glMultiTexCoord3sv(int target, short* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord3svARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord3sv pglMultiTexCoord3sv;
+            public static glMultiTexCoord3sv pglMultiTexCoord3sv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4d(int target, double s, double t, double r, double q);
+            public delegate void glMultiTexCoord4d(int target, double s, double t, double r, double q);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4dARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4d pglMultiTexCoord4d;
+            public static glMultiTexCoord4d pglMultiTexCoord4d;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4dv(int target, double* v);
+            public delegate void glMultiTexCoord4dv(int target, double* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4dvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4dv pglMultiTexCoord4dv;
+            public static glMultiTexCoord4dv pglMultiTexCoord4dv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4f(int target, float s, float t, float r, float q);
+            public delegate void glMultiTexCoord4f(int target, float s, float t, float r, float q);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
             [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4fARB")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glMultiTexCoord4f pglMultiTexCoord4f;
+            public static glMultiTexCoord4f pglMultiTexCoord4f;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4fv(int target, float* v);
+            public delegate void glMultiTexCoord4fv(int target, float* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4fvARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4fv pglMultiTexCoord4fv;
+            public static glMultiTexCoord4fv pglMultiTexCoord4fv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4i(int target, int s, int t, int r, int q);
+            public delegate void glMultiTexCoord4i(int target, int s, int t, int r, int q);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4iARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4i pglMultiTexCoord4i;
+            public static glMultiTexCoord4i pglMultiTexCoord4i;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4iv(int target, int* v);
+            public delegate void glMultiTexCoord4iv(int target, int* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4ivARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4iv pglMultiTexCoord4iv;
+            public static glMultiTexCoord4iv pglMultiTexCoord4iv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4s(int target, short s, short t, short r, short q);
+            public delegate void glMultiTexCoord4s(int target, short s, short t, short r, short q);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4sARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4s pglMultiTexCoord4s;
+            public static glMultiTexCoord4s pglMultiTexCoord4s;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_multitexture")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiTexCoord4sv(int target, short* v);
+            public delegate void glMultiTexCoord4sv(int target, short* v);
 
             [RequiredByFeature("GL_VERSION_1_3")] [RequiredByFeature("GL_ARB_multitexture", EntryPoint = "glMultiTexCoord4svARB")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glMultiTexCoord4sv pglMultiTexCoord4sv;
+            public static glMultiTexCoord4sv pglMultiTexCoord4sv;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glLoadTransposeMatrixf(float* m);
+            public delegate void glLoadTransposeMatrixf(float* m);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix", EntryPoint = "glLoadTransposeMatrixfARB")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glLoadTransposeMatrixf pglLoadTransposeMatrixf;
+            public static glLoadTransposeMatrixf pglLoadTransposeMatrixf;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glLoadTransposeMatrixd(double* m);
+            public delegate void glLoadTransposeMatrixd(double* m);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix", EntryPoint = "glLoadTransposeMatrixdARB")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glLoadTransposeMatrixd pglLoadTransposeMatrixd;
+            public static glLoadTransposeMatrixd pglLoadTransposeMatrixd;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultTransposeMatrixf(float* m);
+            public delegate void glMultTransposeMatrixf(float* m);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix", EntryPoint = "glMultTransposeMatrixfARB")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glMultTransposeMatrixf pglMultTransposeMatrixf;
+            public static glMultTransposeMatrixf pglMultTransposeMatrixf;
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultTransposeMatrixd(double* m);
+            public delegate void glMultTransposeMatrixd(double* m);
 
             [RequiredByFeature("GL_VERSION_1_3")]
             [RequiredByFeature("GL_ARB_transpose_matrix", EntryPoint = "glMultTransposeMatrixdARB")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glMultTransposeMatrixd pglMultTransposeMatrixd;
+            public static glMultTransposeMatrixd pglMultTransposeMatrixd;
         }
     }
 }

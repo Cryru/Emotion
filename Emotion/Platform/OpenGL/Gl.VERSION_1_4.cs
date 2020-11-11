@@ -1755,7 +1755,7 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -1763,7 +1763,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_blend_func_separate")]
             [RequiredByFeature("GL_INGR_blend_func_separate")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendFuncSeparate(int sfactorRGB, int dfactorRGB, int sfactorAlpha, int dfactorAlpha);
+            public delegate void glBlendFuncSeparate(int sfactorRGB, int dfactorRGB, int sfactorAlpha, int dfactorAlpha);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -1771,23 +1771,23 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_blend_func_separate", EntryPoint = "glBlendFuncSeparateEXT")]
             [RequiredByFeature("GL_INGR_blend_func_separate", EntryPoint = "glBlendFuncSeparateINGR")]
             [ThreadStatic]
-            internal static glBlendFuncSeparate pglBlendFuncSeparate;
+            public static glBlendFuncSeparate pglBlendFuncSeparate;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiDrawArrays(int mode, int* first, int* count, int drawcount);
+            public delegate void glMultiDrawArrays(int mode, int* first, int* count, int drawcount);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2", EntryPoint = "glMultiDrawArraysEXT")] [ThreadStatic]
-            internal static glMultiDrawArrays pglMultiDrawArrays;
+            public static glMultiDrawArrays pglMultiDrawArrays;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiDrawElements(int mode, int* count, int type, IntPtr* indices, int drawcount);
+            public delegate void glMultiDrawElements(int mode, int* count, int type, IntPtr* indices, int drawcount);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_multi_draw_arrays", Api = "gl|gles1|gles2", EntryPoint = "glMultiDrawElementsEXT")] [ThreadStatic]
-            internal static glMultiDrawElements pglMultiDrawElements;
+            public static glMultiDrawElements pglMultiDrawElements;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
@@ -1795,7 +1795,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_point_parameters")]
             [RequiredByFeature("GL_SGIS_point_parameters")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPointParameterf(int pname, float param);
+            public delegate void glPointParameterf(int pname, float param);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
@@ -1803,7 +1803,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_point_parameters", EntryPoint = "glPointParameterfEXT")]
             [RequiredByFeature("GL_SGIS_point_parameters", EntryPoint = "glPointParameterfSGIS")]
             [ThreadStatic]
-            internal static glPointParameterf pglPointParameterf;
+            public static glPointParameterf pglPointParameterf;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
@@ -1811,7 +1811,7 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_point_parameters")]
             [RequiredByFeature("GL_SGIS_point_parameters")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPointParameterfv(int pname, float* @params);
+            public delegate void glPointParameterfv(int pname, float* @params);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1", Profile = "common")]
@@ -1819,496 +1819,496 @@ namespace OpenGL
             [RequiredByFeature("GL_EXT_point_parameters", EntryPoint = "glPointParameterfvEXT")]
             [RequiredByFeature("GL_SGIS_point_parameters", EntryPoint = "glPointParameterfvSGIS")]
             [ThreadStatic]
-            internal static glPointParameterfv pglPointParameterfv;
+            public static glPointParameterfv pglPointParameterfv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_NV_point_sprite")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPointParameteri(int pname, int param);
+            public delegate void glPointParameteri(int pname, int param);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_NV_point_sprite", EntryPoint = "glPointParameteriNV")] [ThreadStatic]
-            internal static glPointParameteri pglPointParameteri;
+            public static glPointParameteri pglPointParameteri;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_NV_point_sprite")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPointParameteriv(int pname, int* @params);
+            public delegate void glPointParameteriv(int pname, int* @params);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_NV_point_sprite", EntryPoint = "glPointParameterivNV")] [ThreadStatic]
-            internal static glPointParameteriv pglPointParameteriv;
+            public static glPointParameteriv pglPointParameteriv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_fog_coord")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFogCoordf(float coord);
+            public delegate void glFogCoordf(float coord);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordfEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glFogCoordf pglFogCoordf;
+            public static glFogCoordf pglFogCoordf;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_fog_coord")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFogCoordfv(float* coord);
+            public delegate void glFogCoordfv(float* coord);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordfvEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glFogCoordfv pglFogCoordfv;
+            public static glFogCoordfv pglFogCoordfv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_fog_coord")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFogCoordd(double coord);
+            public delegate void glFogCoordd(double coord);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoorddEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glFogCoordd pglFogCoordd;
+            public static glFogCoordd pglFogCoordd;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_fog_coord")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFogCoorddv(double* coord);
+            public delegate void glFogCoorddv(double* coord);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoorddvEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glFogCoorddv pglFogCoorddv;
+            public static glFogCoorddv pglFogCoorddv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_fog_coord")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glFogCoordPointer(int type, int stride, IntPtr pointer);
+            public delegate void glFogCoordPointer(int type, int stride, IntPtr pointer);
 
             [RequiredByFeature("GL_VERSION_1_4")] [RequiredByFeature("GL_EXT_fog_coord", EntryPoint = "glFogCoordPointerEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
-            internal static glFogCoordPointer pglFogCoordPointer;
+            public static glFogCoordPointer pglFogCoordPointer;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3b(sbyte red, sbyte green, sbyte blue);
+            public delegate void glSecondaryColor3b(sbyte red, sbyte green, sbyte blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3bEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3b pglSecondaryColor3b;
+            public static glSecondaryColor3b pglSecondaryColor3b;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3bv(sbyte* v);
+            public delegate void glSecondaryColor3bv(sbyte* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3bvEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3bv pglSecondaryColor3bv;
+            public static glSecondaryColor3bv pglSecondaryColor3bv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3d(double red, double green, double blue);
+            public delegate void glSecondaryColor3d(double red, double green, double blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3dEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3d pglSecondaryColor3d;
+            public static glSecondaryColor3d pglSecondaryColor3d;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3dv(double* v);
+            public delegate void glSecondaryColor3dv(double* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3dvEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3dv pglSecondaryColor3dv;
+            public static glSecondaryColor3dv pglSecondaryColor3dv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3f(float red, float green, float blue);
+            public delegate void glSecondaryColor3f(float red, float green, float blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3fEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3f pglSecondaryColor3f;
+            public static glSecondaryColor3f pglSecondaryColor3f;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3fv(float* v);
+            public delegate void glSecondaryColor3fv(float* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3fvEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3fv pglSecondaryColor3fv;
+            public static glSecondaryColor3fv pglSecondaryColor3fv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3i(int red, int green, int blue);
+            public delegate void glSecondaryColor3i(int red, int green, int blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3iEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3i pglSecondaryColor3i;
+            public static glSecondaryColor3i pglSecondaryColor3i;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3iv(int* v);
+            public delegate void glSecondaryColor3iv(int* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3ivEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3iv pglSecondaryColor3iv;
+            public static glSecondaryColor3iv pglSecondaryColor3iv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3s(short red, short green, short blue);
+            public delegate void glSecondaryColor3s(short red, short green, short blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3sEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3s pglSecondaryColor3s;
+            public static glSecondaryColor3s pglSecondaryColor3s;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3sv(short* v);
+            public delegate void glSecondaryColor3sv(short* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3svEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3sv pglSecondaryColor3sv;
+            public static glSecondaryColor3sv pglSecondaryColor3sv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3ub(byte red, byte green, byte blue);
+            public delegate void glSecondaryColor3ub(byte red, byte green, byte blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3ubEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3ub pglSecondaryColor3ub;
+            public static glSecondaryColor3ub pglSecondaryColor3ub;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3ubv(byte* v);
+            public delegate void glSecondaryColor3ubv(byte* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3ubvEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3ubv pglSecondaryColor3ubv;
+            public static glSecondaryColor3ubv pglSecondaryColor3ubv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3ui(uint red, uint green, uint blue);
+            public delegate void glSecondaryColor3ui(uint red, uint green, uint blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3uiEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3ui pglSecondaryColor3ui;
+            public static glSecondaryColor3ui pglSecondaryColor3ui;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3uiv(uint* v);
+            public delegate void glSecondaryColor3uiv(uint* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3uivEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3uiv pglSecondaryColor3uiv;
+            public static glSecondaryColor3uiv pglSecondaryColor3uiv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3us(ushort red, ushort green, ushort blue);
+            public delegate void glSecondaryColor3us(ushort red, ushort green, ushort blue);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3usEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3us pglSecondaryColor3us;
+            public static glSecondaryColor3us pglSecondaryColor3us;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColor3usv(ushort* v);
+            public delegate void glSecondaryColor3usv(ushort* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColor3usvEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColor3usv pglSecondaryColor3usv;
+            public static glSecondaryColor3usv pglSecondaryColor3usv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSecondaryColorPointer(int size, int type, int stride, IntPtr pointer);
+            public delegate void glSecondaryColorPointer(int size, int type, int stride, IntPtr pointer);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_EXT_secondary_color", EntryPoint = "glSecondaryColorPointerEXT")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glSecondaryColorPointer pglSecondaryColorPointer;
+            public static glSecondaryColorPointer pglSecondaryColorPointer;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2d(double x, double y);
+            public delegate void glWindowPos2d(double x, double y);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2dARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2dMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2d pglWindowPos2d;
+            public static glWindowPos2d pglWindowPos2d;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2dv(double* v);
+            public delegate void glWindowPos2dv(double* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2dvARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2dvMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2dv pglWindowPos2dv;
+            public static glWindowPos2dv pglWindowPos2dv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2f(float x, float y);
+            public delegate void glWindowPos2f(float x, float y);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2fARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2fMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2f pglWindowPos2f;
+            public static glWindowPos2f pglWindowPos2f;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2fv(float* v);
+            public delegate void glWindowPos2fv(float* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2fvARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2fvMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2fv pglWindowPos2fv;
+            public static glWindowPos2fv pglWindowPos2fv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2i(int x, int y);
+            public delegate void glWindowPos2i(int x, int y);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2iARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2iMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2i pglWindowPos2i;
+            public static glWindowPos2i pglWindowPos2i;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2iv(int* v);
+            public delegate void glWindowPos2iv(int* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2ivARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2ivMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2iv pglWindowPos2iv;
+            public static glWindowPos2iv pglWindowPos2iv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2s(short x, short y);
+            public delegate void glWindowPos2s(short x, short y);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2sARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2sMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2s pglWindowPos2s;
+            public static glWindowPos2s pglWindowPos2s;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos2sv(short* v);
+            public delegate void glWindowPos2sv(short* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos2svARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos2svMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos2sv pglWindowPos2sv;
+            public static glWindowPos2sv pglWindowPos2sv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3d(double x, double y, double z);
+            public delegate void glWindowPos3d(double x, double y, double z);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3dARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3dMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3d pglWindowPos3d;
+            public static glWindowPos3d pglWindowPos3d;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3dv(double* v);
+            public delegate void glWindowPos3dv(double* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3dvARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3dvMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3dv pglWindowPos3dv;
+            public static glWindowPos3dv pglWindowPos3dv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3f(float x, float y, float z);
+            public delegate void glWindowPos3f(float x, float y, float z);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3fARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3fMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3f pglWindowPos3f;
+            public static glWindowPos3f pglWindowPos3f;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3fv(float* v);
+            public delegate void glWindowPos3fv(float* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3fvARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3fvMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3fv pglWindowPos3fv;
+            public static glWindowPos3fv pglWindowPos3fv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3i(int x, int y, int z);
+            public delegate void glWindowPos3i(int x, int y, int z);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3iARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3iMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3i pglWindowPos3i;
+            public static glWindowPos3i pglWindowPos3i;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3iv(int* v);
+            public delegate void glWindowPos3iv(int* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3ivARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3ivMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3iv pglWindowPos3iv;
+            public static glWindowPos3iv pglWindowPos3iv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3s(short x, short y, short z);
+            public delegate void glWindowPos3s(short x, short y, short z);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3sARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3sMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3s pglWindowPos3s;
+            public static glWindowPos3s pglWindowPos3s;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos")]
             [RequiredByFeature("GL_MESA_window_pos")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glWindowPos3sv(short* v);
+            public delegate void glWindowPos3sv(short* v);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ARB_window_pos", EntryPoint = "glWindowPos3svARB")]
             [RequiredByFeature("GL_MESA_window_pos", EntryPoint = "glWindowPos3svMESA")]
             [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
             [ThreadStatic]
-            internal static glWindowPos3sv pglWindowPos3sv;
+            public static glWindowPos3sv pglWindowPos3sv;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -2316,7 +2316,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_imaging", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_blend_color")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendColor(float red, float green, float blue, float alpha);
+            public delegate void glBlendColor(float red, float green, float blue, float alpha);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -2324,7 +2324,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_imaging", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_blend_color", EntryPoint = "glBlendColorEXT")]
             [ThreadStatic]
-            internal static glBlendColor pglBlendColor;
+            public static glBlendColor pglBlendColor;
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -2332,7 +2332,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_imaging", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_blend_minmax")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glBlendEquation(int mode);
+            public delegate void glBlendEquation(int mode);
 
             [RequiredByFeature("GL_VERSION_1_4")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
@@ -2340,7 +2340,7 @@ namespace OpenGL
             [RequiredByFeature("GL_ARB_imaging", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_blend_minmax", EntryPoint = "glBlendEquationEXT")]
             [ThreadStatic]
-            internal static glBlendEquation pglBlendEquation;
+            public static glBlendEquation pglBlendEquation;
         }
     }
 }

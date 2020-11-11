@@ -796,79 +796,79 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix2x3fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
+            public delegate void glUniformMatrix2x3fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2", EntryPoint = "glUniformMatrix2x3fvNV")]
             [ThreadStatic]
-            internal static glUniformMatrix2x3fv pglUniformMatrix2x3fv;
+            public static glUniformMatrix2x3fv pglUniformMatrix2x3fv;
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix3x2fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
+            public delegate void glUniformMatrix3x2fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2", EntryPoint = "glUniformMatrix3x2fvNV")]
             [ThreadStatic]
-            internal static glUniformMatrix3x2fv pglUniformMatrix3x2fv;
+            public static glUniformMatrix3x2fv pglUniformMatrix3x2fv;
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix2x4fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
+            public delegate void glUniformMatrix2x4fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2", EntryPoint = "glUniformMatrix2x4fvNV")]
             [ThreadStatic]
-            internal static glUniformMatrix2x4fv pglUniformMatrix2x4fv;
+            public static glUniformMatrix2x4fv pglUniformMatrix2x4fv;
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix4x2fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
+            public delegate void glUniformMatrix4x2fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2", EntryPoint = "glUniformMatrix4x2fvNV")]
             [ThreadStatic]
-            internal static glUniformMatrix4x2fv pglUniformMatrix4x2fv;
+            public static glUniformMatrix4x2fv pglUniformMatrix4x2fv;
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix3x4fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
+            public delegate void glUniformMatrix3x4fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2", EntryPoint = "glUniformMatrix3x4fvNV")]
             [ThreadStatic]
-            internal static glUniformMatrix3x4fv pglUniformMatrix3x4fv;
+            public static glUniformMatrix3x4fv pglUniformMatrix3x4fv;
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glUniformMatrix4x3fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
+            public delegate void glUniformMatrix4x3fv(int location, int count, [MarshalAs(UnmanagedType.I1)] bool transpose, float* value);
 
             [RequiredByFeature("GL_VERSION_2_1")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2")]
             [RequiredByFeature("GL_NV_non_square_matrices", Api = "gles2", EntryPoint = "glUniformMatrix4x3fvNV")]
             [ThreadStatic]
-            internal static glUniformMatrix4x3fv pglUniformMatrix4x3fv;
+            public static glUniformMatrix4x3fv pglUniformMatrix4x3fv;
         }
     }
 }

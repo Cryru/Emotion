@@ -321,43 +321,43 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [RequiredByFeature("GL_VERSION_4_6")]
             [RequiredByFeature("GL_ARB_gl_spirv", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glSpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, uint* pConstantValue);
+            public delegate void glSpecializeShader(uint shader, string pEntryPoint, uint numSpecializationConstants, uint* pConstantIndex, uint* pConstantValue);
 
             [RequiredByFeature("GL_VERSION_4_6")] [RequiredByFeature("GL_ARB_gl_spirv", Api = "gl|glcore", EntryPoint = "glSpecializeShaderARB")] [ThreadStatic]
-            internal static glSpecializeShader pglSpecializeShader;
+            public static glSpecializeShader pglSpecializeShader;
 
             [RequiredByFeature("GL_VERSION_4_6")]
             [RequiredByFeature("GL_ARB_indirect_parameters", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiDrawArraysIndirectCount(int mode, IntPtr indirect, IntPtr drawcount, int maxdrawcount, int stride);
+            public delegate void glMultiDrawArraysIndirectCount(int mode, IntPtr indirect, IntPtr drawcount, int maxdrawcount, int stride);
 
             [RequiredByFeature("GL_VERSION_4_6")] [RequiredByFeature("GL_ARB_indirect_parameters", Api = "gl|glcore", EntryPoint = "glMultiDrawArraysIndirectCountARB")] [ThreadStatic]
-            internal static glMultiDrawArraysIndirectCount pglMultiDrawArraysIndirectCount;
+            public static glMultiDrawArraysIndirectCount pglMultiDrawArraysIndirectCount;
 
             [RequiredByFeature("GL_VERSION_4_6")]
             [RequiredByFeature("GL_ARB_indirect_parameters", Api = "gl|glcore")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glMultiDrawElementsIndirectCount(int mode, int type, IntPtr indirect, IntPtr drawcount, int maxdrawcount, int stride);
+            public delegate void glMultiDrawElementsIndirectCount(int mode, int type, IntPtr indirect, IntPtr drawcount, int maxdrawcount, int stride);
 
             [RequiredByFeature("GL_VERSION_4_6")] [RequiredByFeature("GL_ARB_indirect_parameters", Api = "gl|glcore", EntryPoint = "glMultiDrawElementsIndirectCountARB")] [ThreadStatic]
-            internal static glMultiDrawElementsIndirectCount pglMultiDrawElementsIndirectCount;
+            public static glMultiDrawElementsIndirectCount pglMultiDrawElementsIndirectCount;
 
             [RequiredByFeature("GL_VERSION_4_6")]
             [RequiredByFeature("GL_ARB_polygon_offset_clamp", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_polygon_offset_clamp", Api = "gl|glcore|gles2")]
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glPolygonOffsetClamp(float factor, float units, float clamp);
+            public delegate void glPolygonOffsetClamp(float factor, float units, float clamp);
 
             [RequiredByFeature("GL_VERSION_4_6")]
             [RequiredByFeature("GL_ARB_polygon_offset_clamp", Api = "gl|glcore")]
             [RequiredByFeature("GL_EXT_polygon_offset_clamp", Api = "gl|glcore|gles2", EntryPoint = "glPolygonOffsetClampEXT")]
             [ThreadStatic]
-            internal static glPolygonOffsetClamp pglPolygonOffsetClamp;
+            public static glPolygonOffsetClamp pglPolygonOffsetClamp;
         }
     }
 }

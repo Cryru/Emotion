@@ -299,16 +299,16 @@ namespace OpenGL
             DebugCheckErrors(null);
         }
 
-        internal static unsafe partial class Delegates
+        public static unsafe partial class Delegates
         {
             [SuppressUnmanagedCodeSecurity]
-            internal delegate void glTransformFeedbackVaryings_Unmanaged(uint program, int count, IntPtr* varyings, int bufferMode);
+            public delegate void glTransformFeedbackVaryings_Unmanaged(uint program, int count, IntPtr* varyings, int bufferMode);
 
             [RequiredByFeature("GL_VERSION_3_0", EntryPoint = "glTransformFeedbackVaryings")]
             [RequiredByFeature("GL_ES_VERSION_3_0", Api = "gles2", EntryPoint = "glTransformFeedbackVaryings")]
             [RequiredByFeature("GL_EXT_transform_feedback", EntryPoint = "glTransformFeedbackVaryingsEXT")]
             [ThreadStatic]
-            internal static glTransformFeedbackVaryings_Unmanaged pglTransformFeedbackVaryings_Unmanaged;
+            public static glTransformFeedbackVaryings_Unmanaged pglTransformFeedbackVaryings_Unmanaged;
         }
 
         #endregion

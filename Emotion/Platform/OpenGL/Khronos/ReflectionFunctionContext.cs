@@ -29,7 +29,7 @@ namespace Emotion.Platform.OpenGL.Khronos
         /// </summary>
         public ReflectionFunctionContext(Type type)
         {
-            Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.NonPublic);
+            Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.Public);
             Debug.Assert(delegatesClass != null);
             _delegateType = delegatesClass;
             Delegates = GetDelegateList(type);
@@ -43,7 +43,7 @@ namespace Emotion.Platform.OpenGL.Khronos
             if (functionName == null)
                 throw new ArgumentNullException(nameof(functionName));
 
-            FieldInfo functionField = _delegateType.GetField("p" + functionName, BindingFlags.Static | BindingFlags.NonPublic);
+            FieldInfo functionField = _delegateType.GetField("p" + functionName, BindingFlags.Static | BindingFlags.Public);
             Debug.Assert(functionField != null);
 
             return functionField;
@@ -54,10 +54,10 @@ namespace Emotion.Platform.OpenGL.Khronos
         /// </summary>
         public static DelegateList GetDelegateList(Type type)
         {
-            Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.NonPublic);
+            Type delegatesClass = type.GetNestedType("Delegates", BindingFlags.Static | BindingFlags.Public);
             Debug.Assert(delegatesClass != null);
 
-            return new DelegateList(delegatesClass.GetFields(BindingFlags.Static | BindingFlags.NonPublic));
+            return new DelegateList(delegatesClass.GetFields(BindingFlags.Static | BindingFlags.Public));
         }
     }
 }
