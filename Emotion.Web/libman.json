@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "defaultProvider": "filesystem",
+  "libraries": [
+    {
+      "library": "wwwroot/emotion.js",
+      "destination": "wwwroot/"
+    }
+  ]
+}
