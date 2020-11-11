@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Platform;
+using Emotion.Web.Helpers;
 using Microsoft.JSInterop;
 using OpenGL;
 
