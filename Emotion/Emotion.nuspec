@@ -22,14 +22,14 @@
     <language>en-US</language>
     <tags>game-engine game engine emotion opengl gles cross-platform game-development linux macos adfectus</tags>
     <dependencies>
-      <group targetFramework="netcoreapp3.0">
+      <group targetFramework="net5.0">
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Debug\netcoreapp3.0\Emotion.dll" target="lib\netcoreapp3.0\Emotion.dll" />
-    <file src="bin\Debug\netcoreapp3.0\Emotion.pdb" target="lib\netcoreapp3.0\Emotion.pdb" />
-    <file src="bin\Debug\netcoreapp3.0\Emotion.xml" target="lib\netcoreapp3.0\Emotion.xml" />
+    <file src="bin\Debug\net5.0\Emotion.dll" target="lib\net5.0\Emotion.dll" />
+    <file src="bin\Debug\net5.0\Emotion.pdb" target="lib\net5.0\Emotion.pdb" />
+    <file src="bin\Debug\net5.0\Emotion.xml" target="lib\net5.0\Emotion.xml" />
     <file src="..\EmotionLogo.png" target="images\" />
   </files>
 </package>

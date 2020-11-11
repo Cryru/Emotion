@@ -19,7 +19,7 @@ I would recommend checking out the tests in the "Tests" project as examples, and
 - OpenGL 3.0 or higher
   - Or DirectX 11 if ANGLE is enabled
   - Or a multi-core CPU if the Mesa software renderer is enabled
-- Be able to run the Net Core runtime.
+- Be able to run the Net 5 runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
 - A supported platform.
 

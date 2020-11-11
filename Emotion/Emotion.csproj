@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
     <FileUpgradeFlags>
@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>TRACE;ANGLE</DefineConstants>
+    <DefineConstants>TRACE;ANGLE, MESA</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
@@ -72,10 +72,10 @@
     <None Update="AssetsNativeLibs\GLFW\win64\glfw.dll" Condition="$(DefineConstants.Contains('GLFW'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
+    <None Update="AssetsNativeLibs\Mesa\win32\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
+    <None Update="AssetsNativeLibs\Mesa\win64\opengl32.dll" Condition="$(DefineConstants.Contains('MESA'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" Condition="$(DefineConstants.Contains('OpenAL'))">
