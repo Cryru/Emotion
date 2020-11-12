@@ -443,11 +443,7 @@ namespace Khronos
             protected internal void SyncMembers(KhronosVersion version)
             {
                 Type thisType = GetType();
-#if NETSTANDARD1_1 || NETSTANDARD1_4 || NETCORE
-				IEnumerable<FieldInfo> thisTypeFields = thisType.GetTypeInfo().DeclaredFields;
-#else
-                IEnumerable<FieldInfo> thisTypeFields = thisType.GetFields(BindingFlags.Instance | BindingFlags.Public);
-#endif
+                IEnumerable<FieldInfo> thisTypeFields = thisType.GetTypeInfo().DeclaredFields;
 
                 foreach (FieldInfo fieldInfo in thisTypeFields)
                 {
@@ -459,11 +455,7 @@ namespace Khronos
                     var support = false;
 
                     // Support by extension
-#if NETSTANDARD1_1 || NETSTANDARD1_4 || NETCORE
-					IEnumerable<Attribute> extensionAttributes = fieldInfo.GetCustomAttributes(typeof(ExtensionAttribute));
-#else
-                    IEnumerable<Attribute> extensionAttributes = Attribute.GetCustomAttributes(fieldInfo, typeof(ExtensionAttribute));
-#endif
+                    IEnumerable<Attribute> extensionAttributes = fieldInfo.GetCustomAttributes(typeof(ExtensionAttribute));
                     // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
                     foreach (ExtensionAttribute extensionAttribute in extensionAttributes)
                     {
@@ -479,11 +471,7 @@ namespace Khronos
                     // Support by version
                     if (version != null && support == false)
                     {
-#if NETSTANDARD1_1 || NETSTANDARD1_4 || NETCORE
-						IEnumerable<Attribute> coreAttributes = fieldInfo.GetCustomAttributes(typeof(CoreExtensionAttribute));
-#else
-                        IEnumerable<Attribute> coreAttributes = Attribute.GetCustomAttributes(fieldInfo, typeof(CoreExtensionAttribute));
-#endif
+                        IEnumerable<Attribute> coreAttributes = fieldInfo.GetCustomAttributes(typeof(CoreExtensionAttribute));
                         // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
                         foreach (CoreExtensionAttribute coreAttribute in coreAttributes)
                         {
