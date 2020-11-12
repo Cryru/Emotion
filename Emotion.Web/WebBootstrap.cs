@@ -8,7 +8,7 @@ using Microsoft.JSInterop;
 
 #endregion
 
-namespace Emotion.Web.Internal
+namespace Emotion.Web
 {
     public class WebBootstrap
     {
@@ -16,7 +16,6 @@ namespace Emotion.Web.Internal
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<RenderCanvas>("#app");
-
             builder.Services.AddSingleton(services => (IJSInProcessRuntime) services.GetRequiredService<IJSRuntime>());
             builder.Services.AddSingleton(services => (IJSUnmarshalledRuntime) services.GetRequiredService<IJSRuntime>());
             await builder.Build().RunAsync();

@@ -13,13 +13,13 @@ using OpenGL;
 
 namespace Emotion.Web.Platform
 {
-    public unsafe class WebGL : GraphicsContext
+    public unsafe class WebGLContext : GraphicsContext
     {
         private IJSUnmarshalledRuntime _gl;
         private Dictionary<string, Delegate> _webGlFuncDictionary = new Dictionary<string, Delegate>();
         private IntPtr _objectGenPtrHolder;
 
-        public WebGL(IJSUnmarshalledRuntime glContext)
+        public WebGLContext(IJSUnmarshalledRuntime glContext)
         {
             Native = false;
             _gl = glContext;

@@ -4,6 +4,7 @@ using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Platform;
+using Emotion.Web.RazorTemplates;
 
 #endregion
 
@@ -11,9 +12,11 @@ namespace Emotion.Web.Platform
 {
     public class WebHost : PlatformBase
     {
-        public GraphicsContext ContextSetter
+        private Vector2 _size;
+
+        public WebHost(RenderCanvas webGlHost)
         {
-            set => Context = value;
+            Context = new WebGLContext(webGlHost.JsRuntime);
         }
 
         protected override void SetupPlatform(Configurator config)
@@ -42,11 +45,12 @@ namespace Emotion.Web.Platform
 
         protected override Vector2 GetSize()
         {
-            return new Vector2(960, 540);
+            return _size;
         }
 
         protected override void SetSize(Vector2 size)
         {
+            _size = size;
         }
 
         public override IntPtr LoadLibrary(string path)

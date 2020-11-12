@@ -1,19 +1,4 @@
-@inject IJSUnmarshalledRuntime JsRuntime
-@inject IJSInProcessRuntime JSRuntimeMarshalled
-@inherits Emotion.Web.Internal.WebGLComponent
+@inherits ComponentBase
 <div id="container" style="background-color: black; height: 100%; opacity: 1; position: fixed; width: 100%;">
-    <CanvasBaseTemplate @ref="_canvasReference"></CanvasBaseTemplate>
+    <canvas></canvas>
 </div>
-
-@code {
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-    // Initiate Javascript
-        if (firstRender)
-            JSRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-}

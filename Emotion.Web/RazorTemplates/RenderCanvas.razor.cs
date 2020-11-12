@@ -10,18 +10,27 @@ using Microsoft.JSInterop;
 
 #endregion
 
-namespace Emotion.Web.Internal
+namespace Emotion.Web.RazorTemplates
 {
-    public class WebGLComponent : ComponentBase
+    public partial class RenderCanvas
     {
-        // ReSharper disable once UnassignedField.Global
-        protected CanvasBase _canvasReference;
+        // https://github.com/mono/mono/blob/b6ef72c244bd33623d231ff05bc3d120ad36b4e9/sdks/wasm/src/binding_support.js
+        // https://www.meziantou.net/generating-and-downloading-a-file-in-a-blazor-webassembly-application.htm
+        [Inject]
+        public IJSUnmarshalledRuntime JsRuntime { get; set; }
+
+        [Inject]
+        protected IJSInProcessRuntime _jsRuntimeMarshalled { get; set; }
 
         private Action _tickAction;
         private Action _drawAction;
 
         protected override Task OnAfterRenderAsync(bool firstRender)
         {
+            // Initiate Javascript
+            if (firstRender)
+                _jsRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
+
             if (!firstRender) return Task.CompletedTask;
 
             Engine.Setup(new Configurator
@@ -31,10 +40,7 @@ namespace Emotion.Web.Internal
                     _tickAction = tick;
                     _drawAction = draw;
                 },
-                PlatformOverride = new WebHost
-                {
-                    ContextSetter = new WebGL(_canvasReference.JSRuntime)
-                },
+                PlatformOverride = new WebHost(this),
                 Logger = new WebLogger(),
             });
 
