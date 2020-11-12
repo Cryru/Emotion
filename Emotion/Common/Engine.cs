@@ -217,6 +217,10 @@ namespace Emotion.Common
             // Just to make sure.
             if (Host == null) return;
 
+            byte targetStep = Configuration.DesiredStep;
+            if (targetStep <= 0) targetStep = 60;
+            TargetStep(targetStep);
+
             Status = EngineStatus.Running;
             if (Configuration.LoopFactory == null)
             {
@@ -225,7 +229,7 @@ namespace Emotion.Common
             }
 
             Log.Info("Starting loop...", MessageSource.Engine);
-            Configuration.LoopFactory(RunTick, RunFrame);
+            Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
         }
 
         /// <summary>
@@ -237,28 +241,8 @@ namespace Emotion.Common
         {
             DetectVSync();
 
-            // Settings
-            byte desiredStep = Configuration.DesiredStep;
-            if (desiredStep == 0) desiredStep = 60;
-            bool drawOnUpdate = Configuration.DrawOnUpdate;
-
-            // Setup tick time trackers.
-            var timer = Stopwatch.StartNew();
-            double targetTime = 1000f / desiredStep;
-            double accumulator = 0f;
-            double lastTick = 0f;
-
-            // Fuzzy time tracking, as no system has that kind of perfect timing.
-            double targetTimeFuzzyLower = 1000d / (desiredStep - 1);
-            double targetTimeFuzzyUpper = 1000d / (desiredStep + 1);
-
-            DeltaTime = (float) targetTime;
-
             while (Status == EngineStatus.Running)
             {
-#if SIMULATE_LAG
-                Task.Delay(Helpers.GenerateRandomNumber(0, 16)).Wait();
-#endif
                 // Run the host events, and check whether it is closing.
                 if (!Host.Update())
                 {
@@ -266,37 +250,10 @@ namespace Emotion.Common
                     break;
                 }
 
-                double curTime = timer.ElapsedMilliseconds;
-                double deltaTime = curTime - lastTick;
-                lastTick = curTime;
-
-                // Snap delta.
-                if (Math.Abs(targetTime - deltaTime) <= 1) deltaTime = targetTime;
-
-                // Add to the accumulator.
-                accumulator += deltaTime;
-
-                // Update as many times as needed.
-                var updated = false;
-                byte updates = 0;
-                while (accumulator > targetTimeFuzzyUpper)
-                {
-                    tick();
-                    accumulator -= targetTime;
-                    updated = true;
-
-                    if (accumulator < targetTimeFuzzyLower - targetTime) accumulator = 0;
-                    updates++;
-                    // Max updates are 5 - to prevent large spikes.
-                    // This does somewhat break the simulation - but these shouldn't happen except as a last resort.
-                    if (updates <= 5) continue;
-                    accumulator = 0;
-                    break;
-                }
-
+                tick();
+                // After tick, as it might close the host.
                 if (!Host.IsOpen) break;
-
-                if (!drawOnUpdate || updated) frame();
+                frame();
             }
 
             Quit();
@@ -340,7 +297,62 @@ namespace Emotion.Common
             Renderer.ApplySettings();
         }
 
-        private static void RunTick()
+        private static byte _desiredStep;
+        private static Stopwatch _updateTimer;
+        private static double _targetTime;
+        private static double _accumulator;
+        private static double _lastTick;
+        private static double _targetTimeFuzzyLower;
+        private static double _targetTimeFuzzyUpper;
+
+        // Setup some loop timing settings and objects.
+        private static void TargetStep(byte step)
+        {
+            _desiredStep = step;
+            _updateTimer = Stopwatch.StartNew();
+            _targetTime = 1000f / _desiredStep;
+            _accumulator = 0;
+            _lastTick = 0;
+
+            // Fuzzy time tracking, as no system has that kind of perfect timing.
+            _targetTimeFuzzyLower = 1000d / (_desiredStep - 1);
+            _targetTimeFuzzyUpper = 1000d / (_desiredStep + 1);
+
+            // Keep delta time constant.
+            DeltaTime = (float) _targetTime;
+        }
+
+        private static void RunTickIfNeeded()
+        {
+            double curTime = _updateTimer.ElapsedMilliseconds;
+            double deltaTime = curTime - _lastTick;
+            _lastTick = curTime;
+
+            // Snap delta.
+            if (Math.Abs(_targetTime - deltaTime) <= 1) deltaTime = _targetTime;
+
+            // Add to the accumulator.
+            _accumulator += deltaTime;
+
+            // Update as many times as needed.
+            byte updates = 0;
+            while (_accumulator > _targetTimeFuzzyUpper)
+            {
+                RunTickInternal();
+                _accumulator -= _targetTime;
+
+                if (_accumulator < _targetTimeFuzzyLower - _targetTime) _accumulator = 0;
+                updates++;
+
+                // Max updates are 5 - to prevent large spikes.
+                // This does somewhat break the simulation - but these shouldn't happen except as a last resort.
+                if (updates <= 5) continue;
+                _accumulator = 0;
+                break;
+            }
+        }
+
+        private static void RunTickInternal()
         {
 #if DEBUG
             DebugOnUpdateStart?.Invoke(null, EventArgs.Empty);

@@ -94,16 +94,6 @@ namespace Emotion.Common
         public byte DesiredStep { get; set; } = 60;
 
         /// <summary>
-        /// If true frames will be rendered only when at least one update occurs in a tick.
-        /// This will essentially cap the FPS to the DesiredStep (and the variance associated, if any).
-        /// In some cases you might want this, as VSync (such as VSync forced by the driver) can cause
-        /// the loop to be throttled by a wait on what is essentially an unchanged frame. Usually a problem on weaker machines.
-        /// This setting applies only if using the default loop.
-        /// Off by default.
-        /// </summary>
-        public bool DrawOnUpdate { get; set; }
-
-        /// <summary>
         /// The function to run as a loop.
         /// The first argument passed is the "RunTick" method which you should call every tick, the second is the "RunFrame" method
         /// which performs rendering and should be called every frame. It ends in a buffer swap.
