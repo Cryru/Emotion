@@ -33,5 +33,10 @@ namespace Emotion.IO
             enginePath = AssetLoader.JoinPath(AssetLoader.NameToEngineName(Folder), enginePath);
             return base.GetAsset(enginePath);
         }
+
+        public override string ToString()
+        {
+            return "Debug Asset Source";
+        }
     }
 }

@@ -145,7 +145,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The current drawing state. Don't modify directly!
         /// </summary>
-        public RenderState CurrentState { get; private set; } = new RenderState();
+        public RenderState CurrentState { get; private set; }
 
         /// <summary>
         /// The current frame buffer.
@@ -237,7 +237,10 @@ namespace Emotion.Graphics
 
             ShaderProgram.EnsureBound(ShaderFactory.DefaultProgram.Pointer);
 
-            // Create the blit state command for copying the draw buffer to the screen buffer.
+            // Create render state. This is the state that will be modified every time.
+            CurrentState = new RenderState();
+
+            // Create the blit state for copying the draw buffer to the screen buffer.
             _blitState = RenderState.Default.Clone();
             _blitState.AlphaBlending = false;
             _blitState.DepthTest = false;
