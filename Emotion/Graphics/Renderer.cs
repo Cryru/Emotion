@@ -15,6 +15,7 @@ using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
+using Khronos;
 using OpenGL;
 using VertexDataBatch = Emotion.Graphics.Batches.RenderBatch<Emotion.Graphics.Data.VertexData>;
 
@@ -198,7 +199,7 @@ namespace Emotion.Graphics
             // Set flags.
             CompatibilityMode = Gl.SoftwareRenderer || Engine.Configuration.RendererCompatMode;
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
-            TextureArrayLimit = Gl.SoftwareRenderer ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
+            TextureArrayLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
 
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 

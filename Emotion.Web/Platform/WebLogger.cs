@@ -13,7 +13,7 @@ namespace Emotion.Web.Platform
     {
         public override void Log(MessageType type, string source, string message)
         {
-            Console.WriteLine($"{Engine.TotalTime:0} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}");
+            Console.WriteLine($"[{type}] {Engine.TotalTime:0} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}");
         }
 
         public override void Dispose()

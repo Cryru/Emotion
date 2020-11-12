@@ -153,7 +153,9 @@ namespace OpenGL
             }
             else
             {
-                return new KhronosVersion(glVersion, KhronosVersion.PROFILE_COMPATIBILITY);
+                string profile = KhronosVersion.PROFILE_COMPATIBILITY;
+                if (CurrentRenderer.Contains("WebGL")) profile = KhronosVersion.PROFILE_WEBGL;
+                return new KhronosVersion(glVersion, profile);
             }
         }
 

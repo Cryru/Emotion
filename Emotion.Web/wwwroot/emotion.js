@@ -39,6 +39,8 @@ window.InitJavascript = (manager) => {
 // WebGL Driver
 // --------------------------------
 
+const SIZEOF_FLOAT = 4;
+
 function glGet(id) {
     var value = Emotion.gl.getParameter(id);
     if (value === undefined) {
@@ -84,4 +86,50 @@ function glBufferData(target, size, ptr) {
     // All WebGL buffers are marked as STREAM_DRAW (0x88E0) as it's the most commonly used in Emotion.
     // The real reason is that Unmarshalled call is limited to 3 arguments :)
     Emotion.gl.bufferData(target, memory, 0x88E0, 0, size);
+}
+
+function glClearColor(vec4Col) {
+    const r = Blazor.platform.readFloatField(vec4Col, 0);
+    const g = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT);
+    const b = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 2);
+    const a = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 3);
+    Emotion.gl.clearColor(r, g, b, a);
+}
+
+gShaders = [];
+
+function glCreateShader(type) {
+    const shader = Emotion.gl.createShader(type);
+    gShaders.push(shader);
+    return gShaders.length - 1;
+}
+
+function glShaderSource(shaderId, source) {
+    const shader = gShaders[shaderId];
+    const shaderSourceJs = BINDING.conv_string(source);
+    Emotion.gl.shaderSource(shader, shaderSourceJs);
+}
+
+function glCompileShader(shaderId) {
+    const shader = gShaders[shaderId];
+    Emotion.gl.compileShader(shader, shader);
+}
+
+function glGetShader(shaderId, param) {
+    const shader = gShaders[shaderId];
+    var value = Emotion.gl.getShaderParameter(shader, param);
+    if (value === null) return null;
+    if (typeof(value) === "number")
+        value = [value];
+    else if (typeof(value) === "boolean")
+        value = [value ? 1 : 0];
+
+    value = new Int32Array(value);
+    return BINDING.js_typed_array_to_array(value);
+}
+
+function glGetShaderInfo(shaderId) {
+    const shader = gShaders[shaderId];
+    const value = Emotion.gl.getShaderInfoLog(shader);
+    return BINDING.js_to_mono_obj(value);
 }

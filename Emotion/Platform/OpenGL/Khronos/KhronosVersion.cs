@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -271,6 +272,11 @@ namespace Khronos
         public const string PROFILE_COMMON = "common";
 
         /// <summary>
+        /// Specific to WebGL.
+        /// </summary>
+        public const string PROFILE_WEBGL = "webgl";
+
+        /// <summary>
         /// API profile. In the case of null profile, the meaning is determined by the specific method.
         /// </summary>
         public readonly string Profile;
@@ -499,7 +505,7 @@ namespace Khronos
             if (versionMatch.Success == false)
                 throw new ArgumentException($"unrecognized pattern '{input}'", nameof(input));
 
-            string api = null;
+            string api;
             int versionMajor = int.Parse(versionMatch.Groups["Major"].Value);
             int versionMinor = int.Parse(versionMatch.Groups["Minor"].Value);
             int versionRev = versionMatch.Groups["Rev"].Success ? int.Parse(versionMatch.Groups["Rev"].Value) : 0;
@@ -519,6 +525,10 @@ namespace Khronos
                 }
             else
                 api = API_GL;
+
+            // Regex will catch 2.0 as major version. WebGL 2.0 is always 3.0
+            // Example: WebGL 2.0 (OpenGL ES 3.0 Chromium)
+            if (Regex.IsMatch(input, "WebGL 2")) versionMajor = 3;
 
             return new KhronosVersion(versionMajor, versionMinor, versionRev, api);
         }
@@ -634,13 +644,8 @@ namespace Khronos
             if (ReferenceEquals(this, obj))
                 return true;
 
-#if NETSTANDARD1_1 || NETSTANDARD1_4 || NETCORE
-			if ((obj.GetType() != typeof(KhronosVersion)) && (obj.GetType().GetTypeInfo().IsSubclassOf(typeof(KhronosVersion)) == false))
-				return (false);
-#else
-            if (obj.GetType() != typeof(KhronosVersion) && obj.GetType().IsSubclassOf(typeof(KhronosVersion)) == false)
+            if (obj.GetType() != typeof(KhronosVersion) && obj.GetType().GetTypeInfo().IsSubclassOf(typeof(KhronosVersion)) == false)
                 return false;
-#endif
 
             return Equals((KhronosVersion) obj);
         }
