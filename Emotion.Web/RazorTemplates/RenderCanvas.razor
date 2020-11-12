@@ -1,7 +1,8 @@
-@inject IJSInProcessRuntime JsRuntime
-@inherits WebGLComponent
+@inject IJSUnmarshalledRuntime JsRuntime
+@inject IJSInProcessRuntime JSRuntimeMarshalled
+@inherits Emotion.Web.Internal.WebGLComponent
 <div id="container" style="background-color: black; height: 100%; opacity: 1; position: fixed; width: 100%;">
-    <HTMLCanvas width="@Width" Height="@Height" @ref="_canvasReference"></HTMLCanvas>
+    <CanvasBaseTemplate @ref="_canvasReference"></CanvasBaseTemplate>
 </div>
 
 @code {
@@ -10,7 +11,7 @@
     {
     // Initiate Javascript
         if (firstRender)
-            JsRuntime.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
+            JSRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
 
         await base.OnAfterRenderAsync(firstRender);
     }

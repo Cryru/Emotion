@@ -8,7 +8,7 @@ using Microsoft.JSInterop;
 
 namespace Emotion.Web
 {
-    public class BECanvasComponent : ComponentBase
+    public class CanvasBase : ComponentBase
     {
         [Parameter]
         public long Height { get; set; }
@@ -24,7 +24,12 @@ namespace Emotion.Web
             get => _canvasRef;
         }
 
+        // https://github.com/mono/mono/blob/b6ef72c244bd33623d231ff05bc3d120ad36b4e9/sdks/wasm/src/binding_support.js
+        // https://www.meziantou.net/generating-and-downloading-a-file-in-a-blazor-webassembly-application.htm
         [Inject]
-        protected IJSInProcessRuntime JSRuntime { get; set; }
+        public IJSUnmarshalledRuntime JSRuntime { get; set; }
+
+        [Inject]
+        protected IJSInProcessRuntime JSRuntimeMarshalled { get; set; }
     }
 }
