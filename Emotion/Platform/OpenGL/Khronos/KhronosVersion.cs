@@ -453,9 +453,6 @@ namespace Khronos
                 case "GL_ES":
                     api = API_GLES2;
                     break;
-                case "GL_SC":
-                    api = API_GLSC2;
-                    break;
                 case "WGL":
                     api = API_WGL;
                     break;

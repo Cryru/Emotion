@@ -114,7 +114,6 @@ namespace OpenGL
                     glslVersion = new GlslVersion(glslVersion.Major, glslVersion.Minor, API_GLSL);
                     break;
                 case API_GLES2:
-                case API_GLSC2:
                 case API_ESSL:
                     glslVersion = new GlslVersion(glslVersion.Major, glslVersion.Minor, API_ESSL);
                     break;
