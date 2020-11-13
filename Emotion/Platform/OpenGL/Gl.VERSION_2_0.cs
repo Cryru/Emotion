@@ -1646,16 +1646,15 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_2_0")]
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void GetUniformf<T>(uint program, int location, out T @params) where T : struct
+        public static void GetUniformf<T>(uint program, int location, out T param) where T : unmanaged
         {
             Debug.Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
-            @params = default;
+            
             unsafe
             {
-                TypedReference refParams = __makeref(@params);
-                IntPtr refParamsPtr = *(IntPtr*) (&refParams);
-
-                Delegates.pglGetUniformfv(program, location, (float*) refParamsPtr.ToPointer());
+                T p = default;
+                Delegates.pglGetUniformfv(program, location, (float*) (&p));
+                param = p;
             }
 
             DebugCheckErrors(null);
@@ -1733,16 +1732,14 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_2_0")]
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void GetUniformi<T>(uint program, int location, out T @params) where T : struct
+        public static void GetUniformi<T>(uint program, int location, out T param) where T : unmanaged
         {
             Debug.Assert(Delegates.pglGetUniformiv != null, "pglGetUniformiv not implemented");
-            @params = default;
             unsafe
             {
-                TypedReference refParams = __makeref(@params);
-                IntPtr refParamsPtr = *(IntPtr*) (&refParams);
-
-                Delegates.pglGetUniformiv(program, location, (int*) refParamsPtr.ToPointer());
+                T p = default;
+                Delegates.pglGetUniformiv(program, location, (int*) (&p));
+                param = p;
             }
 
             DebugCheckErrors(null);
@@ -2403,15 +2400,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void Uniform1f<T>(int location, int count, T value) where T : struct
+        public static void Uniform1f<T>(int location, int count, T value) where T : unmanaged
         {
             Debug.Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
             unsafe
             {
-                TypedReference refValue = __makeref(value);
-                IntPtr refValuePtr = *(IntPtr*) (&refValue);
-
-                Delegates.pglUniform1fv(location, count, (float*) refValuePtr.ToPointer());
+                Delegates.pglUniform1fv(location, count, (float*) (&value));
             }
 
             DebugCheckErrors(null);
@@ -2498,15 +2492,12 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void Uniform2f<T>(int location, int count, T value) where T : struct
+        public static void Uniform2f<T>(int location, int count, T value) where T : unmanaged
         {
             Debug.Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
             unsafe
             {
-                TypedReference refValue = __makeref(value);
-                IntPtr refValuePtr = *(IntPtr*) (&refValue);
-
-                Delegates.pglUniform2fv(location, count, (float*) refValuePtr.ToPointer());
+                Delegates.pglUniform2fv(location, count, (float*) (&value));
             }
 
             DebugCheckErrors(null);
@@ -2591,15 +2582,13 @@ namespace OpenGL
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
         [RequiredByFeature("GL_ARB_shader_objects")]
-        public static void Uniform3f<T>(int location, int count, T value) where T : struct
+        public static void Uniform3f<T>(int location, int count, T value) where T : unmanaged
         {
             Debug.Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
             unsafe
             {
-                TypedReference refValue = __makeref(value);
-                IntPtr refValuePtr = *(IntPtr*) (&refValue);
-
-                Delegates.pglUniform3fv(location, count, (float*) refValuePtr.ToPointer());
+                float* vecPtr = (float*) (&value);
+                Delegates.pglUniform3fv(location, count, vecPtr);
             }
 
             DebugCheckErrors(null);

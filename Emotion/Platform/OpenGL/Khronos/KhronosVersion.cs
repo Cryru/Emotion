@@ -177,21 +177,6 @@ namespace Khronos
         public const string API_GLES2 = "gles2";
 
         /// <summary>
-        /// OpenGL SC 2.0+ API.
-        /// </summary>
-        public const string API_GLSC2 = "glsc2";
-
-        /// <summary>
-        /// OpenGL VG API.
-        /// </summary>
-        public const string API_VG = "vg";
-
-        /// <summary>
-        /// OpenGL VX API.
-        /// </summary>
-        public const string API_VX = "vx";
-
-        /// <summary>
         /// OpenGL GLSL.
         /// </summary>
         public const string API_GLSL = "glsl";
@@ -200,16 +185,6 @@ namespace Khronos
         /// OpenGL ESSL.
         /// </summary>
         public const string API_ESSL = "essl";
-
-        /// <summary>
-        /// OpenWF Composition API.
-        /// </summary>
-        public const string API_WFC = "wfc";
-
-        /// <summary>
-        /// OpenWF Display API.
-        /// </summary>
-        public const string API_WFD = "wfd";
 
         /// <summary>
         /// The Khronos API description.

@@ -2551,15 +2551,12 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_transpose_matrix")]
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
-        public static void LoadTransposeMatrixf<T>(T m) where T : struct
+        public static void LoadTransposeMatrixf<T>(T m) where T : unmanaged
         {
             Debug.Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
             unsafe
             {
-                TypedReference refM = __makeref(m);
-                IntPtr refMPtr = *(IntPtr*) (&refM);
-
-                Delegates.pglLoadTransposeMatrixf((float*) refMPtr.ToPointer());
+                Delegates.pglLoadTransposeMatrixf((float*) (&m));
             }
 
             DebugCheckErrors(null);
@@ -2614,15 +2611,12 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_transpose_matrix")]
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
-        public static void LoadTransposeMatrixd<T>(T m) where T : struct
+        public static void LoadTransposeMatrixd<T>(T m) where T : unmanaged
         {
             Debug.Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
             unsafe
             {
-                TypedReference refM = __makeref(m);
-                IntPtr refMPtr = *(IntPtr*) (&refM);
-
-                Delegates.pglLoadTransposeMatrixd((double*) refMPtr.ToPointer());
+                Delegates.pglLoadTransposeMatrixd((double*) (&m));
             }
 
             DebugCheckErrors(null);
@@ -2677,15 +2671,12 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_transpose_matrix")]
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
-        public static void MultTransposeMatrixf<T>(T m) where T : struct
+        public static void MultTransposeMatrixf<T>(T m) where T : unmanaged
         {
             Debug.Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
             unsafe
             {
-                TypedReference refM = __makeref(m);
-                IntPtr refMPtr = *(IntPtr*) (&refM);
-
-                Delegates.pglMultTransposeMatrixf((float*) refMPtr.ToPointer());
+                Delegates.pglMultTransposeMatrixf((float*) (&m));
             }
 
             DebugCheckErrors(null);
@@ -2740,15 +2731,12 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_1_3")]
         [RequiredByFeature("GL_ARB_transpose_matrix")]
         [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
-        public static void MultTransposeMatrixd<T>(T m) where T : struct
+        public static void MultTransposeMatrixd<T>(T m) where T : unmanaged
         {
             Debug.Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
             unsafe
             {
-                TypedReference refM = __makeref(m);
-                IntPtr refMPtr = *(IntPtr*) (&refM);
-
-                Delegates.pglMultTransposeMatrixd((double*) refMPtr.ToPointer());
+                Delegates.pglMultTransposeMatrixd((double*) (&m));
             }
 
             DebugCheckErrors(null);
