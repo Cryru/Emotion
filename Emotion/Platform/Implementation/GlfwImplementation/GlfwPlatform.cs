@@ -36,6 +36,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private Glfw.KeyFunc _keyInputCallback;
 
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+        private Glfw.CharFunc _textInputCallback;
+
+        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private Glfw.FramebufferSizeFunc _resizeCallback;
 
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
@@ -97,6 +100,9 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             _mouseButtonFunc = MouseButtonKeyInput;
             Glfw.SetMouseButtonCallback(_win, _mouseButtonFunc);
 
+            _textInputCallback = TextInput;
+            Glfw.SetCharCallback(_win, _textInputCallback);
+
             Glfw.Monitor[] monitors = Glfw.GetMonitors();
             for (var i = 0; i < monitors.Length; i++)
             {
@@ -138,12 +144,16 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private void KeyInput(Glfw.Window window, Glfw.KeyCode key, int scancode, Glfw.InputState action, Glfw.KeyMods mods)
         {
             UpdateKeyStatus((Key) key, action == Glfw.InputState.Press || action == Glfw.InputState.Repeat);
-            if (action == Glfw.InputState.Press) OnTextInput.Invoke((char) key);
         }
 
         private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)
         {
             UpdateMouseKeyStatus((MouseKey) ((int) button + 1), state == Glfw.InputState.Press || state == Glfw.InputState.Repeat);
+        }
+
+        private void TextInput(Glfw.Window window, uint codePoint)
+        {
+            OnTextInput.Invoke((char) codePoint);
         }
 
         #region Window API
