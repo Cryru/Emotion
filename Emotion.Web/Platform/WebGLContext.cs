@@ -15,6 +15,54 @@ using OpenGL;
 
 namespace Emotion.Web.Platform
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct BufferDataArgs
+    {
+        public int Target;
+        public uint Size;
+        public IntPtr Ptr;
+        public int Usage;
+        public int Offset;
+    }
+
+    /// <summary>
+    /// The default float marshalling is buggy.
+    /// Box the float to work around it.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct BoxedFloat
+    {
+        public float Value;
+
+        public BoxedFloat(float val)
+        {
+            Value = val;
+        }
+    }
+
+    /// <summary>
+    /// Used for uploading matrix array uniforms and float array uniforms with
+    /// a component count of 2 or up.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MatrixUniformUploadData
+    {
+        public int ComponentCount;
+        public int ArrayLength;
+        public IntPtr Data;
+        public bool Transpose;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IntegerVector4
+    {
+        public int X;
+        public int Y;
+        public int Z;
+        public int W;
+    }
+
+
     public unsafe class WebGLContext : GraphicsContext
     {
         private IJSUnmarshalledRuntime _gl;
@@ -22,7 +70,8 @@ namespace Emotion.Web.Platform
         private IntPtr _objectGenPtrHolder;
 
         // State
-        private Dictionary<int, uint> _boundBuffers = new Dictionary<int, uint>();
+        private Dictionary<int, uint> _boundBuffers = new Dictionary<int, uint>(); // <Target, BufferId>
+        private Dictionary<uint, int> _bufferUsage = new Dictionary<uint, int>(); // <BufferId, UsageType>
 
         public WebGLContext(IJSUnmarshalledRuntime glContext)
         {
@@ -46,12 +95,38 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glUnmapBuffer", (Gl.Delegates.glUnmapBuffer) UnmapBuffer);
 
             _webGlFuncDictionary.Add("glClearColor", (Gl.Delegates.glClearColor) ClearColor);
+            _webGlFuncDictionary.Add("glEnable", (Gl.Delegates.glEnable) Enable);
+            _webGlFuncDictionary.Add("glDisable", (Gl.Delegates.glDisable) Disable);
+            _webGlFuncDictionary.Add("glDepthFunc", (Gl.Delegates.glDepthFunc) DepthFunc);
+            _webGlFuncDictionary.Add("glStencilMask", (Gl.Delegates.glStencilMask) StencilMask);
+            _webGlFuncDictionary.Add("glStencilFunc", (Gl.Delegates.glStencilFunc) StencilFunc);
+            _webGlFuncDictionary.Add("glStencilOp", (Gl.Delegates.glStencilOp) StencilOpF);
+            _webGlFuncDictionary.Add("glBlendFuncSeparate", (Gl.Delegates.glBlendFuncSeparate) BlendFuncSeparate);
 
             _webGlFuncDictionary.Add("glCreateShader", (Gl.Delegates.glCreateShader) CreateShader);
             _webGlFuncDictionary.Add("glShaderSource", (Gl.Delegates.glShaderSource) ShaderSource);
             _webGlFuncDictionary.Add("glCompileShader", (Gl.Delegates.glCompileShader) CompileShader);
-            _webGlFuncDictionary.Add("glGetShaderiv", (Gl.Delegates.glGetShaderiv) ShaderGet);
+            _webGlFuncDictionary.Add("glGetShaderiv", (Gl.Delegates.glGetShaderiv) ShaderGetParam);
             _webGlFuncDictionary.Add("glGetShaderInfoLog", (Gl.Delegates.glGetShaderInfoLog) ShaderInfoLog);
+
+            _webGlFuncDictionary.Add("glCreateProgram", (Gl.Delegates.glCreateProgram) CreateProgram);
+            _webGlFuncDictionary.Add("glUseProgram", (Gl.Delegates.glUseProgram) UseProgram);
+            _webGlFuncDictionary.Add("glAttachShader", (Gl.Delegates.glAttachShader) AttachShader);
+            _webGlFuncDictionary.Add("glBindAttribLocation", (Gl.Delegates.glBindAttribLocation) BindAttributeLocation);
+            _webGlFuncDictionary.Add("glLinkProgram", (Gl.Delegates.glLinkProgram) LinkProgram);
+            _webGlFuncDictionary.Add("glGetProgramInfoLog", (Gl.Delegates.glGetProgramInfoLog) ProgramInfoLog);
+            _webGlFuncDictionary.Add("glGetProgramiv", (Gl.Delegates.glGetProgramiv) ProgramGetParam);
+            _webGlFuncDictionary.Add("glGetUniformLocation", (Gl.Delegates.glGetUniformLocation) GetUniformLocation);
+            _webGlFuncDictionary.Add("glUniform1iv", (Gl.Delegates.glUniform1iv) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform1f", (Gl.Delegates.glUniform1f) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform2f", (Gl.Delegates.glUniform2f) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform3f", (Gl.Delegates.glUniform3f) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform4f", (Gl.Delegates.glUniform4f) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform1fv", (Gl.Delegates.glUniform1fv) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform2fv", (Gl.Delegates.glUniform2fv) UploadUniformFloatArrayMultiComponent2);
+            _webGlFuncDictionary.Add("glUniform3fv", (Gl.Delegates.glUniform3fv) UploadUniformFloatArrayMultiComponent3);
+            _webGlFuncDictionary.Add("glUniform4fv", (Gl.Delegates.glUniform4fv) UploadUniformFloatArrayMultiComponent4);
+            _webGlFuncDictionary.Add("glUniformMatrix4fv", (Gl.Delegates.glUniformMatrix4fv) UploadUniformMat4);
         }
 
         protected override void SetSwapIntervalPlatform(int interval)
@@ -79,7 +154,7 @@ namespace Emotion.Web.Platform
         {
             if (_webGlFuncDictionary.ContainsKey(func))
             {
-                Engine.Log.Trace($"Returning func {func}", "");
+                //Engine.Log.Trace($"Returning func {func}", "");
                 return _webGlFuncDictionary[func];
             }
 
@@ -154,7 +229,21 @@ namespace Emotion.Web.Platform
                 ptr = UnmanagedMemoryAllocator.MemAllocOrReAllocNamed((int) size, memoryName);
             else
                 UnmanagedMemoryAllocator.RegisterUnownedNamedMemory(ptr, memoryName, (int) size);
-            _gl.InvokeUnmarshalled<int, uint, IntPtr, object>("glBufferData", target, size, ptr);
+
+            if (usage != -1)
+                _bufferUsage[boundBuffer] = usage;
+            else
+                usage = _bufferUsage[boundBuffer];
+
+            var args = new BufferDataArgs
+            {
+                Usage = usage,
+                Size = size,
+                Ptr = ptr,
+                Target = target,
+                Offset = 0,
+            };
+            _gl.InvokeUnmarshalled<BufferDataArgs, object>("glBufferData", args);
         }
 
         private IntPtr MapBuffer(int target, int access)
@@ -189,12 +278,51 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<Vector4, object>("glClearColor", new Vector4(0.5f, g, 0.32f, a));
         }
 
+        private void Enable(int feature)
+        {
+            _gl.InvokeUnmarshalled<int, object>("glEnable", feature);
+        }
+
+        private void Disable(int feature)
+        {
+            _gl.InvokeUnmarshalled<int, object>("glDisable", feature);
+        }
+
+        private void DepthFunc(int funcId)
+        {
+            _gl.InvokeUnmarshalled<int, object>("glDepthFunc", funcId);
+        }
+
+        private void StencilMask(uint maskType)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glStencilMask", maskType);
+        }
+
+        private void StencilFunc(int funcId, int refV, uint mask)
+        {
+            _gl.InvokeUnmarshalled<int, int, uint, object>("glStencilFunc", funcId, refV, mask);
+        }
+
+        private void StencilOpF(int fail, int zFail, int pass)
+        {
+            _gl.InvokeUnmarshalled<int, int, int, object>("glStencilOp", fail, zFail, pass);
+        }
+
+        private void BlendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
+        {
+            var param = new IntegerVector4()
+            {
+                X = srcRGB,
+                Y = dstRGB,
+                Z = srcAlpha,
+                W = dstAlpha
+            };
+            _gl.InvokeUnmarshalled<IntegerVector4, object>("glBlendFuncSeparate", param);
+        }
+
         private uint CreateShader(int type)
         {
             return _gl.InvokeUnmarshalled<int, uint>("glCreateShader", type);
-            //Engine.Log.Trace($"Creating shader of type {type}", "WebGLInternal");
-            //WebGLShader shader = _gl.CreateShaderAsync((ShaderType) type).Result;
-            //return (uint) shader.Id;
         }
 
         private void ShaderSource(uint shader, int count, string[] data, int* length)
@@ -208,14 +336,14 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<uint, object>("glCompileShader", shader);
         }
 
-        private void ShaderGet(uint shader, int paramId, int* data)
+        private void ShaderGetParam(uint shader, int paramId, int* data)
         {
             int[] value;
 
             // Unsupported in WebGL. Invent a number if the shader compiled unsuccessfully, otherwise return 0 (for no log).
             if (paramId == (int) ShaderParameterName.InfoLogLength)
             {
-                value = _gl.InvokeUnmarshalled<uint, int, int[]>("glGetShader", shader, (int) ShaderParameterName.CompileStatus);
+                value = _gl.InvokeUnmarshalled<uint, int, int[]>("glGetShaderParam", shader, (int) ShaderParameterName.CompileStatus);
                 if (value == null || value[0] == 1)
                 {
                     *data = 0;
@@ -227,7 +355,7 @@ namespace Emotion.Web.Platform
                 return;
             }
 
-            value = _gl.InvokeUnmarshalled<uint, int, int[]>("glGetShader", shader, paramId);
+            value = _gl.InvokeUnmarshalled<uint, int, int[]>("glGetShaderParam", shader, paramId);
             //Engine.Log.Trace($"Shader query {(ShaderParameterName) paramId} got {string.Join(", ", value)}", "WebGLInternal");
             Marshal.Copy(value, 0, (IntPtr) data, value.Length);
         }
@@ -235,10 +363,122 @@ namespace Emotion.Web.Platform
         private void ShaderInfoLog(uint shaderId, int bufSize, int* length, StringBuilder logData)
         {
             string log = _gl.InvokeUnmarshalled<uint, string>("glGetShaderInfo", shaderId);
-            Engine.Log.Trace($"Shader log {log}", "WebGLInternal");
             *length = log.Length;
             if (log.Length == 0) return;
             logData.Append(log, 0, Math.Min(log.Length, bufSize));
+        }
+
+        private uint CreateProgram()
+        {
+            return _gl.InvokeUnmarshalled<uint>("glCreateProgram");
+        }
+
+        private void UseProgram(uint programId)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glUseProgram", programId);
+        }
+
+        private void AttachShader(uint program, uint shader)
+        {
+            _gl.InvokeUnmarshalled<uint, uint, object>("glAttachShader", program, shader);
+        }
+
+        private void BindAttributeLocation(uint program, uint index, string name)
+        {
+            _gl.InvokeUnmarshalled<uint, uint, string, object>("glBindAttribLocation", program, index, name);
+        }
+
+        private void LinkProgram(uint program)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glLinkProgram", program);
+        }
+
+        private void ProgramInfoLog(uint programId, int bufSize, int* length, StringBuilder logData)
+        {
+            string log = _gl.InvokeUnmarshalled<uint, string>("glGetProgramInfo", programId);
+            *length = log.Length;
+            if (log.Length == 0) return;
+            logData.Append(log, 0, Math.Min(log.Length, bufSize));
+        }
+
+        private void ProgramGetParam(uint program, int paramId, int* data)
+        {
+            int[] value = _gl.InvokeUnmarshalled<uint, int, int[]>("glGetProgramParam", program, paramId);
+            //Engine.Log.Trace($"Program query {(ProgramProperty) paramId} got {string.Join(", ", value)}", "WebGLInternal");
+            Marshal.Copy(value, 0, (IntPtr) data, value.Length);
+        }
+
+        private int GetUniformLocation(uint program, string name)
+        {
+            return _gl.InvokeUnmarshalled<uint, string, int>("glGetUniformLoc", program, name);
+        }
+
+        private void UploadUniform(int location, int count, int* value)
+        {
+            _gl.InvokeUnmarshalled<int, int, IntPtr, object>("glUniformIntArray", location, count, (IntPtr) value);
+        }
+
+        private void UploadUniform(int location, float value)
+        {
+            _gl.InvokeUnmarshalled<int, BoxedFloat, object>("glUniformFloat", location, new BoxedFloat(value));
+        }
+
+        private void UploadUniform(int location, float value, float value2)
+        {
+            _gl.InvokeUnmarshalled<int, Vector2, object>("glUniformFloat2", location, new Vector2(value, value2));
+        }
+
+        private void UploadUniform(int location, float value, float value2, float value3)
+        {
+            _gl.InvokeUnmarshalled<int, Vector3, object>("glUniformFloat3", location, new Vector3(value, value2, value3));
+        }
+
+        private void UploadUniform(int location, float value, float value2, float value3, float value4)
+        {
+            _gl.InvokeUnmarshalled<int, Vector4, object>("glUniformFloat4", location, new Vector4(value, value2, value3, value4));
+        }
+
+        private void UploadUniform(int location, int count, float* value)
+        {
+            _gl.InvokeUnmarshalled<int, int, IntPtr, object>("glUniformFloatArray", location, count, (IntPtr) value);
+        }
+
+        private void UploadUniformFloatArrayMultiComponent(int componentCount, int location, int count, float* value)
+        {
+            var uploadData = new MatrixUniformUploadData
+            {
+                ComponentCount = componentCount,
+                ArrayLength = count,
+                Data = (IntPtr) value,
+            };
+            _gl.InvokeUnmarshalled<int, MatrixUniformUploadData, object>("glUniformMultiFloatArray", location, uploadData);
+        }
+
+        private void UploadUniformFloatArrayMultiComponent2(int location, int count, float* value)
+        {
+            UploadUniformFloatArrayMultiComponent(2, location, count, value);
+        }
+
+        private void UploadUniformFloatArrayMultiComponent3(int location, int count, float* value)
+        {
+            UploadUniformFloatArrayMultiComponent(3, location, count, value);
+        }
+
+        private void UploadUniformFloatArrayMultiComponent4(int location, int count, float* value)
+        {
+            UploadUniformFloatArrayMultiComponent(4, location, count, value);
+        }
+
+        private void UploadUniformMat4(int location, int count, bool transpose, float* value)
+        {
+            var uploadData = new MatrixUniformUploadData
+            {
+                ComponentCount = 4,
+                ArrayLength = count,
+                Data = (IntPtr) value,
+                Transpose = transpose
+            };
+            _gl.InvokeUnmarshalled<int, MatrixUniformUploadData, object>("glUniformMatrix", location, uploadData);
         }
     }
 }

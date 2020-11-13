@@ -43,6 +43,7 @@ namespace Emotion.Web.RazorTemplates
                 PlatformOverride = new WebHost(this),
                 Logger = new WebLogger(),
             });
+            Engine.Run();
 
             return Task.CompletedTask;
         }
