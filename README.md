@@ -19,8 +19,10 @@ I would recommend checking out the tests in the "Tests" project as examples, and
 - OpenGL 3.0 or higher
   - Or DirectX 11 if ANGLE is enabled
   - Or a multi-core CPU if the Mesa software renderer is enabled
+  - WebGL 2.0 on Web
 - Be able to run the Net 5 runtime.
 	- If older than Windows 10 you'll need the [C++ Redistributable 2015 Update 3](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+	- WASM support on Web
 - A supported platform.
 
 That's it.
@@ -33,9 +35,11 @@ The goal is for the following platforms to be supported:
   - Debian 9+ x64 +
     - Linux Mint 18 +
     - Ubuntu 17.10 +
+  - Chromium 70+
 
 Currently supported:
   - Windows 7+ x64 & x86
+  - MacOSX 10.13 x64+ (Compile with "GLFW;OpenAL")
 
 ### Configurations Tested On:
 
@@ -51,6 +55,7 @@ Currently supported:
   - Intel 4 Series Express (using Mesa)
 - MacOSX 10.13 x64 High Sierra
   - MacBook Air (Intel 4000)
+- Chromium 86 (Not feature complete)
 
 ## Features So Far
 
@@ -59,7 +64,8 @@ Currently supported:
   - Borderless fullscreen, and windowed support. (terms and conditions may apply)
   - Pause when focus is lost, lowering resource usage in the background.
   - Google ANGLE support
-  - Software renderer fallback. Windows only
+  - Software renderer fallback on Windows only
+  - GLFW support
 - File Support
   - Reading and writing of various BMP formats and PNG files.
 	- BMP: 8/16/24/32bit

@@ -14,6 +14,9 @@ namespace Emotion.Web.RazorTemplates
 {
     public partial class RenderCanvas
     {
+        [Inject]
+        protected EmotionSetupService SetupService { get; set; }
+
         // https://github.com/mono/mono/blob/b6ef72c244bd33623d231ff05bc3d120ad36b4e9/sdks/wasm/src/binding_support.js
         // https://www.meziantou.net/generating-and-downloading-a-file-in-a-blazor-webassembly-application.htm
         [Inject]
@@ -27,24 +30,26 @@ namespace Emotion.Web.RazorTemplates
 
         protected override Task OnAfterRenderAsync(bool firstRender)
         {
-            // Initiate Javascript
-            if (firstRender)
-                _jsRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
-
             if (!firstRender) return Task.CompletedTask;
 
-            Engine.Setup(new Configurator
+            // Initiate Javascript
+            _jsRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
+            int[] hostSizeInitial = _jsRuntimeMarshalled.Invoke<int[]>("GetHostSize");
+
+            Configurator webConfig = new Configurator
             {
                 LoopFactory = (tick, draw) =>
                 {
                     _tickAction = tick;
                     _drawAction = draw;
                 },
-                PlatformOverride = new WebHost(this),
-                Logger = new WebLogger(),
-            });
-            Engine.Run();
-
+                PlatformOverride = new WebHost(this)
+                {
+                    Size = new Vector2(hostSizeInitial[0], hostSizeInitial[1])
+                },
+                Logger = new WebLogger()
+            };
+            SetupService.SetupEngine(webConfig);
             return Task.CompletedTask;
         }
 
@@ -60,7 +65,6 @@ namespace Emotion.Web.RazorTemplates
         {
             if (Engine.Host == null) return;
             Engine.Host.Size = new Vector2(width, height);
-            Engine.Host.OnResize.Invoke(Engine.Host.Size);
         }
     }
 }

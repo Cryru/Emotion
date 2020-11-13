@@ -15,6 +15,10 @@ function onResize() {
     Emotion.manager.invokeMethodAsync("HostResized", Emotion.canvas.width, Emotion.canvas.height);
 }
 
+function GetHostSize() {
+    return [Emotion.canvas.width, Emotion.canvas.height];
+}
+
 window.InitJavascript = (manager) => {
     var canvasContainer = document.getElementById("container");
     var canvases = canvasContainer.getElementsByTagName("canvas") || [];
@@ -42,6 +46,10 @@ window.InitJavascript = (manager) => {
 const SIZEOF_FLOAT = 4;
 const SIZEOF_INT = 4;
 
+function glGetError() {
+    return Emotion.gl.getError();
+}
+
 function glGet(id) {
     var value = Emotion.gl.getParameter(id);
     if (value === undefined) {
@@ -59,10 +67,6 @@ function glGet(id) {
 
 function GetGLExtensions() {
     return BINDING.js_to_mono_obj(Emotion.gl.getSupportedExtensions().join(" "));
-}
-
-function glGetError() {
-    return Emotion.gl.getError();
 }
 
 gBuffers = [];
@@ -94,6 +98,10 @@ function glBufferData(argsPtr) {
     Emotion.gl.bufferData(target, memory, usage, offset, size);
 }
 
+function glClear(mask) {
+    Emotion.gl.clear(mask);
+}
+
 function glClearColor(vec4Col) {
     // struct Vector4
     const r = Blazor.platform.readFloatField(vec4Col, 0);
@@ -101,6 +109,48 @@ function glClearColor(vec4Col) {
     const b = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 2);
     const a = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 3);
     Emotion.gl.clearColor(r, g, b, a);
+}
+
+function glEnable(feature) {
+    Emotion.gl.enable(feature);
+}
+
+function glDepthFunc(id) {
+    Emotion.gl.depthFunc(id);
+}
+
+function glDisable(feature) {
+    Emotion.gl.disable(feature);
+}
+
+function glStencilMask(maskType) {
+    Emotion.gl.stencilMask(maskType);
+}
+
+function glStencilFunc(func, rev, mask) {
+    Emotion.gl.stencilFunc(func, rev, mask);
+}
+
+function glStencilOp(fail, zfail, pass) {
+    Emotion.gl.stencilOp(fail, zfail, pass);
+}
+
+function glBlendFuncSeparate(valuePtr) {
+    // struct IntegerVector4
+    const srcRgb = Blazor.platform.readInt32Field(valuePtr, 0);
+    const dstRgb = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const srcAlpha = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const dstAlpha = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    Emotion.gl.blendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha);
+}
+
+function glViewport(valuePtr) {
+    // struct IntegerVector4
+    const x = Blazor.platform.readInt32Field(valuePtr, 0);
+    const y = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const w = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const h = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    Emotion.gl.viewport(x, y, w, h);
 }
 
 gShaders = [];
@@ -201,7 +251,7 @@ function glGetUniformLoc(programId, name) {
     const location = Emotion.gl.getUniformLocation(program, nameJs);
     if (location === null) return -1;
 
-    // Before adding it to the lookup table, make sure it isn't there.
+    // Before adding it to the lookup table, make sure it isn't there already.
     // This could be optimized with a second table.
     for (let i = 0; i < gShaderUniformLocations.length; i++) {
         if (gShaderUniformLocations[i] === location) {
@@ -290,35 +340,9 @@ function glUniformMatrix(locationId, valuePtr) {
     Emotion.gl.uniformMatrix4fv(location, transpose, data);
 }
 
-function glEnable(feature) {
-    Emotion.gl.enable(feature);
-}
+gFramebuffers = [];
 
-function glDepthFunc(id) {
-    Emotion.gl.depthFunc(id);
-}
-
-function glDisable(feature) {
-    Emotion.gl.disable(feature);
-}
-
-function glStencilMask(maskType) {
-    Emotion.gl.stencilMask(maskType);
-}
-
-function glStencilFunc(func, rev, mask) {
-    Emotion.gl.stencilFunc(func, rev, mask);
-}
-
-function glStencilOp(fail, zfail, pass) {
-    Emotion.gl.stencilOp(fail, zfail, pass);
-}
-
-function glBlendFuncSeparate(valuePtr) {
-    // struct IntegerVector4
-    const srcRgb = Blazor.platform.readInt32Field(valuePtr, 0);
-    const dstRgb = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
-    const srcAlpha = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
-    const dstAlpha = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
-    Emotion.gl.blendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha);
+function glBindFramebuffer(target, bufferId) {
+    const frameBuffer = gFramebuffers[bufferId - 1];
+    Emotion.gl.bindFramebuffer(target, frameBuffer);
 }

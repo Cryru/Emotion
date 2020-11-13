@@ -94,7 +94,8 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glMapBufferRange", (Gl.Delegates.glMapBufferRange) MapBufferRange);
             _webGlFuncDictionary.Add("glUnmapBuffer", (Gl.Delegates.glUnmapBuffer) UnmapBuffer);
 
-            _webGlFuncDictionary.Add("glClearColor", (Gl.Delegates.glClearColor) ClearColor);
+            _webGlFuncDictionary.Add("glClear", (Gl.Delegates.glClear) Clear);
+            _webGlFuncDictionary.Add("glClearColor", (Gl.Delegates.glClearColor) SetClearColor);
             _webGlFuncDictionary.Add("glEnable", (Gl.Delegates.glEnable) Enable);
             _webGlFuncDictionary.Add("glDisable", (Gl.Delegates.glDisable) Disable);
             _webGlFuncDictionary.Add("glDepthFunc", (Gl.Delegates.glDepthFunc) DepthFunc);
@@ -102,6 +103,7 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glStencilFunc", (Gl.Delegates.glStencilFunc) StencilFunc);
             _webGlFuncDictionary.Add("glStencilOp", (Gl.Delegates.glStencilOp) StencilOpF);
             _webGlFuncDictionary.Add("glBlendFuncSeparate", (Gl.Delegates.glBlendFuncSeparate) BlendFuncSeparate);
+            _webGlFuncDictionary.Add("glViewport", (Gl.Delegates.glViewport) Viewport);
 
             _webGlFuncDictionary.Add("glCreateShader", (Gl.Delegates.glCreateShader) CreateShader);
             _webGlFuncDictionary.Add("glShaderSource", (Gl.Delegates.glShaderSource) ShaderSource);
@@ -127,6 +129,8 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glUniform3fv", (Gl.Delegates.glUniform3fv) UploadUniformFloatArrayMultiComponent3);
             _webGlFuncDictionary.Add("glUniform4fv", (Gl.Delegates.glUniform4fv) UploadUniformFloatArrayMultiComponent4);
             _webGlFuncDictionary.Add("glUniformMatrix4fv", (Gl.Delegates.glUniformMatrix4fv) UploadUniformMat4);
+
+            _webGlFuncDictionary.Add("glBindFramebuffer", (Gl.Delegates.glBindFramebuffer) BindFramebuffer);
         }
 
         protected override void SetSwapIntervalPlatform(int interval)
@@ -158,7 +162,7 @@ namespace Emotion.Web.Platform
                 return _webGlFuncDictionary[func];
             }
 
-            Engine.Log.Trace($"Missing WebGL function {func}", "WebGL");
+            //Engine.Log.Trace($"Missing WebGL function {func}", "WebGL");
             return base.GetProcAddressNonNative(func);
         }
 
@@ -273,7 +277,12 @@ namespace Emotion.Web.Platform
             return true;
         }
 
-        private void ClearColor(float r, float g, float b, float a)
+        private void Clear(uint mask)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glClear", mask);
+        }
+
+        private void SetClearColor(float r, float g, float b, float a)
         {
             _gl.InvokeUnmarshalled<Vector4, object>("glClearColor", new Vector4(0.5f, g, 0.32f, a));
         }
@@ -306,6 +315,18 @@ namespace Emotion.Web.Platform
         private void StencilOpF(int fail, int zFail, int pass)
         {
             _gl.InvokeUnmarshalled<int, int, int, object>("glStencilOp", fail, zFail, pass);
+        }
+
+        private void Viewport(int x, int y, int width, int height)
+        {
+            var param = new IntegerVector4()
+            {
+                X = x,
+                Y = y,
+                Z = width,
+                W = height
+            };
+            _gl.InvokeUnmarshalled<IntegerVector4, object>("glViewport", param);
         }
 
         private void BlendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
@@ -479,6 +500,11 @@ namespace Emotion.Web.Platform
                 Transpose = transpose
             };
             _gl.InvokeUnmarshalled<int, MatrixUniformUploadData, object>("glUniformMatrix", location, uploadData);
+        }
+
+        private void BindFramebuffer(int target, uint bufferId)
+        {
+            _gl.InvokeUnmarshalled<int, uint, object>("glBindFramebuffer", target, bufferId);
         }
     }
 }

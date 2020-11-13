@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Platform;
@@ -16,7 +17,9 @@ namespace Emotion.Web.Platform
 
         public WebHost(RenderCanvas webGlHost)
         {
+            DisplayMode = DisplayMode.Windowed;
             Context = new WebGLContext(webGlHost.JsRuntime);
+            //https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode
         }
 
         protected override void SetupPlatform(Configurator config)
