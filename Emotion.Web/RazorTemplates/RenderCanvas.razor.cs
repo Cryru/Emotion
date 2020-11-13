@@ -12,7 +12,7 @@ using Microsoft.JSInterop;
 
 namespace Emotion.Web.RazorTemplates
 {
-    public partial class RenderCanvas
+    public partial class RenderCanvas : ComponentBase
     {
         [Inject]
         protected EmotionSetupService SetupService { get; set; }

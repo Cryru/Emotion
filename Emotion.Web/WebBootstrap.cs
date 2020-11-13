@@ -11,21 +11,6 @@ using Microsoft.JSInterop;
 
 namespace Emotion.Web
 {
-    public class WebBootstrap
-    {
-        public static async Task Main(string[] args)
-        {
-            await LibraryBootstrap.MainLibrary(args, new EmotionSetupService()
-            {
-                SetupEngine = (config) =>
-                {
-                    Engine.Setup(config);
-                    Engine.Run();
-                }
-            });
-        }
-    }
-
     public static class LibraryBootstrap
     {
         public static async Task MainLibrary(string[] args, EmotionSetupService setup)
