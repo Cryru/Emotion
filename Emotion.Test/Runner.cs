@@ -189,7 +189,7 @@ namespace Emotion.Test
                 if (Engine.Status == EngineStatus.Stopped) return;
 
                 // Name the thread.
-                if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = "Runner Thread";
+                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Runner Thread";
 
                 BeginRun();
 

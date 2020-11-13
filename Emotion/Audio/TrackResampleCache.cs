@@ -143,7 +143,7 @@ namespace Emotion.Audio
         /// </summary>
         private void FillCache()
         {
-            Thread.CurrentThread.Name ??= "Resample Thread";
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Resample Thread";
             Engine.Log.Trace("Starting resample.", MessageSource.Audio);
             lock (this)
             {

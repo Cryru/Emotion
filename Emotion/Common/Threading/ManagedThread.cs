@@ -60,7 +60,7 @@ namespace Emotion.Common.Threading
         public void BindThread()
         {
             _threadId = Thread.CurrentThread.ManagedThreadId;
-            if (Thread.CurrentThread.Name == null) Thread.CurrentThread.Name = ThreadName;
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= ThreadName;
             IsBound = true;
         }
 

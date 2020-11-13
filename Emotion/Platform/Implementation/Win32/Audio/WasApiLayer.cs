@@ -38,7 +38,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         private void LayerThread()
         {
-            Thread.CurrentThread.Name ??= $"Audio Layer - {Name}";
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Layer - {Name}";
             Engine.Log.Trace($"Layer {Name} started.", MessageSource.Audio);
             while (_alive && Engine.Status != EngineStatus.Stopped)
             {

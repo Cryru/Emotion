@@ -271,7 +271,7 @@ namespace Emotion.IO
         {
             return Task.Run(() =>
             {
-                Thread.CurrentThread.Name ??= $"AssetLoading Thread {name}";
+                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"AssetLoading Thread {name}";
                 return Get<T>(name);
             });
         }

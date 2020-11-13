@@ -16,6 +16,7 @@ namespace Emotion.Web.ExecTest
                 SetupEngine = config =>
                 {
                     Engine.Setup(config);
+                    Engine.SceneManager.SetScene(new Emotion.ExecTest.Program());
                     Engine.Run();
                 }
             });

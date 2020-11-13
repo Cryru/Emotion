@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Emotion.ExecTest\Emotion.ExecTest.csproj" />
     <ProjectReference Include="..\Emotion.Web\Emotion.Web.csproj" />
   </ItemGroup>
 

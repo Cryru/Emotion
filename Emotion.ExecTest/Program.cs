@@ -14,7 +14,7 @@ using Emotion.Scenography;
 
 namespace Emotion.ExecTest
 {
-    internal class Program : IScene
+    public class Program : IScene
     {
         private static int dirX;
         private static int dirY;

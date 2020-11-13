@@ -17,7 +17,8 @@ namespace Emotion.Web.Platform
 
         public WebHost(RenderCanvas webGlHost)
         {
-            DisplayMode = DisplayMode.Windowed;
+            DisplayMode = DisplayMode.Windowed; // Needed to be able to set the size.
+            NamedThreads = false; // Threads can be named here, but it causes weird behavior.
             Context = new WebGLContext(webGlHost.JsRuntime);
             //https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode
         }

@@ -51,6 +51,11 @@ namespace Emotion.Platform
         public ManualResetEvent FocusWait { get; set; } = new ManualResetEvent(true);
 
         /// <summary>
+        /// Whether this platform supports naming threads.
+        /// </summary>
+        public bool NamedThreads { get; set; } = true;
+
+        /// <summary>
         /// The sizes to switch between in debug mode by using ctrl + F1-F9
         /// Debug functionality.
         /// </summary>

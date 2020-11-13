@@ -73,7 +73,7 @@ namespace Emotion.Standard.Logging
 
         private void LogThread()
         {
-            Thread.CurrentThread.Name ??= "Logging Thread";
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Logging Thread";
 
             string fileName = GenerateLogName();
             string fileDirectory = Path.GetDirectoryName(fileName);
