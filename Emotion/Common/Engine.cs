@@ -446,8 +446,12 @@ namespace Emotion.Common
         {
             // ReSharper disable once RedundantAssignment
             PlatformBase platform = null;
-            if (engineConfig?.PlatformOverride != null) platform = engineConfig.PlatformOverride;
-            if (platform != null) Log.Info($"Platform override of \"{platform}\" accepted", MessageSource.Engine);
+            if (engineConfig?.PlatformOverride != null)
+            {
+                platform = engineConfig.PlatformOverride;
+                Log.Info($"Platform override of \"{platform}\" accepted", MessageSource.Engine);
+                return platform;
+            }
 
 #if GLFW
             platform = new GlfwPlatform();
