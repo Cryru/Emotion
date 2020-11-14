@@ -5,6 +5,7 @@ using System.Numerics;
 using Emotion.Common;
 using Emotion.Platform;
 using Emotion.Platform.Input;
+using Emotion.Scenography;
 using Emotion.Web.RazorTemplates;
 using Microsoft.JSInterop;
 
@@ -33,9 +34,15 @@ namespace Emotion.Web.Platform
 
         protected override void SetupPlatform(Configurator config)
         {
+            // Don't load the first scene before assets have loaded.
+            SceneManager.SuppressSceneSwap = true;
             var webAssetSource = new WebAssetSource("AssetBlobs", _canvasElement.HttpClient);
             webAssetSource.StartLoad();
-            webAssetSource.LoadingTask.ContinueWith(r => { Engine.AssetLoader.AddSource(webAssetSource); });
+            webAssetSource.LoadingTask.ContinueWith(r =>
+            {
+                Engine.AssetLoader.AddSource(webAssetSource);
+                SceneManager.SuppressSceneSwap = false;
+            });
         }
 
         public override void DisplayMessageBox(string message)

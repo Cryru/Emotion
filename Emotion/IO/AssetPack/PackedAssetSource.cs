@@ -41,6 +41,7 @@ namespace Emotion.IO.AssetPack
         protected PackedAssetSource(string directory)
         {
             _blobDirectory = directory;
+            _manifestNames = Array.Empty<string>();
         }
 
         public void StartLoad()
@@ -53,11 +54,7 @@ namespace Emotion.IO.AssetPack
             try
             {
                 byte[] manifestBytes = await GetFileContent(Path.Join(_blobDirectory, "manifest.xml"));
-                if (manifestBytes == null)
-                {
-                    _manifestNames = Array.Empty<string>();
-                    return;
-                }
+                if (manifestBytes == null) return;
 
                 _manifest = XMLFormat.From<AssetBlobManifest>(manifestBytes);
 
