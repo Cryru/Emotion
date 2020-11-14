@@ -43,6 +43,14 @@ namespace Emotion.Scenography
         /// </summary>
         public EventHandler SceneChanged;
 
+        /// <summary>
+        /// Suppress the swapping of the loading screen with the scene currently loading.
+        /// Can be used to prolong and control the loading screen scene even after the scene has loaded.
+        /// </summary>
+        public static bool SuppressSceneSwap { get; set; }
+
+        private Task _sceneLoadingTask;
+
         #endregion
 
         #region Private Holders
@@ -70,6 +78,7 @@ namespace Emotion.Scenography
         /// <summary>
         /// Run the scene's update code.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Update()
         {
             SwapCheck();
@@ -98,7 +107,7 @@ namespace Emotion.Scenography
         {
             Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
-            return Task.Run(() =>
+            _sceneLoadingTask = new Task(() =>
             {
                 if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
 
@@ -131,6 +140,7 @@ namespace Emotion.Scenography
                 PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
                 Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
             });
+            return _sceneLoadingTask;
         }
 
         /// <summary>
@@ -168,11 +178,8 @@ namespace Emotion.Scenography
             }
 
             if (Engine.Configuration.DebugMode && Debugger.IsAttached)
-            {
                 LoadFunc();
-            }
             else
-            {
                 // This try doesn't actually prevent a crash. It just makes sure the exception is logged.
                 try
                 {
@@ -183,7 +190,6 @@ namespace Emotion.Scenography
                     if (Debugger.IsAttached) throw;
                     Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
                 }
-            }
         }
 
         private void Unload(IScene scene)
@@ -236,13 +242,16 @@ namespace Emotion.Scenography
         /// </summary>
         private void SwapCheck()
         {
+            if (SuppressSceneSwap) return;
+            if (_sceneLoadingTask != null && _sceneLoadingTask.Status == TaskStatus.Created) _sceneLoadingTask.Start();
+
             lock (_swapMutex)
             {
                 if (_swapScene == null) return;
                 Current = _swapScene;
                 _swapScene = null;
             }
-            
+
             SceneChanged?.Invoke(this, EventArgs.Empty);
         }
 
