@@ -50,65 +50,80 @@ namespace Emotion.IO.AssetPack
 
         protected async Task Load()
         {
-            byte[] manifestBytes = await GetFileContent(Path.Join(_blobDirectory, "manifest.xml"));
-            if (manifestBytes == null)
+            try
             {
-                _manifestNames = Array.Empty<string>();
-                return;
-            }
-
-            _manifest = XMLFormat.From<AssetBlobManifest>(manifestBytes);
-
-            // Build file manifest.
-            _fileManifest = new Dictionary<string, (int blobIdx, BlobFile blobFile)>();
-            int numberOfBlobs = _manifest.Blobs.Length;
-            for (var i = 0; i < numberOfBlobs; i++)
-            {
-                foreach ((string fileName, BlobFile file) in _manifest.Blobs[i].BlobMeta)
+                byte[] manifestBytes = await GetFileContent(Path.Join(_blobDirectory, "manifest.xml"));
+                if (manifestBytes == null)
                 {
-                    _fileManifest.Add(AssetLoader.NameToEngineName(fileName), (i, file));
+                    _manifestNames = Array.Empty<string>();
+                    return;
                 }
-            }
 
-            _blobContents = new byte[numberOfBlobs][];
-            var blobLoadingTasks = new Task[numberOfBlobs];
-            float progressPerBlob = 1.0f / numberOfBlobs;
-            for (var i = 0; i < _blobContents.Length; i++)
+                _manifest = XMLFormat.From<AssetBlobManifest>(manifestBytes);
+
+                // Build file manifest.
+                _fileManifest = new Dictionary<string, (int blobIdx, BlobFile blobFile)>();
+                int numberOfBlobs = _manifest.Blobs.Length;
+                for (var i = 0; i < numberOfBlobs; i++)
+                {
+                    AssetBlob currentBlob = _manifest.Blobs[i];
+                    foreach ((string fileName, BlobFile file) in currentBlob.BlobMeta)
+                    {
+                        _fileManifest.Add(AssetLoader.NameToEngineName(fileName), (currentBlob.Index, file));
+                    }
+                }
+
+                _blobContents = new byte[numberOfBlobs][];
+                var blobLoadingTasks = new Task[numberOfBlobs];
+                float progressPerBlob = 1.0f / numberOfBlobs;
+                for (var i = 0; i < _blobContents.Length; i++)
+                {
+                    blobLoadingTasks[i] = LoadBlob(i).ContinueWith(_ => { Progress += progressPerBlob; });
+                }
+
+                await Task.WhenAll(blobLoadingTasks);
+
+                Progress = 1f;
+                _manifestNames = _fileManifest.Keys.ToArray();
+            }
+            catch (Exception ex)
             {
-                blobLoadingTasks[i] = LoadBlob(i).ContinueWith(_ => { Progress += progressPerBlob; });
+                Engine.Log.Error($"Error in loading packed asset source - {ex}.", "PackedAssetSource");
             }
-
-            await Task.WhenAll(blobLoadingTasks);
-
-            Progress = 1f;
-            _manifestNames = _fileManifest.Keys.ToArray();
         }
 
         protected async Task LoadBlob(int blobIdx)
         {
-            string blobName = Path.Join(_blobDirectory, $"{_manifest.BlobNamePrefix}{blobIdx}.bin");
-            byte[] content = await GetFileContent(blobName);
-
-            if (content == null)
+            try
             {
-                Engine.Log.Error($"Couldn't load asset blob {blobName}. Removing its assets from the manifest.", "PackedAssetSource");
-                var removeKeys = new List<string>();
-                foreach ((string fileName, (int blobIdx, BlobFile blobFile) value) in _fileManifest)
-                {
-                    if (value.blobIdx == blobIdx) removeKeys.Add(fileName);
-                }
+                string blobName = Path.Join(_blobDirectory, $"{_manifest.BlobNamePrefix}{blobIdx}.bin");
+                byte[] content = await GetFileContent(blobName);
 
-                for (var i = 0; i < removeKeys.Count; i++)
+                if (content == null)
                 {
-                    _fileManifest.Remove(removeKeys[i]);
-                }
+                    Engine.Log.Error($"Couldn't load asset blob {blobName}. Removing its assets from the manifest.", "PackedAssetSource");
+                    var removeKeys = new List<string>();
+                    foreach ((string fileName, (int blobIdx, BlobFile blobFile) value) in _fileManifest)
+                    {
+                        if (value.blobIdx == blobIdx) removeKeys.Add(fileName);
+                    }
 
-                _blobContents[blobIdx] = null;
+                    for (var i = 0; i < removeKeys.Count; i++)
+                    {
+                        _fileManifest.Remove(removeKeys[i]);
+                    }
+
+                    _blobContents[blobIdx] = null;
+                }
+                else
+                {
+                    _blobContents[blobIdx] = content;
+                    Engine.Log.Trace($"Loaded asset blob {blobName} of size {content.Length / 1024f / 1024f:0.00}MB!", "PackedAssetSource");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _blobContents[blobIdx] = content;
-                Engine.Log.Trace($"Loaded asset blob {blobName} of size {content.Length / 1024f / 1024f:0.00}MB!", "PackedAssetSource");
+                Engine.Log.Error($"Error in loading asset blob {blobIdx} - {ex}.", "PackedAssetSource");
             }
         }
 

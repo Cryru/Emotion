@@ -15,7 +15,8 @@ namespace Emotion.IO.AssetPack
 
         protected override Task<byte[]> GetFileContent(string fileName)
         {
-            return !File.Exists(fileName) ? Task.FromResult((byte[]) null) : File.ReadAllBytesAsync(fileName);
+            if (!File.Exists(fileName)) return Task.FromResult((byte[]) null);
+            return File.ReadAllBytesAsync(fileName);
         }
     }
 }
