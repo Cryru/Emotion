@@ -2,12 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Emotion.Common;
-using Emotion.Graphics.Data;
 using Emotion.Platform;
 using Emotion.Web.Helpers;
 using Microsoft.JSInterop;
@@ -94,6 +91,8 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glVertexAttribPointer", (Gl.Delegates.glVertexAttribPointer) VertexAttribPointer);
 
             _webGlFuncDictionary.Add("glDrawElements", (Gl.Delegates.glDrawElements) DrawElements);
+
+            Valid = true;
         }
 
         protected override void SetSwapIntervalPlatform(int interval)
@@ -224,6 +223,7 @@ namespace Emotion.Web.Platform
                 state = new BufferMappingState();
                 _bufferMapping.Add(boundBuffer, state);
             }
+
             state.Mapping = true;
             state.RangeStart = 0;
             state.RangeLength = bufferSize;
@@ -282,7 +282,7 @@ namespace Emotion.Web.Platform
         {
             _boundBuffers.TryGetValue(target, out uint boundBuffer);
             var memoryName = $"DataBuffer{target}|{boundBuffer}";
-            IntPtr ptr = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int bufferSize);
+            IntPtr ptr = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int _);
 
             _bufferMapping.TryGetValue(boundBuffer, out BufferMappingState state);
             if (state == null || !state.Mapping) return;

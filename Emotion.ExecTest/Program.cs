@@ -30,6 +30,31 @@ namespace Emotion.ExecTest
 
             Engine.Setup(config);
             Engine.SceneManager.SetScene(new Program());
+            Engine.Run();
+        }
+
+        public void Update()
+        {
+            Engine.Renderer.Camera.X += dirX * 1 * Engine.DeltaTime;
+            Engine.Renderer.Camera.Y += dirY * 1 * Engine.DeltaTime;
+
+            Engine.Renderer.Camera.RecreateMatrix();
+        }
+
+        public void Draw(RenderComposer composer)
+        {
+            composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
+            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
+            composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
+
+            for (var i = 0; i < mousePosTest.Count; i++)
+            {
+                composer.RenderSprite(mousePosTest[i].ToVec3(), new Vector2(10), Color.Magenta);
+            }
+        }
+
+        public void Load()
+        {
             Engine.Host.OnKey.AddListener((key, status) =>
             {
                 if (key == Key.W)
@@ -68,30 +93,9 @@ namespace Emotion.ExecTest
             });
             Engine.Host.OnMouseKey.AddListener((key, _) =>
             {
-                if (key == MouseKey.Left) mousePosTest.Add(Engine.Host.MousePosition);
+                if (key == MouseKey.Left) mousePosTest.Add(Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition));
                 return true;
             });
-
-            Engine.Run();
-        }
-
-        public void Update()
-        {
-            Engine.Renderer.Camera.X += dirX * 1 * Engine.DeltaTime;
-            Engine.Renderer.Camera.Y += dirY * 1 * Engine.DeltaTime;
-
-            Engine.Renderer.Camera.RecreateMatrix();
-        }
-
-        public void Draw(RenderComposer composer)
-        {
-            composer.RenderSprite(new Vector3(0, 0, 0), Engine.Renderer.CurrentTarget.Size, Color.CornflowerBlue);
-            composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
-            composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
-        }
-
-        public void Load()
-        {
         }
 
         public void Unload()

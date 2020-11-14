@@ -3,7 +3,7 @@
 // --------------------------------
 
 function GameLoop(timeStamp) {
-    Emotion.manager.invokeMethod("RunLoop", timeStamp);
+    Emotion.webHost.invokeMethod("RunLoop", gMousePos[0], gMousePos[1]);
     window.requestAnimationFrame(GameLoop);
 }
 
@@ -12,14 +12,46 @@ function onResize() {
 
     Emotion.canvas.width = window.innerWidth;
     Emotion.canvas.height = window.innerHeight;
-    Emotion.manager.invokeMethodAsync("HostResized", Emotion.canvas.width, Emotion.canvas.height);
+    Emotion.webHost.invokeMethodAsync("SetSizeJs", Emotion.canvas.width, Emotion.canvas.height);
 }
 
-function GetHostSize() {
-    return [Emotion.canvas.width, Emotion.canvas.height];
+function onKeyDown(e) {
+    Emotion.webHost.invokeMethodAsync("KeyDown", e.keyCode);
+    e.stopPropagation();
 }
 
-window.InitJavascript = (manager) => {
+function onKeyUp(e) {
+    Emotion.webHost.invokeMethodAsync("KeyUp", e.keyCode);
+    e.stopPropagation();
+}
+
+function onMouseDown(e) {
+    var button = e.button;
+    if (button === 0)
+        button = 1; // Left
+    else if (button === 1)
+        button = 3; // Middle
+    Emotion.webHost.invokeMethodAsync("MouseKeyDown", button);
+    e.stopPropagation();
+}
+
+function onMouseUp(e) {
+    var button = e.button;
+    if (button === 0)
+        button = 1; // Left
+    else if (button === 1)
+        button = 3; // Middle
+    Emotion.webHost.invokeMethodAsync("MouseKeyUp", button);
+    e.stopPropagation();
+}
+
+gMousePos = [0, 0];
+function onMouseMove(e) {
+    gMousePos[0] = e.pageX;
+    gMousePos[1] = e.pageY;
+}
+
+window.InitJavascript = (webHost) => {
     var canvasContainer = document.getElementById("container");
     var canvases = canvasContainer.getElementsByTagName("canvas") || [];
     var canvas = canvases.length ? canvases[0] : null;
@@ -29,15 +61,32 @@ window.InitJavascript = (manager) => {
     }
 
     window.Emotion = {
-        manager: manager,
+        webHost: webHost,
         canvas: canvas,
         gl: context || false
     };
 
     window.addEventListener("resize", onResize);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mouseup", onMouseUp);
     onResize();
     window.requestAnimationFrame(GameLoop);
 };
+
+// --------------------------------
+// Platform API
+// --------------------------------
+
+function GetHostSize() {
+    return [Emotion.canvas.width, Emotion.canvas.height];
+}
+
+function GetMousePos() {
+    return gMousePos;
+}
 
 // --------------------------------
 // WebGL Driver
@@ -47,8 +96,7 @@ const SIZEOF_FLOAT = 4;
 const SIZEOF_INT = 4;
 
 function glGetError() {
-    //return Emotion.gl.getError();
-    return 0;
+    return Emotion.gl.getError();
 }
 
 function glGet(id) {
