@@ -77,7 +77,7 @@ namespace Emotion.Standard.Logging
 
             string fileName = GenerateLogName();
             string fileDirectory = Path.GetDirectoryName(fileName);
-            Directory.CreateDirectory(fileDirectory);
+            if (fileDirectory != null) Directory.CreateDirectory(fileDirectory);
 
             TextWriter currentFileStream = File.CreateText(fileName);
             var fileSizeCounter = 0;
@@ -134,7 +134,7 @@ namespace Emotion.Standard.Logging
         /// <inheritdoc />
         public override void Log(MessageType type, string source, string message)
         {
-            _logQueue.Enqueue((type, $"{Engine.TotalTime:0} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId}] {message}"));
+            _logQueue.Enqueue((type, $"{Engine.TotalTime:0} [{source}] [{Thread.CurrentThread.Name}/{Thread.CurrentThread.ManagedThreadId:D2}] {message}"));
             _queueEvent.Set();
         }
 
