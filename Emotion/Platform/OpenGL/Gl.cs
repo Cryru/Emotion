@@ -316,6 +316,24 @@ namespace OpenGL
         #endregion
 
         /// <summary>
+        /// Convert a draw elements type to the number of bytes that type contains.
+        /// </summary>
+        public static byte DrawElementTypeToByteCount(DrawElementsType elementType)
+        {
+            switch (elementType)
+            {
+                case DrawElementsType.UnsignedByte:
+                    return 1;
+                case DrawElementsType.UnsignedShort:
+                    return 2;
+                case DrawElementsType.UnsignedInt:
+                    return 4;
+                default:
+                    return 0;
+            }
+        }
+
+        /// <summary>
         /// Convert a pixel type enum to the number of bytes that type contains.
         /// </summary>
         /// <param name="pixelType">The pixel type to get the byte count of.</param>
