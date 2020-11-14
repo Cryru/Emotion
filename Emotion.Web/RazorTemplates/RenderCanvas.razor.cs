@@ -56,6 +56,7 @@ namespace Emotion.Web.RazorTemplates
         [JSInvokable]
         public void RunLoop(float timeStamp)
         {
+            if (Engine.Status != EngineStatus.Running) return;
             _tickAction?.Invoke();
             _drawAction?.Invoke();
         }

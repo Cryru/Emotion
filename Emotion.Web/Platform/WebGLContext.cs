@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Common;
+using Emotion.Graphics.Data;
 using Emotion.Platform;
 using Emotion.Web.Helpers;
 using Microsoft.JSInterop;
@@ -15,54 +17,6 @@ using OpenGL;
 
 namespace Emotion.Web.Platform
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct BufferDataArgs
-    {
-        public int Target;
-        public uint Size;
-        public IntPtr Ptr;
-        public int Usage;
-        public int Offset;
-    }
-
-    /// <summary>
-    /// The default float marshalling is buggy.
-    /// Box the float to work around it.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct BoxedFloat
-    {
-        public float Value;
-
-        public BoxedFloat(float val)
-        {
-            Value = val;
-        }
-    }
-
-    /// <summary>
-    /// Used for uploading matrix array uniforms and float array uniforms with
-    /// a component count of 2 or up.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MatrixUniformUploadData
-    {
-        public int ComponentCount;
-        public int ArrayLength;
-        public IntPtr Data;
-        public bool Transpose;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct IntegerVector4
-    {
-        public int X;
-        public int Y;
-        public int Z;
-        public int W;
-    }
-
-
     public unsafe class WebGLContext : GraphicsContext
     {
         private IJSUnmarshalledRuntime _gl;
@@ -72,6 +26,7 @@ namespace Emotion.Web.Platform
         // State
         private Dictionary<int, uint> _boundBuffers = new Dictionary<int, uint>(); // <Target, BufferId>
         private Dictionary<uint, int> _bufferUsage = new Dictionary<uint, int>(); // <BufferId, UsageType>
+        private Dictionary<uint, BufferMappingState> _bufferMapping = new Dictionary<uint, BufferMappingState>(); // <BufferId, state>
 
         public WebGLContext(IJSUnmarshalledRuntime glContext)
         {
@@ -93,6 +48,7 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glMapBuffer", (Gl.Delegates.glMapBuffer) MapBuffer);
             _webGlFuncDictionary.Add("glMapBufferRange", (Gl.Delegates.glMapBufferRange) MapBufferRange);
             _webGlFuncDictionary.Add("glUnmapBuffer", (Gl.Delegates.glUnmapBuffer) UnmapBuffer);
+            _webGlFuncDictionary.Add("glFlushMappedBufferRange", (Gl.Delegates.glFlushMappedBufferRange) FlushMappedRange);
 
             _webGlFuncDictionary.Add("glClear", (Gl.Delegates.glClear) Clear);
             _webGlFuncDictionary.Add("glClearColor", (Gl.Delegates.glClearColor) SetClearColor);
@@ -131,6 +87,13 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glUniformMatrix4fv", (Gl.Delegates.glUniformMatrix4fv) UploadUniformMat4);
 
             _webGlFuncDictionary.Add("glBindFramebuffer", (Gl.Delegates.glBindFramebuffer) BindFramebuffer);
+
+            _webGlFuncDictionary.Add("glGenVertexArrays", (Gl.Delegates.glGenVertexArrays) GenVertexArrays);
+            _webGlFuncDictionary.Add("glBindVertexArray", (Gl.Delegates.glBindVertexArray) BindVertexArray);
+            _webGlFuncDictionary.Add("glEnableVertexAttribArray", (Gl.Delegates.glEnableVertexAttribArray) EnableVertexAttribArray);
+            _webGlFuncDictionary.Add("glVertexAttribPointer", (Gl.Delegates.glVertexAttribPointer) VertexAttribPointer);
+
+            _webGlFuncDictionary.Add("glDrawElements", (Gl.Delegates.glDrawElements) DrawElements);
         }
 
         protected override void SetSwapIntervalPlatform(int interval)
@@ -157,10 +120,8 @@ namespace Emotion.Web.Platform
         public override Delegate GetProcAddressNonNative(string func)
         {
             if (_webGlFuncDictionary.ContainsKey(func))
-            {
                 //Engine.Log.Trace($"Returning func {func}", "");
                 return _webGlFuncDictionary[func];
-            }
 
             //Engine.Log.Trace($"Missing WebGL function {func}", "WebGL");
             return base.GetProcAddressNonNative(func);
@@ -228,7 +189,7 @@ namespace Emotion.Web.Platform
         private void BufferData(int target, uint size, IntPtr ptr, int usage)
         {
             _boundBuffers.TryGetValue(target, out uint boundBuffer);
-            var memoryName = $"DataBuffer{target}{boundBuffer}";
+            var memoryName = $"DataBuffer{target}|{boundBuffer}";
             if (ptr == IntPtr.Zero)
                 ptr = UnmanagedMemoryAllocator.MemAllocOrReAllocNamed((int) size, memoryName);
             else
@@ -242,10 +203,11 @@ namespace Emotion.Web.Platform
             var args = new BufferDataArgs
             {
                 Usage = usage,
-                Size = size,
+                SizeWholeBuffer = size,
                 Ptr = ptr,
                 Target = target,
                 Offset = 0,
+                Length = size
             };
             _gl.InvokeUnmarshalled<BufferDataArgs, object>("glBufferData", args);
         }
@@ -253,28 +215,100 @@ namespace Emotion.Web.Platform
         private IntPtr MapBuffer(int target, int access)
         {
             _boundBuffers.TryGetValue(target, out uint boundBuffer);
-            var memoryName = $"DataBuffer{target}{boundBuffer}";
-            IntPtr memory = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int _);
+            var memoryName = $"DataBuffer{target}|{boundBuffer}";
+            IntPtr memory = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int bufferSize);
+
+            _bufferMapping.TryGetValue(boundBuffer, out BufferMappingState state);
+            if (state == null)
+            {
+                state = new BufferMappingState();
+                _bufferMapping.Add(boundBuffer, state);
+            }
+            state.Mapping = true;
+            state.RangeStart = 0;
+            state.RangeLength = bufferSize;
+
             return memory;
         }
 
         private IntPtr MapBufferRange(int target, IntPtr offset, uint length, uint access)
         {
             _boundBuffers.TryGetValue(target, out uint boundBuffer);
-            var memoryName = $"DataBuffer{target}{boundBuffer}";
+            var memoryName = $"DataBuffer{target}|{boundBuffer}";
             IntPtr memory = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int _);
-            return memory + (int) offset;
+
+            _bufferMapping.TryGetValue(boundBuffer, out BufferMappingState state);
+            if (state == null)
+            {
+                state = new BufferMappingState();
+                _bufferMapping.Add(boundBuffer, state);
+            }
+
+            state.Mapping = true;
+            state.RangeStart = (int) offset;
+            state.RangeLength = (int) length;
+
+            //Engine.Log.Info($"Starting map range of buffer {boundBuffer} in range {offset}:{length}", "WebGLInternal");
+
+            return memory + state.RangeStart;
         }
 
         private bool UnmapBuffer(int target)
         {
             _boundBuffers.TryGetValue(target, out uint boundBuffer);
-            var memoryName = $"DataBuffer{target}{boundBuffer}";
+            var memoryName = $"DataBuffer{target}|{boundBuffer}";
             IntPtr memory = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int size);
 
-            // Upload memory.
-            BufferData(target, (uint) size, memory, -1);
+            _bufferMapping.TryGetValue(boundBuffer, out BufferMappingState state);
+            if (state == null || !state.Mapping) return true;
+            state.Mapping = false;
+            state.RangeStart = 0;
+            state.RangeLength = 0;
+
+            var args = new BufferDataArgs
+            {
+                //Usage = _bufferUsage[boundBuffer],
+                //SizeWholeBuffer = (uint) bufferSize,
+                Ptr = memory,
+                Target = target,
+                Offset = 0,
+                Length = (uint) size
+            };
+            _gl.InvokeUnmarshalled<BufferDataArgs, object>("glBufferSubData", args);
             return true;
+        }
+
+        private void FlushMappedRange(int target, IntPtr offset, uint length)
+        {
+            _boundBuffers.TryGetValue(target, out uint boundBuffer);
+            var memoryName = $"DataBuffer{target}|{boundBuffer}";
+            IntPtr ptr = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int bufferSize);
+
+            _bufferMapping.TryGetValue(boundBuffer, out BufferMappingState state);
+            if (state == null || !state.Mapping) return;
+            int bufferStart = (int) offset + state.RangeStart;
+            state.Mapping = false;
+            state.RangeStart = 0;
+            state.RangeLength = 0;
+
+            //Span<VertexData> test = new Span<VertexData>((void*) (ptr + (int) offset), (int) length);
+            //for (int i = 0; i < test.Length; i++)
+            //{
+            //    Console.Write(test[i].Vertex.ToString() + ", ");
+            //}
+
+            //Console.Write("\n");
+
+            var args = new BufferDataArgs
+            {
+                //Usage = _bufferUsage[boundBuffer],
+                //SizeWholeBuffer = (uint) bufferSize,
+                Ptr = ptr + bufferStart,
+                Target = target,
+                Offset = bufferStart,
+                Length = length
+            };
+            _gl.InvokeUnmarshalled<BufferDataArgs, object>("glBufferSubData", args);
         }
 
         private void Clear(uint mask)
@@ -284,7 +318,7 @@ namespace Emotion.Web.Platform
 
         private void SetClearColor(float r, float g, float b, float a)
         {
-            _gl.InvokeUnmarshalled<Vector4, object>("glClearColor", new Vector4(0.5f, g, 0.32f, a));
+            _gl.InvokeUnmarshalled<Vector4, object>("glClearColor", new Vector4(r, g, b, a));
         }
 
         private void Enable(int feature)
@@ -319,7 +353,7 @@ namespace Emotion.Web.Platform
 
         private void Viewport(int x, int y, int width, int height)
         {
-            var param = new IntegerVector4()
+            var param = new IntegerVector4
             {
                 X = x,
                 Y = y,
@@ -329,12 +363,12 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<IntegerVector4, object>("glViewport", param);
         }
 
-        private void BlendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
+        private void BlendFuncSeparate(int srcRgb, int dstRgb, int srcAlpha, int dstAlpha)
         {
-            var param = new IntegerVector4()
+            var param = new IntegerVector4
             {
-                X = srcRGB,
-                Y = dstRGB,
+                X = srcRgb,
+                Y = dstRgb,
                 Z = srcAlpha,
                 W = dstAlpha
             };
@@ -348,7 +382,7 @@ namespace Emotion.Web.Platform
 
         private void ShaderSource(uint shader, int count, string[] data, int* length)
         {
-            string shaderSource = data.Length > 1 ? string.Join('\n', data) : data[0];
+            string shaderSource = data.Length > 1 ? string.Join(' ', data) : data[0];
             _gl.InvokeUnmarshalled<uint, string, object>("glShaderSource", shader, shaderSource);
         }
 
@@ -505,6 +539,63 @@ namespace Emotion.Web.Platform
         private void BindFramebuffer(int target, uint bufferId)
         {
             _gl.InvokeUnmarshalled<int, uint, object>("glBindFramebuffer", target, bufferId);
+        }
+
+        private void GenVertexArrays(int count, uint* resp)
+        {
+            uint[] value = _gl.InvokeUnmarshalled<int, uint[]>("glGenVertexArrays", count);
+            for (var i = 0; i < value.Length; i++)
+            {
+                Marshal.WriteInt64((IntPtr) (resp + i * sizeof(uint)), value[i]);
+            }
+        }
+
+        private void BindVertexArray(uint bufferId)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glBindVertexArray", bufferId);
+        }
+
+        private void EnableVertexAttribArray(uint attribute)
+        {
+            _gl.InvokeUnmarshalled<uint, object>("glEnableVertexAttribArray", attribute);
+        }
+
+        private void VertexAttribPointer(uint index, int size, int type, bool normalized, int stride, IntPtr offset)
+        {
+            var data = new VertexAttribData
+            {
+                Index = index,
+                Size = size,
+                Type = type,
+                Normalized = normalized,
+                Stride = stride,
+                Offset = (int) offset
+            };
+            _gl.InvokeUnmarshalled<VertexAttribData, object>("glVertexAttribPointer", data);
+        }
+
+        private void DrawElements(int mode, int count, int type, IntPtr offset)
+        {
+            //_boundBuffers.TryGetValue((int) BufferTarget.ElementArrayBuffer, out uint boundBuffer);
+            //var memoryName = $"DataBuffer{(int) BufferTarget.ElementArrayBuffer}|{boundBuffer}";
+            //IntPtr iboMemory = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int size);
+            //ushort[] test = new Span<ushort>((void*)(iboMemory + (int)offset), count).ToArray();
+
+            //int vboStart = test[0] * VertexData.SizeInBytes;
+
+            //_boundBuffers.TryGetValue((int) BufferTarget.ArrayBuffer, out uint boundVBO);
+            //var memoryNameVBO = $"DataBuffer{(int) BufferTarget.ArrayBuffer}|{boundVBO}";
+            //IntPtr vboMemory = UnmanagedMemoryAllocator.GetNamedMemory(memoryNameVBO, out int _);
+            //VertexData[] test2 = new Span<VertexData>((void*)(vboMemory + vboStart), count).ToArray();
+
+            var data = new IntegerVector4
+            {
+                X = mode,
+                Y = count,
+                Z = type,
+                W = (int) offset
+            };
+            _gl.InvokeUnmarshalled<IntegerVector4, object>("glDrawElements", data);
         }
     }
 }

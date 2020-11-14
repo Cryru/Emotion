@@ -47,7 +47,8 @@ const SIZEOF_FLOAT = 4;
 const SIZEOF_INT = 4;
 
 function glGetError() {
-    return Emotion.gl.getError();
+    //return Emotion.gl.getError();
+    return 0;
 }
 
 function glGet(id) {
@@ -70,6 +71,7 @@ function GetGLExtensions() {
 }
 
 gBuffers = [];
+gBuffers[-1] = null;
 
 function glGenBuffers(count) {
     const buffers = new Uint32Array(count);
@@ -93,9 +95,23 @@ function glBufferData(argsPtr) {
     const memoryPtr = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 2);
     const usage = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 3);
     const offset = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 4);
+    const length = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 5);
 
     const memory = new Uint8Array(wasmMemory.buffer, memoryPtr, size);
-    Emotion.gl.bufferData(target, memory, usage, offset, size);
+    Emotion.gl.bufferData(target, memory, usage, offset, length);
+}
+
+function glBufferSubData(argsPtr) {
+    // struct BufferDataArgs
+    const target = Blazor.platform.readInt32Field(argsPtr, 0);
+    const size = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT);
+    const memoryPtr = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 2);
+    const usage = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 3);
+    const offset = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 4);
+    const length = Blazor.platform.readInt32Field(argsPtr, SIZEOF_INT * 5);
+
+    const memory = new Uint8Array(wasmMemory.buffer, memoryPtr, length);
+    Emotion.gl.bufferSubData(target, offset, memory, 0, length);
 }
 
 function glClear(mask) {
@@ -154,6 +170,7 @@ function glViewport(valuePtr) {
 }
 
 gShaders = [];
+gShaders[-1] = null;
 
 function glCreateShader(type) {
     const shader = Emotion.gl.createShader(type);
@@ -192,6 +209,7 @@ function glGetShaderInfo(shaderId) {
 }
 
 gPrograms = [];
+gPrograms[-1] = null;
 
 function glCreateProgram() {
     const program = Emotion.gl.createProgram();
@@ -241,6 +259,7 @@ function glGetProgramParam(programId, param) {
 }
 
 gShaderUniformLocations = [];
+gShaderUniformLocations[-1] = null;
 gShaderUniformLocationToString = []; // For debugging purposes
 
 function glGetUniformLoc(programId, name) {
@@ -341,8 +360,51 @@ function glUniformMatrix(locationId, valuePtr) {
 }
 
 gFramebuffers = [];
+gFramebuffers[-1] = null;
 
 function glBindFramebuffer(target, bufferId) {
     const frameBuffer = gFramebuffers[bufferId - 1];
     Emotion.gl.bindFramebuffer(target, frameBuffer);
+}
+
+gVertexArrays = [];
+gVertexArrays[-1] = null;
+
+function glGenVertexArrays(count) {
+    const buffers = new Uint32Array(count);
+    for (let i = 0; i < count; i++) {
+        const newBuffer = Emotion.gl.createVertexArray();
+        gVertexArrays.push(newBuffer);
+        buffers[i] = gVertexArrays.length;
+    }
+    return BINDING.js_typed_array_to_array(buffers);
+}
+
+function glBindVertexArray(bufferId) {
+    const buffer = gVertexArrays[bufferId - 1];
+    Emotion.gl.bindVertexArray(buffer);
+}
+
+function glEnableVertexAttribArray(attribId) {
+    Emotion.gl.enableVertexAttribArray(attribId);
+}
+
+function glVertexAttribPointer(valuePtr) {
+    // struct VertexAttribData
+    const index = Blazor.platform.readInt32Field(valuePtr, 0);
+    const size = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const type = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const normalized = getValue(valuePtr + SIZEOF_INT * 3, "i1") === 1;
+    const stride = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3 + 1);
+    const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 4 + 1);
+    Emotion.gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
+}
+
+function glDrawElements(valuePtr) {
+    // struct IntegerVector4
+    const mode = Blazor.platform.readInt32Field(valuePtr, 0);
+    const count = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const type = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    Emotion.gl.drawElements(mode, count, type, offset);
 }
