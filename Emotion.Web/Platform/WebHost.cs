@@ -55,6 +55,7 @@ namespace Emotion.Web.Platform
         protected override void SetSize(Vector2 size)
         {
             _size = size;
+            OnResize.Invoke(_size);
         }
 
         public override IntPtr LoadLibrary(string path)

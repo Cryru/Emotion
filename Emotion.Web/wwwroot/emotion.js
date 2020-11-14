@@ -59,6 +59,16 @@ function glGet(id) {
     if (typeof(value) === "string") {
         return BINDING.js_to_mono_obj(value);
     }
+    // ElementBuffer and ArrayBuffer Binding respectively. These return WebGL buffers rather than the index :(
+    if (id === 0x8895 || id === 0x8894)
+    {
+        for (let i = 0; i < gBuffers.length; i++) {
+            if (gBuffers[i] === value) {
+                value = i + 1;
+                break;
+            }
+        }
+    }
     if (typeof(value) === "number") {
         value = [value];
     }
@@ -395,8 +405,8 @@ function glVertexAttribPointer(valuePtr) {
     const size = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
     const type = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
     const normalized = getValue(valuePtr + SIZEOF_INT * 3, "i1") === 1;
-    const stride = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3 + 1);
-    const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 4 + 1);
+    const stride = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 4 + 1);
+    const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 5 + 1);
     Emotion.gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
 }
 
