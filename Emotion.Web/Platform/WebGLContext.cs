@@ -92,6 +92,9 @@ namespace Emotion.Web.Platform
 
             _webGlFuncDictionary.Add("glDrawElements", (Gl.Delegates.glDrawElements) DrawElements);
 
+            _webGlFuncDictionary.Add("glFenceSync", (Gl.Delegates.glFenceSync) FenceSync);
+            _webGlFuncDictionary.Add("glClientWaitSync", (Gl.Delegates.glClientWaitSync) ClientWaitSync);
+
             Valid = true;
         }
 
@@ -596,6 +599,16 @@ namespace Emotion.Web.Platform
                 W = (int) offset
             };
             _gl.InvokeUnmarshalled<IntegerVector4, object>("glDrawElements", data);
+        }
+
+        private int FenceSync(int condition, uint flags)
+        {
+            return 0;
+        }
+
+        private int ClientWaitSync(int condition, uint flags, ulong timeout)
+        {
+            return (int) SyncStatus.AlreadySignaled;
         }
     }
 }
