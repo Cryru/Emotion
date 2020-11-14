@@ -20,7 +20,7 @@ namespace Emotion.Web
             builder.RootComponents.Add<RenderCanvas>("#app");
             builder.Services.AddSingleton(services => (IJSInProcessRuntime) services.GetRequiredService<IJSRuntime>());
             builder.Services.AddSingleton(services => (IJSUnmarshalledRuntime) services.GetRequiredService<IJSRuntime>());
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)});
             builder.Services.AddSingleton(services => setup);
             await builder.Build().RunAsync();
         }
