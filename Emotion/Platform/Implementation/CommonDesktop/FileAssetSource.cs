@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using Emotion.Common;
@@ -25,6 +26,11 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         public bool FolderInPath { get; protected set; }
 
         /// <summary>
+        /// The internal manifest.
+        /// </summary>
+        public ConcurrentDictionary<string, string> InternalManifest { get; private set; }
+
+        /// <summary>
         /// The folder on the file system, as opposed to how it is represented in the AssetLoader.
         /// </summary>
         protected string _folderFs;
@@ -37,6 +43,8 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         /// <param name="includeFolderInManifest">Whether to include the source's folder in the asset paths. Off by default.</param>
         public FileAssetSource(string folder, bool includeFolderInManifest = false)
         {
+            InternalManifest = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
             Folder = folder;
             FolderInPath = includeFolderInManifest;
             _folderFs = Path.Join(".", folder).ToLower();
@@ -88,6 +96,14 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             int later = DateTime.Compare(lastWrite, creationTime);
 
             return later > 0 ? lastWrite : creationTime;
+        }
+
+        /// <summary>
+        /// The list of files this source can load.
+        /// </summary>
+        public override string[] GetManifest()
+        {
+            return InternalManifest.Keys.ToArray();
         }
 
         /// <summary>

@@ -13,17 +13,14 @@ namespace Emotion.IO
     /// </summary>
     public abstract class AssetSource
     {
-        /// <summary>
-        /// The internal manifest.
-        /// </summary>
-        public ConcurrentDictionary<string, string> InternalManifest { get; private set; }
+
 
         /// <summary>
         /// Create a new asset source.
         /// </summary>
         protected AssetSource()
         {
-            InternalManifest = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+           
         }
 
         /// <summary>
@@ -47,10 +44,6 @@ namespace Emotion.IO
         /// Returns all assets this manifest manages.
         /// </summary>
         /// <returns>A list of engine paths to assets this source can provide.</returns>
-        public string[] GetManifest()
-        {
-            // Return manifest.
-            return InternalManifest.Keys.ToArray();
-        }
+        public abstract string[] GetManifest();
     }
 }

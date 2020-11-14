@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -30,12 +31,19 @@ namespace Emotion.IO
         public string Folder { get; private set; }
 
         /// <summary>
+        /// The internal manifest.
+        /// </summary>
+        public ConcurrentDictionary<string, string> InternalManifest { get; private set; }
+
+        /// <summary>
         /// Create a new source which loads assets embedded into the assembly.
         /// </summary>
         /// <param name="assembly">The assembly to load assets from.</param>
         /// <param name="folder">The root embedded folder.</param>
         public EmbeddedAssetSource(Assembly assembly, string folder)
         {
+            InternalManifest = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
             Folder = folder.Replace("/", "$").Replace("\\", "$").Replace("$", ".");
             Assembly = assembly;
 
@@ -82,13 +90,21 @@ namespace Emotion.IO
         }
 
         /// <summary>
+        /// The list of files this source can load.
+        /// </summary>
+        public override string[] GetManifest()
+        {
+            return InternalManifest.Keys.ToArray();
+        }
+
+        /// <summary>
         /// Convert an embedded path to an engine path.
         /// </summary>
         /// <param name="embeddedPath">The embedded file path to convert.</param>
         /// <returns>An engine path corresponding to the embedded path.</returns>
         public string EmbeddedPathToEnginePath(string embeddedPath)
         {
-            string folder = $".{Folder}.";
+            var folder = $".{Folder}.";
             int rootIndex = embeddedPath.IndexOf(folder, StringComparison.Ordinal);
 
             // if not in the root folder then it doesn't concern us.

@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Plugins.Steamworks"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Web", "Emotion.Web\Emotion.Web.csproj", "{026CEDE6-04E3-41FE-AF35-B1FDDE11BADD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emotion.Web.ExecTest", "Emotion.Web.ExecTest\Emotion.Web.ExecTest.csproj", "{EB94856B-F7F5-4420-94CA-FA4D3535270D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emotion.Web.ExecTest", "Emotion.Web.ExecTest\Emotion.Web.ExecTest.csproj", "{EB94856B-F7F5-4420-94CA-FA4D3535270D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emotion.PostBuildTool", "Emotion.PostBuildTool\Emotion.PostBuildTool.csproj", "{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +71,10 @@ Global
 		{EB94856B-F7F5-4420-94CA-FA4D3535270D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB94856B-F7F5-4420-94CA-FA4D3535270D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB94856B-F7F5-4420-94CA-FA4D3535270D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEF6B65E-4CF2-4613-ACAC-186F6C44EA34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
