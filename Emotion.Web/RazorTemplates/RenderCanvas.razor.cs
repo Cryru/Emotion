@@ -1,7 +1,6 @@
 ﻿#region Using
 
-using System;
-using System.Numerics;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Web.Platform;
@@ -25,6 +24,9 @@ namespace Emotion.Web.RazorTemplates
 
         [Inject]
         public IJSInProcessRuntime JsRuntimeMarshalled { get; set; }
+
+        [Inject]
+        public HttpClient HttpClient { get; set; }
 
         protected override Task OnAfterRenderAsync(bool firstRender)
         {
