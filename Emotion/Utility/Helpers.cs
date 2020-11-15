@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emotion.Common;
@@ -72,7 +73,19 @@ namespace Emotion.Utility
         /// <summary>
         /// The generator to be used for generating randomness.
         /// </summary>
-        private static readonly Random Generator = new Random();
+        private static Random _generator = new Random();
+
+        public static void SetRandomGenSeed(int seed)
+        {
+            _generator = new Random(seed);
+        }
+
+        public static void SetRandomGenSeed(string seed)
+        {
+            var md5Hasher = MD5.Create();
+            byte[] hashed = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(seed));
+            _generator = new Random(BitConverter.ToInt32(hashed, 0));
+        }
 
         /// <summary>
         /// Returns a randomly generated number within specified constraints.
@@ -83,7 +96,7 @@ namespace Emotion.Utility
         public static int GenerateRandomNumber(int min = 0, int max = 100)
         {
             //We add one because Random.Next does not include max.
-            return Generator.Next(min, max + 1);
+            return _generator.Next(min, max + 1);
         }
 
         /// <summary>
