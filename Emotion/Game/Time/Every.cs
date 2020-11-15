@@ -43,9 +43,9 @@ namespace Emotion.Game.Time
         {
             _timePassed += timePassed;
 
-            while (timePassed >= _delay)
+            while (_timePassed >= _delay)
             {
-                timePassed -= _delay;
+                _timePassed -= _delay;
 
                 CallFunc();
 
