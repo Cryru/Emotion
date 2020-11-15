@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -188,6 +187,22 @@ namespace Emotion.Tools.Windows
                 if (!ImGui.Button("SaveToFile")) return;
                 string saveName = _saveName.ToLower();
                 if (!saveName.Contains(".anim")) saveName += ".anim";
+
+
+                if (AnimController != null && AnimController.MirrorXAnchors != null)
+                {
+                    bool emptyMirrorAnchors = true;
+                    for (int i = 0; i < AnimController.MirrorXAnchors.Length; i++)
+                    {
+                        if (AnimController.MirrorXAnchors[i] != Vector2.Zero)
+                        {
+                            emptyMirrorAnchors = false;
+                            break;
+                        }
+                    }
+
+                    if (emptyMirrorAnchors) AnimController.MirrorXAnchors = null;
+                }
 
                 try
                 {

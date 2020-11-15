@@ -1,12 +1,11 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.IO;
+using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
@@ -34,15 +33,12 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
 
         public override void Update()
         {
-            if(!_parent.Open) Open = false;
-            if(ImGuiNetPlugin.Focused) return;
+            if (!_parent.Open) Open = false;
+            if (ImGuiNetPlugin.Focused) return;
 
-            if (Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Right))
-            {
-                _holdingIdx = -1;
-            }
+            if (Engine.InputManager.IsMouseKeyDown(MouseKey.Right)) _holdingIdx = -1;
 
-            if (!Engine.InputManager.IsMouseKeyDown(Platform.Input.MouseKey.Left)) return;
+            if (!Engine.InputManager.IsMouseKeyDown(MouseKey.Left)) return;
             Vector2 mousePos = Engine.Host.MousePosition;
             for (var i = 0; i < _anim.Frames.Length; i++)
             {
@@ -75,7 +71,10 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             for (var i = 0; i < _anim.Frames.Length; i++)
             {
                 composer.RenderOutline(new Vector3(offset + _anim.Frames[i].Position * _parent.Scale, 1), _anim.Frames[i].Size * _parent.Scale, _holdingIdx == i ? Color.Green : Color.Red);
-                composer.RenderString(new Vector3(offset + _anim.Frames[i].Position * _parent.Scale, 1), Color.Red, i.ToString(), _font.GetAtlas(15 * _parent.Scale));
+                var stringPos = new Vector3(offset + _anim.Frames[i].Position * _parent.Scale, 1);
+                DrawableFontAtlas atlas = _font.GetAtlas(15 * _parent.Scale);
+                composer.RenderString(stringPos + new Vector3(1), Color.Black, i.ToString(), atlas);
+                composer.RenderString(stringPos, Color.Red, i.ToString(), atlas);
             }
 
             ImGui.Text(_holdingIdx == -1 ? "Click on a rectangle to change it's position." : $"Select new position for frame {_holdingIdx}!");
