@@ -166,8 +166,7 @@ namespace Emotion.Plugins.ImGuiNet
             // Invoke before start operations actions.
             while (!_beforeStartOperations.IsEmpty)
             {
-                _beforeStartOperations.TryDequeue(out Action act);
-                act.Invoke();
+                if (_beforeStartOperations.TryDequeue(out Action act)) act.Invoke();
             }
 
             ImGuiIOPtr io = ImGui.GetIO();
@@ -303,7 +302,7 @@ namespace Emotion.Plugins.ImGuiNet
                 {
                     ImGuiIOPtr io = ImGui.GetIO();
                     var font = Engine.AssetLoader.Get<OtherAsset>(ttfFontPath);
-                    fixed (void* fontData = &font.Content[0])
+                    fixed (void* fontData = &font.Content.Span[0])
                     {
                         _loadedFonts.Add(ttfFontPath, io.Fonts.AddFontFromMemoryTTF((IntPtr) fontData, fontSize, pixelSize));
                     }

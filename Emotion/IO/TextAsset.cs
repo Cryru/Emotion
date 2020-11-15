@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Text;
 using Emotion.Utility;
 
@@ -17,10 +18,11 @@ namespace Emotion.IO
         /// </summary>
         public string Content { get; private set; }
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
-            Encoding encoding = Helpers.GuessStringEncoding(data);
-            Content = encoding.GetString(data);
+            ReadOnlySpan<byte> span = data.Span;
+            Encoding encoding = Helpers.GuessStringEncoding(span);
+            Content = encoding.GetString(span);
             // Remove windows new lines and BOM.
             Content = Content.Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
         }

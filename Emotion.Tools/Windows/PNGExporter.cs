@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Game.Tiled;
@@ -47,7 +48,7 @@ namespace Emotion.Tools.Windows
         {
             _status = "Loading...";
 
-            byte[] data = f.Content;
+            ReadOnlyMemory<byte> data = f.Content;
             if (!PngFormat.IsPng(data))
             {
                 _status = $"The provided file {f.Name} is not a PNG file.";

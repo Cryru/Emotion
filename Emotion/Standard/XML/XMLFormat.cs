@@ -57,10 +57,11 @@ namespace Emotion.Standard.XML
             return (T) handler.Deserialize(reader);
         }
 
-        public static T From<T>(byte[] data)
+        public static T From<T>(ReadOnlyMemory<byte> data)
         {
-            Encoding encoding = Helpers.GuessStringEncoding(data);
-            return From<T>(encoding.GetString(data));
+            ReadOnlySpan<byte> span = data.Span;
+            Encoding encoding = Helpers.GuessStringEncoding(span);
+            return From<T>(encoding.GetString(span));
         }
     }
 }

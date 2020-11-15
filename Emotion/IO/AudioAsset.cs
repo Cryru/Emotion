@@ -41,21 +41,21 @@ namespace Emotion.IO
 
         #endregion
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             // Check if WAV.
             if (WavFormat.IsWav(data))
             {
                 // Get the data.
-                Span<byte> pcm = WavFormat.Decode(data, out AudioFormat format);
-                if (pcm == null) return;
+                ReadOnlyMemory<byte> pcm = WavFormat.Decode(data, out AudioFormat format);
+                if (pcm.IsEmpty) return;
 
                 // Convert to float, for easier resampling and post processing.
                 int sourceSamples = pcm.Length / format.SampleSize;
                 var soundDataFloat = new float[sourceSamples];
                 for (var i = 0; i < sourceSamples; i++)
                 {
-                    soundDataFloat[i] = AudioStreamer.GetSampleAsFloat(i, pcm, format);
+                    soundDataFloat[i] = AudioStreamer.GetSampleAsFloat(i, pcm.Span, format);
                 }
                 format.IsFloat = true;
                 format.BitsPerSample = 32;

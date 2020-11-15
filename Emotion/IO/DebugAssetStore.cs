@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using Emotion.Common;
@@ -28,7 +29,7 @@ namespace Emotion.IO
             if (Engine.Host is Win32Platform) Process.Start("explorer.exe", $"{Path.GetDirectoryName(Path.Join(_folderFs, name))}");
         }
 
-        public override byte[] GetAsset(string enginePath)
+        public override ReadOnlyMemory<byte> GetAsset(string enginePath)
         {
             enginePath = AssetLoader.JoinPath(AssetLoader.NameToEngineName(Folder), enginePath);
             return base.GetAsset(enginePath);

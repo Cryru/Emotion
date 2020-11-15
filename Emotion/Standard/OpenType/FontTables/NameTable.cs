@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -560,7 +561,7 @@ namespace Emotion.Standard.OpenType.FontTables
         /// <summary>
         /// Translate a MacOS eight bit legacy string to a normal string.
         /// </summary>
-        private static string MacString(byte[] bytes, string encoding)
+        private static string MacString(ReadOnlySpan<byte> bytes, string encoding)
         {
             if (!_eightBitMacEncodings.ContainsKey(encoding)) return null;
 
@@ -606,12 +607,12 @@ namespace Emotion.Standard.OpenType.FontTables
                 stringReader.Position = stringReaderOffset + readOffset;
                 if (encoding == "utf-16")
                 {
-                    byte[] chars = stringReader.ReadBytes(byteLength);
+                    ReadOnlySpan<byte> chars = stringReader.ReadBytes(byteLength);
                     text = Encoding.BigEndianUnicode.GetString(chars);
                 }
                 else
                 {
-                    byte[] chars = stringReader.ReadBytes(byteLength);
+                    ReadOnlySpan<byte> chars = stringReader.ReadBytes(byteLength);
                     text = MacString(chars, encoding);
                 }
 

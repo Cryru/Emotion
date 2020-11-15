@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using Emotion.Common;
 using Emotion.Common.Threading;
@@ -94,7 +95,7 @@ namespace Emotion.IO
 
         #endregion
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             // Deserialize the shader description.
             base.CreateInternal(data);

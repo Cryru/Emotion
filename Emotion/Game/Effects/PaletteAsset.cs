@@ -18,7 +18,7 @@ namespace Emotion.Game.Effects
         public PaletteBaseTexture BaseTexture { get; set; }
         public Dictionary<Palette, Texture> PaletteSwaps = new Dictionary<Palette, Texture>();
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             base.CreateInternal(data);
             if (Content == null) return;

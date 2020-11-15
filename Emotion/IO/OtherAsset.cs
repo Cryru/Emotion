@@ -1,4 +1,10 @@
-﻿namespace Emotion.IO
+﻿#region Using
+
+using System;
+
+#endregion
+
+namespace Emotion.IO
 {
     /// <summary>
     /// An asset of an another type.
@@ -8,9 +14,9 @@
         /// <summary>
         /// The context of the file as a byte array.
         /// </summary>
-        public byte[] Content { get; private set; }
+        public ReadOnlyMemory<byte> Content { get; private set; }
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             Content = data;
         }

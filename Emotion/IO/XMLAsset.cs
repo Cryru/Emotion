@@ -19,7 +19,7 @@ namespace Emotion.IO
         /// </summary>
         public T Content { get; protected set; }
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             try
             {

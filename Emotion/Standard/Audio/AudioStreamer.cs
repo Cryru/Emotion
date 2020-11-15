@@ -210,7 +210,6 @@ namespace Emotion.Standard.Audio
                 case ChannelConversion.SimulateStereo:
                     sampleIdx /= 2;
                     return soundData[sampleIdx];
-                case ChannelConversion.None:
                 default:
                     return soundData[sampleIdx];
             }
@@ -235,7 +234,7 @@ namespace Emotion.Standard.Audio
         /// <param name="srcFormat">The audio format of the PCM</param>
         /// <returns>The requested sample as a float.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float GetSampleAsFloat(int sampleIdx, Span<byte> srcData, AudioFormat srcFormat)
+        public static float GetSampleAsFloat(int sampleIdx, ReadOnlySpan<byte> srcData, AudioFormat srcFormat)
         {
             float output;
             switch (srcFormat.BitsPerSample)

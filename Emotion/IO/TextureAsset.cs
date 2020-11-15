@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Threading;
@@ -36,7 +37,7 @@ namespace Emotion.IO
             Name = $"Synthesized TextureAsset - {texture.Pointer}";
         }
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             byte[] pixels = null;
             var width = 0;

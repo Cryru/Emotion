@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
+using System.IO;
 
 #endregion
 
@@ -10,24 +12,57 @@ namespace Emotion.Standard.Utility
     /// <summary>
     /// Custom implementation of the BinaryReader which supports branching, and has a smaller memory footprint.
     /// </summary>
-    public class ByteReader : IDisposable
+    public class ByteReader : ByteReaderBase
     {
-        public int TotalPosition
+        public new int Position
+        {
+            get => (int) base.Position;
+            set => base.Position = value;
+        }
+
+        public ByteReader(ReadOnlyMemory<byte> data) : base(data)
+        {
+            Data = data;
+        }
+
+        public ByteReader()
+        {
+        }
+
+        /// <summary>
+        /// Read a byte.
+        /// </summary>
+        /// <returns>The read byte.</returns>
+        public new byte ReadByte()
+        {
+            byte b = Data.Span[Position];
+            Position++;
+            return b;
+        }
+    }
+
+    /// <summary>
+    /// This class exists because "Stream" has some questionable decisions about its interface, and
+    /// the ByteReader hides those.
+    /// </summary>
+    public abstract class ByteReaderBase : Stream, IDisposable
+    {
+        public long TotalPosition
         {
             get => _branchPosition + Position;
         }
 
-        public int Position;
+        public override long Position { get; set; }
         public ReadOnlyMemory<byte> Data { get; protected set; }
 
-        private int _branchPosition;
+        private long _branchPosition;
 
-        public ByteReader(byte[] data)
+        protected ByteReaderBase(ReadOnlyMemory<byte> data)
         {
-            Data = new ReadOnlyMemory<byte>(data);
+            Data = data;
         }
 
-        protected ByteReader()
+        protected ByteReaderBase()
         {
         }
 
@@ -41,79 +76,21 @@ namespace Emotion.Standard.Utility
         public ByteReader Branch(int offset, bool fromStart, int length = -1)
         {
             var b = new ByteReader {_branchPosition = (fromStart ? _branchPosition : TotalPosition) + offset};
-            int startPos = fromStart ? offset : Position + offset;
+            long startPos = fromStart ? offset : Position + offset;
 
             Debug.Assert(startPos <= Data.Length);
 
             if (length == -1)
             {
-                b.Data = Data.Slice(startPos);
+                b.Data = Data.Slice((int) startPos);
             }
             else
             {
                 Debug.Assert(startPos + length <= Data.Length);
-                b.Data = Data.Slice(startPos, length);
+                b.Data = Data.Slice((int) startPos, length);
             }
 
             return b;
-        }
-
-        /// <summary>
-        /// Read an int (little endian).
-        /// </summary>
-        /// <returns>The read int.</returns>
-        public int ReadInt()
-        {
-            byte[] p = ReadBytes(4);
-            if (!BitConverter.IsLittleEndian) Array.Reverse(p);
-            return BitConverter.ToInt32(p);
-        }
-
-        /// <summary>
-        /// Read a byte.
-        /// </summary>
-        /// <returns>The read byte.</returns>
-        public byte ReadByte()
-        {
-            byte b = Data.Span[Position];
-            Position++;
-            return b;
-        }
-
-        /// <summary>
-        /// Read a signed byte.
-        /// </summary>
-        /// <returns>The read signed byte.</returns>
-        public sbyte ReadSByte()
-        {
-            var b = (sbyte) Data.Span[Position];
-            Position++;
-            return b;
-        }
-
-        /// <summary>
-        /// Read an unsigned int of a variable size.
-        /// 1 to 4 bytes are supported.
-        /// </summary>
-        /// <param name="n">The number of bytes in the int.</param>
-        /// <returns>The read int.</returns>
-        public uint ReadVariableUIntBE(int n)
-        {
-            switch (n)
-            {
-                case 0:
-                    return 0;
-                case 1:
-                    return ReadByte();
-                case 2:
-                    return ReadUShortBE();
-                case 3:
-                    return ReadUInt24BE();
-                case 4:
-                    return ReadUIntBE();
-                default:
-                    return ReadUIntBE();
-            }
         }
 
         /// <summary>
@@ -121,16 +98,11 @@ namespace Emotion.Standard.Utility
         /// </summary>
         /// <param name="count">The number of bytes to read.</param>
         /// <returns>The read bytes.</returns>
-        public byte[] ReadBytes(int count)
+        public ReadOnlySpan<byte> ReadBytes(int count)
         {
-            var bytes = new byte[count];
-            for (var i = 0; i < count; i++)
-            {
-                bytes[i] = Data.Span[Position];
-                Position++;
-            }
-
-            return bytes;
+            ReadOnlySpan<byte> s = Data.Span.Slice((int) Position, count);
+            Position += count;
+            return s;
         }
 
         /// <summary>
@@ -139,7 +111,7 @@ namespace Emotion.Standard.Utility
         /// <returns>The read char.</returns>
         public char ReadChar()
         {
-            var c = (char) Data.Span[Position];
+            var c = (char) Data.Span[(int) Position];
             Position++;
             return c;
         }
@@ -154,7 +126,7 @@ namespace Emotion.Standard.Utility
             var chars = new char[count];
             for (var i = 0; i < count; i++)
             {
-                chars[i] = (char) Data.Span[Position];
+                chars[i] = (char) Data.Span[(int) Position];
                 Position++;
             }
 
@@ -162,13 +134,150 @@ namespace Emotion.Standard.Utility
         }
 
         /// <summary>
+        /// Read an int (little endian).
+        /// </summary>
+        /// <returns>The read int.</returns>
+        public int ReadInt()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(4);
+            var n = BitConverter.ToInt32(p);
+            return !BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
+        /// Read a short (little endian).
+        /// </summary>
+        /// <returns></returns>
+        public short ReadShort()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(2);
+            var n = BitConverter.ToInt16(p);
+            return !BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
+        /// Redirect to ReadInt()
+        /// </summary>
+        /// <returns></returns>
+        public int ReadInt32()
+        {
+            return ReadInt();
+        }
+
+        /// <summary>
+        /// Redirect to ReadShort().
+        /// </summary>
+        /// <returns></returns>
+        public short ReadInt16()
+        {
+            return ReadShort();
+        }
+
+        /// <summary>
+        /// Redirect to ReadByte().
+        /// </summary>
+        /// <returns></returns>
+        public byte ReadInt8()
+        {
+            return (byte) ReadByte();
+        }
+
+        /// <summary>
+        /// Read a byte.
+        /// </summary>
+        /// <returns>The read byte.</returns>
+        public override int ReadByte()
+        {
+            byte b = Data.Span[(int) Position];
+            Position++;
+            return b;
+        }
+
+        /// <summary>
+        /// Read a signed byte.
+        /// </summary>
+        /// <returns>The read signed byte.</returns>
+        public sbyte ReadSByte()
+        {
+            var b = (sbyte) Data.Span[(int) Position];
+            Position++;
+            return b;
+        }
+
+        /// <summary>
         /// Reads a C ULong (uint) as big endian.
         /// </summary>
         public uint ReadULongBE()
         {
-            byte[] p = ReadBytes(4);
-            if (BitConverter.IsLittleEndian) Array.Reverse(p);
-            return BitConverter.ToUInt32(p);
+            ReadOnlySpan<byte> p = ReadBytes(4);
+            var n = BitConverter.ToUInt32(p);
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
+        /// Reads a ushort as big endian.
+        /// </summary>
+        public ushort ReadUShortBE()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(2);
+            var n = BitConverter.ToUInt16(p);
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
+        /// Reads a 24 bit uint as big endian. Is returned as a Uint32.
+        /// </summary>
+        public uint ReadUInt24BE()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(3);
+            if (BitConverter.IsLittleEndian) return (uint) (p[2] | (p[1] << 8) | (p[0] << 16));
+            return (uint) (p[0] | (p[1] << 8) | (p[2] << 16));
+        }
+
+        /// <summary>
+        /// Reads a uint as big endian.
+        /// </summary>
+        public uint ReadUIntBE()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(4);
+            var n = BitConverter.ToUInt32(p);
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
+        /// Reads a short as big endian.
+        /// </summary>
+        public short ReadShortBE()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(2);
+            var n = BitConverter.ToInt16(p);
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
+        /// Reads a float as big endian.
+        /// </summary>
+        public float ReadFloatBE()
+        {
+            short decimalData = ReadShortBE();
+            ushort fraction = ReadUShortBE();
+            return decimalData + fraction / 65535f;
+        }
+
+        #region Specific
+
+        /// <summary>
+        /// Reads two ushort as an OpenType version.
+        /// </summary>
+        public float ReadOpenTypeVersionBE(uint minorBase = 0x1000)
+        {
+            ushort major = ReadUShortBE();
+            ushort minor = ReadUShortBE();
+
+            // How to interpret the minor version is very vague in the spec. 0x5000 is 5, 0x1000 is 1
+            // Default returns the correct number if minor = 0xN000 where N is 0-9
+            // Set minorBase to 1 for tables that use minor = N where N is 0-9
+            return major + minor / minorBase / 10f;
         }
 
         /// <summary>
@@ -189,72 +298,87 @@ namespace Emotion.Standard.Utility
         }
 
         /// <summary>
-        /// Reads an ushort as big endian.
+        /// Read an unsigned int of a variable size.
+        /// 1 to 4 bytes are supported.
         /// </summary>
-        public ushort ReadUShortBE()
+        /// <param name="n">The number of bytes in the int.</param>
+        /// <returns>The read int.</returns>
+        public uint ReadVariableUIntBE(int n)
         {
-            byte[] p = ReadBytes(2);
-            if (BitConverter.IsLittleEndian) Array.Reverse(p);
-            return BitConverter.ToUInt16(p);
+            return n switch
+            {
+                0 => 0,
+                1 => (byte) ReadByte(),
+                2 => ReadUShortBE(),
+                3 => ReadUInt24BE(),
+                4 => ReadUIntBE(),
+                _ => ReadUIntBE()
+            };
         }
 
-        /// <summary>
-        /// Reads an uint as big endian.
-        /// </summary>
-        public uint ReadUInt24BE()
+        #endregion
+
+        #region Stream Interface
+
+        public override bool CanRead { get; } = true;
+        public override bool CanSeek { get; } = true;
+        public override bool CanWrite { get; } = false;
+
+        public override long Length
         {
-            byte[] p = ReadBytes(3);
-            if (BitConverter.IsLittleEndian) Array.Reverse(p);
-            return (uint) (p[0] | (p[1] << 8) | (p[2] << 16));
+            get => Data.Length;
         }
 
-        /// <summary>
-        /// Reads an uint as big endian.
-        /// </summary>
-        public uint ReadUIntBE()
+        public override long Seek(long offset, SeekOrigin origin)
         {
-            byte[] p = ReadBytes(4);
-            if (BitConverter.IsLittleEndian) Array.Reverse(p);
-            return BitConverter.ToUInt32(p);
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    Position = offset;
+                    break;
+                case SeekOrigin.Current:
+                    Position += offset;
+                    break;
+                case SeekOrigin.End:
+                    Position = Data.Length - offset;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(origin), origin, null);
+            }
+
+            return Position;
         }
 
-        /// <summary>
-        /// Reads two ushort as an OpenType version.
-        /// </summary>
-        public float ReadOpenTypeVersionBE(uint minorBase = 0x1000)
+        public override void SetLength(long value)
         {
-            ushort major = ReadUShortBE();
-            ushort minor = ReadUShortBE();
-
-            // How to interpret the minor version is very vague in the spec. 0x5000 is 5, 0x1000 is 1
-            // Default returns the correct number if minor = 0xN000 where N is 0-9
-            // Set minorBase to 1 for tables that use minor = N where N is 0-9
-            return major + minor / minorBase / 10f;
+            throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Reads a short as big endian.
-        /// </summary>
-        public short ReadShortBE()
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            byte[] p = ReadBytes(2);
-            if (BitConverter.IsLittleEndian) Array.Reverse(p);
-            return BitConverter.ToInt16(p);
+            throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Reads a float as big endian.
-        /// </summary>
-        public float ReadFloatBE()
+        public override void Flush()
         {
-            short decimalData = ReadShortBE();
-            ushort fraction = ReadUShortBE();
-            return decimalData + fraction / 65535f;
+            // noop
         }
 
-        public void Dispose()
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (Position + count > Data.Length) count = (int) (Data.Length - Position);
+            ReadOnlySpan<byte> copyData = Data.Span.Slice((int) Position, count);
+            copyData.CopyTo(new Span<byte>(buffer).Slice(offset));
+            Position += count;
+            return count;
+        }
+
+        #endregion
+
+        public new void Dispose()
         {
             Data = null;
+            base.Dispose();
         }
     }
 }

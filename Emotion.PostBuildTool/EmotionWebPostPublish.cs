@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.IO;
 using Emotion.IO.AssetPack;
@@ -35,60 +34,48 @@ namespace Emotion.PostBuildTool
                 return;
             }
 
+            // Get files.
             string[] files = Directory.GetFiles(InputFolder, "*", SearchOption.AllDirectories);
             Engine.Log.Info($"Found {files.Length} files.", "Script");
             if (files.Length == 0) return;
 
+            // Ensure output exists and is empty.
             if (Directory.Exists(OutputDirectory)) Directory.Delete(OutputDirectory, true);
             Directory.CreateDirectory(OutputDirectory);
 
+            // Generate blobs.
             var blobs = new ConcurrentBag<AssetBlob>();
-            int tasks = Environment.ProcessorCount;
-            if (tasks > files.Length) tasks = files.Length;
-            var readTasks = new Task[tasks];
-            Engine.Log.Info($"Starting processing on {readTasks.Length} threads.", "Script");
-            for (var i = 0; i < readTasks.Length; i++)
+            AssetBlob b = GenerateAssetBlob();
+            blobs.Add(b);
+            FileStream str = File.Create(Path.Join(OutputDirectory, b.Name));
+            var blobFileSize = 0;
+
+            for (var j = 0; j < files.Length; j++)
             {
-                int iCopy = i;
-                readTasks[i] = Task.Run(() =>
+                string fileName = files[j];
+                string internalName = fileName.Replace(InputFolder + Path.DirectorySeparatorChar, "");
+
+                byte[] bytes = File.ReadAllBytes(fileName);
+                if (blobFileSize + bytes.Length >= MaxBlobSize)
                 {
-                    string[] myFiles = GetFilesForThread(files, readTasks.Length, iCopy);
-                    AssetBlob b = GenerateAssetBlob();
-                    blobs.Add(b);
-                    FileStream str = File.Create(Path.Join(OutputDirectory, b.Name));
-                    var blobFileSize = 0;
-
-                    for (var j = 0; j < myFiles.Length; j++)
-                    {
-                        string fileName = myFiles[j];
-                        string internalName = fileName.Replace(InputFolder + Path.DirectorySeparatorChar, "");
-
-                        byte[] bytes = File.ReadAllBytes(fileName);
-                        if (blobFileSize + bytes.Length >= MaxBlobSize)
-                        {
-                            Engine.Log.Info($"  Finished blob {b.Name} with size {blobFileSize / 1024 / 1024}MB.", "Script");
-                            str.Flush();
-                            str.Dispose();
-                            b = GenerateAssetBlob();
-                            blobs.Add(b);
-                            str = File.Create(Path.Join(OutputDirectory, b.Name));
-                            blobFileSize = 0;
-                        }
-
-                        b.BlobMeta.Add(internalName, new BlobFile(blobFileSize, bytes.Length));
-                        str.Write(bytes);
-                        blobFileSize += bytes.Length;
-                        Engine.Log.Info($"   File {fileName} [{internalName}] of size {bytes.Length / 1024}KB added to blob {b.Name}.", "Script");
-                    }
-
+                    Engine.Log.Info($"  Finished blob {b.Name} with size {blobFileSize / 1024 / 1024}MB.", "Script");
+                    str.Flush();
                     str.Dispose();
-                    Engine.Log.Info("Thread finished.", "Script");
-                });
+                    b = GenerateAssetBlob();
+                    blobs.Add(b);
+                    str = File.Create(Path.Join(OutputDirectory, b.Name));
+                    blobFileSize = 0;
+                }
+
+                b.BlobMeta.Add(internalName, new BlobFile(blobFileSize, bytes.Length));
+                str.Write(bytes);
+                blobFileSize += bytes.Length;
+                Engine.Log.Info($"   File {fileName} [{internalName}] of size {bytes.Length / 1024}KB added to blob {b.Name}.", "Script");
             }
 
-            Task.WaitAll(readTasks);
             Engine.Log.Info($"Building complete. {blobs.Count} blobs created!", "Script");
 
+            // Generate manifest.
             var manifest = new AssetBlobManifest
             {
                 Blobs = blobs.ToArray()
@@ -112,7 +99,7 @@ namespace Emotion.PostBuildTool
                     Engine.Log.Info($" Checking file {realName}...", "Script");
 
                     byte[] bytesFileSystem = File.ReadAllBytes(realName);
-                    byte[] bytesBlob = filePackedSource.GetAsset(AssetLoader.NameToEngineName(file.Key));
+                    ReadOnlySpan<byte> bytesBlob = filePackedSource.GetAsset(AssetLoader.NameToEngineName(file.Key)).Span;
 
                     Debug.Assert(bytesFileSystem.Length == bytesBlob.Length);
                     for (var j = 0; j < bytesFileSystem.Length; j++)
@@ -146,6 +133,7 @@ namespace Emotion.PostBuildTool
             return blobInst;
         }
 
+        // Unused
         public static string[] GetFilesForThread(string[] allFiles, int threadCount, int threadId)
         {
             int perThread = allFiles.Length / threadCount;

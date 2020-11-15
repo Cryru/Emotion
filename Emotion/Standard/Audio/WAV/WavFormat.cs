@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Emotion.Standard.Utility;
 
 #endregion
 
@@ -20,15 +21,17 @@ namespace Emotion.Standard.Audio.WAV
         /// </summary>
         /// <param name="data">The data to check.</param>
         /// <returns>Whether the data fits the wav magic.</returns>
-        public static bool IsWav(byte[] data)
+        public static bool IsWav(ReadOnlyMemory<byte> data)
         {
+            ReadOnlySpan<byte> span = data.Span;
+
             var wav = false;
             if (data.Length >= 4)
                 wav =
-                    data[0] == 'R' &&
-                    data[1] == 'I' &&
-                    data[2] == 'F' &&
-                    data[3] == 'F';
+                    span[0] == 'R' &&
+                    span[1] == 'I' &&
+                    span[2] == 'F' &&
+                    span[3] == 'F';
 
             return wav;
         }
@@ -39,7 +42,7 @@ namespace Emotion.Standard.Audio.WAV
         /// <param name="soundData">The date to encode.</param>
         /// <param name="format">The format of the data.</param>
         /// <returns>A 24bit BMP image as bytes.</returns>
-        public static byte[] Encode(byte[] soundData, AudioFormat format)
+        public static byte[] Encode(ReadOnlyMemory<byte> soundData, AudioFormat format)
         {
             var file = new byte[12 + 24 + 8 + soundData.Length];
             using var writer = new BinaryWriter(new MemoryStream(file));
@@ -62,7 +65,7 @@ namespace Emotion.Standard.Audio.WAV
             // Data - 8 + soundLength
             writer.Write(Encoding.ASCII.GetBytes("data"));
             writer.Write(soundData.Length);
-            writer.Write(soundData);
+            writer.Write(soundData.Span);
 
             return file;
         }
@@ -73,12 +76,11 @@ namespace Emotion.Standard.Audio.WAV
         /// <param name="wavData">The data to decode.</param>
         /// <param name="format">The audio format.</param>
         /// <returns>The sound data.</returns>
-        public static Span<byte> Decode(byte[] wavData, out AudioFormat format)
+        public static ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> wavData, out AudioFormat format)
         {
             format = new AudioFormat();
 
-            using var stream = new MemoryStream(wavData);
-            using var reader = new BinaryReader(stream);
+            using var reader = new ByteReader(wavData);
 
             // Read RIFF header.
             var signature = new string(reader.ReadChars(4));
@@ -136,12 +138,12 @@ namespace Emotion.Standard.Audio.WAV
             // If invalid length, interpret the reset of the file as the data.
             if (dataLength == -1 || dataLength == 0)
             {
-                reader.BaseStream.Position -= 4;
-                dataLength = (int) (reader.BaseStream.Length - reader.BaseStream.Position);
+                reader.Position -= 4;
+                dataLength = (int) (reader.Length - reader.Position);
             }
 
             // Get the data and return it. This won't copy it.
-            return new Span<byte>(wavData, (int) stream.Position, dataLength);
+            return wavData.Slice((int) reader.Position, dataLength);
         }
     }
 }

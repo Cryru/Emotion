@@ -129,7 +129,7 @@ namespace Emotion.IO.AssetPack
             return _manifestNames;
         }
 
-        public override byte[] GetAsset(string enginePath)
+        public override ReadOnlyMemory<byte> GetAsset(string enginePath)
         {
             if (_fileManifest == null) return null;
             if (!_fileManifest.TryGetValue(enginePath, out (int blobIdx, BlobFile blobFile) assetLocation)) return null;
@@ -137,10 +137,7 @@ namespace Emotion.IO.AssetPack
             if (_blobContents.Length - 1 < assetLocation.blobIdx || _blobContents[assetLocation.blobIdx] == null) return null;
             byte[] blob = _blobContents[assetLocation.blobIdx];
 
-            // Copy the file contents to a new array.
-            var file = new byte[assetLocation.blobFile.Length];
-            Array.Copy(blob, assetLocation.blobFile.Offset, file, 0, file.Length);
-            return file;
+            return new ReadOnlyMemory<byte>(blob).Slice(assetLocation.blobFile.Offset, assetLocation.blobFile.Length);
         }
 
         public override string ToString()

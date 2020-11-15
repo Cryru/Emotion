@@ -45,7 +45,7 @@ namespace Emotion.Standard.Image.PNG
         /// </summary>
         public uint Crc;
 
-        public PngChunk(MemoryStream stream)
+        public PngChunk(Stream stream)
         {
             // Read chunk length.
             var lengthBuffer = new byte[4];

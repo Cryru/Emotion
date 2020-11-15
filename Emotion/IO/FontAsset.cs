@@ -34,7 +34,7 @@ namespace Emotion.IO
         private static Font.GlyphRasterizer _rasterizer = Font.GlyphRasterizer.Emotion;
 
         /// <inheritdoc />
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             Font = new Font(data);
         }

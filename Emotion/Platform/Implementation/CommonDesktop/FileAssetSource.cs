@@ -66,19 +66,19 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         }
 
         /// <inheritdoc />
-        public override byte[] GetAsset(string enginePath)
+        public override ReadOnlyMemory<byte> GetAsset(string enginePath)
         {
             // Convert to file path.
             bool found = InternalManifest.TryGetValue(enginePath, out string filePath);
 
             // Check if found.
-            if (!found) return new byte[0];
+            if (!found) return ReadOnlyMemory<byte>.Empty;
 
             // Check if exists.
             if (File.Exists(filePath)) return File.ReadAllBytes(filePath);
 
             Engine.Log.Error($"Couldn't read asset {enginePath} with file path {filePath}.", MessageSource.AssetLoader);
-            return new byte[0];
+            return ReadOnlyMemory<byte>.Empty;
         }
 
         /// <inheritdoc />

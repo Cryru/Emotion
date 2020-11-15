@@ -188,7 +188,7 @@ namespace Emotion.Standard.OpenType
         /// Create a new OpenType font from a font file.
         /// </summary>
         /// <param name="fontData">The bytes that make up the font file.</param>
-        public Font(byte[] fontData)
+        public Font(ReadOnlyMemory<byte> fontData)
         {
 #endif
 

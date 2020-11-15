@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Standard.Logging;
+using Emotion.Standard.Utility;
 using Emotion.Standard.Utility.Zlib;
 using Emotion.Utility;
 
@@ -21,17 +22,18 @@ namespace Emotion.Standard.Image.PNG
         /// </summary>
         /// <param name="data">The data to check.</param>
         /// <returns>Whether the data fits the png magic.</returns>
-        public static bool IsPng(byte[] data)
+        public static bool IsPng(ReadOnlyMemory<byte> data)
         {
+            ReadOnlySpan<byte> span = data.Span;
             return data.Length >= 8 &&
-                   data[0] == 0x89 &&
-                   data[1] == 0x50 && // P
-                   data[2] == 0x4E && // N
-                   data[3] == 0x47 && // G
-                   data[4] == 0x0D && // CR
-                   data[5] == 0x0A && // LF
-                   data[6] == 0x1A && // EOF
-                   data[7] == 0x0A; // LF
+                   span[0] == 0x89 &&
+                   span[1] == 0x50 && // P
+                   span[2] == 0x4E && // N
+                   span[3] == 0x47 && // G
+                   span[4] == 0x0D && // CR
+                   span[5] == 0x0A && // LF
+                   span[6] == 0x1A && // EOF
+                   span[7] == 0x0A; // LF
         }
 
         /// <summary>
@@ -176,7 +178,7 @@ namespace Emotion.Standard.Image.PNG
         /// <param name="pngData">The png file as bytes.</param>
         /// <param name="fileHeader">The png file's header.</param>
         /// <returns>The RGBA pixel data from the png.</returns>
-        public static byte[] Decode(byte[] pngData, out PngFileHeader fileHeader)
+        public static byte[] Decode(ReadOnlyMemory<byte> pngData, out PngFileHeader fileHeader)
         {
             fileHeader = new PngFileHeader();
 
@@ -186,7 +188,7 @@ namespace Emotion.Standard.Image.PNG
                 return null;
             }
 
-            using var stream = new MemoryStream(pngData);
+            using var stream = new ByteReader(pngData);
             stream.Seek(8, SeekOrigin.Current);
 
             var endChunkReached = false;

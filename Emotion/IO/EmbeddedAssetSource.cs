@@ -61,30 +61,26 @@ namespace Emotion.IO
         }
 
         /// <inheritdoc />
-        public override byte[] GetAsset(string enginePath)
+        public override ReadOnlyMemory<byte> GetAsset(string enginePath)
         {
             // Convert to embedded path.
             bool found = InternalManifest.TryGetValue(enginePath, out string embeddedPath);
 
             // Check if found.
-            if (!found) return new byte[0];
-
-            byte[] data;
+            if (!found) return ReadOnlyMemory<byte>.Empty;
 
             // Read the asset from the embedded file.
-            using (Stream stream = Assembly.GetManifestResourceStream(embeddedPath))
+            using Stream stream = Assembly.GetManifestResourceStream(embeddedPath);
+            // Not found.
+            if (stream == null)
             {
-                // Not found.
-                if (stream == null)
-                {
-                    Engine.Log.Error($"Couldn't read asset [{enginePath}] with embedded path [{embeddedPath}].", MessageSource.AssetLoader);
-                    return new byte[0];
-                }
-
-                // Read from stream.
-                data = new byte[stream.Length];
-                stream.Read(data, 0, (int) stream.Length);
+                Engine.Log.Error($"Couldn't read asset [{enginePath}] with embedded path [{embeddedPath}].", MessageSource.AssetLoader);
+                return new byte[0];
             }
+
+            // Read from stream.
+            var data = new byte[stream.Length];
+            stream.Read(data, 0, (int) stream.Length);
 
             return data;
         }

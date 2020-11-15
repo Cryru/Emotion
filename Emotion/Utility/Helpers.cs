@@ -118,7 +118,7 @@ namespace Emotion.Utility
         /// Guess the string encoding of the data array.
         /// https://stackoverflow.com/questions/581318/c-sharp-detect-xml-encoding-from-byte-array
         /// </summary>
-        public static Encoding GuessStringEncoding(byte[] data)
+        public static Encoding GuessStringEncoding(ReadOnlySpan<byte> data)
         {
             // "utf-16" - Unicode UTF-16, little endian byte order
             if (BytesEqual(data, Utf16LeAlt)) return Encoding.Unicode;
@@ -143,7 +143,7 @@ namespace Emotion.Utility
         /// </summary>
         /// <param name="bytes">The bytes to compare against.</param>
         /// <param name="compare">The bytes to compare.</param>
-        public static bool BytesEqual(byte[] bytes, byte[] compare)
+        public static bool BytesEqual(ReadOnlySpan<byte> bytes, ReadOnlySpan<byte> compare)
         {
             // ReSharper disable once LoopCanBeConvertedToQuery
             for (var i = 0; i < compare.Length; i++)

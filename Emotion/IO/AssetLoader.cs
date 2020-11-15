@@ -180,8 +180,8 @@ namespace Emotion.IO
             PerfProfiler.ProfilerEventStart($"SourceLoading {name}", "Loading");
 
             // Load it from the source.
-            byte[] data = source.GetAsset(name);
-            if (data == null || data.Length == 0) return default;
+            ReadOnlyMemory<byte> data = source.GetAsset(name);
+            if (data.IsEmpty) return default;
 
             PerfProfiler.ProfilerEventEnd($"SourceLoading {name}", "Loading");
             PerfProfiler.ProfilerEventStart($"InternalLoading {name}", "Loading");

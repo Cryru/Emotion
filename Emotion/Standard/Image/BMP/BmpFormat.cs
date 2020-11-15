@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Emotion.Standard.Utility;
 
 #endregion
 
@@ -19,13 +20,14 @@ namespace Emotion.Standard.Image.BMP
         /// </summary>
         /// <param name="data">The data to check.</param>
         /// <returns>Whether the data fits the bmp magic.</returns>
-        public static bool IsBmp(byte[] data)
+        public static bool IsBmp(ReadOnlyMemory<byte> data)
         {
+            ReadOnlySpan<byte> span = data.Span;
             var bmp = false;
             if (data.Length >= 2)
                 bmp =
-                    data[0] == 0x42 && // B
-                    data[1] == 0x4D; // M
+                    span[0] == 0x42 && // B
+                    span[1] == 0x4D; // M
 
             return bmp;
         }
@@ -109,9 +111,9 @@ namespace Emotion.Standard.Image.BMP
         /// <param name="bmpData">The bmp file as bytes to decode.</param>
         /// <param name="fileHeader">The header of the file. Contains information such as the size of the image.</param>
         /// <returns>An RGBA pixel array extracted from the BMP.</returns>
-        public static byte[] Decode(byte[] bmpData, out BmpFileHeader fileHeader)
+        public static byte[] Decode(ReadOnlyMemory<byte> bmpData, out BmpFileHeader fileHeader)
         {
-            using var reader = new BinaryReader(new MemoryStream(bmpData));
+            using var reader = new ByteReader(bmpData);
 
             fileHeader = new BmpFileHeader
             {
@@ -150,11 +152,11 @@ namespace Emotion.Standard.Image.BMP
                 colorMapSize = fileHeader.ClrUsed * 4;
             }
 
-            byte[] palette = null;
+            ReadOnlySpan<byte> palette = null;
 
             if (colorMapSize > 0) palette = reader.ReadBytes(colorMapSize);
 
-            byte[] pixelIn = reader.ReadBytes(fileHeader.ImageSize);
+            ReadOnlySpan<byte> pixelIn = reader.ReadBytes(fileHeader.ImageSize);
             var pixelOut = new byte[fileHeader.Width * fileHeader.Height * 4];
 
             if (fileHeader.HeaderSize != 40)
@@ -168,7 +170,10 @@ namespace Emotion.Standard.Image.BMP
             else if (fileHeader.BitsPerPixel == 16)
                 ReadRgb16(pixelIn, pixelOut, fileHeader.Width, fileHeader.Height);
             else if (fileHeader.BitsPerPixel <= 8)
-                ReadRgbPalette(pixelIn, pixelOut, palette,
+                ReadRgbPalette(
+                    pixelIn,
+                    pixelOut,
+                    palette,
                     fileHeader.Width,
                     fileHeader.Height,
                     fileHeader.BitsPerPixel);
@@ -178,7 +183,7 @@ namespace Emotion.Standard.Image.BMP
 
         #region Decoder Helpers
 
-        private static void ReadRgbPalette(byte[] inputData, byte[] outputData, byte[] colors, int width, int height, int bits)
+        private static void ReadRgbPalette(ReadOnlySpan<byte> inputData, byte[] outputData, ReadOnlySpan<byte> colors, int width, int height, int bits)
         {
             // Pixels per byte (bits per pixel)
             int ppb = 8 / bits;
@@ -217,7 +222,7 @@ namespace Emotion.Standard.Image.BMP
             }
         }
 
-        private static void ReadRgb16(byte[] inputData, byte[] outputData, int width, int height)
+        private static void ReadRgb16(ReadOnlySpan<byte> inputData, byte[] outputData, int width, int height)
         {
             // Masks for the colors of the 16 bit BMP.
             const int rgb16RMask = 0x00007C00;
@@ -238,7 +243,7 @@ namespace Emotion.Standard.Image.BMP
                 {
                     int offset = rowOffset + x * 2;
 
-                    short temp = BitConverter.ToInt16(inputData, offset);
+                    var temp = BitConverter.ToInt16(inputData[offset..]);
 
                     var r = (byte) (((temp & rgb16RMask) >> 11) * scaleR);
                     var g = (byte) (((temp & rgb16GMask) >> 5) * scaleG);
@@ -254,7 +259,7 @@ namespace Emotion.Standard.Image.BMP
             }
         }
 
-        private static void ReadRgb24(byte[] inputData, byte[] outputData, int width, int height)
+        private static void ReadRgb24(ReadOnlySpan<byte> inputData, byte[] outputData, int width, int height)
         {
             int alignment = width * 3 % 4;
             if (alignment != 0) alignment = 4 - alignment;
@@ -277,7 +282,7 @@ namespace Emotion.Standard.Image.BMP
             }
         }
 
-        private static void ReadRgb32(byte[] inputData, byte[] outputData, int width, int height)
+        private static void ReadRgb32(ReadOnlySpan<byte> inputData, byte[] outputData, int width, int height)
         {
             int alignment = width * 4 % 4;
             if (alignment == 0) alignment = 4 - alignment;

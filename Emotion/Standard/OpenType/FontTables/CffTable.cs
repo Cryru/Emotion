@@ -98,13 +98,12 @@ namespace Emotion.Standard.OpenType.FontTables
                     return;
                 }
 
-                ByteReader r = reader.Branch(fdArrayOffset, true);
-                byte[][] fdArrayIndex = ReadIndexArray<byte[]>(r);
-                Dictionary<string, object>[] fd = GatherCffTopDicts(reader.Branch(0, true), fdArrayIndex);
+                // todo
+                // ByteReader r = reader.Branch(fdArrayOffset, true);
+                // byte[][] fdArrayIndex = ReadIndexArray<byte[]>(r);
+                // Dictionary<string, object>[] fd = GatherCffTopDicts(reader.Branch(0, true), fdArrayIndex);
 
                 Debugger.Break();
-
-                // todo
             }
             else
             {
@@ -318,12 +317,12 @@ namespace Emotion.Standard.OpenType.FontTables
                 objectReader.Position = 0;
 
                 objectReader.ReadBytes((int) offsets[i]);
-                byte[] bytes = objectReader.ReadBytes((int) (offsets[i + 1] - offsets[i]));
+                ReadOnlySpan<byte> bytes = objectReader.ReadBytes((int) (offsets[i + 1] - offsets[i]));
 
                 if (typeof(T) == typeof(string))
                     objects.Add((T) Convert.ChangeType(System.Text.Encoding.ASCII.GetString(bytes), typeof(T)));
                 else
-                    objects.Add((T) Convert.ChangeType(bytes, typeof(T)));
+                    objects.Add((T) Convert.ChangeType(bytes.ToArray(), typeof(T)));
             }
 
             return objects.ToArray();
@@ -363,7 +362,7 @@ namespace Emotion.Standard.OpenType.FontTables
                     topDict["_defaultWidthX"] = privateDict["defaultWidthX"];
                     topDict["_nominalWidthX"] = privateDict["nominalWidthX"];
 
-                    int subrs = Convert.ToInt32(privateDict["subrs"]);
+                    var subrs = Convert.ToInt32(privateDict["subrs"]);
                     if (subrs != 0)
                     {
                         int subROffset = privateOffset + subrs;

@@ -28,7 +28,7 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="enginePath">The engine path to the asset.</param>
         /// <returns>A byte array of the asset.</returns>
-        public abstract byte[] GetAsset(string enginePath);
+        public abstract ReadOnlyMemory<byte> GetAsset(string enginePath);
 
         /// <summary>
         /// Returns the time the asset was last modified.

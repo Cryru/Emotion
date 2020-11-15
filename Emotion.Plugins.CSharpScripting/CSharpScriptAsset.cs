@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -24,9 +25,9 @@ namespace Emotion.Plugins.CSharpScripting
             CreateFromString(source);
         }
 
-        protected override void CreateInternal(byte[] data)
+        protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
-            string source = Encoding.UTF8.GetString(data).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
+            string source = Encoding.UTF8.GetString(data.Span).Replace("\r", "").Replace("\uFEFF", "").Replace("ï»¿", "");
             CreateFromString(source);
         }
 

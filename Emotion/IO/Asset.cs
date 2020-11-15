@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using Emotion.Common.Serialization;
 
 #endregion
@@ -32,7 +33,7 @@ namespace Emotion.IO
         /// </summary>
         /// <param name="data">The bytes to create an asset from.</param>
         /// <returns>The bytes to cache for faster loading in the future, or null if no cache.</returns>
-        public void Create(byte[] data)
+        public void Create(ReadOnlyMemory<byte> data)
         {
             if (Created) return;
 
@@ -40,7 +41,7 @@ namespace Emotion.IO
             Created = true;
         }
 
-        protected abstract void CreateInternal(byte[] data);
+        protected abstract void CreateInternal(ReadOnlyMemory<byte> data);
 
         /// <summary>
         /// Dispose of the asset clearing any resources it used.
