@@ -15,6 +15,9 @@ namespace Emotion.IO
     {
         public static string AssetDevPath = Path.Join("..", "..", "..", "Assets");
 
+        // Make sure a mass of explorer windows don't open when saving a lot of assets, such as in an exporter tool.
+        private static float _lastExplorerOpenedTime;
+
         public DebugAssetStore() : base(AssetDevPath)
         {
         }
@@ -26,7 +29,11 @@ namespace Emotion.IO
             // Save to exe folder.
             base.SaveAsset(data, Path.Join(".", "Assets", name), false);
 
-            if (Engine.Host is Win32Platform) Process.Start("explorer.exe", $"{Path.GetDirectoryName(Path.Join(_folderFs, name))}");
+            if (Engine.Host is Win32Platform && Engine.TotalTime - _lastExplorerOpenedTime > 20_000)
+            {
+                _lastExplorerOpenedTime = Engine.TotalTime;
+                Process.Start("explorer.exe", $"{Path.GetDirectoryName(Path.Join(_folderFs, name))}");
+            }
         }
 
         public override ReadOnlyMemory<byte> GetAsset(string enginePath)
