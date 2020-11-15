@@ -139,6 +139,7 @@ namespace Emotion.Game.Animation
             Animations.Clear();
             foreach (AnimationNode node in nodeData)
             {
+                if (Animations.ContainsKey(node.Name)) node.Name += "_";
                 Animations.Add(node.Name, node);
             }
         }
