@@ -72,7 +72,7 @@ namespace Emotion.Plugins.CSharpScripting
             CSharpParseOptions options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
             SyntaxTree parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
 
-            Assembly entryAsm = Assembly.GetEntryAssembly();
+            var entryAsm = Assembly.GetEntryAssembly();
             var references = new MetadataReference[]
             {
                 // System references.
@@ -89,10 +89,10 @@ namespace Emotion.Plugins.CSharpScripting
                 entryAsm != null ? MetadataReference.CreateFromFile(entryAsm.Location) : null
             };
 
-            CSharpCompilation compilation = CSharpCompilation.Create($"{Guid.NewGuid().ToString()}.dll",
+            var compilation = CSharpCompilation.Create($"{Guid.NewGuid()}.dll",
                 new[] {parsedSyntaxTree},
                 references,
-                new CSharpCompilationOptions(OutputKind.WindowsApplication,
+                new CSharpCompilationOptions(OutputKind.ConsoleApplication,
                     optimizationLevel: Engine.Configuration.DebugMode ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
             );

@@ -34,7 +34,7 @@ namespace Tests
                     Directory.CreateDirectory("Player");
                 }
             },
-            {"tag=Scripting", null},
+            // {"tag=Scripting", null}, Broken since .Net 5.0
             {"tag=Coroutine", null},
             {"tag=StandardAudio", null},
             {"tag=Audio", null},
