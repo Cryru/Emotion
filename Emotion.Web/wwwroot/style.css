@@ -41,8 +41,8 @@ canvas {
 
 .dot-parent {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: 62px;
+    height: 62px;
 }
 
 .dot-gathering {
@@ -64,10 +64,10 @@ canvas {
     content: '';
     display: inline-block;
     position: absolute;
-    top: 0;
+    top: 4px;
     left: -75px;
-    width: 32px;
-    height: 32px;
+    width: 54px;
+    height: 54px;
     border-radius: 10px;
     background-color: white;
     color: transparent;
