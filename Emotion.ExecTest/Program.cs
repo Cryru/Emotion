@@ -16,11 +16,11 @@ namespace Emotion.ExecTest
 {
     public class Program : IScene
     {
-        private static int dirX;
-        private static int dirY;
-        private static readonly List<Vector2> mousePosTest = new List<Vector2>();
+        private static int _dirX;
+        private static int _dirY;
+        private static readonly List<Vector2> MousePosTest = new List<Vector2>();
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             var config = new Configurator
             {
@@ -29,14 +29,14 @@ namespace Emotion.ExecTest
             config.AddPlugin(new ImGuiNetPlugin());
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new Program());
+            Engine.SceneManager.SetScene(new BinningDisplay());
             Engine.Run();
         }
 
         public void Update()
         {
-            Engine.Renderer.Camera.X += dirX * 1 * Engine.DeltaTime;
-            Engine.Renderer.Camera.Y += dirY * 1 * Engine.DeltaTime;
+            Engine.Renderer.Camera.X += _dirX * 1 * Engine.DeltaTime;
+            Engine.Renderer.Camera.Y += _dirY * 1 * Engine.DeltaTime;
 
             Engine.Renderer.Camera.RecreateMatrix();
         }
@@ -47,9 +47,9 @@ namespace Emotion.ExecTest
             composer.RenderSprite(new Vector3(0, 0, 0), new Vector2(10, 10), Color.Red);
             composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size - new Vector2(10, 10), 0), new Vector2(10, 10), Color.Red);
 
-            for (var i = 0; i < mousePosTest.Count; i++)
+            for (var i = 0; i < MousePosTest.Count; i++)
             {
-                composer.RenderSprite(mousePosTest[i].ToVec3(), new Vector2(10), Color.Magenta);
+                composer.RenderSprite(MousePosTest[i].ToVec3(), new Vector2(10), Color.Magenta);
             }
         }
 
@@ -60,40 +60,40 @@ namespace Emotion.ExecTest
                 if (key == Key.W)
                 {
                     if (status == KeyStatus.Down)
-                        dirY -= 1;
+                        _dirY -= 1;
                     else if (status == KeyStatus.Up)
-                        dirY += 1;
+                        _dirY += 1;
                 }
 
                 if (key == Key.S)
                 {
                     if (status == KeyStatus.Down)
-                        dirY += 1;
+                        _dirY += 1;
                     else if (status == KeyStatus.Up)
-                        dirY -= 1;
+                        _dirY -= 1;
                 }
 
                 if (key == Key.A)
                 {
                     if (status == KeyStatus.Down)
-                        dirX -= 1;
+                        _dirX -= 1;
                     else if (status == KeyStatus.Up)
-                        dirX += 1;
+                        _dirX += 1;
                 }
 
                 if (key == Key.D)
                 {
                     if (status == KeyStatus.Down)
-                        dirX += 1;
+                        _dirX += 1;
                     else if (status == KeyStatus.Up)
-                        dirX -= 1;
+                        _dirX -= 1;
                 }
 
                 return true;
             });
             Engine.Host.OnMouseKey.AddListener((key, _) =>
             {
-                if (key == MouseKey.Left) mousePosTest.Add(Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition));
+                if (key == MouseKey.Left) MousePosTest.Add(Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition));
                 return true;
             });
         }
