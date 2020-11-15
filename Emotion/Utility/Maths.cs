@@ -735,5 +735,13 @@ namespace Emotion.Utility
             // Divide 180 by Pi and multiply by the radians. Convert to an integer.
             return radian * RAD_2DEG;
         }
+
+        /// <summary>
+        /// Used for getting unique hash codes.
+        /// </summary>
+        public static int GetCantorPair(int x, int y)
+        {
+            return (x + y) * (x + y + 1) / 2 + y;
+        }
     }
 }

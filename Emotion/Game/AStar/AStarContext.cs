@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Emotion.Utility;
 
 #endregion
 
@@ -190,7 +191,7 @@ namespace Emotion.Game.AStar
         {
             if (!_pathingGrid.IsWalkable(x, y)) return null;
 
-            int hashCode = AStarNode.GetHashCode(x, y);
+            int hashCode = Maths.GetCantorPair(x, y);
             if (_cache.TryGetValue(hashCode, out AStarNode node)) return node;
             var newNode = new AStarNode(x, y);
             _cache.Add(hashCode, newNode);

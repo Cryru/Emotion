@@ -4,6 +4,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Emotion.Common.Serialization;
+using Emotion.Utility;
 
 #endregion
 
@@ -374,7 +375,7 @@ namespace Emotion.Primitives
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return (int) Math.Pow(Math.Pow(X, Y), Math.Pow(Width, Height));
+            return Maths.GetCantorPair(Maths.GetCantorPair((int) X, (int) Y), Maths.GetCantorPair((int) Width, (int) Height));
         }
 
         /// <summary>

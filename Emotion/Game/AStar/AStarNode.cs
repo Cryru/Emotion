@@ -2,6 +2,7 @@
 
 using System;
 using System.Numerics;
+using Emotion.Utility;
 
 #endregion
 
@@ -80,16 +81,7 @@ namespace Emotion.Game.AStar
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return GetHashCode(X, Y);
-        }
-
-        /// <summary>
-        /// Get the unique hashcode used for the node.
-        /// </summary>
-        public static int GetHashCode(int x, int y)
-        {
-            // Cantor-pair
-            return (x + y) * (x + y + 1) / 2 + y;
+            return Maths.GetCantorPair(X, Y);
         }
 
         public int CompareTo(AStarNode other)
