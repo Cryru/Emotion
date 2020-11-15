@@ -2,11 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Game;
+using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Standard.Utility;
@@ -470,33 +471,27 @@ namespace Emotion.Standard.OpenType
 
             GlyphRenderer.GlyphCanvas[] result = Task.WhenAll(canvases.ToArray()).Result;
 
-            const int glyphSpacing = 2;
-            float rowSpacing = MathF.Ceiling(Height * scale + MathF.Abs(Descender * scale));
+            const int glyphSpacing = 1;
+            var glyphSpacing2 = new Vector2(glyphSpacing);
 
-            // Determine size of the atlas texture based on the largest atlases.
-            var largestGlyphWidth = 0;
-            var largestGlyphHeight = 0;
-            var nonEmptyCanvases = 0;
+            var glyphRects = new Rectangle[result.Length];
             for (var i = 0; i < result.Length; i++)
             {
                 GlyphRenderer.GlyphCanvas canvas = result[i];
-                if (canvas == null) continue;
+                if (canvas == null || canvas.Data.Length == 0) continue;
 
-                nonEmptyCanvases++;
-                largestGlyphWidth = Math.Max(canvas.Width, largestGlyphWidth);
-                largestGlyphHeight = Math.Max(canvas.Height, largestGlyphHeight);
+                glyphRects[i].Width = canvas.Width;
+                glyphRects[i].Height = canvas.Height;
+
+                // Inflate for spacing on all sides.
+                glyphRects[i].Size += glyphSpacing2 * 2;
             }
 
-            largestGlyphWidth += glyphSpacing * 2;
-            largestGlyphHeight += glyphSpacing * 2;
+            Vector2 atlasSize = Binning.FitRectangles(glyphRects);
+            var atlas = new byte[(int)atlasSize.X * (int)atlasSize.Y];
+            var atlasObj = new FontAtlas(atlasSize, atlas, rasterizer.ToString(), scale, this);
 
-            var glyphCountSqrt = (int) Math.Ceiling(Math.Sqrt(nonEmptyCanvases));
-            int atlasSize = Math.Max(glyphCountSqrt * largestGlyphWidth, glyphCountSqrt * largestGlyphHeight); // Square
-
-            // Combine the rasterized glyphs into one atlas.
-            var pen = new Vector2(glyphSpacing);
-            var atlas = new byte[atlasSize * atlasSize];
-            var atlasObj = new FontAtlas(new Vector2(atlasSize), atlas, rasterizer.ToString(), scale, this);
+            var atlasWidth = (int)atlasSize.X;
             for (var i = 0; i < result.Length; i++)
             {
                 GlyphRenderer.GlyphCanvas canvas = result[i];
@@ -504,38 +499,31 @@ namespace Emotion.Standard.OpenType
                 AtlasGlyph canvasGlyph = canvas.Glyph;
 
                 // Associate canvas with all representing chars.
-                List<char> representingChars = canvas.Glyph.FontGlyph.CharIndex;
+                List<char> representingChars = canvasGlyph.FontGlyph.CharIndex;
                 for (var j = 0; j < representingChars.Count; j++)
                 {
                     atlasObj.Glyphs[representingChars[j]] = canvasGlyph;
                 }
 
-                // If empty canvas, skip.
                 if (canvas.Data.Length == 0) continue;
 
-                // Check if going over to a new line.
-                if (pen.X + canvas.Width >= atlasSize - glyphSpacing)
-                {
-                    pen.X = glyphSpacing;
-                    pen.Y += rowSpacing + glyphSpacing;
-                }
+                Rectangle atlasRect = glyphRects[i];
+                atlasRect.Position += glyphSpacing2;
+                atlasRect.Size -= glyphSpacing2;
 
                 // Copy pixels and record the location of the glyph.
                 for (var row = 0; row < canvas.Height; row++)
                 {
                     for (var col = 0; col < canvas.Width; col++)
                     {
-                        var x = (int) (pen.X + col);
-                        var y = (int) (pen.Y + row);
-                        atlas[y * atlasSize + x] = canvas.Data[row * canvas.Stride + col];
+                        var x = (int)(atlasRect.X + col);
+                        var y = (int)(atlasRect.Y + row);
+                        atlas[y * atlasWidth + x] = canvas.Data[row * canvas.Stride + col];
                     }
                 }
 
-                canvasGlyph.Location = pen;
+                canvasGlyph.Location = atlasRect.Position;
                 canvasGlyph.UV = new Vector2(canvas.Width, canvas.Height);
-
-                // Increment pen. Leave space between glyphs.
-                pen.X += canvas.Width + glyphSpacing;
             }
 
 #if RASTERIZER_PROFILER

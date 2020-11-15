@@ -117,7 +117,7 @@ namespace Tests.Classes
                 // Get atlases.
                 int fontSize = fontSizes[i];
                 FontAtlas emotionAtlas = f.GetAtlas(fontSize);
-                FontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 2, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
+                FontAtlas packedStbAtlas = RenderFontStbPacked(data, fontSize, emotionAtlas.Size * 4, (int) f.LastCharIndex + 1, f, out StbTrueType.stbtt_fontinfo stbFont);
 
                 // Compare glyph parsing.
                 CompareMetricsWithStb(f, emotionAtlas, stbFont);
