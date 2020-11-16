@@ -319,7 +319,9 @@ namespace Emotion.Game.Tiled
                 _cachedTileRenderData = new VertexData[TiledMap.TileLayers.Count][];
                 for (var i = 0; i < TiledMap.TileLayers.Count; i++)
                 {
-                    _cachedTileRenderData[i] = SetupRenderCacheForTileLayer(i, TiledMap.TileLayers[i]);
+                    var layerObj = TiledMap.TileLayers[i];
+                    int layerIdx = TiledMap.Layers.IndexOf(layerObj);
+                    _cachedTileRenderData[i] = SetupRenderCacheForTileLayer(layerIdx,layerObj );
                 }
             }
 
@@ -679,7 +681,8 @@ namespace Emotion.Game.Tiled
         {
             // Check if layer is out of bounds.
             tileSet = -1;
-            if (TiledMap == null || layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
+            if (TiledMap == null || TiledMap.Layers[layer].Tiles == null || 
+                layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
 
             // Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;

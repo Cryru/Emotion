@@ -61,7 +61,7 @@ namespace Emotion.Game.AStar
             {
                 for (var y = 0; y < newGrid.Height; y++)
                 {
-                    int tileId = x + y * (int) layer.Height;
+                    int tileId = x + y * (int) layer.Width;
                     int imageId = tileMap.GetTileImageIdInLayer(tileId, layerId, out int _);
                     bool solid = unwalkableTiles.IndexOf(imageId) != -1;
                     if (solid) newGrid.SetWalkable(x, y, false);
