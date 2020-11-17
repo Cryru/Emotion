@@ -43,98 +43,92 @@ namespace Emotion.Game
         /// The positions of the rectangles within the memory will be modified to the new ones.
         /// </summary>
         /// <param name="rectMemory">The rectangles to fit.</param>
-        /// <param name="maxPasses">The number of passes to perform. Usually at least 2 are needed for optimal results.</param>
         /// <param name="maintainOrder">
         /// Whether the rectangles should maintain their array order when placed. This usually results
         /// in suboptimal results if the rectangles aren't relatively the same height. False by default.
         /// </param>
         /// <returns></returns>
-        public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, int maxPasses = int.MaxValue, bool maintainOrder = false)
+        public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false)
         {
             if (rectMemory.IsEmpty) return Vector2.Zero;
             if (rectMemory.Length == 1) return rectMemory.Span[0].Size;
 
             // Sorting is down with a separate key table, to ensure the order is the same.
             int[] keys = Enumerable.Range(0, rectMemory.Length).ToArray();
-            if (!maintainOrder) Array.Sort(keys, (x, y) =>
-            {
-                Rectangle rectX = rectMemory.Span[x];
-                Rectangle rectY = rectMemory.Span[y];
-                return Math.Sign(rectY.Height - rectX.Height);
-            });
+            if (!maintainOrder)
+                Array.Sort(keys, (x, y) =>
+                {
+                    Rectangle rectX = rectMemory.Span[x];
+                    Rectangle rectY = rectMemory.Span[y];
+                    return Math.Sign(rectY.Height - rectX.Height);
+                });
 
             Span<Rectangle> rects = rectMemory.Span;
             ref Rectangle tallestRect = ref rects[0];
             var canvasSize = new Vector2(Maths.ClosestPowerOfTwoGreaterThan((int) tallestRect.Width), Maths.ClosestPowerOfTwoGreaterThan((int) tallestRect.Height));
             var packingSpaces = new List<PackingSpace>();
-            var currentPass = 0;
-            while (currentPass < maxPasses)
+            restart:
+            Vector2 canvasPos = Vector2.Zero;
+            packingSpaces.Clear();
+            for (var i = 0; i < rects.Length; i++)
             {
-                restart:
-                currentPass++;
-                Vector2 canvasPos = Vector2.Zero;
-                packingSpaces.Clear();
-                for (var i = 0; i < rects.Length; i++)
+                ref Rectangle curRect = ref rects[keys[i]];
+                var foundPlace = false;
+
+                // Empty or invalid.
+                if (curRect.Width == 0 || curRect.Height == 0) continue;
+
+                for (var pp = 0; pp < packingSpaces.Count; pp++)
                 {
-                    ref Rectangle curRect = ref rects[keys[i]];
-                    var foundPlace = false;
+                    PackingSpace space = packingSpaces[pp];
+                    Rectangle currentSpace = space.GetAbsoluteArea(canvasSize);
+                    if (!(currentSpace.Width >= curRect.Width) || !(currentSpace.Height >= curRect.Height)) continue;
 
-                    // Empty or invalid.
-                    if (curRect.Width == 0 || curRect.Height == 0) continue;
+                    curRect.Position = currentSpace.Position;
 
-                    for (var pp = 0; pp < packingSpaces.Count; pp++)
-                    {
-                        PackingSpace space = packingSpaces[pp];
-                        Rectangle currentSpace = space.GetAbsoluteArea(canvasSize);
-                        if (!(currentSpace.Width >= curRect.Width) || !(currentSpace.Height >= curRect.Height)) continue;
+                    // Remove this space.
+                    packingSpaces.RemoveAt(pp);
 
-                        curRect.Position = currentSpace.Position;
+                    // Split it into the space on the right, and the space on top.
+                    float rightSide;
+                    if (space.Area.Width == PackingSpace.ExtendToWidth)
+                        rightSide = PackingSpace.ExtendToWidth;
+                    else
+                        rightSide = space.Area.Width - curRect.Width;
 
-                        // Remove this space.
-                        packingSpaces.RemoveAt(pp);
+                    var packingSpaceRightOf = new Rectangle(curRect.Right, currentSpace.Y, rightSide, currentSpace.Height);
+                    packingSpaces.Add(new PackingSpace(packingSpaceRightOf));
 
-                        // Split it into the space on the right, and the space on top.
-                        float rightSide;
-                        if (space.Area.Width == PackingSpace.ExtendToWidth)
-                            rightSide = PackingSpace.ExtendToWidth;
-                        else
-                            rightSide = space.Area.Width - curRect.Width;
+                    var packingSpaceBottomOf = new Rectangle(curRect.X, curRect.Bottom, curRect.Width, currentSpace.Height - curRect.Height);
+                    packingSpaces.Add(new PackingSpace(packingSpaceBottomOf));
 
-                        var packingSpaceRightOf = new Rectangle(curRect.Right, currentSpace.Y, rightSide, currentSpace.Height);
-                        packingSpaces.Add(new PackingSpace(packingSpaceRightOf));
-
-                        var packingSpaceBottomOf = new Rectangle(curRect.X, curRect.Bottom, curRect.Width, currentSpace.Height - curRect.Height);
-                        packingSpaces.Add(new PackingSpace(packingSpaceBottomOf));
-
-                        foundPlace = true;
-                        break;
-                    }
-
-                    if (foundPlace) continue;
-
-                    // Going into the master packing space.
-                    curRect.Position = canvasPos;
-                    canvasPos.Y = curRect.Bottom;
-
-                    // Check if it needs extending on the height.
-                    if (canvasPos.Y > canvasSize.Y) canvasSize.Y = Maths.ClosestPowerOfTwoGreaterThan((int) canvasPos.Y);
-
-                    // Check if the height is much bigger than the width now.
-                    float scaleDiff = MathF.Log2(canvasSize.Y) - MathF.Log2(canvasSize.X);
-                    if (scaleDiff > 0.0f)
-                    {
-                        // Set the width to the current height, and start a new pass.
-                        canvasSize.X = canvasSize.Y;
-                        packingSpaces.Clear();
-                        goto restart;
-                    }
-
-                    var packingSpaceRightOfInMaster = new Rectangle(curRect.Right, curRect.Y, PackingSpace.ExtendToWidth, curRect.Height);
-                    packingSpaces.Add(new PackingSpace(packingSpaceRightOfInMaster));
+                    foundPlace = true;
+                    break;
                 }
 
-                break;
+                if (foundPlace) continue;
+
+                // Going into the master packing space.
+                curRect.Position = canvasPos;
+                canvasPos.Y = curRect.Bottom;
+
+                // Check if it needs extending on the height.
+                if (canvasPos.Y > canvasSize.Y) canvasSize.Y = Maths.ClosestPowerOfTwoGreaterThan((int) canvasPos.Y);
+
+                // Check if the height is much bigger than the width now.
+                float scaleDiff = MathF.Log2(canvasSize.Y) - MathF.Log2(canvasSize.X);
+                if (scaleDiff > 0.0f)
+                {
+                    // Set the width to the current height, and start a new pass.
+                    canvasSize.X = canvasSize.Y;
+                    packingSpaces.Clear();
+                    goto restart;
+                }
+
+                var packingSpaceRightOfInMaster = new Rectangle(curRect.Right, curRect.Y, PackingSpace.ExtendToWidth, curRect.Height);
+                packingSpaces.Add(new PackingSpace(packingSpaceRightOfInMaster));
             }
+
 
             // Check if height can be reduced.
             float bottomMostRect = 0;

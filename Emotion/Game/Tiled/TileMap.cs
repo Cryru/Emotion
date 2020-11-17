@@ -729,6 +729,19 @@ namespace Emotion.Game.Tiled
         }
 
         /// <summary>
+        /// Get the world position of a tile. This is the position that includes the calculated Z value and
+        /// is taken from the map's render cache.
+        /// </summary>
+        public Vector3 GetWorldPosOfTile(Vector2 tileCoordinate, int layer)
+        {
+            if (layer == -1 || _cachedTileRenderData == null) return Vector3.Zero;
+            int tile1D = GetTile1DFromTile2D(tileCoordinate);
+            if (tile1D == -1) return Vector3.Zero;
+            VertexData[]? renderCache = _cachedTileRenderData[layer];
+            return renderCache?[tile1D * 4].Vertex ?? Vector3.Zero;
+        }
+
+        /// <summary>
         /// Get the bounds of a tile from its tile coordinate.
         /// </summary>
         /// <param name="coordinate">The tile coordinate.</param>
