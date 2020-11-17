@@ -53,7 +53,7 @@ namespace Emotion.Game
             if (rectMemory.IsEmpty) return Vector2.Zero;
             if (rectMemory.Length == 1) return rectMemory.Span[0].Size;
 
-            // Sorting is down with a separate key table, to ensure the order is the same.
+            // Sorting is down with a separate key table, as not to rearrange rectMemory.
             int[] keys = Enumerable.Range(0, rectMemory.Length).ToArray();
             if (!maintainOrder)
                 Array.Sort(keys, (x, y) =>
@@ -67,6 +67,7 @@ namespace Emotion.Game
             ref Rectangle tallestRect = ref rects[0];
             var canvasSize = new Vector2(Maths.ClosestPowerOfTwoGreaterThan((int) tallestRect.Width), Maths.ClosestPowerOfTwoGreaterThan((int) tallestRect.Height));
             var packingSpaces = new List<PackingSpace>();
+
             restart:
             Vector2 canvasPos = Vector2.Zero;
             packingSpaces.Clear();
@@ -78,6 +79,7 @@ namespace Emotion.Game
                 // Empty or invalid.
                 if (curRect.Width == 0 || curRect.Height == 0) continue;
 
+                // Check if any packing space can contain this rect.
                 for (var pp = 0; pp < packingSpaces.Count; pp++)
                 {
                     PackingSpace space = packingSpaces[pp];
@@ -108,18 +110,18 @@ namespace Emotion.Game
 
                 if (foundPlace) continue;
 
-                // Going into the master packing space.
+                // Going into the canvas packing space.
                 curRect.Position = canvasPos;
                 canvasPos.Y = curRect.Bottom;
 
                 // Check if it needs extending on the height.
                 if (canvasPos.Y > canvasSize.Y) canvasSize.Y = Maths.ClosestPowerOfTwoGreaterThan((int) canvasPos.Y);
 
-                // Check if the height is much bigger than the width now.
+                // Check if the height is bigger than the width now.
                 float scaleDiff = MathF.Log2(canvasSize.Y) - MathF.Log2(canvasSize.X);
                 if (scaleDiff > 0.0f)
                 {
-                    // Set the width to the current height, and start a new pass.
+                    // Set the width to the current height, and restart.
                     canvasSize.X = canvasSize.Y;
                     packingSpaces.Clear();
                     goto restart;
@@ -128,7 +130,6 @@ namespace Emotion.Game
                 var packingSpaceRightOfInMaster = new Rectangle(curRect.Right, curRect.Y, PackingSpace.ExtendToWidth, curRect.Height);
                 packingSpaces.Add(new PackingSpace(packingSpaceRightOfInMaster));
             }
-
 
             // Check if height can be reduced.
             float bottomMostRect = 0;
