@@ -446,7 +446,7 @@ namespace Emotion.Game.Tiled
             var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TiledMap.TileWidth) - SafeArea, 0, layer.Width);
             var xEnd = (int) Maths.Clamp(xStart + MathF.Ceiling(clipVal.Width / TiledMap.TileWidth) + SafeArea * 2, 0, layer.Width);
 
-            uint spriteSize = (uint) (VertexData.SizeInBytes * 4);
+            var spriteSize = (uint) (VertexData.SizeInBytes * 4);
             for (int y = yStart; y < yEnd; y++)
             {
                 int yIdx = y * layer.Width;

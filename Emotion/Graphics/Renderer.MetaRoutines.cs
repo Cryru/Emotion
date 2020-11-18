@@ -68,22 +68,36 @@ namespace Emotion.Graphics
         /// Render a circle.
         /// </summary>
         /// <param name="position">
-        /// The top right position of the imaginary rectangle which encompasses the circle. Can be modified
-        /// with "useCenter"
+        /// The top right position of the imaginary square which encompasses the circle, or the center.
         /// </param>
-        /// <param name="radius">The circle radius.</param>
-        /// <param name="color">The circle color.</param>
-        /// <param name="useCenter">Whether the position should instead be the center of the circle.</param>
-        /// <param name="circleDetail">How detailed the circle should be.</param>
-        public void RenderCircle(Vector3 position, float radius, Color color, bool useCenter = false, int circleDetail = 30)
+        /// <param name="radius">The radius.</param>
+        /// <param name="color">The color.</param>
+        /// <param name="positionIsCenter">Whether the position should instead be the center of the circle.</param>
+        /// <param name="detail">How many triangles to generate. The more the smoother.</param>
+        public void RenderCircle(Vector3 position, float radius, Color color, bool positionIsCenter = false, int detail = 30)
         {
-            var vertsNeeded = (uint) ((circleDetail + 1) * 3);
+            RenderEllipse(position, new Vector2(radius), color, positionIsCenter, detail);
+        }
+
+        /// <summary>
+        /// Render an ellipse.
+        /// </summary>
+        /// <param name="position">
+        /// The top right position of the imaginary rectangle which encompasses the ellipse. Can be modified with "useCenter"
+        /// </param>
+        /// <param name="radius">The radius.</param>
+        /// <param name="color">The color.</param>
+        /// <param name="positionIsCenter">Whether the position should instead be the center of the circle.</param>
+        /// <param name="detail">How many triangles to generate. The more the smoother.</param>
+        public void RenderEllipse(Vector3 position, Vector2 radius, Color color, bool positionIsCenter = false, int detail = 30)
+        {
+            var vertsNeeded = (uint) ((detail + 1) * 3);
             RenderBatch<VertexData> batch = GetBatch(BatchMode.SequentialTriangles, vertsNeeded);
             Span<VertexData> vertices = batch.GetData(vertsNeeded, vertsNeeded);
             Debug.Assert(vertices != null);
             var vertexIdx = 0;
 
-            Vector3 posOffset = useCenter ? new Vector3(position.X - radius, position.Y - radius, position.Z) : position;
+            Vector3 posOffset = positionIsCenter ? new Vector3(position.X - radius.X, position.Y - radius.Y, position.Z) : position;
 
             float pX = 0;
             float pY = 0;
@@ -91,24 +105,24 @@ namespace Emotion.Graphics
             float fY = 0;
 
             // Generate triangles.
-            for (uint i = 0; i < circleDetail; i++)
+            for (uint i = 0; i < detail; i++)
             {
-                var angle = (float) (i * 2 * Math.PI / circleDetail - Math.PI / 2);
-                float x = (float) Math.Cos(angle) * radius;
-                float y = (float) Math.Sin(angle) * radius;
+                var angle = (float) (i * 2 * Math.PI / detail - Math.PI / 2);
+                float x = (float) Math.Cos(angle) * radius.X;
+                float y = (float) Math.Sin(angle) * radius.Y;
 
-                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + pX, radius + pY, 0);
-                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + x, radius + y, 0);
-                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius, radius, 0);
+                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius.X + pX, radius.Y + pY, 0);
+                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius.X + x, radius.Y + y, 0);
+                vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius.X, radius.Y, 0);
 
                 pX = x;
                 pY = y;
 
-                if (i == circleDetail - 1)
+                if (i == detail - 1)
                 {
-                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + pX, radius + pY, 0);
-                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius + fX, radius + fY, 0);
-                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius, radius, 0);
+                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius.X + pX, radius.Y + pY, 0);
+                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius.X + fX, radius.Y + fY, 0);
+                    vertices[vertexIdx++].Vertex = posOffset + new Vector3(radius.X, radius.Y, 0);
                 }
 
                 if (i != 0) continue;
