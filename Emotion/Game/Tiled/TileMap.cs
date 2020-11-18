@@ -446,6 +446,7 @@ namespace Emotion.Game.Tiled
             var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TiledMap.TileWidth) - SafeArea, 0, layer.Width);
             var xEnd = (int) Maths.Clamp(xStart + MathF.Ceiling(clipVal.Width / TiledMap.TileWidth) + SafeArea * 2, 0, layer.Width);
 
+            uint spriteSize = (uint) (VertexData.SizeInBytes * 4);
             for (int y = yStart; y < yEnd; y++)
             {
                 int yIdx = y * layer.Width;
@@ -454,7 +455,7 @@ namespace Emotion.Game.Tiled
                     int tileIdx = (yIdx + x) * 4;
                     if (renderCache[tileIdx].Tid == -1) continue;
 
-                    RenderBatch<VertexData> batch = composer.GetBatch();
+                    RenderBatch<VertexData> batch = composer.GetBatch(BatchMode.Quad, spriteSize, 6);
                     batch.AddTextureBinding((uint) renderCache[tileIdx].Tid, out int tid); // The tid in the cached data is a gl pointer.
                     Span<VertexData> vertices = batch.GetData(4, 6);
 
