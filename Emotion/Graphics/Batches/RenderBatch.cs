@@ -353,7 +353,7 @@ namespace Emotion.Graphics.Batches
                 _memoryPtr = GetMemoryPointer();
 
             // Check if there is enough memory to serve the request.
-            if (SizeLeft < structCount)
+            if (SizeLeft < structCount * _structByteSize)
                 if (_mappedTo == 0 && _resizable)
                 {
                     Resize(structCount, indicesToUse);
