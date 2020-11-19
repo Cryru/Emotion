@@ -11,6 +11,16 @@ namespace Emotion.Standard.TMX.Object
 {
     public class TmxObject : ITmxElement
     {
+        public Vector2 Position
+        {
+            get => new Vector2(X, Y);
+        }
+
+        public Vector2 Size
+        {
+            get => new Vector2(Width, Height);
+        }
+
         public int Id { get; private set; }
         public string Name { get; private set; }
         public TmxObjectType ObjectType { get; private set; }
