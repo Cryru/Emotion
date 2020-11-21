@@ -89,7 +89,8 @@ namespace Emotion.Graphics
         /// <param name="color">The color.</param>
         /// <param name="positionIsCenter">Whether the position should instead be the center of the circle.</param>
         /// <param name="detail">How many triangles to generate. The more the smoother.</param>
-        public void RenderEllipse(Vector3 position, Vector2 radius, Color color, bool positionIsCenter = false, int detail = 30)
+        /// <param name="colorMiddle">A separate color just for the vertices in the center of the ellipse.</param>
+        public void RenderEllipse(Vector3 position, Vector2 radius, Color color, bool positionIsCenter = false, int detail = 30, Color? colorMiddle = null)
         {
             var vertsNeeded = (uint) ((detail + 1) * 3);
             RenderBatch<VertexData> batch = GetBatch(BatchMode.SequentialTriangles, vertsNeeded);
@@ -131,9 +132,10 @@ namespace Emotion.Graphics
             }
 
             uint c = color.ToUint();
+            uint cM = colorMiddle?.ToUint() ?? c;
             for (var i = 0; i < vertices.Length; i++)
             {
-                vertices[i].Color = c;
+                vertices[i].Color = i % 3 == 2 ? cM : c;
                 vertices[i].Tid = -1;
             }
         }
