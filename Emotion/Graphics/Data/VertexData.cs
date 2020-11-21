@@ -57,9 +57,9 @@ namespace Emotion.Graphics.Data
         /// <param name="flipX">Whether to flip the texture horizontally.</param>
         /// <param name="flipY">Whether to flip the texture vertically.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SpriteToVertexData(Span<VertexData> vertices, Vector3 position, Vector2 size, Color color, 
+        public static void SpriteToVertexData(Span<VertexData> vertices, Vector3 position, Vector2 size, Color color,
             Texture texture = null, int texturePointer = -1, Rectangle? textureArea = null, bool flipX = false, bool flipY = false
-            )
+        )
         {
             vertices[0].Vertex = position;
             vertices[1].Vertex = new Vector3(position.X + size.X, position.Y, position.Z);
@@ -77,13 +77,24 @@ namespace Emotion.Graphics.Data
             {
                 vertices[i].Tid = texturePointer;
             }
+
             if (texture == null) return;
 
-            // If no UV specified - fill entire.
-            if (textureArea == null) textureArea = new Rectangle(0, 0, texture.Size);
+            // If no UV specified - use entire texture.
+            textureArea ??= new Rectangle(0, 0, texture.Size);
 
             // Convert input from texture coordinates to UV coordinates.
-            var uvRect = (Rectangle) textureArea;
+            TransformUVs(vertices, texture, (Rectangle) textureArea);
+
+            if (texture.FlipY != flipY) FlipHorizontallyUVs(vertices);
+
+            // ReSharper disable once InvertIf
+            if (flipX) FlipVerticallyUVs(vertices);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void TransformUVs(Span<VertexData> vertices, Texture texture, Rectangle uvRect)
+        {
             uvRect.Y = texture.Size.Y - uvRect.Height - uvRect.Y;
 
             // 0, 1    1, 1
@@ -109,33 +120,34 @@ namespace Emotion.Graphics.Data
             vertices[1].UV = pnUV;
             vertices[2].UV = ppUV;
             vertices[3].UV = npUV;
+        }
 
-            if (texture.FlipY != flipY)
-            {
-                // Flipped Y
-                // 0, 1    1, 1
-                // 0, 0    1, 0
-                Vector2 temp = vertices[0].UV;
-                vertices[0].UV = vertices[3].UV;
-                vertices[3].UV = temp;
-                temp = vertices[1].UV;
-                vertices[1].UV = vertices[2].UV;
-                vertices[2].UV = temp;
-            }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void FlipHorizontallyUVs(Span<VertexData> vertices)
+        {
+            // Flipped Y
+            // 0, 1    1, 1
+            // 0, 0    1, 0
+            Vector2 temp = vertices[0].UV;
+            vertices[0].UV = vertices[3].UV;
+            vertices[3].UV = temp;
+            temp = vertices[1].UV;
+            vertices[1].UV = vertices[2].UV;
+            vertices[2].UV = temp;
+        }
 
-            // ReSharper disable once InvertIf
-            if (flipX)
-            {
-                // Flipped X
-                // 1, 0    0, 0
-                // 1, 1    0, 1
-                Vector2 temp = vertices[0].UV;
-                vertices[0].UV = vertices[1].UV;
-                vertices[1].UV = temp;
-                temp = vertices[3].UV;
-                vertices[3].UV = vertices[2].UV;
-                vertices[2].UV = temp;
-            }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void FlipVerticallyUVs(Span<VertexData> vertices)
+        {
+            // Flipped X
+            // 1, 0    0, 0
+            // 1, 1    0, 1
+            Vector2 temp = vertices[0].UV;
+            vertices[0].UV = vertices[1].UV;
+            vertices[1].UV = temp;
+            temp = vertices[3].UV;
+            vertices[3].UV = vertices[2].UV;
+            vertices[2].UV = temp;
         }
     }
 }
