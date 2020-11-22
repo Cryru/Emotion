@@ -14,7 +14,7 @@ jobs:
         dotnet build
     - name: Run Tests
       run: |
-        cd .\Tests\bin\Debug\netcoreapp3.0
+        cd .\Tests\bin\Debug\net5.0
         ls .
         .\Tests.exe
     - name: Upload Test Artifact
@@ -22,7 +22,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: Test Result Artifact
-        path: Tests\bin\Debug\netcoreapp3.0\TestResults
+        path: Tests\bin\Debug\net5.0\TestResults
     - name: Publish Nuget
       if: github.ref == 'refs/heads/master'
       env:
