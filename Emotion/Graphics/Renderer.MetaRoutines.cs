@@ -159,7 +159,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderUVRect(Vector3 pos, Vector2 size, Color color, Rectangle? uvRect = null)
         {
-            RenderBatch<VertexData> batch = GetBatch();
+            RenderBatch<VertexData> batch = GetBatch(BatchMode.Quad, (uint) (VertexData.SizeInBytes * 4), 6);
             Span<VertexData> vertices = batch.GetData(4, 6);
 
             vertices[0].Vertex = pos;
