@@ -64,46 +64,53 @@ Currently supported:
   - Borderless fullscreen, and windowed support. (terms and conditions may apply)
   - Pause when focus is lost, lowering resource usage in the background.
   - Google ANGLE support
-  - Software renderer fallback on Windows only
+  - Software renderer (llvmpipe) fallback on Windows
   - GLFW support
 - File Support
   - Reading and writing of various BMP formats and PNG files.
 	- BMP: 8/16/24/32bit
-	- PNG: All png formats and bit depths are supported.
-  - Parsing of "CFF" and "TTF" font formats, rasterizing and preparing an atlas of glyphs using an Emotion parser and rasterizer.
-	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the inluded native library)
+	- PNG: All png formats and bit depths are supported. Tested against the PNGSuite.
+  - Parsing and rasterizing of "CFF" and "TTF" font formats using a custom parser and rasterizer.
+	- Optionally the font can be parsed and rasterized using FreeType as a native library. (Requires FreeType compilation symbol and the included native library)
 	- Optionally the font can also be rasterized using StbTrueTypeSharp.
   - "WAV" files for audio.
-- Asset loading and managements, virtual file system
+- Asset loading and management, virtual file system.
+  - Reading and writing of files - for custom editors.
+  - Packing files into binary blobs for obfuscation, easy transport, and potentially compression.
+  - Keeps track of which assets are loaded.
 - Layer-based audio system with playlists and a custom resampler.
+  - OpenAL support
 - Extensible camera system.
 - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
   - Unsynchronized rendering
   - Sensible defaults
-  - GPU is never starved!
-  - Easy drawing of vertices, and 2D primitives like lines, rectangles, triangles, and circles.
+  - Easy drawing of any triangle list, and 2D primitives like lines, rectangles, triangles, and ellipses (or circles).
 - Spritesheet based animation in either a grid or freeform format.
-  - The animation editor allows you to easily detect frames in a spritesheet and name animations.
-  - The animation controller allows you to easily keep track of which animations are playing and transition.
+  - The animation editor allows you to easily detect frames in a spritesheet and visually create animation controllers.
+  - The animation controller keeps a set of animations and handles switching between them.
 - Custom text rendering with atlases created at runtime.
   - Extensible RichText and TextLayouter classes allowing control over each glyph, and featuring auto wrapping, alignment, markup, and more.
-- Different types of out of the box scaling, allowing your game to look good on all resolutions.
+- Automatic scaling, making your game look reasonably the same on all resolutions.
+  - Integer scaling mode for pixel art games.
 - Shader Pipeline
-  - Try multiple preprocessors to increase the compatibility of your shader.
-  - Specify fallbacks!
+  - Automatically tries multiple preprocessors to increase the compatibility of your shader.
+  - Specify custom fallbacks!
   - Predefined uniforms based on ShaderToy allow for easily making cool effects.
+  - Easily switch between backends such as ANGLE and Mesa3D to check your shader compatibility.
 - Various data structures and algorithms implemented.
   - A* with custom heuristic support
   - Generic QuadTree
+  - 2D binning
+  - Sprite stacking - generate voxel models from a spritesheet!
 - Logging, easily extendible and modifiable.
-  - Runs on another thread as not to interrupt your game.
+  - Runs on another thread and generates log files.
   - Remote logging to PaperTrail and other services which support UDP logging.
-- Framerate independent timing with a semi-fixed step.
-  - Automatically switches to a faster mode and slower mode depending on runtime performance.
+- Framerate independent timing with a configurable semi-fixed step.
 - Easy tilemap drawing and handling, animated tiles, object handling and lookup, and more.
   - .TMX support and integration with [Tiled](https://www.mapeditor.org/)
 - Custom fast XML serializer/deserializer with support for derived types, dictionaries, and others.
   - Compliant with .Net System.Text.XML
+- Basic scene system, where new scenes load in a new thread while a loading screen scene plays.
 
 and many more!
 
