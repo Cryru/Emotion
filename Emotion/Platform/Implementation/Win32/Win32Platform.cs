@@ -123,20 +123,28 @@ namespace Emotion.Platform.Implementation.Win32
 
             Engine.Log.Trace("Window created.", MessageSource.Win32);
 
-            // Create graphics context - OpenGL.
-            try
+            string[] args = Environment.GetCommandLineArgs();
+            bool forceAngle = CommandLineParser.FindArgument(args, "angle", out string _);
+            bool forceMesa = CommandLineParser.FindArgument(args, "software", out string _);
+
+            // Create graphics context.
+
+            if (!forceAngle && !forceMesa)
             {
-                var wgl = new WglGraphicsContext();
-                wgl.Init(windowHandle, this);
-                if (wgl.Valid) Context = wgl;
-            }
-            catch (Exception ex)
-            {
-                Engine.Log.Warning($"Couldn't create WGL context, falling back if possible.\n{ex}", MessageSource.Win32);
+                try
+                {
+                    var wgl = new WglGraphicsContext();
+                    wgl.Init(windowHandle, this);
+                    if (wgl.Valid) Context = wgl;
+                }
+                catch (Exception ex)
+                {
+                    Engine.Log.Warning($"Couldn't create WGL context, falling back if possible.\n{ex}", MessageSource.Win32);
+                }
             }
 
 #if ANGLE
-            if (Context == null)
+            if (Context == null && !forceMesa)
                 try
                 {
                     var egl = new EglGraphicsContext();
