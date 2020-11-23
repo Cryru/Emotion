@@ -118,10 +118,10 @@ namespace Emotion.Test
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
             // Check for test run id. This signifies whether the runner is linked.
-            TestRunId = ArgumentsParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
+            TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
             TestRunFolder = Path.Join("TestResults", $"{TestRunId}");
 
-            ArgumentsParser.FindArgument(args, "tag=", out string tag);
+            CommandLineParser.FindArgument(args, "tag=", out string tag);
             RunnerReferenceImageFolder = Path.Join(TestRunFolder, RenderResultStorage, $"LR{RunnerId}References{tag}");
 
             // Check if master runner.
@@ -163,10 +163,10 @@ namespace Emotion.Test
             }
 
             // Check if running only specific tests.
-            if (ArgumentsParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
+            if (CommandLineParser.FindArgument(args, "tag=", out string testTag)) TestTag = testTag;
 
             // Check if running tests without an engine instance - this shouldn't be used with a tag because most tests except an instance.
-            if (ArgumentsParser.FindArgument(args, "testOnly", out string _))
+            if (CommandLineParser.FindArgument(args, "testOnly", out string _))
             {
                 Task tests = Task.Run(BeginRun);
                 while (!tests.IsCompleted) TestLoopUpdate();

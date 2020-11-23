@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿#region Using
+
+using System.Collections.Generic;
 using System.Linq;
 
-namespace Emotion.Test.Helpers
+#endregion
+
+namespace Emotion.Utility
 {
-    public static class ArgumentsParser
+    public static class CommandLineParser
     {
         /// <summary>
         /// Finds the argument which matches the specified identifier.
