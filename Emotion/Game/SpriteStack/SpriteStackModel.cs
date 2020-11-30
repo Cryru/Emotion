@@ -118,7 +118,7 @@ namespace Emotion.Game.SpriteStack
                 {
                     Span<VertexData> vertices = vertData.Slice(j * 36, 36);
                     var vertCount = (uint) vertices.Length;
-                    RenderBatch<VertexData> batch = c.GetBatch(BatchMode.SequentialTriangles, vertCount);
+                    RenderBatch<VertexData> batch = c.GetBatch(BatchMode.SequentialTriangles, (uint) (vertCount * VertexData.SizeInBytes), vertCount);
                     Span<VertexData> vertMap = batch.GetData(vertCount, vertCount);
                     vertices.CopyTo(vertMap);
                 }

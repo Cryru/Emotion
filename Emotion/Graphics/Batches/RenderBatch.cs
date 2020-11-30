@@ -345,7 +345,7 @@ namespace Emotion.Graphics.Batches
         public virtual unsafe Span<T> GetData(uint structCount, uint indicesToUse)
         {
             // Check if marked as full. This happens when either the texture count reaches the limit,
-            // or there's not enough memory left to serve a quad (the minimum)
+            // or there's not enough memory left to serve a struct (the minimum)
             if (Full || structCount == 0) return null;
 
             // Get memory if we don't have any.

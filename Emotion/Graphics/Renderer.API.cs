@@ -22,9 +22,10 @@ namespace Emotion.Graphics
         #region Batching
 
         /// <summary>
-        /// Returns the current batch, or creates a new one if none.
+        /// Returns the current batch, or creates a new one if none. If the batch cannot fit the specified byte size, index count,
+        /// or the batch mode should change - then it is invalidated and reset.
         /// </summary>
-        public VertexDataBatch GetBatch(BatchMode ensureMode = BatchMode.Quad, uint ensureSize = 1, uint ensureIndices = 1)
+        public VertexDataBatch GetBatch(BatchMode ensureMode, uint ensureSize, uint ensureIndices)
         {
             bool switchMode = ActiveBatch.BatchMode != ensureMode;
             if (ActiveBatch.Full || switchMode || ActiveBatch.SizeLeft < ensureSize || ActiveBatch.IndicesLeft < Math.Max(ensureSize, ensureIndices)) InvalidateStateBatches();
@@ -86,7 +87,7 @@ namespace Emotion.Graphics
         public void RenderVertices(Vector3[] vertices, params Color[] colors)
         {
             var vertCount = (uint) vertices.Length;
-            VertexDataBatch batch = GetBatch(BatchMode.TriangleFan, vertCount);
+            VertexDataBatch batch = GetBatch(BatchMode.TriangleFan, (uint) (VertexData.SizeInBytes * vertCount), vertCount);
             Span<VertexData> vertMap = batch.GetData(vertCount, vertCount);
             Debug.Assert(vertices != null);
 
@@ -128,6 +129,7 @@ namespace Emotion.Graphics
         /// <param name="stencil">Whether to enable or disable stencil testing.</param>
         public void SetStencilTest(bool stencil)
         {
+            PerfProfiler.FrameEventStart("StateChange: Stencil");
             InvalidateStateBatches();
 
             // Set the stencil test to it's default state - don't write to it.
@@ -147,6 +149,7 @@ namespace Emotion.Graphics
             }
 
             Engine.Renderer.CurrentState.StencilTest = stencil;
+            PerfProfiler.FrameEventEnd("StateChange: Stencil");
         }
 
         private static void StencilStateDefault()
@@ -262,6 +265,7 @@ namespace Emotion.Graphics
         /// <param name="alphaBlend">Whether to use alpha blending.</param>
         public void SetAlphaBlend(bool alphaBlend)
         {
+            PerfProfiler.FrameEventStart("StateChange: AlphaBlend");
             InvalidateStateBatches();
 
             if (alphaBlend)
@@ -275,6 +279,7 @@ namespace Emotion.Graphics
             }
 
             Engine.Renderer.CurrentState.AlphaBlending = alphaBlend;
+            PerfProfiler.FrameEventEnd("StateChange: Stencil");
         }
 
         /// <summary>
@@ -283,6 +288,7 @@ namespace Emotion.Graphics
         /// <param name="depth">Whether to use depth testing.</param>
         public void SetDepthTest(bool depth)
         {
+            PerfProfiler.FrameEventStart("StateChange: DepthTest");
             InvalidateStateBatches();
 
             if (depth)
@@ -296,6 +302,7 @@ namespace Emotion.Graphics
             }
 
             Engine.Renderer.CurrentState.DepthTest = depth;
+            PerfProfiler.FrameEventEnd("StateChange: Stencil");
         }
 
         /// <summary>
@@ -319,6 +326,7 @@ namespace Emotion.Graphics
         /// <param name="clip">The rectangle to clip outside of.</param>
         public void SetClipRect(Rectangle? clip)
         {
+            PerfProfiler.FrameEventStart("StateChange: Clip");
             InvalidateStateBatches();
 
             if (clip == null)
@@ -336,6 +344,7 @@ namespace Emotion.Graphics
             }
 
             Engine.Renderer.CurrentState.ClipRect = clip;
+            PerfProfiler.FrameEventEnd("StateChange: Clip");
         }
 
         /// <summary>
