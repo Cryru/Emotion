@@ -6,6 +6,8 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using Emotion.Common;
+using Emotion.Common.Threading;
+using Emotion.Game;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -13,6 +15,7 @@ using Emotion.IO;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Standard.Image.PNG;
 using Emotion.Standard.XML;
 using Emotion.Tools.Windows.AnimationEditorWindows;
 using Emotion.Tools.Windows.HelpWindows;
@@ -36,7 +39,7 @@ namespace Emotion.Tools.Windows
         private Vector2 _spacing = Vector2.Zero;
 
         // Lookup only.
-        private AnchorPlacer _anchorPlacerWindow;
+        private AnchorPlacingWindow _anchorPlacerWindow;
         private FrameOrderWindow _orderWindow;
         public bool Mirrored;
 
@@ -80,7 +83,7 @@ namespace Emotion.Tools.Windows
 
                 if (ImGui.Button("Grid"))
                 {
-                    var win = new GridSettingsWindow(this, (fs, s) => { Animation = new AnimatedTexture(_spriteSheetTexture, fs, s, AnimationLoopType.Normal, 1000); },
+                    var win = new AnimationCreateFrom(this, (fs, s) => { Animation = new AnimatedTexture(_spriteSheetTexture, fs, s, AnimationLoopType.Normal, 1000); },
                         (r, c) => { Animation = new AnimatedTexture(_spriteSheetTexture, c, r, AnimationLoopType.Normal, 1000); });
                     Parent.AddWindow(win);
                 }
@@ -121,7 +124,7 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
-                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacer(this, Animation));
+                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacingWindow(this, Animation));
 
             if (ImGui.Button("Order Frames"))
                 if (_orderWindow == null || !_orderWindow.Open)
@@ -166,11 +169,11 @@ namespace Emotion.Tools.Windows
 
             RenderCurrentAnimationSettings();
 
-            RenderSaveSection();
+            RenderSaveSection(composer);
             RenderAnimation(composer);
         }
 
-        private void RenderSaveSection()
+        private void RenderSaveSection(RenderComposer composer)
         {
             // Saving
             ImGui.InputText("Name", ref _saveName, 100);
@@ -184,40 +187,63 @@ namespace Emotion.Tools.Windows
             else
             {
                 ImGui.SameLine();
-                if (!ImGui.Button("SaveToFile")) return;
-                string saveName = _saveName.ToLower();
-                if (!saveName.Contains(".anim")) saveName += ".anim";
-
-
-                if (AnimController != null && AnimController.MirrorXAnchors != null)
+                if (ImGui.Button("SaveToFile"))
                 {
-                    bool emptyMirrorAnchors = true;
-                    for (int i = 0; i < AnimController.MirrorXAnchors.Length; i++)
+                    string saveName = _saveName.ToLower();
+                    if (!saveName.Contains(".anim")) saveName += ".anim";
+
+                    // Fixups
+                    if (AnimController?.MirrorXAnchors != null)
                     {
-                        if (AnimController.MirrorXAnchors[i] != Vector2.Zero)
+                        var emptyMirrorAnchors = true;
+                        for (var i = 0; i < AnimController.MirrorXAnchors.Length; i++)
                         {
+                            if (AnimController.MirrorXAnchors[i] == Vector2.Zero) continue;
                             emptyMirrorAnchors = false;
                             break;
                         }
+                        if (emptyMirrorAnchors) AnimController.MirrorXAnchors = null;
                     }
 
-                    if (emptyMirrorAnchors) AnimController.MirrorXAnchors = null;
+                    try
+                    {
+                        string saveData;
+                        // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+                        if (AnimController != null)
+                            saveData = XMLFormat.To(AnimController);
+                        else
+                            saveData = XMLFormat.To(Animation);
+
+                        Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Engine.Log.Error(ex);
+                    }
                 }
 
-                try
+                if (ImGui.Button("Save Packed Texture"))
                 {
-                    string saveData;
-                    // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
-                    if (AnimController != null)
-                        saveData = XMLFormat.To(AnimController);
-                    else
-                        saveData = XMLFormat.To(Animation);
+                    string saveName = _saveName.ToLower();
+                    if (!saveName.Contains(".png")) saveName += ".png";
+                    Rectangle[] frames = AnimController != null ? AnimController.AnimTex.Frames : Animation.Frames;
+                    var preBinnedFrames = new Rectangle[frames.Length];
+                    Array.Copy(frames, preBinnedFrames, frames.Length);
+                    Texture spriteSheetTexture = Animation.Texture;
 
-                    Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(saveData), saveName);
-                }
-                catch (Exception ex)
-                {
-                    Engine.Log.Error(ex);
+                    Vector2 totalSize = Binning.FitRectangles(frames, true);
+                    FrameBuffer texture = new FrameBuffer(totalSize).WithColor();
+                    composer.RenderTo(texture);
+                    for (var i = 0; i < frames.Length; i++)
+                    {
+                        composer.RenderSprite(frames[i], Color.White, spriteSheetTexture, preBinnedFrames[i]);
+
+                    }
+                    composer.RenderTo(null);
+
+                    byte[] pixelsDownload = texture.Sample(new Rectangle(0, 0, totalSize));
+                    byte[] pngFile = PngFormat.Encode(pixelsDownload, (int) totalSize.X, (int) totalSize.Y);
+                    Engine.AssetLoader.Save(pngFile, saveName);
                 }
             }
         }

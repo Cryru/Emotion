@@ -10,7 +10,7 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Windows.AnimationEditorWindows
 {
-    public class GridSettingsWindow : ImGuiModal
+    public class AnimationCreateFrom : ImGuiModal
     {
         private AnimationEditor _parent;
 
@@ -22,7 +22,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
         private int _columns;
         private Action<int, int> _callbackRc;
 
-        public GridSettingsWindow(AnimationEditor parent, Action<Vector2, Vector2> callback, Action<int, int> callbackRc) : base("Grid Frames")
+        public AnimationCreateFrom(AnimationEditor parent, Action<Vector2, Vector2> callback, Action<int, int> callbackRc) : base("Animation, Create From:")
         {
             _parent = parent;
             _callback = callback;

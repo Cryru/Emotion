@@ -26,7 +26,7 @@ namespace Emotion.Tools.Windows.HelpWindows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            ImGui.InputText("Text: ", ref _text, 100);
+            ImGui.InputText("Text", ref _text, 100);
             if (!ImGui.Button("Done")) return;
             _callback(_text);
             Open = false;

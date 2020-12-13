@@ -11,12 +11,12 @@ using ImGuiNET;
 
 namespace Emotion.Tools.Windows.AnimationEditorWindows
 {
-    public class AnchorPlacer : ImGuiWindow
+    public class AnchorPlacingWindow : ImGuiWindow
     {
         private AnimationEditor _parent;
         private AnimatedTexture _anim;
 
-        public AnchorPlacer(AnimationEditor parent, AnimatedTexture anim) : base("Anchor Placer")
+        public AnchorPlacingWindow(AnimationEditor parent, AnimatedTexture anim) : base("Anchor Placer")
         {
             _parent = parent;
             _anim = anim;
