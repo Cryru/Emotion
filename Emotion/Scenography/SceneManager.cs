@@ -117,7 +117,17 @@ namespace Emotion.Scenography
                 PerfProfiler.ProfilerEventStart("SceneUnload", "Loading");
 
                 // Unload the old if it isn't the loading screen.
-                if (old != LoadingScreen) Unload(old);
+                if (old != LoadingScreen)
+                {
+                    // Wait for the scene to swap to the loading screen.
+                    // We don't want to unload it while it is still being updated/drawn.
+                    while (Current != LoadingScreen)
+                    {
+                        Task.Delay(1).Wait();
+                    }
+
+                    Unload(old);
+                }
 
                 PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
                 PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
