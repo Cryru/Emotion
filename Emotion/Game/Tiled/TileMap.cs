@@ -107,13 +107,6 @@ namespace Emotion.Game.Tiled
         /// </summary>
         protected List<T> _quadTreeQueryMemory = new List<T>();
 
-        /// <summary>
-        /// The clip rect doesn't have to be tile aligned, so we expand it with a safe area to ensure all visible tiles are
-        /// covered.
-        /// This is the number of tiles for tiles and 25 * SafeArea pixels for objects.
-        /// </summary>
-        public int SafeArea = 2;
-
         // Terminology
         //
         // layer - The map layer currently drawing.
@@ -132,7 +125,6 @@ namespace Emotion.Game.Tiled
         /// <param name="mapFile">The file to load as the map.</param>
         public TileMap(TextAsset mapFile) : base(Vector2.Zero, Vector2.One)
         {
-            if (mapFile == null) return;
             Reset(mapFile);
         }
 
@@ -194,10 +186,7 @@ namespace Emotion.Game.Tiled
 
             for (var i = 0; i < assets.Length; i++)
             {
-                if (assets[i] != null && assets[i].IsCompletedSuccessfully && assets[i].Result != null)
-                    Tilesets.Add(assets[i].Result);
-                else
-                    Tilesets.Add(null);
+                Tilesets.Add(assets[i].IsCompletedSuccessfully ? assets[i].Result : null);
             }
         }
 
@@ -264,7 +253,7 @@ namespace Emotion.Game.Tiled
             CacheTilesetData();
 
             // Construct all objects.
-            if (TiledMap.ObjectLayers != null && TiledMap.ObjectLayers.Count > 0)
+            if (TiledMap.ObjectLayers.Count > 0)
             {
                 Objects.Reset(new Rectangle(0, 0, WorldSize));
 
@@ -314,12 +303,12 @@ namespace Emotion.Game.Tiled
 
             // Construct render cache.
             _cachedTileRenderData = null;
-            if (TiledMap.TileLayers != null && TiledMap.TileLayers.Count > 0)
+            if (TiledMap.TileLayers.Count > 0)
             {
                 _cachedTileRenderData = new VertexData[TiledMap.TileLayers.Count][];
                 for (var i = 0; i < TiledMap.TileLayers.Count; i++)
                 {
-                    var layerObj = TiledMap.TileLayers[i];
+                    TmxLayer? layerObj = TiledMap.TileLayers[i];
                     int layerIdx = TiledMap.Layers.IndexOf(layerObj);
                     _cachedTileRenderData[i] = SetupRenderCacheForTileLayer(layerIdx,layerObj );
                 }
@@ -347,7 +336,7 @@ namespace Emotion.Game.Tiled
         {
             PerfProfiler.ProfilerEventStart($"TileMap: RenderCache for layer {layerIdx}", "Loading");
 
-            if (TiledMap == null || Tilesets == null || !layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return null;
+            if (TiledMap == null || !layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return null;
 
             var currentCache = new VertexData[layer.Width * layer.Height * 4];
             var dataSpan = new Span<VertexData>(currentCache);
@@ -441,10 +430,10 @@ namespace Emotion.Game.Tiled
             if (renderCache == null || TiledMap == null) return;
 
             TmxLayer layer = TiledMap.TileLayers[idx];
-            var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TiledMap.TileHeight) - SafeArea, 0, layer.Height);
-            var yEnd = (int) Maths.Clamp(yStart + MathF.Ceiling(clipVal.Height / TiledMap.TileHeight) + SafeArea * 2, 0, layer.Height);
-            var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TiledMap.TileWidth) - SafeArea, 0, layer.Width);
-            var xEnd = (int) Maths.Clamp(xStart + MathF.Ceiling(clipVal.Width / TiledMap.TileWidth) + SafeArea * 2, 0, layer.Width);
+            var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TiledMap.TileHeight), 0, layer.Height);
+            var yEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Bottom / TiledMap.TileHeight), 0, layer.Height);
+            var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TiledMap.TileWidth), 0, layer.Width);
+            var xEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Right / TiledMap.TileWidth), 0, layer.Width);
 
             var spriteSize = (uint) (VertexData.SizeInBytes * 4);
             for (int y = yStart; y < yEnd; y++)
@@ -471,7 +460,6 @@ namespace Emotion.Game.Tiled
         public void RenderObjects(RenderComposer composer)
         {
             // Check if anything is loaded.
-            if (Objects == null) return;
             QueryObjectsToRender();
             PerfProfiler.FrameEventStart("TileMap: Objects");
             for (var i = 0; i < _quadTreeQueryMemory.Count; i++)
@@ -487,7 +475,6 @@ namespace Emotion.Game.Tiled
             memory ??= _quadTreeQueryMemory;
             memory.Clear();
             Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
-            clipRect = clipRect.Inflate(SafeArea * 25, SafeArea * 25);
             Objects.GetObjects(clipRect, ref memory);
             memory.Sort(ObjectSort);
         }
@@ -814,8 +801,7 @@ namespace Emotion.Game.Tiled
         {
             Objects.Reset(Rectangle.Empty);
 
-            // Dispose of old tilesets.
-            if (Tilesets == null || Tilesets.Count == 0) return;
+            // Dispose of tilesets. The tile map always assumed it owns the textures it loaded.
             foreach (TextureAsset? tileset in Tilesets)
             {
                 if (tileset == null) continue;
