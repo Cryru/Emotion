@@ -53,8 +53,8 @@ namespace Emotion.Game.AStar
         /// <param name="unwalkableTiles">The list of image ids considered unwalkable.</param>
         public static PathingGrid FromTileMap<T>(TileMap<T> tileMap, int layerId, int[] unwalkableTiles) where T : TransformRenderable
         {
-            if (layerId == -1 || tileMap.TiledMap == null || layerId > tileMap.TiledMap.TileLayers.Count - 1) return null;
-            TmxLayer layer = tileMap.TiledMap.TileLayers[layerId];
+            if (layerId == -1 || tileMap.TiledMap == null || layerId > tileMap.TiledMap.Layers.Count - 1) return null;
+            TmxLayer layer = tileMap.TiledMap.Layers[layerId];
 
             var newGrid = new PathingGrid((int) layer.Width, (int) layer.Height);
             for (var x = 0; x < newGrid.Width; x++)
@@ -79,8 +79,8 @@ namespace Emotion.Game.AStar
         /// <param name="walkable"></param>
         public void SetWalkable(int x, int y, bool walkable)
         {
-            if (x >= Width) return;
-            if (y >= Height) return;
+            if (x >= Width || x < 0) return;
+            if (y >= Height || y < 0) return;
 
             _nodes[x, y] = walkable;
         }
