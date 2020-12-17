@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Primitives;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 
 #endregion
 
@@ -82,6 +83,22 @@ namespace Emotion.Standard.TMX.Object
             {
                 Points = ParsePoints(xPolygon);
                 ObjectType = TmxObjectType.Polygon;
+
+                // Preprocess rotation in polygons.
+                if (Rotation != 0)
+                {
+                    Vector3 origin = Position.ToVec3();
+                    Matrix4x4 rotMatrix =
+                        Matrix4x4.CreateTranslation(-origin) *
+                        Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(Rotation)) *
+                        Matrix4x4.CreateTranslation(origin);
+                    for (var i = 0; i < Points.Count; i++)
+                    {
+                        Points[i] = Vector2.Transform(Points[i], rotMatrix);
+                    }
+
+                    Rotation = 0;
+                }
             }
             else if (xPolyline != null)
             {
