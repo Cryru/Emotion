@@ -105,6 +105,12 @@ namespace Emotion.Scenography
         /// <returns>A thread task which will handle the operations.</returns>
         public Task SetScene(IScene scene)
         {
+            if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
+            {
+                Engine.Log.Info($"Tried to swap scene while a scene swap is in progress.", MessageSource.SceneManager);
+                return _sceneLoadingTask;
+            }
+
             Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
             _sceneLoadingTask = new Task(() =>
