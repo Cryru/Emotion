@@ -167,9 +167,9 @@ namespace Emotion.Game.QuadTree
             var size = new Vector2(QuadRect.Width / 2, QuadRect.Height / 2);
             var mid = new Vector2(QuadRect.X + size.X, QuadRect.Y + size.Y);
 
-            TopLeftChild = new QuadTreeNode<T>(this, new Rectangle(QuadRect.Left, QuadRect.Top, size.X, size.Y));
-            TopRightChild = new QuadTreeNode<T>(this, new Rectangle(mid.X, QuadRect.Top, size.X, size.Y));
-            BottomLeftChild = new QuadTreeNode<T>(this, new Rectangle(QuadRect.Left, mid.Y, size.X, size.Y));
+            TopLeftChild = new QuadTreeNode<T>(this, new Rectangle(QuadRect.X, QuadRect.Y, size.X, size.Y));
+            TopRightChild = new QuadTreeNode<T>(this, new Rectangle(mid.X, QuadRect.Y, size.X, size.Y));
+            BottomLeftChild = new QuadTreeNode<T>(this, new Rectangle(QuadRect.X, mid.Y, size.X, size.Y));
             BottomRightChild = new QuadTreeNode<T>(this, new Rectangle(mid.X, mid.Y, size.X, size.Y));
 
             // If they're completely contained by the quad, bump objects down
@@ -219,7 +219,8 @@ namespace Emotion.Game.QuadTree
         private void Relocate(QuadTreeObject<T> item)
         {
             // Are we still inside our parent?
-            if (QuadRect.ContainsInclusive(item.Data.Bounds))
+            // If there is no parent and the object isn't contained, that means it's out of bounds.
+            if (QuadRect.ContainsInclusive(item.Data.Bounds) || Parent == null)
             {
                 // Good, have we moved inside any of our children?
                 if (TopLeftChild == null) return;
@@ -236,8 +237,7 @@ namespace Emotion.Game.QuadTree
             }
             else
             {
-                // We don't fit here anymore, move up, if we can
-                Parent?.Relocate(item);
+                Parent.Relocate(item);
             }
         }
 
