@@ -157,5 +157,80 @@ namespace Emotion.Game
 
             return canvasSize;
         }
+
+        public class BinningResumableState
+        {
+            public Vector2 CanvasPos;
+            public Vector2 Size;
+            public List<PackingSpace> PackingSpaces = new List<PackingSpace>();
+
+            public BinningResumableState(Vector2 canvasDimensions)
+            {
+                Size = canvasDimensions;
+            }
+        }
+
+        /// <summary>
+        /// Fit a rectangle inside a canvas filled with rectangles.
+        /// </summary>
+        /// <param name="rectangleSize">The size of the new rectangle.</param>
+        /// <param name="oldState">
+        /// The canvas state so far. If just starting construct a new instance.
+        /// </param>
+        /// <returns>The position of the rectangle within the canvas, or null if it couldn't fit.</returns>
+        public static Vector2? FitRectanglesResumable(Vector2 rectangleSize, BinningResumableState oldState)
+        {
+            Vector2 canvasSize = oldState.Size;
+            List<PackingSpace> packingSpaces = oldState.PackingSpaces;
+            ref Vector2 canvasPos = ref oldState.CanvasPos;
+            var curRect = new Rectangle(0, 0, rectangleSize);
+
+            // Empty or invalid.
+            if (curRect.Width == 0 || curRect.Height == 0) return null;
+
+            // Check if any packing space can contain this rect.
+            var foundPlace = false;
+            for (var pp = 0; pp < packingSpaces.Count; pp++)
+            {
+                PackingSpace space = packingSpaces[pp];
+                Rectangle currentSpace = space.GetAbsoluteArea(canvasSize);
+                if (!(currentSpace.Width >= curRect.Width) || !(currentSpace.Height >= curRect.Height)) continue;
+
+                curRect.Position = currentSpace.Position;
+
+                // Remove this space.
+                packingSpaces.RemoveAt(pp);
+
+                // Split it into the space on the right, and the space on top.
+                float rightSide;
+                if (space.Area.Width == PackingSpace.ExtendToWidth)
+                    rightSide = PackingSpace.ExtendToWidth;
+                else
+                    rightSide = space.Area.Width - curRect.Width;
+
+                var packingSpaceRightOf = new Rectangle(curRect.Right, currentSpace.Y, rightSide, currentSpace.Height);
+                packingSpaces.Add(new PackingSpace(packingSpaceRightOf));
+
+                var packingSpaceBottomOf = new Rectangle(curRect.X, curRect.Bottom, curRect.Width, currentSpace.Height - curRect.Height);
+                packingSpaces.Add(new PackingSpace(packingSpaceBottomOf));
+
+                foundPlace = true;
+                break;
+            }
+
+            if (foundPlace) return curRect.Position;
+
+            // Going into the canvas packing space.
+            curRect.Position = canvasPos;
+            canvasPos.Y = curRect.Bottom;
+
+            // Check if it needs extending on the height.
+            if (canvasPos.Y > canvasSize.Y) return null;
+
+            var packingSpaceRightOfInMaster = new Rectangle(curRect.Right, curRect.Y, PackingSpace.ExtendToWidth, curRect.Height);
+            packingSpaces.Add(new PackingSpace(packingSpaceRightOfInMaster));
+
+            return curRect.Position;
+        }
     }
 }
