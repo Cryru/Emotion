@@ -466,3 +466,7 @@ function glDrawElements(valuePtr) {
     const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
     Emotion.gl.drawElements(mode, count, type, offset);
 }
+
+function glDrawArrays(mode, first, count) {
+    Emotion.gl.drawArrays(mode, first, count);
+}
