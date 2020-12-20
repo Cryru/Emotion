@@ -156,15 +156,15 @@ namespace Emotion.Graphics.Objects
 
         #region Mapping
 
-        private bool _mapping;
-        private unsafe byte* _mappingPtr;
+        public bool Mapping { get; protected set; }
+        protected unsafe byte* _mappingPtr;
 
         /// <summary>
         /// Start mapping the memory of the buffer.
         /// </summary>
         public unsafe void StartMapping(int byteOffset = 0, uint length = 0, BufferAccessMask mask = BufferAccessMask.MapWriteBit)
         {
-            if (_mapping)
+            if (Mapping)
             {
                 Engine.Log.Warning("Tried to start mapping a buffer which is already mapping.", MessageSource.GL);
                 return;
@@ -194,7 +194,7 @@ namespace Emotion.Graphics.Objects
                 Debug.Assert(false);
             }
 
-            _mapping = true;
+            Mapping = true;
         }
 
         /// <summary>
@@ -216,8 +216,8 @@ namespace Emotion.Graphics.Objects
                 return null;
             }
 
-            if (!_mapping) StartMapping();
-            if (!_mapping) return null;
+            if (!Mapping) StartMapping();
+            if (!Mapping) return null;
 
             var mapper = new Span<T>(&_mappingPtr[offset], length / Marshal.SizeOf<T>());
             return mapper;
@@ -235,8 +235,8 @@ namespace Emotion.Graphics.Objects
         {
             EnsureBound(Pointer, Type);
 
-            if (!_mapping) StartMapping(offset, length, mask);
-            return !_mapping ? null : _mappingPtr;
+            if (!Mapping) StartMapping(offset, length, mask);
+            return !Mapping ? null : _mappingPtr;
         }
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public unsafe void FinishMapping()
         {
-            if (!_mapping) return;
+            if (!Mapping) return;
 
             _mappingPtr = (byte*) IntPtr.Zero;
 
@@ -261,7 +261,7 @@ namespace Emotion.Graphics.Objects
                 if (!success) Engine.Log.Error($"UnmapBuffer return false in {Type} buffer of size {Size}.", MessageSource.GL);
             }
 
-            _mapping = false;
+            Mapping = false;
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace Emotion.Graphics.Objects
         /// <param name="length">The length of the range to flush.</param>
         public void FinishMappingRange(int offset, uint length)
         {
-            if (!_mapping) return;
+            if (!Mapping) return;
 
             if (Engine.Renderer.Dsa)
             {
