@@ -6,6 +6,7 @@ using System.Numerics;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Scenography;
+using Emotion.Utility;
 
 #endregion
 
@@ -38,10 +39,12 @@ namespace Emotion.ExecTest.Examples
             // Triangle fan
             (c, loc) =>
             {
-                var poly = new List<Vector3>();
-                poly.Add(loc + new Vector3(19.4f, 5.4f, 0));
-                poly.Add(loc + new Vector3(70.9f, 5.4f, 0));
-                poly.Add(loc + new Vector3(45.1f, 66, 0));
+                var poly = new List<Vector3>
+                {
+                    loc + new Vector3(19.4f, 5.4f, 0),
+                    loc + new Vector3(70.9f, 5.4f, 0),
+                    loc + new Vector3(45.1f, 66, 0)
+                };
 
                 for (var i = 0; i < 10; i++)
                 {
@@ -56,7 +59,6 @@ namespace Emotion.ExecTest.Examples
             }
         };
 
-        private static Random _gen = new Random();
         private const int DRAWS = 4;
         private const int FRAMES_HOLD = 60;
         private static int[] _currentVariants = new int[DRAWS];
@@ -80,7 +82,7 @@ namespace Emotion.ExecTest.Examples
                 _frameCounter = 0;
                 for (var i = 0; i < DRAWS; i++)
                 {
-                    _currentVariants[i] = _gen.Next(0, _variants.Count);
+                    _currentVariants[i] = Helpers.GenerateRandomNumber(0, _variants.Count - 1);
                 }
             }
 

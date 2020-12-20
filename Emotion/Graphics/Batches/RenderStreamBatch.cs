@@ -69,7 +69,7 @@ namespace Emotion.Graphics.Batches
             _structByteSize = (uint) Marshal.SizeOf<T>();
             _indexByteSize = sizeof(ushort);
 
-            _structCount = sizeStructs == 0 ? 12 : sizeStructs;
+            _structCount = sizeStructs == 0 ? ushort.MaxValue : sizeStructs;
             _bufferCount = bufferCount;
 
             Debug.Assert(_structCount <= ushort.MaxValue);
@@ -159,7 +159,7 @@ namespace Emotion.Graphics.Batches
                     }
 
                 _batchableLengths[0][_batchableLengthUtilization] = index;
-                _batchableLengths[1][_batchableLengthUtilization] = (int) structCount;
+                _batchableLengths[1][_batchableLengthUtilization] = (int) indexCount;
                 _batchableLengthUtilization++;
             }
 
@@ -200,7 +200,7 @@ namespace Emotion.Graphics.Batches
             if (BatchMode == BatchMode.TriangleFan)
             {
                 if (Gl.CurrentVersion.GLES)
-                    for (var i = 0; i < _batchableLengthUtilization; i += 2)
+                    for (var i = 0; i < _batchableLengthUtilization; i++)
                     {
                         Gl.DrawArrays(primitiveType, _batchableLengths[0][i], _batchableLengths[1][i]);
                     }
