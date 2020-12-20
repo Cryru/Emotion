@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Emotion.Common;
+using Emotion.Graphics.Data;
 using Emotion.Platform;
 using Emotion.Web.Helpers;
 using Microsoft.JSInterop;
@@ -94,6 +96,8 @@ namespace Emotion.Web.Platform
 
             _webGlFuncDictionary.Add("glFenceSync", (Gl.Delegates.glFenceSync) FenceSync);
             _webGlFuncDictionary.Add("glClientWaitSync", (Gl.Delegates.glClientWaitSync) ClientWaitSync);
+
+            _webGlFuncDictionary.Add("glDrawArrays", (Gl.Delegates.glDrawArrays) DrawArrays);
 
             Valid = true;
         }
@@ -268,6 +272,8 @@ namespace Emotion.Web.Platform
             state.RangeStart = 0;
             state.RangeLength = 0;
 
+            //Engine.Log.Info($"Flushing buffer {boundBuffer}");
+
             var args = new BufferDataArgs
             {
                 //Usage = _bufferUsage[boundBuffer],
@@ -294,13 +300,25 @@ namespace Emotion.Web.Platform
             state.RangeStart = 0;
             state.RangeLength = 0;
 
-            //Span<VertexData> test = new Span<VertexData>((void*) (ptr + (int) offset), (int) length);
-            //for (int i = 0; i < test.Length; i++)
+            //Engine.Log.Infoe($"Flushing buffer {boundBuffer} in range {offset}:{length}");
+            //if (target == (int) BufferTarget.ArrayBuffer)
             //{
-            //    Console.Write(test[i].Vertex.ToString() + ", ");
+            //    var test = new Span<VertexData>((void*)(ptr + (int)offset), (int) length / VertexData.SizeInBytes);
+            //    for (var i = 0; i < test.Length; i++)
+            //    {
+            //        Console.Write(test[i].Vertex + ", ");
+            //    }
+            //    Console.Write("\n");
             //}
-
-            //Console.Write("\n");
+            //else if (target == (int) BufferTarget.ElementArrayBuffer)
+            //{
+            //    var test = new Span<ushort>((void*)(ptr + (int)offset), (int) length / sizeof(ushort));
+            //    for (var i = 0; i < test.Length; i++)
+            //    {
+            //        Console.Write(test[i] + ", ");
+            //    }
+            //    Console.Write("\n");
+            //}
 
             var args = new BufferDataArgs
             {
@@ -579,18 +597,6 @@ namespace Emotion.Web.Platform
 
         private void DrawElements(int mode, int count, int type, IntPtr offset)
         {
-            //_boundBuffers.TryGetValue((int) BufferTarget.ElementArrayBuffer, out uint boundBuffer);
-            //var memoryName = $"DataBuffer{(int) BufferTarget.ElementArrayBuffer}|{boundBuffer}";
-            //IntPtr iboMemory = UnmanagedMemoryAllocator.GetNamedMemory(memoryName, out int size);
-            //ushort[] test = new Span<ushort>((void*)(iboMemory + (int)offset), count).ToArray();
-
-            //int vboStart = test[0] * VertexData.SizeInBytes;
-
-            //_boundBuffers.TryGetValue((int) BufferTarget.ArrayBuffer, out uint boundVBO);
-            //var memoryNameVBO = $"DataBuffer{(int) BufferTarget.ArrayBuffer}|{boundVBO}";
-            //IntPtr vboMemory = UnmanagedMemoryAllocator.GetNamedMemory(memoryNameVBO, out int _);
-            //VertexData[] test2 = new Span<VertexData>((void*)(vboMemory + vboStart), count).ToArray();
-
             var data = new IntegerVector4
             {
                 X = mode,
@@ -609,6 +615,11 @@ namespace Emotion.Web.Platform
         private int ClientWaitSync(int condition, uint flags, ulong timeout)
         {
             return (int) SyncStatus.AlreadySignaled;
+        }
+
+        private void DrawArrays(int mode, int first, int count)
+        {
+            _gl.InvokeUnmarshalled<int, int, int, object>("glDrawArrays", mode, first, count);
         }
     }
 }
