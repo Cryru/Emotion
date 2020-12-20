@@ -60,6 +60,7 @@ namespace Emotion.Graphics.Batches
         /// Used for multidraw.
         /// </summary>
         protected int[][] _batchableLengths = new int[2][];
+
         protected int _batchableLengthUtilization;
 
         public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3)
@@ -68,7 +69,7 @@ namespace Emotion.Graphics.Batches
             _structByteSize = (uint) Marshal.SizeOf<T>();
             _indexByteSize = sizeof(ushort);
 
-            _structCount = sizeStructs == 0 ? ushort.MaxValue : sizeStructs;
+            _structCount = sizeStructs == 0 ? 12 : sizeStructs;
             _bufferCount = bufferCount;
 
             Debug.Assert(_structCount <= ushort.MaxValue);
@@ -97,55 +98,67 @@ namespace Emotion.Graphics.Batches
             uint vBytesNeeded = structCount * _structByteSize;
             uint iBytesNeeded = indexCount * _indexByteSize;
 
+            // This request can never be serviced, as it itself is larger that an empty buffer.
             if (vBytesNeeded > _memory.Size || iBytesNeeded > _memoryIndices.Size) return default;
 
+            // Check if the request can be served, if not - flush the buffers.
             bool gotStructs = _memory.CurrentBufferSize >= vBytesNeeded;
             bool gotIndices = _memoryIndices.CurrentBufferSize >= iBytesNeeded;
-
             if (!gotStructs || !gotIndices)
             {
                 if (AnythingMapped) FlushRender();
+
                 if (!gotStructs)
                 {
+                    Debug.Assert(!_memory.CurrentBuffer.DataBuffer.Mapping);
                     _memory.SwapBuffer();
                     _vertexIndex = 0;
                 }
 
-                if (!gotIndices) _memoryIndices.SwapBuffer();
+                if (!gotIndices)
+                {
+                    Debug.Assert(!_memoryIndices.CurrentBuffer.DataBuffer.Mapping);
+                    _memoryIndices.SwapBuffer();
+                }
+
+                // Should have enough size now.
                 Debug.Assert(_memory.CurrentBufferSize >= vBytesNeeded);
                 Debug.Assert(_memoryIndices.CurrentBufferSize >= iBytesNeeded);
             }
 
+            // This will start mapping. It needs to finish with a flush in all cases.
             EnsureMemoryMapped();
-            uint vOffset = _memory.CurrentBufferOffset - _mapOffsetStart;
-            uint iOffset = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
-
-            _memory.SetUsed(vBytesNeeded);
-            _memoryIndices.SetUsed(iBytesNeeded);
-
             Debug.Assert(_indexPointer != IntPtr.Zero);
             Debug.Assert(_dataPointer != IntPtr.Zero);
 
-            // ReSharper disable once PossibleNullReferenceException
+            // Mark memory area as used.
+            uint vOffset = _memory.CurrentBufferOffset - _mapOffsetStart;
+            uint iOffset = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
+            _memory.SetUsed(vBytesNeeded);
+            _memoryIndices.SetUsed(iBytesNeeded);
+
+            // ReSharper disable PossibleNullReferenceException
             var verticesData = new Span<T>(&((byte*) _dataPointer)[vOffset], (int) structCount);
-            // ReSharper disable once PossibleNullReferenceException
             var indicesData = new Span<ushort>(&((byte*) _indexPointer)[iOffset], (int) indexCount);
+            // ReSharper enable PossibleNullReferenceException
 
             ushort index = _vertexIndex;
             _vertexIndex = (ushort) (_vertexIndex + structCount);
 
-            // Check if using multi draw, in which case record where the mapping started and its length.
+            // Some batch modes cannot be used with draw elements.
+            // For them record where the memory request started and its length.
+            // 1 request = 1 mesh
             if (BatchMode == BatchMode.TriangleFan)
             {
                 // Not enough size.
                 if (_batchableLengthUtilization + 1 >= (_batchableLengths[0]?.Length ?? 0))
                     for (var i = 0; i < _batchableLengths.Length; i++)
                     {
-                        if (_batchableLengths[i] == null) _batchableLengths[i] = new int[1];
+                        _batchableLengths[i] ??= new int[1];
                         Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
                     }
 
-                _batchableLengths[0][_batchableLengthUtilization] = (int) index;
+                _batchableLengths[0][_batchableLengthUtilization] = index;
                 _batchableLengths[1][_batchableLengthUtilization] = (int) structCount;
                 _batchableLengthUtilization++;
             }
@@ -193,6 +206,7 @@ namespace Emotion.Graphics.Batches
                     }
                 else
                     Gl.MultiDrawArrays(primitiveType, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
+
                 _batchableLengthUtilization = 0;
             }
             else
