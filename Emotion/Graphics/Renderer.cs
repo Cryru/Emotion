@@ -90,12 +90,12 @@ namespace Emotion.Graphics
         /// <summary>
         /// The vertex data batch currently active.
         /// </summary>
-        public VertexDataBatch ActiveBatch { get; private set; }
+        public RenderStreamBatch<VertexData> ActiveBatch { get; private set; }
 
         /// <summary>
         /// The default render batch to render with.
         /// </summary>
-        public VertexDataBatch DefaultSpriteBatch;
+        public RenderStreamBatch<VertexData> DefaultSpriteBatch;
 
         /// <summary>
         /// A representation of the screen's frame buffer.
@@ -222,9 +222,6 @@ namespace Emotion.Graphics
             }
 #endif
 
-            // Create default indices.
-            IndexBuffer.CreateDefaultIndexBuffers();
-
             // Set start state.
             Vector4 c = Engine.Configuration.ClearColor.ToVec4();
             Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
@@ -269,7 +266,7 @@ namespace Emotion.Graphics
             Camera = new PixelArtCamera(Vector3.Zero);
 
             // Create generic batch.
-            DefaultSpriteBatch = new UnsynchronizedBatch<VertexData>();
+            DefaultSpriteBatch = new RenderStreamBatch<VertexData>();
             ActiveBatch = DefaultSpriteBatch;
 
             ApplySettings();

@@ -1,0 +1,295 @@
+﻿#region Using
+
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Emotion.Graphics.Objects;
+using OpenGL;
+
+#endregion
+
+namespace Emotion.Graphics.Batches
+{
+    public unsafe class RenderStreamBatch<T>
+    {
+        public ref struct StreamData
+        {
+            public Span<T> VerticesData;
+            public Span<ushort> IndicesData;
+            public ushort StructIndex;
+        }
+
+        protected Type _structType;
+        protected uint _structByteSize;
+        protected uint _structCount;
+        protected int _bufferCount;
+        protected uint _indexByteSize;
+
+        /// <summary>
+        /// The current batch mode of the stream. This determines the primitives drawing mode.
+        /// </summary>
+        public BatchMode BatchMode { get; protected set; } = BatchMode.Quad;
+
+        /// <summary>
+        /// Whether anything is mapped to the stream.
+        /// </summary>
+        public bool AnythingMapped
+        {
+            get => _dataPointer != IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// Memory sources.
+        /// </summary>
+        protected FencedBufferSource _memory;
+
+        protected FencedBufferSource _memoryIndices;
+
+        /// <summary>
+        /// The pointers are mapped to the buffers started from the offset at which the mapping started,
+        /// indicated by the offset variables.
+        /// </summary>
+        protected uint _mapOffsetStart;
+
+        protected IntPtr _dataPointer;
+        protected uint _indexMapOffsetStart;
+        protected IntPtr _indexPointer;
+        protected ushort _vertexIndex;
+
+        /// <summary>
+        /// Used for multidraw.
+        /// </summary>
+        protected int[][] _batchableLengths = new int[2][];
+        protected int _batchableLengthUtilization;
+
+        public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3)
+        {
+            _structType = typeof(T);
+            _structByteSize = (uint) Marshal.SizeOf<T>();
+            _indexByteSize = sizeof(ushort);
+
+            _structCount = sizeStructs == 0 ? ushort.MaxValue : sizeStructs;
+            _bufferCount = bufferCount;
+
+            Debug.Assert(_structCount <= ushort.MaxValue);
+
+            uint bufferSizeBytes = _structByteSize * _structCount;
+
+            _memory = new FencedBufferSource(bufferSizeBytes, _bufferCount, s =>
+            {
+                var vbo = new VertexBuffer(s, BufferUsage.StreamDraw);
+                var vao = new VertexArrayObject<T>(vbo);
+                return new FencedBufferObjects(vbo, vao);
+            });
+
+            _memoryIndices = new FencedBufferSource(_indexByteSize * _structCount, _bufferCount, s =>
+            {
+                var ibo = new IndexBuffer(s, BufferUsage.StreamDraw);
+                return new FencedBufferObjects(ibo, null);
+            });
+        }
+
+        public StreamData GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode)
+        {
+            if ((batchMode != BatchMode || batchMode == BatchMode.MeshStream) && AnythingMapped) FlushRender();
+            BatchMode = batchMode;
+
+            uint vBytesNeeded = structCount * _structByteSize;
+            uint iBytesNeeded = indexCount * _indexByteSize;
+
+            if (vBytesNeeded > _memory.Size || iBytesNeeded > _memoryIndices.Size) return default;
+
+            bool gotStructs = _memory.CurrentBufferSize >= vBytesNeeded;
+            bool gotIndices = _memoryIndices.CurrentBufferSize >= iBytesNeeded;
+
+            if (!gotStructs || !gotIndices)
+            {
+                if (AnythingMapped) FlushRender();
+                if (!gotStructs)
+                {
+                    _memory.SwapBuffer();
+                    _vertexIndex = 0;
+                }
+
+                if (!gotIndices) _memoryIndices.SwapBuffer();
+                Debug.Assert(_memory.CurrentBufferSize >= vBytesNeeded);
+                Debug.Assert(_memoryIndices.CurrentBufferSize >= iBytesNeeded);
+            }
+
+            EnsureMemoryMapped();
+            uint vOffset = _memory.CurrentBufferOffset - _mapOffsetStart;
+            uint iOffset = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
+
+            _memory.SetUsed(vBytesNeeded);
+            _memoryIndices.SetUsed(iBytesNeeded);
+
+            Debug.Assert(_indexPointer != IntPtr.Zero);
+            Debug.Assert(_dataPointer != IntPtr.Zero);
+
+            // ReSharper disable once PossibleNullReferenceException
+            var verticesData = new Span<T>(&((byte*) _dataPointer)[vOffset], (int) structCount);
+            // ReSharper disable once PossibleNullReferenceException
+            var indicesData = new Span<ushort>(&((byte*) _indexPointer)[iOffset], (int) indexCount);
+
+            ushort index = _vertexIndex;
+            _vertexIndex = (ushort) (_vertexIndex + structCount);
+
+            // Check if using multi draw, in which case record where the mapping started and its length.
+            if (BatchMode == BatchMode.TriangleFan)
+            {
+                // Not enough size.
+                if (_batchableLengthUtilization + 1 >= (_batchableLengths[0]?.Length ?? 0))
+                    for (var i = 0; i < _batchableLengths.Length; i++)
+                    {
+                        if (_batchableLengths[i] == null) _batchableLengths[i] = new int[1];
+                        Array.Resize(ref _batchableLengths[i], _batchableLengths[i].Length * 2);
+                    }
+
+                _batchableLengths[0][_batchableLengthUtilization] = (int) index;
+                _batchableLengths[1][_batchableLengthUtilization] = (int) structCount;
+                _batchableLengthUtilization++;
+            }
+
+            return new StreamData
+            {
+                VerticesData = verticesData,
+                IndicesData = indicesData,
+                StructIndex = index
+            };
+        }
+
+        public void FlushRender()
+        {
+            Debug.Assert(AnythingMapped);
+            Debug.Assert(_dataPointer != IntPtr.Zero);
+            Debug.Assert(_indexPointer != IntPtr.Zero);
+
+            uint mappedBytes = _memory.CurrentBufferOffset - _mapOffsetStart;
+            _memory.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytes); // This range is relative to the mapped range, not the whole buffer.
+            _memory.CurrentBuffer.DataBuffer.FinishMapping();
+
+            uint mappedBytesIndices = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
+            _memoryIndices.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytesIndices);
+            _memoryIndices.CurrentBuffer.DataBuffer.FinishMapping();
+
+            VertexArrayObject.EnsureBound(_memory.CurrentBuffer.VAO);
+            IndexBuffer.EnsureBound(_memoryIndices.CurrentBuffer.DataBuffer.Pointer);
+
+            PrimitiveType primitiveType = BatchMode switch
+            {
+                BatchMode.Quad => PrimitiveType.Triangles,
+                BatchMode.SequentialTriangles => PrimitiveType.Triangles,
+                BatchMode.TriangleFan => PrimitiveType.TriangleFan,
+                BatchMode.MeshStream => PrimitiveType.TriangleFan,
+                _ => PrimitiveType.Triangles
+            };
+
+            if (BatchMode == BatchMode.TriangleFan)
+            {
+                if (Gl.CurrentVersion.GLES)
+                    for (var i = 0; i < _batchableLengthUtilization; i += 2)
+                    {
+                        Gl.DrawArrays(primitiveType, _batchableLengths[0][i], _batchableLengths[1][i]);
+                    }
+                else
+                    Gl.MultiDrawArrays(primitiveType, _batchableLengths[0], _batchableLengths[1], _batchableLengthUtilization);
+                _batchableLengthUtilization = 0;
+            }
+            else
+            {
+                var startIndexInt = (IntPtr) _indexMapOffsetStart;
+                var count = (int) (mappedBytesIndices / _indexByteSize);
+                Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, startIndexInt);
+            }
+
+            _dataPointer = IntPtr.Zero;
+            _indexPointer = IntPtr.Zero;
+            _mapOffsetStart = 0;
+            _indexMapOffsetStart = 0;
+        }
+
+        #region Helpers and Overloads
+
+        /// <summary>
+        /// Ensures the memory pointers are mapped and lazily initializes memory.
+        /// </summary>
+        protected void EnsureMemoryMapped()
+        {
+            if (_dataPointer == IntPtr.Zero)
+            {
+                _mapOffsetStart = _memory.CurrentBufferOffset;
+                _dataPointer = StartMappingFencedBuffer(_memory);
+            }
+
+            if (_indexPointer == IntPtr.Zero)
+            {
+                _indexMapOffsetStart = _memoryIndices.CurrentBufferOffset;
+                _indexPointer = StartMappingFencedBuffer(_memoryIndices);
+            }
+        }
+
+        protected IntPtr StartMappingFencedBuffer(FencedBufferSource fencedBuffer)
+        {
+            return (IntPtr) fencedBuffer.CurrentBuffer.DataBuffer.CreateUnsafeMapper((int) fencedBuffer.CurrentBufferOffset, fencedBuffer.CurrentBufferSize,
+                BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapFlushExplicitBit
+            );
+        }
+
+        /// <summary>
+        /// Get stream memory and automatically map indices depending on the batch mode.
+        /// Doesn't support MeshStream
+        /// </summary>
+        /// <param name="structCount">The number of structs worth of memory to return.</param>
+        /// <param name="batchMode">The batch mode.</param>
+        /// <returns></returns>
+        public Span<T> GetStreamMemory(uint structCount, BatchMode batchMode)
+        {
+            if (batchMode == BatchMode.MeshStream) return null;
+
+            uint indexCount = 0;
+            switch (batchMode)
+            {
+                case BatchMode.Quad:
+                    indexCount = structCount / 4 * 6;
+                    break;
+                case BatchMode.TriangleFan:
+                case BatchMode.SequentialTriangles:
+                    indexCount = structCount;
+                    break;
+            }
+
+            StreamData streamData = GetStreamMemory(structCount, indexCount, batchMode);
+            Span<ushort> indicesSpan = streamData.IndicesData;
+            ushort offset = streamData.StructIndex;
+            switch (batchMode)
+            {
+                case BatchMode.Quad:
+                    for (var i = 0; i < indicesSpan.Length; i += 6)
+                    {
+                        indicesSpan[i] = (ushort) (offset + 0);
+                        indicesSpan[i + 1] = (ushort) (offset + 1);
+                        indicesSpan[i + 2] = (ushort) (offset + 2);
+                        indicesSpan[i + 3] = (ushort) (offset + 2);
+                        indicesSpan[i + 4] = (ushort) (offset + 3);
+                        indicesSpan[i + 5] = (ushort) (offset + 0);
+
+                        offset += 4;
+                    }
+
+                    break;
+                case BatchMode.TriangleFan:
+                case BatchMode.SequentialTriangles:
+                    for (ushort i = 0; i < indicesSpan.Length; i++)
+                    {
+                        indicesSpan[i] = (ushort) (offset + i);
+                    }
+
+                    break;
+            }
+
+            return streamData.VerticesData;
+        }
+
+        #endregion
+    }
+}

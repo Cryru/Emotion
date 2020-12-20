@@ -1,10 +1,12 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Common.Threading;
+using Emotion.Game;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using OpenGL;
@@ -13,6 +15,16 @@ using OpenGL;
 
 namespace Emotion.Graphics.Batches
 {
+    public class TextureAtlasBinningState : Binning.BinningResumableState
+    {
+        public Dictionary<uint, Vector2> TextureToUV = new Dictionary<uint, Vector2>();
+        public Dictionary<uint, bool> TextureNeedDraw = new Dictionary<uint, bool>();
+
+        public TextureAtlasBinningState(Vector2 canvasDimensions) : base(canvasDimensions)
+        {
+        }
+    }
+
     /// <summary>
     /// Batch which handles batching sprites to be drawn together.
     /// Up to 16 textures and around 16k sprites can be batched at once.
@@ -22,14 +34,13 @@ namespace Emotion.Graphics.Batches
         #region Texturing
 
         /// <summary>
-        /// The textures to bind.
+        /// Textures above this size will not be batched.
         /// </summary>
-        protected uint[] _textureBinding = new uint[Texture.Bound.Length];
+        public static Vector2 MaxSizeTextureBatch = new Vector2(1024, 1024);
 
-        /// <summary>
-        /// How many texture slots are utilized.
-        /// </summary>
-        public int TextureSlotUtilization { get; protected set; }
+        public TextureAtlasBinningState Binner;
+
+        public FrameBuffer TextureBatchAtlas;
 
         #endregion
 
@@ -129,89 +140,34 @@ namespace Emotion.Graphics.Batches
             Render(c, 0);
         }
 
-        #region Texture Binding API
-
         /// <summary>
         /// Add the specified texture to the texture binding, if possible.
         /// </summary>
         /// <param name="texture">The texture to add.</param>
-        /// <returns>The texture pointer to map in the vertex data. -1 if invalid.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int AddTextureBinding(Texture texture)
+        /// <returns>Whether the texture was added. If not, a batch flush is required.</returns>
+        public virtual bool AddTextureBinding(Texture texture)
         {
-            // Invalid texture object.
-            if (texture == null) return -1;
-            AddTextureBinding(texture.Pointer, out int texturePointer);
-            return texturePointer;
-        }
-
-        /// <summary>
-        /// Add the specified pointer to the texture binding, if possible.
-        /// </summary>
-        /// <param name="pointer">The texture pointer to add.</param>
-        /// <param name="bindingPointer">The pointer to the internal binding.</param>
-        /// <returns>Whether the texture was added.</returns>
-        public virtual bool AddTextureBinding(uint pointer, out int bindingPointer)
-        {
-            bindingPointer = -1;
-
             if (Full) return false;
-            if (TextureSlotUtilization == _textureBinding.Length) return false;
-            if (TextureInBinding(pointer, out bindingPointer)) return true;
 
-            // Add to binding.
-            _textureBinding[TextureSlotUtilization] = pointer;
-            bindingPointer = TextureSlotUtilization;
-            TextureSlotUtilization++;
+            // Too big. Allow only if nothing is batched up until now.
+            if (texture.Size.X > MaxSizeTextureBatch.X || texture.Size.Y > MaxSizeTextureBatch.Y) return _mappedTo == 0;
+
+            // Already exists.
+            if (Binner.TextureToUV.ContainsKey(texture.Pointer)) return true;
+
+            Vector2? atlasPos = Binning.FitRectanglesResumable(texture.Size, Binner);
+
+            // Too big.
+            if (atlasPos == null) return false;
+            Binner.TextureToUV.Add(texture.Pointer, atlasPos.Value);
 
             return true;
         }
 
         /// <summary>
-        /// Check whether the specified texture pointer exists in the batch binding.
-        /// </summary>
-        /// <param name="pointer">The texture point to check.</param>
-        /// <param name="bindingPointer">The internal pointer bound at or -1 if not bound.</param>
-        /// <returns>Whether this texture exists in the batch binding.</returns>
-        public bool TextureInBinding(uint pointer, out int bindingPointer)
-        {
-            for (var i = 0; i < TextureSlotUtilization; i++)
-            {
-                if (_textureBinding[i] != pointer) continue;
-                bindingPointer = i;
-                return true;
-            }
-
-            bindingPointer = -1;
-            return false;
-        }
-
-        /// <summary>
-        /// Bind the textures in use.
-        /// </summary>
-        public virtual void BindTextures()
-        {
-            Debug.Assert(GLThread.IsGLThread());
-
-            for (uint i = 0; i < TextureSlotUtilization; i++)
-            {
-                Texture.EnsureBound(_textureBinding[i], i);
-            }
-        }
-
-        #endregion
-
-        /// <summary>
         /// Free resources.
         /// </summary>
         public abstract void Dispose();
-    }
-
-    public enum BatchMode
-    {
-        Quad,
-        TriangleFan,
-        SequentialTriangles
     }
 
     /// <summary>
@@ -276,7 +232,6 @@ namespace Emotion.Graphics.Batches
         {
             _memoryPtr = IntPtr.Zero;
             Full = false;
-            TextureSlotUtilization = 0;
             _mappedTo = 0;
             _indicesUsed = 0;
             _batchableLengthUtilization = 0;
@@ -288,30 +243,30 @@ namespace Emotion.Graphics.Batches
         /// </summary>
         public virtual void SetBatchMode(BatchMode mode)
         {
-            switch (mode)
-            {
-                case BatchMode.Quad:
-                    _indexCapacity = RenderComposer.MAX_INDICES / 4 * 6;
-                    _indices = _indexCapacity;
-                    _ibo = IndexBuffer.QuadIbo;
-                    _primitiveRenderingMode = PrimitiveType.Triangles;
-                    _minimumIndices = 6;
-                    break;
-                case BatchMode.SequentialTriangles:
-                    _indexCapacity = RenderComposer.MAX_INDICES;
-                    _indices = _indexCapacity;
-                    _ibo = IndexBuffer.SequentialIbo;
-                    _primitiveRenderingMode = PrimitiveType.Triangles;
-                    _minimumIndices = 3;
-                    break;
-                case BatchMode.TriangleFan:
-                    _indexCapacity = RenderComposer.MAX_INDICES;
-                    _indices = _indexCapacity;
-                    _ibo = IndexBuffer.SequentialIbo;
-                    _primitiveRenderingMode = PrimitiveType.TriangleFan;
-                    _minimumIndices = 3;
-                    break;
-            }
+            //switch (mode)
+            //{
+            //    case BatchMode.Quad:
+            //        _indexCapacity = RenderComposer.MAX_INDICES / 4 * 6;
+            //        _indices = _indexCapacity;
+            //        _ibo = IndexBuffer.QuadIbo;
+            //        _primitiveRenderingMode = PrimitiveType.Triangles;
+            //        _minimumIndices = 6;
+            //        break;
+            //    case BatchMode.SequentialTriangles:
+            //        _indexCapacity = RenderComposer.MAX_INDICES;
+            //        _indices = _indexCapacity;
+            //        _ibo = IndexBuffer.SequentialIbo;
+            //        _primitiveRenderingMode = PrimitiveType.Triangles;
+            //        _minimumIndices = 3;
+            //        break;
+            //    case BatchMode.TriangleFan:
+            //        _indexCapacity = RenderComposer.MAX_INDICES;
+            //        _indices = _indexCapacity;
+            //        _ibo = IndexBuffer.SequentialIbo;
+            //        _primitiveRenderingMode = PrimitiveType.TriangleFan;
+            //        _minimumIndices = 3;
+            //        break;
+            //}
 
             BatchMode = mode;
             _batchableLengthUtilization = 0;
@@ -402,7 +357,7 @@ namespace Emotion.Graphics.Batches
             _indicesUsed += indicesToUse;
 
             // Check if one more struct can fit, and if we're above the minimum indices.
-            if (SizeLeft < 1 || IndicesLeft < _minimumIndices || TextureSlotUtilization == _textureBinding.Length) Full = true;
+            if (SizeLeft < 1 || IndicesLeft < _minimumIndices) Full = true;
 
             return data;
         }
@@ -427,7 +382,7 @@ namespace Emotion.Graphics.Batches
             // Bind graphics objects.
             VertexArrayObject.EnsureBound(vao);
             if (vao.IBO == null) IndexBuffer.EnsureBound(_ibo.Pointer);
-            BindTextures();
+            //Texture.EnsureBound(_textureBinding[0]);
 
             if (BatchMode == BatchMode.TriangleFan)
             {
