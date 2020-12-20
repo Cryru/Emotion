@@ -15,11 +15,6 @@ namespace Emotion.Platform
 
         private delegate int RenderDocGetApi(int version, void* api);
 
-        /// <summary>
-        /// Handle to the RenderDoc API, if any is loaded.
-        /// </summary>
-        public RenderDocAPI? RenderDoc;
-
         protected RenderDocGraphicsContext()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
@@ -33,8 +28,8 @@ namespace Emotion.Platform
             var getApiFunc = Marshal.GetDelegateForFunctionPointer<RenderDocGetApi>(api);
             void* apiPointers;
             int ret = getApiFunc(10102, &apiPointers);
-            if (ret != 1) return;
             Debug.Assert(ret == 1);
+            if (ret != 1) return;
             RenderDoc = Marshal.PtrToStructure<RenderDocAPI>((IntPtr) apiPointers);
         }
     }

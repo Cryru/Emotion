@@ -18,6 +18,11 @@ namespace Emotion.Platform
     /// </summary>
     public struct RenderDocAPI
     {
+        public bool Loaded
+        {
+            get => _getAPIVersion != IntPtr.Zero;
+        }
+
         private IntPtr _getAPIVersion;
 
         private IntPtr _setCaptureOptionU32;

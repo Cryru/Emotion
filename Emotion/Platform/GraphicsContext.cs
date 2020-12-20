@@ -41,6 +41,11 @@ namespace Emotion.Platform
         protected int _swapInterval;
 
         /// <summary>
+        /// Reference to the RenderDoc debugger, if attached.
+        /// </summary>
+        public RenderDocAPI RenderDoc;
+
+        /// <summary>
         /// Internal function for when SwapInterval is called.
         /// </summary>
         /// <param name="interval"></param>

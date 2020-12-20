@@ -52,7 +52,7 @@ namespace Emotion.Platform.Implementation.EglAngle
 
             var majorVer = 3;
             var minorVer = 0;
-            if (RenderDoc != null) minorVer = 1;
+            if (RenderDoc.Loaded) minorVer = 1;
             if (!Egl.Init(_display, ref majorVer, ref minorVer))
             {
                 Engine.Log.Error($"Couldn't initialize Egl. {Egl.GetError()}", MessageSource.Egl);
