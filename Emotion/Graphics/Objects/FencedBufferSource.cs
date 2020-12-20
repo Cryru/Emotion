@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using Emotion.Common;
 using OpenGL;
 
@@ -10,16 +9,16 @@ using OpenGL;
 namespace Emotion.Graphics.Objects
 {
     /// <summary>
-    /// A tuple of a VBO and a VAO
+    /// A tuple of a data buffer and a VAO
     /// </summary>
     public class FencedBufferObjects
     {
-        public VertexBuffer VBO { get; private set; }
+        public DataBuffer DataBuffer { get; private set; }
         public VertexArrayObject VAO { get; private set; }
 
-        public FencedBufferObjects(VertexBuffer vbo, VertexArrayObject vao)
+        public FencedBufferObjects(DataBuffer dataBuffer, VertexArrayObject vao)
         {
-            VBO = vbo;
+            DataBuffer = dataBuffer;
             VAO = vao;
         }
     }
@@ -37,11 +36,6 @@ namespace Emotion.Graphics.Objects
         public uint Size { get; private set; }
 
         /// <summary>
-        /// The minimum size before swapping the backing buffer.
-        /// </summary>
-        public int MinimumSize { get; private set; }
-
-        /// <summary>
         /// The number of backing buffers present.
         /// </summary>
         public int BackingBuffersCount { get; private set; }
@@ -54,11 +48,6 @@ namespace Emotion.Graphics.Objects
         /// The index of the current backing buffer.
         /// </summary>
         public int CurrentBufferIdx { get; private set; }
-
-        /// <summary>
-        /// The index offset in the current buffer.
-        /// </summary>
-        public uint CurrentIndexOffset { get; private set; }
 
         /// <summary>
         /// A byte offset into the current backing buffer.
@@ -78,7 +67,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public uint CurrentBufferSize
         {
-            get => CurrentBuffer.VBO.Size - CurrentBufferOffset;
+            get => CurrentBuffer.DataBuffer.Size - CurrentBufferOffset;
         }
 
         #endregion
@@ -86,10 +75,9 @@ namespace Emotion.Graphics.Objects
         private FencedBufferObjects[] _backingBuffers;
         private int[] _fences;
 
-        public FencedBufferSource(uint size, int minSize, int backingCount, Func<uint, FencedBufferObjects> backingFactory)
+        public FencedBufferSource(uint size, int backingCount, Func<uint, FencedBufferObjects> backingFactory)
         {
             Size = size;
-            MinimumSize = minSize;
             BackingBuffersCount = backingCount;
 
             _backingBuffers = new FencedBufferObjects[BackingBuffersCount];
@@ -105,18 +93,9 @@ namespace Emotion.Graphics.Objects
         /// Mark a number of bytes in the current backing buffer as used.
         /// </summary>
         /// <param name="bytes">The number of bytes to mark as used.</param>
-        /// <param name="indicesUsed">The number of indices used in the current buffer.</param>
-        public void SetUsed(uint bytes, uint indicesUsed)
+        public void SetUsed(uint bytes)
         {
-            Debug.Assert(CurrentBufferOffset + bytes <= Size);
-
-            // Add used bytes.
             CurrentBufferOffset += bytes;
-            CurrentIndexOffset += indicesUsed;
-
-            // Check if there is more space in this buffer.
-            if (CurrentBufferOffset <= Size - MinimumSize) return;
-            SwapBuffer();
         }
 
         /// <summary>
@@ -130,7 +109,6 @@ namespace Emotion.Graphics.Objects
             CurrentBufferIdx++;
             if (CurrentBufferIdx == BackingBuffersCount) CurrentBufferIdx = 0;
             CurrentBufferOffset = 0;
-            CurrentIndexOffset = 0;
 
             // Check if waiting on a fence.
             int currentFence = _fences[CurrentBufferIdx];

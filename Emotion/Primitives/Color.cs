@@ -293,6 +293,8 @@ namespace Emotion.Primitives
         public static readonly Color Pink = new Color(237, 100, 149);
         public static readonly Color Transparent = new Color(0, 0, 0, 0);
 
+        public static readonly uint WhiteUint = White.ToUint();
+
         #endregion
 
         /// <summary>

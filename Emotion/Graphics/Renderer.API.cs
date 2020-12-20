@@ -27,10 +27,11 @@ namespace Emotion.Graphics
         /// </summary>
         public VertexDataBatch GetBatch(BatchMode ensureMode, uint ensureSize, uint ensureIndices)
         {
-            bool switchMode = ActiveBatch.BatchMode != ensureMode;
-            if (ActiveBatch.Full || switchMode || ActiveBatch.SizeLeft < ensureSize || ActiveBatch.IndicesLeft < Math.Max(ensureSize, ensureIndices)) InvalidateStateBatches();
-            if (switchMode) ActiveBatch.SetBatchMode(ensureMode);
-            return ActiveBatch;
+            return null;
+            //bool switchMode = ActiveBatch.BatchMode != ensureMode;
+            //if (ActiveBatch.Full || switchMode || ActiveBatch.SizeLeft < ensureSize || ActiveBatch.IndicesLeft < Math.Max(ensureSize, ensureIndices)) InvalidateStateBatches();
+            //if (switchMode) ActiveBatch.SetBatchMode(ensureMode);
+            //return ActiveBatch;
         }
 
         /// <summary>
@@ -40,11 +41,13 @@ namespace Emotion.Graphics
         /// </summary>
         public void InvalidateStateBatches()
         {
-            if (ActiveBatch == null || ActiveBatch.BatchedStructs == 0) return;
-            PerfProfiler.FrameEventStart($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
-            ActiveBatch.Render(this);
-            ActiveBatch.Reset();
-            PerfProfiler.FrameEventEnd($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
+            if(ActiveBatch == null || !ActiveBatch.AnythingMapped) return;
+            ActiveBatch.FlushRender();
+            //if (ActiveBatch == null || ActiveBatch.BatchedStructs == 0) return;
+            //PerfProfiler.FrameEventStart($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
+            //ActiveBatch.Render(this);
+            //ActiveBatch.Reset();
+            //PerfProfiler.FrameEventEnd($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
         }
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace Emotion.Graphics
         public void SetSpriteBatch(VertexDataBatch batch)
         {
             InvalidateStateBatches();
-            ActiveBatch = batch;
+            //ActiveBatch = batch;
         }
 
         /// <summary>
@@ -82,20 +85,19 @@ namespace Emotion.Graphics
         /// <summary>
         /// Render arbitrary vertices. Clockwise order is expected.
         /// </summary>
-        /// <param name="vertices">The vertex to render.</param>
+        /// <param name="verts">The vertex to render.</param>
         /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
-        public void RenderVertices(Vector3[] vertices, params Color[] colors)
+        public void RenderVertices(Vector3[] verts, params Color[] colors)
         {
-            var vertCount = (uint) vertices.Length;
-            VertexDataBatch batch = GetBatch(BatchMode.TriangleFan, (uint) (VertexData.SizeInBytes * vertCount), vertCount);
-            Span<VertexData> vertMap = batch.GetData(vertCount, vertCount);
+            var vertCount = (uint) verts.Length;
+            Span<VertexData> vertices = ActiveBatch.GetStreamMemory(vertCount, BatchMode.TriangleFan);
             Debug.Assert(vertices != null);
 
-            for (var v = 0; v < vertices.Length; v++)
+            for (var v = 0; v < verts.Length; v++)
             {
-                vertMap[v].Vertex = vertices[v];
-                vertMap[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.White.ToUint() : colors[0].ToUint() : colors[v].ToUint();
-                vertMap[v].Tid = -1;
+                vertices[v].Vertex = verts[v];
+                vertices[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.WhiteUint : colors[0].ToUint() : colors[v].ToUint();
+                vertices[v].Tid = -1;
             }
         }
 

@@ -108,38 +108,24 @@ namespace Emotion.IO
         {
             // Get the text contents of the shader files referenced. If any of them are missing substitute with the default one.
             TextAsset vertShader = null;
-            var ownVert = false;
 
             if (!string.IsNullOrEmpty(Content.Vert))
             {
                 vertShader = Engine.AssetLoader.Get<TextAsset>(Content.Vert);
-                ownVert = true;
-            }
-
-            if (vertShader == null)
-            {
-                vertShader = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
-                ownVert = false;
-
                 if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Vert}. Using default.", MessageSource.AssetLoader);
             }
 
+            vertShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
+
             TextAsset fragShader = null;
-            var ownFrag = false;
 
             if (!string.IsNullOrEmpty(Content.Frag))
             {
                 fragShader = Engine.AssetLoader.Get<TextAsset>(Content.Frag);
-                ownFrag = true;
-
                 if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Frag}. Using default.", MessageSource.AssetLoader);
             }
 
-            if (fragShader == null)
-            {
-                fragShader = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
-                ownFrag = false;
-            }
+            fragShader ??= Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
 
             Engine.Log.Info($"Creating shader - v:{vertShader.Name}, f:{fragShader.Name}", MessageSource.AssetLoader);
 
@@ -147,10 +133,6 @@ namespace Emotion.IO
             PerfProfiler.ProfilerEventStart("Compilation", "Loading");
             GLThread.ExecuteGLThread(() => { Shader = ShaderFactory.CreateShader(vertShader.Content, fragShader.Content); });
             PerfProfiler.ProfilerEventEnd("Compilation", "Loading");
-
-            // Free text assets as they are no longer needed.
-            if (ownVert) Engine.AssetLoader.Destroy(vertShader.Name);
-            if (ownFrag) Engine.AssetLoader.Destroy(fragShader.Name);
 
             // Check if compilation was successful.
             if (Shader != null && Shader.Valid) return;

@@ -93,8 +93,7 @@ namespace Emotion.Graphics
         public void RenderEllipse(Vector3 position, Vector2 radius, Color color, bool positionIsCenter = false, int detail = 30, Color? colorMiddle = null)
         {
             var vertsNeeded = (uint) ((detail + 1) * 3);
-            RenderBatch<VertexData> batch = GetBatch(BatchMode.SequentialTriangles,(uint) (VertexData.SizeInBytes * vertsNeeded), vertsNeeded);
-            Span<VertexData> vertices = batch.GetData(vertsNeeded, vertsNeeded);
+            Span<VertexData> vertices = ActiveBatch.GetStreamMemory(vertsNeeded, BatchMode.SequentialTriangles);
             Debug.Assert(vertices != null);
             var vertexIdx = 0;
 

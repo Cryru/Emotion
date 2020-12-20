@@ -26,11 +26,8 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         private static (string name, Func<string[], string[]> func)[] _shaderConfigurations =
         {
-            ("default", ExcludeCompliantRenderer),
-            ("shader5", s => ExcludeCompliantRenderer(AddExtensionConstant(s, "GL_ARB_gpu_shader5"))),
-            ("CompatTextureIndex", s => ApplyIndexUnwrap(AddPreprocessorConstant(s, "CompatTextureIndex"))),
+            ("default",  s => s),
             ("AttribLocationExtension", s => ExcludeEs(AddExtensionConstant(s, "GL_ARB_explicit_attrib_location"))),
-            ("CompatTextureIndex&AttribLocationExtension", s => ExcludeEs(ApplyIndexUnwrap(AddPreprocessorConstant(AddExtensionConstant(s, "GL_ARB_explicit_attrib_location"), "CompatTextureIndex"))))
         };
 
         /// <summary>
@@ -202,9 +199,6 @@ namespace Emotion.Graphics.Shading
                 [0] = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n"
             };
 
-            // Defines
-            code.Insert(1, $"#define TEXTURE_COUNT {Engine.Renderer.TextureArrayLimit}\n");
-
             // GLES support
             code.Insert(2, "#ifdef GL_ES\n");
             code.Insert(3, "precision highp float;\n");
@@ -214,8 +208,9 @@ namespace Emotion.Graphics.Shading
             var dependencyIdx = 1;
             for (var i = 5; i < code.Count; i++)
             {
-                // Legacy texture uniform definition.
+                // Legacy texture uniform definitions.
                 if (code[i].Trim() == "uniform sampler2D textures[16];") code[i] = "uniform sampler2D textures[TEXTURE_COUNT];";
+                if (code[i].Trim() == "uniform sampler2D textures[TEXTURE_COUNT];") code[i] = "uniform sampler2D mainTexture;";
 
                 // Uniform defaults are not allowed in ES.
                 // Find them and extract them.
@@ -304,6 +299,9 @@ namespace Emotion.Graphics.Shading
 
                 if (line.Contains("uniform sampler2D textures[16];"))
                     Engine.Log.Warning("You are declaring your textures array as a static size of 16 - please use `uniform sampler2D textures[TEXTURE_COUNT];` instead.", MessageSource.Debug);
+
+                if (line.Contains("uniform sampler2D textures[TEXTURE_COUNT];"))
+                    Engine.Log.Warning("You are declaring your main texture as an array - please use `uniform sampler2D mainTexture;` instead.", MessageSource.Debug);
             }
         }
 
@@ -394,52 +392,6 @@ namespace Emotion.Graphics.Shading
         {
             if (source == null || Gl.CurrentVersion.GLES) return null;
             return source;
-        }
-
-        #endregion
-
-        #region Index Unwrapping CodeGen
-
-        private static Regex _indexUnwrapRegex = new Regex("(\\/\\/TEXTURE_INDEX_UNWRAP)([\\s\\S]*?)(\\/\\/END)", RegexOptions.Multiline);
-
-        /// <summary>
-        /// Horrible code-gen.
-        /// Used to generate indexing unwraps.
-        /// </summary>
-        private static string[] ApplyIndexUnwrap(string[] lines)
-        {
-            for (var i = 0; i < lines.Length; i++)
-            {
-                Match match = _indexUnwrapRegex.Match(lines[i]);
-                while (match.Success && match.Groups.Count == 4)
-                {
-                    Group code = match.Groups[2];
-                    string unwrapped = UnwrapIndex(Engine.Renderer.TextureArrayLimit, code.Value.Trim());
-                    lines[i] = lines[i].Substring(0, match.Index) + unwrapped + lines[i].Substring(match.Index + match.Length);
-                    match = match.NextMatch();
-                }
-            }
-
-            return lines;
-        }
-
-        /// <summary>
-        /// Old OpenGL doesn't support indexing arrays.
-        /// This means that we must unwrap them into if checks.
-        /// </summary>
-        private static string UnwrapIndex(int length, string code)
-        {
-            var unwrapped = new List<string>();
-            for (var i = 0; i < length; i++)
-            {
-                unwrapped.Add(i == 0 ? $"if(value == {i})" : $"else if(value == {i})");
-
-                unwrapped.Add("{");
-                unwrapped.Add(code.Replace("value", $"{i}"));
-                unwrapped.Add("}");
-            }
-
-            return string.Join("\n", unwrapped);
         }
 
         #endregion
