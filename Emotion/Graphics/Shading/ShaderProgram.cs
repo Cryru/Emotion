@@ -116,7 +116,7 @@ namespace Emotion.Graphics.Shading
             // Set default uniforms - this requires binding, so save the currently bound.
             uint previouslyBound = Bound;
             EnsureBound(Pointer);
-            SetUniformIntArray("textures", Enumerable.Range(0, Engine.Renderer.TextureArrayLimit).ToArray());
+            SetUniformInt("mainTexture", 0);
             SetUniformFloat("iTime", 0);
             EnsureBound(previouslyBound);
         }
