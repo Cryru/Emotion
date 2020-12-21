@@ -53,7 +53,7 @@ namespace Emotion.Tools.Windows
             Engine.DebugOnUpdateEnd += (s, e) =>
             {
                 _eventUpdateTimer.Stop();
-                _eventUpdateTracker[_eventUpdateIdx] = _eventUpdateTimer.ElapsedTicks;
+                _eventUpdateTracker[_eventUpdateIdx] = _eventUpdateTimer.ElapsedMilliseconds;
                 _eventUpdateIdx++;
                 if (_eventUpdateIdx >= resolution) _eventUpdateIdx = 0;
             };
@@ -96,7 +96,7 @@ namespace Emotion.Tools.Windows
             ImGui.Text($"Reported DeltaTime {Engine.DeltaTime}");
 
 #if DEBUG
-            ImGui.PlotLines("Precise Update (Ticks)", ref _eventUpdateTracker[0], _eventUpdateTracker.Length, 0, "", 0, 3000);
+            ImGui.PlotLines("Precise Update (Ms)", ref _eventUpdateTracker[0], _eventUpdateTracker.Length, 0, "", 0, 3000);
             ImGui.PlotLines("Precise Render (Ms)", ref _eventDrawTracker[0], _eventDrawTracker.Length, 0, "", 0, 30);
             ImGui.PlotLines("Precise DeltaTime (Ms)", ref _eventDeltaTimeTracker[0], _eventDeltaTimeTracker.Length, 0, "", 0, 30);
 
