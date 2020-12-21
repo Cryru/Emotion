@@ -124,33 +124,12 @@ namespace Emotion.Game.Text
         /// <inheritdoc />
         public override void Render(RenderComposer composer)
         {
-            if (_updateRenderCache)
-            {
-                MapBuffer();
-                _updateRenderCache = false;
-            }
-
-            //// todo: Weird issue, investigate. Maybe connected to multi-threading.
-            //if (!_updateRenderCache && !_renderCache.AnythingMapped && _textStripped != "")
-            //{
-            //    MapBuffer();
-            //    _updateRenderCache = false;
-            //    Engine.Log.Warning($"RichText buffer wasn't mapped, and it didn't intend to map it. Text is {_textStripped}.", MessageSource.GL);
-            //}
-
-            // Check if anything is mapped in the cache buffer.
-            //if (!_renderCache.AnythingMapped) return;
-
             // Don't draw anything if the effect is before the first.
             if (_characterEffectIndex == 0) return;
 
             // Draw the buffer.
-            int upTo;
-            if (!EffectFinished)
-                upTo = _characterEffectIndex * 6;
-            else
-                upTo = _textStripped.Length * 6;
-            _renderCache.Render(composer, 0, upTo);
+            int upTo = !EffectFinished ? _characterEffectIndex : _textStripped.Length;
+            Render(composer, upTo);
         }
 
         #endregion

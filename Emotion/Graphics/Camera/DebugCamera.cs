@@ -3,6 +3,7 @@
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Platform.Input;
+using Emotion.Utility;
 
 #endregion
 
@@ -20,7 +21,7 @@ namespace Emotion.Graphics.Camera
         private bool OnMouseScroll(float val)
         {
             Zoom += 0.25f * val;
-            Zoom = Utility.Maths.Clamp(Zoom, 0.25f, 4);
+            Zoom = Maths.Clamp(Zoom, 0.25f, 4);
             RecreateMatrix();
             return true;
         }

@@ -11,6 +11,7 @@ using Emotion.Game.QuadTree;
 using Emotion.Graphics;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -98,9 +99,14 @@ namespace Emotion.Game.Tiled
         protected string? _tilesetFolder;
 
         /// <summary>
-        /// Cached render data for tiles per layer.
+        /// Cached render data for tiles per layer. Non-tile layers are null.
         /// </summary>
         protected VertexData[]?[]? _cachedTileRenderData;
+
+        /// <summary>
+        /// Cached render data for tiles per layer. Non-tile layers are null.
+        /// </summary>
+        protected Texture[]?[]? _cachedTileTextures;
 
         /// <summary>
         /// Reusable memory for querying the quad tree.
@@ -300,21 +306,20 @@ namespace Emotion.Game.Tiled
                 }
             }
 
-
             // Construct render cache.
             _cachedTileRenderData = null;
+            _cachedTileTextures = null;
             if (TiledMap.TileLayers.Count > 0)
             {
-                _cachedTileRenderData = new VertexData[TiledMap.TileLayers.Count][];
-                for (var i = 0; i < TiledMap.TileLayers.Count; i++)
+                _cachedTileRenderData = new VertexData[TiledMap.Layers.Count][];
+                _cachedTileTextures = new Texture[TiledMap.Layers.Count][];
+                for (var i = 0; i < TiledMap.Layers.Count; i++)
                 {
-                    TmxLayer? layerObj = TiledMap.TileLayers[i];
-                    int layerIdx = TiledMap.Layers.IndexOf(layerObj);
-                    _cachedTileRenderData[i] = SetupRenderCacheForTileLayer(layerIdx,layerObj );
+                    SetupRenderCacheForTileLayer(i);
                 }
             }
 
-            // Set loading flag.
+            // Set loaded flag.
             _loaded = true;
 
             MapPostLoad();
@@ -332,13 +337,17 @@ namespace Emotion.Game.Tiled
 
         #region Rendering
 
-        private VertexData[]? SetupRenderCacheForTileLayer(int layerIdx, TmxLayer layer)
+        private void SetupRenderCacheForTileLayer(int layerIdx)
         {
+            if (TiledMap == null) return;
+
+            TmxLayer? layer = TiledMap.Layers[layerIdx];
+            if (!layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return;
+
             PerfProfiler.ProfilerEventStart($"TileMap: RenderCache for layer {layerIdx}", "Loading");
 
-            if (TiledMap == null || !layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return null;
-
             var currentCache = new VertexData[layer.Width * layer.Height * 4];
+            var currentTextureCache = new Texture[layer.Width * layer.Height];
             var dataSpan = new Span<VertexData>(currentCache);
 
             for (var y = 0; y < layer.Height; y++)
@@ -355,7 +364,7 @@ namespace Emotion.Game.Tiled
                     {
                         for (var i = 0; i < tileData.Length; i++)
                         {
-                            tileData[i].Tid = -1;
+                            tileData[i].Color = 0;
                         }
 
                         continue;
@@ -384,14 +393,14 @@ namespace Emotion.Game.Tiled
 
                     var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
                     TextureAsset? tileSet = Tilesets[tsId];
-                    int texturePointer = -1;
-                    if (tileSet?.Texture != null) texturePointer = (int) tileSet.Texture.Pointer;
-                    VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, texturePointer, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
+                    if (tileSet != null) currentTextureCache![tileIdx] = tileSet.Texture;
+                    VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, -1, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
                 }
             }
 
             PerfProfiler.ProfilerEventEnd($"TileMap: RenderCache for layer {layerIdx}", "Loading");
-            return currentCache;
+            _cachedTileRenderData![layerIdx] = currentCache;
+            _cachedTileTextures![layerIdx] = currentTextureCache;
         }
 
         public override void Render(RenderComposer composer)
@@ -411,7 +420,7 @@ namespace Emotion.Game.Tiled
         {
             // Check if anything is loaded.
             if (TiledMap == null || !_loaded) return;
-            end = end == -1 ? TiledMap.TileLayers.Count : end;
+            end = end == -1 ? TiledMap.Layers.Count : end;
 
             Rectangle clipRect = Clip ?? composer.Camera.GetWorldBoundingRect();
             if (renderBackground) composer.RenderSprite(clipRect, TiledMap.BackgroundColor);
@@ -424,34 +433,33 @@ namespace Emotion.Game.Tiled
             }
         }
 
-        protected virtual void RenderLayer(RenderComposer composer, int idx, Rectangle clipVal)
+        protected virtual void RenderLayer(RenderComposer composer, int layerIdx, Rectangle clipVal)
         {
-            VertexData[]? renderCache = _cachedTileRenderData?[idx];
-            if (renderCache == null || TiledMap == null) return;
+            VertexData[]? renderCache = _cachedTileRenderData?[layerIdx];
+            Texture[]? textureCache = _cachedTileTextures?[layerIdx];
+            if (renderCache == null || textureCache == null || TiledMap == null) return;
 
-            TmxLayer layer = TiledMap.TileLayers[idx];
+            TmxLayer layer = TiledMap.Layers[layerIdx];
+            if (!layer.Visible || layer.Width == 0 || layer.Height == 0 || layer.Tiles == null) return;
+
             var yStart = (int) Maths.Clamp(MathF.Floor(clipVal.Y / TiledMap.TileHeight), 0, layer.Height);
             var yEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Bottom / TiledMap.TileHeight), 0, layer.Height);
             var xStart = (int) Maths.Clamp(MathF.Floor(clipVal.X / TiledMap.TileWidth), 0, layer.Width);
             var xEnd = (int) Maths.Clamp(MathF.Ceiling(clipVal.Right / TiledMap.TileWidth), 0, layer.Width);
 
-            var spriteSize = (uint) (VertexData.SizeInBytes * 4);
             for (int y = yStart; y < yEnd; y++)
             {
                 int yIdx = y * layer.Width;
                 for (int x = xStart; x < xEnd; x++)
                 {
-                    int tileIdx = (yIdx + x) * 4;
-                    if (renderCache[tileIdx].Tid == -1) continue;
+                    int tileIdx = yIdx + x;
+                    int tileVertexIdx = tileIdx * 4;
+                    if (renderCache[tileVertexIdx].Color == 0) continue;
 
-                    RenderBatch<VertexData> batch = composer.GetBatch(BatchMode.Quad, spriteSize, 6);
-                    batch.AddTextureBinding((uint) renderCache[tileIdx].Tid, out int tid); // The tid in the cached data is a gl pointer.
-                    Span<VertexData> vertices = batch.GetData(4, 6);
-
+                    Span<VertexData> vertices = composer.RenderStream.GetStreamMemory(4, BatchMode.Quad, textureCache[tileIdx]);
                     for (var i = 0; i < vertices.Length; i++)
                     {
-                        vertices[i] = renderCache[tileIdx + i];
-                        vertices[i].Tid = tid;
+                        vertices[i] = renderCache[tileVertexIdx + i];
                     }
                 }
             }
@@ -669,8 +677,10 @@ namespace Emotion.Game.Tiled
         {
             // Check if layer is out of bounds.
             tileSet = -1;
-            if (TiledMap == null || TiledMap.Layers[layer].Tiles == null || 
-                layer < 0 && layer > TiledMap.Layers.Count - 1 || coordinate > TiledMap.Layers[layer].Tiles.Count || coordinate < 0) return -1;
+            if (TiledMap?.Layers[layer].Tiles == null ||
+                layer < 0 && layer > TiledMap.Layers.Count - 1 ||
+                coordinate > TiledMap.Layers[layer].Tiles.Count ||
+                coordinate < 0) return -1;
 
             // Get the GID of the tile.
             int tId = TiledMap.Layers[layer].Tiles[coordinate].Gid;
@@ -720,12 +730,13 @@ namespace Emotion.Game.Tiled
         /// Get the world position of a tile. This is the position that includes the calculated Z value and
         /// is taken from the map's render cache.
         /// </summary>
-        public Vector3 GetWorldPosOfTile(Vector2 tileCoordinate, int layer)
+        public Vector3 GetWorldPosOfTile(Vector2 tileCoordinate, int layerIdx)
         {
-            if (layer == -1 || _cachedTileRenderData == null) return Vector3.Zero;
+            if (layerIdx == -1 || _cachedTileRenderData == null) return Vector3.Zero;
+
             int tile1D = GetTile1DFromTile2D(tileCoordinate);
             if (tile1D == -1) return Vector3.Zero;
-            VertexData[]? renderCache = _cachedTileRenderData[layer];
+            VertexData[]? renderCache = _cachedTileRenderData[layerIdx];
             return renderCache?[tile1D * 4].Vertex ?? Vector3.Zero;
         }
 

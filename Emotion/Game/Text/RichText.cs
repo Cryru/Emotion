@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Emotion.Graphics;
-using Emotion.Graphics.Batches;
-using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.OpenType;
@@ -19,7 +17,7 @@ namespace Emotion.Game.Text
     /// <summary>
     /// A RichText object which manages text wrapping, styles, tagging, and more.
     /// </summary>
-    public class RichText : TransformRenderable, IDisposable
+    public class RichText : TransformRenderable
     {
         #region Global Settings
 
@@ -74,17 +72,7 @@ namespace Emotion.Game.Text
         /// <summary>
         /// The font atlas to use when rendering.
         /// </summary>
-        public DrawableFontAtlas FontAtlas
-        {
-            get => _fontAtlas;
-            set
-            {
-                _fontAtlas = value;
-                _updateRenderCache = true;
-            }
-        }
-
-        private DrawableFontAtlas _fontAtlas;
+        public DrawableFontAtlas FontAtlas { get; set; }
 
         #endregion
 
@@ -93,24 +81,9 @@ namespace Emotion.Game.Text
         #region Objects
 
         /// <summary>
-        /// The render cache of the entire text.
-        /// </summary>
-        protected DirectMappingBatch<VertexData> _renderCache { get; set; }
-
-        /// <summary>
-        /// A pointer to the atlas texture.
-        /// </summary>
-        protected int _atlasTexturePointer;
-
-        /// <summary>
         /// The text layouter.
         /// </summary>
         protected TextLayouter _layouter { get; set; }
-
-        /// <summary>
-        /// Whether the cache needs to be updated.
-        /// </summary>
-        protected bool _updateRenderCache { get; set; }
 
         #endregion
 
@@ -162,8 +135,6 @@ namespace Emotion.Game.Text
             FontAtlas = fontAtlas;
 
             _layouter = new TextLayouter(fontAtlas.Atlas);
-            _renderCache = new DirectMappingBatch<VertexData>();
-            _atlasTexturePointer = _renderCache.AddTextureBinding(fontAtlas.Texture);
         }
 
         /// <summary>
@@ -173,8 +144,6 @@ namespace Emotion.Game.Text
         public virtual void SetText(string text)
         {
             _text = text;
-            _layouter.Restart();
-            _updateRenderCache = true;
 
             // Find effects.
             _textStripped = ParseEffects(Text, _effectCache);
@@ -442,56 +411,15 @@ namespace Emotion.Game.Text
 
         #region Drawing
 
-        /// <summary>
-        /// Draw the RichText object. Can be overloaded.
-        /// </summary>
         public override void Render(RenderComposer composer)
         {
-            if (_updateRenderCache)
-            {
-                MapBuffer();
-                _updateRenderCache = false;
-            }
-
-            _renderCache.Render(composer);
+            Render(composer, -1);
         }
 
-        /// <summary>
-        /// Applies effects to the glyph and adds it to the map buffer. Can be overloaded.
-        /// </summary>
-        /// <param name="line">The virtual line in the wrapped text which the glyph is on.</param>
-        /// <param name="charInLine">The id of the character within the specified line.</param>
-        /// <param name="charGlobal">The index of the character globally.</param>
-        /// <param name="glyphXOffset">The X offset of the glyph.</param>
-        protected virtual void ProcessGlyph(int line, int charInLine, int charGlobal, int glyphXOffset)
-        {
-            // Get all active effects for the current index.
-            IEnumerable<TextEffect> effects = GetEffectsAt(charGlobal);
-
-            // Tag changeable properties.
-            Color textColor = Color.White;
-
-            // Apply effects.
-            foreach (TextEffect e in effects)
-            {
-                if (e.Name == "color" && e.Attributes?.Length >= 3)
-                    textColor = new Color(Helpers.StringToInt(e.Attributes[0]), Helpers.StringToInt(e.Attributes[1]), Helpers.StringToInt(e.Attributes[2]));
-            }
-
-            // Render the glyph.
-            AddGlyph(_wrapCache[line][charInLine], textColor, glyphXOffset);
-        }
-
-        #endregion
-
-        #region Buffer Mapping Helpers
-
-        /// <summary>
-        /// Maps the render cache buffer.
-        /// </summary>
-        protected virtual void MapBuffer()
+        public void Render(RenderComposer composer, int upToChar)
         {
             // Start mapping.
+            _layouter.Restart();
             _prevChar = '\0';
 
             // Iterate virtual lines.
@@ -509,34 +437,36 @@ namespace Emotion.Game.Text
                     // Check if applying initial indent.
                     if (line < _initialLineIndent.Count && c == 0) glyphXOffset += _initialLineIndent[line];
 
-                    // Process the current glyph.
-                    ProcessGlyph(line, c, characterCounter, glyphXOffset);
+                    // Get all active effects for the current index.
+                    IEnumerable<TextEffect> effects = GetEffectsAt(characterCounter);
+
+                    // Tag changeable properties.
+                    Color textColor = Color.White;
+
+                    // Apply effects.
+                    foreach (TextEffect e in effects)
+                    {
+                        if (e.Name == "color" && e.Attributes?.Length >= 3)
+                            textColor = new Color(Helpers.StringToInt(e.Attributes[0]), Helpers.StringToInt(e.Attributes[1]), Helpers.StringToInt(e.Attributes[2]));
+                    }
+
+                    char charUnicode = _wrapCache[line][c];
+
+                    // Check if rendering a character we don't want visible, in which case we replace it with a space.
+                    if (CharactersToNotRender.Contains(charUnicode)) charUnicode = ' ';
+
+                    _layouter.AddToPen(new Vector2(glyphXOffset, 0));
+                    Vector2 drawPos = _layouter.AddLetter(charUnicode, out AtlasGlyph g);
+
+                    composer.RenderSprite(drawPos.ToVec3(), g.Size, textColor, FontAtlas.Texture, new Rectangle(g.Location, g.UV));
 
                     // Increment character counter.
                     characterCounter++;
+                    if (characterCounter == upToChar) return;
                 }
 
                 _layouter.NewLine();
             }
-        }
-
-        /// <summary>
-        /// Add a glyph to the map buffer.
-        /// </summary>
-        /// <param name="c">The character to add.</param>
-        /// <param name="color">The color of the character.</param>
-        /// <param name="xOffset">The x offset.</param>
-        /// <param name="yOffset">The y offset.</param>
-        protected void AddGlyph(char c, Color color, float xOffset, float yOffset = 0)
-        {
-            // Check if rendering a character we don't want visible, in which case we replace it with a space.
-            if (CharactersToNotRender.Contains(c)) c = ' ';
-
-            _layouter.AddToPen(new Vector2(xOffset, yOffset));
-            Vector2 drawPos = _layouter.AddLetter(c, out AtlasGlyph g);
-
-            Span<VertexData> data = _renderCache.GetData(4, 6);
-            VertexData.SpriteToVertexData(data, new Vector3(drawPos, 0), g.Size, color, _fontAtlas.Texture, _atlasTexturePointer, new Rectangle(g.Location, g.UV));
         }
 
         #endregion
@@ -653,10 +583,5 @@ namespace Emotion.Game.Text
         }
 
         #endregion
-
-        public void Dispose()
-        {
-            _renderCache.Dispose();
-        }
     }
 }

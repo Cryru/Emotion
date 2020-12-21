@@ -114,14 +114,8 @@ namespace Emotion.Game.SpriteStack
             {
                 SpriteStackFrame frame = Frames[i];
                 Span<VertexData> vertData = frame.Vertices;
-                for (var j = 0; j < frame.FilledPixels; j++)
-                {
-                    Span<VertexData> vertices = vertData.Slice(j * 36, 36);
-                    var vertCount = (uint) vertices.Length;
-                    RenderBatch<VertexData> batch = c.GetBatch(BatchMode.SequentialTriangles, (uint) (vertCount * VertexData.SizeInBytes), vertCount);
-                    Span<VertexData> vertMap = batch.GetData(vertCount, vertCount);
-                    vertices.CopyTo(vertMap);
-                }
+                Span<VertexData> vertices = c.RenderStream.GetStreamMemory((uint) vertData.Length, BatchMode.SequentialTriangles);
+                vertData.CopyTo(vertices);
             }
 
             c.PopModelMatrix();

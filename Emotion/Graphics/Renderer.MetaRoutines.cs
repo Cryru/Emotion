@@ -15,9 +15,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Graphics
 {
-    /// <summary>
-    /// Advanced routines, and routines using base functions to be used along with shaders and such.
-    /// </summary>
+    // Advanced routines, and routines using base functions to be used along with shaders and such.
     public sealed partial class RenderComposer
     {
         /// <summary>
@@ -93,7 +91,7 @@ namespace Emotion.Graphics
         public void RenderEllipse(Vector3 position, Vector2 radius, Color color, bool positionIsCenter = false, int detail = 30, Color? colorMiddle = null)
         {
             var vertsNeeded = (uint) ((detail + 1) * 3);
-            Span<VertexData> vertices = ActiveBatch.GetStreamMemory(vertsNeeded, BatchMode.SequentialTriangles);
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(vertsNeeded, BatchMode.SequentialTriangles);
             Debug.Assert(vertices != null);
             var vertexIdx = 0;
 
@@ -135,7 +133,6 @@ namespace Emotion.Graphics
             for (var i = 0; i < vertices.Length; i++)
             {
                 vertices[i].Color = i % 3 == 2 ? cM : c;
-                vertices[i].Tid = -1;
             }
         }
 
@@ -158,8 +155,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderUVRect(Vector3 pos, Vector2 size, Color color, Rectangle? uvRect = null)
         {
-            RenderBatch<VertexData> batch = GetBatch(BatchMode.Quad, (uint) (VertexData.SizeInBytes * 4), 6);
-            Span<VertexData> vertices = batch.GetData(4, 6);
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
 
             vertices[0].Vertex = pos;
             vertices[1].Vertex = new Vector3(pos.X + size.X, pos.Y, pos.Z);
@@ -178,11 +174,6 @@ namespace Emotion.Graphics
             vertices[1].UV = new Vector2(uv.Width, uv.Y);
             vertices[2].UV = new Vector2(uv.Width, uv.Height);
             vertices[3].UV = new Vector2(uv.X, uv.Height);
-
-            vertices[0].Tid = -1;
-            vertices[1].Tid = -1;
-            vertices[2].Tid = -1;
-            vertices[3].Tid = -1;
         }
 
         /// <summary>
@@ -211,6 +202,7 @@ namespace Emotion.Graphics
                 renderUv = uv.Value;
                 renderUv.Y = buffer.Size.Y - (renderUv.Y + renderUv.Height);
             }
+
             RenderSprite(pos ?? Vector3.Zero, renderSizeOverwrite ?? buffer.Size, color ?? Color.White, attachment ?? buffer.ColorAttachment, renderUv);
         }
 

@@ -11,7 +11,6 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives;
 using OpenGL;
-using VertexDataBatch = Emotion.Graphics.Batches.RenderBatch<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
@@ -19,58 +18,16 @@ namespace Emotion.Graphics
 {
     public sealed partial class RenderComposer
     {
-        #region Batching
-
-        /// <summary>
-        /// Returns the current batch, or creates a new one if none. If the batch cannot fit the specified byte size, index count,
-        /// or the batch mode should change - then it is invalidated and reset.
-        /// </summary>
-        public VertexDataBatch GetBatch(BatchMode ensureMode, uint ensureSize, uint ensureIndices)
-        {
-            return null;
-            //bool switchMode = ActiveBatch.BatchMode != ensureMode;
-            //if (ActiveBatch.Full || switchMode || ActiveBatch.SizeLeft < ensureSize || ActiveBatch.IndicesLeft < Math.Max(ensureSize, ensureIndices)) InvalidateStateBatches();
-            //if (switchMode) ActiveBatch.SetBatchMode(ensureMode);
-            //return ActiveBatch;
-        }
-
         /// <summary>
         /// Invalidates the current batch - flushing it to the current buffer.
         /// This should be done when the state changes in some way because calls afterwards will differ from those before and
         /// cannot be batched.
         /// </summary>
-        public void InvalidateStateBatches()
+        public void FlushRenderStream()
         {
-            if(ActiveBatch == null || !ActiveBatch.AnythingMapped) return;
-            ActiveBatch.FlushRender();
-            //if (ActiveBatch == null || ActiveBatch.BatchedStructs == 0) return;
-            //PerfProfiler.FrameEventStart($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
-            //ActiveBatch.Render(this);
-            //ActiveBatch.Reset();
-            //PerfProfiler.FrameEventEnd($"RenderBatch {ActiveBatch.BatchedSprites} Sprites {ActiveBatch.TextureSlotUtilization} Textures");
+            if (RenderStream == null || !RenderStream.AnythingMapped) return;
+            RenderStream.FlushRender();
         }
-
-        /// <summary>
-        /// Set a custom sprite batch as the current batch.
-        /// This will flush the old batch.
-        /// </summary>
-        /// <param name="batch">The batch to set as current.</param>
-        public void SetSpriteBatch(VertexDataBatch batch)
-        {
-            InvalidateStateBatches();
-            //ActiveBatch = batch;
-        }
-
-        /// <summary>
-        /// The default sprite batch factory method.
-        /// </summary>
-        public void SetDefaultSpriteBatch()
-        {
-            InvalidateStateBatches();
-            ActiveBatch = DefaultSpriteBatch;
-        }
-
-        #endregion
 
         /// <summary>
         /// Render arbitrary vertices. Clockwise order is expected.
@@ -90,14 +47,13 @@ namespace Emotion.Graphics
         public void RenderVertices(Vector3[] verts, params Color[] colors)
         {
             var vertCount = (uint) verts.Length;
-            Span<VertexData> vertices = ActiveBatch.GetStreamMemory(vertCount, BatchMode.TriangleFan);
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
             Debug.Assert(vertices != null);
 
             for (var v = 0; v < verts.Length; v++)
             {
                 vertices[v].Vertex = verts[v];
                 vertices[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.WhiteUint : colors[0].ToUint() : colors[v].ToUint();
-                vertices[v].Tid = -1;
             }
         }
 
@@ -132,7 +88,7 @@ namespace Emotion.Graphics
         public void SetStencilTest(bool stencil)
         {
             PerfProfiler.FrameEventStart("StateChange: Stencil");
-            InvalidateStateBatches();
+            FlushRenderStream();
 
             // Set the stencil test to it's default state - don't write to it.
 
@@ -171,7 +127,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilStartDraw(int value = 0xFF)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0xFF);
             Gl.StencilFunc(StencilFunction.Always, value, 0xFF);
         }
@@ -183,7 +139,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilStopDraw()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0x00);
             Gl.StencilFunc(StencilFunction.Always, 0xFF, 0xFF);
         }
@@ -194,7 +150,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilCutOutFrom(int threshold = 0xFF)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0x00);
             Gl.StencilFunc(StencilFunction.Greater, threshold, 0xFF);
         }
@@ -204,21 +160,21 @@ namespace Emotion.Graphics
         /// </summary>
         public void StencilFillIn(int threshold = 0xFF)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0xFF);
             Gl.StencilFunc(StencilFunction.Lequal, threshold, 0xFF);
         }
 
         public void StencilMask(int filter = 0xFF)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0x00);
             Gl.StencilFunc(StencilFunction.Less, filter, 0xFF);
         }
 
         public void StencilWindingStart()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0xFF);
             // Each draw inverts the value in the stencil.
             Gl.StencilFunc(StencilFunction.Always, 0, 1);
@@ -227,7 +183,7 @@ namespace Emotion.Graphics
 
         public void StencilWindingEnd()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.StencilMask(0xFF);
             // Enable drawing only where the value is 1.
             Gl.StencilFunc(StencilFunction.Equal, 1, 1);
@@ -242,7 +198,7 @@ namespace Emotion.Graphics
         /// <param name="renderColor">Whether to render to the color buffer.</param>
         public void ToggleRenderColor(bool renderColor)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             if (renderColor)
                 Gl.ColorMask(true, true, true, true);
             else
@@ -255,7 +211,7 @@ namespace Emotion.Graphics
         /// <param name="viewMatrix">Whether to use the view matrix.</param>
         public void SetUseViewMatrix(bool viewMatrix)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             CurrentState.ViewMatrix = viewMatrix;
             SyncViewMatrix();
         }
@@ -268,7 +224,7 @@ namespace Emotion.Graphics
         public void SetAlphaBlend(bool alphaBlend)
         {
             PerfProfiler.FrameEventStart("StateChange: AlphaBlend");
-            InvalidateStateBatches();
+            FlushRenderStream();
 
             if (alphaBlend)
             {
@@ -291,7 +247,7 @@ namespace Emotion.Graphics
         public void SetDepthTest(bool depth)
         {
             PerfProfiler.FrameEventStart("StateChange: DepthTest");
-            InvalidateStateBatches();
+            FlushRenderStream();
 
             if (depth)
             {
@@ -313,7 +269,7 @@ namespace Emotion.Graphics
         /// <param name="shader">The shader to set as current.</param>
         public ShaderProgram SetShader(ShaderProgram shader = null)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             shader ??= ShaderFactory.DefaultProgram;
             ShaderProgram.EnsureBound(shader.Pointer);
             CurrentState.Shader = shader;
@@ -329,7 +285,7 @@ namespace Emotion.Graphics
         public void SetClipRect(Rectangle? clip)
         {
             PerfProfiler.FrameEventStart("StateChange: Clip");
-            InvalidateStateBatches();
+            FlushRenderStream();
 
             if (clip == null)
             {
@@ -356,7 +312,7 @@ namespace Emotion.Graphics
         /// <param name="force">Whether to set it regardless of the previous state.</param>
         public void SetState(RenderState newState, bool force = false)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
 
             // Check which state changes should apply, by checking which were set and which differ from the current.
             PerfProfiler.FrameEventStart("ShaderSet");
@@ -366,6 +322,7 @@ namespace Emotion.Graphics
                 Engine.Renderer.CurrentState.Shader = newState.Shader;
                 Engine.Renderer.SyncShader();
             }
+
             PerfProfiler.FrameEventEnd("ShaderSet");
 
             PerfProfiler.FrameEventStart("Depth/Stencil/Blend Set");
@@ -386,7 +343,7 @@ namespace Emotion.Graphics
         /// <param name="buffer">The buffer to render to. If set to null will revert to the previous buffer.</param>
         public void RenderTo(FrameBuffer buffer)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             if (buffer != null)
                 Engine.Renderer.PushFramebuffer(buffer);
             else
@@ -398,7 +355,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderTargetPop()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Engine.Renderer.PopFramebuffer();
         }
 
@@ -408,7 +365,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearFrameBuffer()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
@@ -417,7 +374,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearDepth()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             Gl.Clear(ClearBufferMask.DepthBufferBit);
         }
 
@@ -427,7 +384,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void ClearStencil()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             StencilStartDraw();
             Gl.Clear(ClearBufferMask.StencilBufferBit);
             StencilStopDraw();
@@ -440,7 +397,7 @@ namespace Emotion.Graphics
         /// <param name="multiply">Whether to multiply the new matrix by the previous matrix.</param>
         public void PushModelMatrix(Matrix4x4 matrix, bool multiply = true)
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             _matrixStack.Push(matrix, multiply);
             SyncModelMatrix();
         }
@@ -450,7 +407,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void PopModelMatrix()
         {
-            InvalidateStateBatches();
+            FlushRenderStream();
             _matrixStack.Pop();
             SyncModelMatrix();
         }

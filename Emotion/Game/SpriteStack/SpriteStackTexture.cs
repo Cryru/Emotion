@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region Using
+
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
 using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utility;
+
+#endregion
 
 namespace Emotion.Game.SpriteStack
 {
@@ -75,12 +76,11 @@ namespace Emotion.Game.SpriteStack
                     //    color.G = (byte)g;
                     //    color.B = (byte)b;
                     //}
-          
+
                     uint c = color.ToUint();
                     for (var ic = 0; ic < thisPixel.Length; ic++)
                     {
                         thisPixel[ic].Color = c;
-                        thisPixel[ic].Tid = -1;
                     }
 
                     // Cube - 36 vertices, 12 triangles, 6 sides
