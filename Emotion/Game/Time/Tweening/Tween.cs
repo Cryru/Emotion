@@ -14,7 +14,7 @@ namespace Emotion.Game.Time.Tweening
         {
             return method switch
             {
-                TweenMethod.Linear => (Func<float, float>) Linear,
+                TweenMethod.Linear => Linear,
                 TweenMethod.Quad => Quad,
                 TweenMethod.Cubic => Cubic,
                 TweenMethod.Quart => Quart,

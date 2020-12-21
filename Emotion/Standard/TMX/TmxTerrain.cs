@@ -1,6 +1,5 @@
 ﻿#region Using
 
-using System.Collections.Generic;
 using Emotion.Standard.XML;
 
 #endregion

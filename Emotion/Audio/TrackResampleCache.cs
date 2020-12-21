@@ -58,14 +58,12 @@ namespace Emotion.Audio
             int channels = ConvFormat.Channels;
             int sampleEndIdx = Math.Min(fromIdx + frameCount * channels, ConvSamples);
             if (sampleEndIdx > _cachePtr)
-            {
                 while (sampleEndIdx > _cachePtr)
                 {
                     if (_resampleEmit.WaitOne(5000)) continue;
                     Engine.Log.Warning("Timed out while waiting for cache samples.", MessageSource.Audio);
                     return 0;
                 }
-            }
 
             // Copy over the needed samples.
             int sampleCount = sampleEndIdx - fromIdx;

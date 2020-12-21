@@ -26,7 +26,7 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         private static (string name, Func<string[], string[]> func)[] _shaderConfigurations =
         {
-            ("default",  s => s),
+            ("default", s => s),
             ("AttribLocationExtension", s => ExcludeEs(AddExtensionConstant(s, "GL_ARB_explicit_attrib_location"))),
         };
 

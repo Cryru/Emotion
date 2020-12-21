@@ -128,9 +128,10 @@ namespace Emotion.Common
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
                 Thread.CurrentThread.Priority = ThreadPriority.Highest;
             }
+
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-            
+
             // If no config provided - use default.
             Configuration = configurator ?? new Configurator();
 

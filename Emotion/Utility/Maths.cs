@@ -108,7 +108,7 @@ namespace Emotion.Utility
         /// <summary>
         /// The four 2d directions and the four diagonals.
         /// </summary>
-        public static Vector2[] CardinalDirectionsAndDiagonals2D = Extensions.JoinArrays(CardinalDirections2D , Diagonals2D);
+        public static Vector2[] CardinalDirectionsAndDiagonals2D = Extensions.JoinArrays(CardinalDirections2D, Diagonals2D);
 
         /// <summary>
         /// Ceiling round the float to the nearest int value above y. note that this only works for values in the range of short.
@@ -301,7 +301,7 @@ namespace Emotion.Utility
             {
                 0f => value1,
                 1f => value2,
-                _ => ((2 * v1 - 2 * v2 + t2 + t1) * sCubed + (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared + t1 * s + v1)
+                _ => (2 * v1 - 2 * v2 + t2 + t1) * sCubed + (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared + t1 * s + v1
             };
 
             return (float) result;

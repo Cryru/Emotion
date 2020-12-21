@@ -31,7 +31,7 @@ namespace Emotion.ExecTest.Examples
 
         public void Load()
         {
-            string fileName = "test.png";
+            var fileName = "test.png";
             _frameSize[0] = 32;
             _frameSize[1] = 32;
 

@@ -28,7 +28,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
                 File.Copy(filePath, filePath + ".backup", true);
 
             // Create missing directories.
-            
+
             string directoryName = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(directoryName))
                 Directory.CreateDirectory(directoryName);

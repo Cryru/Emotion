@@ -1,4 +1,8 @@
-﻿using System.Numerics;
+﻿#region Using
+
+using System.Numerics;
+
+#endregion
 
 namespace Emotion.Primitives
 {

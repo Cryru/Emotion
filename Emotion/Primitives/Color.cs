@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;

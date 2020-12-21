@@ -63,7 +63,7 @@ namespace Emotion.Standard.TMX
             Image = xTile.Element("image")?.CurrentContents();
 
             List<XMLReader> objectGroupList = xTile.Elements("objectgroup");
-            if(objectGroupList.Count > 0)
+            if (objectGroupList.Count > 0)
             {
                 ObjectGroups = new TmxList<TmxObjectLayer>();
                 foreach (XMLReader e in objectGroupList)

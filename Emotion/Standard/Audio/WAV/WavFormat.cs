@@ -143,7 +143,7 @@ namespace Emotion.Standard.Audio.WAV
             }
 
             // Get the data and return it. This won't copy it.
-            return wavData.Slice((int) reader.Position, dataLength);
+            return wavData.Slice(reader.Position, dataLength);
         }
     }
 }

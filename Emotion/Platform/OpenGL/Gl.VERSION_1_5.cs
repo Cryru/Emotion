@@ -1197,11 +1197,11 @@ namespace OpenGL
         public static void GetBufferParameteri<T>(BufferTarget target, int value, out T data) where T : unmanaged
         {
             Debug.Assert(Delegates.pglGetBufferParameteriv != null, "pglGetBufferParameteriv not implemented");
-            
+
             unsafe
             {
                 T d = default;
-                Delegates.pglGetBufferParameteriv((int) target, value, (int*) (&d));
+                Delegates.pglGetBufferParameteriv((int) target, value, (int*) &d);
                 data = d;
             }
 

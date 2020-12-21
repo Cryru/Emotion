@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
 
 #endregion
 
@@ -13,16 +11,6 @@ namespace Emotion.IO
     /// </summary>
     public abstract class AssetSource
     {
-
-
-        /// <summary>
-        /// Create a new asset source.
-        /// </summary>
-        protected AssetSource()
-        {
-           
-        }
-
         /// <summary>
         /// Returns an asset by engine path.
         /// </summary>
