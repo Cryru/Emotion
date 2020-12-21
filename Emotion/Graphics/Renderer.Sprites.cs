@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using Emotion.Game.Text;
 using Emotion.Graphics.Batches;
@@ -15,9 +14,7 @@ using Emotion.Standard.OpenType;
 
 namespace Emotion.Graphics
 {
-    /// <summary>
-    /// Command routines for sprites (and sprite-like) which use the RenderComposer.
-    /// </summary>
+    // Command routines for sprites (and sprite-like) which use the RenderComposer.
     public sealed partial class RenderComposer
     {
         /// <summary>
@@ -32,14 +29,8 @@ namespace Emotion.Graphics
         /// <param name="flipY">Whether to flip the texture on the y axis.</param>
         public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            Span<VertexData> vertices = ActiveBatch.GetStreamMemory(4, BatchMode.Quad);
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, texture);
             VertexData.SpriteToVertexData(vertices, position, size, color, texture, -1, textureArea, flipX, flipY);
-
-            //RenderBatch<VertexData> batch = GetBatch(BatchMode.Quad, (uint) (VertexData.SizeInBytes * 4), 6);
-            //int tid = batch.AddTextureBinding(texture);
-            //Span<VertexData> vertices = batch.GetData(4, 6);
-            Debug.Assert(vertices.Length == 4);
-            //VertexData.SpriteToVertexData(vertices, position, size, color, texture, tid, textureArea, flipX, flipY);
         }
 
         /// <summary>
@@ -110,7 +101,7 @@ namespace Emotion.Graphics
         /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
-            Span<VertexData> vertices = ActiveBatch.GetStreamMemory(4, BatchMode.Quad);
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
 
             pointOne = pointOne.IntCastRound();
             pointTwo = pointTwo.IntCastRound();
@@ -129,11 +120,6 @@ namespace Emotion.Graphics
             vertices[1].Color = c;
             vertices[2].Color = c;
             vertices[3].Color = c;
-
-            for (var i = 0; i < vertices.Length; i++)
-            {
-                vertices[i].Tid = -1;
-            }
         }
 
         /// <summary>

@@ -63,6 +63,8 @@ namespace Emotion.Graphics.Batches
 
         protected int _batchableLengthUtilization;
 
+        protected uint _currentTexture;
+
         public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3)
         {
             _structType = typeof(T);
@@ -90,10 +92,14 @@ namespace Emotion.Graphics.Batches
             });
         }
 
-        public StreamData GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode)
+        public StreamData GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture texture = null)
         {
-            if ((batchMode != BatchMode || batchMode == BatchMode.MeshStream) && AnythingMapped) FlushRender();
+            if (batchMode != BatchMode && AnythingMapped) FlushRender();
             BatchMode = batchMode;
+
+            uint texturePointer = texture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer;
+            if (texturePointer != _currentTexture && AnythingMapped) FlushRender();
+            _currentTexture = texturePointer;
 
             uint vBytesNeeded = structCount * _structByteSize;
             uint iBytesNeeded = indexCount * _indexByteSize;
@@ -188,12 +194,13 @@ namespace Emotion.Graphics.Batches
             VertexArrayObject.EnsureBound(_memory.CurrentBuffer.VAO);
             IndexBuffer.EnsureBound(_memoryIndices.CurrentBuffer.DataBuffer.Pointer);
 
+            Texture.EnsureBound(_currentTexture);
+
             PrimitiveType primitiveType = BatchMode switch
             {
                 BatchMode.Quad => PrimitiveType.Triangles,
                 BatchMode.SequentialTriangles => PrimitiveType.Triangles,
                 BatchMode.TriangleFan => PrimitiveType.TriangleFan,
-                BatchMode.MeshStream => PrimitiveType.TriangleFan,
                 _ => PrimitiveType.Triangles
             };
 
@@ -251,15 +258,9 @@ namespace Emotion.Graphics.Batches
 
         /// <summary>
         /// Get stream memory and automatically map indices depending on the batch mode.
-        /// Doesn't support MeshStream
         /// </summary>
-        /// <param name="structCount">The number of structs worth of memory to return.</param>
-        /// <param name="batchMode">The batch mode.</param>
-        /// <returns></returns>
-        public Span<T> GetStreamMemory(uint structCount, BatchMode batchMode)
+        public Span<T> GetStreamMemory(uint structCount, BatchMode batchMode, Texture texture = null)
         {
-            if (batchMode == BatchMode.MeshStream) return null;
-
             uint indexCount = 0;
             switch (batchMode)
             {
@@ -272,7 +273,7 @@ namespace Emotion.Graphics.Batches
                     break;
             }
 
-            StreamData streamData = GetStreamMemory(structCount, indexCount, batchMode);
+            StreamData streamData = GetStreamMemory(structCount, indexCount, batchMode, texture);
             Span<ushort> indicesSpan = streamData.IndicesData;
             ushort offset = streamData.StructIndex;
             switch (batchMode)

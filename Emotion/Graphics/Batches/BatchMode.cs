@@ -4,7 +4,6 @@
     {
         Quad,
         TriangleFan,
-        SequentialTriangles,
-        MeshStream
+        SequentialTriangles
     }
 }

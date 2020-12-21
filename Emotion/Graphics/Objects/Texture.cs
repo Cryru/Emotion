@@ -250,5 +250,12 @@ namespace Emotion.Graphics.Objects
             if (ptr != 0)
                 GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
+
+        public static Texture EmptyWhiteTexture;
+
+        public static void InitializeEmptyTexture()
+        {
+            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] {255, 255, 255, 255});
+        }
     }
 }

@@ -17,12 +17,14 @@ using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Khronos;
 using OpenGL;
-using VertexDataBatch = Emotion.Graphics.Batches.RenderBatch<Emotion.Graphics.Data.VertexData>;
 
 #endregion
 
 namespace Emotion.Graphics
 {
+    /// <summary>
+    /// Handles all drawing APIs, initialization, and state management.
+    /// </summary>
     public sealed partial class RenderComposer
     {
         #region Settings
@@ -90,12 +92,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The vertex data batch currently active.
         /// </summary>
-        public RenderStreamBatch<VertexData> ActiveBatch { get; private set; }
-
-        /// <summary>
-        /// The default render batch to render with.
-        /// </summary>
-        public RenderStreamBatch<VertexData> DefaultSpriteBatch;
+        public RenderStreamBatch<VertexData> RenderStream { get; private set; }
 
         /// <summary>
         /// A representation of the screen's frame buffer.
@@ -235,6 +232,8 @@ namespace Emotion.Graphics
 
             ShaderProgram.EnsureBound(ShaderFactory.DefaultProgram.Pointer);
 
+            Texture.InitializeEmptyTexture();
+
             // Create render state. This is the state that will be modified every time.
             CurrentState = new RenderState();
 
@@ -265,9 +264,8 @@ namespace Emotion.Graphics
             // Put in a default camera.
             Camera = new PixelArtCamera(Vector3.Zero);
 
-            // Create generic batch.
-            DefaultSpriteBatch = new RenderStreamBatch<VertexData>();
-            ActiveBatch = DefaultSpriteBatch;
+            // Create render stream.
+            RenderStream = new RenderStreamBatch<VertexData>();
 
             ApplySettings();
 
@@ -491,7 +489,7 @@ namespace Emotion.Graphics
                 RenderTo(null);
             }
 
-            InvalidateStateBatches();
+            FlushRenderStream();
         }
 
         public void Update()

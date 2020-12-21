@@ -1,12 +1,11 @@
 #version v
 
-uniform sampler2D textures[TEXTURE_COUNT];
+uniform sampler2D mainTexture;
 uniform vec3 iResolution; // viewport resolution (in pixels)
 
 // Comes in from the vertex shader. 
 in vec2 UV; 
 in vec4 vertColor;
-flat in int Tid;
 
 out vec4 fragColor; 
 
@@ -17,7 +16,7 @@ out vec4 fragColor;
 uniform float sigma = 5.0;
 const float pi = 3.14159265;
 
-vec4 gaussianBlur(int image, vec2 uv, vec2 imageSize, vec2 direction, float directionDimensionSize)
+vec4 gaussianBlur(sampler2D image, vec2 uv, vec2 imageSize, vec2 direction, float directionDimensionSize)
 {
     float blurSize = 1.0f / directionDimensionSize;
     const float numBlurPixelsPerSide = 4.0;
@@ -54,9 +53,9 @@ vec4 gaussianBlur(int image, vec2 uv, vec2 imageSize, vec2 direction, float dire
 
 void main() {
     // Gaussian blur - two passes, horizontal and vertical
-    vec2 textureSize = vec2(getTextureSize(Tid));
-    fragColor = gaussianBlur(Tid, UV, textureSize, vec2(1.0, 0), textureSize.x);
-    fragColor += gaussianBlur(Tid, UV, textureSize, vec2(0, 1.0), textureSize.y);
+    vec2 textureSize = vec2(getTextureSize(mainTexture));
+    fragColor = gaussianBlur(mainTexture, UV, textureSize, vec2(1.0, 0), textureSize.x);
+    fragColor += gaussianBlur(mainTexture, UV, textureSize, vec2(0, 1.0), textureSize.y);
     fragColor /= 2.0;
     fragColor *= vertColor;
     if (fragColor.a < 0.01) discard;
