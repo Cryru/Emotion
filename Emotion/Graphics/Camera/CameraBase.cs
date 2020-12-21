@@ -20,7 +20,17 @@ namespace Emotion.Graphics.Camera
         /// <summary>
         /// How zoomed the camera is.
         /// </summary>
-        public float Zoom;
+        public float Zoom
+        {
+            get => _zoom;
+            set
+            {
+                _zoom = value;
+                RecreateMatrix();
+            }
+        }
+
+        protected float _zoom;
 
         #endregion
 
