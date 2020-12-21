@@ -65,14 +65,9 @@ namespace Emotion.Graphics.Shading
         public readonly uint UvLocation = 1;
 
         /// <summary>
-        /// The location of the texture id within the shader.
-        /// </summary>
-        public readonly uint TidLocation = 2;
-
-        /// <summary>
         /// The location of the colors within the shader.
         /// </summary>
-        public readonly uint ColorLocation = 3;
+        public readonly uint ColorLocation = 2;
 
         #endregion
 
@@ -90,7 +85,6 @@ namespace Emotion.Graphics.Shading
             // Set default parameter locations.
             Gl.BindAttribLocation(Pointer, VertexLocation, "vertPos");
             Gl.BindAttribLocation(Pointer, UvLocation, "uv");
-            Gl.BindAttribLocation(Pointer, TidLocation, "tid");
             Gl.BindAttribLocation(Pointer, ColorLocation, "color");
 
             Gl.LinkProgram(Pointer);

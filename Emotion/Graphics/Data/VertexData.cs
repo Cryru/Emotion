@@ -34,11 +34,6 @@ namespace Emotion.Graphics.Data
         [VertexAttribute(2, false)] public Vector2 UV;
 
         /// <summary>
-        /// The texture's id within the loaded textures.
-        /// </summary>
-        [VertexAttribute(1, false)] public int Tid;
-
-        /// <summary>
         /// The packed color of the vertex.
         /// </summary>
         [VertexAttribute(4, true, typeof(byte))]
@@ -52,13 +47,12 @@ namespace Emotion.Graphics.Data
         /// <param name="size">The sprite's size.</param>
         /// <param name="color">The sprite's color.</param>
         /// <param name="texture">The sprite's texture - if any.</param>
-        /// <param name="texturePointer">The texture's id within the current binding. Usually gotten from the batch.</param>
         /// <param name="textureArea">The texture UV - or what part of the texture the sprite should use.</param>
         /// <param name="flipX">Whether to flip the texture horizontally.</param>
         /// <param name="flipY">Whether to flip the texture vertically.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SpriteToVertexData(Span<VertexData> vertices, Vector3 position, Vector2 size, Color color,
-            Texture texture = null, int texturePointer = -1, Rectangle? textureArea = null, bool flipX = false, bool flipY = false
+            Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false
         )
         {
             vertices[0].Vertex = position;
@@ -71,12 +65,6 @@ namespace Emotion.Graphics.Data
             vertices[1].Color = c;
             vertices[2].Color = c;
             vertices[3].Color = c;
-
-            // Set the texture pointer.
-            for (var i = 0; i < 4; i++)
-            {
-                vertices[i].Tid = texturePointer;
-            }
 
             if (texture == null) return;
 

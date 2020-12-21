@@ -30,7 +30,7 @@ namespace Emotion.Graphics
         public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, texture);
-            VertexData.SpriteToVertexData(vertices, position, size, color, texture, -1, textureArea, flipX, flipY);
+            VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
         }
 
         /// <summary>

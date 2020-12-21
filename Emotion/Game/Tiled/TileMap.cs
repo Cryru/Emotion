@@ -394,7 +394,7 @@ namespace Emotion.Game.Tiled
                     var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
                     TextureAsset? tileSet = Tilesets[tsId];
                     if (tileSet != null) currentTextureCache![tileIdx] = tileSet.Texture;
-                    VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, -1, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
+                    VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
                 }
             }
 
