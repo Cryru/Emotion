@@ -1649,11 +1649,11 @@ namespace OpenGL
         public static void GetUniformf<T>(uint program, int location, out T param) where T : unmanaged
         {
             Debug.Assert(Delegates.pglGetUniformfv != null, "pglGetUniformfv not implemented");
-            
+
             unsafe
             {
                 T p = default;
-                Delegates.pglGetUniformfv(program, location, (float*) (&p));
+                Delegates.pglGetUniformfv(program, location, (float*) &p);
                 param = p;
             }
 
@@ -1738,7 +1738,7 @@ namespace OpenGL
             unsafe
             {
                 T p = default;
-                Delegates.pglGetUniformiv(program, location, (int*) (&p));
+                Delegates.pglGetUniformiv(program, location, (int*) &p);
                 param = p;
             }
 
@@ -2405,7 +2405,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglUniform1fv != null, "pglUniform1fv not implemented");
             unsafe
             {
-                Delegates.pglUniform1fv(location, count, (float*) (&value));
+                Delegates.pglUniform1fv(location, count, (float*) &value);
             }
 
             DebugCheckErrors(null);
@@ -2497,7 +2497,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglUniform2fv != null, "pglUniform2fv not implemented");
             unsafe
             {
-                Delegates.pglUniform2fv(location, count, (float*) (&value));
+                Delegates.pglUniform2fv(location, count, (float*) &value);
             }
 
             DebugCheckErrors(null);
@@ -2587,7 +2587,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglUniform3fv != null, "pglUniform3fv not implemented");
             unsafe
             {
-                float* vecPtr = (float*) (&value);
+                float* vecPtr = (float*) &value;
                 Delegates.pglUniform3fv(location, count, vecPtr);
             }
 

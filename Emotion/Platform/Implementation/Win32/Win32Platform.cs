@@ -18,9 +18,9 @@ using WinApi.Kernel32;
 using WinApi.User32;
 using User32 = WinApi.User32.User32Methods;
 using Kernel32 = WinApi.Kernel32.Kernel32Methods;
-
 #if ANGLE
 using Emotion.Platform.Implementation.EglAngle;
+
 #endif
 
 #endregion
@@ -130,7 +130,6 @@ namespace Emotion.Platform.Implementation.Win32
             // Create graphics context.
 
             if (!forceAngle && !forceMesa)
-            {
                 try
                 {
                     var wgl = new WglGraphicsContext();
@@ -141,7 +140,6 @@ namespace Emotion.Platform.Implementation.Win32
                 {
                     Engine.Log.Warning($"Couldn't create WGL context, falling back if possible.\n{ex}", MessageSource.Win32);
                 }
-            }
 
 #if ANGLE
             if (Context == null && !forceMesa)
@@ -179,8 +177,8 @@ namespace Emotion.Platform.Implementation.Win32
             // This cannot be done until we know what monitor it was placed on - so it's done post creation.
             var rect = new Rect
             {
-                Right = (int)config.HostSize.X,
-                Bottom = (int)config.HostSize.Y
+                Right = (int) config.HostSize.X,
+                Bottom = (int) config.HostSize.Y
             };
             rect.ClientToScreen(windowHandle);
             GetFullWindowRect(ref rect);

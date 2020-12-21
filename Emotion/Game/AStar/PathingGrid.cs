@@ -56,12 +56,12 @@ namespace Emotion.Game.AStar
             if (layerId == -1 || tileMap.TiledMap == null || layerId > tileMap.TiledMap.Layers.Count - 1) return null;
             TmxLayer layer = tileMap.TiledMap.Layers[layerId];
 
-            var newGrid = new PathingGrid((int) layer.Width, (int) layer.Height);
+            var newGrid = new PathingGrid(layer.Width, layer.Height);
             for (var x = 0; x < newGrid.Width; x++)
             {
                 for (var y = 0; y < newGrid.Height; y++)
                 {
-                    int tileId = x + y * (int) layer.Width;
+                    int tileId = x + y * layer.Width;
                     int imageId = tileMap.GetTileImageIdInLayer(tileId, layerId, out int _);
                     bool solid = unwalkableTiles.IndexOf(imageId) != -1;
                     if (solid) newGrid.SetWalkable(x, y, false);

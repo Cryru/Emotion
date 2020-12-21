@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
@@ -290,7 +291,7 @@ namespace Emotion.Game.QuadTree
 
         #endregion
 
-        public void RenderDebug(Graphics.RenderComposer c, Color color)
+        public void RenderDebug(RenderComposer c, Color color)
         {
             Queue<QuadTreeNode<T>> treeTraverse = new Queue<QuadTreeNode<T>>();
             treeTraverse.Enqueue(QuadTreeRoot);

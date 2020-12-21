@@ -2556,7 +2556,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglLoadTransposeMatrixf != null, "pglLoadTransposeMatrixf not implemented");
             unsafe
             {
-                Delegates.pglLoadTransposeMatrixf((float*) (&m));
+                Delegates.pglLoadTransposeMatrixf((float*) &m);
             }
 
             DebugCheckErrors(null);
@@ -2616,7 +2616,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglLoadTransposeMatrixd != null, "pglLoadTransposeMatrixd not implemented");
             unsafe
             {
-                Delegates.pglLoadTransposeMatrixd((double*) (&m));
+                Delegates.pglLoadTransposeMatrixd((double*) &m);
             }
 
             DebugCheckErrors(null);
@@ -2676,7 +2676,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglMultTransposeMatrixf != null, "pglMultTransposeMatrixf not implemented");
             unsafe
             {
-                Delegates.pglMultTransposeMatrixf((float*) (&m));
+                Delegates.pglMultTransposeMatrixf((float*) &m);
             }
 
             DebugCheckErrors(null);
@@ -2736,7 +2736,7 @@ namespace OpenGL
             Debug.Assert(Delegates.pglMultTransposeMatrixd != null, "pglMultTransposeMatrixd not implemented");
             unsafe
             {
-                Delegates.pglMultTransposeMatrixd((double*) (&m));
+                Delegates.pglMultTransposeMatrixd((double*) &m);
             }
 
             DebugCheckErrors(null);

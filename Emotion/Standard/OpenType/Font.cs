@@ -488,10 +488,10 @@ namespace Emotion.Standard.OpenType
             }
 
             Vector2 atlasSize = Binning.FitRectangles(glyphRects);
-            var atlas = new byte[(int)atlasSize.X * (int)atlasSize.Y];
+            var atlas = new byte[(int) atlasSize.X * (int) atlasSize.Y];
             var atlasObj = new FontAtlas(atlasSize, atlas, rasterizer.ToString(), scale, this);
 
-            var atlasWidth = (int)atlasSize.X;
+            var atlasWidth = (int) atlasSize.X;
             for (var i = 0; i < result.Length; i++)
             {
                 GlyphRenderer.GlyphCanvas canvas = result[i];
@@ -516,8 +516,8 @@ namespace Emotion.Standard.OpenType
                 {
                     for (var col = 0; col < canvas.Width; col++)
                     {
-                        var x = (int)(atlasRect.X + col);
-                        var y = (int)(atlasRect.Y + row);
+                        var x = (int) (atlasRect.X + col);
+                        var y = (int) (atlasRect.Y + row);
                         atlas[y * atlasWidth + x] = canvas.Data[row * canvas.Stride + col];
                     }
                 }

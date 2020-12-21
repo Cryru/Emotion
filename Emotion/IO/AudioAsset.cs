@@ -57,6 +57,7 @@ namespace Emotion.IO
                 {
                     soundDataFloat[i] = AudioStreamer.GetSampleAsFloat(i, pcm.Span, format);
                 }
+
                 format.IsFloat = true;
                 format.BitsPerSample = 32;
                 SoundData = soundDataFloat;

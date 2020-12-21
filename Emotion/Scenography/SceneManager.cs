@@ -107,7 +107,7 @@ namespace Emotion.Scenography
         {
             if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
             {
-                Engine.Log.Info($"Tried to swap scene while a scene swap is in progress.", MessageSource.SceneManager);
+                Engine.Log.Info("Tried to swap scene while a scene swap is in progress.", MessageSource.SceneManager);
                 return _sceneLoadingTask;
             }
 
@@ -127,10 +127,7 @@ namespace Emotion.Scenography
                 {
                     // Wait for the scene to swap to the loading screen.
                     // We don't want to unload it while it is still being updated/drawn.
-                    while (Current != LoadingScreen)
-                    {
-                        Task.Delay(1).Wait();
-                    }
+                    while (Current != LoadingScreen) Task.Delay(1).Wait();
 
                     Unload(old);
                 }

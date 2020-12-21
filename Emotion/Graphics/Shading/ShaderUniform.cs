@@ -59,10 +59,7 @@ namespace Emotion.Graphics.Shading
             {
                 int startIdx = value.IndexOf("(", StringComparison.Ordinal);
                 int endIdx = value.LastIndexOf(")", StringComparison.Ordinal);
-                if (startIdx != -1 && endIdx != -1)
-                {
-                    value = value.Substring(startIdx + 1, endIdx - startIdx - 1);
-                }
+                if (startIdx != -1 && endIdx != -1) value = value.Substring(startIdx + 1, endIdx - startIdx - 1);
                 string[] values = value.Split(",");
                 floatVals = new float[values.Length];
                 for (var i = 0; i < values.Length; i++)
