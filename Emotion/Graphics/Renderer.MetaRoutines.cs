@@ -155,7 +155,7 @@ namespace Emotion.Graphics
         /// </summary>
         public void RenderUVRect(Vector3 pos, Vector2 size, Color color, Rectangle? uvRect = null)
         {
-            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, Texture.NoTexture);
 
             vertices[0].Vertex = pos;
             vertices[1].Vertex = new Vector3(pos.X + size.X, pos.Y, pos.Z);

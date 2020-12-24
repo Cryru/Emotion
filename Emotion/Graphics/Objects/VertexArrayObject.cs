@@ -38,6 +38,16 @@ namespace Emotion.Graphics.Objects
         public IndexBuffer IBO { get; protected set; }
 
         /// <summary>
+        /// The byte size of one instance of the structure.
+        /// </summary>
+        public int ByteSize { get; set; }
+
+        /// <summary>
+        /// The offset of the UV field within the structure. The UV field is expected to be at least a Vec2.
+        /// </summary>
+        public int UVByteOffset { get; set; }
+
+        /// <summary>
         /// Ensures the provided pointer is the currently bound vertex array buffer.
         /// </summary>
         /// <param name="vao">The vertex array object to ensure is bound.</param>
@@ -120,13 +130,8 @@ namespace Emotion.Graphics.Objects
     /// Create a vertex array object from the described structure.
     /// </summary>
     /// <typeparam name="T">The structure to convert to a vertex array object.</typeparam>
-    public sealed class VertexArrayObject<T> : VertexArrayObject
+    public sealed class VertexArrayObject<T> : VertexArrayObject where T : new()
     {
-        /// <summary>
-        /// The byte size of one instance of the structure.
-        /// </summary>
-        public int ByteSize { get; set; }
-
         public VertexArrayObject(VertexBuffer vbo, IndexBuffer ibo = null)
         {
             Pointer = Gl.GenVertexArray();
@@ -142,7 +147,7 @@ namespace Emotion.Graphics.Objects
 
             Type structFormat = typeof(T);
             FieldInfo[] fields = structFormat.GetFields(BindingFlags.Public | BindingFlags.Instance);
-            ByteSize = Marshal.SizeOf(Activator.CreateInstance(structFormat));
+            ByteSize = Marshal.SizeOf(new T());
 
             for (uint i = 0; i < fields.Length; i++)
             {
@@ -160,11 +165,12 @@ namespace Emotion.Graphics.Objects
                 // If the vertex attribute data not found, stop searching.
                 if (vertexAttributeData == null) continue;
 
-                IntPtr offset = Marshal.OffsetOf(structFormat, fields[i].Name);
+                string fieldName = fields[i].Name;
+                IntPtr offset = Marshal.OffsetOf(structFormat, fieldName);
                 Type fieldType = vertexAttributeData.TypeOverride ?? fields[i].FieldType;
+                if (fieldName == "UV") UVByteOffset = (int) offset;
 
                 uint position = vertexAttributeData.PositionOverride != -1 ? (uint) vertexAttributeData.PositionOverride : i;
-
                 Gl.EnableVertexAttribArray(position);
                 Gl.VertexAttribPointer(position, vertexAttributeData.ComponentCount, GetAttribTypeFromManagedType(fieldType), vertexAttributeData.Normalized, ByteSize, offset);
             }

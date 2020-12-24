@@ -66,7 +66,7 @@ namespace Emotion.Graphics.Data
             vertices[2].Color = c;
             vertices[3].Color = c;
 
-            if (texture == null) return;
+            texture ??= Texture.EmptyWhiteTexture;
 
             // If no UV specified - use entire texture.
             textureArea ??= new Rectangle(0, 0, texture.Size);

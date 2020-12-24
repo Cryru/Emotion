@@ -490,6 +490,7 @@ namespace Emotion.Graphics
             }
 
             FlushRenderStream();
+            RenderStream.DoTasks(this);
         }
 
         public void Update()

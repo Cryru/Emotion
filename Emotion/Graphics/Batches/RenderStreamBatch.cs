@@ -1,16 +1,20 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Graphics.Objects;
+using Emotion.Primitives;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
 
 namespace Emotion.Graphics.Batches
 {
-    public unsafe class RenderStreamBatch<T>
+    public unsafe class RenderStreamBatch<T> where T : new()
     {
         public ref struct StreamData
         {
@@ -21,7 +25,7 @@ namespace Emotion.Graphics.Batches
 
         protected Type _structType;
         protected uint _structByteSize;
-        protected uint _structCount;
+        protected uint _structCapacity;
         protected int _bufferCount;
         protected uint _indexByteSize;
 
@@ -38,32 +42,40 @@ namespace Emotion.Graphics.Batches
             get => _dataPointer != IntPtr.Zero;
         }
 
-        /// <summary>
-        /// Memory sources.
-        /// </summary>
-        protected FencedBufferSource _memory;
+        #region Memory
 
+        protected FencedBufferSource _memory;
         protected FencedBufferSource _memoryIndices;
 
-        /// <summary>
-        /// The pointers are mapped to the buffers started from the offset at which the mapping started,
-        /// indicated by the offset variables.
-        /// </summary>
-        protected uint _mapOffsetStart;
+        #endregion
 
+        // The pointers are mapped to the buffers started from the offset at which the mapping started, indicated by the offset variables.
+
+        #region Mapping
+
+        protected uint _mapOffsetStart;
         protected IntPtr _dataPointer;
         protected uint _indexMapOffsetStart;
         protected IntPtr _indexPointer;
         protected ushort _vertexIndex;
 
-        /// <summary>
-        /// Used for multidraw.
-        /// </summary>
-        protected int[][] _batchableLengths = new int[2][];
+        #endregion
 
+        #region MultiDraw
+
+        protected int[][] _batchableLengths = new int[2][];
         protected int _batchableLengthUtilization;
 
+        #endregion
+
+        #region Texturing
+
         protected uint _currentTexture;
+        protected TextureAtlasBinningState _atlasState;
+        protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
+        protected ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
+
+        #endregion
 
         public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3)
         {
@@ -71,12 +83,11 @@ namespace Emotion.Graphics.Batches
             _structByteSize = (uint) Marshal.SizeOf<T>();
             _indexByteSize = sizeof(ushort);
 
-            _structCount = sizeStructs == 0 ? ushort.MaxValue : sizeStructs;
+            _structCapacity = sizeStructs == 0 ? ushort.MaxValue : sizeStructs;
             _bufferCount = bufferCount;
 
-            Debug.Assert(_structCount <= ushort.MaxValue);
-
-            uint bufferSizeBytes = _structByteSize * _structCount;
+            Debug.Assert(_structCapacity <= ushort.MaxValue);
+            uint bufferSizeBytes = _structByteSize * _structCapacity;
 
             _memory = new FencedBufferSource(bufferSizeBytes, _bufferCount, s =>
             {
@@ -84,12 +95,15 @@ namespace Emotion.Graphics.Batches
                 var vao = new VertexArrayObject<T>(vbo);
                 return new FencedBufferObjects(vbo, vao);
             });
-
-            _memoryIndices = new FencedBufferSource(_indexByteSize * _structCount, _bufferCount, s =>
+            _memoryIndices = new FencedBufferSource(_indexByteSize * _structCapacity, _bufferCount, s =>
             {
                 var ibo = new IndexBuffer(s, BufferUsage.StreamDraw);
                 return new FencedBufferObjects(ibo, null);
             });
+
+            var atlasSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing or something.
+            _atlasState = new TextureAtlasBinningState(atlasSize);
+            _currentTexture = _atlasState.AtlasPointer;
         }
 
         public StreamData GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture texture = null)
@@ -97,9 +111,39 @@ namespace Emotion.Graphics.Batches
             if (batchMode != BatchMode && AnythingMapped) FlushRender();
             BatchMode = batchMode;
 
-            uint texturePointer = texture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer;
-            if (texturePointer != _currentTexture && AnythingMapped) FlushRender();
-            _currentTexture = texturePointer;
+            texture ??= Texture.EmptyWhiteTexture;
+            uint texturePointer = texture.Pointer;
+
+            // Texture atlas logic
+            var batchableTexture = true;
+            {
+                // ReSharper disable once ReplaceWithSingleAssignment.True
+
+                // Don't store frame buffer textures.
+                if (texture is FrameBufferTexture) batchableTexture = false;
+
+                // Texture too large to atlas.
+                if (texture.Size.X > 1000 || texture.Size.Y > 1000) batchableTexture = false;
+
+                // Don't batch "no" texture. Those UVs are used for effects.
+                if (texture == Texture.NoTexture) batchableTexture = false;
+
+                // Don't batch tiled textures.
+                if (texture.Tile) batchableTexture = false;
+
+                // Check if the texture can be stored in the atlas.
+                batchableTexture = batchableTexture && _atlasState.StoreTexture(texture);
+
+                // If batching set the current texture to the atlas.
+                if (batchableTexture) texturePointer = _atlasState.AtlasPointer;
+            }
+
+            // If the texture is changing, flush old data.
+            if (texturePointer != _currentTexture)
+            {
+                if (AnythingMapped) FlushRender();
+                _currentTexture = texturePointer;
+            }
 
             uint vBytesNeeded = structCount * _structByteSize;
             uint iBytesNeeded = indexCount * _indexByteSize;
@@ -169,6 +213,35 @@ namespace Emotion.Graphics.Batches
                 _batchableLengthUtilization++;
             }
 
+            // If using the texture atlas, record the mapping.
+            // This needs to happen after any potential flushes.
+            if (batchableTexture)
+            {
+                var structsMappedInCurrentMapping = (int) (vOffset / _structByteSize);
+                var upToStructNow = (int) (structsMappedInCurrentMapping + structCount);
+
+                // Increase the up to struct of the last mapping instead of adding a new one, if possible.
+                var mappedToRange = false;
+                //if (_atlasTextureRange.Count > 0)
+                //{
+                //    TextureMapping lastMapping = _atlasTextureRange.Peek();
+                //    if (lastMapping.Texture == texture)
+                //    {
+                //        lastMapping.UpToStruct = upToStructNow;
+                //        mappedToRange = true;
+                //    }
+                //}
+
+                if (!mappedToRange)
+                {
+                    TextureMapping textureMapping = _textureMappingPool.Get();
+                    textureMapping.UpToStruct = upToStructNow;
+                    textureMapping.Texture = texture;
+
+                    _atlasTextureRange.Enqueue(textureMapping);
+                }
+            }
+
             return new StreamData
             {
                 VerticesData = verticesData,
@@ -184,18 +257,72 @@ namespace Emotion.Graphics.Batches
             Debug.Assert(_indexPointer != IntPtr.Zero);
 
             uint mappedBytes = _memory.CurrentBufferOffset - _mapOffsetStart;
-            _memory.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytes); // This range is relative to the mapped range, not the whole buffer.
-            _memory.CurrentBuffer.DataBuffer.FinishMapping();
-
             uint mappedBytesIndices = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
+
+            // Remap UVs to be within the atlas, if using the atlas.
+            if (_currentTexture == _atlasState.AtlasPointer)
+            {
+                Debug.Assert(_atlasTextureRange.Count > 0);
+#if DEBUG
+
+                var totalStructs = 0;
+                int count = _atlasTextureRange.Count;
+                var currentIdx = 0;
+                foreach (TextureMapping mappingRange in _atlasTextureRange)
+                {
+                    currentIdx++;
+                    if (currentIdx == count) totalStructs = mappingRange.UpToStruct;
+                }
+
+                Debug.Assert(totalStructs == mappedBytes / _structByteSize);
+
+#endif
+
+
+                int uvOffsetIntoStruct = _memory.CurrentBuffer.VAO.UVByteOffset;
+                var dataPtr = (byte*) _dataPointer;
+                var reader = 0;
+                var structIdx = 0;
+                TextureMapping textureMapping = _atlasTextureRange.Dequeue();
+                Rectangle textureMinMax = _atlasState.GetTextureUVMinMax(textureMapping.Texture);
+                Vector2 textureUV = _atlasState.GetTextureOffset(textureMapping.Texture);
+
+                Debug.Assert(textureMapping.UpToStruct <= mappedBytes / _structByteSize);
+
+                while (reader < mappedBytes)
+                {
+                    var targetPtr = (Vector2*) (dataPtr + reader + uvOffsetIntoStruct);
+
+                    if (structIdx >= textureMapping.UpToStruct)
+                    {
+                        Debug.Assert(_atlasTextureRange.Count > 0);
+                        _textureMappingPool.Return(textureMapping);
+                        textureMapping = _atlasTextureRange.Dequeue();
+                        textureMinMax = _atlasState.GetTextureUVMinMax(textureMapping.Texture);
+                    }
+
+                    targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
+                    targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y);
+
+                    reader += (int) _structByteSize;
+                    structIdx++;
+                }
+
+                _textureMappingPool.Return(textureMapping);
+            }
+
+            // Range is relative to the mapped range, not the whole buffer.
+            _memory.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytes);
+            _memory.CurrentBuffer.DataBuffer.FinishMapping();
             _memoryIndices.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytesIndices);
             _memoryIndices.CurrentBuffer.DataBuffer.FinishMapping();
 
+            // Bind GL state.
+            Texture.EnsureBound(_currentTexture);
             VertexArrayObject.EnsureBound(_memory.CurrentBuffer.VAO);
             IndexBuffer.EnsureBound(_memoryIndices.CurrentBuffer.DataBuffer.Pointer);
 
-            Texture.EnsureBound(_currentTexture);
-
+            // Draw with the appropriate state.
             PrimitiveType primitiveType = BatchMode switch
             {
                 BatchMode.Quad => PrimitiveType.Triangles,
@@ -203,7 +330,6 @@ namespace Emotion.Graphics.Batches
                 BatchMode.TriangleFan => PrimitiveType.TriangleFan,
                 _ => PrimitiveType.Triangles
             };
-
             if (BatchMode == BatchMode.TriangleFan)
             {
                 if (Gl.CurrentVersion.GLES)
@@ -223,10 +349,17 @@ namespace Emotion.Graphics.Batches
                 Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, startIndexInt);
             }
 
+            // Reset mapping.
             _dataPointer = IntPtr.Zero;
             _indexPointer = IntPtr.Zero;
             _mapOffsetStart = 0;
             _indexMapOffsetStart = 0;
+            _atlasTextureRange.Clear();
+        }
+
+        public void DoTasks(RenderComposer c)
+        {
+            _atlasState.UpdateTextureAtlas(c);
         }
 
         #region Helpers and Overloads
@@ -279,18 +412,7 @@ namespace Emotion.Graphics.Batches
             switch (batchMode)
             {
                 case BatchMode.Quad:
-                    for (var i = 0; i < indicesSpan.Length; i += 6)
-                    {
-                        indicesSpan[i] = (ushort) (offset + 0);
-                        indicesSpan[i + 1] = (ushort) (offset + 1);
-                        indicesSpan[i + 2] = (ushort) (offset + 2);
-                        indicesSpan[i + 3] = (ushort) (offset + 2);
-                        indicesSpan[i + 4] = (ushort) (offset + 3);
-                        indicesSpan[i + 5] = (ushort) (offset + 0);
-
-                        offset += 4;
-                    }
-
+                    IndexBuffer.FillQuadIndices(indicesSpan, offset);
                     break;
                 case BatchMode.TriangleFan:
                 case BatchMode.SequentialTriangles:
