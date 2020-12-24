@@ -129,7 +129,7 @@ namespace Emotion.Game.Tiled
         /// Create a new map object from a Tiled map.
         /// </summary>
         /// <param name="mapFile">The file to load as the map.</param>
-        public TileMap(TextAsset mapFile) : base(Vector2.Zero, Vector2.One)
+        public TileMap(TextAsset? mapFile) : base(Vector2.Zero, Vector2.One)
         {
             Reset(mapFile);
         }
@@ -138,7 +138,7 @@ namespace Emotion.Game.Tiled
         /// Create a new map object from a Tiled map.
         /// </summary>
         /// <param name="mapPath">The path to the map.</param>
-        public TileMap(string mapPath) : base(Vector2.Zero, Vector2.One)
+        public TileMap(string? mapPath) : base(Vector2.Zero, Vector2.One)
         {
             // Check if no map is provided.
             if (mapPath == string.Empty) return;
