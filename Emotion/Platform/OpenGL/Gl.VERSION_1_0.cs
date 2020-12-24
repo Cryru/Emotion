@@ -4086,10 +4086,9 @@ namespace OpenGL
         [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
         [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
         [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
-        public static void GetInteger(GetPName pname, out int[] data)
+        public static void GetInteger(GetPName pname, ref int[] data)
         {
             Debug.Assert(Delegates.pglGetIntegerv != null, "pglGetIntegerv not implemented");
-            data = default;
             unsafe
             {
                 fixed (int* refDataPtr = &data[0])
