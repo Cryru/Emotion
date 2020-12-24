@@ -116,10 +116,11 @@ namespace Emotion.Graphics
             vertices[3].Vertex = (pointOne - delta).RoundAwayFromZero();
 
             uint c = color.ToUint();
-            vertices[0].Color = c;
-            vertices[1].Color = c;
-            vertices[2].Color = c;
-            vertices[3].Color = c;
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                vertices[i].Color = c;
+                vertices[i].UV = Vector2.Zero;
+            }
         }
 
         /// <summary>

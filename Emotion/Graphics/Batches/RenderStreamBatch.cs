@@ -71,6 +71,8 @@ namespace Emotion.Graphics.Batches
 
         #region Texturing
 
+        protected static Vector2 _maxTextureBatchSize = new Vector2(1000);
+        protected static Vector2 _atlasTextureSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing in some cases or something.
         protected uint _currentTexture;
         protected TextureAtlasBinningState _atlasState;
         protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
@@ -103,8 +105,7 @@ namespace Emotion.Graphics.Batches
                 return new FencedBufferObjects(ibo, null);
             });
 
-            var atlasSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing or something.
-            _atlasState = new TextureAtlasBinningState(atlasSize);
+            _atlasState = new TextureAtlasBinningState(_atlasTextureSize);
             _currentTexture = _atlasState.AtlasPointer;
         }
 
@@ -125,13 +126,13 @@ namespace Emotion.Graphics.Batches
                 if (texture is FrameBufferTexture) batchableTexture = false;
 
                 // Texture too large to atlas.
-                if (texture.Size.X > 1000 || texture.Size.Y > 1000) batchableTexture = false;
+                if (texture.Size.X > _maxTextureBatchSize.X || texture.Size.Y > _maxTextureBatchSize.Y) batchableTexture = false;
 
                 // Don't batch "no" texture. Those UVs are used for effects.
                 if (texture == Texture.NoTexture) batchableTexture = false;
 
                 // Don't batch tiled or smoothed textures.
-                if (texture.Tile || texture.Smooth) batchableTexture = false;
+                if (texture.Tile) batchableTexture = false;
 
                 // Check if the texture can be stored in the atlas.
                 batchableTexture = batchableTexture && _atlasState.StoreTexture(texture);
@@ -255,6 +256,8 @@ namespace Emotion.Graphics.Batches
             uint mappedBytes = _memory.CurrentBufferOffset - _mapOffsetStart;
             uint mappedBytesIndices = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
 
+            PerfProfiler.FrameEventStart($"Stream Render {mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+
             // Remap UVs to be within the atlas, if using the atlas.
             if (_currentTexture == _atlasState.AtlasPointer)
             {
@@ -276,14 +279,12 @@ namespace Emotion.Graphics.Batches
 
 #endif
 
-
                 int uvOffsetIntoStruct = _memory.CurrentBuffer.VAO.UVByteOffset;
                 var dataPtr = (byte*) _dataPointer;
                 var reader = 0;
                 var structIdx = 0;
                 TextureMapping textureMapping = _atlasTextureRange.Dequeue();
                 Rectangle textureMinMax = _atlasState.GetTextureUVMinMax(textureMapping.Texture);
-                Vector2 textureUV = _atlasState.GetTextureOffset(textureMapping.Texture);
 
                 Debug.Assert(textureMapping.UpToStruct <= mappedBytes / _structByteSize);
 
@@ -348,6 +349,8 @@ namespace Emotion.Graphics.Batches
                 Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, startIndexInt);
             }
 
+            PerfProfiler.FrameEventEnd($"Stream Render {mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+
             // Reset mapping.
             _dataPointer = IntPtr.Zero;
             _indexPointer = IntPtr.Zero;
@@ -359,6 +362,7 @@ namespace Emotion.Graphics.Batches
 
         public void DoTasks(RenderComposer c)
         {
+            _atlasState.UpdateTextureUsage();
             _atlasState.UpdateTextureAtlas(c);
         }
 
