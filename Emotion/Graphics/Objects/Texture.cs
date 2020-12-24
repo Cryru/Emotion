@@ -102,7 +102,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public PixelType PixelType { get; protected set; } = PixelType.UnsignedByte;
 
-        private bool _tile = true;
+        private bool _tile;
         private bool _smooth;
 
         /// <summary>
@@ -251,6 +251,7 @@ namespace Emotion.Graphics.Objects
                 GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
 
+        public static Texture NoTexture = new Texture {Pointer = 0};
         public static Texture EmptyWhiteTexture;
 
         public static void InitializeEmptyTexture()
