@@ -133,6 +133,7 @@ namespace Emotion.Graphics
             for (var i = 0; i < vertices.Length; i++)
             {
                 vertices[i].Color = i % 3 == 2 ? cM : c;
+                vertices[i].UV = Vector2.Zero;
             }
         }
 

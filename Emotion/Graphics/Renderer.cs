@@ -382,7 +382,8 @@ namespace Emotion.Graphics
 
             // Set viewport.
             ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
-            ScreenBuffer.Size = size;
+            ScreenBuffer.Resize(size);
+            DrawBuffer.Resize(Engine.Configuration.RenderSize, true);
 
             ApplySettings();
 

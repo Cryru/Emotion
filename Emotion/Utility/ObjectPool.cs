@@ -23,7 +23,7 @@ namespace Emotion.Utility
 
         public void Return(T item)
         {
-#if DEBUG
+#if DEBUG_OBJECTPOOL
             foreach (T obj in _objects)
             {
                 Debug.Assert(!obj.Equals(item));

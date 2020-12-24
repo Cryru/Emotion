@@ -50,10 +50,11 @@ namespace Emotion.Graphics
             Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
             Debug.Assert(vertices != null);
 
-            for (var v = 0; v < verts.Length; v++)
+            for (var i = 0; i < verts.Length; i++)
             {
-                vertices[v].Vertex = verts[v];
-                vertices[v].Color = v >= colors.Length ? colors.Length == 0 ? Color.WhiteUint : colors[0].ToUint() : colors[v].ToUint();
+                vertices[i].Vertex = verts[i];
+                vertices[i].Color = i >= colors.Length ? colors.Length == 0 ? Color.WhiteUint : colors[0].ToUint() : colors[i].ToUint();
+                vertices[i].UV = Vector2.Zero;
             }
         }
 
