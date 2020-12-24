@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Emotion.Common;
 using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Utility;
@@ -74,6 +75,7 @@ namespace Emotion.Graphics.Batches
         protected TextureAtlasBinningState _atlasState;
         protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
         protected ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
+        protected TextureMapping _lastTextureMapping;
 
         #endregion
 
@@ -128,8 +130,8 @@ namespace Emotion.Graphics.Batches
                 // Don't batch "no" texture. Those UVs are used for effects.
                 if (texture == Texture.NoTexture) batchableTexture = false;
 
-                // Don't batch tiled textures.
-                if (texture.Tile) batchableTexture = false;
+                // Don't batch tiled or smoothed textures.
+                if (texture.Tile || texture.Smooth) batchableTexture = false;
 
                 // Check if the texture can be stored in the atlas.
                 batchableTexture = batchableTexture && _atlasState.StoreTexture(texture);
@@ -221,24 +223,18 @@ namespace Emotion.Graphics.Batches
                 var upToStructNow = (int) (structsMappedInCurrentMapping + structCount);
 
                 // Increase the up to struct of the last mapping instead of adding a new one, if possible.
-                var mappedToRange = false;
-                //if (_atlasTextureRange.Count > 0)
-                //{
-                //    TextureMapping lastMapping = _atlasTextureRange.Peek();
-                //    if (lastMapping.Texture == texture)
-                //    {
-                //        lastMapping.UpToStruct = upToStructNow;
-                //        mappedToRange = true;
-                //    }
-                //}
-
-                if (!mappedToRange)
+                if (_lastTextureMapping != null && _lastTextureMapping.Texture == texture)
+                {
+                    _lastTextureMapping.UpToStruct = upToStructNow;
+                }
+                else
                 {
                     TextureMapping textureMapping = _textureMappingPool.Get();
                     textureMapping.UpToStruct = upToStructNow;
                     textureMapping.Texture = texture;
 
                     _atlasTextureRange.Enqueue(textureMapping);
+                    _lastTextureMapping = textureMapping;
                 }
             }
 
@@ -262,6 +258,8 @@ namespace Emotion.Graphics.Batches
             // Remap UVs to be within the atlas, if using the atlas.
             if (_currentTexture == _atlasState.AtlasPointer)
             {
+                PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
+
                 Debug.Assert(_atlasTextureRange.Count > 0);
 #if DEBUG
 
@@ -309,6 +307,7 @@ namespace Emotion.Graphics.Batches
                 }
 
                 _textureMappingPool.Return(textureMapping);
+                PerfProfiler.FrameEventEnd("Remapping UVs to Atlas");
             }
 
             // Range is relative to the mapped range, not the whole buffer.
@@ -355,6 +354,7 @@ namespace Emotion.Graphics.Batches
             _mapOffsetStart = 0;
             _indexMapOffsetStart = 0;
             _atlasTextureRange.Clear();
+            _lastTextureMapping = null;
         }
 
         public void DoTasks(RenderComposer c)
