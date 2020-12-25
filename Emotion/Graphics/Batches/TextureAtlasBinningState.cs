@@ -83,8 +83,6 @@ namespace Emotion.Graphics.Batches
             else
                 TextureActivity.Add(texture, 0);
 
-            Engine.Log.Trace($"Added texture to atlas - {texture.Pointer}", "Atlas");
-
             return false;
         }
 
@@ -93,7 +91,7 @@ namespace Emotion.Graphics.Batches
             _textureActivityFrames++;
             if (_textureActivityFrames <= 100) return;
 
-            bool repack = false;
+            var repack = false;
             foreach ((Texture texture, int timesUsed) in TextureActivity)
             {
                 // Texture never entered cache, or was ejected already.
@@ -107,7 +105,6 @@ namespace Emotion.Graphics.Batches
                     TextureToOffset.Remove(texture);
                     TextureNeedDraw.Remove(texture);
                     TextureActivity[texture] = -1; // This texture will forever remain in this dictionary lol.
-                    Engine.Log.Trace($"Ejected texture from atlas - {texture.Pointer}", "Atlas");
                     continue;
                 }
 
@@ -117,7 +114,7 @@ namespace Emotion.Graphics.Batches
             _textureActivityFrames = 0;
 
             if (!repack) return;
-  
+
             CanvasPos = Vector2.Zero;
             PackingSpaces.Clear();
             IOrderedEnumerable<Texture> allTextures = TextureToOffset.Keys.ToArray().OrderBy(x => x.Size.X + x.Size.Y);
