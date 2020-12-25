@@ -4917,7 +4917,7 @@ namespace OpenGL
 
             [RequiredByFeature("GL_VERSION_1_0")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glTexImage1D(int target, int level, int internalformat, int width, int border, int format, int type, IntPtr pixels);
+            public delegate void glTexImage1D(int target, int level, int internalFormat, int width, int border, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_0")] [ThreadStatic]
             public static glTexImage1D pglTexImage1D;
@@ -4926,7 +4926,7 @@ namespace OpenGL
             [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
             [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
             [SuppressUnmanagedCodeSecurity]
-            public delegate void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, IntPtr pixels);
+            public delegate void glTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, IntPtr pixels);
 
             [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [ThreadStatic]
             public static glTexImage2D pglTexImage2D;
