@@ -45,6 +45,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         private bool _extFramebufferSRgb;
         private bool _arbCreateContextProfile;
         private bool _arbPixelFormat;
+        private bool _autoVSyncExtension;
 
         private IntPtr _contextHandle;
         private IntPtr _dc;
@@ -127,6 +128,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             _extFramebufferSRgb = WglSupportedExtension("WGL_EXT_framebuffer_sRGB");
             _arbCreateContextProfile = WglSupportedExtension("WGL_ARB_create_context_profile");
             _arbPixelFormat = WglSupportedExtension("WGL_ARB_pixel_format");
+            _autoVSyncExtension = WglSupportedExtension("WGL_EXT_swap_control_tear");
             bool arbCreateContext = WglSupportedExtension("WGL_ARB_create_context");
 
             // Dispose of dummy context.
@@ -479,7 +481,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
                 if (dwmComposition) interval = 0;
             }
 
-            _swapIntervalExt?.Invoke(interval);
+            _swapIntervalExt?.Invoke(_autoVSyncExtension ? -1 : interval);
         }
 
         /// <inheritdoc />
