@@ -237,6 +237,7 @@ namespace Tests.Classes
 
                 composer.SetUseViewMatrix(false);
                 composer.SetShader(shader.Shader);
+                shader.Shader.SetUniformInt("depthTexture", 1);
                 Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
                 composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
                 composer.SetShader();

@@ -1,33 +1,24 @@
 #version v 
- 
-#ifdef GL_ES 
-precision highp float; 
-#endif 
- 
-uniform sampler2D textures[TEXTURE_COUNT]; 
-uniform vec3 iResolution; // viewport resolution (in pixels)
+
+uniform sampler2D mainTexture;
+uniform sampler2D depthTexture;
  
 // Comes in from the vertex shader. 
 in vec2 UV; 
-in vec4 vertColor; 
-flat in int Tid;
- 
+in vec4 vertColor;
+
 out vec4 fragColor; 
 
-//GetTextureColor
+#using "Shaders/getTextureColor.c"
  
 void main() { 
-    fragColor = getTextureColor(Tid, UV) * vertColor;
+    fragColor = getTextureColor(mainTexture, UV) * vertColor;
 
-    float depth = getTextureColor(1, UV).r;
-	if(gl_FragCoord.z > depth) 
-	{
+    float depth = getTextureColor(depthTexture, UV).r;
+	if (gl_FragCoord.z > depth)
 		gl_FragDepth = depth;
-	}
 	else
-	{
 		gl_FragDepth = gl_FragCoord.z;
-	}
 
     if (fragColor.a < 0.01)discard;
 }
