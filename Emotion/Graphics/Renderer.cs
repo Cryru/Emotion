@@ -80,8 +80,7 @@ namespace Emotion.Graphics
         public bool Dsa { get; private set; }
 
         /// <summary>
-        /// The maximum textures that can be mapped in one StreamBuffer and/or shader. If more than the allowed textures are mapped
-        /// an exception is raised.
+        /// The maximum textures that can be bound at the same time.
         /// </summary>
         public int TextureArrayLimit { get; private set; } = -1;
 
@@ -196,7 +195,7 @@ namespace Emotion.Graphics
             // Set flags.
             CompatibilityMode = Gl.SoftwareRenderer || Engine.Configuration.RendererCompatMode;
             Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
-            TextureArrayLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 4 : Gl.CurrentLimits.MaxTextureImageUnits;
+            TextureArrayLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 16 : Gl.CurrentLimits.MaxTextureImageUnits;
 
             Engine.Log.Info($" Flags: {(CompatibilityMode ? "Compat, " : "")}{(Dsa ? "Dsa, " : "")}Textures[{TextureArrayLimit}]", MessageSource.Renderer);
 

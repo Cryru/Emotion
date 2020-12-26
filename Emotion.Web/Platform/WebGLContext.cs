@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Emotion.Common;
-using Emotion.Graphics.Data;
 using Emotion.Platform;
 using Emotion.Web.Helpers;
 using Microsoft.JSInterop;
@@ -77,6 +75,7 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glUniform1iv", (Gl.Delegates.glUniform1iv) UploadUniform);
             _webGlFuncDictionary.Add("glUniform1f", (Gl.Delegates.glUniform1f) UploadUniform);
             _webGlFuncDictionary.Add("glUniform2f", (Gl.Delegates.glUniform2f) UploadUniform);
+            _webGlFuncDictionary.Add("glUniform1i", (Gl.Delegates.glUniform1i) UploadUniform);
             _webGlFuncDictionary.Add("glUniform3f", (Gl.Delegates.glUniform3f) UploadUniform);
             _webGlFuncDictionary.Add("glUniform4f", (Gl.Delegates.glUniform4f) UploadUniform);
             _webGlFuncDictionary.Add("glUniform1fv", (Gl.Delegates.glUniform1fv) UploadUniform);
@@ -85,7 +84,11 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glUniform4fv", (Gl.Delegates.glUniform4fv) UploadUniformFloatArrayMultiComponent4);
             _webGlFuncDictionary.Add("glUniformMatrix4fv", (Gl.Delegates.glUniformMatrix4fv) UploadUniformMat4);
 
+            _webGlFuncDictionary.Add("glGenFramebuffers", (Gl.Delegates.glGenFramebuffers) CreateFramebuffer);
             _webGlFuncDictionary.Add("glBindFramebuffer", (Gl.Delegates.glBindFramebuffer) BindFramebuffer);
+            _webGlFuncDictionary.Add("glFramebufferTexture2D", (Gl.Delegates.glFramebufferTexture2D) FramebufferUploadTexture2D);
+            _webGlFuncDictionary.Add("glCheckFramebufferStatus", (Gl.Delegates.glCheckFramebufferStatus) FramebufferStatus);
+            _webGlFuncDictionary.Add("glDrawBuffers", (Gl.Delegates.glDrawBuffers) DrawBuffers);
 
             _webGlFuncDictionary.Add("glGenVertexArrays", (Gl.Delegates.glGenVertexArrays) GenVertexArrays);
             _webGlFuncDictionary.Add("glBindVertexArray", (Gl.Delegates.glBindVertexArray) BindVertexArray);
@@ -93,11 +96,21 @@ namespace Emotion.Web.Platform
             _webGlFuncDictionary.Add("glVertexAttribPointer", (Gl.Delegates.glVertexAttribPointer) VertexAttribPointer);
 
             _webGlFuncDictionary.Add("glDrawElements", (Gl.Delegates.glDrawElements) DrawElements);
+            _webGlFuncDictionary.Add("glDrawArrays", (Gl.Delegates.glDrawArrays) DrawArrays);
 
             _webGlFuncDictionary.Add("glFenceSync", (Gl.Delegates.glFenceSync) FenceSync);
             _webGlFuncDictionary.Add("glClientWaitSync", (Gl.Delegates.glClientWaitSync) ClientWaitSync);
 
-            _webGlFuncDictionary.Add("glDrawArrays", (Gl.Delegates.glDrawArrays) DrawArrays);
+            _webGlFuncDictionary.Add("glGenTextures", (Gl.Delegates.glGenTextures) CreateTexture);
+            _webGlFuncDictionary.Add("glBindTexture", (Gl.Delegates.glBindTexture) BindTexture);
+            _webGlFuncDictionary.Add("glActiveTexture", (Gl.Delegates.glActiveTexture) ActiveTexture);
+            _webGlFuncDictionary.Add("glTexImage2D", (Gl.Delegates.glTexImage2D) UploadTexture);
+            _webGlFuncDictionary.Add("glTexParameteri", (Gl.Delegates.glTexParameteri) TexParameterInteger);
+
+            _webGlFuncDictionary.Add("glGenRenderbuffers", (Gl.Delegates.glGenRenderbuffers) CreateRenderbuffer);
+            _webGlFuncDictionary.Add("glBindRenderbuffer", (Gl.Delegates.glBindRenderbuffer) BindRenderbuffer);
+            _webGlFuncDictionary.Add("glRenderbufferStorage", (Gl.Delegates.glRenderbufferStorage) RenderbufferStorage);
+            _webGlFuncDictionary.Add("glFramebufferRenderbuffer", (Gl.Delegates.glFramebufferRenderbuffer) FramebufferRenderbuffer);
 
             Valid = true;
         }
@@ -494,6 +507,11 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<int, int, IntPtr, object>("glUniformIntArray", location, count, (IntPtr) value);
         }
 
+        private void UploadUniform(int location, int value)
+        {
+            _gl.InvokeUnmarshalled<int, int, object>("glUniformInt", location, value);
+        }
+
         private void UploadUniform(int location, float value)
         {
             _gl.InvokeUnmarshalled<int, BoxedFloat, object>("glUniformFloat", location, new BoxedFloat(value));
@@ -557,9 +575,40 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<int, MatrixUniformUploadData, object>("glUniformMatrix", location, uploadData);
         }
 
+        private void CreateFramebuffer(int count, uint* resp)
+        {
+            uint[] value = _gl.InvokeUnmarshalled<int, uint[]>("glGenFramebuffers", count);
+            for (var i = 0; i < value.Length; i++)
+            {
+                Marshal.WriteInt64((IntPtr) (resp + i * sizeof(uint)), value[i]);
+            }
+        }
+
         private void BindFramebuffer(int target, uint bufferId)
         {
             _gl.InvokeUnmarshalled<int, uint, object>("glBindFramebuffer", target, bufferId);
+        }
+
+        private void FramebufferUploadTexture2D(int target, int attachment, int textarget, uint texture, int level)
+        {
+            var data = new IntegerVector4
+            {
+                X = target,
+                Y = attachment,
+                Z = textarget,
+                W = level
+            };
+            _gl.InvokeUnmarshalled<IntegerVector4, uint, object>("glFramebufferTexture2D", data, texture);
+        }
+
+        private int FramebufferStatus(int target)
+        {
+            return _gl.InvokeUnmarshalled<int, int>("glCheckFramebufferStatus", target);
+        }
+
+        private void DrawBuffers(int count, int* modes)
+        {
+            _gl.InvokeUnmarshalled<IntPtr, int, object>("glDrawBuffers", (IntPtr) modes, count);
         }
 
         private void GenVertexArrays(int count, uint* resp)
@@ -607,6 +656,12 @@ namespace Emotion.Web.Platform
             _gl.InvokeUnmarshalled<IntegerVector4, object>("glDrawElements", data);
         }
 
+        private void DrawArrays(int mode, int first, int count)
+        {
+            _gl.InvokeUnmarshalled<int, int, int, object>("glDrawArrays", mode, first, count);
+        }
+
+        // Because of the nature of the WebGL render loop the rendering is always synchronized, and these functions aren't really needed.
         private int FenceSync(int condition, uint flags)
         {
             return 0;
@@ -617,9 +672,83 @@ namespace Emotion.Web.Platform
             return (int) SyncStatus.AlreadySignaled;
         }
 
-        private void DrawArrays(int mode, int first, int count)
+        private void CreateTexture(int count, uint* resp)
         {
-            _gl.InvokeUnmarshalled<int, int, int, object>("glDrawArrays", mode, first, count);
+            uint[] value = _gl.InvokeUnmarshalled<int, uint[]>("glGenTextures", count);
+            for (var i = 0; i < value.Length; i++)
+            {
+                Marshal.WriteInt64((IntPtr) (resp + i * sizeof(uint)), value[i]);
+            }
+        }
+
+        private void BindTexture(int slot, uint pointer)
+        {
+            _gl.InvokeUnmarshalled<int, uint, object>("glBindTexture", slot, pointer);
+        }
+
+        private void ActiveTexture(int textureSlot)
+        {
+            _gl.InvokeUnmarshalled<int, object>("glActiveTexture", textureSlot);
+        }
+
+        private void UploadTexture(int target, int level, int internalFormat, int width, int height, int border, int format, int type, IntPtr pixels)
+        {
+            var uploadArgs = new TextureUploadArgs
+            {
+                Target = target,
+                Level = level,
+                InternalFormat = internalFormat,
+                Width = width,
+                Height = height,
+                Border = border,
+                Format = format,
+                Type = type,
+                PixelsPointer = pixels,
+                PixelsByteSize = width * height * Gl.PixelTypeToComponentCount((PixelFormat) format) * Gl.PixelTypeToByteCount((PixelType) type)
+            };
+            _gl.InvokeUnmarshalled<TextureUploadArgs, object>("glUploadTexture2D", uploadArgs);
+        }
+
+        private void TexParameterInteger(int target, int param, int value)
+        {
+            _gl.InvokeUnmarshalled<int, int, int, object>("glTextureParameteri", target, param, value);
+        }
+
+        private void CreateRenderbuffer(int count, uint* resp)
+        {
+            uint[] value = _gl.InvokeUnmarshalled<int, uint[]>("glGenRenderbuffers", count);
+            for (var i = 0; i < value.Length; i++)
+            {
+                Marshal.WriteInt64((IntPtr) (resp + i * sizeof(uint)), value[i]);
+            }
+        }
+
+        private void BindRenderbuffer(int target, uint bufferId)
+        {
+            _gl.InvokeUnmarshalled<int, uint, object>("glBindRenderbuffer", target, bufferId);
+        }
+
+        private void RenderbufferStorage(int target, int format, int width, int height)
+        {
+            var data = new IntegerVector4
+            {
+                X = target,
+                Y = format,
+                Z = width,
+                W = height
+            };
+            _gl.InvokeUnmarshalled<IntegerVector4, object>("glRenderbufferStorage", data);
+        }
+
+        private void FramebufferRenderbuffer(int target, int attachment, int renderbufferTarget, uint renderbuffer)
+        {
+            var data = new IntegerVector4
+            {
+                X = target,
+                Y = attachment,
+                Z = renderbufferTarget,
+            };
+            _gl.InvokeUnmarshalled<IntegerVector4, uint, object>("glFramebufferRenderbuffer", data, renderbuffer);
         }
     }
 }

@@ -71,6 +71,7 @@ namespace Emotion.Graphics.Batches
 
         #region Texturing
 
+        protected static bool _textureAtlas = true;
         protected static Vector2 _maxTextureBatchSize = new Vector2(1000);
         protected static Vector2 _atlasTextureSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing in some cases or something.
         protected uint _currentTexture;
@@ -105,6 +106,7 @@ namespace Emotion.Graphics.Batches
                 return new FencedBufferObjects(ibo, null);
             });
 
+            if (!_textureAtlas) return;
             _atlasState = new TextureAtlasBinningState(_atlasTextureSize);
             _currentTexture = _atlasState.AtlasPointer;
         }
@@ -118,7 +120,7 @@ namespace Emotion.Graphics.Batches
             uint texturePointer = texture.Pointer;
 
             // Texture atlas logic
-            var batchableTexture = true;
+            bool batchableTexture = _textureAtlas;
             {
                 // ReSharper disable once ReplaceWithSingleAssignment.True
 
@@ -259,7 +261,7 @@ namespace Emotion.Graphics.Batches
             PerfProfiler.FrameEventStart($"Stream Render {mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
 
             // Remap UVs to be within the atlas, if using the atlas.
-            if (_currentTexture == _atlasState.AtlasPointer)
+            if (_currentTexture == _atlasState?.AtlasPointer)
             {
                 PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
 
@@ -301,7 +303,7 @@ namespace Emotion.Graphics.Batches
                     }
 
                     targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
-                    targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y);
+                    targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y); // Since the atlas is flipped, we need to flip the Y UV.
 
                     reader += (int) _structByteSize;
                     structIdx++;
@@ -362,6 +364,7 @@ namespace Emotion.Graphics.Batches
 
         public void DoTasks(RenderComposer c)
         {
+            if (_atlasState == null) return;
             _atlasState.UpdateTextureUsage();
             _atlasState.UpdateTextureAtlas(c);
         }

@@ -56,6 +56,7 @@ namespace Emotion.Graphics.Batches
             ibo.Upload(quadIndices);
             _vao = new VertexArrayObject<VertexData>(_vbo, ibo);
             _fbo = new FrameBuffer(canvasDimensions).WithColor();
+            _fbo.CheckErrors();
             _firstDraw = true;
 
             _atlasFillState = RenderState.Default.Clone();
