@@ -7,7 +7,7 @@ uniform float time;
 
 layout (location = 0) in vec3 vertPos;
 layout (location = 1) in vec2 uv;
-layout (location = 3) in vec4 color;
+layout (location = 2) in vec4 color;
 
 // Goes to the frag shader.
 out vec2 UV;
