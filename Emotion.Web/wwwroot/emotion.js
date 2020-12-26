@@ -117,6 +117,15 @@ function glGet(id) {
             }
         }
     }
+    // Texture binding
+    if (id === 0x8069) {
+        for (let i = 0; i < gTextures.length; i++) {
+            if (gTextures[i] === value) {
+                value = i + 1;
+                break;
+            }
+        }
+    }
     if (typeof(value) === "number") {
         value = [value];
     }
@@ -347,6 +356,11 @@ function glUniformIntArray(locationId, count, valuePtr) {
     Emotion.gl.uniform1iv(location, data);
 }
 
+function glUniformInt(locationId, value) {
+    const location = gShaderUniformLocations[locationId - 1];
+    Emotion.gl.uniform1i(location, value);
+}
+
 function glUniformFloat(locationId, valuePtr) {
     const location = gShaderUniformLocations[locationId - 1];
     // struct BoxedFloat
@@ -420,9 +434,38 @@ function glUniformMatrix(locationId, valuePtr) {
 gFramebuffers = [];
 gFramebuffers[-1] = null;
 
+function glGenFramebuffers(count) {
+    const buffers = new Uint32Array(count);
+    for (let i = 0; i < count; i++) {
+        const newBuffer = Emotion.gl.createFramebuffer();
+        gFramebuffers.push(newBuffer);
+        buffers[i] = gFramebuffers.length;
+    }
+    return BINDING.js_typed_array_to_array(buffers);
+}
+
 function glBindFramebuffer(target, bufferId) {
     const frameBuffer = gFramebuffers[bufferId - 1];
     Emotion.gl.bindFramebuffer(target, frameBuffer);
+}
+
+function glFramebufferTexture2D(valuePtr, textureId) {
+    // struct IntegerVector4
+    const target = Blazor.platform.readInt32Field(valuePtr, 0);
+    const attachment = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const textarget = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const level = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    const texture = textureId < 0 ? null : gTextures[textureId - 1];
+    Emotion.gl.framebufferTexture2D(target, attachment, textarget, texture, level);
+}
+
+function glDrawBuffers(dataPtr, length) {
+    const data = new Uint32Array(wasmMemory.buffer, dataPtr, length);
+    Emotion.gl.drawBuffers(data);
+}
+
+function glCheckFramebufferStatus(target) {
+    return Emotion.gl.checkFramebufferStatus(target);
 }
 
 gVertexArrays = [];
@@ -469,4 +512,82 @@ function glDrawElements(valuePtr) {
 
 function glDrawArrays(mode, first, count) {
     Emotion.gl.drawArrays(mode, first, count);
+}
+
+gTextures = [];
+gTextures[-1] = null;
+
+function glGenTextures(count) {
+    const textures = new Uint32Array(count);
+    for (let i = 0; i < count; i++) {
+        const newBuffer = Emotion.gl.createTexture();
+        gTextures.push(newBuffer);
+        textures[i] = gTextures.length;
+    }
+    return BINDING.js_typed_array_to_array(textures);
+}
+
+function glBindTexture(target, textureId) {
+    const texture = textureId < 0 ? null : gTextures[textureId - 1];
+    Emotion.gl.bindTexture(target, texture);
+}
+
+function glActiveTexture(textureSlot) {
+    Emotion.gl.activeTexture(textureSlot);
+}
+
+function glUploadTexture2D(valuePtr) {
+    // TextureUploadArgs
+    const target = Blazor.platform.readInt32Field(valuePtr, 0);
+    const level = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const internalFormat = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const width = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    const height = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 4);
+    const border = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 5);
+    const format = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 6);
+    const type = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 7);
+
+    const pixelsPtr = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 8);
+    const pixelBufferLength = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 9);
+    const data = new Uint8Array(wasmMemory.buffer, pixelsPtr, pixelBufferLength);
+    Emotion.gl.texImage2D(target, level, internalFormat, width, height, border, format, type, data);
+}
+
+function glTextureParameteri(target, param, value) {
+    Emotion.gl.texParameteri(target, param, value);
+}
+
+gRenderbuffers = [];
+gRenderbuffers[-1] = null;
+
+function glGenRenderbuffers(count) {
+    const buffers = new Uint32Array(count);
+    for (let i = 0; i < count; i++) {
+        const newBuffer = Emotion.gl.createRenderbuffer();
+        gRenderbuffers.push(newBuffer);
+        buffers[i] = gRenderbuffers.length;
+    }
+    return BINDING.js_typed_array_to_array(buffers);
+}
+
+function glBindRenderbuffer(target, bufferId) {
+    const frameBuffer = gRenderbuffers[bufferId - 1];
+    Emotion.gl.bindRenderbuffer(target, frameBuffer);
+}
+
+function glRenderbufferStorage(valuePtr) {
+    // struct IntegerVector4
+    const target = Blazor.platform.readInt32Field(valuePtr, 0);
+    const format = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const width = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    const height = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    Emotion.gl.renderbufferStorage(target, format, width, height);
+}
+
+function glFramebufferRenderbuffer(valuePtr, renderbufferId) {
+    // struct IntegerVector4
+    const target = Blazor.platform.readInt32Field(valuePtr, 0);
+    const attachment = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
+    const renderbufferTarget = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
+    Emotion.gl.framebufferRenderbuffer(target, attachment, renderbufferTarget, gRenderbuffers[renderbufferId - 1]);
 }
