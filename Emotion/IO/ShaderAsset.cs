@@ -7,6 +7,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Shading;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 
 #endregion
 
@@ -57,6 +58,7 @@ namespace Emotion.IO
 
         #region Debug Shader Reload
 
+        private static string[] _excludedShaders = {"shaders/atlasblit.xml"};
         private static List<ShaderAsset> _activeShaderAssets;
 
         static ShaderAsset()
@@ -71,7 +73,7 @@ namespace Emotion.IO
 
                 for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)
                 {
-                    if (_activeShaderAssets[i].Disposed)
+                    if (_activeShaderAssets[i].Disposed || _excludedShaders.IndexOf(_activeShaderAssets[i].Name) != -1)
                         _activeShaderAssets.RemoveAt(i);
                     else
                         _activeShaderAssets[i].ReloadShader();
@@ -111,7 +113,7 @@ namespace Emotion.IO
 
             if (!string.IsNullOrEmpty(Content.Vert))
             {
-                vertShader = Engine.AssetLoader.Get<TextAsset>(Content.Vert);
+                vertShader = Engine.AssetLoader.Get<TextAsset>(Content.Vert, false);
                 if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Vert}. Using default.", MessageSource.AssetLoader);
             }
 
@@ -121,7 +123,7 @@ namespace Emotion.IO
 
             if (!string.IsNullOrEmpty(Content.Frag))
             {
-                fragShader = Engine.AssetLoader.Get<TextAsset>(Content.Frag);
+                fragShader = Engine.AssetLoader.Get<TextAsset>(Content.Frag, false);
                 if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {Content.Frag}. Using default.", MessageSource.AssetLoader);
             }
 
