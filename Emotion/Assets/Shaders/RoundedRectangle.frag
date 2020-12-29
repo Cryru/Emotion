@@ -34,7 +34,7 @@ void main()
     float mn = min(ratio.x, ratio.y) / 2.0;
     float radiusInRatio = min((RadiusPixels / RectSize.x) * ratio.x, mn);
     vec2 deflatedRect = ratio - vec2(radiusInRatio); // The rectangle without the radius.
-    vec2 left = vec2(deflatedRect.x, deflatedRect.y);
+    vec2 left = deflatedRect;
 
     // Four rounded corners
     float d = sdCircle(uv + left, radiusInRatio);
