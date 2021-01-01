@@ -719,6 +719,7 @@ namespace Emotion.Utility
         /// </summary>
         /// <param name="angle">Angle in degrees.</param>
         /// <returns>The degrees in radians.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DegreesToRadians(float angle)
         {
             // Divide Pi by 180 and multiply by the angle, round up to two decimals.
@@ -730,6 +731,7 @@ namespace Emotion.Utility
         /// </summary>
         /// <param name="radian">Angle in radians.</param>
         /// <returns>The radians in degrees</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RadiansToDegrees(float radian)
         {
             // Divide 180 by Pi and multiply by the radians. Convert to an integer.
@@ -739,9 +741,22 @@ namespace Emotion.Utility
         /// <summary>
         /// Used for getting unique hash codes.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetCantorPair(int x, int y)
         {
             return (x + y) * (x + y + 1) / 2 + y;
+        }
+
+        /// <summary>
+        /// Get the odd number nearest to the provided number.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetNearestOddNumber(float n)
+        {
+            if (n % 2 == 0) return n + 1;
+            return n;
         }
     }
 }
