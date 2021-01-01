@@ -1,4 +1,6 @@
-﻿#pragma warning disable 1591 // No need to document enum members here
+﻿using System;
+
+#pragma warning disable 1591 // No need to document enum members here
 namespace Emotion.Platform.Input
 {
     /// <summary>
@@ -13,6 +15,7 @@ namespace Emotion.Platform.Input
     /// - Keys that lack a clear US mapping are named "WORLD_x"
     /// - For non-printable keys, custom names are used (e.g. "F4", "BACKSPACE", etc.)
     /// </summary>
+    [Flags]
     public enum Key : short
     {
         Unknown = -1,
@@ -145,6 +148,9 @@ namespace Emotion.Platform.Input
         Menu = 348, // Windows key
 
 
-        Last = 349
+        Last = 349,
+
+        AxisArrowKeys = 350,
+        AxisWASD = 351
     }
 }

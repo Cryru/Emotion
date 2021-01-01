@@ -98,5 +98,19 @@ namespace Emotion.Platform
         /// </summary>
         /// <param name="key">The key code to check.</param>
         bool IsKeyUp(Key key);
+
+        /// <summary>
+        /// Returns the input value of the specified axis or axes.
+        /// The keys are considered only if held.
+        /// </summary>
+        /// <param name="axis">The axis to get the value of.</param>
+        Vector2 GetAxisHeld(Key axis);
+
+        /// <summary>
+        /// Returns the input value of the specified axis or axes.
+        /// The keys are considered only if they were just pressed down.
+        /// </summary>
+        /// <param name="axis">The axis to get the value of.</param>
+        Vector2 GetAxisDown(Key axis);
     }
 }
