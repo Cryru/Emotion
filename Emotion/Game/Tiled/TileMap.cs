@@ -27,7 +27,147 @@ using Emotion.Utility;
 
 namespace Emotion.Game.Tiled
 {
-    public class TileMap<T> : TransformRenderable, IDisposable where T : TransformRenderable
+    public class TileMap<T> : TileMap where T : TransformRenderable
+    {
+        /// <summary>
+        /// Holds the objects created by the object factory (if any).
+        /// </summary>
+        public QuadTree<T> Objects { get; protected set; } = new QuadTree<T>(Rectangle.Empty);
+
+        /// <summary>
+        /// Reusable memory for querying the quad tree.
+        /// </summary>
+        protected List<T> _quadTreeQueryMemory = new List<T>();
+
+        public TileMap(TextAsset? mapFile) : base(mapFile)
+        {
+        }
+
+        public TileMap(string? mapPath) : base(mapPath)
+        {
+        }
+
+        protected void CreateObjectInternal(TmxObject objDef, int layerId)
+        {
+            TextureAsset? asset = null;
+            Rectangle? uv = null;
+            if (objDef.Gid != null)
+            {
+                uv = GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
+                if (tsId >= 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
+            }
+
+            T? factoryObject = CreateObject(objDef, asset, uv, layerId);
+            if (factoryObject != null) Objects.Add(factoryObject);
+        }
+
+        protected override void MapPostLoad()
+        {
+            Objects.Reset(new Rectangle(0, 0, WorldSize));
+
+            // Construct all objects.
+            if (TiledMap!.ObjectLayers.Count > 0)
+            {
+                // For each layer with objects.
+                for (var i = 0; i < TiledMap.ObjectLayers.Count; i++)
+                {
+                    // For each object.
+                    for (var j = 0; j < TiledMap.ObjectLayers[i].Objects.Count; j++)
+                    {
+                        TmxObject objDef = TiledMap.ObjectLayers[i].Objects[j];
+                        CreateObjectInternal(objDef, i);
+                    }
+                }
+            }
+
+            // Construct all objects associated with tiles. These are usually collisions.
+            for (var i = 0; i < TiledMap.TileLayers.Count; i++)
+            {
+                TmxLayer layer = TiledMap.TileLayers[i];
+                for (var t = 0; t < layer.Tiles.Count; t++)
+                {
+                    TmxLayerTile tile = layer.Tiles[t];
+                    int tId = tile.Gid;
+                    if (tId == 0) continue; // Quick out for empty tiles.
+
+                    int tsId = GetTilesetIdFromTid(tId, out int tsOffset);
+                    TmxTileset ts = TiledMap.Tilesets[tsId];
+                    TmxTilesetTile? tileData = ts?.Tiles.GetValueOrDefault(tsOffset);
+                    if (tileData?.ObjectGroups == null) continue;
+                    foreach (TmxObjectLayer groups in tileData.ObjectGroups)
+                    {
+                        for (var o = 0; o < groups.Objects.Count; o++)
+                        {
+                            TmxObject obj = groups.Objects[o];
+                            if (string.IsNullOrEmpty(obj.Type)) obj.Type = "TileObject";
+                            // Patch in position of the current tile.
+                            Vector2 coord = GetTile2DFromTile1D(t, i);
+                            TmxObject clone = obj.Clone(); // Don't pollute obj def
+                            clone.X = obj.X + layer.OffsetX + coord.X * TiledMap.TileWidth;
+                            clone.Y = obj.Y + layer.OffsetY + coord.Y * TiledMap.TileHeight;
+                            CreateObjectInternal(clone, i);
+                        }
+                    }
+                }
+            }
+
+            base.MapPostLoad();
+        }
+
+        protected virtual void QueryObjectsToRender(List<T>? memory = null)
+        {
+            memory ??= _quadTreeQueryMemory;
+            memory.Clear();
+            Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
+            Objects.GetObjects(clipRect, ref memory);
+            memory.Sort(ObjectSort);
+        }
+
+        /// <summary>
+        /// Render all objects within the clip rect.
+        /// </summary>
+        public void RenderObjects(RenderComposer composer)
+        {
+            // Check if anything is loaded.
+            QueryObjectsToRender();
+            PerfProfiler.FrameEventStart("TileMap: Objects");
+            for (var i = 0; i < _quadTreeQueryMemory.Count; i++)
+            {
+                _quadTreeQueryMemory[i].Render(composer);
+            }
+
+            PerfProfiler.FrameEventEnd("TileMap: Objects");
+        }
+
+        /// <inheritdoc />
+        public override void Render(RenderComposer composer)
+        {
+            base.Render(composer);
+            RenderObjects(composer);
+        }
+
+        protected override void MapUnloading()
+        {
+            Objects.Reset(Rectangle.Empty);
+            base.MapUnloading();
+        }
+
+        #region Interface
+
+        protected virtual T? CreateObject(TmxObject objDef, TextureAsset? image, Rectangle? uv, int layerId)
+        {
+            return null;
+        }
+
+        protected virtual int ObjectSort(T x, T y)
+        {
+            return MathF.Sign(x.Position.Z - y.Position.Z);
+        }
+
+        #endregion
+    }
+
+    public class TileMap : TransformRenderable, IDisposable
     {
         #region Properties
 
@@ -76,11 +216,6 @@ namespace Emotion.Game.Tiled
             get => TiledMap == null ? Vector2.Zero : new Vector2(TiledMap.Width * TiledMap.TileWidth, TiledMap.Height * TiledMap.TileHeight);
         }
 
-        /// <summary>
-        /// Holds the objects created by the object factory (if any).
-        /// </summary>
-        public QuadTree<T> Objects { get; protected set; } = new QuadTree<T>(Rectangle.Empty);
-
         #endregion
 
         /// <summary>
@@ -108,10 +243,6 @@ namespace Emotion.Game.Tiled
         /// </summary>
         protected Texture[]?[]? _cachedTileTextures;
 
-        /// <summary>
-        /// Reusable memory for querying the quad tree.
-        /// </summary>
-        protected List<T> _quadTreeQueryMemory = new List<T>();
 
         // Terminology
         //
@@ -258,54 +389,6 @@ namespace Emotion.Game.Tiled
             // Find animated tiles.
             CacheTilesetData();
 
-            // Construct all objects.
-            if (TiledMap.ObjectLayers.Count > 0)
-            {
-                Objects.Reset(new Rectangle(0, 0, WorldSize));
-
-                // For each layer with objects.
-                for (var i = 0; i < TiledMap.ObjectLayers.Count; i++)
-                {
-                    // For each object.
-                    for (var j = 0; j < TiledMap.ObjectLayers[i].Objects.Count; j++)
-                    {
-                        TmxObject objDef = TiledMap.ObjectLayers[i].Objects[j];
-                        CreateObjectInternal(objDef, i);
-                    }
-                }
-            }
-
-            // Construct all objects associated with tiles. These are usually collisions.
-            for (var i = 0; i < TiledMap.TileLayers.Count; i++)
-            {
-                TmxLayer layer = TiledMap.TileLayers[i];
-                for (var t = 0; t < layer.Tiles.Count; t++)
-                {
-                    TmxLayerTile tile = layer.Tiles[t];
-                    int tId = tile.Gid;
-                    if (tId == 0) continue; // Quick out for empty tiles.
-
-                    int tsId = GetTilesetIdFromTid(tId, out int tsOffset);
-                    TmxTileset ts = TiledMap.Tilesets[tsId];
-                    TmxTilesetTile? tileData = ts?.Tiles.GetValueOrDefault(tsOffset);
-                    if (tileData?.ObjectGroups == null) continue;
-                    foreach (TmxObjectLayer groups in tileData.ObjectGroups)
-                    {
-                        for (var o = 0; o < groups.Objects.Count; o++)
-                        {
-                            TmxObject obj = groups.Objects[o];
-                            if (string.IsNullOrEmpty(obj.Type)) obj.Type = "TileObject";
-                            // Patch in position of the current tile.
-                            Vector2 coord = GetTile2DFromTile1D(t, i);
-                            TmxObject clone = obj.Clone(); // Don't pollute obj def
-                            clone.X = obj.X + layer.OffsetX + coord.X * TiledMap.TileWidth;
-                            clone.Y = obj.Y + layer.OffsetY + coord.Y * TiledMap.TileHeight;
-                            CreateObjectInternal(clone, i);
-                        }
-                    }
-                }
-            }
-
             // Construct render cache.
             _cachedTileRenderData = null;
             _cachedTileTextures = null;
@@ -406,7 +489,6 @@ namespace Emotion.Game.Tiled
         public override void Render(RenderComposer composer)
         {
             RenderTileLayerRange(composer, 0, -1, true);
-            RenderObjects(composer);
         }
 
         /// <summary>
@@ -465,28 +547,6 @@ namespace Emotion.Game.Tiled
             }
         }
 
-        public void RenderObjects(RenderComposer composer)
-        {
-            // Check if anything is loaded.
-            QueryObjectsToRender();
-            PerfProfiler.FrameEventStart("TileMap: Objects");
-            for (var i = 0; i < _quadTreeQueryMemory.Count; i++)
-            {
-                _quadTreeQueryMemory[i].Render(composer);
-            }
-
-            PerfProfiler.FrameEventEnd("TileMap: Objects");
-        }
-
-        protected virtual void QueryObjectsToRender(List<T>? memory = null)
-        {
-            memory ??= _quadTreeQueryMemory;
-            memory.Clear();
-            Rectangle clipRect = Clip ?? Engine.Renderer.Camera.GetWorldBoundingRect();
-            Objects.GetObjects(clipRect, ref memory);
-            memory.Sort(ObjectSort);
-        }
-
         #endregion
 
         #region Animated Tiles
@@ -529,20 +589,6 @@ namespace Emotion.Game.Tiled
         #endregion
 
         #region Internal API
-
-        protected void CreateObjectInternal(TmxObject objDef, int layerId)
-        {
-            TextureAsset? asset = null;
-            Rectangle? uv = null;
-            if (objDef.Gid != null)
-            {
-                uv = GetUvFromTileImageId(objDef.Gid.Value, out int tsId);
-                if (tsId >= 0 && tsId < Tilesets.Count) asset = Tilesets[tsId];
-            }
-
-            T? factoryObject = CreateObject(objDef, asset, uv, layerId);
-            if (factoryObject != null) Objects.Add(factoryObject);
-        }
 
         /// <summary>
         /// Converts the two dimensional tile coordinate to a one dimensional one.
@@ -781,11 +827,6 @@ namespace Emotion.Game.Tiled
 
         #region Override Interface
 
-        protected virtual T? CreateObject(TmxObject objDef, TextureAsset? image, Rectangle? uv, int layerId)
-        {
-            return null;
-        }
-
         protected virtual float CalculateZOrder(Vector2 tileWorldPos, Vector2 tileWorldSize, Vector2 tileCoordinate, int layerIdx, int imageId, int tilesetId)
         {
             return 0;
@@ -799,19 +840,12 @@ namespace Emotion.Game.Tiled
         {
         }
 
-        protected virtual int ObjectSort(T x, T y)
-        {
-            return MathF.Sign(x.Position.Z - y.Position.Z);
-        }
-
         /// <summary>
         /// Called when the map is reloaded or disposed of.
         /// Internal resources will be cleared separately.
         /// </summary>
         protected virtual void MapUnloading()
         {
-            Objects.Reset(Rectangle.Empty);
-
             // Dispose of tilesets. The tile map always assumed it owns the textures it loaded.
             foreach (TextureAsset? tileset in Tilesets)
             {
