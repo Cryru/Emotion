@@ -150,7 +150,8 @@ namespace Emotion.Game.Animation
             {
                 Animations = Animations,
                 AnimTex = AnimTex.Copy(),
-                CurrentAnimation = CurrentAnimation
+                CurrentAnimation = CurrentAnimation,
+                MirrorXAnchors = MirrorXAnchors
             };
         }
     }
