@@ -1,14 +1,10 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Graphics.Objects;
-using Emotion.Primitives;
-using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -71,14 +67,9 @@ namespace Emotion.Graphics.Batches
 
         #region Texturing
 
-        protected static bool _textureAtlas = true;
-        protected static Vector2 _maxTextureBatchSize = new Vector2(1000);
-        protected static Vector2 _atlasTextureSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing in some cases or something.
         protected uint _currentTexture;
-        protected TextureAtlasBinningState _atlasState;
-        protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
-        protected ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
-        protected TextureMapping _lastTextureMapping;
+        protected static bool _textureAtlas = true;
+        protected TextureAtlas _atlas;
 
         #endregion
 
@@ -107,8 +98,8 @@ namespace Emotion.Graphics.Batches
             });
 
             if (!_textureAtlas) return;
-            _atlasState = new TextureAtlasBinningState(_atlasTextureSize);
-            _currentTexture = _atlasState.AtlasPointer;
+            _atlas = new TextureAtlas();
+            _currentTexture = _atlas.AtlasPointer;
         }
 
         public StreamData GetStreamMemory(uint structCount, uint indexCount, BatchMode batchMode, Texture texture = null)
@@ -120,28 +111,8 @@ namespace Emotion.Graphics.Batches
             uint texturePointer = texture.Pointer;
 
             // Texture atlas logic
-            bool batchableTexture = _textureAtlas;
-            {
-                // ReSharper disable once ReplaceWithSingleAssignment.True
-
-                // Don't store frame buffer textures.
-                if (texture is FrameBufferTexture) batchableTexture = false;
-
-                // Texture too large to atlas.
-                if (texture.Size.X > _maxTextureBatchSize.X || texture.Size.Y > _maxTextureBatchSize.Y) batchableTexture = false;
-
-                // Don't batch "no" texture. Those UVs are used for effects.
-                if (texture == Texture.NoTexture) batchableTexture = false;
-
-                // Don't batch tiled or smoothed textures.
-                if (texture.Tile || texture.Smooth) batchableTexture = false;
-
-                // Check if the texture can be stored in the atlas.
-                batchableTexture = batchableTexture && _atlasState.StoreTexture(texture);
-
-                // If batching set the current texture to the atlas.
-                if (batchableTexture) texturePointer = _atlasState.AtlasPointer;
-            }
+            bool batchedTexture = _atlas != null && _atlas.TryBatchTexture(texture);
+            if (batchedTexture) texturePointer = _atlas.AtlasPointer;
 
             // If the texture is changing, flush old data.
             if (texturePointer != _currentTexture)
@@ -220,25 +191,11 @@ namespace Emotion.Graphics.Batches
 
             // If using the texture atlas, record the mapping.
             // This needs to happen after any potential flushes.
-            if (batchableTexture)
+            if (batchedTexture)
             {
                 var structsMappedInCurrentMapping = (int) (vOffset / _structByteSize);
                 var upToStructNow = (int) (structsMappedInCurrentMapping + structCount);
-
-                // Increase the up to struct of the last mapping instead of adding a new one, if possible.
-                if (_lastTextureMapping != null && _lastTextureMapping.Texture == texture)
-                {
-                    _lastTextureMapping.UpToStruct = upToStructNow;
-                }
-                else
-                {
-                    TextureMapping textureMapping = _textureMappingPool.Get();
-                    textureMapping.UpToStruct = upToStructNow;
-                    textureMapping.Texture = texture;
-
-                    _atlasTextureRange.Enqueue(textureMapping);
-                    _lastTextureMapping = textureMapping;
-                }
+                _atlas.RecordTextureMapping(texture, upToStructNow);
             }
 
             return new StreamData
@@ -261,57 +218,7 @@ namespace Emotion.Graphics.Batches
             PerfProfiler.FrameEventStart($"Stream Render {mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
 
             // Remap UVs to be within the atlas, if using the atlas.
-            if (_currentTexture == _atlasState?.AtlasPointer)
-            {
-                PerfProfiler.FrameEventStart("Remapping UVs to Atlas");
-
-                Debug.Assert(_atlasTextureRange.Count > 0);
-#if DEBUG
-
-                var totalStructs = 0;
-                int count = _atlasTextureRange.Count;
-                var currentIdx = 0;
-                foreach (TextureMapping mappingRange in _atlasTextureRange)
-                {
-                    currentIdx++;
-                    if (currentIdx == count) totalStructs = mappingRange.UpToStruct;
-                }
-
-                Debug.Assert(totalStructs == mappedBytes / _structByteSize);
-
-#endif
-
-                int uvOffsetIntoStruct = _memory.CurrentBuffer.VAO.UVByteOffset;
-                var dataPtr = (byte*) _dataPointer;
-                var reader = 0;
-                var structIdx = 0;
-                TextureMapping textureMapping = _atlasTextureRange.Dequeue();
-                Rectangle textureMinMax = _atlasState.GetTextureUVMinMax(textureMapping.Texture);
-
-                Debug.Assert(textureMapping.UpToStruct <= mappedBytes / _structByteSize);
-
-                while (reader < mappedBytes)
-                {
-                    var targetPtr = (Vector2*) (dataPtr + reader + uvOffsetIntoStruct);
-
-                    if (structIdx >= textureMapping.UpToStruct)
-                    {
-                        Debug.Assert(_atlasTextureRange.Count > 0);
-                        _textureMappingPool.Return(textureMapping);
-                        textureMapping = _atlasTextureRange.Dequeue();
-                        textureMinMax = _atlasState.GetTextureUVMinMax(textureMapping.Texture);
-                    }
-
-                    targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
-                    targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y); // Since the atlas is flipped, we need to flip the Y UV.
-
-                    reader += (int) _structByteSize;
-                    structIdx++;
-                }
-
-                _textureMappingPool.Return(textureMapping);
-                PerfProfiler.FrameEventEnd("Remapping UVs to Atlas");
-            }
+            if (_currentTexture == _atlas?.AtlasPointer) _atlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
 
             // Range is relative to the mapped range, not the whole buffer.
             _memory.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytes);
@@ -358,15 +265,12 @@ namespace Emotion.Graphics.Batches
             _indexPointer = IntPtr.Zero;
             _mapOffsetStart = 0;
             _indexMapOffsetStart = 0;
-            _atlasTextureRange.Clear();
-            _lastTextureMapping = null;
+            _atlas.ResetMapping();
         }
 
         public void DoTasks(RenderComposer c)
         {
-            if (_atlasState == null) return;
-            _atlasState.UpdateTextureUsage();
-            _atlasState.UpdateTextureAtlas(c);
+            _atlas?.Update(c);
         }
 
         #region Helpers and Overloads
