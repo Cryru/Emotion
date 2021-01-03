@@ -161,6 +161,7 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.MBUTTONUP:
                 case WM.XBUTTONUP:
 
+                    ushort keySpecifier = NativeHelpers.HiWord((ulong) wParam);
                     var mouseKey = MouseKey.Unknown;
                     var buttonDown = false;
                     mouseKey = msg switch
@@ -171,6 +172,11 @@ namespace Emotion.Platform.Implementation.Win32
                         WM.RBUTTONUP => MouseKey.Right,
                         WM.MBUTTONDOWN => MouseKey.Middle,
                         WM.MBUTTONUP => MouseKey.Middle,
+                        WM.XBUTTONDOWN when keySpecifier == 1 => MouseKey.Key4,
+                        WM.XBUTTONUP when keySpecifier == 1 => MouseKey.Key4,
+                        WM.XBUTTONDOWN when keySpecifier == 2 => MouseKey.Key5,
+                        WM.XBUTTONUP when keySpecifier == 2 => MouseKey.Key5,
+
                         _ => mouseKey
                     };
 
@@ -195,9 +201,6 @@ namespace Emotion.Platform.Implementation.Win32
                     }
 
                     if (nonePressed) User32.ReleaseCapture();
-
-                    if (msg == WM.XBUTTONDOWN || msg == WM.XBUTTONUP)
-                        return (IntPtr) 1;
 
                     return IntPtr.Zero;
 

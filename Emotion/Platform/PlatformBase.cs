@@ -629,17 +629,10 @@ namespace Emotion.Platform
         {
             var value = new Vector2();
 
-            if (axis.HasFlag(Key.AxisArrowKeys))
-            {
-                value.X = (IsKeyHeld(Key.Right) ? 1 : 0) - (IsKeyHeld(Key.Left) ? 1 : 0);
-                value.Y = (IsKeyHeld(Key.Down) ? 1 : 0) - (IsKeyHeld(Key.Up) ? 1 : 0);
-            }
-
-            if (axis.HasFlag(Key.AxisWASD))
-            {
-                value.X = value.X == 0 ? ((IsKeyHeld(Key.D) ? 1 : 0) - (IsKeyHeld(Key.A) ? 1 : 0)) : value.X;
-                value.Y = value.Y == 0 ? ((IsKeyHeld(Key.S) ? 1 : 0) - (IsKeyHeld(Key.W) ? 1 : 0)) : value.Y;
-            }
+            if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyHeld(Key.Down) ? 1 : 0) - (IsKeyHeld(Key.Up) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyHeld(Key.Right) ? 1 : 0) - (IsKeyHeld(Key.Left) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyHeld(Key.S) ? 1 : 0) - (IsKeyHeld(Key.W) ? 1 : 0) : value.Y;
+            if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyHeld(Key.D) ? 1 : 0) - (IsKeyHeld(Key.A) ? 1 : 0) : value.X;
 
             return value;
         }
@@ -649,17 +642,10 @@ namespace Emotion.Platform
         {
             var value = new Vector2();
 
-            if (axis.HasFlag(Key.AxisArrowKeys))
-            {
-                value.X = (IsKeyDown(Key.Right) ? 1 : 0) - (IsKeyDown(Key.Left) ? 1 : 0);
-                value.Y = (IsKeyDown(Key.Down) ? 1 : 0) - (IsKeyDown(Key.Up) ? 1 : 0);
-            }
-
-            if (axis.HasFlag(Key.AxisWASD))
-            {
-                value.X = value.X == 0 ? ((IsKeyDown(Key.D) ? 1 : 0) - (IsKeyDown(Key.A) ? 1 : 0)) : value.X;
-                value.Y = value.Y == 0 ? ((IsKeyDown(Key.S) ? 1 : 0) - (IsKeyDown(Key.W) ? 1 : 0)) : value.Y;
-            }
+            if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyDown(Key.Down) ? 1 : 0) - (IsKeyDown(Key.Up) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyDown(Key.Right) ? 1 : 0) - (IsKeyDown(Key.Left) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyDown(Key.S) ? 1 : 0) - (IsKeyDown(Key.W) ? 1 : 0) : value.Y;
+            if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyDown(Key.D) ? 1 : 0) - (IsKeyDown(Key.A) ? 1 : 0) : value.X;
 
             return value;
         }

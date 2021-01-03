@@ -147,10 +147,55 @@ namespace Emotion.Platform.Input
         RightSuper = 347,
         Menu = 348, // Windows key
 
-
         Last = 349,
 
-        AxisArrowKeys = 350,
-        AxisWASD = 351
+        // Non keyboard keys, these go after the last so that keyboard iteration over key codes can be maintained.
+
+        // Mouse
+        MouseKeyStart = 350,
+        MouseKeyLeft = 351,
+        MouseKeyRight = 352,
+        MouseKeyMiddle = 353,
+        MouseKey4 = 354,
+        MouseKey5 = 355,
+        MouseKeyEnd = 356,
+
+        // XInput Gamepad
+        GamepadStart = 357,
+        GamepadY = 358,
+        GamepadB = 359,
+        GamepadA = 360,
+        GamepadX = 361,
+        GamepadStartButton = 362,
+        GamepadSelect = 363,
+        GamepadSpecial = 364,
+        GamepadL1 = 365,
+        GamepadL2Button = 366,
+        GamepadR1 = 367,
+        GamepadR2Button = 368,
+        GamepadDPadUp = 369,
+        GamepadDPadRight = 370,
+        GamepadDPadDown = 371,
+        GamepadDPadLeft = 372,
+        GamepadL3 = 373,
+        GamepadR3 = 374,
+
+        GamepadDPadAxis = 375,
+        GamepadLeftAxis = 376,
+        GamepadRightAxis = 377,
+        GamepadL2Axis = 378,
+        GamepadR2Axis = 379,
+        GamepadEnd = 380,
+
+        // Axes (These will be ORed so they need to be powers of two)
+        AxisLeftRight = 512,
+        AxisUpDown = 1024,
+        
+        AxisAD = 2048,
+        AxisWS = 4096,
+
+        AxisArrowKeys = AxisLeftRight | AxisUpDown,
+        AxisWASD = AxisAD | AxisWS,
+        AxisPCMovement = AxisWASD | AxisArrowKeys,
     }
 }
