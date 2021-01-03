@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Emotion.Utility;
 
@@ -371,6 +372,20 @@ namespace Emotion.Utility
             T temp = array[idx];
             array[idx] = array[withIdx];
             array[withIdx] = temp;
+        }
+
+        /// <summary>
+        /// Get all enum flags.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> GetEnumFlags<T>(this Enum flags) where T : Enum
+        {
+            foreach (Enum value in Enum.GetValues(flags.GetType()))
+            {
+                if (flags.HasFlag(value)) yield return (T)value;
+            }
         }
     }
 }
