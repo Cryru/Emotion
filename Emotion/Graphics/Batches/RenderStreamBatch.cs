@@ -134,7 +134,7 @@ namespace Emotion.Graphics.Batches
                 if (texture == Texture.NoTexture) batchableTexture = false;
 
                 // Don't batch tiled or smoothed textures.
-                if (texture.Tile) batchableTexture = false;
+                if (texture.Tile || texture.Smooth) batchableTexture = false;
 
                 // Check if the texture can be stored in the atlas.
                 batchableTexture = batchableTexture && _atlasState.StoreTexture(texture);
