@@ -68,12 +68,12 @@ namespace Emotion.Graphics.Batches
         #region Texturing
 
         protected uint _currentTexture;
-        protected static bool _textureAtlas = true;
         protected TextureAtlas _atlas;
+        protected TextureAtlas _smoothAtlas;
 
         #endregion
 
-        public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3)
+        public RenderStreamBatch(uint sizeStructs = 0, int bufferCount = 3, bool useAtlas = true)
         {
             _structType = typeof(T);
             _structByteSize = (uint) Marshal.SizeOf<T>();
@@ -97,8 +97,9 @@ namespace Emotion.Graphics.Batches
                 return new FencedBufferObjects(ibo, null);
             });
 
-            if (!_textureAtlas) return;
+            if (!useAtlas) return;
             _atlas = new TextureAtlas();
+            _smoothAtlas = new TextureAtlas(true);
             _currentTexture = _atlas.AtlasPointer;
         }
 
@@ -111,8 +112,14 @@ namespace Emotion.Graphics.Batches
             uint texturePointer = texture.Pointer;
 
             // Texture atlas logic
-            bool batchedTexture = _atlas != null && _atlas.TryBatchTexture(texture);
-            if (batchedTexture) texturePointer = _atlas.AtlasPointer;
+            bool batchedTexture = _atlas != null;
+            if (batchedTexture)
+            {
+                if (texture.Smooth && _smoothAtlas.TryBatchTexture(texture))
+                    texturePointer = _smoothAtlas.AtlasPointer;
+                else if (!texture.Smooth && _atlas.TryBatchTexture(texture))
+                    texturePointer = _atlas.AtlasPointer;
+            }
 
             // If the texture is changing, flush old data.
             if (texturePointer != _currentTexture)
@@ -195,7 +202,8 @@ namespace Emotion.Graphics.Batches
             {
                 var structsMappedInCurrentMapping = (int) (vOffset / _structByteSize);
                 var upToStructNow = (int) (structsMappedInCurrentMapping + structCount);
-                _atlas.RecordTextureMapping(texture, upToStructNow);
+                if (_currentTexture == _atlas.AtlasPointer) _atlas.RecordTextureMapping(texture, upToStructNow);
+                else if (_currentTexture == _smoothAtlas.AtlasPointer) _smoothAtlas.RecordTextureMapping(texture, upToStructNow);
             }
 
             return new StreamData
@@ -219,6 +227,7 @@ namespace Emotion.Graphics.Batches
 
             // Remap UVs to be within the atlas, if using the atlas.
             if (_currentTexture == _atlas?.AtlasPointer) _atlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
+            else if (_currentTexture == _smoothAtlas?.AtlasPointer) _smoothAtlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
 
             // Range is relative to the mapped range, not the whole buffer.
             _memory.CurrentBuffer.DataBuffer.FinishMappingRange(0, mappedBytes);
@@ -266,11 +275,13 @@ namespace Emotion.Graphics.Batches
             _mapOffsetStart = 0;
             _indexMapOffsetStart = 0;
             _atlas.ResetMapping();
+            _smoothAtlas.ResetMapping();
         }
 
         public void DoTasks(RenderComposer c)
         {
             _atlas?.Update(c);
+            _smoothAtlas?.Update(c);
         }
 
         #region Helpers and Overloads
