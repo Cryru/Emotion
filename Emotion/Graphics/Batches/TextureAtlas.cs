@@ -52,13 +52,14 @@ namespace Emotion.Graphics.Batches
         protected bool _firstDraw; // Used to track fbo clearing.
         protected int _textureActivityFrames;
 
-        protected static Vector2 _maxTextureBatchSize = new Vector2(1000); // Maybe % based of atlas size?
+        protected static Vector2 _maxTextureBatchSize = new Vector2(1024); // Maybe % based of atlas size?
         protected static Vector2 _atlasTextureSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing in some cases or something.
         protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
-        protected ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
         protected TextureMapping _lastTextureMapping;
 
-        public TextureAtlas() : base(_atlasTextureSize)
+        protected static ObjectPool<TextureMapping> _textureMappingPool = new ObjectPool<TextureMapping>();
+
+        public TextureAtlas(bool smooth = false) : base(_atlasTextureSize)
         {
             _vbo = new VertexBuffer((uint) (VertexData.SizeInBytes * 4), BufferUsage.StaticDraw);
             _vboLocal = new VertexData[4];
@@ -70,6 +71,8 @@ namespace Emotion.Graphics.Batches
             _fbo = new FrameBuffer(_atlasTextureSize).WithColor();
             _fbo.CheckErrors();
             _firstDraw = true;
+
+            if (smooth) _fbo.Texture.Smooth = true;
 
             _atlasFillState = RenderState.Default.Clone();
             _atlasFillState.AlphaBlending = false;
@@ -97,7 +100,7 @@ namespace Emotion.Graphics.Batches
             if (texture == Texture.NoTexture) return false;
 
             // Don't batch tiled or smoothed textures (unless the atlas is smooth).
-            if (texture.Tile || texture.Smooth) return false;
+            if (texture.Tile || texture.Smooth != _fbo.Texture.Smooth) return false;
 
             // If the texture is in the batch, return it as such only if it was drawn to the internal texture (which means it's usable).
             if (_textureToOffset.ContainsKey(texture)) return !_textureNeedDraw[texture];
@@ -189,7 +192,7 @@ namespace Emotion.Graphics.Batches
                     textureMinMax = GetTextureUVMinMax(textureMapping.Texture);
                 }
 
-                targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
+                targetPtr->X = textureMinMax.X + (textureMinMax.Width - textureMinMax.X) * targetPtr->X;// Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
                 targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y); // Since the atlas is flipped, we need to flip the Y UV.
 
                 reader += (int) structByteSize;
