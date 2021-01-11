@@ -31,8 +31,11 @@ function onMouseDown(e) {
         button = 1; // Left
     else if (button === 1)
         button = 3; // Middle
+    else if (button === 3)
+        button = 5; // Key 5
     Emotion.webHost.invokeMethodAsync("MouseKeyDown", button);
     e.stopPropagation();
+    e.preventDefault();
 }
 
 function onMouseUp(e) {
@@ -41,9 +44,14 @@ function onMouseUp(e) {
         button = 1; // Left
     else if (button === 1)
         button = 3; // Middle
+    else if (button === 3)
+        button = 5; // Key 5
     Emotion.webHost.invokeMethodAsync("MouseKeyUp", button);
     e.stopPropagation();
+    e.preventDefault();
 }
+
+document.addEventListener('contextmenu', e => e.preventDefault());
 
 gMousePos = [0, 0];
 function onMouseMove(e) {

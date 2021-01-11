@@ -162,20 +162,20 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.XBUTTONUP:
 
                     ushort keySpecifier = NativeHelpers.HiWord((ulong) wParam);
-                    var mouseKey = MouseKey.Unknown;
+                    var mouseKey = Key.Unknown;
                     var buttonDown = false;
                     mouseKey = msg switch
                     {
-                        WM.LBUTTONDOWN => MouseKey.Left,
-                        WM.LBUTTONUP => MouseKey.Left,
-                        WM.RBUTTONDOWN => MouseKey.Right,
-                        WM.RBUTTONUP => MouseKey.Right,
-                        WM.MBUTTONDOWN => MouseKey.Middle,
-                        WM.MBUTTONUP => MouseKey.Middle,
-                        WM.XBUTTONDOWN when keySpecifier == 1 => MouseKey.Key4,
-                        WM.XBUTTONUP when keySpecifier == 1 => MouseKey.Key4,
-                        WM.XBUTTONDOWN when keySpecifier == 2 => MouseKey.Key5,
-                        WM.XBUTTONUP when keySpecifier == 2 => MouseKey.Key5,
+                        WM.LBUTTONDOWN => Key.MouseKeyLeft,
+                        WM.LBUTTONUP => Key.MouseKeyLeft,
+                        WM.RBUTTONDOWN => Key.MouseKeyRight,
+                        WM.RBUTTONUP => Key.MouseKeyRight,
+                        WM.MBUTTONDOWN => Key.MouseKeyMiddle,
+                        WM.MBUTTONUP => Key.MouseKeyMiddle,
+                        WM.XBUTTONDOWN when keySpecifier == 1 => Key.MouseKey4,
+                        WM.XBUTTONUP when keySpecifier == 1 => Key.MouseKey4,
+                        WM.XBUTTONDOWN when keySpecifier == 2 => Key.MouseKey5,
+                        WM.XBUTTONUP when keySpecifier == 2 => Key.MouseKey5,
 
                         _ => mouseKey
                     };
@@ -185,19 +185,23 @@ namespace Emotion.Platform.Implementation.Win32
                         buttonDown = true;
 
                     var nonePressed = true;
-                    foreach (bool keyDown in _mouseKeys)
+                    for (int i = (int) Key.MouseKeyStart + 1; i < (int) Key.MouseKeyEnd; i++)
                     {
-                        if (keyDown) nonePressed = false;
+                        if (!_keys[i]) continue;
+                        nonePressed = false;
+                        break;
                     }
 
                     if (nonePressed) User32.SetCapture(_windowHandle);
 
-                    UpdateMouseKeyStatus(mouseKey, buttonDown);
+                    UpdateKeyStatus(mouseKey, buttonDown);
 
                     nonePressed = true;
-                    foreach (bool keyDown in _mouseKeys)
+                    for (int i = (int) Key.MouseKeyStart + 1; i < (int) Key.MouseKeyEnd; i++)
                     {
-                        if (keyDown) nonePressed = false;
+                        if (!_keys[i]) continue;
+                        nonePressed = false;
+                        break;
                     }
 
                     if (nonePressed) User32.ReleaseCapture();

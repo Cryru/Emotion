@@ -122,13 +122,13 @@ namespace Emotion.Web.Platform
         [JSInvokable]
         public void MouseKeyDown(int keyCode)
         {
-            UpdateMouseKeyStatus((MouseKey) keyCode, true);
+            UpdateKeyStatus((Key) keyCode + (int) Key.MouseKeyStart, true);
         }
 
         [JSInvokable]
         public void MouseKeyUp(int keyCode)
         {
-            UpdateMouseKeyStatus((MouseKey) keyCode, false);
+            UpdateKeyStatus((Key) keyCode + (int) Key.MouseKeyStart, false);
         }
 
         #endregion

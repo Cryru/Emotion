@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Platform.Input;
 using Emotion.Utility;
+#pragma warning disable 618
 
 #endregion
 
@@ -86,6 +87,12 @@ namespace Emotion.Platform
         /// </summary>
         /// <param name="key">To key to check.</param>
         bool IsKeyDown(Key key);
+
+        /// <summary>
+        /// Returns whether the key is currently being pressed down, regardless of the state of the last tick.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        bool KeyState(Key key);
 
         /// <summary>
         /// Returns whether the key is being held down this tick.

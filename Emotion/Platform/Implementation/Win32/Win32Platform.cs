@@ -81,6 +81,7 @@ namespace Emotion.Platform.Implementation.Win32
             Audio = WasApiAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
             Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
 
+            PopulateKeyCodes();
             PopulateKeyNames();
 
             if (IsWindows10CreatorsUpdateOrGreaterWin32)
@@ -360,6 +361,77 @@ namespace Emotion.Platform.Implementation.Win32
         }
 
         /// <summary>
+        /// Returns whether the windows version running on is at least the specified one.
+        /// </summary>
+        private static unsafe bool IsWindowsVersionOrGreaterWin32(int major, int minor, int sp)
+        {
+            var osVer = new NtDll.OsVersionInfoEXW
+                {DwMajorVersion = (uint) major, DwMinorVersion = (uint) minor, DwBuildNumber = 0, DwPlatformId = 0, WServicePackMajor = (ushort) sp};
+            osVer.DwOSVersionInfoSize = (uint) Marshal.SizeOf(osVer);
+            osVer.SzCsdVersion[0] = (char) 0;
+
+            const NtDll.TypeMask mask = NtDll.TypeMask.VerMajorVersion | NtDll.TypeMask.VerMinorVersion | NtDll.TypeMask.VerServicePackMajor;
+
+            ulong cond = NtDll.VerSetConditionMask(0, NtDll.TypeMask.VerMajorVersion, NtDll.Condition.VerGreaterEqual);
+            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerMinorVersion, NtDll.Condition.VerGreaterEqual);
+            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerServicePackMajor, NtDll.Condition.VerGreaterEqual);
+
+            // HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
+            //       latter lies unless the user knew to embed a non-default manifest
+            //       announcing support for Windows 10 via supportedOS GUID
+            return NtDll.RtlVerifyVersionInfo(ref osVer, mask, cond) == 0;
+        }
+
+        private static bool IsWindows10BuildOrGreaterWin32(int build)
+        {
+            var osVer = new NtDll.OsVersionInfoEXW
+                {DwMajorVersion = 10, DwMinorVersion = 0, DwBuildNumber = (uint) build};
+
+            const NtDll.TypeMask mask = NtDll.TypeMask.VerMajorVersion | NtDll.TypeMask.VerMinorVersion | NtDll.TypeMask.VerBuildNumber;
+
+            ulong cond = NtDll.VerSetConditionMask(0, NtDll.TypeMask.VerMajorVersion, NtDll.Condition.VerGreaterEqual);
+            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerMinorVersion, NtDll.Condition.VerGreaterEqual);
+            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerBuildNumber, NtDll.Condition.VerGreaterEqual);
+
+            // HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
+            //       latter lies unless the user knew to embed a non-default manifest
+            //       announcing support for Windows 10 via supportedOS GUID
+            return NtDll.RtlVerifyVersionInfo(ref osVer, mask, cond) == 0;
+        }
+
+        public const uint ERROR_INVALID_VERSION_ARB = 0xc0070000 | 0x2095;
+        public const uint ERROR_INVALID_PROFILE_ARB = 0xc0070000 | 0x2096;
+
+        /// <summary>
+        /// Check for a Win32 error.
+        /// </summary>
+        /// <param name="msg">A message to display with the error.</param>
+        /// <param name="sureError">Whether you are sure an error occured.</param>
+        public static void CheckError(string msg, bool sureError = false)
+        {
+            uint errorCheck = Kernel32.GetLastError();
+            if (errorCheck == 0 && !sureError) return;
+
+            // Check predefined errors.
+            switch (errorCheck)
+            {
+                case ERROR_INVALID_VERSION_ARB:
+                    Engine.CriticalError(new Exception($"Driver doesn't support version of {msg}"));
+                    break;
+                case ERROR_INVALID_PROFILE_ARB:
+                    Engine.CriticalError(new Exception($"Driver doesn't support profile of {msg}"));
+                    break;
+                default:
+                    Engine.CriticalError(new Exception(msg, new Win32Exception((int) errorCheck)));
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region Input
+
+        /// <summary>
         /// Updates key names according to the current keyboard layout.
         /// </summary>
         private void PopulateKeyNames()
@@ -369,7 +441,7 @@ namespace Emotion.Platform.Implementation.Win32
             // Initialize the key names array.
             _keyNames = new string[_scanCodes.Length];
 
-            for (var key = (int) Key.Space; key < (int) Key.Last; key++)
+            for (int key = (int) Key.KeyboardStart + 1; key < (int) Key.KeyboardLast; key++)
             {
                 uint vk;
 
@@ -442,70 +514,150 @@ namespace Emotion.Platform.Implementation.Win32
             return _keyCodes[index];
         }
 
-        /// <summary>
-        /// Returns whether the windows version running on is at least the specified one.
-        /// </summary>
-        private static unsafe bool IsWindowsVersionOrGreaterWin32(int major, int minor, int sp)
+        private void PopulateKeyCodes()
         {
-            var osVer = new NtDll.OsVersionInfoEXW
-                {DwMajorVersion = (uint) major, DwMinorVersion = (uint) minor, DwBuildNumber = 0, DwPlatformId = 0, WServicePackMajor = (ushort) sp};
-            osVer.DwOSVersionInfoSize = (uint) Marshal.SizeOf(osVer);
-            osVer.SzCsdVersion[0] = (char) 0;
+            _keyCodes = new Key[512];
+            _scanCodes = new short[(int) Key.KeyboardLast];
 
-            const NtDll.TypeMask mask = NtDll.TypeMask.VerMajorVersion | NtDll.TypeMask.VerMinorVersion | NtDll.TypeMask.VerServicePackMajor;
-
-            ulong cond = NtDll.VerSetConditionMask(0, NtDll.TypeMask.VerMajorVersion, NtDll.Condition.VerGreaterEqual);
-            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerMinorVersion, NtDll.Condition.VerGreaterEqual);
-            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerServicePackMajor, NtDll.Condition.VerGreaterEqual);
-
-            // HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
-            //       latter lies unless the user knew to embed a non-default manifest
-            //       announcing support for Windows 10 via supportedOS GUID
-            return NtDll.RtlVerifyVersionInfo(ref osVer, mask, cond) == 0;
-        }
-
-        private static bool IsWindows10BuildOrGreaterWin32(int build)
-        {
-            var osVer = new NtDll.OsVersionInfoEXW
-                {DwMajorVersion = 10, DwMinorVersion = 0, DwBuildNumber = (uint) build};
-
-            const NtDll.TypeMask mask = NtDll.TypeMask.VerMajorVersion | NtDll.TypeMask.VerMinorVersion | NtDll.TypeMask.VerBuildNumber;
-
-            ulong cond = NtDll.VerSetConditionMask(0, NtDll.TypeMask.VerMajorVersion, NtDll.Condition.VerGreaterEqual);
-            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerMinorVersion, NtDll.Condition.VerGreaterEqual);
-            cond = NtDll.VerSetConditionMask(cond, NtDll.TypeMask.VerBuildNumber, NtDll.Condition.VerGreaterEqual);
-
-            // HACK: Use RtlVerifyVersionInfo instead of VerifyVersionInfoW as the
-            //       latter lies unless the user knew to embed a non-default manifest
-            //       announcing support for Windows 10 via supportedOS GUID
-            return NtDll.RtlVerifyVersionInfo(ref osVer, mask, cond) == 0;
-        }
-
-        public const uint ERROR_INVALID_VERSION_ARB = 0xc0070000 | 0x2095;
-        public const uint ERROR_INVALID_PROFILE_ARB = 0xc0070000 | 0x2096;
-
-        /// <summary>
-        /// Check for a Win32 error.
-        /// </summary>
-        /// <param name="msg">A message to display with the error.</param>
-        /// <param name="sureError">Whether you are sure an error occured.</param>
-        public static void CheckError(string msg, bool sureError = false)
-        {
-            uint errorCheck = Kernel32.GetLastError();
-            if (errorCheck == 0 && !sureError) return;
-
-            // Check predefined errors.
-            switch (errorCheck)
+            for (var i = 0; i < _scanCodes.Length; i++)
             {
-                case ERROR_INVALID_VERSION_ARB:
-                    Engine.CriticalError(new Exception($"Driver doesn't support version of {msg}"));
-                    break;
-                case ERROR_INVALID_PROFILE_ARB:
-                    Engine.CriticalError(new Exception($"Driver doesn't support profile of {msg}"));
-                    break;
-                default:
-                    Engine.CriticalError(new Exception(msg, new Win32Exception((int) errorCheck)));
-                    break;
+                _scanCodes[i] = -1;
+            }
+
+            for (var i = 0; i < _keyCodes.Length; i++)
+            {
+                _keyCodes[i] = Key.Unknown;
+            }
+
+            short scanCode;
+
+            _keyCodes[0x00B] = Key.Num0;
+            _keyCodes[0x002] = Key.Num1;
+            _keyCodes[0x003] = Key.Num2;
+            _keyCodes[0x004] = Key.Num3;
+            _keyCodes[0x005] = Key.Num4;
+            _keyCodes[0x006] = Key.Num5;
+            _keyCodes[0x007] = Key.Num6;
+            _keyCodes[0x008] = Key.Num7;
+            _keyCodes[0x009] = Key.Num8;
+            _keyCodes[0x00A] = Key.Num9;
+            _keyCodes[0x01E] = Key.A;
+            _keyCodes[0x030] = Key.B;
+            _keyCodes[0x02E] = Key.C;
+            _keyCodes[0x020] = Key.D;
+            _keyCodes[0x012] = Key.E;
+            _keyCodes[0x021] = Key.F;
+            _keyCodes[0x022] = Key.G;
+            _keyCodes[0x023] = Key.H;
+            _keyCodes[0x017] = Key.I;
+            _keyCodes[0x024] = Key.J;
+            _keyCodes[0x025] = Key.K;
+            _keyCodes[0x026] = Key.L;
+            _keyCodes[0x032] = Key.M;
+            _keyCodes[0x031] = Key.N;
+            _keyCodes[0x018] = Key.O;
+            _keyCodes[0x019] = Key.P;
+            _keyCodes[0x010] = Key.Q;
+            _keyCodes[0x013] = Key.R;
+            _keyCodes[0x01F] = Key.S;
+            _keyCodes[0x014] = Key.T;
+            _keyCodes[0x016] = Key.U;
+            _keyCodes[0x02F] = Key.V;
+            _keyCodes[0x011] = Key.W;
+            _keyCodes[0x02D] = Key.X;
+            _keyCodes[0x015] = Key.Y;
+            _keyCodes[0x02C] = Key.Z;
+
+            _keyCodes[0x028] = Key.Apostrophe;
+            _keyCodes[0x02B] = Key.Backslash;
+            _keyCodes[0x033] = Key.Comma;
+            _keyCodes[0x00D] = Key.Equal;
+            _keyCodes[0x029] = Key.GraveAccent;
+            _keyCodes[0x01A] = Key.LeftBracket;
+            _keyCodes[0x00C] = Key.Minus;
+            _keyCodes[0x034] = Key.Period;
+            _keyCodes[0x01B] = Key.RightBracket;
+            _keyCodes[0x027] = Key.Semicolon;
+            _keyCodes[0x035] = Key.Slash;
+            _keyCodes[0x056] = Key.World2;
+
+            _keyCodes[0x00E] = Key.Backspace;
+            _keyCodes[0x153] = Key.Delete;
+            _keyCodes[0x14F] = Key.End;
+            _keyCodes[0x01C] = Key.Enter;
+            _keyCodes[0x001] = Key.Escape;
+            _keyCodes[0x147] = Key.Home;
+            _keyCodes[0x152] = Key.Insert;
+            _keyCodes[0x15D] = Key.Menu;
+            _keyCodes[0x151] = Key.PageDown;
+            _keyCodes[0x149] = Key.PageUp;
+            _keyCodes[0x045] = Key.Pause;
+            _keyCodes[0x146] = Key.Pause;
+            _keyCodes[0x039] = Key.Space;
+            _keyCodes[0x00F] = Key.Tab;
+            _keyCodes[0x03A] = Key.CapsLock;
+            _keyCodes[0x145] = Key.NumLock;
+            _keyCodes[0x046] = Key.ScrollLock;
+            _keyCodes[0x03B] = Key.F1;
+            _keyCodes[0x03C] = Key.F2;
+            _keyCodes[0x03D] = Key.F3;
+            _keyCodes[0x03E] = Key.F4;
+            _keyCodes[0x03F] = Key.F5;
+            _keyCodes[0x040] = Key.F6;
+            _keyCodes[0x041] = Key.F7;
+            _keyCodes[0x042] = Key.F8;
+            _keyCodes[0x043] = Key.F9;
+            _keyCodes[0x044] = Key.F10;
+            _keyCodes[0x057] = Key.F11;
+            _keyCodes[0x058] = Key.F12;
+            _keyCodes[0x064] = Key.F13;
+            _keyCodes[0x065] = Key.F14;
+            _keyCodes[0x066] = Key.F15;
+            _keyCodes[0x067] = Key.F16;
+            _keyCodes[0x068] = Key.F17;
+            _keyCodes[0x069] = Key.F18;
+            _keyCodes[0x06A] = Key.F19;
+            _keyCodes[0x06B] = Key.F20;
+            _keyCodes[0x06C] = Key.F21;
+            _keyCodes[0x06D] = Key.F22;
+            _keyCodes[0x06E] = Key.F23;
+            _keyCodes[0x076] = Key.F24;
+            _keyCodes[0x038] = Key.LeftAlt;
+            _keyCodes[0x01D] = Key.LeftControl;
+            _keyCodes[0x02A] = Key.LeftShift;
+            _keyCodes[0x15B] = Key.LeftSuper;
+            _keyCodes[0x137] = Key.PrintScreen;
+            _keyCodes[0x138] = Key.RightAlt;
+            _keyCodes[0x11D] = Key.RightControl;
+            _keyCodes[0x036] = Key.RightShift;
+            _keyCodes[0x15C] = Key.RightSuper;
+            _keyCodes[0x150] = Key.DownArrow;
+            _keyCodes[0x14B] = Key.LeftArrow;
+            _keyCodes[0x14D] = Key.RightArrow;
+            _keyCodes[0x148] = Key.UpArrow;
+
+            _keyCodes[0x052] = Key.Kp0;
+            _keyCodes[0x04F] = Key.Kp1;
+            _keyCodes[0x050] = Key.Kp2;
+            _keyCodes[0x051] = Key.Kp3;
+            _keyCodes[0x04B] = Key.Kp4;
+            _keyCodes[0x04C] = Key.Kp5;
+            _keyCodes[0x04D] = Key.Kp6;
+            _keyCodes[0x047] = Key.Kp7;
+            _keyCodes[0x048] = Key.Kp8;
+            _keyCodes[0x049] = Key.Kp9;
+            _keyCodes[0x04E] = Key.KpAdd;
+            _keyCodes[0x053] = Key.KpDecimal;
+            _keyCodes[0x135] = Key.KpDivide;
+            _keyCodes[0x11C] = Key.KpEnter;
+            _keyCodes[0x059] = Key.KpEqual;
+            _keyCodes[0x037] = Key.KpMultiply;
+            _keyCodes[0x04A] = Key.KpSubtract;
+
+            for (scanCode = 0; scanCode < 512; scanCode++)
+            {
+                if (_keyCodes[scanCode] > 0)
+                    _scanCodes[(short) _keyCodes[scanCode]] = scanCode;
             }
         }
 

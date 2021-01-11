@@ -148,17 +148,17 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         private void MouseButtonKeyInput(Glfw.Window window, Glfw.MouseButton button, Glfw.InputState state, Glfw.KeyMods mods)
         {
-            MouseKey key = button switch
+            Key key = button switch
             {
-                Glfw.MouseButton.ButtonLeft => MouseKey.Left,
-                Glfw.MouseButton.ButtonRight => MouseKey.Right,
-                Glfw.MouseButton.Button3 => MouseKey.Middle,
-                Glfw.MouseButton.Button4 => MouseKey.Key4,
-                Glfw.MouseButton.Button5 => MouseKey.Key5,
-                _ => MouseKey.Unknown
+                Glfw.MouseButton.ButtonLeft => Key.MouseKeyLeft,
+                Glfw.MouseButton.ButtonRight => Key.MouseKeyRight,
+                Glfw.MouseButton.Button3 => Key.MouseKeyMiddle,
+                Glfw.MouseButton.Button4 => Key.MouseKey4,
+                Glfw.MouseButton.Button5 => Key.MouseKey5,
+                _ => Key.Unknown
             };
 
-            UpdateMouseKeyStatus(key, state == Glfw.InputState.Press || state == Glfw.InputState.Repeat);
+            UpdateKeyStatus(key, state == Glfw.InputState.Press || state == Glfw.InputState.Repeat);
         }
 
         private void TextInput(Glfw.Window window, uint codePoint)
