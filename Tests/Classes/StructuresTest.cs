@@ -21,12 +21,12 @@ namespace Tests.Classes
             var tree = new QuadTree<Transform>(0, 0, 100, 100);
 
             // There shouldn't be anything inside.
-            Assert.True(tree.QuadTreeRoot.EmptyLeaf);
-            Assert.Equal(0, tree.QuadTreeRoot.Count);
+            Assert.True(tree.EmptyLeaf);
+            Assert.Equal(0, tree.Count);
 
             // Add a hundred objects in the top left.
             // None of these go beyond coordinate 50.
-            for (int x = 0; x < 10; x++)
+            for (var x = 0; x < 10; x++)
             {
                 for (var y = 0; y < 10; y++)
                 {
@@ -35,18 +35,18 @@ namespace Tests.Classes
             }
 
             Assert.Equal(100, tree.Count);
-            Assert.Equal(100, tree.QuadTreeRoot.TopLeftChild.Count);
+            Assert.Equal(100, tree.TopLeftChild.Count);
 
             // Top right should exist since the root node divided - but should be empty.
-            Assert.True(tree.QuadTreeRoot.TopRightChild.EmptyLeaf);
-            Assert.True(tree.QuadTreeRoot.BottomLeftChild.EmptyLeaf);
-            Assert.True(tree.QuadTreeRoot.BottomRightChild.EmptyLeaf);
+            Assert.True(tree.TopRightChild.EmptyLeaf);
+            Assert.True(tree.BottomLeftChild.EmptyLeaf);
+            Assert.True(tree.BottomRightChild.EmptyLeaf);
 
             // Check if the transform moving is detected as expected.
-            tree[0].X += 50;
+            tree.GetAllObjects()[0].X += 50;
 
-            Assert.False(tree.QuadTreeRoot.TopRightChild.EmptyLeaf);
-            Assert.Equal(1, tree.QuadTreeRoot.TopRightChild.Count);
+            Assert.False(tree.TopRightChild.EmptyLeaf);
+            Assert.Equal(1, tree.TopRightChild.Count);
 
             // Check if querying works.
             List<Transform> query = tree.GetObjects(new Rectangle(0, 0, 50, 50));
