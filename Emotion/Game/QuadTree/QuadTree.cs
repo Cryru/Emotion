@@ -1,9 +1,9 @@
 ﻿#region Using
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Emotion.Graphics;
 using Emotion.Primitives;
 
@@ -12,44 +12,24 @@ using Emotion.Primitives;
 namespace Emotion.Game.QuadTree
 {
     /// <summary>
-    /// A QuadTree Object that provides fast and efficient storage of objects in a world space.
+    /// A QuadTree Object that provides storage of objects in a space with fast querying.
     /// </summary>
     /// <typeparam name="T">Any object implementing Transform.</typeparam>
-    public class QuadTree<T> : ICollection<T> where T : Transform
+    public class QuadTree<T> : QuadTreeNode<T>, ICollection<T> where T : Transform
     {
-        /// <summary>
-        /// The root of this file tree.
-        /// </summary>
-        public readonly QuadTreeNode<T> QuadTreeRoot;
-
-        /// <summary>
-        /// The number of objects a node can contain before it subdivides.
-        /// </summary>
-        public readonly int NodeCapacity;
-
-        /// <summary>
-        /// Gets the rectangle that bounds this QuadTree
-        /// </summary>
-        public Rectangle QuadRect
-        {
-            get => QuadTreeRoot.QuadRect;
-        }
-
         private readonly Dictionary<T, QuadTreeObject<T>> _wrappedDictionary = new Dictionary<T, QuadTreeObject<T>>();
 
         /// <summary>
-        /// Creates a QuadTree for the specified area.
+        /// Creates a QuadTree of the specified dimensions.
         /// </summary>
         /// <param name="rect">The area this QuadTree object will encompass.</param>
         /// <param name="nodeCapacity">The number of objects a node can contain before it subdivides.</param>
-        public QuadTree(Rectangle rect, int nodeCapacity = 2)
+        public QuadTree(Rectangle rect, int nodeCapacity = 2) : base(rect, nodeCapacity)
         {
-            QuadTreeRoot = new QuadTreeNode<T>(rect, nodeCapacity);
-            NodeCapacity = nodeCapacity;
         }
 
         /// <summary>
-        /// Creates a QuadTree for the specified area.
+        /// Creates a QuadTree of the specified dimensions.
         /// </summary>
         /// <param name="x">The top-left position of the area rectangle.</param>
         /// <param name="y">The top-right position of the area rectangle.</param>
@@ -60,99 +40,26 @@ namespace Emotion.Game.QuadTree
         {
         }
 
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
-        /// </summary>
-        /// <param name="rect">The rectangle to find objects in.</param>
-        public List<T> GetObjects(Rectangle rect)
+        /// <inheritdoc />
+        protected override int ObjectCount()
         {
-            return QuadTreeRoot.GetObjects(ref rect);
+            // Fast path for the root since it keeps a wrapped dictionary of all objects.
+            return _wrappedDictionary.Count;
         }
 
-        /// <summary>
-        /// Get the objects in the tree that intersect with the specified circle.
-        /// </summary>
-        /// <returns></returns>
-        public List<T> GetObjects(Circle searchCircle)
+        /// <inheritdoc />
+        public override void GetAllObjects(ref List<T> results)
         {
-            return QuadTreeRoot.GetObjects(ref searchCircle);
-        }
-
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
-        /// </summary>
-        public void GetObjects(ref Rectangle rect, ref List<T> results)
-        {
-            QuadTreeRoot.GetObjects(ref rect, ref results);
-        }
-
-        /// <summary>
-        /// Get the objects in the tree that intersect with the specified circle.
-        /// </summary>
-        public void GetObjects(ref Circle searchCircle, ref List<T> results)
-        {
-            QuadTreeRoot.GetObjects(ref searchCircle, ref results);
-        }
-
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
-        /// </summary>
-        public void GetObjects(Rectangle rect, ref List<T> results)
-        {
-            QuadTreeRoot.GetObjects(ref rect, ref results);
-        }
-
-        /// <summary>
-        /// Get the objects in the tree that intersect with the specified circle.
-        /// </summary>
-        public void GetObjects(Circle searchCircle, ref List<T> results)
-        {
-            QuadTreeRoot.GetObjects(ref searchCircle, ref results);
-        }
-
-        /// <summary>
-        /// Get all objects in this Quad, and it's children.
-        /// </summary>
-        public List<T> GetAllObjects()
-        {
-            return new List<T>(_wrappedDictionary.Keys);
-        }
-
-        /// <summary>
-        /// Recreate the quad tree using a new world rect.
-        /// All old objects are removed.
-        /// </summary>
-        /// <param name="worldRect">The new world rect.</param>
-        public void Reset(Rectangle worldRect)
-        {
-            _wrappedDictionary.Clear();
-            QuadTreeRoot.Reset(worldRect);
-        }
-
-        /// <summary>
-        /// Moves the object in the tree
-        /// </summary>
-        /// <param name="item">The item that has moved</param>
-        public bool Move(T item)
-        {
-            if (!Contains(item)) return false;
-            QuadTreeRoot.Move(_wrappedDictionary[item]);
-            return true;
+            // Fast path for the root since it keeps a wrapped dictionary of all objects. 
+            results.AddRange(_wrappedDictionary.Keys);
         }
 
         #region ICollection<T> Members
 
         /// <summary>
-        /// Adds an item to the QuadTree
+        /// Add an object to the quad tree. It will be distributed to the appropriate leaf and
+        /// updated when it moves.
         /// </summary>
-        /// <param name="item">The object to add to the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
-        /// <exception cref="T:System.NotSupportedException">
-        /// The <see cref="T:System.Collections.Generic.ICollection`1" /> is
-        /// read-only.
-        /// </exception>
         public void Add(T item)
         {
             if (item == null) return;
@@ -160,115 +67,74 @@ namespace Emotion.Game.QuadTree
 
             var wrappedObject = new QuadTreeObject<T>(item);
             _wrappedDictionary.Add(item, wrappedObject);
-            QuadTreeRoot.Insert(wrappedObject);
+            Insert(wrappedObject);
 
             // Attach to move event.
-            item.OnMove += (s, _) => Move((T) s);
+            item.OnMove += (s, _) => ObjectMovedInternal((T) s);
         }
 
-        /// <summary>
-        /// Removes all items from the <see cref="T:System.Collections.Generic.ICollection`1" />.
-        /// </summary>
-        /// <exception cref="T:System.NotSupportedException">
-        /// The <see cref="T:System.Collections.Generic.ICollection`1" /> is
-        /// read-only.
-        /// </exception>
-        public void Clear()
+        private bool ObjectMovedInternal(T item)
+        {
+            if (!Contains(item)) return false;
+
+            QuadTreeObject<T> unwrappedItem = _wrappedDictionary[item];
+            if (unwrappedItem.Owner != null)
+                unwrappedItem.Owner.Relocate(unwrappedItem);
+            else
+                Relocate(unwrappedItem);
+
+            return true;
+        }
+
+        /// <inheritdoc cref="QuadTreeNode{T}" />
+        public override void Clear()
         {
             _wrappedDictionary.Clear();
-            QuadTreeRoot.Clear();
+            base.Clear();
         }
 
         /// <summary>
-        /// Determines whether the QuadTree contains a specific value.
+        /// Returns whether any leaf in the tree contains this object.
         /// </summary>
-        /// <returns>
-        /// true if <paramref name="item" /> is found in the <see cref="T:System.Collections.Generic.ICollection`1" />; otherwise,
-        /// false.
-        /// </returns>
-        /// <param name="item">The object to locate in the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
         public bool Contains(T item)
         {
             return item != null && _wrappedDictionary.ContainsKey(item);
         }
 
         /// <summary>
-        /// Copies the elements of the <see cref="T:System.Collections.Generic.ICollection`1" /> to an
-        /// <see cref="T:System.Array" />, starting at a particular <see cref="T:System.Array" /> index.
+        /// Remove an object from the tree, whichever leaf it is located in.
         /// </summary>
-        /// <param name="array">
-        /// The one-dimensional <see cref="T:System.Array" /> that is the destination of the elements copied
-        /// from <see cref="T:System.Collections.Generic.ICollection`1" />. The <see cref="T:System.Array" /> must have zero-based
-        /// indexing.
-        /// </param>
-        /// <param name="arrayIndex">The zero-based index in <paramref name="array" /> at which copying begins.</param>
-        /// <exception cref="T:System.ArgumentNullException"><paramref name="array" /> is null.</exception>
-        /// <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="arrayIndex" /> is less than 0.</exception>
-        public void CopyTo(T[] array, int arrayIndex)
+        public bool Remove(T item)
         {
-            _wrappedDictionary.Keys.CopyTo(array, arrayIndex);
+            if (item == null) return false;
+            if (!Contains(item)) return false;
+
+            // Remove the item from its owner and cleanup empty leaves.
+            QuadTreeObject<T> wrappedItem = _wrappedDictionary[item];
+            wrappedItem.Owner.Remove(wrappedItem);
+            wrappedItem.Owner.RemoveEmptyLeavesUpwards();
+
+            _wrappedDictionary.Remove(item);
+            return true;
         }
 
-        /// <summary>
-        /// Gets the number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.
-        /// </summary>
-        /// <returns>
-        /// The number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.
-        /// </returns>
-        public int Count
-        {
-            get => _wrappedDictionary.Count;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only.
-        /// </summary>
-        /// <returns>
-        /// true if the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only; otherwise, false.
-        /// </returns>
         public bool IsReadOnly
         {
             get => false;
         }
 
-        /// <summary>
-        /// Removes the first occurrence of a specific object from the QuadTree
-        /// </summary>
-        /// <returns>
-        /// true if <paramref name="item" /> was successfully removed from the
-        /// <see cref="T:System.Collections.Generic.ICollection`1" />; otherwise, false. This method also returns false if
-        /// <paramref name="item" /> is not found in the original <see cref="T:System.Collections.Generic.ICollection`1" />.
-        /// </returns>
-        /// <param name="item">The object to remove from the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
-        /// <exception cref="T:System.NotSupportedException">
-        /// The <see cref="T:System.Collections.Generic.ICollection`1" /> is
-        /// read-only.
-        /// </exception>
-        public bool Remove(T item)
+        public void CopyTo(T[] array, int arrayIndex)
         {
-            if (item == null) return false;
-            if (!Contains(item)) return false;
-            QuadTreeRoot.Delete(_wrappedDictionary[item], true);
-            _wrappedDictionary.Remove(item);
-            return true;
+            throw new Exception("The quad tree doesn't have indices, so CopyTo is not available.");
         }
 
         #endregion
 
-        public T this[int i]
-        {
-            get => _wrappedDictionary.Skip(i).Take(1).FirstOrDefault().Value.Data;
-        }
-
         #region IEnumerable<T> and IEnumerable Members
 
         /// <summary>
-        /// Returns an enumerator that iterates through the collection.
+        /// Returns an enumerator for the whole tree.
         /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.
-        /// </returns>
-        /// <filterpriority>1</filterpriority>
         public IEnumerator<T> GetEnumerator()
         {
             foreach (KeyValuePair<T, QuadTreeObject<T>> keyValue in _wrappedDictionary)
@@ -278,12 +144,8 @@ namespace Emotion.Game.QuadTree
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through a collection.
+        /// Returns an enumerator for the whole tree.
         /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
-        /// </returns>
-        /// <filterpriority>2</filterpriority>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
@@ -291,10 +153,14 @@ namespace Emotion.Game.QuadTree
 
         #endregion
 
+        /// <summary>
+        /// Render an outline of all leaves in the tree.
+        /// Used for debugging purposes.
+        /// </summary>
         public void RenderDebug(RenderComposer c, Color color)
         {
-            Queue<QuadTreeNode<T>> treeTraverse = new Queue<QuadTreeNode<T>>();
-            treeTraverse.Enqueue(QuadTreeRoot);
+            var treeTraverse = new Queue<QuadTreeNode<T>>();
+            treeTraverse.Enqueue(this);
             while (treeTraverse.TryDequeue(out QuadTreeNode<T> quadTree))
             {
                 c.RenderOutline(quadTree.QuadRect, color);
