@@ -1,4 +1,8 @@
-﻿using System;
+﻿#region Using
+
+using System;
+
+#endregion
 
 #pragma warning disable 1591 // No need to document enum members here
 namespace Emotion.Platform.Input
@@ -19,6 +23,8 @@ namespace Emotion.Platform.Input
     public enum Key : short
     {
         Unknown = -1,
+
+        KeyboardStart = 31,
 
         Space = 32,
         Apostrophe = 39, // '
@@ -78,10 +84,10 @@ namespace Emotion.Platform.Input
         Backspace = 259,
         Insert = 260,
         Delete = 261,
-        Right = 262,
-        Left = 263,
-        Down = 264,
-        Up = 265,
+        RightArrow = 262,
+        LeftArrow = 263,
+        DownArrow = 264,
+        UpArrow = 265,
         PageUp = 266,
         PageDown = 267,
         Home = 268,
@@ -147,7 +153,7 @@ namespace Emotion.Platform.Input
         RightSuper = 347,
         Menu = 348, // Windows key
 
-        Last = 349,
+        KeyboardLast = 349,
 
         // Non keyboard keys, these go after the last so that keyboard iteration over key codes can be maintained.
 
@@ -187,10 +193,12 @@ namespace Emotion.Platform.Input
         GamepadR2Axis = 379,
         GamepadEnd = 380,
 
+        Last = 381,
+
         // Axes (These will be ORed so they need to be powers of two)
         AxisLeftRight = 512,
         AxisUpDown = 1024,
-        
+
         AxisAD = 2048,
         AxisWS = 4096,
 

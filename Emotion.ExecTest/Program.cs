@@ -1,9 +1,9 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.ExecTest.Examples;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
@@ -29,7 +29,7 @@ namespace Emotion.ExecTest
             config.AddPlugin(new ImGuiNetPlugin());
 
             Engine.Setup(config);
-            Engine.SceneManager.SetScene(new BinningDisplay());
+            Engine.SceneManager.SetScene(new Program());
             Engine.Run();
         }
 
@@ -57,6 +57,7 @@ namespace Emotion.ExecTest
         {
             Engine.Host.OnKey.AddListener((key, status) =>
             {
+                Console.WriteLine(key + " " + status);
                 if (key == Key.W)
                 {
                     if (status == KeyStatus.Down)
@@ -64,36 +65,32 @@ namespace Emotion.ExecTest
                     else if (status == KeyStatus.Up)
                         _dirY += 1;
                 }
-
-                if (key == Key.S)
+                else if (key == Key.S)
                 {
                     if (status == KeyStatus.Down)
                         _dirY += 1;
                     else if (status == KeyStatus.Up)
                         _dirY -= 1;
                 }
-
-                if (key == Key.A)
+                else if (key == Key.A)
                 {
                     if (status == KeyStatus.Down)
                         _dirX -= 1;
                     else if (status == KeyStatus.Up)
                         _dirX += 1;
                 }
-
-                if (key == Key.D)
+                else if (key == Key.D)
                 {
                     if (status == KeyStatus.Down)
                         _dirX += 1;
                     else if (status == KeyStatus.Up)
                         _dirX -= 1;
                 }
+                else if (key == Key.MouseKeyLeft)
+                {
+                    MousePosTest.Add(Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition));
+                }
 
-                return true;
-            });
-            Engine.Host.OnMouseKey.AddListener((key, _) =>
-            {
-                if (key == MouseKey.Left) MousePosTest.Add(Engine.Renderer.Camera.ScreenToWorld(Engine.Host.MousePosition));
                 return true;
             });
         }

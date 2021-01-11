@@ -109,10 +109,10 @@ namespace Emotion.Plugins.ImGuiNet
 
             // Configure the keymap from ImGuiKeys to Adfectus keys.
             io.KeyMap[(int) ImGuiKey.Tab] = (int) Key.Tab;
-            io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Key.Left;
-            io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Key.Right;
-            io.KeyMap[(int) ImGuiKey.UpArrow] = (int) Key.Up;
-            io.KeyMap[(int) ImGuiKey.DownArrow] = (int) Key.Down;
+            io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Key.LeftArrow;
+            io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Key.RightArrow;
+            io.KeyMap[(int) ImGuiKey.UpArrow] = (int) Key.UpArrow;
+            io.KeyMap[(int) ImGuiKey.DownArrow] = (int) Key.DownArrow;
             io.KeyMap[(int) ImGuiKey.PageUp] = (int) Key.PageUp;
             io.KeyMap[(int) ImGuiKey.PageDown] = (int) Key.PageDown;
             io.KeyMap[(int) ImGuiKey.Home] = (int) Key.Home;
@@ -156,7 +156,6 @@ namespace Emotion.Plugins.ImGuiNet
                 return true;
             });
             Engine.Host.OnKey.AddListener((_, __) => !Focused);
-            Engine.Host.OnMouseKey.AddListener((_, __) => !Focused);
 
             Initialized = true;
         }
@@ -183,15 +182,15 @@ namespace Emotion.Plugins.ImGuiNet
 
             // Update input.
             io.MousePos = Engine.Host.MousePosition / ImGuiScale;
-            io.MouseDown[0] = Engine.InputManager.IsMouseKeyDown(MouseKey.Left) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Left);
-            io.MouseDown[1] = Engine.InputManager.IsMouseKeyDown(MouseKey.Right) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Right);
-            io.MouseDown[2] = Engine.InputManager.IsMouseKeyDown(MouseKey.Middle) || Engine.InputManager.IsMouseKeyHeld(MouseKey.Middle);
+            io.MouseDown[0] = Engine.InputManager.KeyState(Key.MouseKeyLeft);
+            io.MouseDown[1] = Engine.InputManager.KeyState(Key.MouseKeyRight);
+            io.MouseDown[2] = Engine.InputManager.KeyState(Key.MouseKeyMiddle);
             io.MouseWheel = -Engine.InputManager.GetMouseScrollRelative();
 
-            io.KeyCtrl = KeyDownOrHeld(Key.LeftControl) || KeyDownOrHeld(Key.RightControl);
-            io.KeyAlt = KeyDownOrHeld(Key.LeftAlt) || KeyDownOrHeld(Key.RightAlt);
-            io.KeyShift = KeyDownOrHeld(Key.LeftShift) || KeyDownOrHeld(Key.RightShift);
-            io.KeySuper = KeyDownOrHeld(Key.LeftSuper) || KeyDownOrHeld(Key.RightSuper);
+            io.KeyCtrl = Engine.InputManager.KeyState(Key.LeftControl);
+            io.KeyAlt = Engine.InputManager.KeyState(Key.LeftAlt);
+            io.KeyShift = Engine.InputManager.KeyState(Key.LeftShift);
+            io.KeySuper = Engine.InputManager.KeyState(Key.LeftSuper);
 
             if (_textInput.Count > 0)
             {
@@ -204,7 +203,7 @@ namespace Emotion.Plugins.ImGuiNet
             }
 
             // Apply all key inputs.
-            for (var i = 0; i < (int) Key.Last; i++)
+            for (var i = 0; i < (int) Key.KeyboardLast; i++)
             {
                 io.KeysDown[i] = Engine.InputManager.IsKeyHeld((Key) i);
             }
@@ -271,20 +270,6 @@ namespace Emotion.Plugins.ImGuiNet
 
             // No need to restore state, as this should be rendered last and is also used in developer mode only.
         }
-
-        #region Helpers
-
-        /// <summary>
-        /// Whether the key is down or held.
-        /// </summary>
-        /// <param name="key">The keyboard key to check.</param>
-        /// <returns>Whether the key is down or held.</returns>
-        private static bool KeyDownOrHeld(Key key)
-        {
-            return Engine.InputManager.IsKeyDown(key) || Engine.InputManager.IsKeyHeld(key);
-        }
-
-        #endregion
 
         #region Font Helpers
 

@@ -101,8 +101,15 @@ namespace Emotion.Platform
                 _mouseScrollAccum += scroll;
                 return true;
             });
-            PopulateKeyCodes();
 
+            const int totalKeys = (int) Key.Last;
+            _keys = new bool[totalKeys];
+            _keysPrevious = new bool[totalKeys];
+
+            _keysIm = new bool[totalKeys];
+            _keysPreviousIm = new bool[totalKeys];
+
+            SetupLegacy();
             SetupPlatform(config);
 
             // Check if the platform and graphics initialization was successful.
@@ -130,6 +137,7 @@ namespace Emotion.Platform
 
         /// <summary>
         /// Provides default button behavior for all platforms.
+        /// Includes debug shortcuts and universal engine shortcuts.
         /// </summary>
         protected bool DefaultButtonBehavior(Key key, KeyStatus state)
         {
@@ -164,161 +172,6 @@ namespace Emotion.Platform
             return true;
         }
 
-        /// <summary>
-        /// Create the map for looking up keycodes.
-        /// </summary>
-        private void PopulateKeyCodes()
-        {
-            _keyCodes = new Key[512];
-            _scanCodes = new short[(int) Key.Last];
-            _keys = new bool[_scanCodes.Length];
-            _keysPrevious = new bool[_scanCodes.Length];
-
-            _keysIM = new bool[_scanCodes.Length];
-            _keysPreviousIM = new bool[_scanCodes.Length];
-
-            for (var i = 0; i < _scanCodes.Length; i++)
-            {
-                _scanCodes[i] = -1;
-            }
-
-            for (var i = 0; i < _keyCodes.Length; i++)
-            {
-                _keyCodes[i] = Key.Unknown;
-            }
-
-            short scanCode;
-
-            _keyCodes[0x00B] = Key.Num0;
-            _keyCodes[0x002] = Key.Num1;
-            _keyCodes[0x003] = Key.Num2;
-            _keyCodes[0x004] = Key.Num3;
-            _keyCodes[0x005] = Key.Num4;
-            _keyCodes[0x006] = Key.Num5;
-            _keyCodes[0x007] = Key.Num6;
-            _keyCodes[0x008] = Key.Num7;
-            _keyCodes[0x009] = Key.Num8;
-            _keyCodes[0x00A] = Key.Num9;
-            _keyCodes[0x01E] = Key.A;
-            _keyCodes[0x030] = Key.B;
-            _keyCodes[0x02E] = Key.C;
-            _keyCodes[0x020] = Key.D;
-            _keyCodes[0x012] = Key.E;
-            _keyCodes[0x021] = Key.F;
-            _keyCodes[0x022] = Key.G;
-            _keyCodes[0x023] = Key.H;
-            _keyCodes[0x017] = Key.I;
-            _keyCodes[0x024] = Key.J;
-            _keyCodes[0x025] = Key.K;
-            _keyCodes[0x026] = Key.L;
-            _keyCodes[0x032] = Key.M;
-            _keyCodes[0x031] = Key.N;
-            _keyCodes[0x018] = Key.O;
-            _keyCodes[0x019] = Key.P;
-            _keyCodes[0x010] = Key.Q;
-            _keyCodes[0x013] = Key.R;
-            _keyCodes[0x01F] = Key.S;
-            _keyCodes[0x014] = Key.T;
-            _keyCodes[0x016] = Key.U;
-            _keyCodes[0x02F] = Key.V;
-            _keyCodes[0x011] = Key.W;
-            _keyCodes[0x02D] = Key.X;
-            _keyCodes[0x015] = Key.Y;
-            _keyCodes[0x02C] = Key.Z;
-
-            _keyCodes[0x028] = Key.Apostrophe;
-            _keyCodes[0x02B] = Key.Backslash;
-            _keyCodes[0x033] = Key.Comma;
-            _keyCodes[0x00D] = Key.Equal;
-            _keyCodes[0x029] = Key.GraveAccent;
-            _keyCodes[0x01A] = Key.LeftBracket;
-            _keyCodes[0x00C] = Key.Minus;
-            _keyCodes[0x034] = Key.Period;
-            _keyCodes[0x01B] = Key.RightBracket;
-            _keyCodes[0x027] = Key.Semicolon;
-            _keyCodes[0x035] = Key.Slash;
-            _keyCodes[0x056] = Key.World2;
-
-            _keyCodes[0x00E] = Key.Backspace;
-            _keyCodes[0x153] = Key.Delete;
-            _keyCodes[0x14F] = Key.End;
-            _keyCodes[0x01C] = Key.Enter;
-            _keyCodes[0x001] = Key.Escape;
-            _keyCodes[0x147] = Key.Home;
-            _keyCodes[0x152] = Key.Insert;
-            _keyCodes[0x15D] = Key.Menu;
-            _keyCodes[0x151] = Key.PageDown;
-            _keyCodes[0x149] = Key.PageUp;
-            _keyCodes[0x045] = Key.Pause;
-            _keyCodes[0x146] = Key.Pause;
-            _keyCodes[0x039] = Key.Space;
-            _keyCodes[0x00F] = Key.Tab;
-            _keyCodes[0x03A] = Key.CapsLock;
-            _keyCodes[0x145] = Key.NumLock;
-            _keyCodes[0x046] = Key.ScrollLock;
-            _keyCodes[0x03B] = Key.F1;
-            _keyCodes[0x03C] = Key.F2;
-            _keyCodes[0x03D] = Key.F3;
-            _keyCodes[0x03E] = Key.F4;
-            _keyCodes[0x03F] = Key.F5;
-            _keyCodes[0x040] = Key.F6;
-            _keyCodes[0x041] = Key.F7;
-            _keyCodes[0x042] = Key.F8;
-            _keyCodes[0x043] = Key.F9;
-            _keyCodes[0x044] = Key.F10;
-            _keyCodes[0x057] = Key.F11;
-            _keyCodes[0x058] = Key.F12;
-            _keyCodes[0x064] = Key.F13;
-            _keyCodes[0x065] = Key.F14;
-            _keyCodes[0x066] = Key.F15;
-            _keyCodes[0x067] = Key.F16;
-            _keyCodes[0x068] = Key.F17;
-            _keyCodes[0x069] = Key.F18;
-            _keyCodes[0x06A] = Key.F19;
-            _keyCodes[0x06B] = Key.F20;
-            _keyCodes[0x06C] = Key.F21;
-            _keyCodes[0x06D] = Key.F22;
-            _keyCodes[0x06E] = Key.F23;
-            _keyCodes[0x076] = Key.F24;
-            _keyCodes[0x038] = Key.LeftAlt;
-            _keyCodes[0x01D] = Key.LeftControl;
-            _keyCodes[0x02A] = Key.LeftShift;
-            _keyCodes[0x15B] = Key.LeftSuper;
-            _keyCodes[0x137] = Key.PrintScreen;
-            _keyCodes[0x138] = Key.RightAlt;
-            _keyCodes[0x11D] = Key.RightControl;
-            _keyCodes[0x036] = Key.RightShift;
-            _keyCodes[0x15C] = Key.RightSuper;
-            _keyCodes[0x150] = Key.Down;
-            _keyCodes[0x14B] = Key.Left;
-            _keyCodes[0x14D] = Key.Right;
-            _keyCodes[0x148] = Key.Up;
-
-            _keyCodes[0x052] = Key.Kp0;
-            _keyCodes[0x04F] = Key.Kp1;
-            _keyCodes[0x050] = Key.Kp2;
-            _keyCodes[0x051] = Key.Kp3;
-            _keyCodes[0x04B] = Key.Kp4;
-            _keyCodes[0x04C] = Key.Kp5;
-            _keyCodes[0x04D] = Key.Kp6;
-            _keyCodes[0x047] = Key.Kp7;
-            _keyCodes[0x048] = Key.Kp8;
-            _keyCodes[0x049] = Key.Kp9;
-            _keyCodes[0x04E] = Key.KpAdd;
-            _keyCodes[0x053] = Key.KpDecimal;
-            _keyCodes[0x135] = Key.KpDivide;
-            _keyCodes[0x11C] = Key.KpEnter;
-            _keyCodes[0x059] = Key.KpEqual;
-            _keyCodes[0x037] = Key.KpMultiply;
-            _keyCodes[0x04A] = Key.KpSubtract;
-
-            for (scanCode = 0; scanCode < 512; scanCode++)
-            {
-                if (_keyCodes[scanCode] > 0)
-                    _scanCodes[(short) _keyCodes[scanCode]] = scanCode;
-            }
-        }
-
         #endregion
 
         #region Internal API
@@ -336,20 +189,6 @@ namespace Emotion.Platform
             // If it was up, and now is down - it was pressed.
             if (!_keys[keyIndex] && down) OnKey.Invoke(key, KeyStatus.Down);
             _keys[keyIndex] = down;
-        }
-
-        protected void UpdateMouseKeyStatus(MouseKey key, bool down)
-        {
-            if (key == MouseKey.Unknown) return;
-            int keyIndex = (short) key;
-            if (keyIndex > _mouseKeys.Length - 1) return;
-
-            // If it was down, but no longer is - it was let go.
-            if (_mouseKeys[keyIndex] && !down) OnMouseKey.Invoke(key, KeyStatus.Up);
-
-            // If it was up, and now is down - it was pressed.
-            if (!_mouseKeys[keyIndex] && down) OnMouseKey.Invoke(key, KeyStatus.Down);
-            _mouseKeys[keyIndex] = down;
         }
 
         protected void UpdateScroll(float amount)
@@ -374,11 +213,6 @@ namespace Emotion.Platform
                 for (var i = 0; i < _keys.Length; i++)
                 {
                     UpdateKeyStatus((Key) i, false);
-                }
-
-                for (var i = 1; i <= _mouseKeys.Length; i++)
-                {
-                    UpdateMouseKeyStatus((MouseKey) i, false);
                 }
 
                 if (!Engine.Configuration.DebugMode) FocusWait.Reset();
@@ -491,31 +325,24 @@ namespace Emotion.Platform
         protected bool[] _keys;
         protected bool[] _keysPrevious;
         protected short[] _scanCodes;
-        protected bool[] _mouseKeys = new bool[(int) MouseKey.Last];
-        protected bool[] _mouseKeysPrevious = new bool[(int) MouseKey.Last];
         protected float _mouseScroll;
         protected float _mouseScrollThisFrame;
         protected float _mouseScrollAccum;
 
         // Immediate-mode input
-        protected bool[] _keysIM;
-        protected bool[] _keysPreviousIM;
-        protected bool[] _mouseKeysIM = new bool[(int) MouseKey.Last];
-        protected bool[] _mouseKeysPreviousIM = new bool[(int) MouseKey.Last];
+        protected bool[] _keysIm;
+        protected bool[] _keysPreviousIm;
 
+        /// <summary>
+        /// Updated every update tick, unlike the normal button logic, which is updated loop tick.
+        /// </summary>
         public virtual void UpdateInput()
         {
             // Transfer key status to previous.
-            for (var i = 0; i < _keysIM.Length; i++)
+            for (var i = 0; i < _keysIm.Length; i++)
             {
-                _keysPreviousIM[i] = _keysIM[i];
-                _keysIM[i] = _keys[i];
-            }
-
-            for (var i = 0; i < _mouseKeys.Length; i++)
-            {
-                _mouseKeysPreviousIM[i] = _mouseKeysIM[i];
-                _mouseKeysIM[i] = _mouseKeys[i];
+                _keysPreviousIm[i] = _keysIm[i];
+                _keysIm[i] = _keys[i];
             }
 
             _mouseScrollThisFrame = _mouseScroll;
@@ -524,9 +351,6 @@ namespace Emotion.Platform
 
         /// <inheritdoc />
         public EmotionEvent<Key, KeyStatus> OnKey { get; } = new EmotionEvent<Key, KeyStatus>();
-
-        /// <inheritdoc />
-        public EmotionEvent<MouseKey, KeyStatus> OnMouseKey { get; } = new EmotionEvent<MouseKey, KeyStatus>();
 
         /// <inheritdoc />
         public EmotionEvent<float> OnMouseScroll { get; } = new EmotionEvent<float>();
@@ -540,61 +364,45 @@ namespace Emotion.Platform
         /// <inheritdoc />
         public bool IsKeyDown(Key key)
         {
-            if (key == Key.Unknown || key == Key.Last) return false;
+            if (key == Key.Unknown || key == Key.KeyboardLast) return false;
             var idx = (short) key;
-            return _keysIM[idx] && !_keysPreviousIM[idx];
+            return _keysIm[idx] && !_keysPreviousIm[idx];
+        }
+
+        /// <inheritdoc />
+        public bool KeyState(Key key)
+        {
+            if (key == Key.Unknown || key == Key.KeyboardLast) return false;
+            var idx = (short) key;
+            return _keysIm[idx];
         }
 
         /// <inheritdoc />
         public bool IsKeyHeld(Key key)
         {
-            if (key == Key.Unknown || key == Key.Last) return false;
+            if (key == Key.Unknown || key == Key.KeyboardLast) return false;
             var idx = (short) key;
-            return _keysIM[idx] && _keysPreviousIM[idx];
+            return _keysIm[idx] && _keysPreviousIm[idx];
         }
 
         /// <inheritdoc />
         public bool IsKeyUp(Key key)
         {
-            if (key == Key.Unknown || key == Key.Last) return false;
+            if (key == Key.Unknown || key == Key.KeyboardLast) return false;
             var idx = (short) key;
-            return !_keysIM[idx] && _keysPreviousIM[idx];
-        }
-
-        /// <inheritdoc />
-        public bool IsMouseKeyDown(MouseKey key)
-        {
-            if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key;
-            return _mouseKeysIM[keyIndex] && !_mouseKeysPreviousIM[keyIndex];
-        }
-
-        /// <inheritdoc />
-        public bool IsMouseKeyHeld(MouseKey key)
-        {
-            if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key;
-            return _mouseKeysIM[keyIndex] && _mouseKeysPreviousIM[keyIndex];
-        }
-
-        /// <inheritdoc />
-        public bool IsMouseKeyUp(MouseKey key)
-        {
-            if (key == MouseKey.Unknown) return false;
-            int keyIndex = (short) key;
-            return !_mouseKeysIM[keyIndex] && _mouseKeysPreviousIM[keyIndex];
+            return !_keysIm[idx] && _keysPreviousIm[idx];
         }
 
         /// <inheritdoc />
         public IEnumerable<Key> GetAllKeysHeld()
         {
-            return _keys.Where((x, i) => x && _keysPreviousIM[i]).Select((x, i) => (Key) i);
+            return _keys.Where((x, i) => x && _keysPreviousIm[i]).Select((x, i) => (Key) i);
         }
 
         /// <inheritdoc />
         public IEnumerable<Key> GetAllKeysDown()
         {
-            return _keys.Where((x, i) => x && !_keysPreviousIM[i]).Select((x, i) => (Key) i);
+            return _keys.Where((x, i) => x && !_keysPreviousIm[i]).Select((x, i) => (Key) i);
         }
 
         /// <inheritdoc />
@@ -629,8 +437,8 @@ namespace Emotion.Platform
         {
             var value = new Vector2();
 
-            if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyHeld(Key.Down) ? 1 : 0) - (IsKeyHeld(Key.Up) ? 1 : 0);
-            if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyHeld(Key.Right) ? 1 : 0) - (IsKeyHeld(Key.Left) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyHeld(Key.DownArrow) ? 1 : 0) - (IsKeyHeld(Key.UpArrow) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyHeld(Key.RightArrow) ? 1 : 0) - (IsKeyHeld(Key.LeftArrow) ? 1 : 0);
             if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyHeld(Key.S) ? 1 : 0) - (IsKeyHeld(Key.W) ? 1 : 0) : value.Y;
             if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyHeld(Key.D) ? 1 : 0) - (IsKeyHeld(Key.A) ? 1 : 0) : value.X;
 
@@ -642,8 +450,8 @@ namespace Emotion.Platform
         {
             var value = new Vector2();
 
-            if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyDown(Key.Down) ? 1 : 0) - (IsKeyDown(Key.Up) ? 1 : 0);
-            if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyDown(Key.Right) ? 1 : 0) - (IsKeyDown(Key.Left) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyDown(Key.DownArrow) ? 1 : 0) - (IsKeyDown(Key.UpArrow) ? 1 : 0);
+            if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyDown(Key.RightArrow) ? 1 : 0) - (IsKeyDown(Key.LeftArrow) ? 1 : 0);
             if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyDown(Key.S) ? 1 : 0) - (IsKeyDown(Key.W) ? 1 : 0) : value.Y;
             if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyDown(Key.D) ? 1 : 0) - (IsKeyDown(Key.A) ? 1 : 0) : value.X;
 
@@ -689,5 +497,45 @@ namespace Emotion.Platform
             IsOpen = false;
             Audio?.Dispose();
         }
+
+        #region Legacy API
+
+        private void SetupLegacy()
+        {
+            OnKey.AddListener((key, status) =>
+            {
+#pragma warning disable 618
+                if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) OnMouseKey.Invoke((MouseKey) key, status);
+#pragma warning restore 618
+                return true;
+            });
+        }
+
+        /// <inheritdoc />
+        [Obsolete("Please use OnKey instead of OnMouseKey")]
+        public EmotionEvent<MouseKey, KeyStatus> OnMouseKey { get; } = new EmotionEvent<MouseKey, KeyStatus>();
+
+        /// <inheritdoc />
+        [Obsolete("Please use IsKeyDown instead of IsMouseKeyDown")]
+        public bool IsMouseKeyDown(MouseKey key)
+        {
+            return IsKeyDown((Key) key);
+        }
+
+        /// <inheritdoc />
+        [Obsolete("Please use IsKeyHeld instead of IsMouseKeyHeld")]
+        public bool IsMouseKeyHeld(MouseKey key)
+        {
+            return IsKeyHeld((Key) key);
+        }
+
+        /// <inheritdoc />
+        [Obsolete("Please use IsKeyUp instead of IsMouseKeyUp")]
+        public bool IsMouseKeyUp(MouseKey key)
+        {
+            return IsKeyUp((Key) key);
+        }
+
+        #endregion
     }
 }
