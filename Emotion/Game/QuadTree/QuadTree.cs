@@ -24,7 +24,7 @@ namespace Emotion.Game.QuadTree
         /// </summary>
         /// <param name="rect">The area this QuadTree object will encompass.</param>
         /// <param name="nodeCapacity">The number of objects a node can contain before it subdivides.</param>
-        public QuadTree(Rectangle rect, int nodeCapacity = 2) : base(rect, nodeCapacity)
+        public QuadTree(Rectangle rect, int nodeCapacity = 8) : base(rect, nodeCapacity)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Emotion.Game.QuadTree
         /// <param name="width">The width of the area rectangle.</param>
         /// <param name="height">The height of the area rectangle.</param>
         /// <param name="nodeCapacity">The number of objects a node can contain before it subdivides.</param>
-        public QuadTree(int x, int y, int width, int height, int nodeCapacity = 2) : this(new Rectangle(x, y, width, height), nodeCapacity)
+        public QuadTree(int x, int y, int width, int height, int nodeCapacity = 8) : this(new Rectangle(x, y, width, height), nodeCapacity)
         {
         }
 

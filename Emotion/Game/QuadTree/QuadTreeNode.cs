@@ -28,6 +28,16 @@ namespace Emotion.Game.QuadTree
         public bool CleanupWhenEmpty { get; set; } = false;
 
         /// <summary>
+        /// Whether this node is allowed to subdivide.
+        /// </summary>
+        public bool CanSubdivide { get; protected set; } = true;
+
+        /// <summary>
+        /// The subdivision depth of this node.
+        /// </summary>
+        public int Depth { get; protected set; }
+
+        /// <summary>
         /// The area this QuadTree represents.
         /// </summary>
         public Rectangle QuadRect
@@ -109,6 +119,8 @@ namespace Emotion.Game.QuadTree
         protected QuadTreeNode(QuadTreeNode<T> parent, Rectangle rect) : this(rect, parent.NodeCapacity)
         {
             Parent = parent;
+            Depth = parent.Depth + 1;
+            if (Depth > 10) CanSubdivide = false;
         }
 
         /// <summary>
@@ -227,8 +239,13 @@ namespace Emotion.Game.QuadTree
         /// <param name="item">The item to insert.</param>
         protected void Insert(QuadTreeObject<T> item)
         {
+            // Can't subdivide, add to this level.
+            if (!CanSubdivide)
+            {
+                InsertInternal(item);
+            }
             // This object is outside of the QuadTree bounds, add it if at root level.
-            if (!QuadRect.ContainsInclusive(item.Data.Bounds) && Parent == null)
+            else if (!QuadRect.ContainsInclusive(item.Data.Bounds) && Parent == null)
             {
                 InsertInternal(item);
             }
@@ -279,16 +296,17 @@ namespace Emotion.Game.QuadTree
             BottomLeftChild = new QuadTreeNode<T>(this, new Rectangle(QuadRect.X, mid.Y, size.X, size.Y));
             BottomRightChild = new QuadTreeNode<T>(this, new Rectangle(mid.X, mid.Y, size.X, size.Y));
 
-            // Make sure all objects are in the node they should be in.
-            for (int i = _objects.Count - 1; i >= 0; i--)
+            // If they're completely contained by the quad, bump objects down
+            for (var i = 0; i < _objects.Count; i++)
             {
                 QuadTreeObject<T> obj = _objects[i];
                 QuadTreeNode<T> destTree = GetContainingChild(obj);
                 if (destTree == this) continue;
-                
+
                 // Insert to the appropriate tree, remove the object, and back up one in the loop
                 Remove(obj);
                 destTree.Insert(obj);
+                i--;
             }
         }
 
