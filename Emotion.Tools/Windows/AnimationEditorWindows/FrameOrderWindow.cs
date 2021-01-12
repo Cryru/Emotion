@@ -36,9 +36,9 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             if (!_parent.Open) Open = false;
             if (ImGuiNetPlugin.Focused) return;
 
-            if (Engine.InputManager.IsMouseKeyDown(MouseKey.Right)) _holdingIdx = -1;
+            if (Engine.InputManager.IsKeyDown(Key.MouseKeyRight)) _holdingIdx = -1;
 
-            if (!Engine.InputManager.IsMouseKeyDown(MouseKey.Left)) return;
+            if (!Engine.InputManager.IsKeyDown(Key.MouseKeyLeft)) return;
             Vector2 mousePos = Engine.Host.MousePosition;
             for (var i = 0; i < _anim.Frames.Length; i++)
             {
