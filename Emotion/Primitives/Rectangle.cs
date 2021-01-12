@@ -632,14 +632,19 @@ namespace Emotion.Primitives
         }
 
         /// <summary>
-        /// creates a Rectangle given min/max points (top-left, bottom-right points)
+        /// Creates a Rectangle given min/max points (top-left, bottom-right points)
         /// </summary>
-        /// <returns>The minimum max points.</returns>
-        /// <param name="min">Minimum.</param>
-        /// <param name="max">Max.</param>
         public static Rectangle FromMinMaxPoints(Vector2 min, Vector2 max)
         {
             return new Rectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
+        }
+
+        /// <summary>
+        /// Creates a Rectangle given min/max points (top-left, bottom-right points)
+        /// </summary>
+        public static Rectangle FromMinMaxPoints(float minX, float minY, float maxX, float maxY)
+        {
+            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
         }
 
         /// <summary>
