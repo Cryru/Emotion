@@ -24,7 +24,7 @@ namespace Emotion.Graphics
 
         private Stack<Matrix4x4> _stack;
 
-        internal TransformationStack()
+        public TransformationStack()
         {
             _stack = new Stack<Matrix4x4>();
             Push(Matrix4x4.Identity, false);

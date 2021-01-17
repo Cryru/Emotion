@@ -341,7 +341,7 @@ namespace Emotion.Graphics
                 IntScale = 1;
             }
 
-            Engine.Log.Info($"Resized host - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
+            Engine.Log.Info($"Resized host to {size} - scale is {Scale} and int scale is {IntScale}", MessageSource.Renderer);
 
             ScreenBuffer.Resize(size);
             DrawBuffer.Resize(drawBufferSize, true);
