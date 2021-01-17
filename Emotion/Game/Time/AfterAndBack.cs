@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -10,7 +11,7 @@ namespace Emotion.Game.Time
     {
         public override float Progress
         {
-            get => _timePassed / (InReverse ? ReverseDelay : Delay);
+            get => GetProgress();
         }
 
         public bool InReverse { get; protected set; }
@@ -24,6 +25,12 @@ namespace Emotion.Game.Time
         public AfterAndBack(float delay, float reverseDelay, Action function = null) : base(delay, function)
         {
             ReverseDelay = reverseDelay;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float GetProgress()
+        {
+            return _timePassed / (InReverse ? ReverseDelay : Delay);
         }
 
         /// <summary>
@@ -45,7 +52,7 @@ namespace Emotion.Game.Time
         public override void Update(float timePassed)
         {
             if (Finished) return;
-            if (Progress >= 1.0f)
+            if (GetProgress() >= 1.0f)
             {
                 End();
                 return;

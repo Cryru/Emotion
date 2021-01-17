@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Runtime.CompilerServices;
 using Emotion.Common;
 using Emotion.Game.Time.Routines;
 
@@ -14,7 +15,7 @@ namespace Emotion.Game.Time
 
         public virtual float Progress
         {
-            get => _timePassed / Delay;
+            get => GetProgress();
         }
 
         protected float _timePassed;
@@ -26,10 +27,16 @@ namespace Emotion.Game.Time
             _function = function;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float GetProgress()
+        {
+            return _timePassed / Delay;
+        }
+
         public virtual void Update(float timePassed)
         {
             if (Finished) return;
-            if (Progress == 1.0f)
+            if (GetProgress() == 1.0f)
             {
                 End();
                 return;
