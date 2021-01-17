@@ -45,6 +45,11 @@ namespace Emotion.Game.Time
         public override void Update(float timePassed)
         {
             if (Finished) return;
+            if (Progress >= 1.0f)
+            {
+                End();
+                return;
+            }
 
             if (!InReverse)
             {
@@ -53,7 +58,7 @@ namespace Emotion.Game.Time
             }
 
             _timePassed -= timePassed;
-            if (_timePassed <= 0) End();
+            if (_timePassed < 0.0f) _timePassed = 0;
         }
 
         public override void End()

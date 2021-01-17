@@ -29,9 +29,14 @@ namespace Emotion.Game.Time
         public virtual void Update(float timePassed)
         {
             if (Finished) return;
+            if (Progress == 1.0f)
+            {
+                End();
+                return;
+            }
 
             _timePassed += timePassed;
-            if (_timePassed >= Delay) End();
+            if (_timePassed > Delay) _timePassed = Delay;
         }
 
         public virtual void End()
