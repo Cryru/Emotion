@@ -1,6 +1,8 @@
 ﻿#region Using
 
 using System;
+using Emotion.Common;
+using Emotion.Game.Time.Routines;
 using Emotion.Game.Time.Timers;
 using Emotion.Game.Time.Tweening;
 
@@ -8,25 +10,17 @@ using Emotion.Game.Time.Tweening;
 
 namespace Emotion.Game.Time
 {
-    public class TweenTimer<TTimer> : ITimer where TTimer : ITimer
+    public class TweenTimer : After
     {
-        public bool Finished
+        public override float Progress
         {
-            get => InnerTimer.Finished;
+            get => _tweenFunc(base.Progress);
         }
 
-        public float Progress
-        {
-            get => _tweenFunc(InnerTimer.Progress);
-        }
-
-        public TTimer InnerTimer { get; }
         private Func<float, float> _tweenFunc;
 
-        public TweenTimer(TTimer innerTimer, TweenMethod method, TweenType type = TweenType.In)
+        public TweenTimer(int time, TweenMethod method, TweenType type = TweenType.In) : base(time)
         {
-            InnerTimer = innerTimer;
-
             _tweenFunc = type switch
             {
                 TweenType.In => Tween.In(method),
@@ -35,21 +29,6 @@ namespace Emotion.Game.Time
                 TweenType.OutIn => Tween.OutIn(method),
                 _ => _tweenFunc
             };
-        }
-
-        public void Update(float timePassed)
-        {
-            InnerTimer.Update(timePassed);
-        }
-
-        public void End()
-        {
-            InnerTimer.End();
-        }
-
-        public void Restart()
-        {
-            InnerTimer.Restart();
         }
     }
 }
