@@ -31,10 +31,43 @@ namespace Emotion.Game.Time.Routines
             _b = b;
         }
 
-        public void Update()
+        public virtual void Update()
         {
             _a.Update();
             _b.Update();
+        }
+    }
+
+    public class CombineWaitMany : IRoutineWaiter
+    {
+        public bool Finished { get; protected set; }
+        private IRoutineWaiter[] _waiters;
+
+        public CombineWaitMany(params IEnumerator[] routines)
+        {
+            _waiters = new IRoutineWaiter[routines.Length];
+            for (var i = 0; i < _waiters.Length; i++)
+            {
+                _waiters[i] = new Coroutine(routines[i]);
+            }
+        }
+
+        public CombineWaitMany(params IRoutineWaiter[] waiters)
+        {
+            _waiters = waiters;
+        }
+
+        public virtual void Update()
+        {
+            var allDone = true;
+            for (var i = 0; i < _waiters.Length; i++)
+            {
+                IRoutineWaiter waiter = _waiters[i];
+                waiter.Update();
+                allDone = allDone && waiter.Finished;
+            }
+
+            Finished = allDone;
         }
     }
 }

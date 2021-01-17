@@ -12,7 +12,7 @@ namespace Emotion.Game.Time.Routines
     /// To create a coroutine yourself, make a function which returns an IEnumerator and pass it to StartCoroutine.
     /// This class is also used for subroutines in which case you want to construct it or yield to an IEnumerator.
     /// </summary>
-    public sealed class Coroutine : IRoutineWaiter
+    public class Coroutine : IRoutineWaiter
     {
         private IEnumerator _routine;
         private IRoutineWaiter _currentWaiter;
@@ -50,7 +50,7 @@ namespace Emotion.Game.Time.Routines
         /// Run the coroutine. This is called by either the manager or the parent routine if a subroutine.
         /// </summary>
         /// <returns>Whether the routine should be detached from the manager. Doesn't apply to subroutines.</returns>
-        public void Run()
+        public virtual void Run()
         {
             if (Finished) return;
 
@@ -93,7 +93,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// Whether the routine has finished running.
         /// </summary>
-        public bool Finished
+        public virtual bool Finished
         {
             get => _routine == null;
         }
@@ -101,7 +101,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// IRoutineWaiter API for subroutines
         /// </summary>
-        public void Update()
+        public virtual void Update()
         {
             Run();
         }
@@ -109,7 +109,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// Stop running the routine. It will be thought of as finished.
         /// </summary>
-        public void Stop()
+        public virtual void Stop()
         {
             _currentWaiter = null;
             _routine = null;
