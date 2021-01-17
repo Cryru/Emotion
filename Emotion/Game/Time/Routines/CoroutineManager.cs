@@ -55,6 +55,18 @@ namespace Emotion.Game.Time.Routines
         }
 
         /// <summary>
+        /// Stop a coroutine from running.
+        /// </summary>
+        /// <param name="routine">Reference to the coroutine.</param>
+        public void StopCoroutine(Coroutine routine)
+        {
+            lock (this)
+            {
+                _runningRoutines.Remove(routine);
+            }
+        }
+
+        /// <summary>
         /// Stop all running routines.
         /// </summary>
         public void StopAll()
