@@ -793,7 +793,6 @@ namespace Emotion.Primitives
             return new Vector2 {X = Math.Clamp(point.X, Left, Right), Y = Math.Clamp(point.Y, Top, Bottom)};
         }
 
-
         /// <summary>
         /// gets the closest point that is on the rectangle border to the given point
         /// </summary>
@@ -839,6 +838,46 @@ namespace Emotion.Primitives
             if (Bottom > other.Bottom) Y = other.Bottom - Height;
 
             return this;
+        }
+
+        public static Rectangle Transform(Rectangle rect, Matrix4x4 matrix)
+        {
+            Vector2 p1 = Vector2.Transform(rect.TopLeft, matrix);
+            Vector2 p2 = Vector2.Transform(rect.TopRight, matrix);
+            Vector2 p3 = Vector2.Transform(rect.BottomRight, matrix);
+            Vector2 p4 = Vector2.Transform(rect.BottomLeft, matrix);
+
+            unsafe
+            {
+                Vector2** vertices = stackalloc Vector2*[4]
+                {
+                    &p1, &p2, &p3, &p4
+                };
+
+                var minX = float.MaxValue;
+                var maxX = float.MinValue;
+                var minY = float.MaxValue;
+                var maxY = float.MinValue;
+
+                for (var i = 0; i < 4; i++)
+                {
+                    float x = vertices[i]->X;
+                    float y = vertices[i]->Y;
+                    minX = Math.Min(minX, x);
+                    maxX = Math.Max(maxX, x);
+                    minY = Math.Min(minY, y);
+                    maxY = Math.Max(maxY, y);
+                }
+
+                float width = maxX - minX;
+                float height = maxY - minY;
+
+                return new Rectangle(minX, minY, width, height);
+            }
+
+            
+
+            
         }
 
         #endregion
