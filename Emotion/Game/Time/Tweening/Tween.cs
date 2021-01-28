@@ -21,7 +21,7 @@ namespace Emotion.Game.Time.Tweening
                 TweenMethod.Quint => Quint,
                 TweenMethod.Sine => Sine,
                 TweenMethod.Expo => Expo,
-                TweenMethod.Circ => Circ,
+                TweenMethod.Circle => Circle,
                 TweenMethod.Back => Back,
                 TweenMethod.Bounce => Bounce,
                 _ => Linear
@@ -88,7 +88,7 @@ namespace Emotion.Game.Time.Tweening
 
         public static float Sine(float s)
         {
-            return MathF.Sin(s);
+            return 1.0f + MathF.Sin(3 * (MathF.PI / 2) + s * (MathF.PI / 2));
         }
 
         public static float Expo(float s)
@@ -96,7 +96,7 @@ namespace Emotion.Game.Time.Tweening
             return MathF.Pow(2, 10 * (s - 1));
         }
 
-        public static float Circ(float s)
+        public static float Circle(float s)
         {
             return 1f - MathF.Sqrt(1 - s * s);
         }
