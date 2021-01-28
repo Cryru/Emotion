@@ -9,7 +9,7 @@
         Quint,
         Sine,
         Expo,
-        Circ,
+        Circle,
         Back,
         Bounce
     }
