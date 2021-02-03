@@ -192,7 +192,7 @@ namespace Emotion.Graphics.Batches
                     textureMinMax = GetTextureUVMinMax(textureMapping.Texture);
                 }
 
-                targetPtr->X = textureMinMax.X + (textureMinMax.Width - textureMinMax.X) * targetPtr->X;// Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
+                targetPtr->X = Maths.Lerp(textureMinMax.X, textureMinMax.Width, targetPtr->X);
                 targetPtr->Y = 1.0f - Maths.Lerp(textureMinMax.Y, textureMinMax.Height, targetPtr->Y); // Since the atlas is flipped, we need to flip the Y UV.
 
                 reader += (int) structByteSize;
