@@ -85,6 +85,10 @@ namespace Emotion.Game.Time.Routines
         {
             lock (this)
             {
+#if DEBUG
+                Coroutine.CoroutinesRanThisTick.Clear();
+#endif
+
                 // If no routines are running, do nothing.
                 if (_runningRoutines.Count == 0) return false;
 

@@ -1,7 +1,13 @@
 ﻿#region Using
 
+using System;
 using System.Collections;
+using System.Diagnostics;
+#if DEBUG
 using System.Reflection;
+using System.Collections.Generic;
+
+#endif
 
 #endregion
 
@@ -18,6 +24,7 @@ namespace Emotion.Game.Time.Routines
         private IRoutineWaiter _currentWaiter;
 
 #if DEBUG
+        public string DebugCoroutineCreationStack;
         public string DebugStackTrace;
 
         private int GetCoroutineStack()
@@ -35,6 +42,8 @@ namespace Emotion.Game.Time.Routines
 
             return (int) (stateField.GetValue(_routine) ?? 1);
         }
+
+        public static HashSet<Coroutine> CoroutinesRanThisTick = new HashSet<Coroutine>();
 #endif
 
         /// <summary>
@@ -44,6 +53,9 @@ namespace Emotion.Game.Time.Routines
         public Coroutine(IEnumerator enumerator)
         {
             _routine = enumerator;
+#if DEBUG
+            DebugCoroutineCreationStack = Environment.StackTrace;
+#endif
         }
 
         /// <summary>
@@ -53,6 +65,10 @@ namespace Emotion.Game.Time.Routines
         public virtual void Run()
         {
             if (Finished) return;
+
+#if DEBUG
+            Debug.Assert(CoroutinesRanThisTick.Add(this), "Each coroutine should run only once per tick. It's been added twice or yield added a second time.");
+#endif
 
             if (_currentWaiter != null) // No waiter, or routine finished
             {
