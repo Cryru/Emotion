@@ -14,6 +14,11 @@ namespace Emotion.Standard.Utility
     /// </summary>
     public class ByteReader : ByteReaderBase
     {
+        // This class implements a hiding int as a Position and
+        // a different implementation for some functions.
+        // The stream class expects things to work a certain way, which
+        // isn't always convenient.
+
         public new int Position
         {
             get => (int) base.Position;
@@ -340,7 +345,7 @@ namespace Emotion.Standard.Utility
                     Position += offset;
                     break;
                 case SeekOrigin.End:
-                    Position = Data.Length - offset;
+                    Position = Length - offset;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(origin), origin, null);
@@ -366,7 +371,7 @@ namespace Emotion.Standard.Utility
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (Position + count > Data.Length) count = (int) (Data.Length - Position);
+            if (Position + count > Length) count = (int) (Length - Position);
             ReadOnlySpan<byte> copyData = Data.Span.Slice((int) Position, count);
             copyData.CopyTo(new Span<byte>(buffer).Slice(offset));
             Position += count;
