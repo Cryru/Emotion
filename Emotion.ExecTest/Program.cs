@@ -1,10 +1,8 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.ExecTest.Examples;
 using Emotion.Graphics;
 using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
@@ -58,7 +56,6 @@ namespace Emotion.ExecTest
         {
             Engine.Host.OnKey.AddListener((key, status) =>
             {
-                Console.WriteLine(key + " " + status);
                 if (key == Key.W)
                 {
                     if (status == KeyStatus.Down)
