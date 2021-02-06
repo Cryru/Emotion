@@ -21,19 +21,12 @@ namespace Emotion.Standard.Image.PNG
         public bool Valid;
 
         /// <summary>
-        /// An unsigned integer giving the number of bytes in the chunk's
-        /// data field. The length counts only the data field, not itself,
-        /// the chunk type code, or the CRC. Zero is a valid length
-        /// </summary>
-        public int Length;
-
-        /// <summary>
         /// A chunk type as string with 4 chars.
         /// </summary>
         public string Type;
 
         /// <summary>
-        /// The data bytes appropriate to the chunk type, if any.
+        /// The chunk's data bytes appropriate to the chunk type, if any.
         /// This field can be of zero length.
         /// </summary>
         public byte[] Data;
@@ -57,7 +50,7 @@ namespace Emotion.Standard.Image.PNG
             }
 
             Array.Reverse(lengthBuffer);
-            Length = BitConverter.ToInt32(lengthBuffer, 0);
+            int length = BitConverter.ToInt32(lengthBuffer, 0);
 
             // Invalid chunk or after end chunk.
             if (numBytes == 0) return;
@@ -73,8 +66,8 @@ namespace Emotion.Standard.Image.PNG
             chars[3] = (char) typeBuffer[3];
             Type = new string(chars);
 
-            Data = new byte[Length];
-            stream.Read(Data, 0, Length);
+            Data = new byte[length];
+            stream.Read(Data, 0, length);
 
             // Read compressed chunk.
             var crcBuffer = new byte[4];
