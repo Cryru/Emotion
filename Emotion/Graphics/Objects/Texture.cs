@@ -1,11 +1,13 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Serialization;
 using Emotion.Common.Threading;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 using OpenGL;
 
 #endregion
@@ -117,15 +119,15 @@ namespace Emotion.Graphics.Objects
         /// Create a new empty texture.
         /// </summary>
         /// <param name="size">The size of the texture.</param>
+        /// <param name="pixelFormat">The pixel format of the texture.</param>
         /// <param name="smooth">Whether to apply linear interpolation to the surface's texture.</param>
         /// <param name="internalFormat">The internal format of the texture.</param>
-        /// <param name="pixelFormat">The pixel format of the texture.</param>
         /// <param name="pixelType">The data type of individual pixel components.</param>
-        public Texture(Vector2 size, bool? smooth = null, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Bgra, PixelType pixelType = PixelType.UnsignedByte) : this()
+        public Texture(Vector2 size, PixelFormat pixelFormat, bool? smooth = null, InternalFormat internalFormat = InternalFormat.Rgba,
+            PixelType pixelType = PixelType.UnsignedByte) : this()
         {
             _smooth = smooth ?? Engine.Configuration.TextureDefaultSmooth;
-            Upload(size, null, internalFormat, pixelFormat, pixelType);
+            Upload(size, null, pixelFormat, internalFormat, pixelType);
         }
 
         /// <summary>
@@ -133,14 +135,13 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="size">The size of the texture.</param>
         /// <param name="data">The data to upload.</param>
+        /// <param name="pixelFormat">The pixel format of the texture.</param>
         /// <param name="smooth">Whether to apply linear interpolation to the surface's texture.</param>
         /// <param name="internalFormat">The internal format of the texture.</param>
-        /// <param name="pixelFormat">The pixel format of the texture.</param>
-        public Texture(Vector2 size, byte[] data, bool? smooth = false, InternalFormat internalFormat = InternalFormat.Rgba,
-            PixelFormat pixelFormat = PixelFormat.Bgra) : this()
+        public Texture(Vector2 size, byte[] data, PixelFormat pixelFormat, bool? smooth = false, InternalFormat internalFormat = InternalFormat.Rgba) : this()
         {
             _smooth = smooth ?? Engine.Configuration.TextureDefaultSmooth;
-            Upload(size, data, internalFormat, pixelFormat);
+            Upload(size, data, pixelFormat, internalFormat);
         }
 
         /// <summary>
@@ -149,51 +150,35 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="size">The width and height of the texture data.</param>
         /// <param name="data">The data to upload.</param>
-        /// <param name="internalFormat">The internal format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelFormat">The pixel format of the texture. If null the format which was last used is taken.</param>
+        /// <param name="internalFormat">The internal format of the texture. If null the format which was last used is taken.</param>
         /// <param name="pixelType">The data type of individual pixel components.</param>
-        public virtual void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType? pixelType = null)
+        public virtual void Upload(Vector2 size, byte[] data, PixelFormat? pixelFormat = null, InternalFormat? internalFormat = null, PixelType? pixelType = null)
         {
             Size = size;
 
-            if (internalFormat == null)
-                internalFormat = InternalFormat;
-            else
-                InternalFormat = (InternalFormat) internalFormat;
-            if (pixelFormat == null)
-                pixelFormat = PixelFormat;
-            else
-                PixelFormat = (PixelFormat) pixelFormat;
-            if (pixelType == null)
-                pixelType = PixelType;
-            else
-                PixelType = (PixelType) pixelType;
+            pixelFormat ??= PixelFormat;
+            PixelFormat = (PixelFormat) pixelFormat;
 
+            internalFormat ??= InternalFormat;
+            InternalFormat = (InternalFormat) internalFormat;
+
+            pixelType ??= PixelType;
+            PixelType = (PixelType) pixelType;
+
+            // ES doesn't support BGRA so convert it to RGBA on the CPU
             if (Gl.CurrentVersion.GLES)
-            {
-                // ES doesn't support BGRA so convert it to RGBA on the CPU
-                var stride = 0;
                 switch (pixelFormat)
                 {
                     case PixelFormat.Bgra:
+                        ImageUtil.BgraToRgba(data);
                         pixelFormat = PixelFormat.Rgba;
-                        stride = 4;
                         break;
                     case PixelFormat.Bgr:
+                        ImageUtil.BgrToRgb(data);
                         pixelFormat = PixelFormat.Rgb;
-                        stride = 3;
                         break;
                 }
-
-                if (stride != 0 && data != null)
-                    for (var i = 0; i < data.Length; i += stride)
-                    {
-                        byte r = data[i + 2];
-                        byte b = data[i];
-                        data[i + 2] = b;
-                        data[i] = r;
-                    }
-            }
 
             EnsureBound(Pointer);
             if (data == null)
@@ -237,18 +222,18 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public virtual void Dispose()
         {
+            if(Pointer == 0) return;
+
             uint ptr = Pointer;
             Pointer = 0;
 
-            if (Engine.Host == null) return;
-
+            // Unbind texture from all binding tracker slots.
             for (var i = 0; i < Bound.Length; i++)
             {
                 if (Bound[i] == ptr) Bound[i] = 0;
             }
 
-            if (ptr != 0)
-                GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
+            GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteTextures(ptr); });
         }
 
         public static Texture NoTexture = new Texture {Pointer = 0};
@@ -256,7 +241,7 @@ namespace Emotion.Graphics.Objects
 
         public static void InitializeEmptyTexture()
         {
-            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] {255, 255, 255, 255});
+            EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] {255, 255, 255, 255}, PixelFormat.Rgba);
         }
     }
 }

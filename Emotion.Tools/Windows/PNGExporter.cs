@@ -56,7 +56,7 @@ namespace Emotion.Tools.Windows
             }
 
             byte[] pixels = PngFormat.Decode(data, out PngFileHeader header);
-            byte[] output = PngFormat.Encode(pixels, header.Width, header.Height);
+            byte[] output = PngFormat.Encode(pixels, header.Width, header.Height, header.PixelFormat);
 
             bool saved = Engine.AssetLoader.Save(output, "Player" + "/" + f.Name, false);
             _status = saved ? "Done!" : "Error when saving the file. Check logs.";

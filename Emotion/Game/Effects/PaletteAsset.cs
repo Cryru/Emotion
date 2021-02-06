@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
@@ -31,23 +32,21 @@ namespace Emotion.Game.Effects
 
             // Load all variations.
             var pixels = new byte[BaseTexture.PaletteMap.Length * 4];
+            Span<Color> pixelsAsColor = MemoryMarshal.Cast<byte, Color>(pixels);
             foreach (Palette p in Content.Palettes)
             {
-                for (var j = 0; j < pixels.Length; j += 4)
+                for (var j = 0; j < pixelsAsColor.Length; j++)
                 {
-                    byte index = BaseTexture.PaletteMap[j / 4];
+                    byte index = BaseTexture.PaletteMap[j];
                     if (index >= p.Colors.Length) index = 0;
 
                     Color c = p.Colors[index];
-                    pixels[j] = c.B;
-                    pixels[j + 1] = c.G;
-                    pixels[j + 2] = c.R;
-                    pixels[j + 3] = c.A;
+                    pixelsAsColor[j] = c;
                 }
 
                 GLThread.ExecuteGLThread(() =>
                 {
-                    var texture = new Texture(BaseTexture.Texture.Size);
+                    var texture = new Texture(BaseTexture.Texture.Size, OpenGL.PixelFormat.Rgba);
                     texture.Upload(BaseTexture.Texture.Size, pixels);
                     texture.FlipY = BaseTexture.Texture.FlipY;
                     PaletteSwaps.Add(p, texture);

@@ -16,6 +16,7 @@ using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
 using Emotion.Test.Helpers;
 using Emotion.Utility;
+using OpenGL;
 
 #endregion
 
@@ -443,6 +444,7 @@ namespace Emotion.Test
                 _loopWaiter = new ManualResetEvent(false);
                 _loopCounter = times;
             }
+
             return _loopWaiter;
         }
 
@@ -478,7 +480,7 @@ namespace Emotion.Test
         public static void VerifyScreenshot(string renderId)
         {
             // Take a screenshot to compare to the expected image. Assume the sizes are the same.
-            byte[] screenshot = Engine.Renderer.DrawBuffer.Sample(Engine.Renderer.DrawBuffer.Viewport);
+            byte[] screenshot = Engine.Renderer.DrawBuffer.Sample(Engine.Renderer.DrawBuffer.Viewport, PixelFormat.Rgba);
             Vector2 screenShotSize = Engine.Renderer.DrawBuffer.Viewport.Size;
             VerifyCachedRender(renderId, screenshot, screenShotSize);
         }
@@ -560,7 +562,7 @@ namespace Emotion.Test
             {
                 string directory = Path.Join(RunnerReferenceImageFolder, $"Comparison_{fileName}");
                 Directory.CreateDirectory(directory);
-                byte[] derivedFile = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(derivationImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y);
+                byte[] derivedFile = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(derivationImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y, PixelFormat.Rgba);
                 File.WriteAllBytes(Path.Join(directory, "derivation.png"), derivedFile);
             }
 
@@ -584,7 +586,7 @@ namespace Emotion.Test
             }
 
             string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
-            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(pixels, (int) size.Y), (int) size.X, (int) size.Y);
+            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(pixels, (int) size.Y), (int) size.X, (int) size.Y, PixelFormat.Rgba);
             File.WriteAllBytes(filePath, file);
         }
 

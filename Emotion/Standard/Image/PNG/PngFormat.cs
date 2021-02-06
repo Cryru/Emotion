@@ -10,6 +10,7 @@ using Emotion.Standard.Logging;
 using Emotion.Standard.Utility;
 using Emotion.Standard.Utility.Zlib;
 using Emotion.Utility;
+using OpenGL;
 
 #endregion
 
@@ -37,13 +38,14 @@ namespace Emotion.Standard.Image.PNG
         }
 
         /// <summary>
-        /// Encodes the provided BGRA, Y flipped, pixel data to a PNG image.
+        /// Encodes the provided Y flipped pixel data to a PNG image.
         /// </summary>
         /// <param name="pixels">The pixel date to encode.</param>
         /// <param name="width">The width of the image in the data.</param>
         /// <param name="height">The height of the image in the data.</param>
+        /// <param name="format">The format of the pixel data.</param>
         /// <returns>A PNG image as bytes.</returns>
-        public static byte[] Encode(byte[] pixels, int width, int height)
+        public static byte[] Encode(byte[] pixels, int width, int height, PixelFormat format)
         {
             var pngHeader = new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
             const int maxBlockSize = 0xFFFF;
@@ -61,7 +63,8 @@ namespace Emotion.Standard.Image.PNG
                 BitDepth = 8,
                 FilterMethod = 0,
                 CompressionMethod = 0,
-                InterlaceMethod = 0
+                InterlaceMethod = 0,
+                PixelFormat = format
             };
 
             // Write header chunk.
@@ -93,10 +96,24 @@ namespace Emotion.Standard.Image.PNG
                     // Calculate the offset for the original pixel array.
                     int pixelOffset = (y * width + x) * 4;
 
-                    data[dataOffset + 0] = pixels[pixelOffset + 2];
-                    data[dataOffset + 1] = pixels[pixelOffset + 1];
-                    data[dataOffset + 2] = pixels[pixelOffset + 0];
-                    data[dataOffset + 3] = pixels[pixelOffset + 3];
+                    if (format == PixelFormat.Rgba)
+                    {
+                        data[dataOffset + 0] = pixels[pixelOffset + 0];
+                        data[dataOffset + 1] = pixels[pixelOffset + 1];
+                        data[dataOffset + 2] = pixels[pixelOffset + 2];
+                        data[dataOffset + 3] = pixels[pixelOffset + 3];
+                    }
+                    else if(format == PixelFormat.Bgra)
+                    {
+                        data[dataOffset + 0] = pixels[pixelOffset + 2];
+                        data[dataOffset + 1] = pixels[pixelOffset + 1];
+                        data[dataOffset + 2] = pixels[pixelOffset + 0];
+                        data[dataOffset + 3] = pixels[pixelOffset + 3];
+                    }
+                    else
+                    {
+                        throw new Exception($"Unsupported encoding pixel format - {format}");
+                    }
                 }
             }
 
@@ -181,7 +198,6 @@ namespace Emotion.Standard.Image.PNG
         public static byte[] Decode(ReadOnlyMemory<byte> pngData, out PngFileHeader fileHeader)
         {
             fileHeader = new PngFileHeader();
-
             if (!IsPng(pngData))
             {
                 Engine.Log.Warning("Tried to decode a non-png image!", MessageSource.ImagePng);
@@ -189,16 +205,16 @@ namespace Emotion.Standard.Image.PNG
             }
 
             using var stream = new ByteReader(pngData);
-            stream.Seek(8, SeekOrigin.Current);
+            stream.Seek(8, SeekOrigin.Current); // Increment by header bytes.
 
-            var endChunkReached = false;
-            byte[] palette = null;
-            byte[] paletteAlpha = null;
-
+            // The content of data chunks will be written to this stream.
             using var dataStream = new MemoryStream();
 
             // Read chunks while there are valid chunks.
             PngChunk currentChunk;
+            var endChunkReached = false;
+            byte[] palette = null;
+            byte[] paletteAlpha = null;
             while ((currentChunk = new PngChunk(stream)).Valid)
             {
                 if (endChunkReached)
@@ -239,8 +255,6 @@ namespace Emotion.Standard.Image.PNG
                 }
             }
 
-            stream.Dispose();
-
             // Decompress data.
             dataStream.Position = 0;
             PerfProfiler.ProfilerEventStart("PNG Decompression", "Loading");
@@ -249,6 +263,7 @@ namespace Emotion.Standard.Image.PNG
 
             var channelsPerColor = 0;
             ColorReader reader;
+            fileHeader.PixelFormat = PixelFormat.Bgra; // Default.
             switch (fileHeader.ColorType)
             {
                 case 0:
@@ -264,7 +279,7 @@ namespace Emotion.Standard.Image.PNG
                 case 3:
                     // Palette
                     channelsPerColor = 1;
-                    reader = (a, b, c, d) => { Palette(palette, paletteAlpha, a, b, c, d); };
+                    reader = (rowPixels, row, imageDest, destRow) => { Palette(palette, paletteAlpha, rowPixels, row, imageDest, destRow); };
                     break;
                 case 4:
                     // Grayscale - Alpha
@@ -275,6 +290,7 @@ namespace Emotion.Standard.Image.PNG
                     // RGBA
                     channelsPerColor = 4;
                     reader = Rgba;
+                    fileHeader.PixelFormat = PixelFormat.Rgba;
                     break;
                 default:
                     reader = null;
@@ -294,7 +310,10 @@ namespace Emotion.Standard.Image.PNG
 
             // ReSharper disable once ConvertIfStatementToReturnStatement
             if (fileHeader.InterlaceMethod == 1)
+            {
+                Engine.Log.Warning("Loading interlaced PNGs will be deprecated in future versions. Convert your images!.", MessageSource.ImagePng);
                 return ParseInterlaced(data, fileHeader, bytesPerPixel, channelsPerColor, reader);
+            }
 
             int scanlineLength = GetScanlineLength(fileHeader, channelsPerColor) + 1;
             int scanLineCount = data.Length / scanlineLength;
@@ -350,17 +369,8 @@ namespace Emotion.Standard.Image.PNG
 
         private static void Rgba(int pixelCount, Span<byte> data, byte[] pixels, int y)
         {
-            int totalOffset = y * pixelCount;
-            for (var x = 0; x < pixelCount; x++)
-            {
-                int offsetSrc = x * 4;
-                int offset = (totalOffset + x) * 4;
-
-                pixels[offset + 0] = data[offsetSrc + 2];
-                pixels[offset + 1] = data[offsetSrc + 1];
-                pixels[offset + 2] = data[offsetSrc];
-                pixels[offset + 3] = data[offsetSrc + 3];
-            }
+            var pixelsSpan = new Span<byte>(pixels, y * pixelCount * 4, pixelCount * 4);
+            data.CopyTo(pixelsSpan);
         }
 
         private static void Palette(byte[] palette, byte[] paletteAlpha, int pixelCount, Span<byte> data, byte[] pixels, int y)

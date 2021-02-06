@@ -2,10 +2,10 @@
 
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Emotion.Graphics.Data;
 using Emotion.IO;
 using Emotion.Primitives;
+using OpenGL;
 
 #endregion
 
@@ -13,7 +13,8 @@ namespace Emotion.Game.SpriteStack
 {
     public class SpriteStackTexture : TextureAsset
     {
-        private byte[] _bgraPixels;
+        private byte[] _textureData;
+        private PixelFormat _textureDataFormat;
 
         public SpriteStackModel GetSpriteStackModel(Vector2 frameSize)
         {
@@ -30,19 +31,20 @@ namespace Emotion.Game.SpriteStack
             }
 
             // Get the non 0 alpha pixels from the image.
-            Span<Color> pixels = MemoryMarshal.Cast<byte, Color>(new Span<byte>(_bgraPixels));
-            for (var i = 0; i < pixels.Length; i++)
+            for (var i = 0; i < _textureData.Length; i += 4)
             {
-                Color c = pixels[i];
+                var c = new Color(_textureData[i], _textureData[i + 1], _textureData[i + 2], _textureData[i + 3], _textureDataFormat);
                 if (c.A == 0) continue;
-                int x = i % (int) size.X;
-                int y = i / (int) size.X;
+
+                int pixelIdx = i / 4;
+                int x = pixelIdx % (int) size.X;
+                int y = pixelIdx / (int) size.X;
                 int frame = x / frameWidth;
 
                 int frameStart = frame * frameWidth;
                 int frameX = x - frameStart;
 
-                frames[frame].SetPixel(frameX + y * frameWidth, new Color(c.B, c.G, c.R, c.A));
+                frames[frame].SetPixel(frameX + y * frameWidth, c);
             }
 
             // Convert the pixels to voxel cubes.
@@ -138,10 +140,11 @@ namespace Emotion.Game.SpriteStack
             return new SpriteStackModel(frames, frameWidth, frameHeight);
         }
 
-        protected override void UploadTexture(Vector2 size, byte[] bgraPixels, bool flipped)
+        protected override void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat format)
         {
-            _bgraPixels = bgraPixels;
-            base.UploadTexture(size, bgraPixels, flipped);
+            _textureData = pixels;
+            _textureDataFormat = format;
+            base.UploadTexture(size, pixels, flipped, format);
         }
     }
 }

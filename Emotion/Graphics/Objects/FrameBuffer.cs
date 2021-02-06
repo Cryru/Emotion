@@ -217,7 +217,8 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         /// <param name="rect">The rectangle to sample data from in. Top left origin.</param>
         /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
-        public unsafe bool Sample(Rectangle rect, byte[] data)
+        /// <param name="format">The pixel format to return the pixels in.</param>
+        public unsafe bool Sample(Rectangle rect, byte[] data, PixelFormat format)
         {
             rect = rect.ClampTo(Viewport);
             rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
@@ -227,12 +228,11 @@ namespace Emotion.Graphics.Objects
             if (data != null)
                 fixed (byte* pixelBuffer = &data[0])
                 {
-                    Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra,
-                        ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                    Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
                         (IntPtr) pixelBuffer);
                 }
             else
-                Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, ColorAttachment?.PixelFormat ?? PixelFormat.Bgra, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
+                Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
                     IntPtr.Zero);
 
             previouslyBound.Bind();
@@ -243,11 +243,11 @@ namespace Emotion.Graphics.Objects
         /// Sample data from the framebuffer.
         /// </summary>
         /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
-        public byte[] Sample(Rectangle rect)
+        /// <param name="format">The pixel format to return the pixels in.</param>
+        public byte[] Sample(Rectangle rect, PixelFormat format)
         {
-            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
-                                Gl.PixelTypeToComponentCount(ColorAttachment?.PixelFormat ?? PixelFormat.Bgra)];
-            Sample(rect, data);
+            var data = new byte[(int) (rect.Width * rect.Height) * Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) * Gl.PixelTypeToComponentCount(format)];
+            Sample(rect, data, format);
             return data;
         }
 
@@ -256,9 +256,10 @@ namespace Emotion.Graphics.Objects
         /// the current one is finished will return the current one irregardless if the requested rect is the same.
         /// </summary>
         /// <param name="rect">The rectangle to sample data from in viewport coordinates. Top left origin.</param>
+        /// <param name="format">The pixel format to return the pixels in.</param>
         /// <param name="data">Optional data pointer to fill with the data.</param>
         /// <returns>null if invalid request, or a IRoutineWaiter framebuffer sample request otherwise</returns>
-        public FrameBufferSampleRequest SampleUnsynch(Rectangle rect, byte[] data = null)
+        public FrameBufferSampleRequest SampleUnsynch(Rectangle rect, PixelFormat format, byte[] data = null)
         {
             if (_sampleRequest != null) return _sampleRequest;
             var sampleRequest = new FrameBufferSampleRequest();
@@ -266,7 +267,7 @@ namespace Emotion.Graphics.Objects
 
             uint byteSize = (uint) (rect.Width * rect.Height) *
                             Gl.PixelTypeToByteCount(ColorAttachment?.PixelType ?? PixelType.UnsignedByte) *
-                            Gl.PixelTypeToComponentCount(ColorAttachment?.PixelFormat ?? PixelFormat.Bgra);
+                            Gl.PixelTypeToComponentCount(format);
 
             // Allocate data if needed.
             if (data == null || data.Length < byteSize) data = new byte[byteSize];
@@ -279,7 +280,7 @@ namespace Emotion.Graphics.Objects
 
             // Create a request. This is basically a normal sample with a bound PBO
             PixelBuffer.EnsureBound(_pbo.Pointer);
-            if (!Sample(rect, null))
+            if (!Sample(rect, null, format))
             {
                 _sampleRequest = null;
                 PixelBuffer.EnsureBound(0);
@@ -289,7 +290,7 @@ namespace Emotion.Graphics.Objects
             var newFence = new Fence();
             PixelBuffer.EnsureBound(0);
 
-            // Pool the request until the fence has been signaled.
+            // Poll the request until the fence has been signaled.
             void UpdateRequest()
             {
                 if (!newFence.IsSignaled())

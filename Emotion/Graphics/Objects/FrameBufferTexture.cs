@@ -27,11 +27,11 @@ namespace Emotion.Graphics.Objects
             InternalFormat = internalFormat;
         }
 
-        public FrameBufferTexture(Vector2 size, InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType) : base(size, false, internalFormat, pixelFormat, pixelType)
+        public FrameBufferTexture(Vector2 size, InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType) : base(size, pixelFormat, false, internalFormat, pixelType)
         {
         }
 
-        public override void Upload(Vector2 size, byte[] data, InternalFormat? internalFormat = null, PixelFormat? pixelFormat = null, PixelType? pixelType = null)
+        public override void Upload(Vector2 size, byte[] data, PixelFormat? pixelFormat = null, InternalFormat? internalFormat = null, PixelType? pixelType = null)
         {
             if (RenderBufferPtr != 0)
             {
@@ -40,7 +40,7 @@ namespace Emotion.Graphics.Objects
             }
 
             if (Pointer == 0) return;
-            base.Upload(size, data, internalFormat, pixelFormat, pixelType);
+            base.Upload(size, data, pixelFormat, internalFormat, pixelType);
         }
 
         public override void Dispose()

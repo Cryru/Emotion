@@ -9,6 +9,7 @@ using Emotion.Primitives;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Test;
+using OpenGL;
 using Tests.Results;
 
 #endregion
@@ -23,7 +24,6 @@ namespace Tests.Classes
         {
             string bmp16 = Path.Join("Assets", "Images", "16colorbmp.bmp");
             byte[] bytes = File.ReadAllBytes(bmp16);
-            Assert.True(bytes != null);
             Assert.True(BmpFormat.IsBmp(bytes));
 
             byte[] decodedPixelData = BmpFormat.Decode(bytes, out BmpFileHeader fileHeader);
@@ -33,7 +33,8 @@ namespace Tests.Classes
             {
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
-                    decodedPixelData
+                    decodedPixelData,
+                    PixelFormat.Bgra
                 ) {FlipY = true};
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
@@ -49,7 +50,6 @@ namespace Tests.Classes
         {
             string bmp24 = Path.Join("Assets", "Images", "24bitbmp.bmp");
             byte[] bytes = File.ReadAllBytes(bmp24);
-            Assert.True(bytes != null);
             Assert.True(BmpFormat.IsBmp(bytes));
 
             byte[] decodedPixelData = BmpFormat.Decode(bytes, out BmpFileHeader fileHeader);
@@ -59,7 +59,8 @@ namespace Tests.Classes
             {
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
-                    decodedPixelData
+                    decodedPixelData,
+                    PixelFormat.Bgra
                 ) {FlipY = true};
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
@@ -75,7 +76,6 @@ namespace Tests.Classes
         {
             string bmp256 = Path.Join("Assets", "Images", "256colorbmp.bmp");
             byte[] bytes = File.ReadAllBytes(bmp256);
-            Assert.True(bytes != null);
             Assert.True(BmpFormat.IsBmp(bytes));
 
             byte[] decodedPixelData = BmpFormat.Decode(bytes, out BmpFileHeader fileHeader);
@@ -85,7 +85,8 @@ namespace Tests.Classes
             {
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
-                    decodedPixelData
+                    decodedPixelData,
+                    PixelFormat.Bgra
                 ) {FlipY = true};
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
@@ -101,7 +102,6 @@ namespace Tests.Classes
         {
             string png = Path.Join("Assets", "Images", "standardPng.png");
             byte[] bytes = File.ReadAllBytes(png);
-            Assert.True(bytes != null);
             Assert.True(PngFormat.IsPng(bytes));
 
             byte[] decodedPixelData = PngFormat.Decode(bytes, out PngFileHeader fileHeader);
@@ -111,8 +111,8 @@ namespace Tests.Classes
             {
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
-                    decodedPixelData
-                );
+                    decodedPixelData,
+                    fileHeader.PixelFormat);
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);
@@ -127,7 +127,6 @@ namespace Tests.Classes
         {
             string png = Path.Join("Assets", "Images", "spritesheetAnimation.png");
             byte[] bytes = File.ReadAllBytes(png);
-            Assert.True(bytes != null);
             Assert.True(PngFormat.IsPng(bytes));
 
             byte[] decodedPixelData = PngFormat.Decode(bytes, out PngFileHeader fileHeader);
@@ -138,8 +137,8 @@ namespace Tests.Classes
             {
                 var r = new Texture(
                     new Vector2(fileHeader.Width, fileHeader.Height),
-                    decodedPixelData
-                );
+                    decodedPixelData,
+                    fileHeader.PixelFormat);
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
                 composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);

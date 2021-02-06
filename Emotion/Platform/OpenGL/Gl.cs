@@ -1,6 +1,3 @@
-#pragma warning disable 618, 649
-//, 1734
-
 #region Using
 
 using System;

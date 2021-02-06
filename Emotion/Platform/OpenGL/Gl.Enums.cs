@@ -7951,6 +7951,11 @@ namespace OpenGL
     public enum PixelFormat
     {
         /// <summary>
+        /// Not used by GL
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
         /// Strongly typed for value GL_ALPHA.
         /// </summary>
         [RequiredByFeature("GL_VERSION_1_0")]

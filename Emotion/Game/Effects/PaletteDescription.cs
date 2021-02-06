@@ -9,7 +9,7 @@ namespace Emotion.Game.Effects
 {
     public class PaletteDescription
     {
-        public Palette[] Palettes { get; set; }
+        public Palette[] Palettes = new Palette[0];
         public string BaseAsset { get; set; }
 
         /// <summary>

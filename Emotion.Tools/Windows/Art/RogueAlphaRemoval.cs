@@ -45,8 +45,7 @@ namespace Emotion.Tools.Windows.Art
 
             if (_file == null) return;
 
-            if (_previewTexture == null) _previewTexture = new Texture(new Vector2(100, 100));
-
+            _previewTexture ??= new Texture(new Vector2(100, 100), _file.Texture.PixelFormat);
             if (_pixelData == null)
             {
                 _pixelData = new byte[(int) (_file.Texture.Size.X * _file.Texture.Size.Y * 4)];
@@ -56,7 +55,7 @@ namespace Emotion.Tools.Windows.Art
                     fixed (void* p = &_pixelData[0])
                     {
                         Texture.EnsureBound(_file.Texture.Pointer);
-                        Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Bgra, PixelType.UnsignedByte, new IntPtr(p));
+                        Gl.GetTexImage(TextureTarget.Texture2d, 0, _file.Texture.PixelFormat, PixelType.UnsignedByte, new IntPtr(p));
                     }
                 }
 
@@ -87,7 +86,7 @@ namespace Emotion.Tools.Windows.Art
             if (ImGui.Button("Apply Changes"))
             {
                 UpdatePreview("export");
-                byte[] pngData = PngFormat.Encode(_removedPixelData, (int) _previewTexture.Size.X, (int) _previewTexture.Size.Y);
+                byte[] pngData = PngFormat.Encode(_removedPixelData, (int) _previewTexture.Size.X, (int) _previewTexture.Size.Y, _file.Texture.PixelFormat);
                 Engine.AssetLoader.Save(pngData, AssetLoader.JoinPath("Player", _file.Name));
             }
         }

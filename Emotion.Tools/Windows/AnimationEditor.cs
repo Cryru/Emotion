@@ -241,8 +241,8 @@ namespace Emotion.Tools.Windows
                     }
                     composer.RenderTo(null);
 
-                    byte[] pixelsDownload = texture.Sample(new Rectangle(0, 0, totalSize));
-                    byte[] pngFile = PngFormat.Encode(pixelsDownload, (int) totalSize.X, (int) totalSize.Y);
+                    byte[] pixelsDownload = texture.Sample(new Rectangle(0, 0, totalSize), PixelFormat.Rgba);
+                    byte[] pngFile = PngFormat.Encode(pixelsDownload, (int) totalSize.X, (int) totalSize.Y, PixelFormat.Rgba);
                     Engine.AssetLoader.Save(pngFile, saveName);
                 }
             }

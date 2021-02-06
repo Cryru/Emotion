@@ -149,7 +149,7 @@ namespace Emotion.Standard.OpenType
         public void DebugDump(string fileName)
         {
             byte[] bytes = ImageUtil.AToRgba(Pixels);
-            bytes = PngFormat.Encode(bytes, (int) Size.X, (int) Size.Y);
+            bytes = PngFormat.Encode(bytes, (int) Size.X, (int) Size.Y, OpenGL.PixelFormat.Rgba);
             Engine.AssetLoader.Save(bytes, $"Player/DebugDump/{fileName}");
         }
     }

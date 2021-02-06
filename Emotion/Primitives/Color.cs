@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Emotion.Utility;
+using OpenGL;
 
 #endregion
 
@@ -93,6 +94,32 @@ namespace Emotion.Primitives
             G = (byte) (v.Y * 255);
             B = (byte) (v.Z * 255);
             A = (byte) (v.W * 255);
+        }
+
+        /// <summary>
+        /// Create a color from four components and a pixel format.
+        /// </summary>
+        public Color(byte c1, byte c2, byte c3, byte c4, PixelFormat format)
+        {
+            R = 0;
+            G = 0;
+            B = 0;
+            A = 0;
+            switch (format)
+            {
+                case PixelFormat.Bgra:
+                    R = c3;
+                    G = c2;
+                    B = c1;
+                    A = c4;
+                    break;
+                case PixelFormat.Rgba:
+                    R = c1;
+                    G = c2;
+                    B = c3;
+                    A = c4;
+                    break;
+            }
         }
 
         #endregion

@@ -45,5 +45,10 @@
         /// Two values are currently defined: 0 (no interlace) or 1 (Adam7 interlace).
         /// </summary>
         public byte InterlaceMethod;
+
+        /// <summary>
+        /// The byte format of the pixels.
+        /// </summary>
+        public OpenGL.PixelFormat PixelFormat;
     }
 }

@@ -136,7 +136,7 @@ namespace Emotion.Plugins.ImGuiNet
             Marshal.Copy(new IntPtr(pixelData), pixels, 0, pixels.Length);
 
             // Create the font texture.
-            ImGuiFontTexture = new Texture(new Vector2(width, height), pixels);
+            ImGuiFontTexture = new Texture(new Vector2(width, height), pixels, PixelFormat.Rgba);
 
             // Let ImGui know where to find the texture.
             io.Fonts.SetTexID(new IntPtr(ImGuiFontTexture.Pointer));
@@ -303,7 +303,7 @@ namespace Emotion.Plugins.ImGuiNet
                     Marshal.Copy(new IntPtr(pixelData), pixels, 0, pixels.Length);
 
                     // Upload the font.
-                    var newFontTexture = new Texture(new Vector2(width, height), pixels);
+                    var newFontTexture = new Texture(new Vector2(width, height), pixels, PixelFormat.Rgba);
 
                     // Let ImGui know where to find the texture.
                     io.Fonts.SetTexID(new IntPtr(newFontTexture.Pointer));

@@ -1,10 +1,8 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Emotion.Primitives;
 
 #endregion
 
@@ -22,7 +20,6 @@ namespace Emotion.Utility
             if (pixels == null) return null;
 
             var output = new byte[pixels.Length * 4];
-
             for (var p = 0; p < pixels.Length * 4; p += 4)
             {
                 byte alpha = pixels[p / 4];
@@ -31,6 +28,77 @@ namespace Emotion.Utility
                 output[p + 1] = 255;
                 output[p + 2] = 255;
                 output[p + 3] = alpha;
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Convert an image of Bgra pixels to Rgba pixels.
+        /// </summary>
+        /// <param name="pixels">The pixels to convert.</param>
+        /// <param name="inPlace">Whether to perform the conversion in place, or create a new byte array.</param>
+        /// <returns></returns>
+        public static byte[] BgraToRgba(byte[] pixels, bool inPlace = true)
+        {
+            if (pixels == null) return null;
+
+            byte[] output = inPlace ? pixels : new byte[pixels.Length];
+            for (var p = 0; p < pixels.Length; p += 4)
+            {
+                byte r = pixels[p + 2];
+                byte b = pixels[p];
+
+                output[p] = r;
+                output[p + 1] = pixels[p + 1];
+                output[p + 2] = b;
+                output[p + 3] = pixels[p + 3];
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Convert an image of Bgr pixels to Rgb pixels.
+        /// </summary>
+        /// <param name="pixels">The pixels to convert.</param>
+        /// <param name="inPlace">Whether to perform the conversion in place, or create a new byte array.</param>
+        /// <returns></returns>
+        public static byte[] BgrToRgb(byte[] pixels, bool inPlace = true)
+        {
+            if (pixels == null) return null;
+
+            byte[] output = inPlace ? pixels : new byte[pixels.Length];
+            for (var p = 0; p < pixels.Length; p += 3)
+            {
+                byte r = pixels[p + 2];
+                byte b = pixels[p];
+
+                output[p] = r;
+                output[p + 1] = pixels[p + 1];
+                output[p + 2] = b;
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Convert an image of Rgba pixels to Bgra pixels.
+        /// </summary>
+        /// <param name="pixels">The pixels to convert.</param>
+        /// <param name="inPlace">Whether to perform the conversion in place, or create a new byte array.</param>
+        public static byte[] RgbaToBgra(byte[] pixels, bool inPlace = true)
+        {
+            byte[] output = inPlace ? pixels : new byte[pixels.Length];
+            for (var p = 0; p < pixels.Length; p += 4)
+            {
+                byte r = pixels[p + 2];
+                byte b = pixels[p];
+
+                output[p] = r;
+                output[p + 1] = pixels[p + 1];
+                output[p + 2] = b;
+                output[p + 3] = pixels[p + 3];
             }
 
             return output;
@@ -205,37 +273,6 @@ namespace Emotion.Utility
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Generate a palette from a texture.
-        /// </summary>
-        /// <param name="bgraPixels">The pixels to generate from.</param>
-        /// <param name="colors">The colors in the map.</param>
-        /// <returns>An index based palette map.</returns>
-        public static byte[] GeneratePaletteMap(byte[] bgraPixels, out List<Color> colors)
-        {
-            var paletteMap = new byte[bgraPixels.Length / 4];
-            colors = new List<Color>();
-            for (var i = 0; i < bgraPixels.Length; i += 4)
-            {
-                var c = new Color(
-                    bgraPixels[i + 2],
-                    bgraPixels[i + 1],
-                    bgraPixels[i],
-                    bgraPixels[i + 3]
-                );
-                int index = colors.IndexOf(c);
-                if (index == -1)
-                {
-                    index = colors.Count;
-                    colors.Add(c);
-                }
-
-                paletteMap[i / 4] = (byte) index;
-            }
-
-            return paletteMap;
         }
     }
 }

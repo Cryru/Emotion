@@ -49,14 +49,14 @@ namespace Emotion.ExecTest.Examples
             {
                 if (_sampleReq == null || _sampleReq.Finished)
                 {
-                    if (_sampleReq != null && _sampleReq.Finished) _lastColorResult = new Color(_sampleReq.Data[2], _sampleReq.Data[1], _sampleReq.Data[0], _sampleReq.Data[3]);
-                    _sampleReq = _fbo.SampleUnsynch(new Rectangle(0, 0, 1, 1));
+                    if (_sampleReq != null && _sampleReq.Finished) _lastColorResult = new Color(_sampleReq.Data[0], _sampleReq.Data[1], _sampleReq.Data[2], _sampleReq.Data[3]);
+                    _sampleReq = _fbo.SampleUnsynch(new Rectangle(0, 0, 1, 1), OpenGL.PixelFormat.Rgba);
                 }
             }
             else
             {
-                byte[] sampleReq = _fbo.Sample(new Rectangle(0, 0, 1, 1));
-                _lastColorResult = new Color(sampleReq[2], sampleReq[1], sampleReq[0], sampleReq[3]);
+                byte[] sampleReq = _fbo.Sample(new Rectangle(0, 0, 1, 1), OpenGL.PixelFormat.Rgba);
+                _lastColorResult = new Color(sampleReq[0], sampleReq[1], sampleReq[2], sampleReq[3]);
             }
 
             composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), _lastColorResult);

@@ -8,6 +8,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 using Emotion.Standard.OpenType;
 using Emotion.Utility;
+using OpenGL;
 
 #endregion
 
@@ -158,7 +159,8 @@ namespace Emotion.IO
 
             Atlas = atlas;
 
-            GLThread.ExecuteGLThread(() => { Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels)) {Smooth = smooth}; });
+            // Convert to RGBA since GL_INTENSITY is deprecated and we need the value in all components due to the default shader.
+            GLThread.ExecuteGLThread(() => { Texture = new Texture(Atlas.Size, ImageUtil.AToRgba(Atlas.Pixels), PixelFormat.Rgba) {Smooth = smooth}; });
 
             // Free memory.
             Atlas.Pixels = null;

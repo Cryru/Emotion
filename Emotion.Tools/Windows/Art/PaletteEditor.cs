@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Emotion.Game.Effects;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -12,7 +13,6 @@ using Emotion.IO;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
-using Emotion.Standard.Image;
 using Emotion.Standard.XML;
 using Emotion.Tools.Windows.HelpWindows;
 using Emotion.Utility;
@@ -96,17 +96,24 @@ namespace Emotion.Tools.Windows.Art
                     Name = "Default"
                 };
                 var pixelData = new byte[(int) (_baseTexture.Texture.Size.X * _baseTexture.Texture.Size.Y * 4)];
+                PixelFormat pixelFormat = _baseTexture.Texture.PixelFormat;
                 unsafe
                 {
                     fixed (void* p = &pixelData[0])
                     {
                         Texture.EnsureBound(_baseTexture.Texture.Pointer);
-                        Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Bgra, PixelType.UnsignedByte, new IntPtr(p));
+                        Gl.GetTexImage(TextureTarget.Texture2d, 0, pixelFormat, PixelType.UnsignedByte, new IntPtr(p));
                     }
                 }
 
-                _paletteMap = ImageUtil.GeneratePaletteMap(pixelData, out List < Color > defaultCMap);
+                _paletteMap = PaletteBaseTexture.GeneratePaletteMap(pixelData, pixelFormat, out List<Color> defaultCMap);
                 _defaultPalette.Colors = defaultCMap.ToArray();
+
+                ref Palette[] pals = ref _description.Palettes;
+                Array.Resize(ref pals, _description.Palettes.Length + 1);
+                pals[^1] = _defaultPalette;
+
+                _selectedPalette = _defaultPalette;
             }
 
             if (ImGui.Button("Save"))
@@ -135,14 +142,14 @@ namespace Emotion.Tools.Windows.Art
                 };
                 _newPaletteName = "";
 
-                Palette[] pals = _description.Palettes;
-                Array.Resize(ref pals, _description.Palettes.Length);
+                ref Palette[] pals = ref _description.Palettes;
+                Array.Resize(ref pals, _description.Palettes.Length + 1);
                 pals[^1] = _selectedPalette;
                 _updatePreview = true;
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("Remove"))
+            if (ImGui.Button("Remove") && _selectedPalette != null && _selectedPalette != _defaultPalette)
             {
                 var pals = new List<Palette>();
                 pals.AddRange(_description.Palettes);
@@ -152,7 +159,7 @@ namespace Emotion.Tools.Windows.Art
             }
 
             ImGui.Text("Default");
-            var uvs = _baseTexture.Texture.GetImGuiUV(new Rectangle(0, 0, _baseTexture.Texture.Size));
+            Tuple<Vector2, Vector2> uvs = _baseTexture.Texture.GetImGuiUV(new Rectangle(0, 0, _baseTexture.Texture.Size));
             ImGui.Image(new IntPtr(_baseTexture.Texture.Pointer), _baseTexture.Texture.Size, uvs.Item1, uvs.Item2);
             ImGui.Text($"Colors: {_defaultPalette.Colors.Length}");
 
@@ -226,19 +233,16 @@ namespace Emotion.Tools.Windows.Art
 
         private void CreateTextureFromMap(ref Texture texture, Palette palette)
         {
-            if (texture == null) texture = new Texture(_baseTexture.Texture.Size);
+            texture ??= new Texture(_baseTexture.Texture.Size, PixelFormat.Rgba);
 
             var pixels = new byte[(int) (_baseTexture.Texture.Size.X * _baseTexture.Texture.Size.Y) * 4];
-            for (var i = 0; i < pixels.Length; i += 4)
+            Span<Color> pixelsAsColor = MemoryMarshal.Cast<byte, Color>(pixels);
+            for (var i = 0; i < pixelsAsColor.Length; i++)
             {
-                int index = _paletteMap[i / 4];
+                int index = _paletteMap[i];
                 Color c = palette.Colors[index];
-                pixels[i] = c.B;
-                pixels[i + 1] = c.G;
-                pixels[i + 2] = c.R;
-                pixels[i + 3] = c.A;
+                pixelsAsColor[i] = c;
             }
-
             texture.Upload(_baseTexture.Texture.Size, pixels);
         }
 

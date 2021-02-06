@@ -8,6 +8,7 @@ using Emotion.Graphics.Objects;
 using Emotion.Standard.Image.BMP;
 using Emotion.Standard.Image.PNG;
 using Emotion.Standard.Logging;
+using OpenGL;
 
 #endregion
 
@@ -43,6 +44,7 @@ namespace Emotion.IO
             var width = 0;
             var height = 0;
             var flipped = false; // Whether the image was uploaded flipped - top to bottom.
+            PixelFormat format = PixelFormat.Unknown;
 
             PerfProfiler.ProfilerEventStart("Decoding Image", "Loading");
 
@@ -52,6 +54,7 @@ namespace Emotion.IO
                 pixels = PngFormat.Decode(data, out PngFileHeader header);
                 width = header.Width;
                 height = header.Height;
+                format = header.PixelFormat;
             }
             // Check if BMP.
             else if (BmpFormat.IsBmp(data))
@@ -60,6 +63,7 @@ namespace Emotion.IO
                 width = header.Width;
                 height = header.Height;
                 flipped = true;
+                format = PixelFormat.Bgra;
             }
 
             if (pixels == null || width == 0 || height == 0)
@@ -69,15 +73,15 @@ namespace Emotion.IO
             }
 
             PerfProfiler.ProfilerEventEnd("Decoding Image", "Loading");
-            UploadTexture(new Vector2(width, height), pixels, flipped);
+            UploadTexture(new Vector2(width, height), pixels, flipped, format);
         }
 
-        protected virtual void UploadTexture(Vector2 size, byte[] bgraPixels, bool flipped)
+        protected virtual void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat)
         {
             GLThread.ExecuteGLThread(() =>
             {
                 PerfProfiler.ProfilerEventStart($"Uploading Image {Name}", "Loading");
-                Texture = new Texture(size, bgraPixels)
+                Texture = new Texture(size, pixels, pixelFormat, false, InternalFormat.Rgba)
                 {
                     FlipY = flipped
                 };
