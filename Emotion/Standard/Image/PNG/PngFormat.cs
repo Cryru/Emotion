@@ -202,10 +202,8 @@ namespace Emotion.Standard.Image.PNG
             using var stream = new ByteReader(pngData);
             stream.Seek(8, SeekOrigin.Current); // Increment by header bytes.
 
-            // The content of data chunks will be written to this stream.
-            using var dataStream = new MemoryStream();
-
             // Read chunks while there are valid chunks.
+            var dataStream = new LinkedMemoryStream();
             PngChunk currentChunk;
             var endChunkReached = false;
             byte[] palette = null, paletteAlpha = null;
@@ -236,7 +234,7 @@ namespace Emotion.Standard.Image.PNG
                         break;
                     }
                     case PngChunkTypes.DATA:
-                        dataStream.Write(currentChunk.Data, 0, currentChunk.Data.Length);
+                        dataStream.AddMemory(currentChunk.Data);
                         break;
                     case PngChunkTypes.PALETTE:
                         palette = currentChunk.Data;
@@ -251,10 +249,10 @@ namespace Emotion.Standard.Image.PNG
             }
 
             // Decompress data.
-            dataStream.Position = 0;
             PerfProfiler.ProfilerEventStart("PNG Decompression", "Loading");
             byte[] data = ZlibStreamUtility.Decompress(dataStream);
             PerfProfiler.ProfilerEventEnd("PNG Decompression", "Loading");
+            if (data == null) return null;
 
             var channelsPerColor = 0;
             ColorReader reader;
@@ -301,6 +299,11 @@ namespace Emotion.Standard.Image.PNG
 
             // Calculate the bytes per pixel.
             var bytesPerPixel = 1;
+            if (fileHeader.BitDepth == 0 || fileHeader.BitDepth == 3)
+            {
+                Engine.Log.Warning("Invalid bit depth.", MessageSource.ImagePng);
+                return null;
+            }
             if (fileHeader.BitDepth >= 8) bytesPerPixel = channelsPerColor * fileHeader.BitDepth / 8;
 
             // ReSharper disable once ConvertIfStatementToReturnStatement
