@@ -75,7 +75,7 @@ namespace Tests.Results
                 byte[] fileData = File.ReadAllBytes(file);
                 string fileName = Path.GetFileNameWithoutExtension(file);
                 byte[] pixels = PngFormat.Decode(fileData, out PngFileHeader header);
-                ImageUtil.FlipImageY(pixels, header.Height);
+                ImageUtil.FlipImageY(pixels, (int) header.Size.Y);
                 CachedResults.Add(fileName, pixels);
             }
         }

@@ -562,7 +562,7 @@ namespace Emotion.Test
             {
                 string directory = Path.Join(RunnerReferenceImageFolder, $"Comparison_{fileName}");
                 Directory.CreateDirectory(directory);
-                byte[] derivedFile = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(derivationImage, (int) comparisonSize.Y), (int) comparisonSize.X, (int) comparisonSize.Y, PixelFormat.Rgba);
+                byte[] derivedFile = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(derivationImage, (int) comparisonSize.Y), comparisonSize, PixelFormat.Rgba);
                 File.WriteAllBytes(Path.Join(directory, "derivation.png"), derivedFile);
             }
 
@@ -586,7 +586,7 @@ namespace Emotion.Test
             }
 
             string filePath = Path.Join(RunnerReferenceImageFolder, fileName);
-            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(pixels, (int) size.Y), (int) size.X, (int) size.Y, PixelFormat.Rgba);
+            byte[] file = PngFormat.Encode(ImageUtil.FlipImageYNoMutate(pixels, (int) size.Y), size, PixelFormat.Rgba);
             File.WriteAllBytes(filePath, file);
         }
 

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.IO;
 using Emotion.Primitives;
-using Emotion.Utility;
 using OpenGL;
 
 #endregion

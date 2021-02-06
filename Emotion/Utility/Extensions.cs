@@ -384,7 +384,7 @@ namespace Emotion.Utility
         {
             foreach (Enum value in Enum.GetValues(flags.GetType()))
             {
-                if (flags.HasFlag(value)) yield return (T)value;
+                if (flags.HasFlag(value)) yield return (T) value;
             }
         }
     }

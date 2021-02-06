@@ -67,7 +67,6 @@ namespace Emotion.Game.Tiled
 
             // Construct all objects.
             if (TiledMap!.ObjectLayers.Count > 0)
-            {
                 // For each layer with objects.
                 for (var i = 0; i < TiledMap.ObjectLayers.Count; i++)
                 {
@@ -78,7 +77,6 @@ namespace Emotion.Game.Tiled
                         CreateObjectInternal(objDef, i);
                     }
                 }
-            }
 
             // Construct all objects associated with tiles. These are usually collisions.
             for (var i = 0; i < TiledMap.TileLayers.Count; i++)

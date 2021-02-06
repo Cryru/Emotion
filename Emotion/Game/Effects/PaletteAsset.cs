@@ -9,6 +9,7 @@ using Emotion.Common.Threading;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
 using Emotion.Primitives;
+using OpenGL;
 
 #endregion
 
@@ -46,7 +47,7 @@ namespace Emotion.Game.Effects
 
                 GLThread.ExecuteGLThread(() =>
                 {
-                    var texture = new Texture(BaseTexture.Texture.Size, OpenGL.PixelFormat.Rgba);
+                    var texture = new Texture(BaseTexture.Texture.Size, PixelFormat.Rgba);
                     texture.Upload(BaseTexture.Texture.Size, pixels);
                     texture.FlipY = BaseTexture.Texture.FlipY;
                     PaletteSwaps.Add(p, texture);

@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using System;
-using Emotion.Common;
-using Emotion.Game.Time.Routines;
 using Emotion.Game.Time.Timers;
 using Emotion.Game.Time.Tweening;
 

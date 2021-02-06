@@ -41,10 +41,9 @@ namespace Emotion.IO
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
             byte[] pixels = null;
-            var width = 0;
-            var height = 0;
+            Vector2 size = Vector2.Zero;
             var flipped = false; // Whether the image was uploaded flipped - top to bottom.
-            PixelFormat format = PixelFormat.Unknown;
+            var format = PixelFormat.Unknown;
 
             PerfProfiler.ProfilerEventStart("Decoding Image", "Loading");
 
@@ -52,28 +51,26 @@ namespace Emotion.IO
             if (PngFormat.IsPng(data))
             {
                 pixels = PngFormat.Decode(data, out PngFileHeader header);
-                width = header.Width;
-                height = header.Height;
+                size = header.Size;
                 format = header.PixelFormat;
             }
             // Check if BMP.
             else if (BmpFormat.IsBmp(data))
             {
                 pixels = BmpFormat.Decode(data, out BmpFileHeader header);
-                width = header.Width;
-                height = header.Height;
+                size = new Vector2(header.Width, header.HeaderSize);
                 flipped = true;
                 format = PixelFormat.Bgra;
             }
 
-            if (pixels == null || width == 0 || height == 0)
+            if (pixels == null || size.X == 0 || size.Y == 0)
             {
                 Engine.Log.Warning($"Couldn't load texture - {Name}.", MessageSource.AssetLoader);
                 return;
             }
 
             PerfProfiler.ProfilerEventEnd("Decoding Image", "Loading");
-            UploadTexture(new Vector2(width, height), pixels, flipped, format);
+            UploadTexture(size, pixels, flipped, format);
         }
 
         protected virtual void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat)
@@ -81,7 +78,7 @@ namespace Emotion.IO
             GLThread.ExecuteGLThread(() =>
             {
                 PerfProfiler.ProfilerEventStart($"Uploading Image {Name}", "Loading");
-                Texture = new Texture(size, pixels, pixelFormat, false, InternalFormat.Rgba)
+                Texture = new Texture(size, pixels, pixelFormat)
                 {
                     FlipY = flipped
                 };

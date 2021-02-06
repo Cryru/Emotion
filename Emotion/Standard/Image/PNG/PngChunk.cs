@@ -55,6 +55,7 @@ namespace Emotion.Standard.Image.PNG
                 Engine.Log.Warning($"Chunk length {numBytes} is not valid!", MessageSource.ImagePng);
                 return;
             }
+
             Array.Reverse(lengthBuffer);
             Length = BitConverter.ToInt32(lengthBuffer, 0);
 

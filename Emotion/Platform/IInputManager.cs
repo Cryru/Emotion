@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Emotion.Platform.Input;
 using Emotion.Utility;
+
 #pragma warning disable 618
 
 #endregion

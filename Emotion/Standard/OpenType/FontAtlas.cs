@@ -8,6 +8,7 @@ using Emotion.Common;
 using Emotion.Primitives;
 using Emotion.Standard.Image.PNG;
 using Emotion.Utility;
+using OpenGL;
 
 #endregion
 
@@ -149,7 +150,7 @@ namespace Emotion.Standard.OpenType
         public void DebugDump(string fileName)
         {
             byte[] bytes = ImageUtil.AToRgba(Pixels);
-            bytes = PngFormat.Encode(bytes, (int) Size.X, (int) Size.Y, OpenGL.PixelFormat.Rgba);
+            bytes = PngFormat.Encode(bytes, Size, PixelFormat.Rgba);
             Engine.AssetLoader.Save(bytes, $"Player/DebugDump/{fileName}");
         }
     }

@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Emotion.Common;
@@ -18,6 +19,10 @@ namespace Emotion.Standard.Image.PNG
 {
     public static class PngFormat
     {
+        // P N G CR LF EOF LF
+        private static byte[] _pngHeader = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        private const int MAX_BLOCK_SIZE = 0xFFFF;
+
         /// <summary>
         /// Verify whether the bytes are a png file, by checking the magic.
         /// </summary>
@@ -26,39 +31,37 @@ namespace Emotion.Standard.Image.PNG
         public static bool IsPng(ReadOnlyMemory<byte> data)
         {
             ReadOnlySpan<byte> span = data.Span;
-            return data.Length >= 8 &&
-                   span[0] == 0x89 &&
-                   span[1] == 0x50 && // P
-                   span[2] == 0x4E && // N
-                   span[3] == 0x47 && // G
-                   span[4] == 0x0D && // CR
-                   span[5] == 0x0A && // LF
-                   span[6] == 0x1A && // EOF
-                   span[7] == 0x0A; // LF
+            if (data.Length < _pngHeader.Length) return true;
+            for (var i = 0; i < _pngHeader.Length; i++)
+            {
+                if (_pngHeader[i] != span[i]) return false;
+            }
+
+            return true;
         }
 
         /// <summary>
         /// Encodes the provided Y flipped pixel data to a PNG image.
         /// </summary>
         /// <param name="pixels">The pixel date to encode.</param>
-        /// <param name="width">The width of the image in the data.</param>
-        /// <param name="height">The height of the image in the data.</param>
+        /// <param name="size">The size of the image..</param>
         /// <param name="format">The format of the pixel data.</param>
         /// <returns>A PNG image as bytes.</returns>
-        public static byte[] Encode(byte[] pixels, int width, int height, PixelFormat format)
+        public static byte[] Encode(byte[] pixels, Vector2 size, PixelFormat format)
         {
-            var pngHeader = new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-            const int maxBlockSize = 0xFFFF;
-
             using var stream = new MemoryStream();
 
-            // Write the png header.
-            stream.Write(pngHeader, 0, 8);
+            stream.Write(_pngHeader, 0, 8);
 
+            // Write header chunk.
+            var chunkData = new byte[13];
+            var width = (int) size.X;
+            var height = (int) size.Y;
+            WriteInteger(chunkData, 0, width);
+            WriteInteger(chunkData, 4, height);
             var header = new PngFileHeader
             {
-                Width = width,
-                Height = height,
+                Size = size,
                 ColorType = 6,
                 BitDepth = 8,
                 FilterMethod = 0,
@@ -66,19 +69,11 @@ namespace Emotion.Standard.Image.PNG
                 InterlaceMethod = 0,
                 PixelFormat = format
             };
-
-            // Write header chunk.
-            var chunkData = new byte[13];
-
-            WriteInteger(chunkData, 0, header.Width);
-            WriteInteger(chunkData, 4, header.Height);
-
             chunkData[8] = header.BitDepth;
             chunkData[9] = header.ColorType;
             chunkData[10] = header.CompressionMethod;
             chunkData[11] = header.FilterMethod;
             chunkData[12] = header.InterlaceMethod;
-
             WriteChunk(stream, PngChunkTypes.HEADER, chunkData);
 
             // Write data chunks.
@@ -103,7 +98,7 @@ namespace Emotion.Standard.Image.PNG
                         data[dataOffset + 2] = pixels[pixelOffset + 2];
                         data[dataOffset + 3] = pixels[pixelOffset + 3];
                     }
-                    else if(format == PixelFormat.Bgra)
+                    else if (format == PixelFormat.Bgra)
                     {
                         data[dataOffset + 0] = pixels[pixelOffset + 2];
                         data[dataOffset + 1] = pixels[pixelOffset + 1];
@@ -117,15 +112,15 @@ namespace Emotion.Standard.Image.PNG
                 }
             }
 
+            // Compress data.
             byte[] buffer = ZlibStreamUtility.Compress(data, 6);
-            int numChunks = buffer.Length / maxBlockSize;
-            if (buffer.Length % maxBlockSize != 0) numChunks++;
+            int numChunks = buffer.Length / MAX_BLOCK_SIZE;
+            if (buffer.Length % MAX_BLOCK_SIZE != 0) numChunks++;
             for (var i = 0; i < numChunks; i++)
             {
-                int length = buffer.Length - i * maxBlockSize;
-
-                if (length > maxBlockSize) length = maxBlockSize;
-                WriteChunk(stream, PngChunkTypes.DATA, buffer, i * maxBlockSize, length);
+                int length = buffer.Length - i * MAX_BLOCK_SIZE;
+                if (length > MAX_BLOCK_SIZE) length = MAX_BLOCK_SIZE;
+                WriteChunk(stream, PngChunkTypes.DATA, buffer, i * MAX_BLOCK_SIZE, length);
             }
 
             // Write end chunk.
@@ -213,8 +208,8 @@ namespace Emotion.Standard.Image.PNG
             // Read chunks while there are valid chunks.
             PngChunk currentChunk;
             var endChunkReached = false;
-            byte[] palette = null;
-            byte[] paletteAlpha = null;
+            byte[] palette = null, paletteAlpha = null;
+            int width = 0, height = 0;
             while ((currentChunk = new PngChunk(stream)).Valid)
             {
                 if (endChunkReached)
@@ -230,9 +225,9 @@ namespace Emotion.Standard.Image.PNG
                         Array.Reverse(currentChunk.Data, 0, 4);
                         Array.Reverse(currentChunk.Data, 4, 4);
 
-                        fileHeader.Width = BitConverter.ToInt32(currentChunk.Data, 0);
-                        fileHeader.Height = BitConverter.ToInt32(currentChunk.Data, 4);
-
+                        width = BitConverter.ToInt32(currentChunk.Data, 0);
+                        height = BitConverter.ToInt32(currentChunk.Data, 4);
+                        fileHeader.Size = new Vector2(width, height);
                         fileHeader.BitDepth = currentChunk.Data[8];
                         fileHeader.ColorType = currentChunk.Data[9];
                         fileHeader.FilterMethod = currentChunk.Data[11];
@@ -301,7 +296,7 @@ namespace Emotion.Standard.Image.PNG
             if (reader == null)
             {
                 Engine.Log.Warning($"Unsupported color type - {fileHeader.ColorType}", MessageSource.ImagePng);
-                return new byte[fileHeader.Width * fileHeader.Height * 4];
+                return new byte[width * height * 4];
             }
 
             // Calculate the bytes per pixel.
@@ -413,7 +408,9 @@ namespace Emotion.Standard.Image.PNG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte[] Parse(int scanlineLength, int scanlineCount, byte[] pureData, int bytesPerPixel, PngFileHeader header, ColorReader reader)
         {
-            var pixels = new byte[header.Width * header.Height * 4];
+            var width = (int) header.Size.X;
+            var height = (int) header.Size.Y;
+            var pixels = new byte[width * height * 4];
             int length = scanlineLength - 1;
             var data = new Span<byte>(pureData);
 
@@ -444,7 +441,7 @@ namespace Emotion.Standard.Image.PNG
                     int filter = data[readOffset];
                     ApplyFilter(scanline, previousScanline, filter, bytesPerPixel);
 
-                    reader(header.Width, ConvertBitArray(scanline, header), pixels, i);
+                    reader(width, ConvertBitArray(scanline, header), pixels, i);
                     previousScanline = scanline;
                     readOffset += scanlineLength;
                 }
@@ -470,7 +467,7 @@ namespace Emotion.Standard.Image.PNG
                             scanline[j] = (byte) (scanline[j] + scanline[j - bytesPerPixel]);
                         }
 
-                        reader(header.Width, ConvertBitArray(scanline, header), pixels, i);
+                        reader(width, ConvertBitArray(scanline, header), pixels, i);
                         readOffset += scanlineLength;
                     }
                 }).Wait();
@@ -490,7 +487,7 @@ namespace Emotion.Standard.Image.PNG
                         // Early out for invalid data.
                         if (pureData.Length - readOffset < scanlineLength) break;
                         Span<byte> row = ConvertBitArray(new Span<byte>(pureData).Slice(readOffset + 1, length), header);
-                        reader(header.Width, row, pixels, i);
+                        reader(width, row, pixels, i);
                         readOffset += scanlineLength;
                     }
                 }).Wait();
@@ -510,8 +507,10 @@ namespace Emotion.Standard.Image.PNG
             PerfProfiler.ProfilerEventStart("PNG Parse Interlaced", "Loading");
 
             // Combine interlaced pixels into one image here.
-            var combination = new byte[fileHeader.Width * fileHeader.Height * channelsPerColor];
-            var pixels = new byte[fileHeader.Width * fileHeader.Height * 4];
+            var width = (int) fileHeader.Size.X;
+            var height = (int) fileHeader.Size.Y;
+            var combination = new byte[width * height * channelsPerColor];
+            var pixels = new byte[width * height * 4];
 
             const int passes = 7;
             var readOffset = 0;
@@ -519,16 +518,16 @@ namespace Emotion.Standard.Image.PNG
             var data = new Span<byte>(pureData);
             for (var i = 0; i < passes; i++)
             {
-                int columns = Adam7.ComputeColumns(fileHeader.Width, i);
+                int columns = Adam7.ComputeColumns(width, i);
                 if (columns == 0) continue;
                 int scanlineLength = GetScanlineLengthInterlaced(columns, fileHeader, channelsPerColor) + 1;
                 int length = scanlineLength - 1;
 
-                int pixelsInLine = Adam7.ComputeBlockWidth(fileHeader.Width, i);
+                int pixelsInLine = Adam7.ComputeBlockWidth(width, i);
 
                 // Read scanlines in this pass.
                 var previousScanline = Span<byte>.Empty;
-                for (int row = Adam7.FirstRow[i]; row < fileHeader.Height; row += Adam7.RowIncrement[i])
+                for (int row = Adam7.FirstRow[i]; row < height; row += Adam7.RowIncrement[i])
                 {
                     // Early out if invalid pass.
                     if (data.Length - readOffset < scanlineLength)
@@ -546,7 +545,7 @@ namespace Emotion.Standard.Image.PNG
                     Span<byte> convertedLine = ConvertBitArray(scanLine, fileHeader);
                     for (var pixel = 0; pixel < pixelsInLine; pixel++)
                     {
-                        int offset = row * bytesPerPixel * fileHeader.Width + (Adam7.FirstColumn[i] + pixel * Adam7.ColumnIncrement[i]) * bytesPerPixel;
+                        int offset = row * bytesPerPixel * width + (Adam7.FirstColumn[i] + pixel * Adam7.ColumnIncrement[i]) * bytesPerPixel;
                         int offsetSrc = pixel * bytesPerPixel;
                         for (var p = 0; p < bytesPerPixel; p++)
                         {
@@ -561,12 +560,12 @@ namespace Emotion.Standard.Image.PNG
             }
 
             // Read the combined image.
-            int stride = fileHeader.Width * bytesPerPixel;
+            int stride = width * bytesPerPixel;
             int scanlineCount = combination.Length / stride;
             for (var i = 0; i < scanlineCount; i++)
             {
                 Span<byte> row = new Span<byte>(combination).Slice(stride * i, stride);
-                reader(fileHeader.Width, row, pixels, i);
+                reader(width, row, pixels, i);
             }
 
             PerfProfiler.ProfilerEventEnd("PNG Parse Interlaced", "Loading");
@@ -598,7 +597,7 @@ namespace Emotion.Standard.Image.PNG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetScanlineLength(PngFileHeader fileHeader, int channelsPerColor)
         {
-            int scanlineLength = fileHeader.Width * fileHeader.BitDepth * channelsPerColor;
+            int scanlineLength = (int) fileHeader.Size.X * fileHeader.BitDepth * channelsPerColor;
             int amount = scanlineLength % 8;
             if (amount != 0) scanlineLength += 8 - amount;
             scanlineLength /= 8;

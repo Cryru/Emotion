@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Common.Serialization;
@@ -222,7 +221,7 @@ namespace Emotion.Graphics.Objects
         /// </summary>
         public virtual void Dispose()
         {
-            if(Pointer == 0) return;
+            if (Pointer == 0) return;
 
             uint ptr = Pointer;
             Pointer = 0;

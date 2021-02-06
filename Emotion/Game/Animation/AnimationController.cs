@@ -34,7 +34,7 @@ namespace Emotion.Game.Animation
         /// Anchors in case the texture needs to be mirrored along the X axis.
         /// Optionally specified.
         /// </summary>
-        public Vector2[] MirrorXAnchors { get; set; } = null;
+        public Vector2[] MirrorXAnchors { get; set; }
 
         /// <summary>
         /// Possible animations.

@@ -1,16 +1,18 @@
-﻿namespace Emotion.Standard.Image.PNG
+﻿#region Using
+
+using System.Numerics;
+using OpenGL;
+
+#endregion
+
+namespace Emotion.Standard.Image.PNG
 {
     public class PngFileHeader
     {
         /// <summary>
         /// The bitmap width in pixels (signed integer).
         /// </summary>
-        public int Width;
-
-        /// <summary>
-        /// The bitmap height in pixels (signed integer).
-        /// </summary>
-        public int Height;
+        public Vector2 Size;
 
         /// <summary>
         /// Bit depth is a single-byte integer giving the number of bits per sample
@@ -49,6 +51,6 @@
         /// <summary>
         /// The byte format of the pixels.
         /// </summary>
-        public OpenGL.PixelFormat PixelFormat;
+        public PixelFormat PixelFormat;
     }
 }

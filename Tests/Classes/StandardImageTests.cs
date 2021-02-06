@@ -110,12 +110,12 @@ namespace Tests.Classes
             Runner.ExecuteAsLoop(_ =>
             {
                 var r = new Texture(
-                    new Vector2(fileHeader.Width, fileHeader.Height),
+                    fileHeader.Size,
                     decodedPixelData,
                     fileHeader.PixelFormat);
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
-                composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);
+                composer.RenderSprite(Vector3.Zero, fileHeader.Size, Color.White, r);
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.PngDecode);
                 r.Dispose();
@@ -136,12 +136,12 @@ namespace Tests.Classes
             Runner.ExecuteAsLoop(_ =>
             {
                 var r = new Texture(
-                    new Vector2(fileHeader.Width, fileHeader.Height),
+                    fileHeader.Size,
                     decodedPixelData,
                     fileHeader.PixelFormat);
 
                 RenderComposer composer = Engine.Renderer.StartFrame();
-                composer.RenderSprite(Vector3.Zero, new Vector2(fileHeader.Width, fileHeader.Height), Color.White, r);
+                composer.RenderSprite(Vector3.Zero, fileHeader.Size, Color.White, r);
                 Engine.Renderer.EndFrame();
                 Runner.VerifyScreenshot(ResultDb.PngDecodeInterlaced);
                 r.Dispose();

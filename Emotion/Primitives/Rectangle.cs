@@ -874,10 +874,6 @@ namespace Emotion.Primitives
 
                 return new Rectangle(minX, minY, width, height);
             }
-
-            
-
-            
         }
 
         #endregion
