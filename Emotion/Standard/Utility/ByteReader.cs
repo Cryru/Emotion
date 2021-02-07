@@ -250,6 +250,16 @@ namespace Emotion.Standard.Utility
         }
 
         /// <summary>
+        /// Reads a int32 as big endian.
+        /// </summary>
+        public int ReadInt32BE()
+        {
+            ReadOnlySpan<byte> p = ReadBytes(4);
+            var n = BitConverter.ToInt32(p);
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
+        }
+
+        /// <summary>
         /// Reads a short as big endian.
         /// </summary>
         public short ReadShortBE()

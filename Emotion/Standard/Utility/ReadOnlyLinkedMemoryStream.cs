@@ -9,11 +9,14 @@ using System.IO;
 
 namespace Emotion.Standard.Utility
 {
-    public class LinkedMemoryStream : Stream
+    /// <summary>
+    /// Asymentric unrolled linked list in the form of a stream.
+    /// </summary>
+    public class ReadOnlyLinkedMemoryStream : Stream
     {
-        private List<byte[]> _memoryChunks = new List<byte[]>();
+        private List<ReadOnlyMemory<byte>> _memoryChunks = new List<ReadOnlyMemory<byte>>();
 
-        public void AddMemory(byte[] memory)
+        public void AddMemory(ReadOnlyMemory<byte> memory)
         {
             _memoryChunks.Add(memory);
         }
@@ -30,11 +33,11 @@ namespace Emotion.Standard.Utility
 
             while (totalWritten < count)
             {
-                Span<byte> chunkAtPosition = GetBufferAtTotalPos(Position, out int bufferOffset);
+                ReadOnlyMemory<byte> chunkAtPosition = GetBufferAtTotalPos(Position, out int bufferOffset);
                 Debug.Assert(bufferOffset != -1);
                 int bytesToWrite = Math.Min(chunkAtPosition.Length - bufferOffset, count - totalWritten);
 
-                Span<byte> src = chunkAtPosition.Slice(bufferOffset, bytesToWrite);
+                ReadOnlySpan<byte> src = chunkAtPosition.Span.Slice(bufferOffset, bytesToWrite);
                 Span<byte> dst = destSpan.Slice(writeOffset);
                 src.CopyTo(dst);
 
@@ -46,12 +49,12 @@ namespace Emotion.Standard.Utility
             return count;
         }
 
-        private byte[] GetBufferAtTotalPos(long pos, out int bufferOffset)
+        private ReadOnlyMemory<byte> GetBufferAtTotalPos(long pos, out int bufferOffset)
         {
             var offset = 0;
             for (var i = 0; i < _memoryChunks.Count; i++)
             {
-                byte[] currentChunk = _memoryChunks[i];
+                ReadOnlyMemory<byte> currentChunk = _memoryChunks[i];
                 if (pos >= offset && pos < offset + currentChunk.Length)
                 {
                     bufferOffset = (int) (pos - offset);

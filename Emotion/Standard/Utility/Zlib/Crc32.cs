@@ -136,18 +136,13 @@ namespace Emotion.Standard.Utility.Zlib
             Update(buffer, 0, buffer.Length);
         }
 
-        public void Update(byte[] buffer, int offset, int count)
+        public void Update(ReadOnlySpan<byte> buffer, int offset = 0, int count = -1)
         {
-            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-
-            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be less than zero");
-
+            if (count < 0) count = buffer.Length;
             if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
 
             _crc ^= CRC_SEED;
-
             while (--count >= 0) _crc = CrcTable[(_crc ^ buffer[offset++]) & 0xFF] ^ (_crc >> 8);
-
             _crc ^= CRC_SEED;
         }
     }

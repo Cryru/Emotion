@@ -203,10 +203,10 @@ namespace Emotion.Standard.Image.PNG
             stream.Seek(8, SeekOrigin.Current); // Increment by header bytes.
 
             // Read chunks while there are valid chunks.
-            var dataStream = new LinkedMemoryStream();
+            var dataStream = new ReadOnlyLinkedMemoryStream();
             PngChunk currentChunk;
             var endChunkReached = false;
-            byte[] palette = null, paletteAlpha = null;
+            ReadOnlyMemory<byte> palette = null, paletteAlpha = null;
             int width = 0, height = 0;
             while ((currentChunk = new PngChunk(stream)).Valid)
             {
@@ -220,27 +220,26 @@ namespace Emotion.Standard.Image.PNG
                 {
                     case PngChunkTypes.HEADER:
                     {
-                        Array.Reverse(currentChunk.Data, 0, 4);
-                        Array.Reverse(currentChunk.Data, 4, 4);
+                        ByteReader chunkReader = currentChunk.ChunkReader;
 
-                        width = BitConverter.ToInt32(currentChunk.Data, 0);
-                        height = BitConverter.ToInt32(currentChunk.Data, 4);
+                        width = chunkReader.ReadInt32BE();
+                        height = chunkReader.ReadInt32BE();
                         fileHeader.Size = new Vector2(width, height);
-                        fileHeader.BitDepth = currentChunk.Data[8];
-                        fileHeader.ColorType = currentChunk.Data[9];
-                        fileHeader.FilterMethod = currentChunk.Data[11];
-                        fileHeader.InterlaceMethod = currentChunk.Data[12];
-                        fileHeader.CompressionMethod = currentChunk.Data[10];
+                        fileHeader.BitDepth = chunkReader.ReadByte();
+                        fileHeader.ColorType = chunkReader.ReadByte();
+                        fileHeader.CompressionMethod = chunkReader.ReadByte();
+                        fileHeader.FilterMethod = chunkReader.ReadByte();
+                        fileHeader.InterlaceMethod = chunkReader.ReadByte();
                         break;
                     }
                     case PngChunkTypes.DATA:
-                        dataStream.AddMemory(currentChunk.Data);
+                        dataStream.AddMemory(currentChunk.ChunkReader.Data);
                         break;
                     case PngChunkTypes.PALETTE:
-                        palette = currentChunk.Data;
+                        palette = currentChunk.ChunkReader.Data;
                         break;
                     case PngChunkTypes.PALETTE_ALPHA:
-                        paletteAlpha = currentChunk.Data;
+                        paletteAlpha = currentChunk.ChunkReader.Data;
                         break;
                     case PngChunkTypes.END:
                         endChunkReached = true;
@@ -272,7 +271,7 @@ namespace Emotion.Standard.Image.PNG
                 case 3:
                     // Palette
                     channelsPerColor = 1;
-                    reader = (rowPixels, row, imageDest, destRow) => { Palette(palette, paletteAlpha, rowPixels, row, imageDest, destRow); };
+                    reader = (rowPixels, row, imageDest, destRow) => { Palette(palette.Span, paletteAlpha.Span, rowPixels, row, imageDest, destRow); };
                     break;
                 case 4:
                     // Grayscale - Alpha
@@ -304,12 +303,13 @@ namespace Emotion.Standard.Image.PNG
                 Engine.Log.Warning("Invalid bit depth.", MessageSource.ImagePng);
                 return null;
             }
+            if (fileHeader.BitDepth != 8) Engine.Log.Warning("Loading PNGs with a bit depth different than 8 will be deprecated in future versions.", MessageSource.ImagePng);
             if (fileHeader.BitDepth >= 8) bytesPerPixel = channelsPerColor * fileHeader.BitDepth / 8;
 
-            // ReSharper disable once ConvertIfStatementToReturnStatement
+            // Check interlacing.
             if (fileHeader.InterlaceMethod == 1)
             {
-                Engine.Log.Warning("Loading interlaced PNGs will be deprecated in future versions. Convert your images!.", MessageSource.ImagePng);
+                Engine.Log.Warning("Loading interlaced PNGs will be deprecated in future versions. Convert your images!", MessageSource.ImagePng);
                 return ParseInterlaced(data, fileHeader, bytesPerPixel, channelsPerColor, reader);
             }
 
@@ -371,7 +371,7 @@ namespace Emotion.Standard.Image.PNG
             data.CopyTo(pixelsSpan);
         }
 
-        private static void Palette(byte[] palette, byte[] paletteAlpha, int pixelCount, Span<byte> data, byte[] pixels, int y)
+        private static void Palette(ReadOnlySpan<byte> palette, ReadOnlySpan<byte> paletteAlpha, int pixelCount, Span<byte> data, byte[] pixels, int y)
         {
             if (paletteAlpha != null && paletteAlpha.Length > 0)
             {
@@ -430,7 +430,8 @@ namespace Emotion.Standard.Image.PNG
             // Multiple filters or a dependency filter are in affect.
             if (filterMode == byte.MaxValue || filterMode != 0 && filterMode != 1)
             {
-                if (scanlineCount >= 1500) Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without that, it will load faster.", MessageSource.ImagePng);
+                if (scanlineCount >= 1500)
+                    Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without filters, it will load faster.", MessageSource.ImagePng);
 
                 PerfProfiler.ProfilerEventStart("PNG Parse Sequential", "Loading");
                 var readOffset = 0;

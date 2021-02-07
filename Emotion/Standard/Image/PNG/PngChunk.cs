@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Standard.Utility;
 using Emotion.Standard.Utility.Zlib;
 
 #endregion
@@ -29,7 +30,7 @@ namespace Emotion.Standard.Image.PNG
         /// The chunk's data bytes appropriate to the chunk type, if any.
         /// This field can be of zero length.
         /// </summary>
-        public byte[] Data;
+        public ByteReader ChunkReader;
 
         /// <summary>
         /// A CRC (Cyclic Redundancy Check) calculated on the preceding bytes in the chunk,
@@ -38,7 +39,7 @@ namespace Emotion.Standard.Image.PNG
         /// </summary>
         public uint Crc;
 
-        public PngChunk(Stream stream)
+        public PngChunk(ByteReader stream)
         {
             // Read chunk length.
             var lengthBuffer = new byte[4];
@@ -50,7 +51,7 @@ namespace Emotion.Standard.Image.PNG
             }
 
             Array.Reverse(lengthBuffer);
-            int length = BitConverter.ToInt32(lengthBuffer, 0);
+            var length = BitConverter.ToInt32(lengthBuffer, 0);
 
             // Invalid chunk or after end chunk.
             if (numBytes == 0) return;
@@ -66,8 +67,8 @@ namespace Emotion.Standard.Image.PNG
             chars[3] = (char) typeBuffer[3];
             Type = new string(chars);
 
-            Data = new byte[length];
-            stream.Read(Data, 0, length);
+            ChunkReader = stream.Branch(0, false, length);
+            stream.Seek(length, SeekOrigin.Current);
 
             // Read compressed chunk.
             var crcBuffer = new byte[4];
@@ -79,7 +80,7 @@ namespace Emotion.Standard.Image.PNG
 #if DEBUG
             var crc = new Crc32();
             crc.Update(typeBuffer);
-            crc.Update(Data);
+            crc.Update(ChunkReader.Data.Span);
 
             // PNGs saved with Gimp spam the log with warnings.
             // https://gitlab.gnome.org/GNOME/gimp/-/issues/2111
