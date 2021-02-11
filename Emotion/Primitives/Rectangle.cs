@@ -509,6 +509,14 @@ namespace Emotion.Primitives
             return new LineSegment(p1W, p2W);
         }
 
+        /// <summary>
+        /// Return a rectangle identical to this one, but offset by the given amount.
+        /// </summary>
+        public Rectangle Offset(Vector2 position)
+        {
+            return new Rectangle(X + position.X, Y + position.Y, Width, Height);
+        }
+
         #region NEZ Extensions
 
         // Taken from Nez and Modified
