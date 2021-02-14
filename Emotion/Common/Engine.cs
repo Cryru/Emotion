@@ -57,9 +57,10 @@ namespace Emotion.Common
         public static RenderComposer Renderer { get; private set; }
 
         /// <summary>
-        /// The legacy input manager.
+        /// The legacy input manager. Is just a redirect of Host.
+        /// todo: Should probably deprecate this at some point.
         /// </summary>
-        public static IInputManager InputManager { get; private set; }
+        public static PlatformBase InputManager { get; private set; }
 
         /// <summary>
         /// Module which manages loading and unloading of scenes.
