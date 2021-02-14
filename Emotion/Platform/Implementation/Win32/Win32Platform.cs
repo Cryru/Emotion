@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Common;
@@ -660,6 +661,28 @@ namespace Emotion.Platform.Implementation.Win32
                     _scanCodes[(short) _keyCodes[scanCode]] = scanCode;
             }
         }
+
+        #endregion
+
+        #region File Helpers
+
+        public void OpenFolderAndSelectFile(string filePath)
+        {
+            SHParseDisplayName(Path.GetDirectoryName(filePath), IntPtr.Zero, out IntPtr nativeFolder, 0, out _);
+            SHParseDisplayName(filePath, IntPtr.Zero, out IntPtr nativeFile, 0, out _);
+            SHOpenFolderAndSelectItems(nativeFile, 0, nativeFile, 0);
+            Marshal.FreeCoTaskMem(nativeFolder);
+            Marshal.FreeCoTaskMem(nativeFile);
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr ILCreateFromPathW(string pszPath);
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        public static extern void SHParseDisplayName(string name, IntPtr bindingContext, out IntPtr pidl, uint sfgaoIn, out uint psfgaoOut);
+
+        [DllImport("shell32.dll")]
+        private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, int cild, IntPtr apidl, int dwFlags);
 
         #endregion
     }

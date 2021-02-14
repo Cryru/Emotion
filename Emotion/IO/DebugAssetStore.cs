@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
@@ -29,10 +28,11 @@ namespace Emotion.IO
             // Save to exe folder.
             base.SaveAsset(data, Path.Join(".", "Assets", name), false);
 
-            if (Engine.Host is Win32Platform && Engine.TotalTime - _lastExplorerOpenedTime > 20_000)
+            if (Engine.Host is Win32Platform winPlat && Engine.TotalTime - _lastExplorerOpenedTime > 20_000)
             {
                 _lastExplorerOpenedTime = Engine.TotalTime;
-                Process.Start("explorer.exe", $"{Path.GetDirectoryName(Path.Join(_folderFs, name))}");
+                winPlat.OpenFolderAndSelectFile(Path.GetFullPath(Path.Join(_folderFs, name)));
+                //Process.Start("explorer.exe", $"{Path.GetDirectoryName()}");
             }
         }
 
