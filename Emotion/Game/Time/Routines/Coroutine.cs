@@ -67,7 +67,7 @@ namespace Emotion.Game.Time.Routines
             if (Finished) return;
 
 #if DEBUG
-            Debug.Assert(CoroutinesRanThisTick.Add(this), "Each coroutine should run only once per tick. It's been added twice or yield added a second time.");
+            Debug.Assert(CoroutinesRanThisTick.Add(this), "Each coroutine should run only once per tick. It's been added twice or yielded from two sources.");
 #endif
 
             if (_currentWaiter != null) // No waiter, or routine finished

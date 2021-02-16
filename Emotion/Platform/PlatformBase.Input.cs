@@ -18,7 +18,7 @@ namespace Emotion.Platform
         /// <summary>
         /// Called when a key is pressed, let go, or a held event is triggered.
         /// </summary>
-        public EmotionEvent<Key, KeyStatus> OnKey { get; } = new EmotionEvent<Key, KeyStatus>();
+        public EmotionKeyEvent OnKey { get; } = new EmotionKeyEvent();
 
         /// <summary>
         /// Called when the mouse scrolls.
@@ -232,6 +232,8 @@ namespace Emotion.Platform
         /// <summary>
         /// Checks if the provided key is part of the provided axis, and if it is returns a vector of
         /// where that key is within the axis.
+        ///
+        /// This might leak key status outside of your event order.
         /// </summary>
         public Vector2 IsKeyPartOfAxis(Key keyToCheck, Key axis)
         {
@@ -241,11 +243,32 @@ namespace Emotion.Platform
             var value = new Vector2();
             if (directionAxis == Key.AxisUpDown || axis.HasFlag(Key.AxisUpDown))
                 value.Y = (_keys[(int) Key.DownArrow] ? 1 : 0) - (_keys[(int) Key.UpArrow] ? 1 : 0);
-             if (directionAxis == Key.AxisLeftRight || axis.HasFlag(Key.AxisLeftRight))
+            if (directionAxis == Key.AxisLeftRight || axis.HasFlag(Key.AxisLeftRight))
                 value.X = (_keys[(int) Key.RightArrow] ? 1 : 0) - (_keys[(int) Key.LeftArrow] ? 1 : 0);
-             if (directionAxis == Key.AxisWS || axis.HasFlag(Key.AxisWS))
+            if (directionAxis == Key.AxisWS || axis.HasFlag(Key.AxisWS))
                 value.Y = value.Y == 0 ? (_keys[(int) Key.S] ? 1 : 0) - (_keys[(int) Key.W] ? 1 : 0) : value.Y;
             if (directionAxis == Key.AxisAD || axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (_keys[(int) Key.D] ? 1 : 0) - (_keys[(int) Key.A] ? 1 : 0) : value.X;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Check if the provided key is part of the provided axis and returns a vector with
+        /// the position of the key within the axis, regardless of whether it is currently down.
+        /// </summary>
+        public Vector2 GetKeyAxisPart(Key keyToCheck, Key axis)
+        {
+            if (!_keyToDirectionalAxis.TryGetValue(keyToCheck, out Key directionAxis)) return Vector2.Zero;
+            if (axis != directionAxis && !axis.HasFlag(directionAxis)) return Vector2.Zero;
+
+            var value = new Vector2();
+            if (directionAxis == Key.AxisUpDown || axis.HasFlag(Key.AxisUpDown))
+                value.Y = (keyToCheck == Key.DownArrow ? 1 : 0) - (keyToCheck == Key.UpArrow ? 1 : 0);
+            if (directionAxis == Key.AxisLeftRight || axis.HasFlag(Key.AxisLeftRight))
+                value.X = (keyToCheck == Key.RightArrow ? 1 : 0) - (keyToCheck == Key.LeftArrow ? 1 : 0);
+            if (directionAxis == Key.AxisWS || axis.HasFlag(Key.AxisWS))
+                value.Y = value.Y == 0 ? (keyToCheck == Key.S ? 1 : 0) - (keyToCheck == Key.W ? 1 : 0) : value.Y;
+            if (directionAxis == Key.AxisAD || axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (keyToCheck == Key.D ? 1 : 0) - (keyToCheck == Key.A ? 1 : 0) : value.X;
 
             return value;
         }
