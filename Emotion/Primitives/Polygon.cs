@@ -11,7 +11,7 @@ using Emotion.Utility;
 
 namespace Emotion.Primitives
 {
-    public class Polygon
+    public class Polygon : IShape
     {
         public Vector3[] Vertices;
 
@@ -98,7 +98,7 @@ namespace Emotion.Primitives
         /// </summary>
         /// <param name="point">The point to check.</param>
         /// <returns>Whether the point is inside the polygon.</returns>
-        public bool Contains(Vector2 point)
+        public bool Contains(ref Vector2 point)
         {
             var result = false;
             int j = Vertices.Length - 1;
@@ -377,5 +377,80 @@ namespace Emotion.Primitives
 
             return new Rectangle(minX, minY, width, height);
         }
+
+        // -----
+
+        public bool Contains(Vector2 point)
+        {
+            return Contains(ref point);
+        }
+
+        #region Shape API
+
+        public Vector2 Center
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+
+        public IShape CloneShape()
+        {
+            return new Polygon(Vertices);
+        }
+
+        public bool Intersects(ref LineSegment line)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector2 GetIntersectionPoint(ref LineSegment line)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ContainsInclusive(ref Vector2 point)
+        {
+            return Contains(ref point);
+        }
+
+        public bool Contains(ref Rectangle rect)
+        {
+            Rectangle rectBound = Bounds2D;
+            return rectBound.Contains(rect);
+        }
+
+        public bool ContainsInclusive(ref Rectangle rect)
+        {
+            Rectangle rectBound = Bounds2D;
+            return rectBound.ContainsInclusive(rect);
+        }
+
+        public bool Intersects(ref Rectangle rect)
+        {
+            Rectangle rectBound = Bounds2D;
+            if (!rectBound.Intersects(rect)) return false;
+
+            if (Contains(rect.TopLeft) ||
+                Contains(rect.TopRight) ||
+                Contains(rect.BottomLeft) ||
+                Contains(rect.BottomRight)) return true;
+
+            List<LineSegment> contour = Get2DContour();
+            LineSegment[] rectContour = rect.GetLineSegments();
+
+            for (var i = 0; i < rectContour.Length; i++)
+            {
+                ref LineSegment rectSegment = ref rectContour[i];
+                for (var j = 0; j < contour.Count; j++)
+                {
+                    LineSegment polySegment = contour[j];
+                    if (polySegment.Intersects(ref rectSegment)) return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }
