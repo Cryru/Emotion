@@ -20,14 +20,14 @@ namespace Emotion.Game.AStar
         /// second is the goal node.
         /// By default this is the euclidean distance.
         /// </summary>
-        public Func<AStarNode, AStarNode, int> HeuristicFunction = (subject, end) => (int) Vector2.Distance(new Vector2(subject.X, subject.Y), new Vector2(end.X, end.Y));
+        public Func<AStarNode, AStarNode, AStarNode, int> HeuristicFunction = (current, end, currentFrom) => (int) Vector2.Distance(current.Location, end.Location);
 
         private HashSet<AStarNode> _openSet;
         private HashSet<AStarNode> _closedSet;
         private Dictionary<int, AStarNode> _cache;
         private List<AStarNode> _neighbors = new List<AStarNode>();
 
-        private PathingGrid _pathingGrid;
+        protected PathingGrid _pathingGrid;
 
         /// <summary>
         /// Create a new A* path.
@@ -128,7 +128,7 @@ namespace Emotion.Game.AStar
                 for (var i = 0; i < _neighbors.Count; i++)
                 {
                     AStarNode node = _neighbors[i];
-                    node.H = HeuristicFunction(node, endNode);
+                    node.H = HeuristicFunction(node, endNode, current);
                 }
 
                 _neighbors.Sort();
@@ -136,7 +136,7 @@ namespace Emotion.Game.AStar
                 for (var i = 0; i < _neighbors.Count; i++)
                 {
                     AStarNode neighbor = _neighbors[i];
-                    if (neighbor == null) continue;
+                    if (neighbor.H < 0) continue;
 
                     // Check if the neighbor is done with, in which case we skip.
                     if (_closedSet.Contains(neighbor)) continue;
@@ -271,5 +271,23 @@ namespace Emotion.Game.AStar
         }
 
         #endregion
+
+        /// <summary>
+        /// Find a path between two world space coordinates.
+        /// </summary>
+        public List<Vector2> FindPathWorldSpace(Vector2 start, Vector2 end, bool diagonalMovement = false)
+        {
+            Vector2 halfTile = _pathingGrid.PathGridTileSize / 2;
+            start = _pathingGrid.WorldToPathTile(start);
+            end = _pathingGrid.WorldToPathTile(end);
+
+            List<Vector2> path = FindPath(start, end, diagonalMovement);
+            for (var i = 0; i < path.Count; i++)
+            {
+                path[i] = path[i] * _pathingGrid.PathGridTileSize + halfTile;
+            }
+
+            return path;
+        }
     }
 }
