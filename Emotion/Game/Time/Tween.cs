@@ -15,7 +15,7 @@ namespace Emotion.Game.Time
             get => _tweenFunc(base.Progress);
         }
 
-        private Func<float, float> _tweenFunc;
+        protected Func<float, float> _tweenFunc;
 
         public TweenTimer(int time, TweenMethod method, TweenType type = TweenType.In) : base(time)
         {
@@ -27,6 +27,50 @@ namespace Emotion.Game.Time
                 TweenType.OutIn => Tween.OutIn(method),
                 _ => _tweenFunc
             };
+        }
+    }
+
+    public class ProxyTweenTimer<T> : ITimer where T : ITimer
+    {
+        public float Progress
+        {
+            get => _tweenFunc(BackingTimer.Progress);
+        }
+
+        public bool Finished
+        {
+            get => BackingTimer.Finished;
+        }
+
+        public T BackingTimer { get; protected set; }
+        protected Func<float, float> _tweenFunc;
+
+        public ProxyTweenTimer(T backingTimer, TweenMethod method, TweenType type = TweenType.In)
+        {
+            BackingTimer = backingTimer;
+            _tweenFunc = type switch
+            {
+                TweenType.In => Tween.In(method),
+                TweenType.Out => Tween.Out(method),
+                TweenType.InOut => Tween.InOut(method),
+                TweenType.OutIn => Tween.OutIn(method),
+                _ => _tweenFunc
+            };
+        }
+
+        public void Update(float timePassed)
+        {
+            BackingTimer.Update(timePassed);
+        }
+
+        public void End()
+        {
+            BackingTimer.End();
+        }
+
+        public void Restart()
+        {
+            BackingTimer.Restart();
         }
     }
 }

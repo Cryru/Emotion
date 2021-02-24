@@ -43,10 +43,24 @@ namespace Emotion.Game.Time
             _timePassed = ReverseDelay;
         }
 
+        /// <summary>
+        /// Restart the timer, and go the right way.
+        /// </summary>
         public void GoNormal()
         {
             Restart();
             InReverse = false;
+        }
+
+        /// <summary>
+        /// Go in the opposite of the current direction (or the direction last finished).
+        /// </summary>
+        public void GoInOpposite()
+        {
+            if (InReverse)
+                GoNormal();
+            else
+                GoInReverse();
         }
 
         public override void Update(float timePassed)
