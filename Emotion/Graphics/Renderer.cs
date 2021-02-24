@@ -217,31 +217,6 @@ namespace Emotion.Graphics
                 Engine.Log.Info("Attached OpenGL error catching callback.", MessageSource.Renderer);
             }
 #endif
-
-            // Set start state.
-            Vector4 c = Engine.Configuration.ClearColor.ToVec4();
-            Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
-
-            ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
-            if (defaultProgram == null)
-            {
-                Engine.CriticalError(new Exception("Couldn't create default shaders."));
-                return;
-            }
-
-            ShaderProgram.EnsureBound(ShaderFactory.DefaultProgram.Pointer);
-
-            Texture.InitializeEmptyTexture();
-
-            // Create render state. This is the state that will be modified every time.
-            CurrentState = new RenderState();
-
-            // Create the blit state for copying the draw buffer to the screen buffer.
-            _blitState = RenderState.Default.Clone();
-            _blitState.AlphaBlending = false;
-            _blitState.DepthTest = false;
-            _blitState.ViewMatrix = false;
-
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
             Vector2 windowSize = Engine.Host.Size;
             ScreenBuffer = new FrameBuffer(0, windowSize);
@@ -260,8 +235,24 @@ namespace Emotion.Graphics
                 HostResized(windowSize);
             }
 
-            // Put in a default camera.
+            // Create default camera. State needs one set.
             Camera = new PixelArtCamera(Vector3.Zero);
+
+            // Create render state. This is the state that will be modified every time.
+            Vector4 c = Engine.Configuration.ClearColor.ToVec4();
+            Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
+
+            ShaderProgram defaultProgram = ShaderFactory.CreateDefaultShader();
+            if (defaultProgram == null)
+            {
+                Engine.CriticalError(new Exception("Couldn't create default shaders."));
+                return;
+            }
+
+            Texture.InitializeEmptyTexture();
+
+            CurrentState = new RenderState();
+            SetState(RenderState.Default);
 
             // Create render stream.
             RenderStream = new RenderStreamBatch<VertexData>();
@@ -482,6 +473,14 @@ namespace Emotion.Graphics
 
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
+                if (_blitState == null)
+                {
+                    _blitState = RenderState.Default.Clone();
+                    _blitState.AlphaBlending = false;
+                    _blitState.DepthTest = false;
+                    _blitState.ViewMatrix = false;
+                }
+
                 // Push a blit from the draw buffer to the screen buffer.
                 SetState(_blitState);
                 RenderTo(ScreenBuffer);
