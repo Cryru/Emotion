@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -261,6 +262,8 @@ namespace Emotion.IO
             return found ? store : null;
         }
 
+        private Dictionary<string, Task> _asyncLoadingTasks = new Dictionary<string, Task>();
+
         /// <summary>
         /// Get a loaded asset by its name or load it asynchronously.
         /// </summary>
@@ -269,11 +272,16 @@ namespace Emotion.IO
         /// <returns>The loaded or cached asset.</returns>
         public Task<T> GetAsync<T>(string name) where T : Asset, new()
         {
-            return Task.Run(() =>
+            if (_asyncLoadingTasks.TryGetValue(name, out Task task))
+                return (Task<T>) task;
+
+            task = Task.Run(() =>
             {
                 if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"AssetLoading Thread {name}";
                 return Get<T>(name);
             });
+            _asyncLoadingTasks.Add(name, task);
+            return (Task<T>) task;
         }
 
         /// <summary>
