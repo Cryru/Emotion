@@ -50,17 +50,20 @@ namespace Emotion.Graphics.Objects
             {
                 _smooth = value;
 
-                if (Engine.Renderer.Dsa)
+                GLThread.ExecuteGLThreadAsync(() =>
                 {
-                    Gl.TextureParameter(Pointer, TextureParameterName.TextureMinFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
-                    Gl.TextureParameter(Pointer, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
-                }
-                else
-                {
-                    EnsureBound(Pointer);
-                    Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
-                    Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
-                }
+                    if (Engine.Renderer.Dsa)
+                    {
+                        Gl.TextureParameter(Pointer, TextureParameterName.TextureMinFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                        Gl.TextureParameter(Pointer, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                    }
+                    else
+                    {
+                        EnsureBound(Pointer);
+                        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                        Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                    }
+                });
             }
         }
 
