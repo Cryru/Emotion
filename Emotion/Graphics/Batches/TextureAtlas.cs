@@ -46,8 +46,6 @@ namespace Emotion.Graphics.Batches
         private readonly VertexArrayObject<VertexData> _vao;
         private readonly VertexData[] _vboLocal;
 
-        private readonly RenderState _atlasFillState;
-
         protected bool _haveDirtyTextures;
         protected bool _firstDraw; // Used to track fbo clearing.
         protected int _textureActivityFrames;
@@ -73,14 +71,6 @@ namespace Emotion.Graphics.Batches
             _firstDraw = true;
 
             if (smooth) _fbo.Texture.Smooth = true;
-
-            _atlasFillState = RenderState.Default.Clone();
-            _atlasFillState.AlphaBlending = false;
-            _atlasFillState.ViewMatrix = false;
-            _atlasFillState.DepthTest = false;
-
-            var blitShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/AtlasBlit.xml");
-            _atlasFillState.Shader = blitShader.Shader;
         }
 
         /// <summary>
@@ -281,7 +271,7 @@ namespace Emotion.Graphics.Batches
             if (!_haveDirtyTextures) return;
 
             // Draw all textures that need to be drawn to the atlas.
-            c.SetState(_atlasFillState);
+            c.SetState(c.BlitState);
             c.RenderTo(_fbo);
             if (_firstDraw) Gl.Clear(ClearBufferMask.ColorBufferBit);
             VertexArrayObject.EnsureBound(_vao);

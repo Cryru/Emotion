@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -12,6 +13,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
+using Emotion.IO;
 using Emotion.Platform.Input;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -47,7 +49,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// The positive cut off of the camera.
         /// </summary>
-        public float FarZ = 100;
+        public float FarZ = 100; // todo: Move this and NearZ to camera.
 
         /// <summary>
         /// The negative cut off of the camera.
@@ -131,9 +133,9 @@ namespace Emotion.Graphics
         public FrameBuffer DrawBuffer { get; private set; }
 
         /// <summary>
-        /// The state in which the intermediary buffer will be drawn to the screen buffer.
+        /// A render state for merging two buffers.
         /// </summary>
-        private RenderState _blitState;
+        public RenderState BlitState;
 
         #endregion
 
@@ -207,7 +209,6 @@ namespace Emotion.Graphics
                 Gl.DebugMessageCallback(_glDebugCallback, IntPtr.Zero);
                 Engine.Log.Trace("Attached OpenGL debug callback.", MessageSource.Renderer);
             }
-#if !DEBUG
             // In release mode GL errors are not checked after every call.
             // In that case a error catching callback is attached so that GL errors are logged.
             else if(hasDebugSupport)
@@ -216,7 +217,7 @@ namespace Emotion.Graphics
                 Gl.DebugMessageCallback(_glErrorCatchCallback, IntPtr.Zero);
                 Engine.Log.Info("Attached OpenGL error catching callback.", MessageSource.Renderer);
             }
-#endif
+
             // Create a representation of the screen buffer, and the buffer which will be drawn to.
             Vector2 windowSize = Engine.Host.Size;
             ScreenBuffer = new FrameBuffer(0, windowSize);
@@ -226,6 +227,7 @@ namespace Emotion.Graphics
             // Decide on scaling mode.
             if (Engine.Configuration.ScaleBlackBars)
             {
+                Debug.Assert(Engine.Configuration.UseIntermediaryBuffer, "Scale black bars requires an intermediary buffer.");
                 Engine.Host.OnResize.AddListener(HostResizedBlackBars);
                 HostResizedBlackBars(windowSize);
             }
@@ -235,10 +237,10 @@ namespace Emotion.Graphics
                 HostResized(windowSize);
             }
 
-            // Create default camera. State needs one set.
+            // Create default camera. RenderState applying requires one to be set.
             Camera = new PixelArtCamera(Vector3.Zero);
 
-            // Create render state. This is the state that will be modified every time.
+            // Create default render objects.
             Vector4 c = Engine.Configuration.ClearColor.ToVec4();
             Gl.ClearColor((int) c.X, (int) c.Y, (int) c.Z, (int) c.W);
 
@@ -251,13 +253,22 @@ namespace Emotion.Graphics
 
             Texture.InitializeEmptyTexture();
 
+            // Create default render states.
             CurrentState = new RenderState();
             SetState(RenderState.Default);
 
-            // Create render stream.
+            BlitState = RenderState.Default.Clone();
+            BlitState.AlphaBlending = false;
+            BlitState.DepthTest = false;
+            BlitState.ViewMatrix = false;
+            BlitState.Shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml").Shader;
+
+            // Create render stream. This is used for IM-like rendering.
             RenderStream = new RenderStreamBatch<VertexData>();
 
+            // Apply display settings (this is the initial application) and attach the camera updating coroutine.
             ApplySettings();
+            Engine.CoroutineManager.StartCoroutine(UpdateCoroutine());
 
 #if DEBUG
             Engine.Host.OnKey.AddListener(DebugFunctionalityKeyInput);
@@ -266,43 +277,14 @@ namespace Emotion.Graphics
 
         #region Event Handles and Sizing
 
-        /// <summary>
-        /// OpenGL debug callback.
-        /// </summary>
-        private static Gl.DebugProc _glDebugCallback = GlDebugCallback;
-
-        private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
-        {
-            var stringMessage = new string((sbyte*) message, 0, length);
-
-            // NVidia drivers love to spam the debug log with how your buffers will be mapped in the system heap.
-            if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("SYSTEM HEAP")) return;
-
-            switch (severity)
-            {
-                case DebugSeverity.DebugSeverityHigh:
-                    Engine.Log.Warning(stringMessage, $"GL_{msgType}_{source}");
-                    break;
-                case DebugSeverity.DebugSeverityMedium:
-                    Engine.Log.Info(stringMessage, $"GL_{msgType}_{source}");
-                    break;
-                default:
-                    Engine.Log.Trace(stringMessage, $"GL_{msgType}_{source}");
-                    break;
-            }
-        }
-
-#if !DEBUG
-        private static Gl.DebugProc _glErrorCatchCallback = glErrorCatchCallback;
-        private static unsafe void glErrorCatchCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        private static Gl.DebugProc _glErrorCatchCallback = GlErrorCatchCallback;
+        private static unsafe void GlErrorCatchCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
         {
             if(msgType != DebugType.DebugTypeError) return;
 
             var stringMessage = new string((sbyte*) message, 0, length);
             Engine.Log.Error(stringMessage, $"GL_{source}");
         }
-
-#endif
 
         /// <summary>
         /// Apply rendering settings.
@@ -371,8 +353,8 @@ namespace Emotion.Graphics
             var vpY = (int) (size.Y / 2 - height / 2);
 
             // Set viewport.
-            ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
             ScreenBuffer.Resize(size);
+            ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
             DrawBuffer.Resize(Engine.Configuration.RenderSize, true);
 
             ApplySettings();
@@ -470,34 +452,33 @@ namespace Emotion.Graphics
             }
 
 #endif
-
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
-                if (_blitState == null)
-                {
-                    _blitState = RenderState.Default.Clone();
-                    _blitState.AlphaBlending = false;
-                    _blitState.DepthTest = false;
-                    _blitState.ViewMatrix = false;
-                }
-
                 // Push a blit from the draw buffer to the screen buffer.
-                SetState(_blitState);
+                SetState(BlitState);
                 RenderTo(ScreenBuffer);
                 RenderFrameBuffer(DrawBuffer, ScreenBuffer.Size);
                 RenderTo(null);
             }
+            else
+            {
+                // If no intermediary buffer there is nothing to cause the final flush.
+                FlushRenderStream();
+            }
 
-            FlushRenderStream();
             RenderStream.DoTasks(this);
         }
 
-        public void Update()
+        private IEnumerator UpdateCoroutine()
         {
-            Camera.Update();
+            while (Engine.Status == EngineStatus.Running)
+            {
+                Camera.Update();
 #if DEBUG
-            DebugCamera?.Update();
+                DebugCamera?.Update();
 #endif
+                yield return null;
+            }
         }
 
         #region Framebuffer, Shader, and Model Matrix Syncronization and State
@@ -595,11 +576,33 @@ namespace Emotion.Graphics
 
         #endregion
 
-#if DEBUG
-
         #region Debug Functionality
 
-        public bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
+        private static Gl.DebugProc _glDebugCallback = GlDebugCallback;
+        private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
+        {
+            var stringMessage = new string((sbyte*) message, 0, length);
+
+            // NVidia drivers love to spam the debug log with how your buffers will be mapped in the system heap.
+            if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("SYSTEM HEAP")) return;
+
+            switch (severity)
+            {
+                case DebugSeverity.DebugSeverityHigh:
+                    Engine.Log.Warning(stringMessage, $"GL_{msgType}_{source}");
+                    break;
+                case DebugSeverity.DebugSeverityMedium:
+                    Engine.Log.Info(stringMessage, $"GL_{msgType}_{source}");
+                    break;
+                default:
+                    Engine.Log.Trace(stringMessage, $"GL_{msgType}_{source}");
+                    break;
+            }
+        }
+
+#if DEBUG
+
+        private bool DebugFunctionalityKeyInput(Key key, KeyStatus state)
         {
             if (state != KeyStatus.Down) return true;
 
@@ -608,7 +611,7 @@ namespace Emotion.Graphics
             return true;
         }
 
-        public void ToggleDebugCamera()
+        private void ToggleDebugCamera()
         {
             if (DebugCamera != null)
             {
@@ -622,8 +625,8 @@ namespace Emotion.Graphics
             Engine.Log.Info("Debug camera turned on. Use the numpad keys 8462 to move and mouse scroll to zoom.", MessageSource.Debug);
         }
 
-        #endregion
-
 #endif
+
+        #endregion
     }
 }

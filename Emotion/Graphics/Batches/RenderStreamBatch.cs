@@ -274,6 +274,9 @@ namespace Emotion.Graphics.Batches
             _indexPointer = IntPtr.Zero;
             _mapOffsetStart = 0;
             _indexMapOffsetStart = 0;
+
+            // Reset texture mapping, if using it.
+            if (_atlas == null) return;
             _atlas.ResetMapping();
             _smoothAtlas.ResetMapping();
         }

@@ -25,7 +25,7 @@ namespace Tests.Classes
             };
 
             MethodInfo privatePlatformCreator = typeof(Engine).GetMethod("GetInstanceOfDetectedPlatform", BindingFlags.NonPublic | BindingFlags.Static);
-            var plat = (PlatformBase) privatePlatformCreator.Invoke(null, new object[] {config});
+            var plat = (PlatformBase) privatePlatformCreator?.Invoke(null, new object[] {config});
 
             Assert.True(plat != null);
             if (plat == null) return;

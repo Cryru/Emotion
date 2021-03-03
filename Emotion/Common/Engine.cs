@@ -362,15 +362,8 @@ namespace Emotion.Common
             TotalTime += DeltaTime;
 
             Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
-            Renderer.Update(); // Camera update.
             CoroutineManager.Update();
             SceneManager.Update();
-
-            // Update plugins.
-            foreach (IPlugin p in Configuration.Plugins)
-            {
-                p.Update();
-            }
 
 #if DEBUG
             DebugOnUpdateEnd?.Invoke(null, EventArgs.Empty);

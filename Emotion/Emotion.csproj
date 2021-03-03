@@ -36,8 +36,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Assets\Shaders\AtlasBlit.frag" />
-    <None Remove="Assets\Shaders\AtlasBlit.xml" />
+    <None Remove="Assets\Shaders\Blit.frag" />
+    <None Remove="Assets\Shaders\Blit.xml" />
     <None Remove="Assets\Shaders\RoundedRectangle.frag" />
     <None Remove="Assets\Shaders\RoundedRectangle.xml" />
     <None Remove="Assets\Shaders\TextureColorMask.frag" />
@@ -112,8 +112,8 @@
     <EmbeddedResource Include="Assets\Shaders\Blur.xml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Assets\Shaders\AtlasBlit.frag" />
-    <EmbeddedResource Include="Assets\Shaders\AtlasBlit.xml" />
+    <EmbeddedResource Include="Assets\Shaders\Blit.frag" />
+    <EmbeddedResource Include="Assets\Shaders\Blit.xml" />
     <EmbeddedResource Include="Assets\Shaders\RoundedRectangle.frag">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

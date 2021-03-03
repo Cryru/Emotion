@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -120,12 +121,10 @@ namespace Emotion.Plugins.Steamworks
             SteamNative.SetWarningMessageHook(_steamUtils, _warningHook);
 
             bool statsReceived = SteamNative.RequestStats(_steamUserStats);
-            if (!statsReceived)
-            {
-                Engine.Log.Warning("User is not logged in to Steam.", LOG_SOURCE);
-            }
+            if (!statsReceived) Engine.Log.Warning("User is not logged in to Steam.", LOG_SOURCE);
 
             SteamNative.RunCallbacks();
+            Engine.CoroutineManager.StartCoroutine(UpdateRoutine());
         }
 
         private static SteamNative.WarningMessageHook _warningHook = WarningCallback;
@@ -135,9 +134,13 @@ namespace Emotion.Plugins.Steamworks
             Engine.Log.Warning(msg.ToString(), $"SteamSDK-{severity}");
         }
 
-        public void Update()
+        public IEnumerator UpdateRoutine()
         {
-            _callbackRunner.Update(Engine.DeltaTime);
+            while (Engine.Status != EngineStatus.Stopped)
+            {
+                _callbackRunner.Update(Engine.DeltaTime);
+                yield return null;
+            }
         }
 
         public void Dispose()
@@ -157,7 +160,7 @@ namespace Emotion.Plugins.Steamworks
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 folder = Environment.Is64BitProcess ? $"{Environment.CurrentDirectory}\\steam\\win64" : $"{Environment.CurrentDirectory}\\steam";
-                libName =  Environment.Is64BitProcess ? "steam_api64.dll" : "steam_api.dll";
+                libName = Environment.Is64BitProcess ? "steam_api64.dll" : "steam_api.dll";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {

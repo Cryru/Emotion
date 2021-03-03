@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
@@ -156,8 +157,18 @@ namespace Emotion.Plugins.ImGuiNet
                 return true;
             });
             Engine.Host.OnKey.AddListener((_, __) => !Focused);
+            Engine.CoroutineManager.StartCoroutine(UpdateRoutine());
 
             Initialized = true;
+        }
+
+        private IEnumerator UpdateRoutine()
+        {
+            while (Engine.Status != EngineStatus.Stopped)
+            {
+                Update();
+                yield return null;
+            }
         }
 
         public void Update()
@@ -165,7 +176,8 @@ namespace Emotion.Plugins.ImGuiNet
             // Invoke before start operations actions.
             while (!_beforeStartOperations.IsEmpty)
             {
-                if (_beforeStartOperations.TryDequeue(out Action act)) act.Invoke();
+                if (_beforeStartOperations.TryDequeue(out Action act))
+                    act.Invoke();
             }
 
             ImGuiIOPtr io = ImGui.GetIO();
