@@ -73,8 +73,6 @@ namespace Emotion.Standard.Logging
 
         private void LogThread()
         {
-            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Logging Thread";
-
             string fileName = GenerateLogName();
             string fileDirectory = Path.GetDirectoryName(fileName);
             if (fileDirectory != null) Directory.CreateDirectory(fileDirectory);
@@ -85,6 +83,7 @@ namespace Emotion.Standard.Logging
 
             while (_logThreadRun || _logQueue.Count > 0)
             {
+                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Logging Thread";
                 if (_logQueue.TryDequeue(out (MessageType type, string line) logItem))
                 {
                     switch (logItem.type)

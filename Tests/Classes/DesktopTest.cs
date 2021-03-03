@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Platform;
@@ -23,7 +24,8 @@ namespace Tests.Classes
                 HostSize = new Vector2(320, 260)
             };
 
-            PlatformBase plat = Engine.GetInstanceOfDetectedPlatform(config);
+            MethodInfo privatePlatformCreator = typeof(Engine).GetMethod("GetInstanceOfDetectedPlatform", BindingFlags.NonPublic | BindingFlags.Static);
+            var plat = (PlatformBase) privatePlatformCreator.Invoke(null, new object[] {config});
 
             Assert.True(plat != null);
             if (plat == null) return;

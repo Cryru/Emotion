@@ -433,7 +433,7 @@ namespace Emotion.Graphics
             if (Engine.Configuration.UseIntermediaryBuffer)
             {
                 // Clear the draw buffer.
-                // No need to call EnsureRenderTarget as the DrawBuffer should be the only one in the stack here.
+                // No need to call EnsureRenderTarget as the DrawBuffer should be alone in this stack.
                 DrawBuffer.Bind();
                 ClearFrameBuffer();
             }

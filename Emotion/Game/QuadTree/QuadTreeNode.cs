@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -341,67 +342,31 @@ namespace Emotion.Game.QuadTree
 
         #region Query
 
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
-        /// </summary>
-        public List<T> GetObjects(Rectangle rect)
-        {
-            return GetObjects(ref rect);
-        }
-
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
-        /// </summary>
-        public List<T> GetObjects(ref Rectangle searchRect)
+        public List<T> GetObjects<TBound>(ref TBound searchArea) where TBound : IShape
         {
             var results = new List<T>();
-            GetObjects(ref searchRect, ref results);
+            GetObjects(ref searchArea, results);
             return results;
         }
 
-        /// <summary>
-        /// Get the objects in the tree that intersect with the specified circle.
-        /// </summary>
-        public List<T> GetObjects(Circle searchCircle)
-        {
-            return GetObjects(ref searchCircle);
-        }
-
-        /// <summary>
-        /// Get the objects in the tree that intersect with the specified circle.
-        /// </summary>
-        public List<T> GetObjects(ref Circle searchCircle)
+        public List<T> GetObjects<TBound>(TBound searchArea) where TBound : IShape
         {
             var results = new List<T>();
-            GetObjects(ref searchCircle, ref results);
+            GetObjects(ref searchArea, results);
             return results;
         }
 
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// The search rectangle provided is in the same coordinate space as the tree and NOT relative.
-        /// </summary>
-        public void GetObjects(Rectangle rect, ref List<T> results)
+        public void GetObjects<TBound>(TBound searchArea, List<T> results) where TBound : IShape
         {
-            GetObjects(ref rect, ref results);
+            GetObjects(ref searchArea, results);
         }
 
         /// <summary>
-        /// Get the objects in the tree that intersect with the specified circle.
+        /// Get the objects in this tree that intersect with the specified shape.
         /// </summary>
-        public void GetObjects(Circle searchCircle, ref List<T> results)
-        {
-            GetObjects(ref searchCircle, ref results);
-        }
-
-        /// <summary>
-        /// Get the objects in this tree that intersect with the specified rectangle.
-        /// </summary>
-        /// <param name="searchArea">The rectangle to find objects in.</param>
+        /// <param name="searchArea">The shape to find objects in.</param>
         /// <param name="results">A reference to a list that will be populated with the results.</param>
-        public void GetObjects<TBound>(ref TBound searchArea, ref List<T> results) where TBound : IShape
+        public void GetObjects<TBound>(ref TBound searchArea, List<T> results) where TBound : IShape
         {
             // We can't do anything if the results list doesn't exist
             if (results == null) return;
@@ -425,10 +390,10 @@ namespace Emotion.Game.QuadTree
 
                 // Search for objects in the children (if any)
                 if (TopLeftChild == null) return;
-                TopLeftChild.GetObjects(ref searchArea, ref results);
-                TopRightChild.GetObjects(ref searchArea, ref results);
-                BottomLeftChild.GetObjects(ref searchArea, ref results);
-                BottomRightChild.GetObjects(ref searchArea, ref results);
+                TopLeftChild.GetObjects(ref searchArea, results);
+                TopRightChild.GetObjects(ref searchArea, results);
+                BottomLeftChild.GetObjects(ref searchArea, results);
+                BottomRightChild.GetObjects(ref searchArea, results);
             }
         }
 

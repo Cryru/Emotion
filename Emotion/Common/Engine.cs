@@ -211,14 +211,13 @@ namespace Emotion.Common
 
         public static void Run()
         {
-            // Some sanity checks before starting.
-
-            // This will prevent running when stopped (as in a startup error) or not setup.
+            // This will prevent running when a startup error occured or when not setup at all.
             if (Status != EngineStatus.Setup) return;
 
-            // Just to make sure.
+            // Sanity check.
             if (Host == null) return;
 
+            // todo: these settings and objects might not be needed when using a non-default loop.
             byte targetStep = Configuration.DesiredStep;
             if (targetStep <= 0) targetStep = 60;
             TargetStep(targetStep);
@@ -362,8 +361,8 @@ namespace Emotion.Common
 
             TotalTime += DeltaTime;
 
-            Host.UpdateInput();
-            Renderer.Update();
+            Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
+            Renderer.Update(); // Camera update.
             CoroutineManager.Update();
             SceneManager.Update();
 
@@ -444,7 +443,7 @@ namespace Emotion.Common
         /// </summary>
         /// <param name="engineConfig"></param>
         /// <returns></returns>
-        public static PlatformBase GetInstanceOfDetectedPlatform(Configurator engineConfig)
+        private static PlatformBase GetInstanceOfDetectedPlatform(Configurator engineConfig)
         {
             // ReSharper disable once RedundantAssignment
             PlatformBase platform = null;
