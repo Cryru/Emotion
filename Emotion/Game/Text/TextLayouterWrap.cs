@@ -5,11 +5,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using Emotion.Standard.OpenType;
+using Emotion.Utility;
 
 #endregion
 
 namespace Emotion.Game.Text
 {
+    public enum GlyphHeightMeasurement : byte
+    {
+        FullHeight,
+        NoDescent,
+        NoMinY,
+        Underflow,
+        UnderflowLittle
+    }
+
     /// <summary>
     /// Layouts and fits and wraps text within a box.
     /// </summary>
@@ -29,7 +39,7 @@ namespace Emotion.Game.Text
         {
         }
 
-        public void SetupBox(string text, Vector2 bounds, bool tightHeight = false, bool underflow = false)
+        public void SetupBox(string text, Vector2 bounds, GlyphHeightMeasurement measureMode = GlyphHeightMeasurement.FullHeight)
         {
             var currentLine = "";
             var breakSkipMode = false;
@@ -85,6 +95,7 @@ namespace Emotion.Game.Text
                     Vector2 lineSize = MeasureString(currentLine);
                     if (lineSize.X > longestLine) longestLine = lineSize.X;
                     NeededHeight += MathF.Max(lineHeight, lineSize.Y) + LineGap;
+                    Debug.Assert(lineHeight > lineSize.Y);
 
                     // Push new line.
                     if (!lineBreakChar) _newLineIndices.Add(i); // The new line here is handled by the TextLayouter.
@@ -99,24 +110,38 @@ namespace Emotion.Game.Text
             if (!string.IsNullOrEmpty(currentLine))
             {
                 Vector2 lastLine = MeasureString(currentLine);
-                if (tightHeight)
+                switch (measureMode)
                 {
-                    // In tight height mode the height of the last line is clamped to the glyph height, rather than the font descender.
-                    MeasureStringsHeight(currentLine, out float largestHeight, out float smallestHeight, out float yOffset);
-                    if (underflow)
-                    {
-                        NeededHeight += smallestHeight;
-                        _singleLineNegativeY = yOffset - smallestHeight;
-                    }
-                    else
-                    {
-                        NeededHeight += largestHeight;
-                        _singleLineNegativeY = yOffset - largestHeight;
-                    }
-                }
-                else
-                {
-                    NeededHeight += lineHeight;
+                    case GlyphHeightMeasurement.FullHeight:
+                        NeededHeight += lineHeight;
+                        _singleLineNegativeY = 0;
+                        break;
+                    case GlyphHeightMeasurement.NoDescent:
+                        NeededHeight = lastLine.Y;
+                        _singleLineNegativeY = 0;
+                        break;
+                    case GlyphHeightMeasurement.UnderflowLittle:
+                    case GlyphHeightMeasurement.NoMinY:
+                    case GlyphHeightMeasurement.Underflow:
+                        MeasureStringsHeight(currentLine, out float largestHeight, out float smallestHeight, out float yOffset);
+                        if (measureMode == GlyphHeightMeasurement.Underflow)
+                        {
+                            NeededHeight += smallestHeight;
+                            _singleLineNegativeY = yOffset - smallestHeight;
+                        }
+                        else if (measureMode == GlyphHeightMeasurement.UnderflowLittle)
+                        {
+                            float halfWay = Maths.Lerp(smallestHeight, largestHeight, 0.5f);
+                            NeededHeight += halfWay;
+                            _singleLineNegativeY = yOffset - halfWay;
+                        }
+                        else
+                        {
+                            NeededHeight += largestHeight;
+                            _singleLineNegativeY = yOffset - largestHeight;
+                        }
+
+                        break;
                 }
 
                 if (lastLine.X > longestLine) longestLine = lastLine.X;
@@ -138,7 +163,7 @@ namespace Emotion.Game.Text
             _counter++;
 
             Vector2 position = base.AddLetter(c, out g);
-            if (_singleLineNegativeY != 0 && _newLineIndices.Count == 0) position.Y -= _singleLineNegativeY; 
+            if (_singleLineNegativeY != 0 && _newLineIndices.Count == 0) position.Y -= _singleLineNegativeY;
             return position;
         }
 

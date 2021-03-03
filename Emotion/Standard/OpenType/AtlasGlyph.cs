@@ -26,7 +26,7 @@ namespace Emotion.Standard.OpenType
         /// <summary>
         /// The size of the glyph.
         /// </summary>
-        public Vector2 Size { get; protected set; }
+        public Vector2 Size { get; set; }
 
         /// <summary>
         /// (XMax) The width between this glyph and the next one (whichever it is).
@@ -67,11 +67,11 @@ namespace Emotion.Standard.OpenType
         /// <summary>
         /// Constructor used to synthesize glyphs for tests.
         /// </summary>
-        public AtlasGlyph(float advance, float xMin, float yMin)
+        public AtlasGlyph(float advance, float xMin, float yOff)
         {
             Advance = advance;
             XMin = xMin;
-            YMin = yMin;
+            YOffset = yOff;
         }
 
         /// <summary>

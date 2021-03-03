@@ -188,11 +188,10 @@ namespace Tests.Classes
                 {
                     float yOff = cd[i].yoff;
                     yOff += MathF.Ceiling(ascent * scaleFactor);
-                    var atlasGlyph = new AtlasGlyph( (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, 10)
+                    var atlasGlyph = new AtlasGlyph( (int) MathF.Round(cd[i].xadvance), (int) cd[i].xoff, (int) MathF.Round(yOff))
                     {
                         Location = new Vector2(cd[i].x0, cd[i].y0),
                         Size = new Vector2(cd[i].x1 - cd[i].x0, cd[i].y1 - cd[i].y0),
-                        YBearing = (int) MathF.Round(yOff) // overwrite
                     };
                     atlasObj.Glyphs[(char) i] = atlasGlyph;
                 }
