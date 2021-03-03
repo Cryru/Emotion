@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
 using Emotion.Standard.OpenType;
 
@@ -18,18 +19,6 @@ namespace Emotion.Game.Text
         public TextLayouter(FontAtlas atlas)
         {
             SetAtlas(atlas);
-        }
-
-        /// <summary>
-        /// Returns the position of the next glyph.
-        /// </summary>
-        /// <param name="c">The character which is the next glyph.</param>
-        /// <param name="drawPosition">The position to draw the character at.</param>
-        /// <param name="g">The atlas glyph corresponding to the provided character, or null if none.</param>
-        /// <returns>The position of the next glyph along the pen.</returns>
-        public Vector2 GetNextGlyphPosition(char c, out Vector2 drawPosition, out AtlasGlyph g)
-        {
-            return GetNextGlyphPosition(_pen, c, out drawPosition, out g);
         }
 
         /// <summary>
@@ -76,7 +65,7 @@ namespace Emotion.Game.Text
         /// <returns>The draw position of the letter.</returns>
         public virtual Vector2 AddLetter(char c, out AtlasGlyph g)
         {
-            Vector2 position = GetNextGlyphPosition(c, out Vector2 drawPosition, out g);
+            Vector2 position = GetNextGlyphPosition(_pen, c, out Vector2 drawPosition, out g);
             _pen = position;
             if (g == null) return position;
             _pen.X += g.Advance;
@@ -159,6 +148,39 @@ namespace Emotion.Game.Text
             if (largestLine != 0)
                 sizeSoFar.X = largestLine;
             return sizeSoFar;
+        }
+
+        /// <summary>
+        /// Get the height of the tallest glyph in the string.
+        /// </summary>
+        public void MeasureStringsHeight(string text, out float largestHeight, out float smallestHeight, out float fontYOffset)
+        {
+            fontYOffset = 0;
+            largestHeight = 0;
+            smallestHeight = float.MaxValue;
+            for (var i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+
+                // If going on a new line, stop checking and return current height.
+                if (c == '\n') return;
+
+                // Skip space as it has wacky height.
+                if (c == ' ') continue;
+
+                if (!_atlas.Glyphs.TryGetValue(c, out AtlasGlyph g))
+                {
+                    if (_hasZeroGlyph)
+                        g = _atlas.Glyphs[(char) 0];
+                    else
+                        continue;
+                }
+
+                fontYOffset = g.YOffset; // todo: move to font.
+
+                largestHeight = MathF.Max(largestHeight, g.Height);
+                smallestHeight = MathF.Min(smallestHeight, g.Height);
+            }
         }
     }
 }

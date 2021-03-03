@@ -21,11 +21,15 @@ namespace Emotion.Game.Text
         private int _counter;
         private List<int> _newLineIndices = new List<int>();
 
+        // Offset for extremely tight height. Used on one line strings in some cases.
+        // The box must have been setup with tightHeight and underflow.
+        private float _singleLineNegativeY;
+
         public TextLayouterWrap(FontAtlas atlas) : base(atlas)
         {
         }
 
-        public void SetupBox(string text, Vector2 bounds, bool tightHeight = false)
+        public void SetupBox(string text, Vector2 bounds, bool tightHeight = false, bool underflow = false)
         {
             var currentLine = "";
             var breakSkipMode = false;
@@ -96,9 +100,25 @@ namespace Emotion.Game.Text
             {
                 Vector2 lastLine = MeasureString(currentLine);
                 if (tightHeight)
-                    NeededHeight += lastLine.Y;
+                {
+                    // In tight height mode the height of the last line is clamped to the glyph height, rather than the font descender.
+                    MeasureStringsHeight(currentLine, out float largestHeight, out float smallestHeight, out float yOffset);
+                    if (underflow)
+                    {
+                        NeededHeight += smallestHeight;
+                        _singleLineNegativeY = yOffset - smallestHeight;
+                    }
+                    else
+                    {
+                        NeededHeight += largestHeight;
+                        _singleLineNegativeY = yOffset - largestHeight;
+                    }
+                }
                 else
+                {
                     NeededHeight += lineHeight;
+                }
+
                 if (lastLine.X > longestLine) longestLine = lastLine.X;
             }
 
@@ -117,7 +137,9 @@ namespace Emotion.Game.Text
             if (_newLineIndices.IndexOf(_counter) != -1) NewLine();
             _counter++;
 
-            return base.AddLetter(c, out g);
+            Vector2 position = base.AddLetter(c, out g);
+            if (_singleLineNegativeY != 0 && _newLineIndices.Count == 0) position.Y -= _singleLineNegativeY; 
+            return position;
         }
 
         /// <summary>
@@ -138,6 +160,7 @@ namespace Emotion.Game.Text
             _newLineIndices.Clear();
             _counter = 0;
             NeededHeight = 0;
+            _singleLineNegativeY = 0;
         }
     }
 }

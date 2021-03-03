@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
-using Emotion.Primitives;
 using Emotion.Standard.Image.PNG;
 using Emotion.Utility;
 using OpenGL;
@@ -14,79 +13,6 @@ using OpenGL;
 
 namespace Emotion.Standard.OpenType
 {
-    /// <summary>
-    /// Represents a single glyph within a FontAtlas.
-    /// </summary>
-    public class AtlasGlyph
-    {
-        /// <summary>
-        /// The location of the glyph within the atlas texture.
-        /// </summary>
-        public Vector2 Location { get; set; }
-
-        /// <summary>
-        /// The size of the glyph.
-        /// </summary>
-        public Vector2 Size { get; set; }
-
-        /// <summary>
-        /// The size of the glyph texture within the atlas texture.
-        /// </summary>
-        public Vector2 UV { get; set; }
-
-        /// <summary>
-        /// The glyph's scaled advance.
-        /// </summary>
-        public float Advance { get; set; }
-
-        /// <summary>
-        /// The glyph's scaled XMin.
-        /// </summary>
-        public float XMin { get; set; }
-
-        /// <summary>
-        /// The size below the origin.
-        /// </summary>
-        public float YMin { get; set; }
-
-        /// <summary>
-        /// The glyph's scaled YBearing, which is the font's scaled ascend minus the glyph's scaled YMax.
-        /// </summary>
-        public float YBearing { get; set; }
-
-        /// <summary>
-        /// The font glyph this glyph represents.
-        /// </summary>
-        public Glyph FontGlyph { get; set; }
-
-        /// <summary>
-        /// Constructor used to synthesize glyphs for tests.
-        /// </summary>
-        public AtlasGlyph(float advance, float xMin, float yBearing)
-        {
-            Advance = advance;
-            XMin = xMin;
-            YBearing = yBearing;
-        }
-
-        /// <summary>
-        /// Create a new AtlasGlyph which holds metadata about a rasterized glyph within an atlas texture.
-        /// </summary>
-        /// <param name="fontGlyph"></param>
-        /// <param name="scale"></param>
-        /// <param name="ascend"></param>
-        public AtlasGlyph(Glyph fontGlyph, float scale, float ascend)
-        {
-            FontGlyph = fontGlyph;
-            Advance = MathF.Round(fontGlyph.AdvanceWidth * scale);
-            XMin = MathF.Floor(fontGlyph.XMin * scale);
-            Rectangle bbox = fontGlyph.GetBBox(scale);
-            YBearing = bbox.Y + MathF.Ceiling(ascend * scale);
-            YMin = MathF.Floor(fontGlyph.YMin * scale);
-            Size = fontGlyph.GetDrawBox(scale).Size;
-        }
-    }
-
     /// <summary>
     /// Represents a rasterized texture of glyphs.
     /// </summary>
