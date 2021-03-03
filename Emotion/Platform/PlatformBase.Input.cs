@@ -123,6 +123,12 @@ namespace Emotion.Platform
         protected void UpdateKeyStatus(Key key, bool down)
         {
             var keyIndex = (short) key;
+            if (keyIndex < 0 || keyIndex >= _keys.Length)
+            {
+                Engine.Log.Warning($"Got event for unknown key - {key}/{keyIndex}", MessageSource.Platform);
+                return;
+            }
+
             bool wasDown = _keys[keyIndex];
             _keys[keyIndex] = down;
 
