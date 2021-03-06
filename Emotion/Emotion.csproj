@@ -11,7 +11,7 @@
     <OldToolsVersion>2.0</OldToolsVersion>
     <NuspecFile>./Emotion.nuspec</NuspecFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Configurations>Debug;Release;DebugUnix64</Configurations>
+    <Configurations>Debug;Release;DebugUnix64;DebugWeb</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -19,6 +19,15 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile></DocumentationFile>
+    <NoWarn>1701;1702;1591;1734</NoWarn>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWeb|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>DEBUG;TRACE;WEB</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile />
     <NoWarn>1701;1702;1591;1734</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>

@@ -8,6 +8,12 @@ using System.Runtime.InteropServices;
 
 namespace Emotion.Web.Helpers
 {
+    public struct UnmanagedMemory
+    {
+        public int Size;
+        public IntPtr Memory;
+    }
+
     public static class UnmanagedMemoryAllocator
     {
         public static int AllocatedSize;
@@ -51,11 +57,19 @@ namespace Emotion.Web.Helpers
 
         public static void RegisterUnownedNamedMemory(IntPtr ptr, string name, int size)
         {
-            _namedMemoryForeign.Add(name, new UnmanagedMemory
+            var info = new UnmanagedMemory
             {
                 Size = size,
                 Memory = ptr
-            });
+            };
+
+            // Add or update foreign memory.
+            if (_namedMemoryForeign.ContainsKey(name))
+            {
+                _namedMemoryForeign[name] = info;
+                return;
+            }
+            _namedMemoryForeign.Add(name, info);
         }
 
         public static IntPtr GetNamedMemoryOwned(string name, out int size)

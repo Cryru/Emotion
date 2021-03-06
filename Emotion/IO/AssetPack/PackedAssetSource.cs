@@ -70,6 +70,7 @@ namespace Emotion.IO.AssetPack
                     }
                 }
 
+                // Start requesting blobs.
                 _blobContents = new byte[numberOfBlobs][];
                 var blobLoadingTasks = new Task[numberOfBlobs];
                 float progressPerBlob = 1.0f / numberOfBlobs;
@@ -77,9 +78,9 @@ namespace Emotion.IO.AssetPack
                 {
                     blobLoadingTasks[i] = LoadBlob(i).ContinueWith(_ => { Progress += progressPerBlob; });
                 }
-
                 await Task.WhenAll(blobLoadingTasks);
 
+                // Convert manifest.
                 Progress = 1f;
                 _manifestNames = _fileManifest.Keys.ToArray();
             }

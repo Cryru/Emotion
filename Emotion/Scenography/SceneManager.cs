@@ -41,13 +41,7 @@ namespace Emotion.Scenography
         /// <summary>
         /// When the scene changes.
         /// </summary>
-        public EventHandler SceneChanged;
-
-        /// <summary>
-        /// Suppress the swapping of the loading screen with the scene currently loading.
-        /// Can be used to prolong and control the loading screen scene even after the scene has loaded.
-        /// </summary>
-        public static bool SuppressSceneSwap { get; set; }
+        public event EventHandler SceneChanged;
 
         private Task _sceneLoadingTask;
 
@@ -113,9 +107,14 @@ namespace Emotion.Scenography
 
             Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
-            _sceneLoadingTask = new Task(() =>
+            _sceneLoadingTask = new Task(async () =>
             {
                 if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
+
+#if WEB
+                // Make sure assets have loaded.
+                if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
+#endif
 
                 // Set the current scene to be the loading screen, and get the old one.
                 IScene old = SwapActive(LoadingScreen);
@@ -127,7 +126,7 @@ namespace Emotion.Scenography
                 {
                     // Wait for the scene to swap to the loading screen.
                     // We don't want to unload it while it is still being updated/drawn.
-                    while (Current != LoadingScreen) Task.Delay(1).Wait();
+                    while (Current != LoadingScreen) await Task.Delay(1);
 
                     Unload(old);
                 }
@@ -139,7 +138,7 @@ namespace Emotion.Scenography
                 if (scene != null)
                 {
                     // Load the provided scene.
-                    Load(scene);
+                    await Load(scene);
 
                     // Swap from loading.
                     SwapActive(scene);
@@ -156,6 +155,10 @@ namespace Emotion.Scenography
             return _sceneLoadingTask;
         }
 
+#if WEB
+        public static Task AssetBlobLoadingTask;
+#endif
+
         /// <summary>
         /// Sets the provided scene as the loading screen.
         /// </summary>
@@ -167,6 +170,19 @@ namespace Emotion.Scenography
 
             IScene oldLoadingScreen = LoadingScreen;
 
+#if WEB
+            Task.Run(async () =>
+            {
+                // Wait for asset blobs to load.
+                if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
+
+                await loadingScene.Load();
+                LoadingScreen = loadingScene;
+
+                if (Current == oldLoadingScreen) SwapActive(LoadingScreen);
+                Unload(oldLoadingScreen);
+            });
+#else
             // Load the new loading screen.
             loadingScene.Load();
             LoadingScreen = loadingScene;
@@ -175,28 +191,33 @@ namespace Emotion.Scenography
             // If it is currently active, swap it with the new loading screen first.
             if (Current == oldLoadingScreen) SwapActive(LoadingScreen);
             Unload(oldLoadingScreen);
+#endif
         }
 
         #endregion
 
         #region Helpers
 
-        private static void Load(IScene scene)
+        private static async Task Load(IScene scene)
         {
-            void LoadFunc()
+            async Task LoadFunc()
             {
                 Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
-                scene.Load();
+#if WEB
+                await scene.Load();
+#else
+                await Task.Run(scene.Load);
+#endif
                 Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
             }
 
             if (Engine.Configuration.DebugMode && Debugger.IsAttached)
-                LoadFunc();
+                await LoadFunc();
             else
-                // This try doesn't actually prevent a crash. It just makes sure the exception is logged.
+                // This try doesn't actually prevent a game crash. It just makes sure the exception is logged.
                 try
                 {
-                    LoadFunc();
+                    await LoadFunc();
                 }
                 catch (Exception ex)
                 {
@@ -213,9 +234,7 @@ namespace Emotion.Scenography
             try
             {
                 Engine.Log.Trace($"Unloading scene [{scene}].", MessageSource.SceneManager);
-
                 scene.Unload();
-
                 Engine.Log.Info($"Unloaded scene [{scene}].", MessageSource.SceneManager);
             }
             catch (Exception ex)
@@ -255,7 +274,9 @@ namespace Emotion.Scenography
         /// </summary>
         private void SwapCheck()
         {
-            if (SuppressSceneSwap) return;
+#if WEB
+            if (AssetBlobLoadingTask != null && !AssetBlobLoadingTask.IsCompleted) return;
+#endif
             if (_sceneLoadingTask != null && _sceneLoadingTask.Status == TaskStatus.Created) _sceneLoadingTask.Start();
 
             lock (_swapMutex)

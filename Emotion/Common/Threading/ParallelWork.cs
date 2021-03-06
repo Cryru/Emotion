@@ -10,6 +10,7 @@ namespace Emotion.Common.Threading
 {
     public class ParallelWork
     {
+#if !WEB
         /// <summary>
         /// For loops which run fast we batch them into groups.
         /// </summary>
@@ -43,5 +44,21 @@ namespace Emotion.Common.Threading
 
             return Task.WhenAll(tasks);
         }
+#else
+        public class FakeTask
+        {
+            public void Wait()
+            {
+                // nop
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeTask FastLoops(int arraySize, Action<int, int> function)
+        {
+            function(0, arraySize);
+            return new FakeTask();
+        }
+#endif
     }
 }

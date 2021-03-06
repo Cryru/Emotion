@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.Game;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
@@ -443,58 +443,61 @@ namespace Emotion.Standard.OpenType
             // The scale to render at.
             float scale = (float) fontSize / Height;
 
-            var canvases = new List<Task<GlyphRenderer.GlyphCanvas>>();
-            for (var i = 0; i < Glyphs.Length; i++)
+            var canvases = new Dictionary<int, GlyphRenderer.GlyphCanvas>();
+            ParallelWork.FastLoops(Glyphs.Length, (start, end) =>
             {
-                Glyph g = Glyphs[i];
-                bool inIndex = g.CharIndex.Any(charIdx => charIdx >= firstChar && charIdx < lastIdx);
-                if (!inIndex) continue;
-
-                switch (rasterizer)
+                for (int i = start; i < end; i++)
                 {
-                    case GlyphRasterizer.Emotion:
-                        canvases.Add(Task.Run(() => RenderGlyph(this, g, scale)));
-                        break;
+                    Glyph g = Glyphs[i];
+                    bool inIndex = g.CharIndex.Any(charIdx => charIdx >= firstChar && charIdx < lastIdx);
+                    if (!inIndex) continue;
+
+                    GlyphRenderer.GlyphCanvas renderedGlyph = null;
+                    switch (rasterizer)
+                    {
+                        case GlyphRasterizer.Emotion:
+                            renderedGlyph = RenderGlyph(this, g, scale);
+                            break;
 #if StbTrueType
-                    case GlyphRasterizer.StbTrueType:
-                        canvases.Add(Task.Run(() => RenderGlyphStb(this, g, scale)));
-                        break;
+                        case GlyphRasterizer.StbTrueType:
+                            renderedGlyph = RenderGlyphStb(this, g, scale);
+                            break;
 #endif
-
 #if FreeType
-                    case GlyphRasterizer.FreeType:
-                        canvases.Add(Task.Run(() => RenderGlyphFreeType(g, fontSize)));
-                        break;
+                        case GlyphRasterizer.FreeType:
+                            renderedGlyph = RenderGlyphFreeType(g, fontSize);
+                            break;
 #endif
+                    }
+
+                    if (renderedGlyph == null) continue;
+                    lock (canvases)
+                    {
+                        canvases.Add(i, renderedGlyph);
+                    }
                 }
-            }
+            }).Wait();
 
-            GlyphRenderer.GlyphCanvas[] result = Task.WhenAll(canvases.ToArray()).Result;
-
+            // Fit glyphs into an atlas.
             const int glyphSpacing = 1;
             var glyphSpacing2 = new Vector2(glyphSpacing);
-
-            var glyphRects = new Rectangle[result.Length];
-            for (var i = 0; i < result.Length; i++)
+            var glyphRects = new Rectangle[canvases.Count];
+            foreach ((int key, GlyphRenderer.GlyphCanvas canvas) in canvases)
             {
-                GlyphRenderer.GlyphCanvas canvas = result[i];
                 if (canvas == null || canvas.Data.Length == 0) continue;
 
-                glyphRects[i].Width = canvas.Width;
-                glyphRects[i].Height = canvas.Height;
-
                 // Inflate for spacing on all sides.
-                glyphRects[i].Size += glyphSpacing2 * 2;
+                var r = new Rectangle(0, 0, canvas.Width + glyphSpacing * 2, canvas.Height + glyphSpacing * 2);
+                glyphRects[key] = r;
             }
-
             Vector2 atlasSize = Binning.FitRectangles(glyphRects);
+
+            // Copy glyphs to atlas.
             var atlas = new byte[(int) atlasSize.X * (int) atlasSize.Y];
             var atlasObj = new FontAtlas(atlasSize, atlas, rasterizer.ToString(), scale, this);
-
             var atlasWidth = (int) atlasSize.X;
-            for (var i = 0; i < result.Length; i++)
+            foreach ((int key, GlyphRenderer.GlyphCanvas canvas) in canvases)
             {
-                GlyphRenderer.GlyphCanvas canvas = result[i];
                 if (canvas == null) continue;
                 AtlasGlyph canvasGlyph = canvas.Glyph;
 
@@ -505,9 +508,10 @@ namespace Emotion.Standard.OpenType
                     atlasObj.Glyphs[representingChars[j]] = canvasGlyph;
                 }
 
+                // Empty glyph, no need to paste to atlas.
                 if (canvas.Data.Length == 0) continue;
 
-                Rectangle atlasRect = glyphRects[i];
+                Rectangle atlasRect = glyphRects[key];
                 atlasRect.Position += glyphSpacing2;
                 atlasRect.Size -= glyphSpacing2;
 

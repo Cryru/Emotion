@@ -35,14 +35,9 @@ namespace Emotion.Web.Platform
         protected override void SetupPlatform(Configurator config)
         {
             // Don't load the first scene before assets have loaded.
-            SceneManager.SuppressSceneSwap = true;
             var webAssetSource = new WebAssetSource("AssetBlobs", _canvasElement.HttpClient);
             webAssetSource.StartLoad();
-            webAssetSource.LoadingTask.ContinueWith(r =>
-            {
-                Engine.AssetLoader.AddSource(webAssetSource);
-                SceneManager.SuppressSceneSwap = false;
-            });
+            SceneManager.AssetBlobLoadingTask = webAssetSource.LoadingTask.ContinueWith(r => { Engine.AssetLoader.AddSource(webAssetSource); });
         }
 
         public override void DisplayMessageBox(string message)
