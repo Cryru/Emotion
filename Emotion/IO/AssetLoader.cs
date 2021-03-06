@@ -218,8 +218,13 @@ namespace Emotion.IO
                 // If root path and in debug mode, save to the project assets.
                 if (!Engine.Configuration.DebugMode || !_storage.TryGetValue(NameToEngineName(DebugAssetStore.AssetDevPath), out store))
                 {
-                    store = _storage.First().Value;
-                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to default store {store.Folder}.", MessageSource.AssetLoader);
+                    if (_storage.Count == 0)
+                    {
+                        Engine.Log.Warning($"Couldn't find asset store for {name} and debug store isn't loaded.", MessageSource.AssetLoader);
+                        return false;
+                    }
+                    store = _storage.FirstOrDefault().Value;
+                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to debug store {store.Folder}.", MessageSource.AssetLoader);
                     if (store == null) return false;
                 }
 
