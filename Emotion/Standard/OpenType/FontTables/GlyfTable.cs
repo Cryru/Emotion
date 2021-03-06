@@ -82,7 +82,7 @@ namespace Emotion.Standard.OpenType.FontTables
                     CompositeGlyphRequest request = compositeGlyphParse[i];
                     ResolveCompositeTtfGlyph(request.Reader, request.Glyph, glyphs);
                 }
-            });
+            }).Wait();
 
             Debug.Assert(glyphs.All(x => x != null));
 
