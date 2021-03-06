@@ -557,7 +557,19 @@ function glUploadTexture2D(valuePtr) {
 
     const pixelsPtr = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 8);
     const pixelBufferLength = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 9);
-    const data = new Uint8Array(wasmMemory.buffer, pixelsPtr, pixelBufferLength);
+    var data;
+    
+    switch (type)
+    {
+        case 0x1401: // Standard C# byte (uint8)
+            data = new Uint8Array(wasmMemory.buffer, pixelsPtr, pixelBufferLength);
+            break;
+        case 0x1405: // Depth/Stencil Uint
+            data = new Uint32Array(wasmMemory.buffer, pixelsPtr, pixelBufferLength / 4);
+            break;
+
+    }
+    
     Emotion.gl.texImage2D(target, level, internalFormat, width, height, border, format, type, data);
 }
 
