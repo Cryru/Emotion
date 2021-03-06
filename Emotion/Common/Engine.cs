@@ -13,6 +13,8 @@ using System.Threading;
 using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
+using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform;
 using Emotion.Platform.Implementation.Null;
@@ -377,6 +379,21 @@ namespace Emotion.Common
 #endif
 
             PerfProfiler.FrameStart();
+
+            // Reset cached bound state, because on some drivers SwapBuffers unbinds all objects.
+            // Added in c1b965c3741d6cfb4c7f6174a95860deb9867e5f
+            if (Configuration.RendererCompatMode)
+            {
+                FrameBuffer.Bound = 0;
+                VertexBuffer.Bound = 0;
+                IndexBuffer.Bound = 0;
+                VertexArrayObject.Bound = 0;
+                ShaderProgram.Bound = 0;
+                for (var i = 0; i < Texture.Bound.Length; i++)
+                {
+                    Texture.Bound[i] = 0;
+                }
+            }
 
             // Run the GLThread queued commands.
             PerfProfiler.FrameEventStart("GLThread.Run");

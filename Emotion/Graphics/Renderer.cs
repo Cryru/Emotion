@@ -390,21 +390,6 @@ namespace Emotion.Graphics
             // Check if running on the GL Thread.
             Debug.Assert(GLThread.IsGLThread());
 
-            // Reset cached bound state, because on some drivers SwapBuffers unbinds all objects.
-            if (Engine.Configuration.RendererCompatMode)
-            {
-                // c1b965c3741d6cfb4c7f6174a95860deb9867e5f
-                FrameBuffer.Bound = 0;
-                VertexBuffer.Bound = 0;
-                IndexBuffer.Bound = 0;
-                VertexArrayObject.Bound = 0;
-                ShaderProgram.Bound = 0;
-                for (var i = 0; i < Texture.Bound.Length; i++)
-                {
-                    Texture.Bound[i] = 0;
-                }
-            }
-
             // Reset to the default state.
             PerfProfiler.FrameEventStart("DefaultStateSet");
             SetState(RenderState.Default, true);
