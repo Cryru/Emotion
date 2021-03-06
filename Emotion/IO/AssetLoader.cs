@@ -224,7 +224,7 @@ namespace Emotion.IO
                         return false;
                     }
                     store = _storage.FirstOrDefault().Value;
-                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to debug store {store.Folder}.", MessageSource.AssetLoader);
+                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to debug store \"{store.Folder}\".", MessageSource.AssetLoader);
                     if (store == null) return false;
                 }
 

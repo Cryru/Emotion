@@ -70,7 +70,7 @@ namespace Emotion.Common
 
             if (!_profileNextFrame && !LagSpikeMonitor) return;
 
-            _captureSoFar.Append(GetEventJSON("FrameStart", $"Frame Capture {_capturedFrames}", true, 0));
+            _captureSoFar.Append(GetEventJSON("Frame", $"Frame Capture {_capturedFrames}", true, 0));
             _captureSoFar.Append(",");
             _profileFrame = _profileNextFrame;
             _profileNextFrame = false;
@@ -87,14 +87,13 @@ namespace Emotion.Common
         {
             if (!_profileFrame) return;
 
-            _captureSoFar.Append(GetEventJSON("FrameStart", $"Frame Capture {_capturedFrames}", false, _frameTimer.GetElapsedMicroseconds()));
+            _captureSoFar.Append(GetEventJSON("Frame", $"Frame Capture {_capturedFrames}", false, _frameTimer.GetElapsedMicroseconds()));
             _captureSoFar.Append(",");
             _profileFrame = false;
             _frameTimer.Stop();
             _capturedFrames++;
 
-            string name = $"Player/Profiler/ProfilerResults{DateTime.Now.ToBinary()}.json";
-
+            var name = $"Player/Profiler/ProfilerResults{DateTime.Now.ToBinary()}.json";
             string traceEvents = _captureSoFar + string.Join(",", _ongoingEventCaptures) + "]";
             string json = "{" +
                           $"\"traceEvents\":{traceEvents}," +

@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -443,7 +444,7 @@ namespace Emotion.Standard.OpenType
             // The scale to render at.
             float scale = (float) fontSize / Height;
 
-            var canvases = new Dictionary<int, GlyphRenderer.GlyphCanvas>();
+            var canvases = new ConcurrentDictionary<int, GlyphRenderer.GlyphCanvas>();
             ParallelWork.FastLoops(Glyphs.Length, (start, end) =>
             {
                 for (int i = start; i < end; i++)
@@ -471,10 +472,7 @@ namespace Emotion.Standard.OpenType
                     }
 
                     if (renderedGlyph == null) continue;
-                    lock (canvases)
-                    {
-                        canvases.Add(i, renderedGlyph);
-                    }
+                    canvases.TryAdd(i, renderedGlyph);
                 }
             }).Wait();
 

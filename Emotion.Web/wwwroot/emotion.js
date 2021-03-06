@@ -1,4 +1,6 @@
-﻿// --------------------------------
+﻿// ReSharper disable UseOfImplicitGlobalInFunctionScope
+
+// --------------------------------
 // Platform Code
 // --------------------------------
 
@@ -113,23 +115,23 @@ const keyMap = {
     F25: 314,
 
     // Keypad
-    Kp0: 320,
-    Kp1: 321,
-    Kp2: 322,
-    Kp3: 323,
-    Kp4: 324,
-    Kp5: 325,
-    Kp6: 326,
-    Kp7: 327,
-    Kp8: 328,
-    Kp9: 329,
-    KpDecimal: 330,
-    KpDivide: 331,
-    KpMultiply: 332,
-    KpSubtract: 333,
-    KpAdd: 334,
-    KpEnter: 335,
-    KpEqual: 336,
+    Numpad0: 320,
+    Numpad1: 321,
+    Numpad2: 322,
+    Numpad3: 323,
+    Numpad4: 324,
+    Numpad5: 325,
+    Numpad6: 326,
+    Numpad7: 327,
+    Numpad8: 328,
+    Numpad9: 329,
+    NumpadDecimal: 330,
+    NumpadDivide: 331,
+    NumpadMultiply: 332,
+    NumpadSubtract: 333,
+    NumpadAdd: 334,
+    NumpadEnter: 335,
+    NumpadEqual: 336,
 
     // System
     ShiftLeft: 340,
@@ -140,17 +142,17 @@ const keyMap = {
     RightControl: 345,
     AltRight: 346,
     SuperRight: 347,
-    Meta: 348,
+    Meta: 348
 }
 
 function onKeyDown(e) {
-    Emotion.webHost.invokeMethodAsync("KeyDown", keyMap[e.key] || -1);
+    Emotion.webHost.invokeMethodAsync("KeyDown",  keyMap[e.code] || keyMap[e.key] || -1);
     e.stopPropagation();
     e.preventDefault();
 }
 
 function onKeyUp(e) {
-    Emotion.webHost.invokeMethodAsync("KeyUp", keyMap[e.key] || -1);
+    Emotion.webHost.invokeMethodAsync("KeyUp", keyMap[e.code] || keyMap[e.key] || -1);
     e.stopPropagation();
     e.preventDefault();
 }
@@ -689,7 +691,7 @@ function glUploadTexture2D(valuePtr) {
 
     const pixelsPtr = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 8);
     const pixelBufferLength = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 9);
-    var data;
+    var data = null;
     
     switch (type)
     {
@@ -699,8 +701,8 @@ function glUploadTexture2D(valuePtr) {
         case 0x1405: // Depth/Stencil Uint
             data = new Uint32Array(wasmMemory.buffer, pixelsPtr, pixelBufferLength / 4);
             break;
-
     }
+    if (data === null) return;
     
     Emotion.gl.texImage2D(target, level, internalFormat, width, height, border, format, type, data);
 }
@@ -742,4 +744,22 @@ function glFramebufferRenderbuffer(valuePtr, renderbufferId) {
     const attachment = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
     const renderbufferTarget = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
     Emotion.gl.framebufferRenderbuffer(target, attachment, renderbufferTarget, gRenderbuffers[renderbufferId - 1]);
+}
+
+// --------------------------------
+// Debug Helpers
+// --------------------------------
+
+function downloadTextFile(filename, text) {
+    filename = BINDING.conv_string(filename);
+    text = BINDING.conv_string(text);
+
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
 }

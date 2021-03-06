@@ -21,6 +21,11 @@ namespace Emotion.Web.Platform
         private RenderCanvas _canvasElement;
         private Vector2 _size;
 
+        public IJSUnmarshalledRuntime JsRuntime
+        {
+            get => _canvasElement.JsRuntime;
+        }
+
         public WebHost(RenderCanvas canvasElement)
         {
             DisplayMode = DisplayMode.Windowed; // Needed to be able to set the size.
@@ -28,7 +33,7 @@ namespace Emotion.Web.Platform
 
             _canvasElement = canvasElement;
             _canvasElement.JsRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
-            Context = new WebGLContext(_canvasElement.JsRuntime);
+            Context = new WebGLContext(JsRuntime);
             // Audio : https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode
         }
 
@@ -38,6 +43,7 @@ namespace Emotion.Web.Platform
             var webAssetSource = new WebAssetSource("AssetBlobs", _canvasElement.HttpClient);
             webAssetSource.StartLoad();
             SceneManager.AssetBlobLoadingTask = webAssetSource.LoadingTask.ContinueWith(r => { Engine.AssetLoader.AddSource(webAssetSource); });
+            Engine.AssetLoader.AddStore(new WebAssetStore(this));
         }
 
         public override void DisplayMessageBox(string message)
