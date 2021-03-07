@@ -200,13 +200,15 @@ namespace Emotion.Scenography
 
         private static async Task Load(IScene scene)
         {
+#pragma warning disable 1998
             async Task LoadFunc()
+#pragma warning restore 1998
             {
                 Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
 #if WEB
                 await scene.Load();
 #else
-                await Task.Run(scene.Load);
+                scene.Load();
 #endif
                 Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
             }

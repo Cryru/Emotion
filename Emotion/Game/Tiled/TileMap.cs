@@ -307,7 +307,7 @@ namespace Emotion.Game.Tiled
                 string? tilesetFile = TiledMap.Tilesets[i]?.Source;
                 if (string.IsNullOrEmpty(tilesetFile)) continue;
                 tilesetFile = AssetLoader.NameToEngineName(tilesetFile);
-                if (tilesetFile[0] == '/') tilesetFile = tilesetFile.Substring(1);
+                if (tilesetFile[0] == '/') tilesetFile = tilesetFile[1..];
 
                 string assetPath = AssetLoader.GetNonRelativePath(tileSetFolder, tilesetFile);
                 if (parallel)
