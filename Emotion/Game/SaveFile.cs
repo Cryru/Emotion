@@ -36,10 +36,21 @@ namespace Emotion.Game
         /// <summary>
         /// Save the save file to the asset store.
         /// </summary>
-        public void Save()
+        public bool Save()
+        {
+            return SaveAs(Name);
+        }
+
+        /// <summary>
+        /// Save the save file to the asset store with the provided name.
+        /// </summary>
+        /// <param name="name"></param>
+        public bool SaveAs(string name)
         {
             string data = XMLFormat.To(Content);
-            if (!Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), Name)) Engine.Log.Warning($"Couldn't save file {Name}.", MessageSource.Other);
+            bool saved = Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(data), name);
+            if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
+            return saved;
         }
 
         /// <summary>
