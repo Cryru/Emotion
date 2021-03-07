@@ -304,6 +304,9 @@ namespace Emotion.IO
             bool loaded = _loadedAssets.TryRemove(name, out Asset asset);
             if (!loaded) return;
 
+            // Remove async loading shortcut for this asset, as it will contain the destroyed asset.
+            _asyncLoadingTasks.Remove(name);
+
             // Dispose of asset.
             asset.Dispose();
         }
