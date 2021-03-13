@@ -1,10 +1,10 @@
 ﻿#region Using
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Threading;
 using Emotion.Primitives;
 
 #endregion
@@ -93,6 +93,8 @@ namespace Emotion.Game.QuadTree
         /// The objects in this QuadTree
         /// </summary>
         private List<QuadTreeObject<T>> _objects;
+
+        private int _runningQueryCount;
 
         /// <summary>
         /// Creates a QuadTree for the specified area.
@@ -288,6 +290,8 @@ namespace Emotion.Game.QuadTree
         /// </summary>
         private void Subdivide()
         {
+            Debug.Assert(_runningQueryCount == 0, "Quad tree node is subdividing while a query is running on it. Expect problems.");
+
             // We've reached capacity, subdivide...
             var size = new Vector2(QuadRect.Width / 2, QuadRect.Height / 2);
             var mid = new Vector2(QuadRect.X + size.X, QuadRect.Y + size.Y);
@@ -317,6 +321,8 @@ namespace Emotion.Game.QuadTree
         /// </summary>
         public void Relocate(QuadTreeObject<T> item)
         {
+            Debug.Assert(_runningQueryCount == 0, "Object is moving across nodes while a query is running on its node. Expect problems.");
+
             // Are we still inside our parent?
             // If there is no parent and the object isn't contained, that means it's out of bounds.
             if (QuadRect.ContainsInclusive(item.Data.Bounds) || Parent == null)
@@ -371,6 +377,10 @@ namespace Emotion.Game.QuadTree
             // We can't do anything if the results list doesn't exist
             if (results == null) return;
 
+#if DEBUG
+            Interlocked.Increment(ref _runningQueryCount);
+#endif
+
             if (searchArea.ContainsInclusive(ref _quadRect))
             {
                 // If the search area completely contains this quad, just get every object in this quad and all its children
@@ -389,12 +399,18 @@ namespace Emotion.Game.QuadTree
                     }
 
                 // Search for objects in the children (if any)
-                if (TopLeftChild == null) return;
-                TopLeftChild.GetObjects(ref searchArea, results);
-                TopRightChild.GetObjects(ref searchArea, results);
-                BottomLeftChild.GetObjects(ref searchArea, results);
-                BottomRightChild.GetObjects(ref searchArea, results);
+                if (TopLeftChild != null)
+                {
+                    TopLeftChild.GetObjects(ref searchArea, results);
+                    TopRightChild.GetObjects(ref searchArea, results);
+                    BottomLeftChild.GetObjects(ref searchArea, results);
+                    BottomRightChild.GetObjects(ref searchArea, results);
+                }
             }
+
+#if DEBUG
+            Interlocked.Decrement(ref _runningQueryCount);
+#endif
         }
 
         /// <summary>
