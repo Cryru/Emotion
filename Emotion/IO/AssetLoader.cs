@@ -401,6 +401,8 @@ namespace Emotion.IO
         {
             if (string.IsNullOrEmpty(left)) return right;
             if (string.IsNullOrEmpty(right)) return left;
+            if (left[^1] == '/') left = left[..^1];
+            if (right[0] == '/') right = right[1..];
             return left + "/" + right;
         }
     }
