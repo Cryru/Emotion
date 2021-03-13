@@ -72,5 +72,18 @@ namespace Emotion.Game.Time
         {
             BackingTimer.Restart();
         }
+
+        protected ProxyTweenTimer(T backingTimer)
+        {
+            BackingTimer = backingTimer;
+        }
+
+        public ITimer Clone()
+        {
+            return new ProxyTweenTimer<T>((T) BackingTimer.Clone())
+            {
+                _tweenFunc = _tweenFunc
+            };
+        }
     }
 }

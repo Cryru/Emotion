@@ -27,5 +27,10 @@
         /// Restart the timer.
         /// </summary>
         void Restart();
+
+        /// <summary>
+        /// Create a copy of this timer. Doesn't include the internal state such as the current progress or loop count.
+        /// </summary>
+        ITimer Clone();
     }
 }

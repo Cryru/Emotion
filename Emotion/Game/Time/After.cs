@@ -59,6 +59,11 @@ namespace Emotion.Game.Time
             Finished = false;
         }
 
+        public ITimer Clone()
+        {
+            return new After(Delay, _function);
+        }
+
         #region Routine Waiter API
 
         public bool Finished { get; protected set; }

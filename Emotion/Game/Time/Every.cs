@@ -71,6 +71,11 @@ namespace Emotion.Game.Time
             _timePassed = 0;
         }
 
+        public ITimer Clone()
+        {
+            return new Every(_delay, _function, _count, _after);
+        }
+
         /// <summary>
         /// Increment count and call callback.
         /// </summary>
