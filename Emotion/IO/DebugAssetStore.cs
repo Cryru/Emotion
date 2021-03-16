@@ -34,6 +34,10 @@ namespace Emotion.IO
                 winPlat.OpenFolderAndSelectFile(Path.GetFullPath(Path.Join(_folderFs, name)));
                 //Process.Start("explorer.exe", $"{Path.GetDirectoryName()}");
             }
+
+            // This will cause any new assets to be added to the manifest.
+            if (!Engine.AssetLoader.Exists(name))
+                Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
         }
 
         public override ReadOnlyMemory<byte> GetAsset(string enginePath)
