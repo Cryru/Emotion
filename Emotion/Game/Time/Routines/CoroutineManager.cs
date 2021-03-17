@@ -92,17 +92,22 @@ namespace Emotion.Game.Time.Routines
                 // If no routines are running, do nothing.
                 if (_runningRoutines.Count == 0) return false;
 
+                // Run routines in this order. Routines which add other routines will be added at the back of the queue.
                 for (var i = 0; i < _runningRoutines.Count; i++)
                 {
                     Coroutine current = _runningRoutines[i];
                     Debug.Assert(current != null);
 
                     current.Run();
-                    if (!current.Finished) continue;
+                }
 
-                    // Remove the routine from the list and decrement.
-                    _runningRoutines.RemoveAt(i);
-                    i--;
+                for (int i = _runningRoutines.Count - 1; i >= 0 ; i--)
+                {
+                    Coroutine current = _runningRoutines[i];
+                    if (current.Finished)
+                    {
+                        _runningRoutines.RemoveAt(i);
+                    }
                 }
 
                 return true;
