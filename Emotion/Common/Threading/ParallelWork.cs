@@ -38,8 +38,7 @@ namespace Emotion.Common.Threading
                 // Add the left over amount to the last task.
                 if (t == tasks.Length - 1) arrayEnd += leftOver;
 
-                tasks[t] = new Task(() => function(arrayStart, arrayEnd));
-                tasks[t].Start();
+                tasks[t] = Task.Run(() => function(arrayStart, arrayEnd));
             }
 
             return Task.WhenAll(tasks);

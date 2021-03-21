@@ -107,52 +107,56 @@ namespace Emotion.Scenography
 
             Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
-            _sceneLoadingTask = new Task(async () =>
-            {
-                if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
+            _sceneLoadingTask = Task.Run(() => LoadInternal(scene));
+            return _sceneLoadingTask;
+        }
 
-#if WEB
-                // Make sure assets have loaded.
-                if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
+        private async Task LoadInternal(IScene scene)
+        {
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
+
+#if WEB 
+            // Make sure assets have loaded.
+            if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
 #endif
 
-                // Set the current scene to be the loading screen, and get the old one.
-                IScene old = SwapActive(LoadingScreen);
+            // Set the current scene to be the loading screen, and get the old one.
+            IScene old = QueueSceneSwap(LoadingScreen);
 
-                PerfProfiler.ProfilerEventStart("SceneUnload", "Loading");
+            PerfProfiler.ProfilerEventStart("SceneUnload", "Loading");
 
-                // Unload the old if it isn't the loading screen.
-                if (old != LoadingScreen)
-                {
-                    // Wait for the scene to swap to the loading screen.
-                    // We don't want to unload it while it is still being updated/drawn.
-                    while (Current != LoadingScreen) await Task.Delay(1);
+            // Unload the old if it isn't the loading screen.
+            if (old != LoadingScreen)
+            {
+                // Wait for the scene to swap to the loading screen.
+                // We don't want to unload it while it is still being updated/drawn.
+                while (Current != LoadingScreen) await Task.Delay(1);
 
-                    Unload(old);
-                }
+                Unload(old);
+            }
 
-                PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
-                PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
+            PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
+            PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
 
-                // Check if a new scene was provided.
-                if (scene != null)
-                {
-                    // Load the provided scene.
-                    await Load(scene);
+            // Check if a new scene was provided.
+            if (scene != null)
+            {
+                // Load the provided scene.
+                await Load(scene);
 
-                    // Swap from loading.
-                    SwapActive(scene);
-                }
-                else
-                {
-                    // If not set the current scene to the loading screen.
-                    Current = LoadingScreen;
-                }
+                // Swap from loading.
+                QueueSceneSwap(scene);
+            }
+            else
+            {
+                // If not set the current scene to the loading screen.
+                Current = LoadingScreen;
+            }
 
-                PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
-                Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
-            });
-            return _sceneLoadingTask;
+            while (_swapScene != null) await Task.Delay(1);
+
+            PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
+            Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
         }
 
 #if WEB
@@ -189,7 +193,7 @@ namespace Emotion.Scenography
 
             // Unload the old loading screen.
             // If it is currently active, swap it with the new loading screen first.
-            if (Current == oldLoadingScreen) SwapActive(LoadingScreen);
+            if (Current == oldLoadingScreen) QueueSceneSwap(LoadingScreen);
             Unload(oldLoadingScreen);
 #endif
         }
@@ -247,13 +251,12 @@ namespace Emotion.Scenography
         }
 
         /// <summary>
-        /// Swaps the current scene and returns the old one (which is the current one).
-        /// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene.
-        /// This also won't unload the old scene.
+        /// Queues the provides scene to be swapped on the next update and returns the old one (which is the current one).
+        /// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene, as otherwise the old one won't be unloaded.
         /// </summary>
-        /// <param name="toSwapTo">The scene to swap to.</param>
+        /// <param name="toSwapTo">The scene to queue a swap to.</param>
         /// <returns>The previously active scene (the current one).</returns>
-        public IScene SwapActive(IScene toSwapTo)
+        public IScene QueueSceneSwap(IScene toSwapTo)
         {
             lock (_swapMutex)
             {
