@@ -307,5 +307,10 @@ namespace Emotion.Primitives
         }
 
         #endregion
+
+        public override int GetHashCode()
+        {
+            return Maths.GetCantorPair(Maths.GetCantorPair((int) Start.X, (int) Start.Y), Maths.GetCantorPair((int) End.X, (int) End.Y));
+        }
     }
 }
