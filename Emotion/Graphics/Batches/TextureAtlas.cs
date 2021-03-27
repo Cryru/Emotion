@@ -9,7 +9,6 @@ using Emotion.Common;
 using Emotion.Game;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
-using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
@@ -50,6 +49,11 @@ namespace Emotion.Graphics.Batches
         protected bool _firstDraw; // Used to track fbo clearing.
         protected int _textureActivityFrames;
 
+        protected int _texturesMargin;
+        protected int _texturesMargin2;
+        protected Vector2 _texturesMarginVec;
+        protected Vector2 _texturesMarginVec2;
+
         protected static Vector2 _maxTextureBatchSize = new Vector2(1024); // Maybe % based of atlas size?
         protected static Vector2 _atlasTextureSize = new Vector2(2048); // Proxy texture check for this size and disable atlasing in some cases or something.
         protected Queue<TextureMapping> _atlasTextureRange = new Queue<TextureMapping>();
@@ -70,7 +74,14 @@ namespace Emotion.Graphics.Batches
             _fbo.CheckErrors();
             _firstDraw = true;
 
-            if (smooth) _fbo.Texture.Smooth = true;
+            if (smooth)
+            {
+                _fbo.Texture.Smooth = true;
+                _texturesMargin = 2;
+                _texturesMargin2 = _texturesMargin * 2;
+                _texturesMarginVec = new Vector2(_texturesMargin);
+                _texturesMarginVec2 = new Vector2(_texturesMargin * 2);
+            }
         }
 
         /// <summary>
@@ -84,7 +95,7 @@ namespace Emotion.Graphics.Batches
             if (texture is FrameBufferTexture) return false;
 
             // Texture too large to atlas.
-            if (texture.Size.X > _maxTextureBatchSize.X || texture.Size.Y > _maxTextureBatchSize.Y) return false;
+            if (texture.Size.X + _texturesMargin2 > _maxTextureBatchSize.X || texture.Size.Y + _texturesMargin2 > _maxTextureBatchSize.Y) return false;
 
             // Don't batch "no" texture. Those UVs are used for effects.
             if (texture == Texture.NoTexture) return false;
@@ -96,7 +107,7 @@ namespace Emotion.Graphics.Batches
             if (_textureToOffset.ContainsKey(texture)) return !_textureNeedDraw[texture];
 
             // Check if there is space in the internal texture.
-            Vector2? offset = Binning.FitRectanglesResumable(texture.Size, this);
+            Vector2? offset = Binning.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
             if (offset == null) return false;
             _textureToOffset.Add(texture, offset.Value);
             _textureNeedDraw.Add(texture, true);
@@ -249,7 +260,7 @@ namespace Emotion.Graphics.Batches
             IOrderedEnumerable<Texture> allTextures = _textureToOffset.Keys.ToArray().OrderBy(x => x.Size.X + x.Size.Y);
             foreach (Texture texture in allTextures)
             {
-                Vector2? offset = Binning.FitRectanglesResumable(texture.Size, this);
+                Vector2? offset = Binning.FitRectanglesResumable(texture.Size + _texturesMarginVec2, this);
                 if (offset.HasValue)
                 {
                     _textureToOffset[texture] = offset.Value;
@@ -280,7 +291,7 @@ namespace Emotion.Graphics.Batches
             {
                 if (!needDraw) continue;
 
-                Vector2 offset = _textureToOffset[texture];
+                Vector2 offset = _textureToOffset[texture] + _texturesMarginVec;
                 VertexData.SpriteToVertexData(_vboLocal, new Vector3(offset, 0), texture.Size, Color.White, texture);
                 _vbo.Upload(_vboLocal);
 
@@ -305,7 +316,7 @@ namespace Emotion.Graphics.Batches
             Debug.Assert(!_textureNeedDraw[texture]);
 
             _textureActivity[texture]++;
-            Vector2 atlasOffset = _textureToOffset[texture];
+            Vector2 atlasOffset = _textureToOffset[texture] + _texturesMarginVec;
             var minMaxUV = new Rectangle(atlasOffset, atlasOffset + texture.Size);
             return new Rectangle(minMaxUV.Position / Size, minMaxUV.Size / Size);
         }
