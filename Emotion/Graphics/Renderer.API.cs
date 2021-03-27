@@ -59,18 +59,6 @@ namespace Emotion.Graphics
         }
 
         /// <summary>
-        /// Render a transform renderable. The rendering code is inside the object itself.
-        /// This just makes sure its model matrix is pushed and invalidates the current batch.
-        /// </summary>
-        /// <param name="renderable">The renderable to enter.</param>
-        public void Render(TransformRenderable renderable)
-        {
-            PushModelMatrix(renderable.ModelMatrix);
-            renderable.Render(this);
-            PopModelMatrix();
-        }
-
-        /// <summary>
         /// Render a renderable object.
         /// </summary>
         /// <param name="renderable">The renderable to render.</param>

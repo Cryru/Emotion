@@ -8,15 +8,10 @@ using Emotion.Graphics;
 namespace Emotion.Primitives
 {
     /// <summary>
-    /// A transform which is renderable, and exposes a model matrix.
+    /// A transform which inherits IRenderable
     /// </summary>
-    public abstract class TransformRenderable : Transform, ITransformRenderable
+    public abstract class TransformRenderable : Transform, IRenderable
     {
-        /// <summary>
-        /// The model matrix of the renderable transform. Is automatically applied when rendered by the renderer.
-        /// </summary>
-        public virtual Matrix4x4 ModelMatrix { get; protected set; } = Matrix4x4.Identity;
-
         #region Constructors
 
         /// <summary>
@@ -32,7 +27,7 @@ namespace Emotion.Primitives
         /// </summary>
         /// <param name="position">The position of the transform.</param>
         /// <param name="size">The size of the transform.</param>
-        protected TransformRenderable(Vector2 position, Vector2 size) : this(position.X, position.Y, 0, size.X, size.Y)
+        protected TransformRenderable(Vector2 position, Vector2 size) : base(position.X, position.Y, 0, size.X, size.Y)
         {
         }
 
@@ -41,7 +36,7 @@ namespace Emotion.Primitives
         /// </summary>
         /// <param name="position">The position of the transform.</param>
         /// <param name="size">The size of the transform.</param>
-        protected TransformRenderable(Vector3 position, Vector2 size) : this(position.X, position.Y, position.Z, size.X, size.Y)
+        protected TransformRenderable(Vector3 position, Vector2 size) : base(position.X, position.Y, position.Z, size.X, size.Y)
         {
         }
 
@@ -55,17 +50,9 @@ namespace Emotion.Primitives
         /// <param name="height">The height of the transform.</param>
         protected TransformRenderable(float x = 0f, float y = 0f, float z = 0f, float width = 0f, float height = 0f) : base(x, y, z, width, height)
         {
-            // Recalculate the model matrix on movement.
-            OnMove += (a, b) => SyncModelMatrix();
-            SyncModelMatrix();
         }
 
         #endregion
-
-        private void SyncModelMatrix()
-        {
-            ModelMatrix = Matrix4x4.CreateTranslation(Position);
-        }
 
         /// <summary>
         /// Render the renderable.

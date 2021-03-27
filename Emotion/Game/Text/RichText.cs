@@ -133,7 +133,6 @@ namespace Emotion.Game.Text
         public RichText(Vector3 position, Vector2 size, DrawableFontAtlas fontAtlas) : base(position, size)
         {
             FontAtlas = fontAtlas;
-
             _layouter = new TextLayouter(fontAtlas.Atlas);
         }
 
@@ -458,7 +457,7 @@ namespace Emotion.Game.Text
                     _layouter.AddToPen(new Vector2(glyphXOffset, 0));
                     Vector2 drawPos = _layouter.AddLetter(charUnicode, out AtlasGlyph g);
 
-                    composer.RenderSprite(drawPos.ToVec3(), g.Size, textColor, FontAtlas.Texture, new Rectangle(g.Location, g.UV));
+                    composer.RenderSprite(Position + drawPos.ToVec3(), g.Size, textColor, FontAtlas.Texture, new Rectangle(g.Location, g.UV));
 
                     // Increment character counter.
                     characterCounter++;
