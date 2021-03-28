@@ -758,5 +758,14 @@ namespace Emotion.Utility
             if (n % 2 == 0) return n + 1;
             return n;
         }
+
+        /// <summary>
+        /// Find the overlap between two one dimensional segments.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Get1DIntersectionDepth(float minA, float maxA, float minB, float maxB)
+        {
+            return Math.Max(0, Math.Min(maxA, maxB) - Math.Max(minA, minB));
+        }
     }
 }

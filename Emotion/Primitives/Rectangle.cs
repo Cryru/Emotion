@@ -848,6 +848,9 @@ namespace Emotion.Primitives
             return this;
         }
 
+        /// <summary>
+        /// Transform the four points of a rectangle by a matrix.
+        /// </summary>
         public static Rectangle Transform(Rectangle rect, Matrix4x4 matrix)
         {
             Vector2 p1 = Vector2.Transform(rect.TopLeft, matrix);
