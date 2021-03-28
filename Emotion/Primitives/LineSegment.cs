@@ -174,6 +174,9 @@ namespace Emotion.Primitives
             return s >= 0 && s <= 1 && t >= 0 && t <= 1;
         }
 
+        /// <summary>
+        /// Find the point of intersection between two line segments.
+        /// </summary>
         public Vector2 GetIntersectionPoint(ref LineSegment other)
         {
             float s10X = End.X - Start.X;
@@ -308,9 +311,36 @@ namespace Emotion.Primitives
 
         #endregion
 
+        /// <summary>
+        /// Whether the two segments are equal.
+        /// </summary>
+        public static bool operator ==(LineSegment a, LineSegment b)
+        {
+            return a.Start == b.Start && a.End == b.End;
+        }
+
+        /// <summary>
+        /// Whether the two segments are not equal.
+        /// </summary>
+        public static bool operator !=(LineSegment a, LineSegment b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is LineSegment l) return l == this;
+            return false;
+        }
+
+        public override string ToString()
+        {
+            return $"[Start:{Start} End:{End}]";
+        }
+
         public override int GetHashCode()
         {
-            return Maths.GetCantorPair(Maths.GetCantorPair((int) Start.X, (int) Start.Y), Maths.GetCantorPair((int) End.X, (int) End.Y));
+            return Maths.GetCantorPair(Maths.GetCantorPair((int)Start.X, (int)Start.Y), Maths.GetCantorPair((int)End.X, (int)End.Y));
         }
     }
 }
