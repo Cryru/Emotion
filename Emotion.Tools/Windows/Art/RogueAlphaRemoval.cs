@@ -87,7 +87,7 @@ namespace Emotion.Tools.Windows.Art
             {
                 UpdatePreview("export");
                 byte[] pngData = PngFormat.Encode(_removedPixelData,  _previewTexture.Size, _file.Texture.PixelFormat);
-                Engine.AssetLoader.Save(pngData, AssetLoader.JoinPath("Player", _file.Name));
+                Engine.AssetLoader.Save(pngData, _file.Name);
             }
         }
 

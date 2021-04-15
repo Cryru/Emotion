@@ -237,11 +237,11 @@ namespace Emotion.Tools.Windows
                     for (var i = 0; i < frames.Length; i++)
                     {
                         composer.RenderSprite(frames[i], Color.White, spriteSheetTexture, preBinnedFrames[i]);
-
                     }
                     composer.RenderTo(null);
 
                     byte[] pixelsDownload = texture.Sample(new Rectangle(0, 0, totalSize), PixelFormat.Rgba);
+                    Utility.ImageUtil.FlipImageY(pixelsDownload, (int) totalSize.Y);
                     byte[] pngFile = PngFormat.Encode(pixelsDownload, totalSize, PixelFormat.Rgba);
                     Engine.AssetLoader.Save(pngFile, saveName);
                 }
