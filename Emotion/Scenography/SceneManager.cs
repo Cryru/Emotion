@@ -107,18 +107,24 @@ namespace Emotion.Scenography
 
             Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
+#if WEB
+            _sceneLoadingTask = Task.Run(async () => await LoadInternal(scene));
+#else
             _sceneLoadingTask = Task.Run(() => LoadInternal(scene));
+#endif
             return _sceneLoadingTask;
         }
-
+#if WEB
         private async Task LoadInternal(IScene scene)
         {
-            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
-
-#if WEB 
             // Make sure assets have loaded.
             if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
+#else
+        private void LoadInternal(IScene scene)
+        {
 #endif
+
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
 
             // Set the current scene to be the loading screen, and get the old one.
             IScene old = QueueSceneSwap(LoadingScreen);
@@ -130,7 +136,14 @@ namespace Emotion.Scenography
             {
                 // Wait for the scene to swap to the loading screen.
                 // We don't want to unload it while it is still being updated/drawn.
-                while (Current != LoadingScreen) await Task.Delay(1);
+                while (Current != LoadingScreen)
+                {
+#if WEB
+                    await Task.Delay(1);
+#else
+                    Task.Delay(1).Wait();
+#endif
+                }
 
                 Unload(old);
             }
@@ -138,11 +151,14 @@ namespace Emotion.Scenography
             PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
             PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
 
-            // Check if a new scene was provided.
+            // Check if a new scene was provided and load it.
             if (scene != null)
             {
-                // Load the provided scene.
+#if WEB
                 await Load(scene);
+#else
+                Load(scene);
+#endif
 
                 // Swap from loading.
                 QueueSceneSwap(scene);
@@ -153,7 +169,14 @@ namespace Emotion.Scenography
                 Current = LoadingScreen;
             }
 
-            while (_swapScene != null) await Task.Delay(1);
+            while (_swapScene != null)
+            {
+#if WEB
+                await Task.Delay(1);
+#else
+                Task.Delay(1).Wait();
+#endif
+            }
 
             PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
             Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
@@ -202,34 +225,41 @@ namespace Emotion.Scenography
 
         #region Helpers
 
+#if WEB
         private static async Task Load(IScene scene)
+#else
+        private static void Load(IScene scene)
+#endif
         {
-#pragma warning disable 1998
-            async Task LoadFunc()
-#pragma warning restore 1998
+            Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
+
+            if (Engine.Configuration.DebugMode && Debugger.IsAttached)
             {
-                Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
 #if WEB
                 await scene.Load();
 #else
                 scene.Load();
 #endif
-                Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
             }
-
-            if (Engine.Configuration.DebugMode && Debugger.IsAttached)
-                await LoadFunc();
             else
-                // This try doesn't actually prevent a game crash. It just makes sure the exception is logged.
+            {
                 try
                 {
-                    await LoadFunc();
+#if WEB
+                    await scene.Load();
+#else
+                    scene.Load();
+#endif
                 }
                 catch (Exception ex)
                 {
                     if (Debugger.IsAttached) throw;
                     Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
                 }
+            }
+
+
+            Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
         }
 
         private void Unload(IScene scene)
@@ -252,7 +282,8 @@ namespace Emotion.Scenography
 
         /// <summary>
         /// Queues the provides scene to be swapped on the next update and returns the old one (which is the current one).
-        /// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene, as otherwise the old one won't be unloaded.
+        /// Used for swapping to a pre-loaded scene. If you haven't loaded your scene yourself use SetScene, as otherwise the old
+        /// one won't be unloaded.
         /// </summary>
         /// <param name="toSwapTo">The scene to queue a swap to.</param>
         /// <returns>The previously active scene (the current one).</returns>
