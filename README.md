@@ -78,7 +78,7 @@ Currently supported:
   - Reading and writing of files - for custom editors.
   - Packing files into binary blobs for obfuscation, easy transport, and potentially compression.
   - Keeps track of which assets are loaded.
-- Layer-based audio system with playlists and a custom resampler.
+- Layer-based audio system with playlists and a high quality sinc sample-rate converter.
   - OpenAL support
 - Extensible camera system.
 - Super fast rendering of many objects at once (less draw calls) through the magic of mapping buffers, batching, and streaming.
