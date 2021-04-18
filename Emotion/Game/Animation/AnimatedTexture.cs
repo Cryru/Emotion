@@ -504,7 +504,7 @@ namespace Emotion.Game.Animation
 
         public override string ToString()
         {
-            return $"{_spriteSheetName} @ frame {CurrentFrameIndex} of ({StartingFrame}-{EndingFrame}), Time: {TimeBetweenFrames}, Loop: {LoopType}, Progress: {Progress} ";
+            return $"{SpriteSheetName} @ frame {CurrentFrameIndex} of ({StartingFrame}-{EndingFrame}), Time: {TimeBetweenFrames}, Loop: {LoopType}, Progress: {Progress} ";
         }
     }
 }

@@ -767,5 +767,11 @@ namespace Emotion.Utility
         {
             return Math.Max(0, Math.Min(maxA, maxB) - Math.Max(minA, minB));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float AbsSubtract(float vel, float incr = 1.0f)
+        {
+            return (MathF.Abs(vel) - incr) * MathF.Sign(vel);
+        }
     }
 }
