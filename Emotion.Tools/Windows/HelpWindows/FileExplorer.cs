@@ -137,6 +137,7 @@ namespace Emotion.Tools.Windows.HelpWindows
 
         public static Tree<string, string> FilesToTree(IEnumerable<string> assets)
         {
+            assets = assets.OrderBy(x => x);
             var tree = new Tree<string, string>();
             foreach (string a in assets)
             {
