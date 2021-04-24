@@ -10,8 +10,7 @@ using Emotion.Primitives;
 namespace Emotion.Graphics.Camera
 {
     /// <summary>
-    /// The basis for a camera object. Intended to be used for 2D environments and optimized for pixel art.
-    /// Will automatically scale based on the "IntScale" property of the Renderer.
+    /// The basis for a camera object.
     /// </summary>
     public abstract class CameraBase : Positional, IDisposable
     {
