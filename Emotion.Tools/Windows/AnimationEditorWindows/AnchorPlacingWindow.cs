@@ -20,6 +20,21 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
         {
             _parent = parent;
             _anim = anim;
+
+            // Ensure anchor array length is correct.
+            // It's possible for more frames to be added after initial initialization.
+            Vector2[] anchorArray = _anim.Anchors;
+            if (anchorArray.Length <= _anim.TotalFrames)
+            {
+                System.Array.Resize(ref anchorArray, _anim.TotalFrames + 1);
+                _anim.Anchors = anchorArray;
+            }
+            anchorArray = _parent.AnimController.MirrorXAnchors;
+            if (anchorArray.Length <= _anim.TotalFrames)
+            {
+                System.Array.Resize(ref anchorArray, _anim.TotalFrames + 1);
+                _parent.AnimController.MirrorXAnchors = anchorArray;
+            }
         }
 
         public override void Update()
@@ -29,6 +44,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
         protected override void RenderContent(RenderComposer composer)
         {
             Vector2[] anchorArray = _anim.Anchors;
+
             if (_parent.AnimController != null)
             {
                 if (_parent.Mirrored)
