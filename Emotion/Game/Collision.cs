@@ -19,11 +19,12 @@ namespace Emotion.Game
             public T Entity;
         }
 
-        public class CollisionResult
+        public class CollisionResult<T>
         {
             public Vector2 UnobstructedMovement;
             public bool Collided;
             public Vector2 CollidedSurfaceNormal;
+            public T Entity;
         }
 
 #if DEBUG
@@ -91,9 +92,9 @@ namespace Emotion.Game
         /// Runs GenericSegmentCollision in increments of one unit.
         /// Produces most accurate collision results.
         /// </summary>
-        public static CollisionResult IncrementalGenericSegmentCollision<T>(Vector2 movementVector, IShape colBound, IEnumerable<CollisionNode<T>> collisionProvider)
+        public static CollisionResult<T> IncrementalGenericSegmentCollision<T>(Vector2 movementVector, IShape colBound, IEnumerable<CollisionNode<T>> collisionProvider)
         {
-            var colResult = new CollisionResult
+            var colResult = new CollisionResult<T>
             {
                 UnobstructedMovement = movementVector
             };
@@ -143,9 +144,9 @@ namespace Emotion.Game
         /// Would be best if could work with an ellipse.
         /// </summary>
         /// <returns></returns>
-        public static CollisionResult GenericSegmentCollision<T>(Vector2 movementVector, IShape originalBound, IEnumerable<CollisionNode<T>> collisionProvider)
+        public static CollisionResult<T> GenericSegmentCollision<T>(Vector2 movementVector, IShape originalBound, IEnumerable<CollisionNode<T>> collisionProvider)
         {
-            var r = new CollisionResult
+            var r = new CollisionResult<T>
             {
                 UnobstructedMovement = movementVector
             };
@@ -184,14 +185,7 @@ namespace Emotion.Game
                 // Find collided surface normal.
                 ref LineSegment surface = ref current.Surface;
                 bool? leftSideNormal = surface.IsPointLeftOf(colShape.Center);
-                // Center is inside line? Unlikely, but should be handled.
-                if (leftSideNormal == null)
-                {
-                    r.UnobstructedMovement = Vector2.Zero;
-                    return r;
-                }
-
-                Vector2 normal = surface.GetNormal(!leftSideNormal.Value);
+                Vector2 normal = surface.GetNormal(!(leftSideNormal ?? true));
 
                 // Disgusting hack to catch rectangles getting caught on acute corners when moving in the direction perpendicular to its shorter side.
                 // In these cases the rectangle's bounds intersect with the two segments which form a corner, and the one with the largest weight (surface overlap)
@@ -202,25 +196,20 @@ namespace Emotion.Game
                 // In any case, this *shouldn't* break anything.
                 if (colShape is Rectangle && Vector2.Dot(normal, movementVector) == 0 || Vector2.Dot(normal, movementVector) == -1)
                 {
-                    var inflatedRect = (Rectangle) colShape.CloneShape();
+                    var inflatedRect = (Rectangle)colShape.CloneShape();
                     inflatedRect.Inflate(1, 1);
                     current = GetIntersectionCollisionRectangle(collisionProvider, inflatedRect);
                     if (current != null && current.Surface != surface)
                     {
                         surface = ref current.Surface;
                         leftSideNormal = surface.IsPointLeftOf(colShape.Center);
-                        if (leftSideNormal == null)
-                        {
-                            r.UnobstructedMovement = Vector2.Zero;
-                            return r;
-                        }
-
-                        normal = surface.GetNormal(!leftSideNormal.Value);
+                        normal = surface.GetNormal(!(leftSideNormal ?? true));
                     }
                 }
 
                 r.Collided = true;
                 r.CollidedSurfaceNormal = normal;
+                if (current != null) r.Entity = current.Entity;
                 movementVector -= normal * Vector2.Dot(movementVector, normal);
                 depth++;
 
@@ -299,7 +288,7 @@ namespace Emotion.Game
 
                 if (overlap <= mostOverlap) continue;
                 mostOverlap = overlap;
-                closestNode = new CollisionNode<T> {Surface = surface};
+                closestNode = new CollisionNode<T> { Surface = surface };
             }
 
             return closestNode;
@@ -358,7 +347,7 @@ namespace Emotion.Game
                 }
 
                 shortestDist = intersectionDist;
-                closestNode = new CollisionNode<T> {Surface = surface};
+                closestNode = new CollisionNode<T> { Surface = surface };
             }
 
             return closestNode;
