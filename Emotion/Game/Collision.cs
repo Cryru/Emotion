@@ -128,14 +128,12 @@ namespace Emotion.Game
                 }
 
                 // ReSharper disable once PossibleMultipleEnumeration
-                colResult = GenericSegmentCollision(new Vector2(moveAmountX, moveAmountY), colBound, collisionProvider);
+                colResult = GenericSegmentCollision(new Vector2(moveAmountX + totalMoved.X, moveAmountY + totalMoved.Y), colBound, collisionProvider);
                 Vector2 move = colResult.UnobstructedMovement;
-                totalMoved += move;
-                colBound.Center += move;
                 if (move == Vector2.Zero) break;
+                totalMoved = move;
             }
 
-            colResult.UnobstructedMovement = totalMoved;
             return colResult;
         }
 
