@@ -103,6 +103,7 @@ namespace Emotion.Tools.Windows
             ImGui.Text($"Texture File: {_spriteSheetTexture.Name} / Resolution: {_spriteSheetTexture.Texture.Size}");
 
             if (ImGui.Button("Reload Image")) LoadSpriteSheetFile(FileExplorer<TextureAsset>.ExplorerLoadAsset(_spriteSheetTexture.Name));
+            ImGui.SameLine();
             if (_playing)
             {
                 if (ImGui.Button("Pause"))
@@ -124,12 +125,14 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
-                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacingWindow(this, Animation));
+                   Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacingWindow(this, Animation));
 
+            ImGui.SameLine();
             if (ImGui.Button("Order Frames"))
                 if (_orderWindow == null || !_orderWindow.Open)
                     Parent.AddWindow(_orderWindow = new FrameOrderWindow(this, Animation));
 
+            ImGui.SameLine();
             if (ImGui.Button("Redetect Frames"))
             {
                 Rectangle[] previousFrames = Animation.Frames;
@@ -231,12 +234,18 @@ namespace Emotion.Tools.Windows
                     Array.Copy(frames, preBinnedFrames, frames.Length);
                     Texture spriteSheetTexture = Animation.Texture;
 
+                    var spacing = 2;
+                    for (var i = 0; i < frames.Length; i++)
+                    {
+                        Rectangle frame = frames[i];
+                        frames[i] = frame.Inflate(spacing, spacing);
+                    }
                     Vector2 totalSize = Binning.FitRectangles(frames, true);
                     FrameBuffer texture = new FrameBuffer(totalSize).WithColor();
                     composer.RenderTo(texture);
                     for (var i = 0; i < frames.Length; i++)
                     {
-                        composer.RenderSprite(frames[i], Color.White, spriteSheetTexture, preBinnedFrames[i]);
+                        composer.RenderSprite(frames[i].Deflate(spacing, spacing), Color.White, spriteSheetTexture, preBinnedFrames[i]);
                     }
                     composer.RenderTo(null);
 
@@ -345,6 +354,7 @@ namespace Emotion.Tools.Windows
                 {
                     var newNode = new AnimationNode("NewAnim");
                     AnimController.AddAnimation(newNode);
+                    AnimController.SetAnimation(newNode.Name);
                 }
 
                 ImGui.SameLine();

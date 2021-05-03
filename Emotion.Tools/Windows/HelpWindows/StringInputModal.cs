@@ -1,7 +1,9 @@
 ﻿#region Using
 
 using System;
+using Emotion.Common;
 using Emotion.Graphics;
+using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using ImGuiNET;
 
@@ -13,6 +15,7 @@ namespace Emotion.Tools.Windows.HelpWindows
     {
         private Action<string> _callback;
         private string _text = "";
+        private bool _first = true;
 
         /// <summary>
         /// Create a new string input modal window.
@@ -26,8 +29,14 @@ namespace Emotion.Tools.Windows.HelpWindows
 
         protected override void RenderContent(RenderComposer composer)
         {
-            ImGui.InputText("Text", ref _text, 100);
-            if (!ImGui.Button("Done")) return;
+            if (_first)
+            {
+                ImGui.SetKeyboardFocusHere();
+                _first = false;
+            }
+
+            bool enterPressed = ImGui.InputText("Text", ref _text, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+            if (!ImGui.Button("Done") && !enterPressed) return;
             _callback(_text);
             Open = false;
         }

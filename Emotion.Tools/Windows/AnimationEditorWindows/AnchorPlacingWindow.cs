@@ -1,10 +1,14 @@
 ﻿#region Using
 
+using System;
 using System.Numerics;
+using Emotion.Common;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
+using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
+using Emotion.Utility;
 using ImGuiNET;
 
 #endregion
@@ -15,6 +19,12 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
     {
         private AnimationEditor _parent;
         private AnimatedTexture _anim;
+        private int _anchorSettingFrame;
+
+        // Interactive anchor tool.
+        private bool _mouseDown;
+        private Vector2 _mouseDownPos;
+        private Vector2 _interactiveAnchorStart;
 
         public AnchorPlacingWindow(AnimationEditor parent, AnimatedTexture anim) : base("Anchor Placer")
         {
@@ -26,14 +36,18 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             Vector2[] anchorArray = _anim.Anchors;
             if (anchorArray.Length <= _anim.TotalFrames)
             {
-                System.Array.Resize(ref anchorArray, _anim.TotalFrames + 1);
+                Array.Resize(ref anchorArray, _anim.TotalFrames + 1);
                 _anim.Anchors = anchorArray;
             }
-            anchorArray = _parent.AnimController.MirrorXAnchors;
-            if (anchorArray.Length <= _anim.TotalFrames)
+
+            if (_parent.AnimController != null)
             {
-                System.Array.Resize(ref anchorArray, _anim.TotalFrames + 1);
-                _parent.AnimController.MirrorXAnchors = anchorArray;
+                anchorArray = _parent.AnimController.MirrorXAnchors;
+                if (anchorArray != null && anchorArray.Length <= _anim.TotalFrames)
+                {
+                    Array.Resize(ref anchorArray, _anim.TotalFrames + 1);
+                    _parent.AnimController.MirrorXAnchors = anchorArray;
+                }
             }
         }
 
@@ -70,14 +84,59 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
                 }
             }
 
-            Vector2 pos = ImGui.GetWindowPos();
-            pos.Y += ImGui.GetWindowHeight();
+
             for (int i = _anim.StartingFrame; i <= _anim.EndingFrame; i++)
             {
-                composer.RenderSprite(new Vector3(pos, 0), _anim.Frames[i].Size, Color.White, _anim.Texture, _anim.Frames[i]);
-                composer.RenderSprite(new Vector3(pos + anchorArray[i], 1), new Vector2(3, 3), Color.Red);
+                ImGui.PushID(i);
                 ImGui.InputFloat2($"Frame {i} ({_anim.Frames[i]})", ref anchorArray[i]);
-                pos.X += _anim.Frames[i].Size.X;
+                ImGui.SameLine();
+                bool selected = _anchorSettingFrame == i;
+                if (selected) ImGui.PushStyleColor(ImGuiCol.Button, new Color(255, 0, 0).ToUint());
+                if (ImGui.Button("Interactive Set")) _anchorSettingFrame = i;
+                if (selected) ImGui.PopStyleColor();
+
+                ImGui.PopID();
+            }
+
+            Vector2 pos = ImGui.GetWindowPos();
+            pos.Y += ImGui.GetWindowHeight();
+            pos = pos.IntCastRound();
+
+            int startFrame = _anim.StartingFrame;
+            int endFrame = _anim.EndingFrame;
+            _anchorSettingFrame = Maths.Clamp(_anchorSettingFrame, startFrame, endFrame);
+
+            float scale = _parent.Scale;
+            pos.Y += 10 * scale;
+            int prevFrame = Math.Max(_anchorSettingFrame - 1, startFrame);
+            Vector2 size = _anim.Frames[prevFrame].Size * scale;
+
+            Vector2 prevFramePos = pos + anchorArray[prevFrame] * scale;
+            Rectangle inflatedRect = new Rectangle(prevFramePos, size).Inflate(scale, scale);
+            composer.RenderSprite(inflatedRect.PositionZ(0), inflatedRect.Size, Color.White);
+            composer.RenderSprite(new Vector3(prevFramePos, 0), size, Color.White * 0.5f, _anim.Texture, _anim.Frames[prevFrame]);
+
+            size = _anim.Frames[_anchorSettingFrame].Size * scale;
+            var interactiveRect = new Rectangle(pos + anchorArray[_anchorSettingFrame] * scale, size);
+            composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[_anchorSettingFrame]);
+            composer.RenderOutline(interactiveRect.Inflate(scale, scale), Color.Red);
+
+            if (!_mouseDown && interactiveRect.Contains(Engine.Host.MousePosition) && Engine.Host.IsKeyDown(Key.MouseKeyLeft))
+            {
+                _mouseDown = true;
+                _mouseDownPos = Engine.Host.MousePosition;
+                _interactiveAnchorStart = anchorArray[_anchorSettingFrame];
+            }
+            else if (!Engine.Host.IsKeyHeld(Key.MouseKeyLeft))
+            {
+                _mouseDown = false;
+            }
+
+            if (_mouseDown)
+            {
+                Vector2 movedAmount = Engine.Host.MousePosition - _mouseDownPos;
+                Vector2 m = (movedAmount / scale).IntCastRound();
+                anchorArray[_anchorSettingFrame] = _interactiveAnchorStart + m;
             }
         }
     }
