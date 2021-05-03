@@ -135,6 +135,7 @@ namespace Emotion.Game
                 totalMoved = move;
             }
 
+            colResult.UnobstructedMovement = totalMoved;
             return colResult;
         }
 
@@ -194,6 +195,8 @@ namespace Emotion.Game
                 //
                 // The fix is to enlarge the rectangle in these cases and trust the overlap weight to take care of it (as it should now overlap more with the slope).
                 // In any case, this *shouldn't* break anything.
+                //
+                // Note: This does cause the collision depth to be exceeded in many cases, such as right angled corners, but doesn't break anything.
                 if (colShape is Rectangle && Vector2.Dot(normal, movementVector) == 0 || Vector2.Dot(normal, movementVector) == -1)
                 {
                     var inflatedRect = (Rectangle)colShape.CloneShape();
@@ -225,6 +228,8 @@ namespace Emotion.Game
 #endif
             }
 
+            // Collision depth exceeded. Assuming the subject is not inside any collision, and to prevent
+            // that from happening just report no movement.
             r.UnobstructedMovement = Vector2.Zero;
             return r;
         }
@@ -288,7 +293,7 @@ namespace Emotion.Game
 
                 if (overlap <= mostOverlap) continue;
                 mostOverlap = overlap;
-                closestNode = new CollisionNode<T> { Surface = surface };
+                closestNode = new CollisionNode<T> { Surface = surface, Entity = current.Entity };
             }
 
             return closestNode;
@@ -347,7 +352,7 @@ namespace Emotion.Game
                 }
 
                 shortestDist = intersectionDist;
-                closestNode = new CollisionNode<T> { Surface = surface };
+                closestNode = new CollisionNode<T> { Surface = surface, Entity = current.Entity };
             }
 
             return closestNode;
