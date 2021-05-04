@@ -30,6 +30,7 @@ namespace Emotion.Game.Time
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private float GetProgress()
         {
+            if (_timePassed == Delay) return 1.0f; // Handles delay of zero and other weird values.
             return _timePassed / Delay;
         }
 
