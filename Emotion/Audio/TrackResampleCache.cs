@@ -60,7 +60,7 @@ namespace Emotion.Audio
             if (sampleEndIdx > _cachePtr)
                 while (sampleEndIdx > _cachePtr)
                 {
-                    if (_resampleEmit.WaitOne(5000)) continue;
+                    if (_resampleEmit.WaitOne(1000)) continue;
                     Engine.Log.Warning("Timed out while waiting for cache samples.", MessageSource.Audio);
                     return 0;
                 }
@@ -145,14 +145,13 @@ namespace Emotion.Audio
             Engine.Log.Trace("Starting resample.", MessageSource.Audio);
             lock (this)
             {
-                int channels = ConvFormat.Channels;
                 int framesGotten = -1;
                 Span<float> dataSpan = _cache;
-                while (framesGotten != 0)
+                while (framesGotten != 0 && _cachePtr != ConvSamples)
                 {
                     framesGotten = base.GetNextFrames(RESAMPLE_INTERVAL, dataSpan.Slice(_cachePtr));
                     if (_cancelResample) return;
-                    _cachePtr += framesGotten * channels;
+                    _cachePtr += framesGotten;
                     _resampleEmit.Set();
                 }
             }

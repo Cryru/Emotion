@@ -94,10 +94,10 @@ namespace Tests.Classes
                     while (DateTime.Now.Subtract(start).TotalMinutes < minutesTimeout) // timeout
                     {
                         var spanData = new Span<byte>(new byte[framesGet * format.FrameSize]);
-                        int frameAmount = streamer.GetNextFramesByte(framesGet, spanData);
-                        if (frameAmount == 0) break;
-                        Assert.True(spanData.Length >= frameAmount * format.FrameSize);
-                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
+                        int samplesAmount = streamer.GetNextFramesByte(framesGet, spanData);
+                        if (samplesAmount == 0) break;
+                        Assert.True(spanData.Length >= samplesAmount * format.SampleSize);
+                        segmentConvert.AddRange(spanData.Slice(0, samplesAmount * format.SampleSize).ToArray());
                     }
 
                     if (DateTime.Now.Subtract(start).TotalMinutes >= minutesTimeout) Engine.Log.Info("StreamConvert timeout.", CustomMSource.TestRunner);
@@ -134,10 +134,10 @@ namespace Tests.Classes
                     {
                         var data = new byte[framesGet * format.FrameSize];
                         var spanData = new Span<byte>(data);
-                        int frameAmount = streamer.GetNextFramesByte(framesGet, spanData);
-                        if (frameAmount == 0) break;
-                        Assert.True(data.Length >= frameAmount * format.FrameSize);
-                        segmentConvert.AddRange(spanData.Slice(0, frameAmount * format.FrameSize).ToArray());
+                        int sampleAmount = streamer.GetNextFramesByte(framesGet, spanData);
+                        if (sampleAmount == 0) break;
+                        Assert.True(data.Length >= sampleAmount * format.SampleSize);
+                        segmentConvert.AddRange(spanData.Slice(0, sampleAmount * format.SampleSize).ToArray());
                     }
 
                     Assert.Equal(segmentConvert.Count, copy.Length);
@@ -186,16 +186,14 @@ namespace Tests.Classes
         {
             int sampleCount = frameCount * streamer.ConvFormat.Channels;
             var conversionBuffer = new Span<float>(new float[sampleCount]);
-            int convertedFrames = streamer.GetNextFrames(frameCount, conversionBuffer);
-            if (convertedFrames == 0) return 0;
-
-            int samplesGotten = convertedFrames * streamer.ConvFormat.Channels;
+            int samplesGotten = streamer.GetNextFrames(frameCount, conversionBuffer);
+            if (samplesGotten == 0) return 0;
             for (var i = 0; i < samplesGotten; i++)
             {
                 AudioStreamer.SetSampleAsFloat(i, conversionBuffer[i], buffer, streamer.ConvFormat);
             }
 
-            return convertedFrames;
+            return samplesGotten;
         }
     }
 }

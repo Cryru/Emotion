@@ -111,7 +111,7 @@ namespace Emotion.Standard.Audio
         /// </summary>
         /// <param name="frameCount">The frames to get.</param>
         /// <param name="buffer">The buffer to fill with the samples.</param>
-        /// <returns>How many frames were gotten.</returns>
+        /// <returns>How many samples were gotten. Divide by channels to get frames.</returns>
         public virtual int GetNextFrames(int frameCount, Span<float> buffer)
         {
             // Gets the resampled samples.
@@ -120,7 +120,7 @@ namespace Emotion.Standard.Audio
             int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, buffer);
             if (convertedSamples == 0) return 0;
 
-            return convertedSamples / ConvFormat.Channels;
+            return convertedSamples;
         }
 
         /// <summary>
