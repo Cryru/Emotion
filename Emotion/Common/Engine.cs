@@ -10,6 +10,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
@@ -150,6 +151,11 @@ namespace Emotion.Common
             // Attach to unhandled exceptions if the debugger is not attached.
             if (!Debugger.IsAttached)
                 AppDomain.CurrentDomain.UnhandledException += (e, a) => { CriticalError((Exception) a.ExceptionObject); };
+            TaskScheduler.UnobservedTaskException += (s, o) =>
+            {
+                AggregateException exception = o.Exception;
+                Log.Error(exception.InnerException?.ToString() ?? exception.ToString(), MessageSource.StdErr);
+            };
 
             // Ensure quit is called on exit.
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
