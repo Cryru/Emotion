@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Emotion.Common;
 using Emotion.Graphics.Objects;
@@ -285,15 +286,15 @@ namespace Emotion.Game.Animation
             _timePassed -= TimeBetweenFrames;
 
             // Set frame to next frame.
-            CurrentFrameIndex = NextFrame(out bool looped, out bool reversed);
+            CurrentFrameIndex = GetNextFrameIdx(out bool looped, out bool reversed);
             if (looped) LoopCount++;
             _inReverse = reversed;
         }
 
         /// <summary>
-        /// Iterate to the next frame.
+        /// Get the index of the next frame, and how the frame sequence changed.
         /// </summary>
-        public virtual int NextFrame(out bool looped, out bool reversed)
+        public virtual int GetNextFrameIdx(out bool looped, out bool reversed)
         {
             looped = false;
             reversed = _inReverse;
@@ -369,6 +370,91 @@ namespace Emotion.Game.Animation
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        /// <summary>
+        /// Get the index of the previous frame, and how the frame sequence changed.
+        /// </summary>
+        public virtual int GetPrevFrameIdx(out bool looped, out bool reversed)
+        {
+            looped = false;
+            reversed = _inReverse;
+
+            switch (LoopType)
+            {
+                case AnimationLoopType.None:
+                    if (CurrentFrameIndex == StartingFrame)
+                    {
+                        looped = true;
+                        return StartingFrame;
+                    }
+                    else
+                    {
+                        return CurrentFrameIndex - 1;
+                    }
+
+                case AnimationLoopType.Normal:
+                    if (CurrentFrameIndex == StartingFrame)
+                    {
+                        looped = true;
+                        return EndingFrame;
+                    }
+                    else
+                    {
+                        return CurrentFrameIndex - 1;
+                    }
+                case AnimationLoopType.NormalThenReverse:
+                    if (CurrentFrameIndex == EndingFrame)
+                    {
+                        reversed = false;
+                        return EndingFrame - 1;
+                    }
+                    else if(CurrentFrameIndex == StartingFrame)
+                    {
+                        reversed = true;
+                        return StartingFrame + 1;
+                    }
+                    else
+                    {
+                        if (_inReverse)
+                            return CurrentFrameIndex + 1;
+                        return CurrentFrameIndex - 1;
+                    }
+                case AnimationLoopType.Reverse:
+                    if (CurrentFrameIndex == EndingFrame)
+                    {
+                        looped = true;
+                        return StartingFrame;
+                    }
+                    else
+                    {
+                        return CurrentFrameIndex + 1;
+                    }
+                case AnimationLoopType.NoneReverse:
+                    if (CurrentFrameIndex == EndingFrame)
+                    {
+                        looped = true;
+                        return EndingFrame;
+                    }
+                    else
+                    {
+                        return CurrentFrameIndex + 1;
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Sets the current frame to the provided frame index.
+        /// The provided index must be valid within the current starting and ending frame!
+        /// </summary>
+        public void ForceSetFrame(int frameIdx, bool? reversedSequence = null)
+        {
+            Debug.Assert(frameIdx >= StartingFrame && frameIdx <= EndingFrame);
+            _timePassed = 0;
+            _inReverse = reversedSequence ?? _inReverse;
+            CurrentFrameIndex = frameIdx;
         }
 
         /// <summary>

@@ -84,13 +84,19 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
                 }
             }
 
+            bool selected = _anchorSettingFrame == -1;
+            if (selected) ImGui.PushStyleColor(ImGuiCol.Button, new Color(255, 0, 0).ToUint());
+            if (ImGui.Button("Interactive Move All")) _anchorSettingFrame = -1;
+            if (selected) ImGui.PopStyleColor();
 
-            for (int i = _anim.StartingFrame; i <= _anim.EndingFrame; i++)
+            int startFrame = _anim.StartingFrame;
+            int endFrame = _anim.EndingFrame;
+            for (int i = startFrame; i <= endFrame; i++)
             {
                 ImGui.PushID(i);
                 ImGui.InputFloat2($"Frame {i} ({_anim.Frames[i]})", ref anchorArray[i]);
                 ImGui.SameLine();
-                bool selected = _anchorSettingFrame == i;
+                selected = _anchorSettingFrame == i;
                 if (selected) ImGui.PushStyleColor(ImGuiCol.Button, new Color(255, 0, 0).ToUint());
                 if (ImGui.Button("Interactive Set")) _anchorSettingFrame = i;
                 if (selected) ImGui.PopStyleColor();
@@ -102,30 +108,42 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             pos.Y += ImGui.GetWindowHeight();
             pos = pos.IntCastRound();
 
-            int startFrame = _anim.StartingFrame;
-            int endFrame = _anim.EndingFrame;
-            _anchorSettingFrame = Maths.Clamp(_anchorSettingFrame, startFrame, endFrame);
-
             float scale = _parent.Scale;
-            pos.Y += 10 * scale;
-            int prevFrame = Math.Max(_anchorSettingFrame - 1, startFrame);
-            Vector2 size = _anim.Frames[prevFrame].Size * scale;
+            var interactiveRect = Rectangle.Empty;
+            if (_anchorSettingFrame != -1)
+            {
+                _anchorSettingFrame = Maths.Clamp(_anchorSettingFrame, startFrame, endFrame);
+                pos.Y += 10 * scale;
+                int prevFrame = Math.Max(_anchorSettingFrame - 1, startFrame);
+                Vector2 size = _anim.Frames[prevFrame].Size * scale;
 
-            Vector2 prevFramePos = pos + anchorArray[prevFrame] * scale;
-            Rectangle inflatedRect = new Rectangle(prevFramePos, size).Inflate(scale, scale);
-            composer.RenderSprite(inflatedRect.PositionZ(0), inflatedRect.Size, Color.White);
-            composer.RenderSprite(new Vector3(prevFramePos, 0), size, Color.White * 0.5f, _anim.Texture, _anim.Frames[prevFrame]);
+                Vector2 prevFramePos = pos + anchorArray[prevFrame] * scale;
+                Rectangle inflatedRect = new Rectangle(prevFramePos, size).Inflate(scale, scale);
+                composer.RenderSprite(inflatedRect.PositionZ(0), inflatedRect.Size, Color.White);
+                composer.RenderSprite(new Vector3(prevFramePos, 0), size, Color.White * 0.5f, _anim.Texture, _anim.Frames[prevFrame]);
 
-            size = _anim.Frames[_anchorSettingFrame].Size * scale;
-            var interactiveRect = new Rectangle(pos + anchorArray[_anchorSettingFrame] * scale, size);
-            composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[_anchorSettingFrame]);
-            composer.RenderOutline(interactiveRect.Inflate(scale, scale), Color.Red);
+                size = _anim.Frames[_anchorSettingFrame].Size * scale;
+                interactiveRect = new Rectangle(pos + anchorArray[_anchorSettingFrame] * scale, size);
+                composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[_anchorSettingFrame]);
+                composer.RenderOutline(interactiveRect.Inflate(scale, scale), Color.Red);
+            }
+            else
+            {
+                for (int i = startFrame; i <= endFrame; i++)
+                {
+                    Vector2 size = _anim.Frames[i].Size * scale;
+                    interactiveRect = new Rectangle(pos + anchorArray[i] * scale, size);
+                    composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[i]);
+                }
+
+                composer.RenderOutline(interactiveRect.Inflate(scale, scale), Color.Red);
+            }
 
             if (!_mouseDown && interactiveRect.Contains(Engine.Host.MousePosition) && Engine.Host.IsKeyDown(Key.MouseKeyLeft))
             {
                 _mouseDown = true;
                 _mouseDownPos = Engine.Host.MousePosition;
-                _interactiveAnchorStart = anchorArray[_anchorSettingFrame];
+                _interactiveAnchorStart = _anchorSettingFrame == -1 ? Vector2.Zero : anchorArray[_anchorSettingFrame];
             }
             else if (!Engine.Host.IsKeyHeld(Key.MouseKeyLeft))
             {
@@ -136,7 +154,20 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
             {
                 Vector2 movedAmount = Engine.Host.MousePosition - _mouseDownPos;
                 Vector2 m = (movedAmount / scale).IntCastRound();
-                anchorArray[_anchorSettingFrame] = _interactiveAnchorStart + m;
+                if (_anchorSettingFrame == -1)
+                {
+                    for (int i = startFrame; i <= endFrame; i++)
+                    {
+                        anchorArray[i] = anchorArray[i] - _interactiveAnchorStart;
+                        anchorArray[i] = anchorArray[i] + m;
+                    }
+
+                    _interactiveAnchorStart = m;
+                }
+                else
+                {
+                    anchorArray[_anchorSettingFrame] = _interactiveAnchorStart + m;
+                }
             }
         }
     }

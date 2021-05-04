@@ -6,7 +6,6 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using Emotion.Common;
-using Emotion.Common.Threading;
 using Emotion.Game;
 using Emotion.Game.Animation;
 using Emotion.Graphics;
@@ -19,6 +18,7 @@ using Emotion.Standard.Image.PNG;
 using Emotion.Standard.XML;
 using Emotion.Tools.Windows.AnimationEditorWindows;
 using Emotion.Tools.Windows.HelpWindows;
+using Emotion.Utility;
 using ImGuiNET;
 using OpenGL;
 
@@ -113,6 +113,12 @@ namespace Emotion.Tools.Windows
             {
                 if (ImGui.Button("Play"))
                     _playing = true;
+                ImGui.SameLine();
+                if (ImGui.Button("<"))
+                    Animation.ForceSetFrame(Animation.GetPrevFrameIdx(out bool _, out bool reverse), reverse);
+                ImGui.SameLine();
+                if (ImGui.Button(">"))
+                    Animation.ForceSetFrame(Animation.GetNextFrameIdx(out bool _, out bool reverse), reverse);
             }
 
             ImGui.Text($"Display Scale: {Scale}");
@@ -125,7 +131,7 @@ namespace Emotion.Tools.Windows
 
             if (ImGui.Button("Place Anchor Points"))
                 if (_anchorPlacerWindow == null || !_anchorPlacerWindow.Open)
-                   Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacingWindow(this, Animation));
+                    Parent.AddWindow(_anchorPlacerWindow = new AnchorPlacingWindow(this, Animation));
 
             ImGui.SameLine();
             if (ImGui.Button("Order Frames"))
@@ -205,6 +211,7 @@ namespace Emotion.Tools.Windows
                             emptyMirrorAnchors = false;
                             break;
                         }
+
                         if (emptyMirrorAnchors) AnimController.MirrorXAnchors = null;
                     }
 
@@ -240,6 +247,7 @@ namespace Emotion.Tools.Windows
                         Rectangle frame = frames[i];
                         frames[i] = frame.Inflate(spacing, spacing);
                     }
+
                     Vector2 totalSize = Binning.FitRectangles(frames, true);
                     FrameBuffer texture = new FrameBuffer(totalSize).WithColor();
                     composer.RenderTo(texture);
@@ -247,10 +255,11 @@ namespace Emotion.Tools.Windows
                     {
                         composer.RenderSprite(frames[i].Deflate(spacing, spacing), Color.White, spriteSheetTexture, preBinnedFrames[i]);
                     }
+
                     composer.RenderTo(null);
 
                     byte[] pixelsDownload = texture.Sample(new Rectangle(0, 0, totalSize), PixelFormat.Rgba);
-                    Utility.ImageUtil.FlipImageY(pixelsDownload, (int) totalSize.Y);
+                    ImageUtil.FlipImageY(pixelsDownload, (int) totalSize.Y);
                     byte[] pngFile = PngFormat.Encode(pixelsDownload, totalSize, PixelFormat.Rgba);
                     Engine.AssetLoader.Save(pngFile, saveName);
                 }
@@ -472,7 +481,7 @@ namespace Emotion.Tools.Windows
             // Convert to A8 from BGRA8.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {
-                pixels[w] = (byte) (pixels[i + 3] > 10 ? 1 : 0);
+                pixels[w] = pixels[i + 3] > 10 ? 1 : 0;
             }
 
             Array.Resize(ref pixels, pixels.Length / 4);
