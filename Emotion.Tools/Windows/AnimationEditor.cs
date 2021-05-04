@@ -481,7 +481,7 @@ namespace Emotion.Tools.Windows
             // Convert to A8 from BGRA8.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {
-                pixels[w] = pixels[i + 3] > 10 ? 1 : 0;
+                pixels[w] = (byte) (pixels[i + 3] > 10 ? 1 : 0);
             }
 
             Array.Resize(ref pixels, pixels.Length / 4);
