@@ -44,6 +44,8 @@ namespace Tests.Classes
         [Test]
         public void PlaylistLogic()
         {
+            TrackResampleCache.RESAMPLE_CACHE_TIMEOUT = -1;
+
             var nullAudio = new NullAudioContext();
             AudioLayer layer = nullAudio.CreateLayer("test");
 
