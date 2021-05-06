@@ -294,6 +294,8 @@ namespace Emotion.Audio
                 }
 
                 OnTrackChanged.Invoke(currentTrack.File, newTrack.File);
+
+                // Fill rest of buffer with samples from the next track.
                 framesOutput += GetDataForCurrentTrack(format, framesRequested - framesOutput, dest, framesOutput);
             }
             else

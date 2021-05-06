@@ -41,6 +41,7 @@ namespace Emotion.Graphics.Shading
             var vert = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
             var frag = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
 
+            Engine.Log.Info("Creating default shader...", MessageSource.Renderer);
             DefaultProgram = CreateShader(vert.Content, frag.Content);
             return DefaultProgram;
         }

@@ -14,16 +14,24 @@ namespace Emotion.Audio
 {
     public class TrackResampleCache : AudioStreamer
     {
-        public int CacheDirty;
-
-        private const int RESAMPLE_INTERVAL = 4000;
+        public static int RESAMPLE_CACHE_TIMEOUT = 1000;
+        public static int RESAMPLE_INTERVAL = 4000;
 
         private float[] _cache;
+
+        /// <summary>
+        /// The point up to which the cache is filled.
+        /// </summary>
         private int _cachePtr;
+
+        /// <summary>
+        /// The point after which the cache is dirty.
+        /// </summary>
+        private int _cachePtrDirty;
 
         private Task _resampleTask;
         private bool _cancelResample;
-        private AutoResetEvent _resampleEmit = new AutoResetEvent(false);
+        private AutoResetEvent _resampleEmit = new(false);
 
         public TrackResampleCache(AudioAsset asset) : base(asset.Format, asset.SoundData)
         {
@@ -37,20 +45,22 @@ namespace Emotion.Audio
             if (_cache == null) return 0;
 
             // Check if requesting samples from the point at which the buffer is dirty.
-            if (CacheDirty != 0 && fromIdx < CacheDirty)
+            if (_cachePtrDirty != 0 && fromIdx < _cachePtrDirty)
             {
                 Engine.Log.Trace("Resample cache is dirty, will resample again.", MessageSource.Audio);
-                CacheDirty = 0;
-                _cachePtr = 0;
-                Reset();
 
-                // Stop if running.
+                // Stop resample if running.
                 if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
 
+                // The lock will cause a wait until the resample task has ended.
+                // We don't want two tasks writing over the same memory.
                 lock (this)
                 {
                     _cancelResample = false;
-                    _resampleTask = Task.Run(FillCache);
+                    _cachePtrDirty = 0;
+                    _cachePtr = 0;
+                    Reset();
+                    _resampleTask = Task.Run(TaskResampleToCache);
                 }
             }
 
@@ -60,7 +70,7 @@ namespace Emotion.Audio
             if (sampleEndIdx > _cachePtr)
                 while (sampleEndIdx > _cachePtr)
                 {
-                    if (_resampleEmit.WaitOne(1000)) continue;
+                    if (_resampleEmit.WaitOne(RESAMPLE_CACHE_TIMEOUT)) continue;
                     Engine.Log.Warning("Timed out while waiting for cache samples.", MessageSource.Audio);
                     return 0;
                 }
@@ -75,9 +85,10 @@ namespace Emotion.Audio
         /// <inheritdoc />
         public override void SetConvertFormat(AudioFormat dstFormat, int quality = 10, bool keepProgress = true)
         {
-            // Cancel the old task.
+            // Stop resample if running.
             if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
 
+            // The lock will cause a wait until the resample task has ended.
             lock (this)
             {
                 base.SetConvertFormat(dstFormat, quality, keepProgress);
@@ -87,11 +98,11 @@ namespace Emotion.Audio
                     _cache = new float[ConvSamples];
                 else if (_cache.Length < ConvSamples)
                     Array.Resize(ref _cache, ConvSamples);
-            }
 
-            // Start resampling thread.
-            _cancelResample = false;
-            _resampleTask = Task.Run(FillCache);
+                // Start resampling thread.
+                _cancelResample = false;
+                _resampleTask = Task.Run(TaskResampleToCache);
+            }
         }
 
         /// <summary>
@@ -102,12 +113,11 @@ namespace Emotion.Audio
         /// <returns></returns>
         public int SetConvertFormatAndCacheFrom(AudioFormat dstFormat, float progress)
         {
-            // Cancel the old task.
+            // Stop resample if running.
             if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
 
+            // The lock will cause a wait until the resample task has ended.
             int restartIndex;
-
-            // This lock will ensure the handle from the resample task is unlocked.
             lock (this)
             {
                 base.SetConvertFormat(dstFormat, ConvQuality, false);
@@ -118,18 +128,18 @@ namespace Emotion.Audio
                 restartIndex = (int) MathF.Floor(ConvSamples * progress);
                 FastForwardResample(ref _srcResume, ref _dstResume, restartIndex);
                 _cachePtr = _dstResume;
-                CacheDirty = _cachePtr;
+                _cachePtrDirty = _cachePtr;
 
                 // Resize/allocate cache if needed.
                 if (_cache == null)
                     _cache = new float[ConvSamples];
                 else if (_cache.Length < ConvSamples)
                     Array.Resize(ref _cache, ConvSamples);
-            }
 
-            // Start resampling thread.
-            _cancelResample = false;
-            _resampleTask = Task.Run(FillCache);
+                // Start resampling thread.
+                _cancelResample = false;
+                _resampleTask = Task.Run(TaskResampleToCache);
+            }
 
             return restartIndex;
         }
@@ -139,7 +149,7 @@ namespace Emotion.Audio
         /// Maybe store the cache within the Audio Asset?
         /// The cache is not guaranteed to contain the full resampled track - if the resampling resumes.
         /// </summary>
-        private void FillCache()
+        private void TaskResampleToCache()
         {
             if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Resample Thread";
             Engine.Log.Trace("Starting resample.", MessageSource.Audio);
