@@ -359,7 +359,7 @@ namespace Emotion.Tools.Windows
                     ImGui.PopID();
                 }
 
-                if (ImGui.Button("Create") && AnimController.Animations.All(x => x.Key != "NewAnim"))
+                if ((ImGui.Button("(C)reate") || Engine.Host.IsKeyDown(Platform.Input.Key.C)) && AnimController.Animations.All(x => x.Key != "NewAnim"))
                 {
                     var newNode = new AnimationNode("NewAnim");
                     AnimController.AddAnimation(newNode);
@@ -375,7 +375,7 @@ namespace Emotion.Tools.Windows
 
                 if (ImGui.Button("Remove")) AnimController.RemoveAnimation(AnimController.CurrentAnimation.Name);
                 ImGui.SameLine();
-                if (ImGui.Button("Rename"))
+                if (ImGui.Button("(R)ename") || Engine.Host.IsKeyDown(Platform.Input.Key.R))
                 {
                     var newName = new StringInputModal(s =>
                         {

@@ -120,11 +120,11 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
                 Vector2 prevFramePos = pos + anchorArray[prevFrame] * scale;
                 Rectangle inflatedRect = new Rectangle(prevFramePos, size).Inflate(scale, scale);
                 composer.RenderSprite(inflatedRect.PositionZ(0), inflatedRect.Size, Color.White);
-                composer.RenderSprite(new Vector3(prevFramePos, 0), size, Color.White * 0.5f, _anim.Texture, _anim.Frames[prevFrame]);
+                composer.RenderSprite(new Vector3(prevFramePos, 0), size, Color.White * 0.5f, _anim.Texture, _anim.Frames[prevFrame], _parent.Mirrored);
 
                 size = _anim.Frames[_anchorSettingFrame].Size * scale;
                 interactiveRect = new Rectangle(pos + anchorArray[_anchorSettingFrame] * scale, size);
-                composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[_anchorSettingFrame]);
+                composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[_anchorSettingFrame], _parent.Mirrored);
                 composer.RenderOutline(interactiveRect.Inflate(scale, scale), Color.Red);
             }
             else
@@ -133,7 +133,7 @@ namespace Emotion.Tools.Windows.AnimationEditorWindows
                 {
                     Vector2 size = _anim.Frames[i].Size * scale;
                     interactiveRect = new Rectangle(pos + anchorArray[i] * scale, size);
-                    composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[i]);
+                    composer.RenderSprite(interactiveRect.PositionZ(0), size, Color.White * 0.75f, _anim.Texture, _anim.Frames[i], _parent.Mirrored);
                 }
 
                 composer.RenderOutline(interactiveRect.Inflate(scale, scale), Color.Red);
