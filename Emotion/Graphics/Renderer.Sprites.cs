@@ -92,6 +92,8 @@ namespace Emotion.Graphics
             RenderLine(segment.Start, segment.End, color, thickness);
         }
 
+        private Vector3 _v3110 = new Vector3(1, 1, 0);
+
         /// <summary>
         /// Render a line made out of quads.
         /// </summary>
@@ -103,17 +105,20 @@ namespace Emotion.Graphics
         {
             Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
 
-            pointOne = pointOne.IntCastRound();
-            pointTwo = pointTwo.IntCastRound();
+            pointOne = pointOne.IntCastRound() - _v3110; // Offset to top left of pixel.
+            pointTwo = pointTwo.IntCastRound() - _v3110;
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
             var normal = new Vector3(-direction.Y, direction.X, 0);
             Vector3 delta = normal * (thickness / 2f);
 
-            vertices[0].Vertex = (pointOne + delta).RoundAwayFromZero();
-            vertices[1].Vertex = (pointTwo + delta).RoundAwayFromZero();
-            vertices[2].Vertex = (pointTwo - delta).RoundAwayFromZero();
-            vertices[3].Vertex = (pointOne - delta).RoundAwayFromZero();
+            pointOne += delta; // Move to pixel center.
+            pointTwo += delta;
+
+            vertices[0].Vertex = pointOne + delta;
+            vertices[1].Vertex = pointTwo + delta;
+            vertices[2].Vertex = pointTwo - delta;
+            vertices[3].Vertex = pointOne - delta;
 
             uint c = color.ToUint();
             for (var i = 0; i < vertices.Length; i++)
