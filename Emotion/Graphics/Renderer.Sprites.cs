@@ -103,7 +103,7 @@ namespace Emotion.Graphics
         /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
         public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
         {
-            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
+            if (thickness < 1.0f) thickness = 1.0f;
 
             pointOne = pointOne.IntCastRound() - _v3110; // Offset to top left of pixel.
             pointTwo = pointTwo.IntCastRound() - _v3110;
@@ -115,6 +115,7 @@ namespace Emotion.Graphics
             pointOne += delta; // Move to pixel center.
             pointTwo += delta;
 
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad);
             vertices[0].Vertex = pointOne + delta;
             vertices[1].Vertex = pointTwo + delta;
             vertices[2].Vertex = pointTwo - delta;
