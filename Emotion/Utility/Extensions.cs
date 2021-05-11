@@ -144,8 +144,8 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 RoundAwayFromZero(this Vector2 v)
         {
-            v.X = MathF.Round(v.X + 0.5f, MidpointRounding.AwayFromZero);
-            v.Y = MathF.Round(v.Y + 0.5f, MidpointRounding.AwayFromZero);
+            v.X = MathF.Round(v.X + 0.49f, MidpointRounding.AwayFromZero);
+            v.Y = MathF.Round(v.Y + 0.49f, MidpointRounding.AwayFromZero);
             return v;
         }
 
@@ -157,9 +157,9 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 RoundAwayFromZero(this Vector3 v)
         {
-            v.X = MathF.Round(v.X + 0.5f, MidpointRounding.AwayFromZero);
-            v.Y = MathF.Round(v.Y + 0.5f, MidpointRounding.AwayFromZero);
-            v.Z = MathF.Round(v.Z + 0.5f, MidpointRounding.AwayFromZero);
+            v.X = MathF.Round(v.X + 0.49f, MidpointRounding.AwayFromZero);
+            v.Y = MathF.Round(v.Y + 0.49f, MidpointRounding.AwayFromZero);
+            v.Z = MathF.Round(v.Z + 0.49f, MidpointRounding.AwayFromZero);
             return v;
         }
 
