@@ -11,6 +11,7 @@ using Emotion.Game.Animation;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
 using Emotion.IO;
+using Emotion.Platform.Input;
 using Emotion.Plugins.ImGuiNet;
 using Emotion.Plugins.ImGuiNet.Windowing;
 using Emotion.Primitives;
@@ -359,7 +360,8 @@ namespace Emotion.Tools.Windows
                     ImGui.PopID();
                 }
 
-                if ((ImGui.Button("(C)reate") || Engine.Host.IsKeyDown(Platform.Input.Key.C)) && AnimController.Animations.All(x => x.Key != "NewAnim"))
+                bool enableShortcuts = !ImGui.IsAnyItemActive();
+                if (ImGui.Button("(C)reate") || enableShortcuts && Engine.Host.IsKeyDown(Key.C) && AnimController.Animations.All(x => x.Key != "NewAnim"))
                 {
                     var newNode = new AnimationNode("NewAnim");
                     AnimController.AddAnimation(newNode);
@@ -375,7 +377,7 @@ namespace Emotion.Tools.Windows
 
                 if (ImGui.Button("Remove")) AnimController.RemoveAnimation(AnimController.CurrentAnimation.Name);
                 ImGui.SameLine();
-                if (ImGui.Button("(R)ename") || Engine.Host.IsKeyDown(Platform.Input.Key.R))
+                if (ImGui.Button("(R)ename") || enableShortcuts && Engine.Host.IsKeyDown(Key.R))
                 {
                     var newName = new StringInputModal(s =>
                         {
@@ -441,6 +443,7 @@ namespace Emotion.Tools.Windows
 
             Animation = null;
             AnimController = null;
+            _saveName = "";
         }
 
         private void LoadAnimatedTexture(XMLAsset<AnimatedTexture> f)
@@ -481,7 +484,7 @@ namespace Emotion.Tools.Windows
             // Convert to A8 from BGRA8.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {
-                pixels[w] = (byte) (pixels[i + 3] > 10 ? 1 : 0);
+                pixels[w] = pixels[i + 3] > 10 ? 1 : 0;
             }
 
             Array.Resize(ref pixels, pixels.Length / 4);
