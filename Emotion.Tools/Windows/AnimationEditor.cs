@@ -481,10 +481,13 @@ namespace Emotion.Tools.Windows
                 Gl.GetTexImage(TextureTarget.Texture2d, 0, PixelFormat.Rgba, PixelType.UnsignedByte, new IntPtr(p));
             }
 
-            // Convert to A8 from BGRA8.
+            // Convert to A1 from BGRA8.
             for (int i = 0, w = 0; i < pixels.Length; i += 4, w++)
             {
-                pixels[w] = pixels[i + 3] > 10 ? 0x01 : 0x0;
+                if (pixels[i + 3] > 10)
+                    pixels[w] = 1;
+                else
+                    pixels[w] = 0;
             }
 
             Array.Resize(ref pixels, pixels.Length / 4);
