@@ -4,8 +4,8 @@ using System;
 using System.IO;
 using Emotion.Common;
 using Emotion.Standard.Logging;
-using Emotion.Standard.Utility;
-using Emotion.Standard.Utility.Zlib;
+using Emotion.Utility;
+using Emotion.Utility.Zlib;
 
 #endregion
 

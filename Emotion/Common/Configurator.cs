@@ -60,7 +60,7 @@ namespace Emotion.Common
 
         /// <summary>
         /// Whether to render with pillarboxed/letterboxed if the render size doesn't match the host size.
-        /// This is off by the default and the camera adjusts the scale.
+        /// This is off by the default and the camera adjusts the scale. Requires UseIntermediaryBuffer to be on as well.
         /// </summary>
         public bool ScaleBlackBars { get; set; }
 

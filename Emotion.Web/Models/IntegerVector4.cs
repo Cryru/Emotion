@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Web.Helpers
+namespace Emotion.Web.Models
 {
     /// <summary>
     /// Used for various functions which require the passing of 4 ints, or multiple ints with other

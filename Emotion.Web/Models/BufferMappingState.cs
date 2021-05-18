@@ -1,4 +1,4 @@
-﻿namespace Emotion.Web.Helpers
+﻿namespace Emotion.Web.Models
 {
     public class BufferMappingState
     {

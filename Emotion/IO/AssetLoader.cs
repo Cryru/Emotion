@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -324,6 +325,26 @@ namespace Emotion.IO
         public static string NameToEngineName(string name)
         {
             return name.Replace("//", "/").Replace('/', '$').Replace('\\', '$').Replace('$', '/').ToLower();
+        }
+
+        /// <summary>
+        /// Converts a path to the platform equivalent on the currently running platform.
+        /// </summary>
+        /// <param name="path">The path to convert.</param>
+        /// <returns>A cross platform path.</returns>
+        public static string CrossPlatformPath(string path)
+        {
+            return path.Replace('/', '$').Replace('\\', '$').Replace('$', Path.DirectorySeparatorChar);
+        }
+
+        /// <summary>
+        /// Converts the string to one which is safe for use in the file system.
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>A string safe to use in the file system.</returns>
+        public static string MakeStringPathSafe(string str)
+        {
+            return Path.GetInvalidPathChars().Aggregate(str, (current, c) => current.Replace(c, ' '));
         }
 
         /// <summary>

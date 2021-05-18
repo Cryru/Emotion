@@ -12,7 +12,8 @@ using OpenGL;
 namespace Emotion.Primitives
 {
     /// <summary>
-    /// A color.
+    /// A struct representing a four channel color.
+    /// Stored as RGBA.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct Color

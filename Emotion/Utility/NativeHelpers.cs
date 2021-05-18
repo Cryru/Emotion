@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -110,6 +111,15 @@ namespace Emotion.Utility
         }
 
         /// <summary>
+        /// Copy the contents of one pointer to another.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void MemCopy(IntPtr src, IntPtr dst, int size)
+        {
+            new Span<byte>((byte*) src, size).CopyTo(new Span<byte>((byte*) dst, size));
+        }
+
+        /// <summary>
         /// Create a string from a null terminated char array.
         /// </summary>
         /// <param name="chArr">The char array to make a string from.</param>
@@ -135,18 +145,28 @@ namespace Emotion.Utility
             if (ptr == IntPtr.Zero)
                 return null;
 
-            var buff = new List<byte>();
-            var offset = 0;
+            var len = 0;
+            while (Marshal.ReadByte(ptr, len) != 0)
+                ++len;
 
-            for (;; offset++)
-            {
-                byte currentByte = Marshal.ReadByte(ptr, offset);
-                if (currentByte == 0)
-                    break;
-                buff.Add(currentByte);
-            }
+            var buffer = new byte[len];
+            Marshal.Copy(ptr, buffer, 0, buffer.Length);
+            return Encoding.UTF8.GetString(buffer);
+        }
 
-            return Encoding.UTF8.GetString(buff.ToArray());
+        /// <summary>
+        /// Create a null terminated UTF8 string in unmanaged memory. Allocates memory.
+        /// </summary>
+        /// <param name="text">The string to copy.</param>
+        /// <returns>A <see cref="IntPtr" /> to memory with the string copied.</returns>
+        public static IntPtr StringToPtr(string text)
+        {
+            int len = Encoding.UTF8.GetByteCount(text);
+            var buffer = new byte[len + 1];
+            Encoding.UTF8.GetBytes(text, 0, text.Length, buffer, 0);
+            IntPtr ptr = Marshal.AllocHGlobal(buffer.Length);
+            Marshal.Copy(buffer, 0, ptr, buffer.Length);
+            return ptr;
         }
 
         /// <summary>

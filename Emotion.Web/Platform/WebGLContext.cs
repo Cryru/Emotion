@@ -6,7 +6,8 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Platform;
-using Emotion.Web.Helpers;
+using Emotion.Utility;
+using Emotion.Web.Models;
 using Microsoft.JSInterop;
 using OpenGL;
 
@@ -168,7 +169,7 @@ namespace Emotion.Web.Platform
 
             //Engine.Log.Trace($"String query {(StringName) paramId} got {value}", "WebGLInternal");
             ptr = Marshal.StringToHGlobalAuto(value);
-            UnmanagedMemoryAllocator.RegisterUnownedNamedMemory(ptr, stringGetMemoryName, value.Length * sizeof(char));
+            UnmanagedMemoryAllocator.RegisterAllocatedMemory(ptr, stringGetMemoryName, value.Length * sizeof(char));
             return ptr;
         }
 
@@ -210,9 +211,16 @@ namespace Emotion.Web.Platform
             _boundBuffers.TryGetValue(target, out uint boundBuffer);
             var memoryName = $"DataBuffer{target}|{boundBuffer}";
             if (ptr == IntPtr.Zero)
+            {
                 ptr = UnmanagedMemoryAllocator.MemAllocOrReAllocNamed((int) size, memoryName);
+            }
             else
-                UnmanagedMemoryAllocator.RegisterUnownedNamedMemory(ptr, memoryName, (int) size);
+            {
+                // Pointer passed from outside. Copy its data.
+                IntPtr allocatedMemory = UnmanagedMemoryAllocator.MemAllocOrReAllocNamed((int) size, memoryName);
+                NativeHelpers.MemCopy(ptr, allocatedMemory, (int) size);
+                ptr = allocatedMemory;
+            }
 
             if (usage != -1)
                 _bufferUsage[boundBuffer] = usage;

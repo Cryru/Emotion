@@ -7,7 +7,7 @@ using System.IO;
 
 #endregion
 
-namespace Emotion.Standard.Utility
+namespace Emotion.Utility
 {
     /// <summary>
     /// Custom implementation of the BinaryReader which supports branching, and has a smaller memory footprint.

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Web.Helpers
+namespace Emotion.Web.Models
 {
     /// <summary>
     /// The default float marshalling is buggy.

@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using Emotion.Standard.Utility;
+using Emotion.Utility;
 
 #endregion
 

@@ -358,22 +358,6 @@ namespace Emotion.Graphics
             ApplySettings();
         }
 
-        /// <summary>
-        /// Scale the mouse position according to the draw buffer margins, if not in FullScale mode.
-        /// </summary>
-        public Vector2 ScaleMousePosition(Vector2 pos)
-        {
-            // Get the difference in scale.
-            float scaleX = ScreenBuffer.Viewport.Size.X / DrawBuffer.Size.X;
-            float scaleY = ScreenBuffer.Viewport.Size.Y / DrawBuffer.Size.Y;
-
-            // Calculate letterbox/pillarbox margins.
-            float marginX = ScreenBuffer.Size.X / 2 - ScreenBuffer.Viewport.Size.X / 2;
-            float marginY = ScreenBuffer.Size.Y / 2 - ScreenBuffer.Viewport.Size.Y / 2;
-
-            return new Vector2((pos.X - marginX) / scaleX, (pos.Y - marginY) / scaleY);
-        }
-
         #endregion
 
         /// <summary>

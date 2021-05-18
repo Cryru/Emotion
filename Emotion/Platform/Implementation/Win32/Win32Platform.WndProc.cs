@@ -109,7 +109,7 @@ namespace Emotion.Platform.Implementation.Win32
                         // Returning TRUE here announces support for this message
                         return (IntPtr) 1;
 
-                    TextInput((char) wParam);
+                    UpdateTextInput((char) wParam);
 
                     break;
 
@@ -145,9 +145,7 @@ namespace Emotion.Platform.Implementation.Win32
 
                     int x = NativeHelpers.LoWord((uint) lParam);
                     int y = NativeHelpers.HiWord((uint) lParam);
-
-                    var pos = new Vector2(x, y);
-                    MousePosition = Engine.Renderer != null ? Engine.Renderer.ScaleMousePosition(pos) : pos;
+                    MousePosition = new Vector2(x, y);
                     return IntPtr.Zero;
 
                 case WM.LBUTTONDOWN:

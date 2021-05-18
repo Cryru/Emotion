@@ -23,11 +23,6 @@ namespace Emotion.Platform
     public abstract partial class PlatformBase
     {
         /// <summary>
-        /// Whether the platform is setup.
-        /// </summary>
-        public bool IsSetup { get; private set; }
-
-        /// <summary>
         /// Whether the platform's window is open, and considered active.
         /// </summary>
         public bool IsOpen { get; protected set; }
@@ -104,7 +99,10 @@ namespace Emotion.Platform
             platform ??= new NullPlatform();
             Engine.Log.Info($"Platform created: {platform}", MessageSource.Engine);
 
+            // Set platform as default native library resolver.
             NativeLibrary.SetDllImportResolver(typeof(PlatformBase).Assembly, (libName, _, _) => platform.LoadLibrary(libName));
+
+            // Initialize platform.
             platform.Setup(engineConfig);
             Engine.Log.Trace("Platform loaded.", MessageSource.Engine);
             return platform;
@@ -134,8 +132,6 @@ namespace Emotion.Platform
             // Set display mode, show and focus.
             DisplayMode = config.InitialDisplayMode;
             WindowState = WindowState.Normal;
-
-            IsSetup = true;
             IsOpen = true;
         }
 

@@ -4,7 +4,7 @@ using System;
 
 #endregion
 
-namespace Emotion.Standard.Utility.Zlib
+namespace Emotion.Utility.Zlib
 {
     /// <summary>
     /// Generate a table for a byte-wise 32-bit CRC calculation on the polynomial:

@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using Emotion.Standard.Utility;
+using Emotion.Utility;
 
 #endregion
 

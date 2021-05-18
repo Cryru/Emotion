@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Web.Helpers
+namespace Emotion.Web.Models
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct TextureUploadArgs

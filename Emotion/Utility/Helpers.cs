@@ -1,8 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -36,26 +34,6 @@ namespace Emotion.Utility
         public static string NormalizeNewLines(string source)
         {
             return NewlineRegex.Replace(source, "\n");
-        }
-
-        /// <summary>
-        /// Converts a path to the platform equivalent on the currently running platform.
-        /// </summary>
-        /// <param name="path">The path to convert.</param>
-        /// <returns>A cross platform path.</returns>
-        public static string CrossPlatformPath(string path)
-        {
-            return path.Replace('/', '$').Replace('\\', '$').Replace('$', Path.DirectorySeparatorChar);
-        }
-
-        /// <summary>
-        /// Converts the string to one which is safe for use in the file system.
-        /// </summary>
-        /// <param name="str">The string to convert.</param>
-        /// <returns>A string safe to use in the file system.</returns>
-        public static string MakeStringPathSafe(string str)
-        {
-            return Path.GetInvalidPathChars().Aggregate(str, (current, c) => current.Replace(c, ' '));
         }
 
         /// <summary>
@@ -165,6 +143,24 @@ namespace Emotion.Utility
             }
 
             return true;
+        }
+
+        private static int _oneKb = 1000;
+        private static int _oneMb = 1000 * _oneKb;
+        private static int _oneGb = 1000 * _oneMb;
+
+        /// <summary>
+        /// Format a byte amount as a human readable byte size.
+        /// ex. 1200 = 1.20 KB
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static string FormatByteAmountAsString(long bytes)
+        {
+            if (bytes < _oneKb / 2) return $"{bytes} B";
+            if (bytes < _oneMb / 2) return $"{(float) bytes / _oneKb:0.00} Kb";
+            if (bytes < _oneGb / 2) return $"{(float) bytes / _oneMb:0.00} Mb";
+            return $"{(float) bytes / _oneGb:0.00} Gb";
         }
     }
 }

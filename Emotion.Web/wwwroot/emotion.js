@@ -146,7 +146,7 @@ const keyMap = {
 }
 
 function onKeyDown(e) {
-    Emotion.webHost.invokeMethodAsync("KeyDown",  keyMap[e.code] || keyMap[e.key] || -1);
+    Emotion.webHost.invokeMethodAsync("KeyDown", keyMap[e.code] || keyMap[e.key] || -1);
     e.stopPropagation();
     e.preventDefault();
 }

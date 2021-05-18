@@ -206,7 +206,7 @@ namespace Emotion.Scenography
                 await loadingScene.Load();
                 LoadingScreen = loadingScene;
 
-                if (Current == oldLoadingScreen) SwapActive(LoadingScreen);
+                if (Current == oldLoadingScreen) QueueSceneSwap(LoadingScreen);
                 Unload(oldLoadingScreen);
             });
 #else

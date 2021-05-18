@@ -7,7 +7,7 @@ using Emotion.Standard.Logging;
 
 #endregion
 
-namespace Emotion.Standard.Utility.Zlib
+namespace Emotion.Utility.Zlib
 {
     /// <summary>
     /// Provides methods for decompressing streams by using the Zlib Deflate algorithm.

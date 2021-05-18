@@ -3,7 +3,7 @@
 using System;
 using Emotion.Common;
 using Emotion.Standard.Logging;
-using Emotion.Standard.Utility;
+using Emotion.Utility;
 
 #endregion
 

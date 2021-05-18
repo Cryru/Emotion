@@ -11,7 +11,7 @@ using Emotion.Game;
 using Emotion.Primitives;
 using Emotion.Standard.Logging;
 using Emotion.Standard.OpenType.FontTables;
-using Emotion.Standard.Utility;
+using Emotion.Utility;
 
 #if StbTrueType
 using Emotion.Primitives;

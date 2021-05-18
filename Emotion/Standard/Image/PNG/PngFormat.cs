@@ -8,9 +8,8 @@ using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.Standard.Logging;
-using Emotion.Standard.Utility;
-using Emotion.Standard.Utility.Zlib;
 using Emotion.Utility;
+using Emotion.Utility.Zlib;
 using OpenGL;
 
 #endregion

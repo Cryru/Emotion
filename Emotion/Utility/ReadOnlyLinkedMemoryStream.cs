@@ -7,10 +7,10 @@ using System.IO;
 
 #endregion
 
-namespace Emotion.Standard.Utility
+namespace Emotion.Utility
 {
     /// <summary>
-    /// Asymentric unrolled linked list in the form of a stream.
+    /// Asymmetric unrolled linked list in the form of a stream.
     /// </summary>
     public class ReadOnlyLinkedMemoryStream : Stream
     {

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Standard.Utility
+namespace Emotion.Utility
 {
     public sealed class NativeMemoryPool : IDisposable
     {

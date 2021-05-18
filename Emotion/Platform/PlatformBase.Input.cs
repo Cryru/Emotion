@@ -34,7 +34,13 @@ namespace Emotion.Platform
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
         /// Therefore it is in screen coordinates which change with the size of the Engine.Renderer.ScreenBuffer.
         /// </summary>
-        public Vector2 MousePosition { get; protected set; }
+        public Vector2 MousePosition
+        {
+            get => _mousePosition;
+            protected set => _mousePosition = WindowPointToViewportPoint(value);
+        }
+
+        private Vector2 _mousePosition;
 
         protected Key[] _keyCodes;
         protected bool[] _keys;
@@ -144,9 +150,27 @@ namespace Emotion.Platform
             OnMouseScroll?.Invoke(amount);
         }
 
-        protected void TextInput(char c)
+        protected void UpdateTextInput(char c)
         {
             OnTextInput?.Invoke(c);
+        }
+
+        /// <summary>
+        /// Transforms the given point from window/screen coordinates to coordinates within the draw buffers viewport.
+        /// </summary>
+        public static Vector2 WindowPointToViewportPoint(Vector2 pos)
+        {
+            if (Engine.Renderer == null) return pos;
+
+            // Get the difference in scale.
+            float scaleX = Engine.Renderer.ScreenBuffer.Viewport.Size.X / Engine.Renderer.DrawBuffer.Size.X;
+            float scaleY = Engine.Renderer.ScreenBuffer.Viewport.Size.Y / Engine.Renderer.DrawBuffer.Size.Y;
+
+            // Calculate letterbox/pillarbox margins.
+            float marginX = Engine.Renderer.ScreenBuffer.Size.X / 2 - Engine.Renderer.ScreenBuffer.Viewport.Size.X / 2;
+            float marginY = Engine.Renderer.ScreenBuffer.Size.Y / 2 - Engine.Renderer.ScreenBuffer.Viewport.Size.Y / 2;
+
+            return new Vector2((pos.X - marginX) / scaleX, (pos.Y - marginY) / scaleY);
         }
 
         /// <summary>

@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
+using Emotion.Common;
 using Emotion.Game.Effects;
 using Emotion.Graphics;
 using Emotion.Graphics.Objects;
@@ -119,7 +121,7 @@ namespace Emotion.Tools.Windows.Art
             if (ImGui.Button("Save"))
             {
                 string xml = XMLFormat.To(_description);
-                File.WriteAllText(Helpers.CrossPlatformPath($"Assets/{_fileName}"), xml);
+                Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(xml), $"Assets/{_fileName}");
             }
 
             ImGui.Text(_fileName);
