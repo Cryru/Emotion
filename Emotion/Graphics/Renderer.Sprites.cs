@@ -92,8 +92,6 @@ namespace Emotion.Graphics
             RenderLine(segment.Start, segment.End, color, thickness);
         }
 
-        private Vector3 _v3110 = new Vector3(1, 1, 0);
-
         /// <summary>
         /// Render a line made out of quads.
         /// </summary>
@@ -105,8 +103,8 @@ namespace Emotion.Graphics
         {
             if (thickness < 1.0f) thickness = 1.0f;
 
-            pointOne = pointOne.IntCastRound() - _v3110; // Offset to top left of pixel.
-            pointTwo = pointTwo.IntCastRound() - _v3110;
+            pointOne = pointOne.IntCastRound();
+            pointTwo = pointTwo.IntCastRound();
 
             Vector3 direction = Vector3.Normalize(pointTwo - pointOne);
             var normal = new Vector3(-direction.Y, direction.X, 0);
