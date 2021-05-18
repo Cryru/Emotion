@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Emotion.Common;
+using Emotion.Common.Threading;
 using Emotion.IO;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
@@ -79,14 +80,14 @@ namespace Emotion.Audio
         /// Called when the current track loops.
         /// The input parameter is the track which looped.
         /// </summary>
-        public EmotionEvent<AudioAsset> OnTrackLoop = new EmotionEvent<AudioAsset>();
+        public event Action<AudioAsset> OnTrackLoop;
 
         /// <summary>
         /// Called when the current track changes.
         /// The first parameter is the old track, the second is the new one.
         /// If there is no further track the new track parameter will be null.
         /// </summary>
-        public EmotionEvent<AudioAsset, AudioAsset> OnTrackChanged = new EmotionEvent<AudioAsset, AudioAsset>();
+        public event Action<AudioAsset, AudioAsset> OnTrackChanged;
 
         protected AudioLayer(string name)
         {
@@ -105,7 +106,7 @@ namespace Emotion.Audio
         /// <param name="track">The track to play next.</param>
         public void PlayNext(AudioTrack track)
         {
-            if (!OwnTrack(track)) return;
+            if (!EnsureOwnedTrack(track)) return;
 
             lock (_playlist)
             {
@@ -126,7 +127,7 @@ namespace Emotion.Audio
         /// <param name="track">The track to play.</param>
         public void AddToQueue(AudioTrack track)
         {
-            if (!OwnTrack(track)) return;
+            if (!EnsureOwnedTrack(track)) return;
 
             lock (_playlist)
             {
@@ -147,7 +148,7 @@ namespace Emotion.Audio
         /// </summary>
         public void QuickPlay(AudioTrack track)
         {
-            if (!OwnTrack(track)) return;
+            if (!EnsureOwnedTrack(track)) return;
 
             lock (_playlist)
             {
@@ -214,8 +215,12 @@ namespace Emotion.Audio
 
             if (_currentTrack < 0 || _currentTrack > playlistCount - 1) return 0;
 
-            // Pause if window is not focused.
-            if (Engine.Host != null && !Engine.Host.IsFocused) Engine.Host.FocusWait.WaitOne();
+            // Pause sound if host is paused.
+            if (Engine.HostPaused)
+            {
+                if (GLThread.IsGLThread()) return 0; // Don't stop main thread.
+                Engine.HostPausedWaiter.WaitOne();
+            }
 
             AudioTrack currentTrack;
             lock (_playlist)
@@ -271,7 +276,7 @@ namespace Emotion.Audio
             if (LoopingCurrent)
             {
                 currentTrack.Reset();
-                OnTrackLoop.Invoke(currentTrack.File);
+                OnTrackLoop?.Invoke(currentTrack.File);
             }
             // Otherwise, go to next track.
             else
@@ -293,7 +298,7 @@ namespace Emotion.Audio
                     newTrack = _playlist[_currentTrack];
                 }
 
-                OnTrackChanged.Invoke(currentTrack.File, newTrack.File);
+                OnTrackChanged?.Invoke(currentTrack.File, newTrack.File);
 
                 // Fill rest of buffer with samples from the next track.
                 framesOutput += GetDataForCurrentTrack(format, framesRequested - framesOutput, dest, framesOutput);
@@ -305,7 +310,7 @@ namespace Emotion.Audio
                     TransitionStatus(PlaybackStatus.NotPlaying);
                 }
 
-                OnTrackChanged.Invoke(currentTrack.File, null);
+                OnTrackChanged?.Invoke(currentTrack.File, null);
             }
 
             return framesOutput;
@@ -467,7 +472,7 @@ namespace Emotion.Audio
             if (newStatus == PlaybackStatus.NotPlaying) _currentTrack = -1;
         }
 
-        private bool OwnTrack(AudioTrack track)
+        private bool EnsureOwnedTrack(AudioTrack track)
         {
             if (track.Layer != null)
             {

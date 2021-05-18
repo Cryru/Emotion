@@ -29,7 +29,10 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _parent = parent;
             _alive = true;
             SetDevice(_parent.DefaultDevice);
-            var thread = new Thread(LayerThread);
+            var thread = new Thread(LayerThread)
+            {
+                Priority = ThreadPriority.Highest
+            };
             thread.Start();
             while (!thread.IsAlive)
             {

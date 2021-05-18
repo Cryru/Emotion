@@ -44,6 +44,8 @@ namespace Emotion.Game.Time.Routines
 
             lock (this)
             {
+                Debug.Assert(routine.Parent == null, "Each coroutine should only run within one manager.");
+                routine.Parent = this;
                 _runningRoutines.Add(routine);
 
 #if DEBUG
@@ -81,14 +83,10 @@ namespace Emotion.Game.Time.Routines
         /// Update all running coroutines. Performs cleanup as well.
         /// </summary>
         /// <returns>Whether any routines were ran.</returns>
-        public bool Update()
+        public virtual bool Update()
         {
             lock (this)
             {
-#if DEBUG
-                Coroutine.CoroutinesRanThisTick.Clear();
-#endif
-
                 // If no routines are running, do nothing.
                 if (_runningRoutines.Count == 0) return false;
 

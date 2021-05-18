@@ -20,7 +20,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
         protected string _platformIdentifier;
         protected string _platformExtension;
 
-        public override void Setup(Configurator config)
+        protected override void Setup(Configurator config)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -45,6 +45,7 @@ namespace Emotion.Platform.Implementation.CommonDesktop
             base.Setup(config);
 
             if (Engine.AssetLoader == null) return;
+            Engine.Log.Trace("Adding default desktop asset sources.", MessageSource.Platform);
             Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
             Engine.AssetLoader.AddStore(new FileAssetStore("Player"));
             if (Engine.Configuration.DebugMode && Directory.Exists(DebugAssetStore.AssetDevPath)) Engine.AssetLoader.AddStore(new DebugAssetStore());

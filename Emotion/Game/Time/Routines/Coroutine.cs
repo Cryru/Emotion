@@ -5,7 +5,6 @@ using System.Collections;
 using System.Diagnostics;
 #if DEBUG
 using System.Reflection;
-using System.Collections.Generic;
 
 #endif
 
@@ -20,31 +19,10 @@ namespace Emotion.Game.Time.Routines
     /// </summary>
     public class Coroutine : IRoutineWaiter
     {
+        public CoroutineManager Parent;
+
         private IEnumerator _routine;
         private IRoutineWaiter _currentWaiter;
-
-#if DEBUG
-        public string DebugCoroutineCreationStack;
-        public string DebugStackTrace;
-
-        private int GetCoroutineStack()
-        {
-            FieldInfo[] fields = _routine.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            FieldInfo stateField = null;
-            for (var i = 0; i < fields.Length; i++)
-            {
-                if (fields[i].Name != "<>1__state") continue;
-                stateField = fields[i];
-                break;
-            }
-
-            if (stateField == null) return -1;
-
-            return (int) (stateField.GetValue(_routine) ?? 1);
-        }
-
-        public static HashSet<Coroutine> CoroutinesRanThisTick = new HashSet<Coroutine>();
-#endif
 
         /// <summary>
         /// Create a new subroutine. Can also be achieved by yielding an IEnumerator.
@@ -65,10 +43,6 @@ namespace Emotion.Game.Time.Routines
         public virtual void Run()
         {
             if (Finished) return;
-
-#if DEBUG
-            Debug.Assert(CoroutinesRanThisTick.Add(this), "Each coroutine should run only once per tick. It's been added twice or yielded from two sources.");
-#endif
 
             if (_currentWaiter != null) // No waiter, or routine finished
             {
@@ -130,5 +104,26 @@ namespace Emotion.Game.Time.Routines
             _currentWaiter = null;
             _routine = null;
         }
+
+#if DEBUG
+        public string DebugCoroutineCreationStack;
+        public string DebugStackTrace;
+
+        private int GetCoroutineStack()
+        {
+            FieldInfo[] fields = _routine.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            FieldInfo stateField = null;
+            for (var i = 0; i < fields.Length; i++)
+            {
+                if (fields[i].Name != "<>1__state") continue;
+                stateField = fields[i];
+                break;
+            }
+
+            if (stateField == null) return -1;
+
+            return (int) (stateField.GetValue(_routine) ?? 1);
+        }
+#endif
     }
 }

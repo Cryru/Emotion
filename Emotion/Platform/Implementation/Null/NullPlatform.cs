@@ -20,7 +20,7 @@ namespace Emotion.Platform.Implementation.Null
             return true;
         }
 
-        protected override void SetupPlatform(Configurator config)
+        protected override void SetupInternal(Configurator config)
         {
             Audio = new NullAudioContext();
         }

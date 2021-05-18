@@ -15,20 +15,17 @@ namespace Emotion.Graphics.Camera
 
         public DebugCamera(Vector3 position, float zoom = 1) : base(position, zoom)
         {
-            Engine.InputManager.OnMouseScroll.AddListener(OnMouseScroll);
+            Engine.InputManager.OnMouseScroll += OnMouseScroll;
         }
 
-        private bool OnMouseScroll(float val)
+        private void OnMouseScroll(float val)
         {
-            Zoom += 0.25f * val;
-            Zoom = Maths.Clamp(Zoom, 0.25f, 4);
-            RecreateMatrix();
-            return true;
+            Zoom = Maths.Clamp(Zoom + 0.25f * val, 0.25f, 4);
         }
 
         public override void Dispose()
         {
-            Engine.InputManager.OnMouseScroll.RemoveListener(OnMouseScroll);
+            Engine.InputManager.OnMouseScroll -= OnMouseScroll;
             base.Dispose();
         }
 

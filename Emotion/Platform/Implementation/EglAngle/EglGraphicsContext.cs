@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Emotion.Common;
 using Emotion.Platform.Implementation.EglAngle.Native;
+using Emotion.Platform.RenderDoc;
 using Emotion.Standard.Logging;
 
 #endregion

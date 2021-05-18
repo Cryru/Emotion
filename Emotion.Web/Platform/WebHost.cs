@@ -37,7 +37,7 @@ namespace Emotion.Web.Platform
             // Audio : https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode
         }
 
-        protected override void SetupPlatform(Configurator config)
+        protected override void SetupInternal(Configurator config)
         {
             // Don't load the first scene before assets have loaded.
             var webAssetSource = new WebAssetSource("AssetBlobs", _canvasElement.HttpClient);
@@ -74,7 +74,7 @@ namespace Emotion.Web.Platform
         protected override void SetSize(Vector2 size)
         {
             _size = size;
-            OnResize.Invoke(_size);
+            Resized(size);
         }
 
         public override IntPtr LoadLibrary(string path)

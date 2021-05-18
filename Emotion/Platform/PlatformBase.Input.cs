@@ -18,17 +18,17 @@ namespace Emotion.Platform
         /// <summary>
         /// Called when a key is pressed, let go, or a held event is triggered.
         /// </summary>
-        public EmotionKeyEvent OnKey { get; } = new EmotionKeyEvent();
+        public EmotionKeyEvent OnKey { get; } = new();
 
         /// <summary>
         /// Called when the mouse scrolls.
         /// </summary>
-        public EmotionEvent<float> OnMouseScroll { get; } = new EmotionEvent<float>();
+        public event Action<float> OnMouseScroll;
 
         /// <summary>
         /// Called when text input is detected. Most of the time this is identical to OnKey, but without the state.
         /// </summary>
-        public EmotionEvent<char> OnTextInput { get; } = new EmotionEvent<char>();
+        public event Action<char> OnTextInput;
 
         /// <summary>
         /// Returns the current mouse position. Is preprocessed by the Renderer to scale to the window if possible.
@@ -59,11 +59,7 @@ namespace Emotion.Platform
 
             SetupLegacy();
             OnKey.AddListener(DefaultButtonBehavior);
-            OnMouseScroll.AddListener(scroll =>
-            {
-                _mouseScrollAccum += scroll;
-                return true;
-            });
+            OnMouseScroll += scroll => { _mouseScrollAccum += scroll; };
         }
 
         /// <summary>
@@ -145,7 +141,12 @@ namespace Emotion.Platform
         protected void UpdateScroll(float amount)
         {
             _mouseScrollAccum += amount;
-            OnMouseScroll.Invoke(amount);
+            OnMouseScroll?.Invoke(amount);
+        }
+
+        protected void TextInput(char c)
+        {
+            OnTextInput?.Invoke(c);
         }
 
         /// <summary>
@@ -238,7 +239,6 @@ namespace Emotion.Platform
         /// <summary>
         /// Checks if the provided key is part of the provided axis, and if it is returns a vector of
         /// where that key is within the axis.
-        ///
         /// This might leak key status outside of your event order.
         /// </summary>
         public Vector2 IsKeyPartOfAxis(Key keyToCheck, Key axis)

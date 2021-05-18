@@ -4,6 +4,7 @@ using System.Collections;
 using System.Diagnostics;
 using Emotion.Audio;
 using Emotion.Common;
+using Emotion.Game.Time.Routines;
 using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 using OpenAL;
@@ -25,6 +26,7 @@ namespace Emotion.Platform.Implementation.OpenAL
         private uint[] _buffers;
         private bool[] _bufferBusy;
         private int _currentBuffer;
+        private Coroutine _layerRoutine;
 
         private static AudioFormat _openALAudioFormat = new AudioFormat(16, false, 2, AL_FORMAT_SAMPLE_RATE);
 
@@ -40,7 +42,7 @@ namespace Emotion.Platform.Implementation.OpenAL
                 Al.GenBuffer(out _buffers[i]);
             }
 
-            Engine.CoroutineManager.StartCoroutine(UpdateCoroutine());
+            _layerRoutine = Engine.CoroutineManager.StartCoroutine(UpdateCoroutine());
         }
 
         private IEnumerator UpdateCoroutine()
@@ -67,6 +69,7 @@ namespace Emotion.Platform.Implementation.OpenAL
                                 break;
                             }
                         }
+
                         yield return DequeueBusyBuffers();
                     } while (anyBufferBusy);
 
@@ -190,6 +193,7 @@ namespace Emotion.Platform.Implementation.OpenAL
 
         public override void Dispose()
         {
+            if (_layerRoutine != null) Engine.CoroutineManager.StopCoroutine(_layerRoutine);
         }
     }
 }

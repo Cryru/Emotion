@@ -2,13 +2,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Logging;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Audio
 {
     public abstract class AudioContext
     {

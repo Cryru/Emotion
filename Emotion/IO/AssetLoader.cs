@@ -5,10 +5,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Standard.Logging;
+using Emotion.Utility;
 
 #endregion
 
@@ -223,6 +225,7 @@ namespace Emotion.IO
                         Engine.Log.Warning($"Couldn't find asset store for {name} and debug store isn't loaded.", MessageSource.AssetLoader);
                         return false;
                     }
+
                     store = _storage.FirstOrDefault().Value;
                     Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to debug store \"{store.Folder}\".", MessageSource.AssetLoader);
                     if (store == null) return false;
@@ -404,6 +407,26 @@ namespace Emotion.IO
             if (left[^1] == '/') left = left[..^1];
             if (right[0] == '/') right = right[1..];
             return left + "/" + right;
+        }
+
+        /// <summary>
+        /// Create the default asset loader which loads the engine assembly, the game assembly, the setup calling assembly, and the
+        /// file system.
+        /// Duplicate assemblies are not loaded.
+        /// </summary>
+        /// <returns>The default asset loader.</returns>
+        public static AssetLoader CreateDefaultAssetLoader()
+        {
+            var loader = new AssetLoader();
+
+            // Create sources.
+            for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
+            {
+                Assembly assembly = Helpers.AssociatedAssemblies[i];
+                loader.AddSource(new EmbeddedAssetSource(assembly, "Assets"));
+            }
+
+            return loader;
         }
     }
 }

@@ -60,16 +60,14 @@ namespace Emotion.Platform.Implementation.Win32
 
                     int width = NativeHelpers.LoWord((uint) lParam);
                     int height = NativeHelpers.HiWord((uint) lParam);
-
-                    // Don't send resize event when minimized.
-                    if (width != 0 && height != 0) OnResize.Invoke(new Vector2(width, height));
+                    Resized(new Vector2(width, height));
 
                     return IntPtr.Zero;
                 case WM.SETFOCUS:
-                    UpdateFocus(true);
+                    FocusChanged(true);
                     return IntPtr.Zero;
                 case WM.KILLFOCUS:
-                    UpdateFocus(false);
+                    FocusChanged(false);
                     return IntPtr.Zero;
 
                 case WM.SYSCOMMAND:
@@ -111,7 +109,7 @@ namespace Emotion.Platform.Implementation.Win32
                         // Returning TRUE here announces support for this message
                         return (IntPtr) 1;
 
-                    OnTextInput.Invoke((char) wParam);
+                    TextInput((char) wParam);
 
                     break;
 

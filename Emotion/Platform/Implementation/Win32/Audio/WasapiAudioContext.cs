@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using Emotion.Audio;
 using Emotion.Common;
-using Emotion.Standard.Audio;
 using Emotion.Standard.Logging;
 using WinApi.ComBaseApi.COM;
 
@@ -26,7 +25,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         private IMMDeviceEnumerator _enumerator;
         private Dictionary<string, WasApiAudioDevice> _devices = new Dictionary<string, WasApiAudioDevice>();
 
-        internal WasApiAudioContext(IMMDeviceEnumerator enumerator)
+        private WasApiAudioContext(IMMDeviceEnumerator enumerator)
         {
             _enumerator = enumerator;
             int error = _enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active, out IMMDeviceCollection collection);
@@ -63,11 +62,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _enumerator.RegisterEndpointNotificationCallback(this);
         }
 
-        private AudioFormat AudioFormatFromWasApiFormat(WaveFormat fmt)
-        {
-            return new AudioFormat(fmt.BitsPerSample, fmt.IsFloat(), fmt.Channels, fmt.SampleRate);
-        }
-
         protected override AudioLayer CreateLayerInternal(string layerName)
         {
             return new WasApiLayer(layerName, this);
@@ -79,9 +73,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         {
         }
 
-        public void OnDeviceAdded(string pwstrDeviceId)
+        public void OnDeviceAdded(string deviceId)
         {
-            ParseDevice(pwstrDeviceId);
+            ParseDevice(deviceId);
             SetDefaultDevice();
         }
 
@@ -152,7 +146,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         {
             if (device == null) return null;
 
-            string deviceName = $"Unknown Device ({id})";
+            var deviceName = $"Unknown Device ({id})";
 
             // Try to get the device name.
             device.OpenPropertyStore(StorageAccessMode.Read, out IPropertyStore store);
@@ -215,6 +209,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             // Tell all layers about this change.
             lock (_layers)
             {
+                // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
                 foreach (WasApiLayer layer in _layers)
                 {
                     layer.DefaultDeviceChanged(defaultDevice);

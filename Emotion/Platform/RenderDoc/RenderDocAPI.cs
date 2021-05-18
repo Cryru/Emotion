@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Platform.RenderDoc
 {
 #pragma warning disable 649 // Uninitialized field
 #pragma warning disable 0169 // Unused field

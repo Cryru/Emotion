@@ -1,13 +1,12 @@
 ﻿#region Using
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WinApi.Kernel32;
 
 #endregion
 
-namespace Emotion.Platform
+namespace Emotion.Platform.RenderDoc
 {
     public abstract unsafe class RenderDocGraphicsContext : GraphicsContext
     {
@@ -28,7 +27,6 @@ namespace Emotion.Platform
             var getApiFunc = Marshal.GetDelegateForFunctionPointer<RenderDocGetApi>(api);
             void* apiPointers;
             int ret = getApiFunc(10102, &apiPointers);
-            Debug.Assert(ret == 1);
             if (ret != 1) return;
             RenderDoc = Marshal.PtrToStructure<RenderDocAPI>((IntPtr) apiPointers);
         }

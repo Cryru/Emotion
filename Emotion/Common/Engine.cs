@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Emotion.Audio;
 using Emotion.Common.Threading;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
@@ -18,16 +19,9 @@ using Emotion.Graphics.Objects;
 using Emotion.Graphics.Shading;
 using Emotion.IO;
 using Emotion.Platform;
-using Emotion.Platform.Implementation.Null;
-using Emotion.Platform.Implementation.Win32;
 using Emotion.Scenography;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
-
-#if GLFW
-using Emotion.Platform.Implementation.GlfwImplementation;
-
-#endif
 
 #endregion
 
@@ -38,7 +32,7 @@ namespace Emotion.Common
         /// <summary>
         /// The default engine configuration.
         /// </summary>
-        public static Configurator Configuration { get; private set; } = new Configurator();
+        public static Configurator Configuration { get; private set; } = new();
 
         #region Modules
 
@@ -83,6 +77,17 @@ namespace Emotion.Common
         #endregion
 
         /// <summary>
+        /// Whether the platform host is paused by a system event or something.
+        /// Example: When the window is unfocused outside of debug mode.
+        /// </summary>
+        public static bool HostPaused;
+
+        /// <summary>
+        /// An event to wait on for the host to be unpaused.
+        /// </summary>
+        public static ManualResetEvent HostPausedWaiter = new(true);
+
+        /// <summary>
         /// The status of the engine.
         /// </summary>
         public static EngineStatus Status { get; private set; } = EngineStatus.Initial;
@@ -107,16 +112,6 @@ namespace Emotion.Common
 
 #endif
 
-        static Engine()
-        {
-            Helpers.AssociatedAssemblies = new List<Assembly>
-            {
-                Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
-                Assembly.GetExecutingAssembly(), // Is the engine.
-                Assembly.GetEntryAssembly() // Is game or debugger.
-            }.Distinct().Where(x => x != null).ToArray();
-        }
-
         /// <summary>
         /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
         /// </summary>
@@ -126,11 +121,18 @@ namespace Emotion.Common
             if (Status >= EngineStatus.LightSetup) return;
             PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
 
+            Helpers.AssociatedAssemblies = new List<Assembly>
+            {
+                Assembly.GetCallingAssembly(), // This is the assembly which called this function. Can be the game or the engine.
+                Assembly.GetExecutingAssembly(), // Is the engine.
+                Assembly.GetEntryAssembly() // Is game or debugger.
+            }.Distinct().Where(x => x != null).ToArray();
+
             // Correct the startup directory to the directory of the executable.
             if (RuntimeInformation.OSDescription != "Browser")
             {
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                Thread.CurrentThread.Priority = ThreadPriority.Highest;
+                Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
             }
 
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -161,8 +163,7 @@ namespace Emotion.Common
             AppDomain.CurrentDomain.ProcessExit += (e, a) => { Quit(); };
 
             // Mount default assets. The platform should add it's own specific sources and stores.
-            AssetLoader = LoadDefaultAssetLoader();
-            NativeLibrary.SetDllImportResolver(typeof(Engine).Assembly, (libName, assembly, _) => Host?.LoadLibrary(libName) ?? NativeLibrary.Load(libName));
+            AssetLoader = AssetLoader.CreateDefaultAssetLoader();
             Status = EngineStatus.LightSetup;
 
             PerfProfiler.ProfilerEventEnd("LightSetup", "Loading");
@@ -181,14 +182,12 @@ namespace Emotion.Common
 
             // Create the platform, window, audio, and graphics context.
             PerfProfiler.ProfilerEventStart("Platform Creation", "Loading");
-            Host = GetInstanceOfDetectedPlatform(Configuration);
+            Host = PlatformBase.CreateDetectedPlatform(Configuration);
             if (Host == null)
             {
                 CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
-
-            Host.Setup(Configuration);
             InputManager = Host;
             Audio = Host.Audio;
             if (Status == EngineStatus.Stopped) return; // Errors in host initialization can cause this.
@@ -451,59 +450,6 @@ namespace Emotion.Common
                 p.Dispose();
             }
         }
-
-        #region Helpers
-
-        /// <summary>
-        /// Detect and return the correct platform instance for the engine host.
-        /// </summary>
-        /// <param name="engineConfig"></param>
-        /// <returns></returns>
-        private static PlatformBase GetInstanceOfDetectedPlatform(Configurator engineConfig)
-        {
-            // ReSharper disable once RedundantAssignment
-            PlatformBase platform = null;
-            if (engineConfig?.PlatformOverride != null)
-            {
-                platform = engineConfig.PlatformOverride;
-                Log.Info($"Platform override of \"{platform}\" accepted", MessageSource.Engine);
-                return platform;
-            }
-
-#if GLFW
-            platform = new GlfwPlatform();
-#else
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) platform = new Win32Platform();
-#endif
-
-            // If none initialized - fallback to null.
-            if (platform == null) platform = new NullPlatform();
-
-            Log.Info($"Platform loaded: {platform}", MessageSource.Engine);
-            return platform;
-        }
-
-        /// <summary>
-        /// Create the default asset loader which loads the engine assembly, the game assembly, the setup calling assembly, and the
-        /// file system.
-        /// Duplicate assemblies are not loaded.
-        /// </summary>
-        /// <returns>The default asset loader.</returns>
-        private static AssetLoader LoadDefaultAssetLoader()
-        {
-            var loader = new AssetLoader();
-
-            // Create sources.
-            for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
-            {
-                Assembly assembly = Helpers.AssociatedAssemblies[i];
-                loader.AddSource(new EmbeddedAssetSource(assembly, "Assets"));
-            }
-
-            return loader;
-        }
-
-        #endregion
 
         /// <summary>
         /// Submit that an error has happened. Handles logging and closing of the engine safely.

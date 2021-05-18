@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.Null;
@@ -50,7 +51,7 @@ namespace Emotion.Platform.Implementation.Win32
         private string[] _keyNames;
 
         /// <inheritdoc />
-        protected override void SetupPlatform(Configurator config)
+        protected override void SetupInternal(Configurator config)
         {
             IsWindows7OrGreater = IsWindowsVersionOrGreaterWin32(
                 NativeHelpers.HiByte((ushort) NtDll.WinVer.Win32WinNTWin7),
@@ -75,16 +76,6 @@ namespace Emotion.Platform.Implementation.Win32
             if (IsWindows10CreatorsUpdateOrGreaterWin32) windowsVersionFlags.Add(nameof(IsWindows10CreatorsUpdateOrGreaterWin32));
             Engine.Log.Trace(string.Join(", ", windowsVersionFlags), MessageSource.Win32);
 
-            // todo: load libraries - if any
-            // probably XInput
-
-            // Initialize audio - Try to create WasApi - otherwise return the fake context so execution can go on.
-            Audio = WasApiAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
-            Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
-
-            PopulateKeyCodes();
-            PopulateKeyNames();
-
             if (IsWindows10CreatorsUpdateOrGreaterWin32)
                 User32.SetProcessDpiAwarenessContext(DpiAwarenessContext.DpiAwarenessContextPerMonitorAwareV2);
             else if (IsWindows81OrGreater)
@@ -92,10 +83,18 @@ namespace Emotion.Platform.Implementation.Win32
             else
                 User32.SetProcessDPIAware();
 
+            // todo: load libraries - if any, probably XInput?
+
+            // Initialize audio - Try to create WasApi - otherwise return the fake context so execution can go on.
+            Audio = WasApiAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
+            Engine.Log.Trace("Audio init complete.", MessageSource.Win32);
+
+            PopulateKeyCodes();
+            PopulateKeyNames();
             RegisterWindowClass();
             CreateHelperWindow();
             PollMonitors();
-            Engine.Log.Trace("Platform init complete.", MessageSource.Win32);
+            Engine.Log.Trace("Platform helpers created.", MessageSource.Win32);
 
             var windowInitialSize = new Rect
             {
@@ -283,8 +282,7 @@ namespace Emotion.Platform.Implementation.Win32
                 User32.DispatchMessage(ref msg);
             }
 
-            // Check if focused.
-            if (!IsFocused && !Engine.Configuration.DebugMode) User32.WaitMessage();
+            if (Engine.HostPaused) User32.WaitMessage();
 
             return true;
         }

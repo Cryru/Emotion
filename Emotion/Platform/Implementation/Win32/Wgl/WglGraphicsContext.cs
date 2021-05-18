@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Emotion.Common;
 using Emotion.Platform.OpenGL.Meta;
+using Emotion.Platform.RenderDoc;
 using Emotion.Standard.Logging;
 using Emotion.Utility;
 using Khronos;

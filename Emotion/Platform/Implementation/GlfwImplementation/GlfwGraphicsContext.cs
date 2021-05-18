@@ -2,6 +2,7 @@
 
 using System;
 using Emotion.Platform.Implementation.GlfwImplementation.Native;
+using Emotion.Platform.RenderDoc;
 
 #endregion
 

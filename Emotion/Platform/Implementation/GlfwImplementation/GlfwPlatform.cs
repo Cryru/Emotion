@@ -1,18 +1,18 @@
 ﻿#region Using
 
+#if OpenAL
+using Emotion.Platform.Implementation.OpenAL;
+#endif
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Platform.Implementation.CommonDesktop;
 using Emotion.Platform.Implementation.GlfwImplementation.Native;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
-#if OpenAL
-using Emotion.Platform.Implementation.OpenAL;
-
-#endif
 #if ANGLE
 using WinApi.Kernel32;
 
@@ -83,6 +83,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                 Engine.Log.Error("Couldn't create window.", MessageSource.Glfw);
                 return;
             }
+
             _win = win.Value;
 
             Glfw.SetWindowSizeLimits(_win, (int) config.RenderSize.X, (int) config.RenderSize.Y, -1, -1);
@@ -100,7 +101,11 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             _mouseButtonFunc = MouseButtonKeyInput;
             Glfw.SetMouseButtonCallback(_win, _mouseButtonFunc);
 
-            _textInputCallback = TextInput;
+            void TextInputRedirect(Glfw.Window _, uint codePoint)
+            {
+                TextInput((char) codePoint);
+            }
+            _textInputCallback = TextInputRedirect;
             Glfw.SetCharCallback(_win, _textInputCallback);
 
             Glfw.Monitor[] monitors = Glfw.GetMonitors();
@@ -112,7 +117,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
                 UpdateMonitor(mon, true, i == 0);
             }
 
-            UpdateFocus(true);
+            FocusChanged(true);
             Glfw.FocusWindow(_win);
 
 #if OpenAL
@@ -138,7 +143,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
         private void FocusCallback(Glfw.Window _, bool state)
         {
-            UpdateFocus(state);
+            FocusChanged(state);
         }
 
         private void KeyInput(Glfw.Window window, Glfw.KeyCode key, int scancode, Glfw.InputState action, Glfw.KeyMods mods)
@@ -159,11 +164,6 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             };
 
             UpdateKeyStatus(key, state == Glfw.InputState.Press || state == Glfw.InputState.Repeat);
-        }
-
-        private void TextInput(Glfw.Window window, uint codePoint)
-        {
-            OnTextInput.Invoke((char) codePoint);
         }
 
         #region Window API
@@ -249,10 +249,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         private void ResizeCallback(Glfw.Window _, int newSizeX, int newSizeY)
         {
             if (_suppressResize) return;
-
-            // Check if minimized.
-            if (newSizeX == 0 && newSizeY == 0) return;
-            OnResize.Invoke(new Vector2(newSizeX, newSizeY));
+            Resized(new Vector2(newSizeX, newSizeY));
         }
 
         #endregion

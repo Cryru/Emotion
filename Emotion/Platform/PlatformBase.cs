@@ -3,12 +3,18 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Threading;
+using Emotion.Audio;
 using Emotion.Common;
+using Emotion.Platform.Implementation.Null;
+using Emotion.Platform.Implementation.Win32;
 using Emotion.Platform.Input;
 using Emotion.Standard.Logging;
-using Emotion.Utility;
 using OpenGL;
+
+#if GLFW
+using Emotion.Platform.Implementation.GlfwImplementation;
+
+#endif
 
 #endregion
 
@@ -27,13 +33,6 @@ namespace Emotion.Platform
         public bool IsOpen { get; protected set; }
 
         /// <summary>
-        /// Whether the platform is currently the OS focus.
-        /// This usually means that the platform's window is focused.
-        /// On some platforms this is always true.
-        /// </summary>
-        public bool IsFocused { get; private set; }
-
-        /// <summary>
         /// The graphics context.
         /// </summary>
         public GraphicsContext Context { get; protected set; }
@@ -42,11 +41,6 @@ namespace Emotion.Platform
         /// The platform's audio context. If any.
         /// </summary>
         public AudioContext Audio { get; protected set; }
-
-        /// <summary>
-        /// The event is set while the window is focused.
-        /// </summary>
-        public ManualResetEvent FocusWait { get; set; } = new ManualResetEvent(true);
 
         /// <summary>
         /// Whether this platform supports naming threads.
@@ -75,25 +69,55 @@ namespace Emotion.Platform
 
         /// <summary>
         /// This event is called when the window's focus changes
-        /// On some platforms the window cannot be unfocused - and this will never be called.
+        /// On some platforms the window cannot be unfocused.
         /// The input parameter is the new focus state.
         /// </summary>
-        public EmotionEvent<bool> OnFocusChanged { get; protected set; } = new EmotionEvent<bool>();
+        public Action<bool> OnFocusChanged;
 
         /// <summary>
         /// This event is called when the platform's display size changes.
         /// The input parameter is the new size.
         /// </summary>
-        public EmotionEvent<Vector2> OnResize { get; protected set; } = new EmotionEvent<Vector2>();
+        public event Action<Vector2> OnResize;
+
+        /// <summary>
+        /// Detect and return the correct platform instance for the engine host.
+        /// </summary>
+        /// <param name="engineConfig"></param>
+        /// <returns></returns>
+        public static PlatformBase CreateDetectedPlatform(Configurator engineConfig)
+        {
+            // ReSharper disable once RedundantAssignment
+            PlatformBase platform = null;
+            if (engineConfig?.PlatformOverride != null)
+            {
+                platform = engineConfig.PlatformOverride;
+                Engine.Log.Info($"Platform override of \"{platform}\" accepted", MessageSource.Engine);
+            }
+
+#if GLFW
+            platform ??= new GlfwPlatform();
+#endif
+            if (platform == null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) platform = new Win32Platform();
+
+            // If none initialized - fallback to null.
+            platform ??= new NullPlatform();
+            Engine.Log.Info($"Platform created: {platform}", MessageSource.Engine);
+
+            NativeLibrary.SetDllImportResolver(typeof(PlatformBase).Assembly, (libName, _, _) => platform.LoadLibrary(libName));
+            platform.Setup(engineConfig);
+            Engine.Log.Trace("Platform loaded.", MessageSource.Engine);
+            return platform;
+        }
 
         /// <summary>
         /// Setup the native platform and creates a window.
         /// </summary>
         /// <param name="config">Configuration for the platform - usually passed from the engine.</param>
-        public virtual void Setup(Configurator config)
+        protected virtual void Setup(Configurator config)
         {
             SetupInput();
-            SetupPlatform(config);
+            SetupInternal(config);
 
             // Check if the platform and graphics initialization was successful.
             if (Context == null)
@@ -120,7 +144,7 @@ namespace Emotion.Platform
         /// <summary>
         /// Platform setup.
         /// </summary>
-        protected abstract void SetupPlatform(Configurator config);
+        protected abstract void SetupInternal(Configurator config);
 
         /// <summary>
         /// Display an error message natively.
@@ -203,34 +227,53 @@ namespace Emotion.Platform
             }
         }
 
+        /// <summary>
+        /// Whether the platform is currently the OS focus.
+        /// This usually means that the platform's window is focused.
+        /// On some platforms this is always true.
+        /// </summary>
+        public bool IsFocused { get; private set; }
+
         protected abstract void UpdateDisplayMode();
         protected abstract Vector2 GetPosition();
         protected abstract void SetPosition(Vector2 position);
         protected abstract Vector2 GetSize();
         protected abstract void SetSize(Vector2 size);
 
-        protected void UpdateFocus(bool focused)
+        protected void Resized(Vector2 newSize)
+        {
+            // Occurs when minimized on some platforms.
+            if (newSize == Vector2.Zero) return;
+            OnResize?.Invoke(newSize);
+        }
+
+        protected void FocusChanged(bool focused)
         {
             IsFocused = focused;
             if (focused)
             {
                 Engine.Log.Info("Focus regained.", MessageSource.Platform);
-                FocusWait.Set();
+                Engine.HostPausedWaiter.Set();
+                Engine.HostPaused = false;
             }
             else
             {
                 Engine.Log.Info("Focus lost.", MessageSource.Platform);
+
+                if (!Engine.Configuration.DebugMode)
+                {
+                    Engine.HostPausedWaiter.Reset();
+                    Engine.HostPaused = true;
+                }
 
                 // Pull all buttons up.
                 for (var i = 0; i < _keys.Length; i++)
                 {
                     UpdateKeyStatus((Key) i, false);
                 }
-
-                if (!Engine.Configuration.DebugMode) FocusWait.Reset();
             }
 
-            OnFocusChanged.Invoke(IsFocused);
+            OnFocusChanged?.Invoke(IsFocused);
         }
 
         #endregion

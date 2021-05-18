@@ -114,10 +114,6 @@ namespace Emotion.Test
             _otherConfigs = otherConfigs ?? new Dictionary<string, Action<Configurator>>();
             _screenResultDb = screenResultDb ?? new Dictionary<string, byte[]>();
 
-            // Correct the startup directory to the directory of the executable.
-            // Emotion also does this inside the engine setup.
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-
             // Check for test run id. This signifies whether the runner is linked.
             TestRunId = CommandLineParser.FindArgument(args, "testRunId=", out string testRunId) ? testRunId : RunnerId.ToString();
             TestRunFolder = Path.Join("TestResults", $"{TestRunId}");

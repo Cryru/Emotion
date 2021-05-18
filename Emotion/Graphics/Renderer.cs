@@ -228,12 +228,12 @@ namespace Emotion.Graphics
             if (Engine.Configuration.ScaleBlackBars)
             {
                 Debug.Assert(Engine.Configuration.UseIntermediaryBuffer, "Scale black bars requires an intermediary buffer.");
-                Engine.Host.OnResize.AddListener(HostResizedBlackBars);
+                Engine.Host.OnResize += HostResizedBlackBars;
                 HostResizedBlackBars(windowSize);
             }
             else
             {
-                Engine.Host.OnResize.AddListener(HostResized);
+                Engine.Host.OnResize += HostResized;
                 HostResized(windowSize);
             }
 
@@ -297,7 +297,7 @@ namespace Emotion.Graphics
         /// <summary>
         /// Recreate the drawbuffer when the host is resized.
         /// </summary>
-        internal bool HostResized(Vector2 size)
+        private void HostResized(Vector2 size)
         {
             // Recalculate scale.
             Vector2 baseRes = Engine.Configuration.RenderSize;
@@ -320,14 +320,12 @@ namespace Emotion.Graphics
             DrawBuffer.Resize(drawBufferSize, true);
             Camera?.RecreateMatrix();
             ApplySettings();
-
-            return true;
         }
 
         /// <summary>
         /// Recalculate the draw buffer when the host is resized, using black bars.
         /// </summary>
-        internal bool HostResizedBlackBars(Vector2 size)
+        private void HostResizedBlackBars(Vector2 size)
         {
             // Calculate borderbox / pillarbox.
             float targetAspectRatio = DrawBuffer.Size.X / DrawBuffer.Size.Y;
@@ -358,8 +356,6 @@ namespace Emotion.Graphics
             DrawBuffer.Resize(Engine.Configuration.RenderSize, true);
 
             ApplySettings();
-
-            return true;
         }
 
         /// <summary>

@@ -19,18 +19,12 @@ namespace Tests.Classes
         [Test]
         public void PlatformTests()
         {
-            var config = new Configurator
+            var plat = PlatformBase.CreateDetectedPlatform(new Configurator
             {
                 HostSize = new Vector2(320, 260)
-            };
-
-            MethodInfo privatePlatformCreator = typeof(Engine).GetMethod("GetInstanceOfDetectedPlatform", BindingFlags.NonPublic | BindingFlags.Static);
-            var plat = (PlatformBase) privatePlatformCreator?.Invoke(null, new object[] {config});
-
+            });
             Assert.True(plat != null);
             if (plat == null) return;
-
-            plat.Setup(config);
 
             var deskPlat = (DesktopPlatform) plat;
             Monitor primaryMonitor = deskPlat.Monitors[0];
@@ -39,11 +33,10 @@ namespace Tests.Classes
             Assert.True(plat.IsFocused);
 
             var resizes = new List<Vector2>();
-            plat.OnResize.AddListener(t =>
+            plat.OnResize += t =>
             {
                 resizes.Add(t);
-                return true;
-            });
+            };
 
             plat.Position = new Vector2(0, 0);
             Assert.True(plat.Position == new Vector2(0, 0));
