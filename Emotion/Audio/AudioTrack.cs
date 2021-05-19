@@ -69,12 +69,13 @@ namespace Emotion.Audio
         {
             File = file;
 
-            lock (file)
-            {
-                _cache = file.ResampleCache;
-                if (_cache == null) file.ResampleCache = new TrackResampleCache(file);
-                _cache = file.ResampleCache;
-            }
+            if (file.ResampleCache == null)
+                lock (file)
+                {
+                    file.ResampleCache ??= new TrackResampleCache(file);
+                }
+
+            _cache = file.ResampleCache;
         }
 
         public void EnsureAudioFormat(AudioFormat format)
