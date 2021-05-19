@@ -28,7 +28,7 @@ namespace Emotion.Audio
             get
             {
                 if (_emitPtr == 0) return 0f;
-                return (float) _emitPtr / _cache.ConvSamples;
+                return (float) _emitPtr / _emitPtrFormatConvSamples;
             }
         }
 
@@ -62,6 +62,8 @@ namespace Emotion.Audio
 
         private TrackResampleCache _cache;
         private int _emitPtr;
+        private AudioFormat _emitPtrFormat;
+        private int _emitPtrFormatConvSamples;
 
         public AudioTrack(AudioAsset file)
         {
@@ -77,14 +79,19 @@ namespace Emotion.Audio
 
         public void EnsureAudioFormat(AudioFormat format)
         {
-            if (!format.Equals(_cache.ConvFormat)) _emitPtr = _cache.SetConvertFormatAndCacheFrom(format, Progress);
+            if (!format.Equals(_emitPtrFormat))
+            {
+                _emitPtr = _cache.SetConvertFormatAndCacheFrom(format, Progress);
+                _emitPtrFormat = format;
+                _emitPtrFormatConvSamples = _cache.ConvSamples;
+            }
         }
 
         public int GetNextFrames(int frameCount, Span<float> buffer)
         {
             int sampleCount = _cache.GetCachedSamples(_emitPtr, frameCount, buffer);
             _emitPtr += sampleCount;
-            return sampleCount / _cache.ConvFormat.Channels;
+            return sampleCount / _emitPtrFormat.Channels;
         }
 
         public void Reset()
