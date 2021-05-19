@@ -43,72 +43,66 @@ namespace Emotion.Audio
         /// </summary>
         public int GetCachedSamples(int fromIdx, int frameCount, Span<float> buffer)
         {
-            lock (this)
+            if (_cache == null) return 0;
+
+            // Check if requesting samples from the point at which the buffer is dirty.
+            if (_cachePtrDirty != 0 && fromIdx < _cachePtrDirty)
             {
-                if (_cache == null) return 0;
+                Engine.Log.Trace("Resample cache is dirty, will resample again.", MessageSource.Audio);
 
-                // Check if requesting samples from the point at which the buffer is dirty.
-                if (_cachePtrDirty != 0 && fromIdx < _cachePtrDirty)
+                // Stop resample if running.
+                if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
+
+                // The lock will cause a wait until the resample task has ended.
+                // We don't want two tasks writing over the same memory.
+                lock (_resampleThreadLock)
                 {
-                    Engine.Log.Trace("Resample cache is dirty, will resample again.", MessageSource.Audio);
-
-                    // Stop resample if running.
-                    if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
-
-                    // The lock will cause a wait until the resample task has ended.
-                    // We don't want two tasks writing over the same memory.
-                    lock (_resampleThreadLock)
-                    {
-                        _cancelResample = false;
-                        _cachePtrDirty = 0;
-                        _cachePtr = 0;
-                        Reset();
-                        _resampleTask = Task.Run(TaskResampleToCache);
-                    }
+                    _cancelResample = false;
+                    _cachePtrDirty = 0;
+                    _cachePtr = 0;
+                    Reset();
+                    _resampleTask = Task.Run(TaskResampleToCache);
                 }
-
-                // Check if there's enough samples in the cache.
-                int channels = ConvFormat.Channels;
-                int sampleEndIdx = Math.Min(fromIdx + frameCount * channels, ConvSamples);
-
-                while (sampleEndIdx > _cachePtr)
-                {
-                    if (_resampleEmit.WaitOne(RESAMPLE_CACHE_TIMEOUT)) continue;
-                    Engine.Log.Warning("Timed out while waiting for cache samples.", MessageSource.Audio);
-                    return 0;
-                }
-
-                // Copy over the needed samples.
-                int sampleCount = sampleEndIdx - fromIdx;
-                new Span<float>(_cache).Slice(fromIdx, sampleCount).CopyTo(buffer);
-
-                return sampleCount;
             }
+
+            // Check if there's enough samples in the cache.
+            int channels = ConvFormat.Channels;
+            int sampleEndIdx = Math.Min(fromIdx + frameCount * channels, ConvSamples);
+
+            while (sampleEndIdx > _cachePtr)
+            {
+                if (_resampleEmit.WaitOne(RESAMPLE_CACHE_TIMEOUT)) continue;
+                Engine.Log.Warning("Timed out while waiting for cache samples.", MessageSource.Audio);
+                return 0;
+            }
+
+            // Copy over the needed samples.
+            int sampleCount = sampleEndIdx - fromIdx;
+            new Span<float>(_cache).Slice(fromIdx, sampleCount).CopyTo(buffer);
+
+            return sampleCount;
         }
 
         /// <inheritdoc />
         public override void SetConvertFormat(AudioFormat dstFormat, int quality = 10, bool keepProgress = true)
         {
-            lock (this)
+            // Stop resample if running.
+            if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
+
+            // The lock will cause a wait until the resample task has ended.
+            lock (_resampleThreadLock)
             {
-                // Stop resample if running.
-                if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
+                base.SetConvertFormat(dstFormat, quality, keepProgress);
 
-                // The lock will cause a wait until the resample task has ended.
-                lock (_resampleThreadLock)
-                {
-                    base.SetConvertFormat(dstFormat, quality, keepProgress);
+                // Resize/allocate cache if needed.
+                if (_cache == null)
+                    _cache = new float[ConvSamples];
+                else if (_cache.Length < ConvSamples)
+                    Array.Resize(ref _cache, ConvSamples);
 
-                    // Resize/allocate cache if needed.
-                    if (_cache == null)
-                        _cache = new float[ConvSamples];
-                    else if (_cache.Length < ConvSamples)
-                        Array.Resize(ref _cache, ConvSamples);
-
-                    // Start resampling thread.
-                    _cancelResample = false;
-                    _resampleTask = Task.Run(TaskResampleToCache);
-                }
+                // Start resampling thread.
+                _cancelResample = false;
+                _resampleTask = Task.Run(TaskResampleToCache);
             }
         }
 
@@ -120,40 +114,35 @@ namespace Emotion.Audio
         /// <returns></returns>
         public int SetConvertFormatAndCacheFrom(AudioFormat dstFormat, float progress)
         {
+            if (ConvFormat != null && ConvFormat.Equals(dstFormat)) return (int) MathF.Floor(ConvSamples * progress);
+
+            // Stop resample if running.
+            if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
+
+            // The lock will cause a wait until the resample task has ended.
             int restartIndex;
-            lock (this)
+            lock (_resampleThreadLock)
             {
-                if (ConvFormat != null && ConvFormat.Equals(dstFormat)) return (int) MathF.Floor(ConvSamples * progress);
+                base.SetConvertFormat(dstFormat, ConvQuality, false);
+                _cachePtr = 0;
 
-                // Stop resample if running.
-                if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
+                // Restore resample thread progress from emit progress
+                // We don't want to wait for everything to be resampled from the very beginning.
+                restartIndex = (int) MathF.Floor(ConvSamples * progress);
+                FastForwardResample(ref _srcResume, ref _dstResume, restartIndex);
+                _cachePtr = _dstResume;
+                _cachePtrDirty = _cachePtr;
 
-                // The lock will cause a wait until the resample task has ended.
+                // Resize/allocate cache if needed.
+                if (_cache == null)
+                    _cache = new float[ConvSamples];
+                else if (_cache.Length < ConvSamples)
+                    Array.Resize(ref _cache, ConvSamples);
 
-                lock (_resampleThreadLock)
-                {
-                    base.SetConvertFormat(dstFormat, ConvQuality, false);
-                    _cachePtr = 0;
-
-                    // Restore resample thread progress from emit progress
-                    // We don't want to wait for everything to be resampled from the very beginning.
-                    restartIndex = (int) MathF.Floor(ConvSamples * progress);
-                    FastForwardResample(ref _srcResume, ref _dstResume, restartIndex);
-                    _cachePtr = _dstResume;
-                    _cachePtrDirty = _cachePtr;
-
-                    // Resize/allocate cache if needed.
-                    if (_cache == null)
-                        _cache = new float[ConvSamples];
-                    else if (_cache.Length < ConvSamples)
-                        Array.Resize(ref _cache, ConvSamples);
-
-                    // Start resampling thread.
-                    _cancelResample = false;
-                    _resampleTask = Task.Run(TaskResampleToCache);
-                }
+                // Start resampling thread.
+                _cancelResample = false;
+                _resampleTask = Task.Run(TaskResampleToCache);
             }
-
 
             return restartIndex;
         }

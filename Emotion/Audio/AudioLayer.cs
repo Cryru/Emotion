@@ -207,13 +207,16 @@ namespace Emotion.Audio
         {
             if (Status != PlaybackStatus.Playing) return 0;
 
+            AudioTrack currentTrack;
             int playlistCount;
             lock (_playlist)
             {
                 playlistCount = _playlist.Count;
-            }
 
-            if (_currentTrack < 0 || _currentTrack > playlistCount - 1) return 0;
+                if (_currentTrack < 0 || _currentTrack > playlistCount - 1) return 0;
+                currentTrack = _playlist[_currentTrack];
+                if (currentTrack == null) return 0;
+            }
 
             // Pause sound if host is paused.
             if (Engine.Host != null && Engine.Host.HostPaused)
@@ -221,14 +224,6 @@ namespace Emotion.Audio
                 if (GLThread.IsGLThread()) return 0; // Don't stop main thread.
                 Engine.Host.HostPausedWaiter.WaitOne();
             }
-
-            AudioTrack currentTrack;
-            lock (_playlist)
-            {
-                currentTrack = _playlist[_currentTrack];
-            }
-
-            if (currentTrack == null) return 0;
 
             // Resize resample memory if needed.
             int samplesRequested = framesRequested * format.Channels;
