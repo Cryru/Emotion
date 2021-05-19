@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
+using Emotion.Utility;
 
 #endregion
 
@@ -101,7 +102,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// <seealso cref="GetVersion(out int, out int, out int)" />
         public static string GetVersionString()
         {
-            return FromUTF8(glfwGetVersionString());
+            return NativeHelpers.StringFromPtr(glfwGetVersionString());
         }
 
         [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl)]
@@ -262,7 +263,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// </returns>
         public static string GetMonitorName(Monitor monitor)
         {
-            return FromUTF8(glfwGetMonitorName(monitor.Ptr));
+            return NativeHelpers.StringFromPtr(glfwGetMonitorName(monitor.Ptr));
         }
 
         [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl)]
@@ -631,7 +632,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
             return glfwCreateWindow(
                 width,
                 height,
-                ToUTF8(title),
+                NativeHelpers.StringToPtr(title),
                 monitor.HasValue ? monitor.Value.Ptr : IntPtr.Zero,
                 share.HasValue ? share.Value.Ptr : IntPtr.Zero
             );
@@ -693,7 +694,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// </remarks>
         public static void SetWindowTitle(Window window, string title)
         {
-            glfwSetWindowTitle(window.Ptr, ToUTF8(title));
+            glfwSetWindowTitle(window.Ptr, NativeHelpers.StringToPtr(title));
         }
 
         [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl)]
@@ -2250,7 +2251,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// </returns>
         public static string GetJoystickName(Joystick joy)
         {
-            return FromUTF8(glfwGetJoystickName((int) joy));
+            return NativeHelpers.StringFromPtr(glfwGetJoystickName((int) joy));
         }
 
         [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl)]
@@ -2283,7 +2284,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// <seealso cref="GetClipboardString(Window)" />
         public static void SetClipboardString(Window window, string value)
         {
-            glfwSetClipboardString(window.Ptr, ToUTF8(value));
+            glfwSetClipboardString(window.Ptr, NativeHelpers.StringToPtr(value));
         }
 
         [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl)]
@@ -2304,7 +2305,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation.Native
         /// <seealso cref="SetClipboardString(Window, string)" />
         public static string GetClipboardString(Window window)
         {
-            return FromUTF8(glfwGetClipboardString(window.Ptr));
+            return NativeHelpers.StringFromPtr(glfwGetClipboardString(window.Ptr));
         }
 
         [DllImport(LIBRARY_NAME, CallingConvention = CallingConvention.Cdecl)]

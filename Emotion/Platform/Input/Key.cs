@@ -8,16 +8,17 @@ using System;
 namespace Emotion.Platform.Input
 {
     /// <summary>
-    /// Keyboard keys.
+    /// Input keys, forked from GLFW
     /// These key codes are inspired by the _USB HID Usage Tables v1.12_ (p. 53-60),
     /// but re-arranged to map to 7-bit ASCII for printable keys (function keys are put in the 256+ range).
     /// The naming of the key codes follow these rules:
     /// - The US keyboard layout is used
     /// - Names of printable alpha-numeric characters are used (e.g. "A", "R", "3", etc.)
-    /// - For non-alphanumeric characters, Unicode:ish names are used (e.g. "COMMA", "LEFT_SQUARE_BRACKET", etc.).
-    /// Note that some names do not correspond to the Unicode standard (usually for brevity)
+    /// - For non-alphanumeric characters, camel case is used.
     /// - Keys that lack a clear US mapping are named "WORLD_x"
     /// - For non-printable keys, custom names are used (e.g. "F4", "BACKSPACE", etc.)
+    /// - Mouse keys and gamepad keys are included.
+    /// - Commonly used input axes are used as well.
     /// </summary>
     [Flags]
     public enum Key : short

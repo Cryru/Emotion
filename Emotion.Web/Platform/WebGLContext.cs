@@ -168,7 +168,7 @@ namespace Emotion.Web.Platform
                 value = _gl.InvokeUnmarshalled<int, string>("glGet", paramId);
 
             //Engine.Log.Trace($"String query {(StringName) paramId} got {value}", "WebGLInternal");
-            ptr = Marshal.StringToHGlobalAuto(value);
+            ptr = NativeHelpers.StringToPtr(value);
             UnmanagedMemoryAllocator.RegisterAllocatedMemory(ptr, stringGetMemoryName, value.Length * sizeof(char));
             return ptr;
         }

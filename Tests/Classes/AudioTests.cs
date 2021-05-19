@@ -17,8 +17,9 @@ namespace Tests.Classes
         [Test]
         public void AudioState()
         {
-            var nullAudio = new NullAudioContext();
-            AudioLayer layer = nullAudio.CreateLayer("test");
+            var nullAudio = new NullAudioAdapter();
+            var ctx = new AudioContext(nullAudio);
+            AudioLayer layer = ctx.CreateLayer("test");
 
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
@@ -38,7 +39,7 @@ namespace Tests.Classes
             layer.Stop();
             Assert.True(layer.Status == PlaybackStatus.NotPlaying);
 
-            nullAudio.RemoveLayer("test");
+            ctx.RemoveLayer("test");
         }
 
         [Test]
@@ -46,8 +47,9 @@ namespace Tests.Classes
         {
             TrackResampleCache.RESAMPLE_CACHE_TIMEOUT = -1;
 
-            var nullAudio = new NullAudioContext();
-            AudioLayer layer = nullAudio.CreateLayer("test");
+            var nullAudio = new NullAudioAdapter();
+            var ctx = new AudioContext(nullAudio);
+            AudioLayer layer = ctx.CreateLayer("test");
 
             var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
             var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
@@ -66,7 +68,7 @@ namespace Tests.Classes
             ((NullAudioLayer) layer).AdvanceTime((int) MathF.Ceiling(pepsi.Duration) + 1);
             Assert.True(layer.CurrentTrack.File == money);
 
-            nullAudio.RemoveLayer("test");
+            ctx.RemoveLayer("test");
         }
     }
 }

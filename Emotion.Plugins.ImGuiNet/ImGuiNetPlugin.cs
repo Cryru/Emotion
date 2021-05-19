@@ -192,15 +192,15 @@ namespace Emotion.Plugins.ImGuiNet
 
             // Update input.
             io.MousePos = Engine.Host.MousePosition / ImGuiScale;
-            io.MouseDown[0] = Engine.InputManager.KeyState(Key.MouseKeyLeft);
-            io.MouseDown[1] = Engine.InputManager.KeyState(Key.MouseKeyRight);
-            io.MouseDown[2] = Engine.InputManager.KeyState(Key.MouseKeyMiddle);
-            io.MouseWheel = -Engine.InputManager.GetMouseScrollRelative();
+            io.MouseDown[0] = Engine.Host.KeyState(Key.MouseKeyLeft);
+            io.MouseDown[1] = Engine.Host.KeyState(Key.MouseKeyRight);
+            io.MouseDown[2] = Engine.Host.KeyState(Key.MouseKeyMiddle);
+            io.MouseWheel = -Engine.Host.GetMouseScrollRelative();
 
-            io.KeyCtrl = Engine.InputManager.KeyState(Key.LeftControl);
-            io.KeyAlt = Engine.InputManager.KeyState(Key.LeftAlt);
-            io.KeyShift = Engine.InputManager.KeyState(Key.LeftShift);
-            io.KeySuper = Engine.InputManager.KeyState(Key.LeftSuper);
+            io.KeyCtrl = Engine.Host.KeyState(Key.LeftControl);
+            io.KeyAlt = Engine.Host.KeyState(Key.LeftAlt);
+            io.KeyShift = Engine.Host.KeyState(Key.LeftShift);
+            io.KeySuper = Engine.Host.KeyState(Key.LeftSuper);
 
             if (_textInput.Count > 0)
             {
@@ -215,7 +215,7 @@ namespace Emotion.Plugins.ImGuiNet
             // Apply all key inputs.
             for (var i = 0; i < (int) Key.KeyboardLast; i++)
             {
-                io.KeysDown[i] = Engine.InputManager.IsKeyHeld((Key) i);
+                io.KeysDown[i] = Engine.Host.IsKeyHeld((Key) i);
             }
         }
 

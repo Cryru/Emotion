@@ -70,11 +70,11 @@ namespace Emotion.Tools.Windows
         {
             var speed = 0.5f;
             Vector2 dir = Vector2.Zero;
-            if (Engine.InputManager.IsKeyHeld(Key.W)) dir.Y -= 1;
-            if (Engine.InputManager.IsKeyHeld(Key.A)) dir.X -= 1;
-            if (Engine.InputManager.IsKeyHeld(Key.S)) dir.Y += 1;
-            if (Engine.InputManager.IsKeyHeld(Key.D)) dir.X += 1;
-            if (Engine.InputManager.IsKeyHeld(Key.LeftControl)) speed *= 2;
+            if (Engine.Host.IsKeyHeld(Key.W)) dir.Y -= 1;
+            if (Engine.Host.IsKeyHeld(Key.A)) dir.X -= 1;
+            if (Engine.Host.IsKeyHeld(Key.S)) dir.Y += 1;
+            if (Engine.Host.IsKeyHeld(Key.D)) dir.X += 1;
+            if (Engine.Host.IsKeyHeld(Key.LeftControl)) speed *= 2;
 
             dir *= new Vector2(speed * Engine.DeltaTime, speed * Engine.DeltaTime);
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);

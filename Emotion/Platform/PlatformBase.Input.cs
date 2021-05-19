@@ -44,7 +44,6 @@ namespace Emotion.Platform
 
         protected Key[] _keyCodes;
         protected bool[] _keys;
-        protected bool[] _keysPrevious;
         protected short[] _scanCodes;
         protected float _mouseScroll;
         protected float _mouseScrollThisFrame;
@@ -58,7 +57,6 @@ namespace Emotion.Platform
         {
             const int totalKeys = (int) Key.Last;
             _keys = new bool[totalKeys];
-            _keysPrevious = new bool[totalKeys];
 
             _keysIm = new bool[totalKeys];
             _keysPreviousIm = new bool[totalKeys];

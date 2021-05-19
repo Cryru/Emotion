@@ -216,10 +216,10 @@ namespace Emotion.Audio
             if (_currentTrack < 0 || _currentTrack > playlistCount - 1) return 0;
 
             // Pause sound if host is paused.
-            if (Engine.HostPaused)
+            if (Engine.Host != null && Engine.Host.HostPaused)
             {
                 if (GLThread.IsGLThread()) return 0; // Don't stop main thread.
-                Engine.HostPausedWaiter.WaitOne();
+                Engine.Host.HostPausedWaiter.WaitOne();
             }
 
             AudioTrack currentTrack;

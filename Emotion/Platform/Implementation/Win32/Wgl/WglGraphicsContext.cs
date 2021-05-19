@@ -55,7 +55,7 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
         /// <summary>
         /// Initialize the conflict from the Windows window handle and platform reference.
         /// </summary>
-        public void Init(IntPtr windowHandle, Win32Platform platform)
+        public void Init(IntPtr nativeDeviceHandle, IntPtr windowHandle, Win32Platform platform)
         {
             _platform = platform;
 
@@ -75,10 +75,8 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             _makeCurrent = _platform.GetFunctionByName<WglFunctions.WglMakeCurrent>(_openGlLibrary, "wglMakeCurrent");
 
             // A dummy context has to be created for opengl32.dll to load the. OpenGL ICD, from which we can then query WGL extensions.
-            // This code will accept the Microsoft GDI ICD; accelerated context, creation failure occurs during manual pixel format enumeration
-            Debug.Assert(Win32Platform.HelperWindowHandle != IntPtr.Zero);
-            IntPtr dc = User32.GetDC(Win32Platform.HelperWindowHandle);
-            Debug.Assert(dc != IntPtr.Zero);
+            // This code will accept the Microsoft GDI ICD;
+            Debug.Assert(nativeDeviceHandle != IntPtr.Zero);
             var pfd = new PixelFormatDescriptor();
             pfd.NSize = (ushort) Marshal.SizeOf(pfd);
             pfd.NVersion = 1;
@@ -86,12 +84,13 @@ namespace Emotion.Platform.Implementation.Win32.Wgl
             pfd.PixelType = (byte) PixelFormatFlags.RGBA;
             pfd.CColorBits = 24;
 
-            if (!Gdi32.SetPixelFormat(dc, Gdi32.ChoosePixelFormat(dc, ref pfd), ref pfd)) Win32Platform.CheckError("WGL: Could not set pixel format on dummy context.", true);
+            if (!Gdi32.SetPixelFormat(nativeDeviceHandle, Gdi32.ChoosePixelFormat(nativeDeviceHandle, ref pfd), ref pfd))
+                Win32Platform.CheckError("WGL: Could not set pixel format on dummy context.", true);
 
             // Establish dummy context.
-            IntPtr rc = createContext(dc);
+            IntPtr rc = createContext(nativeDeviceHandle);
             if (rc == IntPtr.Zero) Win32Platform.CheckError("WGL: Could not create dummy context.", true);
-            if (!_makeCurrent(dc, rc))
+            if (!_makeCurrent(nativeDeviceHandle, rc))
             {
                 _deleteContext(rc);
                 Win32Platform.CheckError("Could not make dummy context current.", true);

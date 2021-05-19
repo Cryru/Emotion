@@ -51,13 +51,13 @@ namespace Emotion.ExecTest.Examples
                     bool walkable = _grid.IsWalkable(x, y);
                     Vector2 pos = new Vector2(x, y) * _tileSize;
                     var rect = new Rectangle(pos, new Vector2(_tileSize, _tileSize));
-                    bool inHere = rect.Contains(composer.Camera.ScreenToWorld(Engine.InputManager.MousePosition));
+                    bool inHere = rect.Contains(composer.Camera.ScreenToWorld(Engine.Host.MousePosition));
                     Color col = inHere ? Color.Blue : walkable ? Color.Green : Color.Red;
                     composer.RenderSprite(new Vector3(pos, 0), new Vector2(_tileSize), col);
 
                     // Detect click on the tile.
-                    if (!Engine.InputManager.IsKeyDown(Key.MouseKeyLeft) || !inHere) continue;
-                    if (Engine.InputManager.IsKeyHeld(Key.LeftShift))
+                    if (!Engine.Host.IsKeyDown(Key.MouseKeyLeft) || !inHere) continue;
+                    if (Engine.Host.IsKeyHeld(Key.LeftShift))
                         // The pathfinding operates on the grid, the coordinates here are tile coordinates.
                         _path = _ctx.FindPath(_pathfindingStartLocation, new Vector2(x, y));
                     else

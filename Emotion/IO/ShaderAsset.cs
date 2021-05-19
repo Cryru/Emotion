@@ -69,7 +69,7 @@ namespace Emotion.IO
             Engine.Host.OnKey.AddListener((k, s) =>
             {
                 // The reload shaders shortcut is Ctrl + R
-                if (k != Key.R || s != KeyStatus.Down || !Engine.InputManager.IsKeyHeld(Key.LeftControl)) return true;
+                if (k != Key.R || s != KeyStatus.Down || !Engine.Host.IsKeyHeld(Key.LeftControl)) return true;
 
                 for (int i = _activeShaderAssets.Count - 1; i >= 0; i--)
                 {

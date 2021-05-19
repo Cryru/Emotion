@@ -15,7 +15,7 @@ namespace Emotion.Platform.Implementation.OpenAL
 {
     public sealed class OpenALAudioLayer : AudioLayer
     {
-        private OpenALAudioContext _parent;
+        private OpenALAudioAdapter _parent;
         private uint _source;
 
         private const int BUFFER_COUNT = 2;
@@ -30,7 +30,7 @@ namespace Emotion.Platform.Implementation.OpenAL
 
         private static AudioFormat _openALAudioFormat = new AudioFormat(16, false, 2, AL_FORMAT_SAMPLE_RATE);
 
-        public OpenALAudioLayer(string name, OpenALAudioContext parent) : base(name)
+        public OpenALAudioLayer(string name, OpenALAudioAdapter parent) : base(name)
         {
             _parent = parent;
             Al.GenSource(out _source);

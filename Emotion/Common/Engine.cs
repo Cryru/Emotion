@@ -57,7 +57,8 @@ namespace Emotion.Common
         /// The legacy input manager. Is just a redirect of Host.
         /// todo: Should probably deprecate this at some point.
         /// </summary>
-        public static PlatformBase InputManager { get; private set; }
+        [Obsolete("Use Engine.Host")]
+        public static PlatformBase InputManager { get => Host; }
 
         /// <summary>
         /// Module which manages loading and unloading of scenes.
@@ -75,17 +76,6 @@ namespace Emotion.Common
         public static CoroutineManager CoroutineManager { get; private set; } = new CoroutineManager();
 
         #endregion
-
-        /// <summary>
-        /// Whether the platform host is paused by a system event or something.
-        /// Example: When the window is unfocused outside of debug mode.
-        /// </summary>
-        public static bool HostPaused;
-
-        /// <summary>
-        /// An event to wait on for the host to be unpaused.
-        /// </summary>
-        public static ManualResetEvent HostPausedWaiter = new(true);
 
         /// <summary>
         /// The status of the engine.
@@ -188,8 +178,7 @@ namespace Emotion.Common
                 CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
-            InputManager = Host;
-            Audio = Host.Audio;
+            Audio = new AudioContext(Host.Audio);
             if (Status == EngineStatus.Stopped) return; // Errors in host initialization can cause this.
             PerfProfiler.ProfilerEventEnd("Platform Creation", "Loading");
 

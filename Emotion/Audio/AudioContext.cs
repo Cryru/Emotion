@@ -3,21 +3,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using Emotion.Common;
+using Emotion.Platform;
 using Emotion.Standard.Logging;
 
 #endregion
 
 namespace Emotion.Audio
 {
-    public abstract class AudioContext
+    public class AudioContext
     {
-        protected List<AudioLayer> _layers = new List<AudioLayer>();
+        protected List<AudioLayer> _layers = new();
+        protected IAudioAdapter _adapter;
 
-        protected abstract AudioLayer CreateLayerInternal(string layerName);
+        public AudioContext(IAudioAdapter adapter)
+        {
+            _adapter = adapter;
+        }
 
         public AudioLayer CreateLayer(string layerName, float layerVolume = 1)
         {
-            AudioLayer newLayer = CreateLayerInternal(layerName);
+            AudioLayer newLayer = _adapter.CreatePlatformAudioLayer(layerName);
             newLayer.Volume = layerVolume;
             lock (_layers)
             {

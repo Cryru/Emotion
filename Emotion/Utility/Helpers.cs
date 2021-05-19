@@ -85,10 +85,10 @@ namespace Emotion.Utility
         public static void CameraWASDUpdate(float speed = 0.35f)
         {
             Vector2 dir = Vector2.Zero;
-            if (Engine.InputManager.IsKeyHeld(Key.W)) dir.Y -= 1;
-            if (Engine.InputManager.IsKeyHeld(Key.A)) dir.X -= 1;
-            if (Engine.InputManager.IsKeyHeld(Key.S)) dir.Y += 1;
-            if (Engine.InputManager.IsKeyHeld(Key.D)) dir.X += 1;
+            if (Engine.Host.IsKeyHeld(Key.W)) dir.Y -= 1;
+            if (Engine.Host.IsKeyHeld(Key.A)) dir.X -= 1;
+            if (Engine.Host.IsKeyHeld(Key.S)) dir.Y += 1;
+            if (Engine.Host.IsKeyHeld(Key.D)) dir.X += 1;
 
             dir *= new Vector2(speed, speed) * Engine.DeltaTime;
             Engine.Renderer.Camera.Position += new Vector3(dir, 0);

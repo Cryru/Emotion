@@ -95,10 +95,6 @@ namespace Emotion.Platform.Implementation.Win32
                     return IntPtr.Zero;
 
                 // ------------------- INPUT -------------------
-                case WM.INPUTLANGCHANGE:
-                    PopulateKeyNames();
-                    break;
-
                 case WM.CHAR:
                 case WM.SYSCHAR:
                 case WM.UNICHAR:
@@ -117,28 +113,17 @@ namespace Emotion.Platform.Implementation.Win32
                 case WM.SYSKEYDOWN:
                 case WM.KEYUP:
                 case WM.SYSKEYUP:
-
+                    var virtualKey = (VirtualKey) wParam;
                     var lParamLong = (ulong) lParam;
-                    Key key = TranslateKey((ulong) wParam, lParamLong);
+
+                    bool up = ((lParamLong >> 31) & 1) != 0;
+                    Key key = TranslateKey(virtualKey, lParamLong);
                     if (key == Key.Unknown) break;
 
-                    // Scan code can be used for debugging purposes.
-                    //uint scanCode = NativeHelpers.HiWord(lParamLong) & (uint) 0x1ff;
-                    bool up = (((ulong) lParam >> 31) & 1) != 0;
+                    // Don't handle shift keys. Check UpdatePlatform() for more info.
+                    if (virtualKey == VirtualKey.SHIFT) break;
 
-                    if (up && (uint) wParam == (uint) VirtualKey.SHIFT)
-                    {
-                        // HACK: Release both Shift keys on Shift up event, as when both
-                        //       are pressed the first release does not emit any event
-                        // NOTE: The other half of this is in Update()
-                        UpdateKeyStatus(Key.LeftShift, false);
-                        UpdateKeyStatus(Key.RightShift, false);
-                    }
-                    else
-                    {
-                        UpdateKeyStatus(key, !up);
-                    }
-
+                    UpdateKeyStatus(key, !up);
                     break;
 
                 case WM.MOUSEMOVE:

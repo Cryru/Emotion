@@ -16,19 +16,17 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     internal class WasApiLayer : AudioLayer
     {
-        private WasApiAudioContext _parent;
+        private WasApiAudioAdapter _parent;
         private bool _alive;
+        private WasApiAudioDevice _device;
         private WasApiLayerContext _layerContext;
-
-        private volatile bool _updateDevice;
 
         private ManualResetEvent _playWait = new ManualResetEvent(false);
 
-        public WasApiLayer(string name, WasApiAudioContext parent) : base(name)
+        public WasApiLayer(string name, WasApiAudioAdapter parent) : base(name)
         {
             _parent = parent;
             _alive = true;
-            SetDevice(_parent.DefaultDevice);
             var thread = new Thread(LayerThread)
             {
                 Priority = ThreadPriority.Highest
@@ -46,11 +44,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             while (_alive && Engine.Status != EngineStatus.Stopped)
             {
                 // Check if the device has changed.
-                if (_updateDevice)
-                {
-                    SetDevice(_parent.DefaultDevice);
-                    _updateDevice = false;
-                }
+                if (_device != _parent.DefaultDevice) SetDevice(_parent.DefaultDevice);
 
                 // If not playing, wait for it to start playing.
                 if (Status != PlaybackStatus.Playing)
@@ -94,8 +88,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     // Audio device has disappeared or whatever.
                     if ((uint) ex.ErrorCode == 0x88890004)
                     {
-                        Engine.Log.Info("Audio device modified.", MessageSource.WasApi);
-                        _updateDevice = true;
+                        Engine.Log.Info("Default audio device changed.", MessageSource.WasApi);
                         continue;
                     }
 
@@ -151,6 +144,12 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             }
         }
 
+        private void SetDevice(WasApiAudioDevice device)
+        {
+            _device = device;
+            _layerContext = device.CreateLayerContext();
+        }
+
         /// <inheritdoc />
         public override void Dispose()
         {
@@ -158,19 +157,5 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _playWait.Set();
             _parent = null;
         }
-
-        #region Helpers
-
-        private void SetDevice(WasApiAudioDevice device)
-        {
-            _layerContext = device.CreateLayerContext();
-        }
-
-        public void DefaultDeviceChanged(WasApiAudioDevice newDevice)
-        {
-            _updateDevice = true;
-        }
-
-        #endregion
     }
 }

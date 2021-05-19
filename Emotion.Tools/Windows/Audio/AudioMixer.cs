@@ -66,10 +66,10 @@ namespace Emotion.Tools.Windows.Audio
             composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, _waveFormHeight, 0)));
 
             // Render ImGui section of layers.
-            string[] layers = Engine.Host.Audio.GetLayers();
+            string[] layers = Engine.Audio.GetLayers();
             for (var i = 0; i < layers.Length; i++)
             {
-                AudioLayer layer = Engine.Host.Audio.GetLayer(layers[i]);
+                AudioLayer layer = Engine.Audio.GetLayer(layers[i]);
                 _waveFormCache.TryGetValue(layer, out WaveformCache cache);
 
                 ImGui.Text($"Layer {layers[i]}");
@@ -123,8 +123,8 @@ namespace Emotion.Tools.Windows.Audio
 
             if (ImGui.Button("Create Layer") && !string.IsNullOrEmpty(_newLayerName))
             {
-                Engine.Host.Audio.CreateLayer(_newLayerName);
-                _newLayerName = "";
+                Engine.Audio.CreateLayer(_newLayerName);
+                _newLayerName = "New Layer" + Engine.Audio.GetLayers().Length;
             }
 
             ImGui.InputText("", ref _newLayerName, 50);
@@ -132,10 +132,10 @@ namespace Emotion.Tools.Windows.Audio
 
         public override void Update()
         {
-            string[] layers = Engine.Host.Audio.GetLayers();
+            string[] layers = Engine.Audio.GetLayers();
             for (var i = 0; i < layers.Length; i++)
             {
-                AudioLayer layer = Engine.Host.Audio.GetLayer(layers[i]);
+                AudioLayer layer = Engine.Audio.GetLayer(layers[i]);
 
                 _waveFormCache.TryGetValue(layer, out WaveformCache cache);
                 if (cache == null)

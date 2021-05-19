@@ -3,7 +3,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Emotion.Audio;
+using System.Threading;
 using Emotion.Common;
 using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Implementation.Win32;
@@ -33,9 +33,9 @@ namespace Emotion.Platform
         public GraphicsContext Context { get; protected set; }
 
         /// <summary>
-        /// The platform's audio context. If any.
+        /// The platform's audio adapter. If any.
         /// </summary>
-        public AudioContext Audio { get; protected set; }
+        public IAudioAdapter Audio { get; protected set; }
 
         /// <summary>
         /// Whether this platform supports naming threads.
@@ -133,6 +133,7 @@ namespace Emotion.Platform
             DisplayMode = config.InitialDisplayMode;
             WindowState = WindowState.Normal;
             IsOpen = true;
+            _pauseOnFocusLoss = !config.DebugMode;
         }
 
         #region Implementation API
@@ -230,6 +231,19 @@ namespace Emotion.Platform
         /// </summary>
         public bool IsFocused { get; private set; }
 
+        /// <summary>
+        /// Whether the platform host is paused by a system event or something.
+        /// Example: When the window is unfocused outside of debug mode.
+        /// </summary>
+        public bool HostPaused;
+
+        /// <summary>
+        /// An event to wait on for the host to be unpaused.
+        /// </summary>
+        public ManualResetEvent HostPausedWaiter = new(true);
+
+        private bool _pauseOnFocusLoss;
+
         protected abstract void UpdateDisplayMode();
         protected abstract Vector2 GetPosition();
         protected abstract void SetPosition(Vector2 position);
@@ -249,17 +263,17 @@ namespace Emotion.Platform
             if (focused)
             {
                 Engine.Log.Info("Focus regained.", MessageSource.Platform);
-                Engine.HostPausedWaiter.Set();
-                Engine.HostPaused = false;
+                HostPausedWaiter.Set();
+                HostPaused = false;
             }
             else
             {
                 Engine.Log.Info("Focus lost.", MessageSource.Platform);
 
-                if (!Engine.Configuration.DebugMode)
+                if (_pauseOnFocusLoss)
                 {
-                    Engine.HostPausedWaiter.Reset();
-                    Engine.HostPaused = true;
+                    HostPausedWaiter.Reset();
+                    HostPaused = true;
                 }
 
                 // Pull all buttons up.
@@ -309,7 +323,6 @@ namespace Emotion.Platform
         public virtual void Close()
         {
             IsOpen = false;
-            Audio?.Dispose();
         }
     }
 }

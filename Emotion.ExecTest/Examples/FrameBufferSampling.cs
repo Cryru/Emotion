@@ -28,7 +28,7 @@ namespace Emotion.ExecTest.Examples
 
         public void Update()
         {
-            if (Engine.InputManager.IsKeyDown(Key.U))
+            if (Engine.Host.IsKeyDown(Key.U))
             {
                 _unsych = !_unsych;
                 Engine.Log.Warning($"Unsynch: {_unsych}", "Other");

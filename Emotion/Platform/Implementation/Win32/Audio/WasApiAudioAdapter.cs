@@ -10,12 +10,12 @@ using WinApi.ComBaseApi.COM;
 
 namespace Emotion.Platform.Implementation.Win32.Audio
 {
-    public sealed class WasApiAudioContext : AudioContext, IMMNotificationClient
+    public sealed class WasApiAudioAdapter : IAudioAdapter, IMMNotificationClient
     {
-        public static WasApiAudioContext TryCreate()
+        public static WasApiAudioAdapter TryCreate()
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioContext(enumerator);
+            if (new MMDeviceEnumeratorComObject() is IMMDeviceEnumerator enumerator) return new WasApiAudioAdapter(enumerator);
             Win32Platform.CheckError("Couldn't create multimedia enumerator.", true);
             return null;
         }
@@ -23,9 +23,9 @@ namespace Emotion.Platform.Implementation.Win32.Audio
         public WasApiAudioDevice DefaultDevice { get; private set; }
 
         private IMMDeviceEnumerator _enumerator;
-        private Dictionary<string, WasApiAudioDevice> _devices = new Dictionary<string, WasApiAudioDevice>();
+        private Dictionary<string, WasApiAudioDevice> _devices = new();
 
-        private WasApiAudioContext(IMMDeviceEnumerator enumerator)
+        private WasApiAudioAdapter(IMMDeviceEnumerator enumerator)
         {
             _enumerator = enumerator;
             int error = _enumerator.EnumAudioEndpoints(DataFlow.Render, DeviceState.Active, out IMMDeviceCollection collection);
@@ -62,7 +62,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             _enumerator.RegisterEndpointNotificationCallback(this);
         }
 
-        protected override AudioLayer CreateLayerInternal(string layerName)
+        public AudioLayer CreatePlatformAudioLayer(string layerName)
         {
             return new WasApiLayer(layerName, this);
         }
@@ -205,16 +205,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             defaultDevice.Default = true;
             DefaultDevice = defaultDevice;
             Engine.Log.Trace($"Default audio device is: {defaultDevice.Name}.", MessageSource.Win32);
-
-            // Tell all layers about this change.
-            lock (_layers)
-            {
-                // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-                foreach (WasApiLayer layer in _layers)
-                {
-                    layer.DefaultDeviceChanged(defaultDevice);
-                }
-            }
         }
 
         #endregion

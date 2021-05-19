@@ -6,9 +6,9 @@ using Emotion.Audio;
 
 namespace Emotion.Platform.Implementation.Null
 {
-    public sealed class NullAudioContext : AudioContext
+    public sealed class NullAudioAdapter : IAudioAdapter
     {
-        protected override AudioLayer CreateLayerInternal(string layerName)
+        public AudioLayer CreatePlatformAudioLayer(string layerName)
         {
             return new NullAudioLayer(layerName);
         }

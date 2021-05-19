@@ -47,7 +47,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
         //[DllImport("msvcrt")]
         //public static extern int _putenv_s(string e, string v);
 
-        protected override void SetupPlatform(Configurator config)
+        protected override void SetupInternal(Configurator config)
         {
             bool initSuccess = Glfw.Init();
             if (!initSuccess)
@@ -103,7 +103,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 
             void TextInputRedirect(Glfw.Window _, uint codePoint)
             {
-                TextInput((char) codePoint);
+                UpdateTextInput((char) codePoint);
             }
             _textInputCallback = TextInputRedirect;
             Glfw.SetCharCallback(_win, _textInputCallback);
@@ -121,7 +121,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
             Glfw.FocusWindow(_win);
 
 #if OpenAL
-            Audio = OpenALAudioContext.TryCreate() ?? (AudioContext) new NullAudioContext();
+            Audio = OpenALAudioAdapter.TryCreate() ?? (IAudioAdapter) new NullAudioAdapter();
 #else
             Audio = new NullAudioContext();
 #endif
