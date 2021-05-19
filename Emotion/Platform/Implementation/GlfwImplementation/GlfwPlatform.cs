@@ -123,7 +123,7 @@ namespace Emotion.Platform.Implementation.GlfwImplementation
 #if OpenAL
             Audio = OpenALAudioAdapter.TryCreate() ?? (IAudioAdapter) new NullAudioAdapter();
 #else
-            Audio = new NullAudioContext();
+            Audio = new NullAudioAdapter();
 #endif
         }
 
