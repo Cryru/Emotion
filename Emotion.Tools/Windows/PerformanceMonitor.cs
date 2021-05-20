@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Plugins.ImGuiNet.Windowing;
@@ -94,6 +95,7 @@ namespace Emotion.Tools.Windows
             ImGui.PlotLines("Update Count", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
             ImGui.Text($"Reported DeltaTime {Engine.DeltaTime}");
+            ImGui.Text($"AudioLayer Fill Time {AudioLayer.DbgBufferFillTimeTaken.ElapsedMilliseconds}ms");
 
 #if DEBUG
             ImGui.PlotLines("Precise Update (Ms)", ref _eventUpdateTracker[0], _eventUpdateTracker.Length, 0, "", 0, 3000);

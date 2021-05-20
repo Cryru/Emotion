@@ -15,7 +15,7 @@ namespace Emotion.Audio
     public class TrackResampleCache : AudioStreamer
     {
         public static int RESAMPLE_CACHE_TIMEOUT = 1000;
-        public static int RESAMPLE_INTERVAL = 4000;
+        public static int RESAMPLE_INTERVAL_FRAMES = 4000;
 
         private float[] _cache;
 
@@ -72,7 +72,7 @@ namespace Emotion.Audio
             while (sampleEndIdx > _cachePtr)
             {
                 if (_resampleEmit.WaitOne(RESAMPLE_CACHE_TIMEOUT)) continue;
-                Engine.Log.Warning("Timed out while waiting for cache samples.", MessageSource.Audio);
+                Engine.Log.Warning("Timed out while waiting for cache samples. Ending current track.", MessageSource.Audio);
                 return 0;
             }
 
@@ -114,7 +114,7 @@ namespace Emotion.Audio
         /// <returns></returns>
         public int SetConvertFormatAndCacheFrom(AudioFormat dstFormat, float progress)
         {
-            if (ConvFormat != null && ConvFormat.Equals(dstFormat)) return (int) MathF.Floor(ConvSamples * progress);
+            if (ConvFormat != null && ConvFormat.Equals(dstFormat)) return (int)MathF.Floor(ConvSamples * progress);
 
             // Stop resample if running.
             if (_resampleTask != null && !_resampleTask.IsCompleted) _cancelResample = true;
@@ -128,7 +128,7 @@ namespace Emotion.Audio
 
                 // Restore resample thread progress from emit progress
                 // We don't want to wait for everything to be resampled from the very beginning.
-                restartIndex = (int) MathF.Floor(ConvSamples * progress);
+                restartIndex = (int)MathF.Floor(ConvSamples * progress);
                 FastForwardResample(ref _srcResume, ref _dstResume, restartIndex);
                 _cachePtr = _dstResume;
                 _cachePtrDirty = _cachePtr;
@@ -162,7 +162,7 @@ namespace Emotion.Audio
                 Span<float> dataSpan = _cache;
                 while (framesGotten != 0 && _cachePtr != ConvSamples)
                 {
-                    framesGotten = base.GetNextFrames(RESAMPLE_INTERVAL, dataSpan.Slice(_cachePtr));
+                    framesGotten = base.GetNextFrames(RESAMPLE_INTERVAL_FRAMES, dataSpan.Slice(_cachePtr));
                     if (_cancelResample) return;
                     _cachePtr += framesGotten;
                     _resampleEmit.Set();

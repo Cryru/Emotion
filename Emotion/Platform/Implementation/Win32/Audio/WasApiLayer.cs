@@ -16,6 +16,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     internal class WasApiLayer : AudioLayer
     {
+        private const int RESET_ON_TIMEOUTS = 3;
+
         private WasApiAudioAdapter _parent;
         private bool _alive;
         private WasApiAudioDevice _device;
@@ -39,6 +41,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         private void LayerThread()
         {
+            int timeoutCount = 0;
             if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Layer - {Name}";
             Engine.Log.Trace($"Layer {Name} started.", MessageSource.Audio);
             while (_alive && Engine.Status != EngineStatus.Stopped)
@@ -74,9 +77,19 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     bool success = _layerContext.WaitHandle.WaitOne(_layerContext.TimeoutPeriod);
                     if (!success)
                     {
+                        // Try to reset the device.
+                        if (timeoutCount > RESET_ON_TIMEOUTS)
+                        {
+                            Engine.Log.Warning($"Layer {Name} accumulated errors - resetting device.", MessageSource.WasApi);
+                            SetDevice(_parent.DefaultDevice);
+                            continue;
+                        }
+
+                        timeoutCount++;
                         Engine.Log.Warning($"Layer {Name} audio context timeout.", MessageSource.WasApi);
                         continue;
                     }
+                    timeoutCount = 0;
 
                     // Get more frames.
                     int error = _layerContext.AudioClient.GetCurrentPadding(out int padding);
@@ -88,6 +101,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
                     // Audio device has disappeared or whatever.
                     if ((uint) ex.ErrorCode == 0x88890004)
                     {
+                        SetDevice(_parent.DefaultDevice);
                         Engine.Log.Info("Default audio device changed.", MessageSource.WasApi);
                         continue;
                     }

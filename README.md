@@ -143,6 +143,7 @@ This includes dependencies and projects which were used for research references.
 | [Glfw](https://github.com/glfw/glfw) & [Glfw.Net](https://github.com/Chman/Glfw.Net) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
 | [OpenAL-Soft](https://github.com/kcat/openal-soft) & [OpenAL.NetCore](https://github.com/nsglover/OpenAL.NETCore) | LGPL & MIT | Mac and Linux Audio | Precompiled for Mac64, Linux64, Win64, Add "OpenAL" symbol
 | References
+| [McGill Engineering](http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Samples.html) | X | Hardening WAV and Audio Implementation | None
 | [PNGSuite](http://www.schaik.com/pngsuite/) | X | Hardening PNG Implementation | None
 | [OpenType.JS](https://opentype.js.org/) | X | Font Parsing Reference | None
 | [Nine.Imagine](https://github.com/yufeih/Nine.Imaging) | X | Image Parsing Comparison | None

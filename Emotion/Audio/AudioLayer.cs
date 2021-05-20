@@ -203,6 +203,12 @@ namespace Emotion.Audio
 
         #region Stream Logic
 
+#if DEBUG
+
+        public static Stopwatch DbgBufferFillTimeTaken = new Stopwatch();
+
+#endif
+
         protected int GetDataForCurrentTrack(AudioFormat format, int framesRequested, Span<byte> dest, int framesOffset = 0)
         {
             if (Status != PlaybackStatus.Playing) return 0;
@@ -233,6 +239,10 @@ namespace Emotion.Audio
                 Array.Resize(ref _resampleMemoryCrossFade, samplesRequested);
             }
 
+#if DEBUG
+            DbgBufferFillTimeTaken.Restart();
+#endif
+
             int channels = format.Channels;
             float baseVolume = Volume * Engine.Configuration.MasterVolume;
             int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _resampleMemory, baseVolume);
@@ -261,6 +271,10 @@ namespace Emotion.Audio
                     AudioStreamer.SetSampleAsFloat(sampleIdx, _resampleMemory[sampleIdx], destBuffer, format);
                 }
             }
+
+#if DEBUG
+            DbgBufferFillTimeTaken.Stop();
+#endif
 
             // Check if the buffer was filled.
             if (framesOutput == framesRequested) return framesOutput;
@@ -320,10 +334,13 @@ namespace Emotion.Audio
             int framesOutput = track.GetNextFrames(frames, memory);
             Debug.Assert(framesOutput <= frames);
 
-            // Preprocess data.
+            // Force mono post process.
+            // Dont apply force mono on tracks while the resampler applied mono to.
             int channels = format.Channels;
-            bool mergeChannels = Engine.Configuration.ForceMono && track.File.Format.Channels == 2 && channels == 2;
-            if (mergeChannels) PostProcessForceMono(framesOutput, memory);
+            bool mergeChannels = Engine.Configuration.ForceMono && channels != 1 && track.File.Format.Channels != 1;
+            if (mergeChannels) PostProcessForceMono(framesOutput, memory, channels);
+
+            // Apply fading.
             PostProcessApplyFading(baseVolume, track, framesOutput, channels, memory);
 
             return framesOutput;
@@ -381,17 +398,21 @@ namespace Emotion.Audio
         /// Check if forcing mono sound. This matters only if both the source and destination formats are stereo.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void PostProcessForceMono(int framesOutput, float[] soundData)
+        private static void PostProcessForceMono(int framesOutput, float[] soundData, int srcChannels)
         {
             for (var i = 0; i < framesOutput; i++)
             {
-                int sampleIdx = i * 2;
-                float left = soundData[sampleIdx];
-                float right = soundData[sampleIdx + 1];
+                int sampleIdx = i * srcChannels;
+                float sampleAccum = 0;
+                for (var c = 0; c < srcChannels; c++)
+                {
+                    sampleAccum += soundData[sampleIdx + c];
+                }
 
-                float merged = (left + right) / 2f;
-                soundData[sampleIdx] = merged;
-                soundData[sampleIdx + 1] = merged;
+                for (var c = 0; c < srcChannels; c++)
+                {
+                    soundData[sampleIdx + c] = sampleAccum;
+                }
             }
         }
 

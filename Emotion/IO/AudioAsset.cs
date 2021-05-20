@@ -49,6 +49,8 @@ namespace Emotion.IO
                 // Get the data.
                 ReadOnlyMemory<byte> pcm = WavFormat.Decode(data, out AudioFormat format);
                 if (pcm.IsEmpty) return;
+                if(format.UnsupportedBitsPerSample())
+                    Engine.Log.Warning($"Unsupported bits per sample ({format.BitsPerSample}) format in audio file {Name}", MessageSource.Audio);
 
                 // Convert to float, for easier resampling and post processing.
                 int sourceSamples = pcm.Length / format.SampleSize;

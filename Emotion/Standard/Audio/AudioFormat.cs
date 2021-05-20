@@ -93,5 +93,15 @@
         {
             return soundBufferLength / (SampleRate * Channels * SampleSize);
         }
+
+        /// <summary>
+        /// Whether the format is of an unsupported bits per sample format.
+        /// </summary>
+        /// <returns></returns>
+        public bool UnsupportedBitsPerSample()
+        {
+            int sampleSize = BitsPerSample;
+            return sampleSize != 8 && sampleSize != 16 && sampleSize != 32;
+        }
     }
 }
