@@ -99,17 +99,21 @@ namespace Emotion.Game.Time.Routines
                     current.Run();
                 }
 
-                for (int i = _runningRoutines.Count - 1; i >= 0 ; i--)
+                for (int i = _runningRoutines.Count - 1; i >= 0; i--)
                 {
                     Coroutine current = _runningRoutines[i];
-                    if (current.Finished)
-                    {
-                        _runningRoutines.RemoveAt(i);
-                    }
+                    if (current.Finished) _runningRoutines.RemoveAt(i);
                 }
 
                 return true;
             }
         }
+
+#if DEBUG
+        public Coroutine DbgGetCoroutine(int index)
+        {
+            return _runningRoutines[index];
+        }
+#endif
     }
 }

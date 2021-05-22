@@ -52,6 +52,7 @@ namespace Emotion.Tools.Windows
             {
                 if (ImGui.MenuItem("Performance Monitor")) manager.AddWindow(new PerformanceMonitor());
                 if (ImGui.MenuItem("Unmanaged Memory Viewer")) manager.AddWindow(new UnmanagedMemoryViewer());
+                if (ImGui.MenuItem("Coroutine Viewer")) manager.AddWindow(new CoroutineViewer());
                 ImGui.EndMenu();
             }
 
