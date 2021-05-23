@@ -137,6 +137,17 @@ namespace System.Numerics
         }
 
         /// <summary>
+        /// Round the vector's components using Math.Round.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 Round(this Vector2 v, int digits = 10, MidpointRounding midPointRounding = MidpointRounding.AwayFromZero)
+        {
+            v.X = MathF.Round(v.X, digits, midPointRounding);
+            v.Y = MathF.Round(v.Y, digits, midPointRounding);
+            return v;
+        }
+
+        /// <summary>
         /// Round the vector's components away from 0 even when not at the midpoint.
         /// </summary>
         /// <param name="v"></param>
