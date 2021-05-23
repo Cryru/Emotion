@@ -85,6 +85,13 @@ namespace Emotion.Graphics.Data
         {
             uvRect.Y = texture.Size.Y - uvRect.Height - uvRect.Y;
 
+            // Add a small epsilon to prevent the wrong UVs from being sampled from floating point errors.
+            // Crucial for pixel art as every pixel matters, and camera can cause "half-pixels" to be sampled.
+            uvRect.X += Maths.EPSILON_BIGGER;
+            uvRect.Y += Maths.EPSILON_BIGGER;
+            uvRect.Width -= Maths.EPSILON_BIGGER_2;
+            uvRect.Height -= Maths.EPSILON_BIGGER_2;
+
             // 0, 1    1, 1
             // 0, 0    1, 0
             float uvXP = uvRect.X + uvRect.Width;
@@ -94,12 +101,6 @@ namespace Emotion.Graphics.Data
             Vector2 ppUV = new Vector2(uvXP, uvYn) / texture.Size;
             Vector2 pnUV = new Vector2(uvXP, uvYp) / texture.Size;
             Vector2 nnUV = new Vector2(uvRect.X, uvYp) / texture.Size;
-
-            // Add a small epsilon to prevent the wrong UVs from being sampled.
-            npUV = new Vector2(npUV.X + Maths.EPSILON, npUV.Y - Maths.EPSILON);
-            ppUV = new Vector2(ppUV.X - Maths.EPSILON, ppUV.Y - Maths.EPSILON);
-            pnUV = new Vector2(pnUV.X - Maths.EPSILON, pnUV.Y + Maths.EPSILON);
-            nnUV = new Vector2(nnUV.X + Maths.EPSILON, nnUV.Y + Maths.EPSILON);
 
             // Same order as vertices.
             // 0, 0    1, 0
