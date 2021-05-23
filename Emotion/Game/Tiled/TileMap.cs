@@ -472,9 +472,12 @@ namespace Emotion.Game.Tiled
                     // Calculate Z
                     var v3 = new Vector3(position, CalculateZOrder(position, size, new Vector2(x, y), layerIdx, tId, tsId));
 
+                    // Calculate tint and texture.
                     var c = new Color(255, 255, 255, (int) (layer.Opacity * 255));
                     TextureAsset? tileSet = Tilesets[tsId];
                     if (tileSet != null) currentTextureCache![tileIdx] = tileSet.Texture;
+
+                    // Write to tilemap mesh.
                     VertexData.SpriteToVertexData(tileData, v3, size, c, tileSet?.Texture, tiUv, layer.Tiles[tileIdx].HorizontalFlip, layer.Tiles[tileIdx].VerticalFlip);
                 }
             }
