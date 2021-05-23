@@ -122,7 +122,7 @@ namespace Emotion.Game.AStar
                 _closedSet.Add(current);
 
                 // Get neighbors of current.
-                GetNeighborsRoutine(_neighbors, current, diagonalMovement);
+                GetNeighbours(_neighbors, current, diagonalMovement);
 
                 // Apply heuristics to neighbors.
                 for (var i = 0; i < _neighbors.Count; i++)
@@ -199,7 +199,7 @@ namespace Emotion.Game.AStar
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void GetNeighborsRoutine(List<AStarNode> memory, AStarNode current, bool diagonal)
+        protected virtual void GetNeighbours(List<AStarNode> memory, AStarNode current, bool diagonal)
         {
             memory.Clear();
 
