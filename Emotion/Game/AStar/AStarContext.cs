@@ -289,5 +289,14 @@ namespace Emotion.Game.AStar
 
             return path;
         }
+
+#if DEBUG
+
+        public Dictionary<int, AStarNode> DbgGetCalculationMeta()
+        {
+            return _cache;
+        }
+
+#endif
     }
 }
