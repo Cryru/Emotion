@@ -69,9 +69,24 @@ namespace Emotion.Utility
         public const float RAD_2DEG = 57.29578f;
 
         /// <summary>
-        /// A positive infinitesimal quantity.
+        /// A positive infinitesimal quantity. 1e-7
         /// </summary>
         public const float EPSILON = 0.0000001f;
+
+        /// <summary>
+        /// Epsilon times two.
+        /// </summary>
+        public const float EPSILON_2 = EPSILON * 2;
+
+        /// <summary>
+        /// A bigger positive infinitesimal quantity. 1e-4
+        /// </summary>
+        public const float EPSILON_BIGGER = 0.0001f;
+
+        /// <summary>
+        /// Bigger epsilon times two.
+        /// </summary>
+        public const float EPSILON_BIGGER_2 = EPSILON_BIGGER * 2;
 
         /// <summary>
         /// Matrix for flipping the X axis.
@@ -745,6 +760,15 @@ namespace Emotion.Utility
         public static int GetCantorPair(int x, int y)
         {
             return (x + y) * (x + y + 1) / 2 + y;
+        }
+
+        /// <summary>
+        /// Returns the distance between two points measured along 90 degree angles.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float ManhattanDistance(Vector2 start, Vector2 end)
+        {
+            return MathF.Abs(start.X - end.X) + MathF.Abs(start.Y - end.Y);
         }
 
         /// <summary>
