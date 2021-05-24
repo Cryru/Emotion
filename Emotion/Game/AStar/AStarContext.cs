@@ -15,13 +15,6 @@ namespace Emotion.Game.AStar
     /// </summary>
     public class AStarContext : IDisposable
     {
-        /// <summary>
-        /// The function to be used for determining the heuristic value of each node. The first argument is the subject, and the
-        /// second is the goal node.
-        /// By default this is the euclidean distance.
-        /// </summary>
-        public Func<AStarNode, AStarNode, AStarNode, int> HeuristicFunction = (current, end, currentFrom) => (int) Vector2.Distance(current.Location, end.Location);
-
         private HashSet<AStarNode> _openSet;
         private HashSet<AStarNode> _closedSet;
         private Dictionary<int, AStarNode> _cache;
@@ -122,13 +115,13 @@ namespace Emotion.Game.AStar
                 _closedSet.Add(current);
 
                 // Get neighbors of current.
-                GetNeighbours(_neighbors, current, diagonalMovement);
+                GetNeighbors(_neighbors, current, diagonalMovement);
 
                 // Apply heuristics to neighbors.
                 for (var i = 0; i < _neighbors.Count; i++)
                 {
                     AStarNode node = _neighbors[i];
-                    node.H = HeuristicFunction(node, endNode, current);
+                    node.H = Heuristic(node, endNode, current);
                 }
 
                 _neighbors.Sort();
@@ -142,7 +135,7 @@ namespace Emotion.Game.AStar
                     if (_closedSet.Contains(neighbor)) continue;
 
                     // Get the tentative distance between the current and the neighbor. Using 1 as distance.
-                    int tentativeG = current.G + 1;
+                    int tentativeG = DistanceBetweenNodes(current, neighbor, endNode);
 
                     // Check if the neighbor is being evaluated.
                     if (_openSet.Contains(neighbor))
@@ -164,6 +157,21 @@ namespace Emotion.Game.AStar
         }
 
         /// <summary>
+        /// The function to be used for determining the heuristic value of each node. The first argument is the subject, and the
+        /// second is the goal node.
+        /// By default this is the euclidean distance.
+        /// </summary>
+        protected virtual int Heuristic(AStarNode current, AStarNode end, AStarNode currentFrom)
+        {
+            return (int)Vector2.Distance(current.Location, end.Location);
+        }
+
+        protected virtual int DistanceBetweenNodes(AStarNode current, AStarNode other, AStarNode end)
+        {
+            return current.G + 1;
+        }
+
+        /// <summary>
         /// Destroy, and free memory.
         /// </summary>
         public void Dispose()
@@ -179,15 +187,15 @@ namespace Emotion.Game.AStar
         #region Helpers
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual AStarNode CreateNodeFromIfValid(Vector2 loc)
+        protected AStarNode CreateNodeFromIfValid(Vector2 loc)
         {
-            var x = (int) loc.X;
-            var y = (int) loc.Y;
+            var x = (int)loc.X;
+            var y = (int)loc.Y;
             return CreateNodeFromIfValid(x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual AStarNode CreateNodeFromIfValid(int x, int y)
+        protected AStarNode CreateNodeFromIfValid(int x, int y)
         {
             if (!_pathingGrid.IsWalkable(x, y)) return null;
 
@@ -199,7 +207,7 @@ namespace Emotion.Game.AStar
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void GetNeighbours(List<AStarNode> memory, AStarNode current, bool diagonal)
+        protected void GetNeighbors(List<AStarNode> memory, AStarNode current, bool diagonal)
         {
             memory.Clear();
 
