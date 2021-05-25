@@ -87,11 +87,16 @@
         /// <summary>
         /// Returns the duration of a sound in seconds based on it's sound data - if it is in this format.
         /// </summary>
-        /// <param name="soundBufferLength">The length of the sound buffer to find the duration of.</param>
+        /// <param name="soundBufferBytes">The length of the sound buffer in bytes to find the duration of.</param>
         /// <returns>How long that buffer is in seconds.</returns>
-        public float GetSoundDuration(int soundBufferLength)
+        public float GetSoundDuration(int soundBufferBytes)
         {
-            return soundBufferLength / (SampleRate * Channels * SampleSize);
+            return (float) soundBufferBytes / (SampleRate * Channels * SampleSize);
+        }
+
+        public int GetFramesAtTimestamp(float timeSeconds)
+        {
+            return (int) (timeSeconds * SampleRate * Channels);
         }
 
         /// <summary>

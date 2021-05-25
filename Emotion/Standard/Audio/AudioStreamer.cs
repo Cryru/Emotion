@@ -230,7 +230,7 @@ namespace Emotion.Standard.Audio
                     sampleAccum += channelSample;
                 }
 
-                return Maths.Clamp(sampleAccum, -1, 1);
+                return sampleAccum / sourceChannels;
             }
 
             // Else merge channels conditionally based on the map.
