@@ -24,8 +24,8 @@ namespace Emotion.Audio
         {
             get
             {
-                if (_emitPtr == 0) return 0f;
-                return (float) _emitPtr / _emitPtrFormatConvSamples;
+                if (SampleIndex == 0) return 0f;
+                return (float) SampleIndex / TotalSamples;
             }
         }
 
@@ -37,20 +37,15 @@ namespace Emotion.Audio
             get => Progress * File.Duration;
         }
 
-        public int SampleIndex
-        {
-            get => _emitPtr;
-        }
+        /// <summary>
+        /// The index of the converted sample currently at.
+        /// </summary>
+        public int SampleIndex { get; protected set; }
 
-        public int TotalSamples
-        {
-            get => _emitPtrFormatConvSamples;
-        }
-
-        public float SecondaryPlayHeadProgress
-        {
-            get => (float) _emitPtrTwo / _emitPtrFormatConvSamples;
-        }
+        /// <summary>
+        /// The total samples.
+        /// </summary>
+        public int TotalSamples { get; protected set; }
 
         /// <summary>
         /// Fade in time in seconds. Null for none.
@@ -70,23 +65,19 @@ namespace Emotion.Audio
         /// CrossFade this track into the next (if any). The timestamp is the time to
         /// begin cross fading at, and it will extend that much into the next track as well.
         /// Overrides the current track's fade out and the next track's fade in.
-        /// Though if the fade in is longer than the crossfade, it will come in affect as soon as the crossfade finishes. (which you probably dont want)
+        /// Though if the fade in is longer than the crossfade, it will come in affect as soon as the crossfade finishes. (which
+        /// you probably dont want)
         /// </summary>
         public float? CrossFade;
 
         /// <summary>
         /// Whether to set the layer's LoopingCurrent setting to true when played.
         /// </summary>
-        public bool SetLoopingCurrent;
+        public bool SetLoopingCurrent { get; set; }
 
         private AudioLayer _layer;
         private TrackResampleCache _cache;
-        private int _emitPtr;
-        private AudioFormat _emitPtrFormat;
-        private int _emitPtrFormatConvSamples;
-
-
-        private int _emitPtrTwo;
+        private AudioFormat _sampleIndexFormat;
 
         public AudioTrack(AudioAsset file)
         {
@@ -101,41 +92,35 @@ namespace Emotion.Audio
             _cache = file.ResampleCache;
         }
 
-        public void EnsureAudioFormat(AudioFormat format)
+        public bool EnsureAudioFormat(AudioFormat format)
         {
-            if (!format.Equals(_emitPtrFormat))
+            if (!format.Equals(_sampleIndexFormat))
             {
-                float secondaryProgress = SecondaryPlayHeadProgress;
+                SampleIndex = _cache.SetConvertFormatAndCacheFrom(format, Progress);
+                _sampleIndexFormat = format;
+                TotalSamples = _cache.ConvSamples;
 
-                _emitPtr = _cache.SetConvertFormatAndCacheFrom(format, Progress);
-                _emitPtrFormat = format;
-                _emitPtrFormatConvSamples = _cache.ConvSamples;
-
-                if (_emitPtrTwo != 0) _emitPtrTwo = (int) MathF.Floor(_emitPtrFormatConvSamples * secondaryProgress);
+                return true;
             }
+
+            return false;
         }
 
-        public int GetNextFrames(int frameCount, Span<float> buffer, bool secondaryPlayHead = false)
+        public int GetNextFrames(int frameCount, Span<float> buffer)
         {
-            int sampleCount;
-            if (secondaryPlayHead)
-            {
-                sampleCount = _cache.GetCachedSamples(_emitPtrTwo, frameCount, buffer);
-                _emitPtrTwo += sampleCount;
-            }
-            else
-            {
-                sampleCount = _cache.GetCachedSamples(_emitPtr, frameCount, buffer);
-                _emitPtr += sampleCount;
-            }
-
-            return sampleCount / _emitPtrFormat.Channels;
+            int sampleCount = GetNextSamplesAt(SampleIndex, frameCount, buffer);
+            SampleIndex += sampleCount;
+            return sampleCount / _sampleIndexFormat.Channels;
         }
 
-        public void Reset()
+        public int GetNextSamplesAt(int offset, int frameCount, Span<float> buffer)
         {
-            _emitPtr = _emitPtrTwo;
-            _emitPtrTwo = 0;
+            return _cache.GetCachedSamples(offset, frameCount, buffer);
+        }
+
+        public void Reset(int setEmitTo = 0)
+        {
+            SampleIndex = setEmitTo;
         }
 
         public bool SetOwningLayer(AudioLayer layer)

@@ -88,9 +88,6 @@ namespace Emotion.Audio
         protected int _currentTrack = -1;
         protected List<AudioTrack> _playlist = new();
         protected float[] _internalBuffer;
-        protected float[] _internalBufferCrossFade;
-
-        protected float _crossFadePlayHead = 0; // Allows crossfading within the same track by providing a second playhead.
 
         protected AudioLayer(string name)
         {
@@ -249,21 +246,8 @@ namespace Emotion.Audio
             DbgBufferFillTimeTaken.Start();
 #endif
 
-            AudioTrack nextTrack = null;
-            // If cross fading check if there is another track afterward.
-            if (currentTrack.CrossFade.HasValue && (_currentTrack < playlistCount - 1 || LoopingCurrent))
-            {
-                if (LoopingCurrent)
-                    nextTrack = currentTrack;
-                else
-                    lock (_playlist)
-                    {
-                        nextTrack = _playlist[_currentTrack + 1];
-                    }
-            }
 
-            float baseVolume = Volume * Engine.Configuration.MasterVolume;
-            int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _internalBuffer, baseVolume, nextTrack, _internalBufferCrossFade);
+            int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _internalBuffer);
 
             // Fill destination buffer.
             int channels = format.Channels;
@@ -290,8 +274,9 @@ namespace Emotion.Audio
             // Check if looping.
             if (LoopingCurrent)
             {
-                currentTrack.Reset();
+                currentTrack.Reset(_crossFadePlayHead);
                 OnTrackLoop?.Invoke(currentTrack.File);
+                _crossFadePlayHead = 0;
             }
             // Otherwise, go to next track.
             else
@@ -347,6 +332,7 @@ namespace Emotion.Audio
                 }
 
                 _currentTrack = 0;
+                _crossFadePlayHead = 0;
             }
 
             InternalStatusChange(Status, newStatus);

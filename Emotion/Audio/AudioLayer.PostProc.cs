@@ -12,6 +12,9 @@ namespace Emotion.Audio
 {
     public abstract partial class AudioLayer
     {
+        protected float[] _internalBufferCrossFade;
+        protected int _crossFadePlayHead; // Allows crossfading within the same track by providing a second playhead.
+
         [Flags]
         protected enum PostProcParam
         {
@@ -20,25 +23,34 @@ namespace Emotion.Audio
             UseSecondaryPlayHead = 0x10
         }
 
-        protected static int GetProcessedFramesFromTrack(
-            AudioFormat format,
-            AudioTrack track,
-            int frames,
-            float[] memory,
-            float baseVolume,
-            AudioTrack nextTrack,
-            float[] crossFadeMemory,
-            PostProcParam param = PostProcParam.None
-        )
+        protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, PostProcParam param = PostProcParam.None)
         {
-            // Set the conversion format to the requested one - if it doesn't match.
-            track.EnsureAudioFormat(format);
-
             // Record where these frames are gotten from.
             int startingFrame = track.SampleIndex / format.Channels;
 
             // Get data.
-            int framesOutput = track.GetNextFrames(frames, memory, param.HasFlag(PostProcParam.UseSecondaryPlayHead));
+            int framesOutput;
+            if (param.HasFlag(PostProcParam.UseSecondaryPlayHead))
+            {
+                int samples = track.GetNextSamplesAt(_crossFadePlayHead, frames, memory);
+                _crossFadePlayHead += samples;
+                framesOutput = samples / format.Channels;
+            }
+            else
+            {
+                // Make sure received frames are in the expected format.
+                float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / track.TotalSamples : 0;
+                if (track.EnsureAudioFormat(format))
+                {
+                    // Readjust crossfade playhead - if in use.
+                    float newTotalSamples = track.TotalSamples;
+                    if (_crossFadePlayHead != 0) _crossFadePlayHead = (int) MathF.Floor(newTotalSamples * oldCrossfadeProgress);
+                }
+
+
+                framesOutput = track.GetNextFrames(frames, memory);
+            }
+
             Debug.Assert(framesOutput <= frames);
 
             // Force mono post process.
@@ -48,6 +60,7 @@ namespace Emotion.Audio
             if (mergeChannels) PostProcessForceMono(framesOutput, memory, channels);
 
             // Apply base volume modulation.
+            float baseVolume = Volume * Engine.Configuration.MasterVolume;
             baseVolume = MathF.Pow(baseVolume, Engine.Configuration.AudioCurve);
             for (var i = 0; i < frames; i++)
             {
@@ -62,12 +75,29 @@ namespace Emotion.Audio
             // Apply fading. (Only if not sampling for a cross-fade)
             if (param.HasFlag(PostProcParam.FromCrossFade)) return framesOutput;
 
-            bool noCrossFade = nextTrack == null;
-            if (noCrossFade)
-                PostProcessApplyFading(format, track, startingFrame, framesOutput, channels, memory);
-            else
-                PostProcessCrossFade(format, track, nextTrack, startingFrame, framesOutput, baseVolume, memory, crossFadeMemory);
+            // If cross fading check if there is another track afterward.
+            bool crossfade = track.CrossFade.HasValue;
+            if (crossfade)
+            {
+                AudioTrack nextTrack = null;
+                if (LoopingCurrent)
+                    nextTrack = track;
+                else
+                    lock (_playlist)
+                    {
+                        int playlistSize = _playlist.Count;
+                        if (_currentTrack < playlistSize - 1) nextTrack = _playlist[_currentTrack + 1];
+                    }
 
+                if (nextTrack != null)
+                {
+                    PostProcessCrossFade(format, track, nextTrack, startingFrame, framesOutput, memory);
+                    return framesOutput;
+                }
+            }
+            
+            // Apply fading. If the current track doesn't have a crossfade active.
+            PostProcessApplyFading(format, track, startingFrame, framesOutput, channels, memory);
             return framesOutput;
         }
 
@@ -180,8 +210,7 @@ namespace Emotion.Audio
         /// Apply cross fading between two tracks.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void PostProcessCrossFade(AudioFormat format, AudioTrack currentTrack, AudioTrack nextTrack, int startingFrame, int frameCount, float baseVolume, float[] soundData,
-            float[] crossFadeMemory)
+        private void PostProcessCrossFade(AudioFormat format, AudioTrack currentTrack, AudioTrack nextTrack, int startingFrame, int frameCount, float[] soundData)
         {
             int channels = format.Channels;
             float currentTrackDuration = currentTrack.File.Duration;
@@ -201,7 +230,7 @@ namespace Emotion.Audio
             // Get data from the next track.
             var param = PostProcParam.FromCrossFade;
             if (nextTrack == currentTrack) param |= PostProcParam.UseSecondaryPlayHead;
-            int nextTrackFrameCount = GetProcessedFramesFromTrack(format, nextTrack, frameCount, crossFadeMemory, baseVolume, null, null, param);
+            int nextTrackFrameCount = GetProcessedFramesFromTrack(format, nextTrack, frameCount, _internalBufferCrossFade, param);
             Debug.Assert(nextTrackFrameCount == frameCount);
 
             // Consistent power cross fade
@@ -222,7 +251,7 @@ namespace Emotion.Audio
                     {
                         int sampleIdx = frameInDataIdx + c;
                         float sampleCurrentTrack = soundData[sampleIdx] * volumeCur;
-                        float sampleNextTrack = crossFadeMemory[sampleIdx] * volumeNex;
+                        float sampleNextTrack = _internalBufferCrossFade[sampleIdx] * volumeNex;
                         soundData[sampleIdx] = sampleCurrentTrack + sampleNextTrack;
                     }
                 }
