@@ -433,6 +433,8 @@ namespace Emotion.Common
             // Flush logs.
             Log?.Dispose();
 
+            Audio?.Dispose();
+
             // Dispose of plugins.
             foreach (IPlugin p in Configuration.Plugins)
             {
