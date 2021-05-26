@@ -20,7 +20,7 @@ namespace Emotion.Tools.Windows.Audio
     {
         private FileExplorer<AudioAsset> _explorer;
         private string _newLayerName = "New Layer";
-        private int _waveFormHeight = 200;
+        private int _waveFormHeight = 100;
 
         private Dictionary<AudioLayer, WaveformVisualization> _waveFormCache = new Dictionary<AudioLayer, WaveformVisualization>();
 
@@ -63,7 +63,7 @@ namespace Emotion.Tools.Windows.Audio
             }
 
             // Push waveforms down.
-            composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, _waveFormHeight, 0)));
+            composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, 50, 0)));
 
             // Render ImGui section of layers.
             string[] layers = Engine.Audio.GetLayers();
@@ -72,11 +72,9 @@ namespace Emotion.Tools.Windows.Audio
                 AudioLayer layer = Engine.Audio.GetLayer(layers[i]);
                 _waveFormCache.TryGetValue(layer, out WaveformVisualization cache);
 
-                ImGui.Text($"Layer {layers[i]}");
-
                 ImGui.PushID(i);
-                ImGui.Text($"Status: {layer.Status}" +
-                           (layer.CurrentTrack != null ? $" {MathF.Truncate(layer.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration}" : ""));
+                ImGui.Text($"Layer: {layers[i]} [{layer.Status}] {(layer.CurrentTrack != null ? $" {MathF.Truncate(layer.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration:0.0}s" : "")}");
+
                 float volume = layer.Volume;
                 if (ImGui.DragFloat("Volume", ref volume, 0.01f, 0f, 1f))
                 {
@@ -87,47 +85,59 @@ namespace Emotion.Tools.Windows.Audio
                 if (ImGui.Button("Add To Queue"))
                     ExecuteOnFile(layer.AddToQueue);
                 ImGui.SameLine();
-                if (ImGui.Button("Play Next"))
+                if (ImGui.Button("Add To Play Next"))
                     ExecuteOnFile(layer.PlayNext);
                 ImGui.SameLine();
                 if (ImGui.Button("Quick Play"))
                     ExecuteOnFile(layer.QuickPlay);
 
-                if (ImGui.Button("Resume"))
-                    layer.Resume();
+                if(layer.Status == PlaybackStatus.Paused)
+                {
+                    if (ImGui.Button("Resume"))
+                        layer.Resume();
+                }
+                else
+                {
+                    if (ImGui.Button("Pause"))
+                        layer.Pause();
+                }
                 ImGui.SameLine();
-                if (ImGui.Button("Pause"))
-                    layer.Pause();
+                
                 ImGui.SameLine();
                 if (ImGui.Button("Stop"))
                     layer.Stop();
 
-                if (ImGui.Button("Loop Current"))
+                ImGui.SameLine();
+                if (ImGui.Button("Toggle Loop"))
                     layer.LoopingCurrent = !layer.LoopingCurrent;
                 ImGui.SameLine();
-                ImGui.Text(layer.LoopingCurrent.ToString());
+                ImGui.Text($"Looping: {layer.LoopingCurrent}");
 
-                var r = 0;
                 string[] items = layer.Playlist.Select(x => x.Name).ToArray();
-                ImGui.ListBox("Playlist", ref r, items, items.Length);
+                if (ImGui.TreeNode($"Playlist, Currently Playing: {(items.Length > 0 ? items[0] : "None")}"))
+                {
+                    var r = 0;
+                    ImGui.ListBox("", ref r, items, items.Length);
+                    ImGui.TreePop();
+                }
 
                 ImGui.PopID();
                 ImGui.NewLine();
 
-                composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(0, i * _waveFormHeight, 0)));
+                composer.PushModelMatrix(Matrix4x4.CreateTranslation(new Vector3(10, i * (_waveFormHeight + 10), 0)));
                 cache?.Render(composer);
                 composer.PopModelMatrix();
             }
 
             composer.PopModelMatrix();
 
+            ImGui.InputText("", ref _newLayerName, 50);
+            ImGui.SameLine();
             if (ImGui.Button("Create Layer") && !string.IsNullOrEmpty(_newLayerName))
             {
                 Engine.Audio.CreateLayer(_newLayerName);
                 _newLayerName = "New Layer" + Engine.Audio.GetLayers().Length;
             }
-
-            ImGui.InputText("", ref _newLayerName, 50);
         }
 
         public override void Update()
@@ -151,7 +161,7 @@ namespace Emotion.Tools.Windows.Audio
                 }
 
                 // Update waveform cache.
-                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Engine.Renderer.DrawBuffer.Size.X, _waveFormHeight);
+                if (layer.CurrentTrack != cache.Track) cache.Create(layer.CurrentTrack, Math.Min(25 * layer.CurrentTrack.File.Duration / 1.0f, 600), _waveFormHeight);
             }
         }
     }

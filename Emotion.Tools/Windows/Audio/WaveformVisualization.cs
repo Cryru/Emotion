@@ -10,7 +10,7 @@ using Emotion.Primitives;
 
 namespace Emotion.Tools.Windows.Audio
 {
-    public class WaveformCache : IRenderable
+    public class WaveformVisualization : IRenderable
     {
         public AudioLayer Layer;
         public AudioTrack Track;
@@ -19,7 +19,7 @@ namespace Emotion.Tools.Windows.Audio
         private float _cacheWidth;
         private float _cacheHeight;
 
-        public WaveformCache(AudioLayer layer)
+        public WaveformVisualization(AudioLayer layer)
         {
             Layer = layer;
         }
@@ -35,35 +35,37 @@ namespace Emotion.Tools.Windows.Audio
         public void Recreate()
         {
             if (Track == null) return;
-            float vol = Layer.Volume;
-            // Set the layer volume to 1 as we don't want it affecting the waveform.
-            Layer.Volume = 1.0f;
 
-            float interval = Track.File.Duration / _cacheWidth;
-            var sampleCount = (int) (1f / interval);
-            _cache = new Vector2[sampleCount];
             Span<float> soundDataSpan = Track.File.SoundData.Span;
+            int frames = soundDataSpan.Length / Track.File.Format.Channels;
 
-            for (var i = 0; i < sampleCount; i++)
+            int frameInterval = (int) (frames / _cacheWidth);
+            int numFrames = (int) (frames / frameInterval);
+            int frameIntervalVisually = (int) (_cacheWidth / numFrames);
+
+            _cache = new Vector2[numFrames];
+
+            for (int i = 0; i < numFrames; i++)
             {
-                float location = i == sampleCount - 1 ? 1 : i * interval;
-                float sample = soundDataSpan[(int) ((Track.File.SoundData.Length - 1) * location)];
-                _cache[i] = new Vector2(_cacheWidth * location, _cacheHeight * ((1.0f + sample) / 2f));
+                int frameIndex = i * frameInterval;
+                float frameValueFirstChannel = soundDataSpan[frameIndex];
+                _cache[i] = new Vector2(frameIntervalVisually * i, _cacheHeight * ((1.0f + frameValueFirstChannel) / 2f));
             }
-
-            Layer.Volume = vol;
         }
 
         public void Render(RenderComposer c)
         {
             if (Track == null || _cache == null) return;
 
+            c.RenderSprite(new Rectangle(0, 0, _cacheWidth, _cacheHeight), new Color(74, 74, 96));
+            //c.RenderVertices();
+
             for (var i = 1; i < _cache.Length; i++)
             {
                 c.RenderLine(_cache[i - 1], _cache[i], Color.Red);
             }
 
-            float progressLine = _cacheWidth * Track.Progress;
+            float progressLine = _cacheWidth * Layer.Progress;
             c.RenderLine(new Vector2(progressLine, 0), new Vector2(progressLine, _cacheHeight), Color.Yellow);
         }
 
