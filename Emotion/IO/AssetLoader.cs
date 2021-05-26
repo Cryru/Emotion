@@ -236,6 +236,7 @@ namespace Emotion.IO
             try
             {
                 store.SaveAsset(asset, name, backup);
+                Engine.Log.Info($"Saved asset {name} via {store}", MessageSource.AssetLoader);
 
                 // If it didn't exist until now - add it to the internal manifest.
                 if (!Exists(name)) _manifest.TryAdd(name, (AssetSource) store);
