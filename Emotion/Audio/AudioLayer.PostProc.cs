@@ -19,7 +19,7 @@ namespace Emotion.Audio
             int startingFrame = playhead / channels;
 
             // Get data.
-            int samples = _cache.GetCachedSamples(playhead, frames, memory);
+            int samples = track.File.ResampleCache.Value.GetCachedSamples(playhead, frames, memory);
             playhead += samples;
             int framesOutput = samples / channels;
             Debug.Assert(framesOutput <= frames);

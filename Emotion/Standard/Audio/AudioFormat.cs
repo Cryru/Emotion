@@ -94,7 +94,7 @@
             return (float) soundBufferBytes / (SampleRate * Channels * SampleSize);
         }
 
-        public int GetFramesAtTimestamp(float timeSeconds)
+        public int GetFrameIndexAtTimestamp(float timeSeconds)
         {
             return (int) (timeSeconds * SampleRate * Channels);
         }

@@ -275,8 +275,8 @@ namespace Emotion.Audio
             if (_playStateTrack != currentTrack)
             {
                 _playStateTrack = currentTrack;
+                _playHead = _crossFadePlayHead;
                 _crossFadePlayHead = 0;
-                _playHead = 0;
                 _cache = currentTrack.File.ResampleCache.Value;
                 _sampleIndexFormat = _cache.ConvFormat;
                 _totalSamples = _cache.ConvSamples;
@@ -324,9 +324,10 @@ namespace Emotion.Audio
             AudioTrack newTrack = null;
             if (LoopingCurrent)
             {
+                // Manually update playhead as track wont change.
                 _playHead = _crossFadePlayHead;
-                OnTrackLoop?.Invoke(currentTrack.File);
                 _crossFadePlayHead = 0;
+                OnTrackLoop?.Invoke(currentTrack.File);
                 newTrack = currentTrack;
             }
             // Otherwise, go to next track.
