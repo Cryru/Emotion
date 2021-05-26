@@ -85,8 +85,8 @@ namespace Emotion.Audio
         private const int VOLUME_MODULATION_FRAME_GRANULARITY = 100;
         private const int INITIAL_INTERNAL_BUFFER_SIZE = 4000;
 
-        protected int _currentTrack = -1;
-        protected List<AudioTrack> _playlist = new();
+        protected int _currentTrack = -1; // Always updated in _playlist locks
+        protected List<AudioTrack> _playlist = new(); // Always read and written in locks
         protected float[] _internalBuffer;
 
         protected AudioLayer(string name)
@@ -216,17 +216,6 @@ namespace Emotion.Audio
         {
             if (Status != PlaybackStatus.Playing) return 0;
 
-            AudioTrack currentTrack;
-            int playlistCount;
-            lock (_playlist)
-            {
-                playlistCount = _playlist.Count;
-
-                if (_currentTrack < 0 || _currentTrack > playlistCount - 1) return 0;
-                currentTrack = _playlist[_currentTrack];
-                if (currentTrack == null) return 0;
-            }
-
             // Pause sound if host is paused.
             if (Engine.Host != null && Engine.Host.HostPaused)
             {
@@ -234,7 +223,16 @@ namespace Emotion.Audio
                 Engine.Host.HostPausedWaiter.WaitOne();
             }
 
-            // Resize memory if needed.
+            // Get the currently playing track.
+            AudioTrack currentTrack;
+            lock (_playlist)
+            {
+                if (_currentTrack < 0 || _currentTrack > _playlist.Count - 1) return 0;
+                currentTrack = _playlist[_currentTrack];
+                if (currentTrack == null) return 0;
+            }
+
+            // Resize internal buffers if needed.
             int samplesRequested = framesRequested * format.Channels;
             if (_internalBuffer.Length < samplesRequested)
             {
@@ -246,10 +244,10 @@ namespace Emotion.Audio
             DbgBufferFillTimeTaken.Start();
 #endif
 
-
+            // Get post processed buffer data. (Float samples)
             int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _internalBuffer);
 
-            // Fill destination buffer.
+            // Fill destination buffer in destination sample size format.
             int channels = format.Channels;
             Span<byte> destBuffer = dest.Slice(framesOffset * format.FrameSize);
             for (var i = 0; i < framesOutput; i++)
@@ -272,32 +270,28 @@ namespace Emotion.Audio
             // If less frames were drawn than the buffer can take - the track is over.
 
             // Check if looping.
+            AudioTrack newTrack = null;
             if (LoopingCurrent)
             {
                 currentTrack.Reset(_crossFadePlayHead);
                 OnTrackLoop?.Invoke(currentTrack.File);
                 _crossFadePlayHead = 0;
+                newTrack = currentTrack;
             }
             // Otherwise, go to next track.
             else
             {
                 lock (_playlist)
                 {
-                    _playlist.RemoveAt(0);
+                    _playlist.Remove(currentTrack);
+                    if( _playlist.Count > 0 && _currentTrack != -1)
+                        newTrack = _playlist[_currentTrack];
                 }
-
-                playlistCount--;
             }
 
             // Check if there are more tracks.
-            if (playlistCount > 0 && _currentTrack != -1)
+            if (newTrack != null)
             {
-                AudioTrack newTrack;
-                lock (_playlist)
-                {
-                    newTrack = _playlist[_currentTrack];
-                }
-
                 OnTrackChanged?.Invoke(currentTrack.File, newTrack.File);
                 if (newTrack.SetLoopingCurrent) LoopingCurrent = true;
 
@@ -319,6 +313,9 @@ namespace Emotion.Audio
 
         #endregion
 
+        /// <summary>
+        /// Always used in _playlist locks.
+        /// </summary>
         private void TransitionStatus(PlaybackStatus newStatus)
         {
             // If wasn't playing - but now am, and the current track is invalid, set the current track.
