@@ -22,7 +22,7 @@ namespace Emotion.Tools.Windows.Audio
         private string _newLayerName = "New Layer";
         private int _waveFormHeight = 200;
 
-        private Dictionary<AudioLayer, WaveformCache> _waveFormCache = new Dictionary<AudioLayer, WaveformCache>();
+        private Dictionary<AudioLayer, WaveformVisualization> _waveFormCache = new Dictionary<AudioLayer, WaveformVisualization>();
 
         public AudioMixer() : base("Audio Mixer")
         {
@@ -50,7 +50,7 @@ namespace Emotion.Tools.Windows.Audio
             if (ImGui.DragFloat("Global Volume", ref masterVol, 0.01f, 0f, 1f))
             {
                 Engine.Configuration.MasterVolume = masterVol;
-                foreach (KeyValuePair<AudioLayer, WaveformCache> cache in _waveFormCache)
+                foreach (KeyValuePair<AudioLayer, WaveformVisualization> cache in _waveFormCache)
                 {
                     cache.Value.Recreate();
                 }
@@ -70,13 +70,13 @@ namespace Emotion.Tools.Windows.Audio
             for (var i = 0; i < layers.Length; i++)
             {
                 AudioLayer layer = Engine.Audio.GetLayer(layers[i]);
-                _waveFormCache.TryGetValue(layer, out WaveformCache cache);
+                _waveFormCache.TryGetValue(layer, out WaveformVisualization cache);
 
                 ImGui.Text($"Layer {layers[i]}");
 
                 ImGui.PushID(i);
                 ImGui.Text($"Status: {layer.Status}" +
-                           (layer.CurrentTrack != null ? $" {MathF.Truncate(layer.CurrentTrack.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration}" : ""));
+                           (layer.CurrentTrack != null ? $" {MathF.Truncate(layer.Playback * 100f) / 100f:0}/{layer.CurrentTrack.File.Duration}" : ""));
                 float volume = layer.Volume;
                 if (ImGui.DragFloat("Volume", ref volume, 0.01f, 0f, 1f))
                 {
@@ -137,10 +137,10 @@ namespace Emotion.Tools.Windows.Audio
             {
                 AudioLayer layer = Engine.Audio.GetLayer(layers[i]);
 
-                _waveFormCache.TryGetValue(layer, out WaveformCache cache);
+                _waveFormCache.TryGetValue(layer, out WaveformVisualization cache);
                 if (cache == null)
                 {
-                    cache = new WaveformCache(layer);
+                    cache = new WaveformVisualization(layer);
                     _waveFormCache[layer] = cache;
                 }
 

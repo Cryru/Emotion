@@ -30,6 +30,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
         /// <summary>
         /// Late initialization for the WasApi backend's representation of this device.
+        /// Todo: Catch and handle all the possible COM exceptions here :/
         /// </summary>
         public WasApiLayerContext CreateLayerContext()
         {

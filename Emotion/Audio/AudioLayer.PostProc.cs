@@ -12,50 +12,20 @@ namespace Emotion.Audio
 {
     public abstract partial class AudioLayer
     {
-        protected float[] _internalBufferCrossFade;
-        protected int _crossFadePlayHead; // Allows crossfading within the same track by providing a second playhead.
-
-        [Flags]
-        protected enum PostProcParam
-        {
-            None,
-            FromCrossFade = 0x1,
-            UseSecondaryPlayHead = 0x10
-        }
-
-        protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, PostProcParam param = PostProcParam.None)
+        protected int GetProcessedFramesFromTrack(AudioFormat format, AudioTrack track, int frames, float[] memory, ref int playhead, bool applyFading = true)
         {
             // Record where these frames are gotten from.
-            int startingFrame = track.SampleIndex / format.Channels;
+            int channels = format.Channels;
+            int startingFrame = playhead / channels;
 
             // Get data.
-            int framesOutput;
-            if (param.HasFlag(PostProcParam.UseSecondaryPlayHead))
-            {
-                int samples = track.GetNextSamplesAt(_crossFadePlayHead, frames, memory);
-                _crossFadePlayHead += samples;
-                framesOutput = samples / format.Channels;
-            }
-            else
-            {
-                // Make sure received frames are in the expected format.
-                float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / track.TotalSamples : 0;
-                if (track.EnsureAudioFormat(format))
-                {
-                    // Readjust crossfade playhead - if in use.
-                    float newTotalSamples = track.TotalSamples;
-                    if (_crossFadePlayHead != 0) _crossFadePlayHead = (int) MathF.Floor(newTotalSamples * oldCrossfadeProgress);
-                }
-
-
-                framesOutput = track.GetNextFrames(frames, memory);
-            }
-
+            int samples = _cache.GetCachedSamples(playhead, frames, memory);
+            playhead += samples;
+            int framesOutput = samples / channels;
             Debug.Assert(framesOutput <= frames);
 
             // Force mono post process.
             // Dont apply force mono on tracks while the resampler applied mono to.
-            int channels = format.Channels;
             bool mergeChannels = Engine.Configuration.ForceMono && channels != 1 && track.File.Format.Channels != 1;
             if (mergeChannels) PostProcessForceMono(framesOutput, memory, channels);
 
@@ -72,8 +42,8 @@ namespace Emotion.Audio
                 }
             }
 
-            // Apply fading. (Only if not sampling for a cross-fade)
-            if (param.HasFlag(PostProcParam.FromCrossFade)) return framesOutput;
+            // Apply fading, if needed. For instance we don't want additional fading while crossfading.
+            if (!applyFading) return framesOutput;
 
             // If cross fading check if there is another track afterward.
             bool crossfade = track.CrossFade.HasValue;
@@ -124,13 +94,13 @@ namespace Emotion.Audio
             }
         }
 
-        private static void PostProcessApplyFading(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
+        private void PostProcessApplyFading(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
         {
             if (currentTrack.FadeIn != null) ApplyFadeIn(format, currentTrack, frameStart, frameCount, channels, soundData);
             if (currentTrack.FadeOut != null) ApplyFadeOut(format, currentTrack, frameStart, frameCount, channels, soundData);
         }
 
-        private static void ApplyFadeIn(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
+        private void ApplyFadeIn(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
         {
             // Calculate fade start.
             float currentTrackDuration = currentTrack.File.Duration;
@@ -172,7 +142,7 @@ namespace Emotion.Audio
             }
         }
 
-        private static void ApplyFadeOut(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
+        private void ApplyFadeOut(AudioFormat format, AudioTrack currentTrack, int frameStart, int frameCount, int channels, float[] soundData)
         {
             // Refer to FadeIn comments.
             float currentTrackDuration = currentTrack.File.Duration;
@@ -181,7 +151,7 @@ namespace Emotion.Audio
                 fadeOutDuration = currentTrackDuration * -fadeOutDuration;
 
             var fadeOutFrames = (int) MathF.Floor(fadeOutDuration * format.SampleRate);
-            int fadeOutFrameStart = currentTrack.TotalSamples / channels - fadeOutFrames;
+            int fadeOutFrameStart = _totalSamples / channels - fadeOutFrames;
             if (frameStart <= fadeOutFrameStart) return;
 
             var localFrame = 0;
@@ -224,13 +194,11 @@ namespace Emotion.Audio
             // Add a fade in to the next track (if none). Makes the cross fade better.
             // The current track already has a fade out applied in post processing.
             int crossFadeFrames = (int) MathF.Floor(crossFadeDuration * format.SampleRate * channels) / channels;
-            int crossFadeStartAtFrame = currentTrack.TotalSamples / channels - crossFadeFrames;
+            int crossFadeStartAtFrame = _totalSamples / channels - crossFadeFrames;
             if (crossFadeStartAtFrame > startingFrame) return;
 
             // Get data from the next track.
-            var param = PostProcParam.FromCrossFade;
-            if (nextTrack == currentTrack) param |= PostProcParam.UseSecondaryPlayHead;
-            int nextTrackFrameCount = GetProcessedFramesFromTrack(format, nextTrack, frameCount, _internalBufferCrossFade, param);
+            int nextTrackFrameCount = GetProcessedFramesFromTrack(format, nextTrack, frameCount, _internalBufferCrossFade, ref _crossFadePlayHead, false);
             Debug.Assert(nextTrackFrameCount == frameCount);
 
             // Consistent power cross fade

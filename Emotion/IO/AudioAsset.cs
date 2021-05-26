@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System;
+using System.Threading;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Audio;
@@ -37,9 +38,14 @@ namespace Emotion.IO
         /// <summary>
         /// A cached version of the track. Resampled and converted to a specific format.
         /// </summary>
-        public TrackResampleCache ResampleCache { get; set; }
+        public Lazy<TrackResampleCache> ResampleCache { get; }
 
         #endregion
+
+        public AudioAsset()
+        {
+            ResampleCache = new Lazy<TrackResampleCache>(() => new TrackResampleCache(this), LazyThreadSafetyMode.ExecutionAndPublication);
+        }
 
         protected override void CreateInternal(ReadOnlyMemory<byte> data)
         {
@@ -49,7 +55,7 @@ namespace Emotion.IO
                 // Get the data.
                 ReadOnlyMemory<byte> pcm = WavFormat.Decode(data, out AudioFormat format);
                 if (pcm.IsEmpty) return;
-                if(format.UnsupportedBitsPerSample())
+                if (format.UnsupportedBitsPerSample())
                     Engine.Log.Warning($"Unsupported bits per sample ({format.BitsPerSample}) format in audio file {Name}", MessageSource.Audio);
 
                 // Convert to float, for easier resampling and post processing.

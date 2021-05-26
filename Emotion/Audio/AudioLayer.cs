@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.IO;
@@ -54,6 +55,30 @@ namespace Emotion.Audio
         }
 
         /// <summary>
+        /// What percentage (0-1) of the track has finished playing.
+        /// </summary>
+        public float Progress
+        {
+            get
+            {
+                if (_playHead == 0) return 0f;
+                return (float) _playHead / _totalSamples;
+            }
+        }
+
+        /// <summary>
+        /// How far along the duration of the file the track has finished playing.
+        /// </summary>
+        public float Playback
+        {
+            get
+            {
+                if (_playStateTrack == null) return 0;
+                return Progress * _playStateTrack.File.Duration;
+            }
+        }
+
+        /// <summary>
         /// The current playlist.
         /// Do not use this except for debugging and such.
         /// To get the current track use "CurrentTrack"
@@ -88,6 +113,14 @@ namespace Emotion.Audio
         protected int _currentTrack = -1; // Always updated in _playlist locks
         protected List<AudioTrack> _playlist = new(); // Always read and written in locks
         protected float[] _internalBuffer;
+        protected float[] _internalBufferCrossFade;
+
+        protected AudioTrack _playStateTrack;
+        protected TrackResampleCache _cache;
+        protected AudioFormat _sampleIndexFormat;
+        protected int _totalSamples;
+        protected int _playHead;
+        protected int _crossFadePlayHead;
 
         protected AudioLayer(string name)
         {
@@ -105,8 +138,6 @@ namespace Emotion.Audio
         /// <param name="track">The track to play next.</param>
         public void PlayNext(AudioTrack track)
         {
-            if (!track.SetOwningLayer(this)) return;
-
             lock (_playlist)
             {
                 _playlist.Insert(_currentTrack + 1, track);
@@ -126,8 +157,6 @@ namespace Emotion.Audio
         /// <param name="track">The track to play.</param>
         public void AddToQueue(AudioTrack track)
         {
-            if (!track.SetOwningLayer(this)) return;
-
             lock (_playlist)
             {
                 _playlist.Add(track);
@@ -147,8 +176,6 @@ namespace Emotion.Audio
         /// </summary>
         public void QuickPlay(AudioTrack track)
         {
-            if (!track.SetOwningLayer(this)) return;
-
             lock (_playlist)
             {
                 _playlist.Clear();
@@ -205,7 +232,7 @@ namespace Emotion.Audio
 #if DEBUG
 
         public static Stopwatch DbgBufferFillTimeTaken = new Stopwatch();
-        private static object _attachRefresh = ((Func<object>) (() =>
+        private static object _profilerRefresh = ((Func<object>) (() =>
         {
             Engine.DebugOnUpdateStart += (s, e) => { DbgBufferFillTimeTaken.Reset(); };
             return null;
@@ -244,8 +271,32 @@ namespace Emotion.Audio
             DbgBufferFillTimeTaken.Start();
 #endif
 
+            // Check if the play state needs updating. This means that the current track has changed.
+            if (_playStateTrack != currentTrack)
+            {
+                _playStateTrack = currentTrack;
+                _crossFadePlayHead = 0;
+                _playHead = 0;
+                _cache = currentTrack.File.ResampleCache.Value;
+                _sampleIndexFormat = _cache.ConvFormat;
+                _totalSamples = _cache.ConvSamples;
+            }
+
+            // Make sure we're getting the samples in the format we think we are.
+            float oldCrossfadeProgress = _crossFadePlayHead != 0 ? _crossFadePlayHead / _totalSamples : 0;
+            if (!format.Equals(_sampleIndexFormat))
+            {
+                float progress = _playHead != 0 ? (float) _playHead / _totalSamples : 0;
+                _playHead = _cache.SetConvertFormatAndCacheFrom(format, progress);
+                _sampleIndexFormat = format;
+                _totalSamples = _cache.ConvSamples;
+
+                // Readjust crossfade playhead - if in use.
+                if (_crossFadePlayHead != 0) _crossFadePlayHead = (int) MathF.Floor(_totalSamples * oldCrossfadeProgress);
+            }
+
             // Get post processed buffer data. (Float samples)
-            int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _internalBuffer);
+            int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _internalBuffer, ref _playHead);
 
             // Fill destination buffer in destination sample size format.
             int channels = format.Channels;
@@ -273,7 +324,7 @@ namespace Emotion.Audio
             AudioTrack newTrack = null;
             if (LoopingCurrent)
             {
-                currentTrack.Reset(_crossFadePlayHead);
+                _playHead = _crossFadePlayHead;
                 OnTrackLoop?.Invoke(currentTrack.File);
                 _crossFadePlayHead = 0;
                 newTrack = currentTrack;

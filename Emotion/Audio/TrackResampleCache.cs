@@ -107,11 +107,12 @@ namespace Emotion.Audio
         }
 
         /// <summary>
-        /// Set the convert format, and restart caching from a certain point.
+        /// Set the convert format, and restart conversion from the provided point.
+        /// If the cache format is already this format it will just convert the provided progress normal to the sample index.
         /// </summary>
         /// <param name="dstFormat">The format to set.</param>
         /// <param name="progress">The progress to restart caching from.</param>
-        /// <returns></returns>
+        /// <returns>The provided progress normal to its corresponding sample index.</returns>
         public int SetConvertFormatAndCacheFrom(AudioFormat dstFormat, float progress)
         {
             if (ConvFormat != null && ConvFormat.Equals(dstFormat)) return (int)MathF.Floor(ConvSamples * progress);
