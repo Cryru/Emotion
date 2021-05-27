@@ -138,6 +138,8 @@ namespace Emotion.Audio
         /// <param name="track">The track to play next.</param>
         public void PlayNext(AudioTrack track)
         {
+            if (track.File == null) return;
+
             lock (_playlist)
             {
                 _playlist.Insert(_currentTrack + 1, track);
@@ -157,6 +159,8 @@ namespace Emotion.Audio
         /// <param name="track">The track to play.</param>
         public void AddToQueue(AudioTrack track)
         {
+            if (track.File == null) return;
+
             lock (_playlist)
             {
                 _playlist.Add(track);
@@ -176,6 +180,8 @@ namespace Emotion.Audio
         /// </summary>
         public void QuickPlay(AudioTrack track)
         {
+            if (track.File == null) return;
+
             lock (_playlist)
             {
                 _playlist.Clear();
