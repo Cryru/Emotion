@@ -301,6 +301,12 @@ namespace Emotion.Graphics
         {
             // Recalculate scale.
             Vector2 baseRes = Engine.Configuration.RenderSize;
+            if (size.X < baseRes.X || size.Y < baseRes.Y)
+            {
+                Engine.Log.Info($"Tried to resize host to {size} which is below minimum size (render size) {baseRes}", MessageSource.Renderer);
+                return;
+            }
+            
             Vector2 ratio = size / baseRes;
             Scale = MathF.Min(ratio.X, ratio.Y);
             IntScale = (int) MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
