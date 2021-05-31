@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Collections.Generic;
+using System.Threading;
 using Emotion.Audio;
 using Emotion.Common;
 using Emotion.Standard.Logging;
@@ -12,6 +13,8 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 {
     public sealed class WasApiAudioAdapter : IAudioAdapter, IMMNotificationClient
     {
+        public const int BUFFER_DURATION_MS = 125;
+
         public static WasApiAudioAdapter TryCreate()
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
@@ -60,11 +63,46 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             // Register to audio device events.
             _enumerator.RegisterEndpointNotificationCallback(this);
+
+            var thread = new Thread(LayerThread)
+            {
+                Priority = ThreadPriority.Highest,
+            };
+            thread.Start();
+            while (!thread.IsAlive)
+            {
+            }
+        }
+
+        private List<WasApiLayer> _layers = new List<WasApiLayer>();
+
+        private void LayerThread()
+        {
+            if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= $"Audio Thread";
+            const int updateInterval = BUFFER_DURATION_MS / 2;
+            while(Engine.Status != EngineStatus.Stopped)
+            {
+                for (var i = 0; i < _layers.Count; i++)
+                {
+                    WasApiLayer layer = _layers[i];
+                    if (layer == null) continue;
+                    if (layer.Disposed)
+                    {
+                        _layers[i] = null;
+                        continue;
+                    }
+                    layer.ProcUpdate(DefaultDevice);
+                }
+
+                Thread.Sleep(updateInterval);
+            }
         }
 
         public AudioLayer CreatePlatformAudioLayer(string layerName)
         {
-            return new WasApiLayer(layerName, this);
+            var newLayer = new WasApiLayer(layerName);
+            _layers.Add(newLayer);
+            return newLayer;
         }
 
         #region Events

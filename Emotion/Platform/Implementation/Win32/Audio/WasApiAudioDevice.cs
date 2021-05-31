@@ -51,7 +51,7 @@ namespace Emotion.Platform.Implementation.Win32.Audio
             if (audioClientFormat.ExtraSize >= 22) audioClientFormat = Marshal.PtrToStructure<WaveFormatExtensible>(deviceFormat);
             context.AudioClientFormat = audioClientFormat.ToEmotionFormat();
 
-            error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.EventCallback, 0, 0, deviceFormat, Guid.Empty);
+            error = audioClient.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.None, TimeSpan.FromMilliseconds(WasApiAudioAdapter.BUFFER_DURATION_MS).Ticks, 0, deviceFormat, Guid.Empty);
             if (error != 0) Win32Platform.CheckError($"Couldn't initialize the audio client of device {Name}. Mix format is of the {audioClientFormat.Tag} type.", true);
 
             // Get data.
@@ -61,11 +61,6 @@ namespace Emotion.Platform.Implementation.Win32.Audio
 
             error = audioClient.GetBufferSize(out context.BufferSize);
             if (error != 0) Win32Platform.CheckError($"Couldn't get device {Name} buffer size.", true);
-
-            // Set wait handle for when the client is ready to process a buffer.
-            context.WaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
-            error = audioClient.SetEventHandle(context.WaitHandle.SafeWaitHandle.DangerousGetHandle());
-            if (error != 0) Win32Platform.CheckError($"Couldn't set audio wait handle for device {Name}.", true);
 
             error = audioClient.GetService(IdAudioRenderClient, out object audioRenderClient);
             if (error != 0) Win32Platform.CheckError($"Couldn't get the audio render client for device {Name}.", true);
