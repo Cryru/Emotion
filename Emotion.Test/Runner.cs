@@ -167,6 +167,7 @@ namespace Emotion.Test
             {
                 Task tests = Task.Run(BeginRun);
                 while (!tests.IsCompleted) TestLoopUpdate();
+                Engine.Quit();
                 return;
             }
 
