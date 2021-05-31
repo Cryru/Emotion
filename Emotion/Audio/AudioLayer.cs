@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Emotion.Common;
 using Emotion.Common.Threading;
 using Emotion.IO;
@@ -236,7 +235,7 @@ namespace Emotion.Audio
         #region Stream Logic
 
 #if DEBUG
-
+        public static long LongestFillTimeTaken;
         public static Stopwatch DbgBufferFillTimeTaken = new Stopwatch();
         private static object _profilerRefresh = ((Func<object>) (() =>
         {
@@ -305,19 +304,12 @@ namespace Emotion.Audio
             int framesOutput = GetProcessedFramesFromTrack(format, currentTrack, framesRequested, _internalBuffer, ref _playHead);
 
             // Fill destination buffer in destination sample size format.
-            int channels = format.Channels;
             Span<byte> destBuffer = dest.Slice(framesOffset * format.FrameSize);
-            for (var i = 0; i < framesOutput; i++)
-            {
-                int frameIdx = i * channels;
-                for (var c = 0; c < channels; c++)
-                {
-                    int sampleIdx = frameIdx + c;
-                    AudioStreamer.SetSampleAsFloat(sampleIdx, _internalBuffer[sampleIdx], destBuffer, format);
-                }
-            }
+            var srcBuffer = new Span<float>(_internalBuffer, 0, framesOutput * format.FrameSize / 4);
+            AudioStreamer.SetBufferOfSamplesAsFloat(srcBuffer, destBuffer, format);
 
 #if DEBUG
+            if (DbgBufferFillTimeTaken.ElapsedMilliseconds > LongestFillTimeTaken) LongestFillTimeTaken = DbgBufferFillTimeTaken.ElapsedMilliseconds;
             DbgBufferFillTimeTaken.Stop();
 #endif
 
@@ -342,7 +334,7 @@ namespace Emotion.Audio
                 lock (_playlist)
                 {
                     _playlist.Remove(currentTrack);
-                    if( _playlist.Count > 0 && _currentTrack != -1)
+                    if (_playlist.Count > 0 && _currentTrack != -1)
                         newTrack = _playlist[_currentTrack];
                 }
             }

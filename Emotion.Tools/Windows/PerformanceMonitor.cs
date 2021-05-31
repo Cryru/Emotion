@@ -95,7 +95,6 @@ namespace Emotion.Tools.Windows
             ImGui.PlotLines("Update Count", ref _updateTracker[0], _updateTracker.Length, 0, "", 0, 5);
             ImGui.Text($"FPS {_fps}");
             ImGui.Text($"Reported DeltaTime {Engine.DeltaTime}");
-            ImGui.Text($"AudioLayer Fill Time {AudioLayer.DbgBufferFillTimeTaken.ElapsedMilliseconds}ms");
 
 #if DEBUG
             ImGui.PlotLines("Precise Update (Ms)", ref _eventUpdateTracker[0], _eventUpdateTracker.Length, 0, "", 0, 3000);
@@ -104,6 +103,13 @@ namespace Emotion.Tools.Windows
 
             ImGui.Text("This option requires Emotion to have been compiled with the `PROFILER` flag.");
             ImGui.Checkbox("Profiler LagSpike Monitor", ref PerfProfiler.LagSpikeMonitor);
+
+            ImGui.Text("Audio");
+            ImGui.Text(" ");
+
+            ImGui.Text($"AudioLayer Fill Time {AudioLayer.DbgBufferFillTimeTaken.ElapsedMilliseconds}ms");
+            ImGui.Text($"AudioLayer Longest Fill Time {AudioLayer.LongestFillTimeTaken}ms");
+            if (ImGui.Button("Clear Longest")) AudioLayer.LongestFillTimeTaken = 0;
 #else
             ImGui.Text("Compile in debug mode for more detailed info.");
 #endif

@@ -39,7 +39,7 @@ namespace Emotion.Standard.Audio
             get
             {
                 int channels = ConvFormat?.Channels ?? SourceFormat.Channels;
-                return (float)_srcResume / SourceConvFormatSamples * channels;
+                return (float) _srcResume / SourceConvFormatSamples * channels;
             }
         }
 
@@ -54,6 +54,7 @@ namespace Emotion.Standard.Audio
         private const sbyte CHANNEL_REMAP_MONO = -101;
         private const sbyte CHANNEL_REMAP_SURROUND = -100;
         private const sbyte REMAP_WILDCARD = sbyte.MinValue;
+
         private static sbyte[] _surroundChannelsMapping =
         {
             -1, // Front Left
@@ -90,7 +91,7 @@ namespace Emotion.Standard.Audio
             ConvFormat = dstFormat;
             ConvQuality = quality;
             _convQuality2 = quality * 2;
-            ResampleRatio = (float)dstFormat.SampleRate / SourceFormat.SampleRate;
+            ResampleRatio = (float) dstFormat.SampleRate / SourceFormat.SampleRate;
 
             int srcChannels = SourceFormat.Channels;
             int dstChannels = ConvFormat.Channels;
@@ -107,15 +108,15 @@ namespace Emotion.Standard.Audio
             sbyte mixDownFlag = dstChannels == 1 ? CHANNEL_REMAP_MONO : CHANNEL_REMAP_SURROUND;
             for (var i = 0; i < dstChannels; i++)
             {
-                _channelRemapping[i] = mixDown ? mixDownFlag : (sbyte)(i % srcChannels);
+                _channelRemapping[i] = mixDown ? mixDownFlag : (sbyte) (i % srcChannels);
             }
 
             SourceSamplesPerChannel = SourceConvFormatSamples / dstChannels;
-            ConvSamples = (int)(SourceConvFormatSamples * ResampleRatio);
-            _resampleStep = (double)SourceSamplesPerChannel / (ConvSamples / dstChannels);
+            ConvSamples = (int) (SourceConvFormatSamples * ResampleRatio);
+            _resampleStep = (double) SourceSamplesPerChannel / (ConvSamples / dstChannels);
 
             if (keepProgress)
-                _dstResume = (int)(_srcResume / _resampleStep * ConvFormat.Channels);
+                _dstResume = (int) (_srcResume / _resampleStep * ConvFormat.Channels);
             else
                 Reset();
         }
@@ -130,7 +131,7 @@ namespace Emotion.Standard.Audio
         {
             // Gets the resampled samples.
             int sampleCount = frameCount * ConvFormat.Channels;
-            Debug.Assert((int)(_srcResume / _resampleStep * ConvFormat.Channels) - _dstResume <= 1);
+            Debug.Assert((int) (_srcResume / _resampleStep * ConvFormat.Channels) - _dstResume <= 1);
             int convertedSamples = PartialResample(ref _srcResume, ref _dstResume, sampleCount, buffer);
             if (convertedSamples == 0) return 0;
 
@@ -184,7 +185,7 @@ namespace Emotion.Standard.Audio
                     int tau;
                     for (tau = -ConvQuality; tau < ConvQuality; tau++)
                     {
-                        var inputSampleIdx = (int)(srcStartIdx + tau);
+                        var inputSampleIdx = (int) (srcStartIdx + tau);
                         double relativeIdx = inputSampleIdx - srcStartIdx;
 
                         // Hann Window. Scale and calculate sinc
@@ -196,7 +197,7 @@ namespace Emotion.Standard.Audio
                         rY += rG * rW * rSnc * GetChannelConvertedSample(inputSampleIdx * srcChannels, c, soundData);
                     }
 
-                    float value = MathF.Min(MathF.Max(-1, (float)rY), 1);
+                    float value = MathF.Min(MathF.Max(-1, (float) rY), 1);
                     samples[targetBufferIdx + c] = value;
                 }
 
@@ -217,7 +218,7 @@ namespace Emotion.Standard.Audio
         protected float GetChannelConvertedSample(int srcSampleIdx, int dstChannel, Span<float> soundData)
         {
             sbyte conversion = _channelRemapping[dstChannel];
-            if (conversion >= 0) return soundData[srcSampleIdx + (byte)conversion];
+            if (conversion >= 0) return soundData[srcSampleIdx + (byte) conversion];
 
             // Merge all source channels.
             float sampleAccum = 0;
@@ -243,6 +244,7 @@ namespace Emotion.Standard.Audio
                 float channelSample = soundData[srcSampleIdx + i];
                 sampleAccum += channelSample;
             }
+
             return Maths.Clamp(sampleAccum, -1, 1);
         }
 
@@ -271,21 +273,21 @@ namespace Emotion.Standard.Audio
             switch (srcFormat.BitsPerSample)
             {
                 case 8: // ubyte (C# byte)
-                    output = (float)srcData[sampleIdx] / byte.MaxValue;
+                    output = (float) srcData[sampleIdx] / byte.MaxValue;
                     break;
                 case 16: // short
                     var dataShort = BitConverter.ToInt16(srcData.Slice(sampleIdx * 2, 2));
                     if (dataShort < 0)
-                        output = (float)-dataShort / short.MinValue;
+                        output = (float) -dataShort / short.MinValue;
                     else
-                        output = (float)dataShort / short.MaxValue;
+                        output = (float) dataShort / short.MaxValue;
                     break;
                 case 32 when !srcFormat.IsFloat: // int
                     var dataInt = BitConverter.ToInt32(srcData.Slice(sampleIdx * 4, 4));
                     if (dataInt < 0)
-                        output = (float)-dataInt / int.MinValue;
+                        output = (float) -dataInt / int.MinValue;
                     else
-                        output = (float)dataInt / int.MaxValue;
+                        output = (float) dataInt / int.MaxValue;
                     break;
                 case 32: // float
                     output = BitConverter.ToSingle(srcData.Slice(sampleIdx * 4, 4));
@@ -311,22 +313,22 @@ namespace Emotion.Standard.Audio
             {
                 case 8: // ubyte (C# byte)
                     sampleIdx /= 4;
-                    dstData[sampleIdx] = (byte)(value * byte.MaxValue);
+                    dstData[sampleIdx] = (byte) (value * byte.MaxValue);
                     break;
                 case 16: // short
                     sampleIdx /= 2;
                     Span<short> dataShort = MemoryMarshal.Cast<byte, short>(dstData);
                     if (value < 0)
-                        dataShort[sampleIdx] = (short)(-value * short.MinValue);
+                        dataShort[sampleIdx] = (short) (-value * short.MinValue);
                     else
-                        dataShort[sampleIdx] = (short)(value * short.MaxValue);
+                        dataShort[sampleIdx] = (short) (value * short.MaxValue);
                     break;
                 case 32 when !dstFormat.IsFloat: // int
                     Span<int> dataInt = MemoryMarshal.Cast<byte, int>(dstData);
                     if (value < 0)
-                        dataInt[sampleIdx] = (int)(-value * int.MinValue);
+                        dataInt[sampleIdx] = (int) (-value * int.MinValue);
                     else
-                        dataInt[sampleIdx] = (int)(value * int.MaxValue);
+                        dataInt[sampleIdx] = (int) (value * int.MaxValue);
 
                     break;
                 case 32:
@@ -334,6 +336,48 @@ namespace Emotion.Standard.Audio
                     dataFloat[sampleIdx] = value;
                     break;
                 default:
+                    break;
+            }
+        }
+
+        public static void SetBufferOfSamplesAsFloat(Span<float> floatSrc, Span<byte> dstData, AudioFormat dstFormat)
+        {
+            switch (dstFormat.BitsPerSample)
+            {
+                case 8:
+                    const short byteMax = byte.MaxValue;
+                    for (var i = 0; i < floatSrc.Length; i++)
+                    {
+                        float value = floatSrc[i];
+                        dstData[i / 4] = (byte) (value * byteMax);
+                    }
+
+                    return;
+                case 16:
+                    Span<short> dataShort = MemoryMarshal.Cast<byte, short>(dstData);
+                    const short shortMin = short.MinValue;
+                    const short shortMax = short.MaxValue;
+                    for (var i = 0; i < floatSrc.Length; i++)
+                    {
+                        float value = floatSrc[i];
+                        dataShort[i / 2] = (short) (value < 0 ? -value * shortMin : value * shortMax);
+                    }
+
+                    break;
+                case 32 when !dstFormat.IsFloat:
+                    Span<int> dataInt = MemoryMarshal.Cast<byte, int>(dstData);
+                    const int intMin = int.MinValue;
+                    const int intMax = int.MaxValue;
+                    for (var i = 0; i < floatSrc.Length; i++)
+                    {
+                        float value = floatSrc[i];
+                        dataInt[i] = (int) (value < 0 ? -value * intMin : value * intMax);
+                    }
+
+                    break;
+                case 32:
+                    Span<float> dataFloat = MemoryMarshal.Cast<byte, float>(dstData);
+                    floatSrc.CopyTo(dataFloat);
                     break;
             }
         }
