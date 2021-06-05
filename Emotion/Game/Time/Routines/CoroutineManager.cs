@@ -7,6 +7,8 @@ using System.Diagnostics;
 
 #endregion
 
+#nullable enable
+
 namespace Emotion.Game.Time.Routines
 {
     /// <summary>
@@ -14,6 +16,13 @@ namespace Emotion.Game.Time.Routines
     /// </summary>
     public class CoroutineManager
     {
+        /// <summary>
+        /// The routine currently running. Subroutines are considered.
+        /// Null if no routine is currently running. Can be used by coroutine functions
+        /// to get a reference to their own routine.
+        /// </summary>
+        public Coroutine? Current { get; protected set; }
+
         /// <summary>
         /// The number of coroutines currently running.
         /// </summary>
@@ -31,7 +40,7 @@ namespace Emotion.Game.Time.Routines
         /// <summary>
         /// List of running routines.
         /// </summary>
-        private List<Coroutine> _runningRoutines = new List<Coroutine>();
+        private List<Coroutine> _runningRoutines = new();
 
         /// <summary>
         /// Start a new coroutine.
@@ -47,10 +56,6 @@ namespace Emotion.Game.Time.Routines
                 Debug.Assert(routine.Parent == null, "Each coroutine should only run within one manager.");
                 routine.Parent = this;
                 _runningRoutines.Add(routine);
-
-#if DEBUG
-                routine.DebugStackTrace = Environment.StackTrace;
-#endif
             }
 
             return routine;
@@ -96,6 +101,7 @@ namespace Emotion.Game.Time.Routines
                     Coroutine current = _runningRoutines[i];
                     Debug.Assert(current != null);
 
+                    Current = current;
                     current.Run();
                 }
 
@@ -105,14 +111,18 @@ namespace Emotion.Game.Time.Routines
                     if (current.Finished) _runningRoutines.RemoveAt(i);
                 }
 
+                Current = null;
                 return true;
             }
         }
 
 #if DEBUG
-        public Coroutine DbgGetCoroutine(int index)
+        public List<Coroutine> DbgGetRunningRoutines()
         {
-            return _runningRoutines[index];
+            lock(_runningRoutines)
+            {
+                return _runningRoutines;
+            }
         }
 #endif
     }

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections;
-using System.Diagnostics;
 #if DEBUG
 using System.Reflection;
 
@@ -19,10 +18,33 @@ namespace Emotion.Game.Time.Routines
     /// </summary>
     public class Coroutine : IRoutineWaiter
     {
+        /// <summary>
+        /// Whether the routine has finished running.
+        /// If the routine was stopped, it will also be considered finished as to
+        /// continue the calling routine.
+        /// </summary>
+        public virtual bool Finished
+        {
+            get => _routine == null;
+        }
+
+        /// <summary>
+        /// Whether the routine was stopped rather than finished.
+        /// </summary>
+        public bool Stopped { get; protected set; }
+
+        /// <summary>
+        /// The waiter the routine is currently waiting on.
+        /// </summary>
+        public IRoutineWaiter CurrentWaiter { get; protected set; }
+
+        /// <summary>
+        /// The manager the routine is running on. Subroutines do not run on a manager but are considered an
+        /// extension of the routine.
+        /// </summary>
         public CoroutineManager Parent;
 
         private IEnumerator _routine;
-        private IRoutineWaiter _currentWaiter;
 
         /// <summary>
         /// Create a new subroutine. Can also be achieved by yielding an IEnumerator.
@@ -32,7 +54,12 @@ namespace Emotion.Game.Time.Routines
         {
             _routine = enumerator;
 #if DEBUG
-            DebugCoroutineCreationStack = Environment.StackTrace;
+            string stackTrace = Environment.StackTrace;
+            int startCoroutineFuncIdx = stackTrace.IndexOf("StartCoroutine", StringComparison.Ordinal);
+            if(startCoroutineFuncIdx == -1) startCoroutineFuncIdx = stackTrace.IndexOf("Coroutine..ctor", StringComparison.Ordinal);
+            int newLineAfterThat = startCoroutineFuncIdx != -1 ? stackTrace.IndexOf("\n", startCoroutineFuncIdx, StringComparison.Ordinal) : -1;
+            if (newLineAfterThat != -1) stackTrace = stackTrace.Substring(newLineAfterThat + 1);
+            DebugCoroutineCreationStack = stackTrace;
 #endif
         }
 
@@ -44,10 +71,10 @@ namespace Emotion.Game.Time.Routines
         {
             if (Finished) return;
 
-            if (_currentWaiter != null) // No waiter, or routine finished
+            if (CurrentWaiter != null) // No waiter, or routine finished
             {
-                _currentWaiter.Update();
-                if (!_currentWaiter.Finished) return; // Current waiter is not ready. Continue waiting
+                CurrentWaiter.Update();
+                if (!CurrentWaiter.Finished) return; // Current waiter is not ready. Continue waiting
             }
 
             // Increment the routine.
@@ -60,14 +87,14 @@ namespace Emotion.Game.Time.Routines
                 {
                     // Check if a delay, and add it as the routine's delay.
                     case IRoutineWaiter routineDelay:
-                        _currentWaiter = routineDelay;
+                        CurrentWaiter = routineDelay;
                         break;
                     // Check if adding a subroutine.
                     case IEnumerator subroutine:
                         var subRtn = new Coroutine(subroutine);
-                        _currentWaiter = subRtn;
+                        CurrentWaiter = subRtn;
 #if DEBUG
-                        subRtn.DebugStackTrace = $"At {GetCoroutineStack()} branched subroutine\n" + DebugStackTrace;
+                        subRtn.DebugCoroutineCreationStack = $"Unknown subroutine stack. Yield a Coroutine object for full stack. Yield statement index {GetCoroutineStack()}";
 #endif
                         break;
                 }
@@ -76,16 +103,8 @@ namespace Emotion.Game.Time.Routines
                 return;
             }
 
-            _currentWaiter = null;
+            CurrentWaiter = null;
             _routine = null;
-        }
-
-        /// <summary>
-        /// Whether the routine has finished running.
-        /// </summary>
-        public virtual bool Finished
-        {
-            get => _routine == null;
         }
 
         /// <summary>
@@ -101,13 +120,13 @@ namespace Emotion.Game.Time.Routines
         /// </summary>
         public virtual void Stop()
         {
-            _currentWaiter = null;
+            CurrentWaiter = null;
             _routine = null;
+            Stopped = true;
         }
 
 #if DEBUG
         public string DebugCoroutineCreationStack;
-        public string DebugStackTrace;
 
         private int GetCoroutineStack()
         {

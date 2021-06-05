@@ -1,6 +1,6 @@
 ﻿#region Using
 
-using System;
+using System.Collections.Generic;
 using Emotion.Common;
 using Emotion.Game.Time.Routines;
 using Emotion.Graphics;
@@ -20,24 +20,36 @@ namespace Emotion.Tools.Windows
         protected override void RenderContent(RenderComposer composer)
         {
             CoroutineManager manager = Engine.CoroutineManager;
-            for (var i = 0; i < manager.Count; i++)
+            List<Coroutine> routines = manager.DbgGetRunningRoutines();
+            for (var i = 0; i < routines.Count; i++)
             {
-                Coroutine routine = manager.DbgGetCoroutine(i);
-                string creationStackStr = routine.DebugStackTrace;
-                int stackLineBeforeStartCoroutine = creationStackStr.IndexOf("StartCoroutine");
-                int firstLine = creationStackStr.IndexOf('\n', stackLineBeforeStartCoroutine) + 1;
-                int firstLineEnd = creationStackStr.IndexOf('\n', firstLine);
-                string cutOff = creationStackStr.Substring(firstLine, firstLineEnd - firstLine);
-
+                Coroutine routine = routines[i];
                 ImGui.PushID(i);
-                if (ImGui.TreeNode((i + 1) + ". " + cutOff))
-                {
-                    ImGui.TextWrapped(cutOff);
-                    ImGui.TreePop();
-                }
-
+                RenderCoroutineData(routine, $"{i + 1}.");
                 ImGui.PopID();
             }
+        }
+
+        private static void RenderCoroutineData(Coroutine r, string header = "")
+        {
+            string creationStackStr = r.DebugCoroutineCreationStack;
+            int firstLineEnd = creationStackStr.IndexOf('\n');
+            string cutOff = firstLineEnd == -1 ? creationStackStr : creationStackStr.Substring(0, firstLineEnd);
+
+            ImGui.PushID(header);
+            if (ImGui.TreeNode($"{header} {cutOff}"))
+            {
+                string afterCutOff = firstLineEnd == -1 ? "" : creationStackStr.Substring(firstLineEnd + 1);
+                if (afterCutOff != "") ImGui.TextWrapped(afterCutOff);
+
+                if (r.CurrentWaiter is Coroutine nested)
+                    RenderCoroutineData(nested, "Subroutine");
+                else
+                    ImGui.Text($"Waiting On: {(r.CurrentWaiter == null ? "self" : r.CurrentWaiter.ToString())}");
+                ImGui.TreePop();
+            }
+
+            ImGui.PopID();
         }
 
         public override void Update()
