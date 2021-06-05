@@ -104,8 +104,8 @@ namespace Emotion.Tools.Windows
             ImGui.Text("This option requires Emotion to have been compiled with the `PROFILER` flag.");
             ImGui.Checkbox("Profiler LagSpike Monitor", ref PerfProfiler.LagSpikeMonitor);
 
-            ImGui.Text("Audio");
             ImGui.Text(" ");
+            ImGui.Text("Audio Performance");
 
             ImGui.Text($"AudioLayer Fill Time {AudioLayer.DbgBufferFillTimeTaken.ElapsedMilliseconds}ms");
             ImGui.Text($"AudioLayer Longest Fill Time {AudioLayer.LongestFillTimeTaken}ms");

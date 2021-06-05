@@ -19,6 +19,12 @@ namespace Emotion.IO
         public string Name { get; set; } = "Unknown";
 
         /// <summary>
+        /// The byte size of the asset when loaded from the asset source. Subsequent operations may cause the asset to
+        /// take more space/less space. Such as compression etc.
+        /// </summary>
+        public int Size { get; set; }
+
+        /// <summary>
         /// Whether the asset is created.
         /// </summary>
         public bool Created { get; protected set; }
@@ -37,6 +43,7 @@ namespace Emotion.IO
         {
             if (Created) return;
 
+            Size = data.Length;
             CreateInternal(data);
             Created = true;
         }
