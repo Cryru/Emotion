@@ -6,12 +6,17 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Standard.Logging;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 
 #endregion
 
 namespace Emotion.IO.AssetPack
 {
+    /// <summary>
+    /// Load a package of assets created by the Emotion.PostBuildTool
+    /// </summary>
     public abstract class PackedAssetSource : AssetSource
     {
         /// <summary>
@@ -53,8 +58,13 @@ namespace Emotion.IO.AssetPack
         {
             try
             {
-                byte[] manifestBytes = await GetFileContent(Path.Join(_blobDirectory, "manifest.xml"));
-                if (manifestBytes == null) return;
+                string manifestPath = Path.Join(_blobDirectory, "manifest.xml");
+                byte[] manifestBytes = await GetFileContent(manifestPath);
+                if (manifestBytes == null)
+                {
+                    Engine.Log.Error($"Couldn't retrieve packed asset source manifest {manifestPath}", MessageSource.PackedAssetSource);
+                    return;
+                }
 
                 _manifest = XMLFormat.From<AssetBlobManifest>(manifestBytes);
 
@@ -70,14 +80,15 @@ namespace Emotion.IO.AssetPack
                     }
                 }
 
-                // Start requesting blobs.
+                // Start loading individual blobs.
                 _blobContents = new byte[numberOfBlobs][];
                 var blobLoadingTasks = new Task[numberOfBlobs];
                 float progressPerBlob = 1.0f / numberOfBlobs;
-                for (var i = 0; i < _blobContents.Length; i++)
+                for (var i = 0; i < numberOfBlobs; i++)
                 {
                     blobLoadingTasks[i] = LoadBlob(i).ContinueWith(_ => { Progress += progressPerBlob; });
                 }
+
                 await Task.WhenAll(blobLoadingTasks);
 
                 // Convert manifest.
@@ -86,7 +97,7 @@ namespace Emotion.IO.AssetPack
             }
             catch (Exception ex)
             {
-                Engine.Log.Error($"Error in loading packed asset source - {ex}.", "PackedAssetSource");
+                Engine.Log.Error($"Error in loading packed asset source - {ex}.", MessageSource.PackedAssetSource);
             }
         }
 
@@ -99,7 +110,7 @@ namespace Emotion.IO.AssetPack
 
                 if (content == null)
                 {
-                    Engine.Log.Error($"Couldn't load asset blob {blobName}. Removing its assets from the manifest.", "PackedAssetSource");
+                    Engine.Log.Error($"Couldn't load asset blob {blobName}. Removing its assets from the manifest.", MessageSource.PackedAssetSource);
                     var removeKeys = new List<string>();
                     foreach ((string fileName, (int blobIdx, BlobFile blobFile) value) in _fileManifest)
                     {
@@ -116,12 +127,12 @@ namespace Emotion.IO.AssetPack
                 else
                 {
                     _blobContents[blobIdx] = content;
-                    Engine.Log.Trace($"Loaded asset blob {blobName} of size {content.Length / 1024f / 1024f:0.00}MB!", "PackedAssetSource");
+                    Engine.Log.Trace($"Loaded asset blob {blobName} of size {Helpers.FormatByteAmountAsString(content.Length)}!", MessageSource.PackedAssetSource);
                 }
             }
             catch (Exception ex)
             {
-                Engine.Log.Error($"Error in loading asset blob {blobIdx} - {ex}.", "PackedAssetSource");
+                Engine.Log.Error($"Error in loading asset blob {blobIdx} - {ex}.", MessageSource.PackedAssetSource);
             }
         }
 
@@ -132,12 +143,15 @@ namespace Emotion.IO.AssetPack
 
         public override ReadOnlyMemory<byte> GetAsset(string enginePath)
         {
+            // Try to get the index of the blob which contains this asset from the manifest.
             if (_fileManifest == null) return null;
             if (!_fileManifest.TryGetValue(enginePath, out (int blobIdx, BlobFile blobFile) assetLocation)) return null;
-            // Try to find the blob.
+
+            // Try to get the blob which contains the asset.
             if (_blobContents.Length - 1 < assetLocation.blobIdx || _blobContents[assetLocation.blobIdx] == null) return null;
             byte[] blob = _blobContents[assetLocation.blobIdx];
 
+            // Read the asset from the blob offset.
             return new ReadOnlyMemory<byte>(blob).Slice(assetLocation.blobFile.Offset, assetLocation.blobFile.Length);
         }
 
@@ -146,6 +160,9 @@ namespace Emotion.IO.AssetPack
             return $"PackedAssetSource @ {_blobDirectory}";
         }
 
+        /// <summary>
+        /// Implementation dependent file retrieve. Used for the manifest and the blobs.
+        /// </summary>
         protected abstract Task<byte[]> GetFileContent(string fileName);
     }
 }

@@ -25,6 +25,7 @@
         public static string FontParser = "FontParser";
         public static string XML = "XML";
         public static string TMX = "TMX";
+        public static string PackedAssetSource = "PackedAssetSource";
 
         // Platform
         public static string Win32 = "Win32";

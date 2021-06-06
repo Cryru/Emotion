@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Emotion.Common;
+using Emotion.Web.Platform;
 
 #endregion
 
@@ -13,10 +14,11 @@ namespace Emotion.Web.ExecTest
         {
             await LibraryBootstrap.MainLibrary(args, new EmotionSetupService
             {
-                SetupEngine = config =>
+                SetupEngine = async config =>
                 {
                     Engine.Setup(config);
-                    Engine.SceneManager.SetScene(new Emotion.ExecTest.Program());
+                    await ((WebHost) Engine.Host).AsyncSetup(); // Dont forget to call this!
+                    await Engine.SceneManager.SetScene(new Emotion.ExecTest.Program());
                     Engine.Run();
                 }
             });

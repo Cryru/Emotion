@@ -2,10 +2,11 @@
 
 using System;
 using System.Numerics;
+using System.Threading.Tasks;
 using Emotion.Common;
 using Emotion.Platform;
+using Emotion.Platform.Implementation.Null;
 using Emotion.Platform.Input;
-using Emotion.Scenography;
 using Emotion.Web.RazorTemplates;
 using Microsoft.JSInterop;
 
@@ -34,20 +35,32 @@ namespace Emotion.Web.Platform
             _canvasElement = canvasElement;
             _canvasElement.JsRuntimeMarshalled.InvokeVoid("InitJavascript", DotNetObjectReference.Create(this));
             Context = new WebGLContext(JsRuntime);
+            Audio = new NullAudioAdapter();
             // Audio : https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode
+        }
+
+        public void InitLoop(Action tick, Action draw)
+        {
+            TickAction = tick;
+            DrawAction = draw;
+        }
+
+        public async Task AsyncSetup()
+        {
+            var webAssetSource = new WebAssetSource("AssetBlobs", _canvasElement.HttpClient);
+            webAssetSource.StartLoad();
+            await webAssetSource.LoadingTask;
+            Engine.AssetLoader.AddSource(webAssetSource);
         }
 
         protected override void SetupInternal(Configurator config)
         {
-            // Don't load the first scene before assets have loaded.
-            var webAssetSource = new WebAssetSource("AssetBlobs", _canvasElement.HttpClient);
-            webAssetSource.StartLoad();
-            SceneManager.AssetBlobLoadingTask = webAssetSource.LoadingTask.ContinueWith(r => { Engine.AssetLoader.AddSource(webAssetSource); });
             Engine.AssetLoader.AddStore(new WebAssetStore(this));
         }
 
         public override void DisplayMessageBox(string message)
         {
+            Console.WriteLine(message);
         }
 
         protected override bool UpdatePlatform()

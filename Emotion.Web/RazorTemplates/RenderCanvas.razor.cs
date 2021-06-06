@@ -28,24 +28,19 @@ namespace Emotion.Web.RazorTemplates
         [Inject]
         public HttpClient HttpClient { get; set; }
 
-        protected override Task OnAfterRenderAsync(bool firstRender)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (!firstRender) return Task.CompletedTask;
+            if (!firstRender) return;
 
             // Initiate Javascript
             var platformHost = new WebHost(this);
             var webConfig = new Configurator
             {
-                LoopFactory = (tick, draw) =>
-                {
-                    platformHost.TickAction = tick;
-                    platformHost.DrawAction = draw;
-                },
+                LoopFactory = platformHost.InitLoop,
                 PlatformOverride = platformHost,
                 Logger = new WebLogger()
             };
-            _setupService.SetupEngine(webConfig);
-            return Task.CompletedTask;
+            await _setupService.SetupEngine(webConfig);
         }
     }
 }
