@@ -1,7 +1,6 @@
 ﻿#region Using
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +8,7 @@ using Emotion.Common;
 using Emotion.IO;
 using Emotion.IO.AssetPack;
 using Emotion.Standard.XML;
+using Emotion.Utility;
 
 #endregion
 
@@ -44,33 +44,38 @@ namespace Emotion.PostBuildTool
             Directory.CreateDirectory(OutputDirectory);
 
             // Generate blobs.
-            var blobs = new ConcurrentBag<AssetBlob>();
-            AssetBlob b = GenerateAssetBlob();
-            blobs.Add(b);
-            FileStream str = File.Create(Path.Join(OutputDirectory, b.Name));
+            var blobs = new List<AssetBlob>();
+            AssetBlob currentBlob = null;
+            FileStream blobWriteStream = null;
             var blobFileSize = 0;
-
-            for (var j = 0; j < files.Length; j++)
+            for (var i = 0; i < files.Length; i++)
             {
-                string fileName = files[j];
-                string internalName = fileName.Replace(InputFolder + Path.DirectorySeparatorChar, "");
-
-                byte[] bytes = File.ReadAllBytes(fileName);
-                if (blobFileSize + bytes.Length >= MaxBlobSize)
+                if (currentBlob == null)
                 {
-                    Engine.Log.Info($"  Finished blob {b.Name} with size {blobFileSize / 1024 / 1024}MB.", "Script");
-                    str.Flush();
-                    str.Dispose();
-                    b = GenerateAssetBlob();
-                    blobs.Add(b);
-                    str = File.Create(Path.Join(OutputDirectory, b.Name));
+                    currentBlob = GenerateAssetBlob();
+                    blobs.Add(currentBlob);
+                    blobWriteStream = File.Create(Path.Join(OutputDirectory, currentBlob.Name));
                     blobFileSize = 0;
                 }
 
-                b.BlobMeta.Add(internalName, new BlobFile(blobFileSize, bytes.Length));
-                str.Write(bytes);
+                string fileName = files[i];
+                string internalName = fileName.Replace(InputFolder + Path.DirectorySeparatorChar, "");
+                byte[] bytes = File.ReadAllBytes(fileName);
+
+                currentBlob.BlobMeta.Add(internalName, new BlobFile(blobFileSize, bytes.Length));
+                blobWriteStream.Write(bytes);
                 blobFileSize += bytes.Length;
-                Engine.Log.Info($"   File {fileName} [{internalName}] of size {bytes.Length / 1024}KB added to blob {b.Name}.", "Script");
+                Engine.Log.Info($"   Writing file {fileName} [{internalName}] of size {Helpers.FormatByteAmountAsString(bytes.Length)}", "Script");
+
+                bool lastFile = i == files.Length - 1;
+                int nextFileSize = lastFile ? 0 : (int) new FileInfo(files[i + 1]).Length;
+                if (blobFileSize + nextFileSize >= MaxBlobSize || lastFile)
+                {
+                    Engine.Log.Info($"  Finished blob {currentBlob.Name} with size {Helpers.FormatByteAmountAsString(blobFileSize)}", "Script");
+                    blobWriteStream.Close();
+                    blobWriteStream.Dispose();
+                    currentBlob = null;
+                }
             }
 
             Engine.Log.Info($"Building complete. {blobs.Count} blobs created!", "Script");
@@ -84,7 +89,7 @@ namespace Emotion.PostBuildTool
             File.WriteAllText(Path.Join(OutputDirectory, "manifest.xml"), xml);
             Engine.Log.Info("Manifest written.", "Script");
 
-            // Verification step
+            // Verification step.
             Engine.Log.Info("Verifying assets...", "Script");
             var filePackedSource = new FilePackedAssetSource(OutputDirectory);
             filePackedSource.StartLoad();
@@ -92,14 +97,14 @@ namespace Emotion.PostBuildTool
 
             for (var i = 0; i < manifest.Blobs.Length; i++)
             {
-                AssetBlob currentBlob = manifest.Blobs[i];
-                foreach (KeyValuePair<string, BlobFile> file in currentBlob.BlobMeta)
+                AssetBlob blob = manifest.Blobs[i];
+                foreach ((string blobPath, BlobFile _) in blob.BlobMeta)
                 {
-                    string realName = Path.Join(InputFolder, file.Key);
+                    string realName = Path.Join(InputFolder, blobPath);
                     Engine.Log.Info($" Checking file {realName}...", "Script");
 
                     byte[] bytesFileSystem = File.ReadAllBytes(realName);
-                    ReadOnlySpan<byte> bytesBlob = filePackedSource.GetAsset(AssetLoader.NameToEngineName(file.Key)).Span;
+                    ReadOnlySpan<byte> bytesBlob = filePackedSource.GetAsset(AssetLoader.NameToEngineName(blobPath)).Span;
 
                     Debug.Assert(bytesFileSystem.Length == bytesBlob.Length);
                     for (var j = 0; j < bytesFileSystem.Length; j++)
@@ -115,7 +120,7 @@ namespace Emotion.PostBuildTool
         }
 
         private static int _nextBlobIdx;
-        private static object _nextBlobLock = new object();
+        private static object _nextBlobLock = new();
 
         public static AssetBlob GenerateAssetBlob()
         {
@@ -131,23 +136,6 @@ namespace Emotion.PostBuildTool
             }
 
             return blobInst;
-        }
-
-        // Unused
-        public static string[] GetFilesForThread(string[] allFiles, int threadCount, int threadId)
-        {
-            int perThread = allFiles.Length / threadCount;
-            int startIdx = perThread * threadId;
-            int count = perThread;
-            if (threadId == threadCount - 1)
-            {
-                count += allFiles.Length - perThread * threadCount;
-                Debug.Assert(startIdx + count == allFiles.Length);
-            }
-
-            var section = new string[count];
-            Array.Copy(allFiles, startIdx, section, 0, section.Length);
-            return section;
         }
     }
 }
