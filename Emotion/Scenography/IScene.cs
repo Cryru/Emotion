@@ -15,17 +15,11 @@ namespace Emotion.Scenography
     /// </summary>
     public interface IScene
     {
-#if WEB
-        Task Load()
-        {
-            return Task.CompletedTask;
-        }
-#else
         /// <summary>
         /// Is run when the scene is loading.
         /// </summary>
         void Load();
-#endif
+
         /// <summary>
         /// Is run every tick while the window is focused.
         /// </summary>

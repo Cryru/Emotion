@@ -10,22 +10,7 @@ namespace Emotion.Scenography
     /// <summary>
     /// The default loading scene.
     /// </summary>
-    internal class DefaultLoadingScene : IScene
+    public class DefaultLoadingScene : Scene
     {
-        public void Load()
-        {
-        }
-
-        public void Update()
-        {
-        }
-
-        public void Draw(RenderComposer composer)
-        {
-        }
-
-        public void Unload()
-        {
-        }
     }
 }

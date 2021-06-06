@@ -444,6 +444,7 @@ namespace Emotion.Common
 
         /// <summary>
         /// Submit that an error has happened. Handles logging and closing of the engine safely.
+        /// Sometimes the exception is engine generated. Check the InnerException property in these cases.
         /// </summary>
         /// <param name="ex">The exception connected with the error occured.</param>
         public static void CriticalError(Exception ex)

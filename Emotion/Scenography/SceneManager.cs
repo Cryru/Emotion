@@ -9,7 +9,11 @@ using Emotion.Common;
 using Emotion.Graphics;
 using Emotion.Standard.Logging;
 
+// ReSharper disable PossibleUnintendedReferenceComparison
+
 #endregion
+
+#nullable enable
 
 namespace Emotion.Scenography
 {
@@ -31,19 +35,17 @@ namespace Emotion.Scenography
         /// <summary>
         /// The current scene. If a scene is loading this is the loading scene.
         /// </summary>
-        public IScene Current { get; private set; }
+        public Scene Current { get; private set; }
 
         /// <summary>
         /// The loading scene. This scene is active while another loads/unloads.
         /// </summary>
-        public IScene LoadingScreen { get; private set; }
+        public Scene LoadingScreen { get; private set; }
 
         /// <summary>
         /// When the scene changes.
         /// </summary>
-        public event EventHandler SceneChanged;
-
-        private Task _sceneLoadingTask;
+        public event Action? SceneChanged;
 
         #endregion
 
@@ -52,12 +54,17 @@ namespace Emotion.Scenography
         /// <summary>
         /// A mutex which ensures scene swaps don't happen during update and draw.
         /// </summary>
-        private object _swapMutex = new object();
+        private object _swapMutex = new();
 
         /// <summary>
         /// The scene to swap to in the next tick.
         /// </summary>
-        private IScene _swapScene;
+        private Scene? _swapScene;
+
+        /// <summary>
+        /// The task loading the next scene or loading screen.
+        /// </summary>
+        private Task? _sceneLoadingTask;
 
         #endregion
 
@@ -97,8 +104,11 @@ namespace Emotion.Scenography
         /// </summary>
         /// <param name="scene">The scene to set as current.</param>
         /// <returns>A thread task which will handle the operations.</returns>
-        public Task SetScene(IScene scene)
+        public Task SetScene(Scene scene)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (scene == null) return Task.CompletedTask;
+
             if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
             {
                 Engine.Log.Info("Tried to swap scene while a scene swap is in progress.", MessageSource.SceneManager);
@@ -107,27 +117,19 @@ namespace Emotion.Scenography
 
             Engine.Log.Info($"Preparing to swap scene to [{scene}]", MessageSource.SceneManager);
 
-#if WEB
-            _sceneLoadingTask = Task.Run(async () => await LoadInternal(scene));
-#else
             _sceneLoadingTask = Task.Run(() => LoadInternal(scene));
-#endif
+
             return _sceneLoadingTask;
         }
-#if WEB
-        private async Task LoadInternal(IScene scene)
-        {
-            // Make sure assets have loaded.
-            if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
-#else
-        private void LoadInternal(IScene scene)
-        {
-#endif
 
+        private async Task LoadInternal(Scene scene)
+        {
             if (Engine.Host?.NamedThreads ?? false) Thread.CurrentThread.Name ??= "Scene Loading";
 
+            await Task.Delay(1000);
+
             // Set the current scene to be the loading screen, and get the old one.
-            IScene old = QueueSceneSwap(LoadingScreen);
+            Scene old = QueueSceneSwap(LoadingScreen);
 
             PerfProfiler.ProfilerEventStart("SceneUnload", "Loading");
 
@@ -136,14 +138,7 @@ namespace Emotion.Scenography
             {
                 // Wait for the scene to swap to the loading screen.
                 // We don't want to unload it while it is still being updated/drawn.
-                while (Current != LoadingScreen)
-                {
-#if WEB
-                    await Task.Delay(1);
-#else
-                    Task.Delay(1).Wait();
-#endif
-                }
+                while (Current != LoadingScreen) await Task.Delay(1);
 
                 Unload(old);
             }
@@ -151,73 +146,76 @@ namespace Emotion.Scenography
             PerfProfiler.ProfilerEventEnd("SceneUnload", "Loading");
             PerfProfiler.ProfilerEventStart("SceneLoad", "Loading");
 
-            // Check if a new scene was provided and load it.
-            if (scene != null)
+            try
             {
-#if WEB
-                await Load(scene);
-#else
-                Load(scene);
-#endif
-
-                // Swap from loading.
-                QueueSceneSwap(scene);
+                // Load the new scene.
+                Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
+                await scene.LoadAsync();
+                Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
+                QueueSceneSwap(scene); // Swap from loading screen.
+                while (_swapScene != null) await Task.Delay(1);
+                Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
             }
-            else
+            catch (Exception ex)
             {
-                // If not set the current scene to the loading screen.
-                Current = LoadingScreen;
-            }
-
-            while (_swapScene != null)
-            {
-#if WEB
-                await Task.Delay(1);
-#else
-                Task.Delay(1).Wait();
-#endif
+                Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
             }
 
             PerfProfiler.ProfilerEventEnd("SceneLoad", "Loading");
-            Engine.Log.Info($"Swapped current scene to [{scene}]", MessageSource.SceneManager);
         }
-
-#if WEB
-        public static Task AssetBlobLoadingTask;
-#endif
 
         /// <summary>
         /// Sets the provided scene as the loading screen.
         /// </summary>
         /// <param name="loadingScene">The scene to set as a loading screen.</param>
-        public void SetLoadingScreen(IScene loadingScene)
+        public Task SetLoadingScreen(Scene loadingScene)
         {
-            // Check if scene is null.
-            if (loadingScene == null) return;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (loadingScene == null) return Task.CompletedTask;
 
-            IScene oldLoadingScreen = LoadingScreen;
-
-#if WEB
-            Task.Run(async () =>
+            if (_sceneLoadingTask != null && !_sceneLoadingTask.IsCompleted)
             {
-                // Wait for asset blobs to load.
-                if (AssetBlobLoadingTask != null) await AssetBlobLoadingTask;
+                Engine.Log.Info("Tried to set loading screen while a scene is loading.", MessageSource.SceneManager);
+                return Task.CompletedTask;
+            }
 
-                await loadingScene.Load();
-                LoadingScreen = loadingScene;
+            _sceneLoadingTask = Task.Run(() => SetLoadingScreenInternal(loadingScene));
 
-                if (Current == oldLoadingScreen) QueueSceneSwap(LoadingScreen);
-                Unload(oldLoadingScreen);
-            });
-#else
-            // Load the new loading screen.
-            loadingScene.Load();
+            return _sceneLoadingTask;
+        }
+
+        private async Task SetLoadingScreenInternal(Scene loadingScene)
+        {
+            Scene oldLoadingScreen = LoadingScreen;
+
+            await loadingScene.LoadAsync();
             LoadingScreen = loadingScene;
 
             // Unload the old loading screen.
             // If it is currently active, swap it with the new loading screen first.
             if (Current == oldLoadingScreen) QueueSceneSwap(LoadingScreen);
+
+            // Wait for swap.
+            while (Current != LoadingScreen) await Task.Delay(1);
             Unload(oldLoadingScreen);
+        }
+
+        #endregion
+
+        #region Legacy API
+
+        /// <inheritdoc cref="SetScene(Scene)" />
+        public Task SetScene(IScene scene)
+        {
+            return SetScene(new LegacySceneWrapper(scene));
+        }
+
+        /// <inheritdoc cref="SetLoadingScreen(Scene)" />
+        public void SetLoadingScreen(IScene loadingScene)
+        {
+            Task loadingSceneTask = SetLoadingScreen(new LegacySceneWrapper(loadingScene));
+#if !WEB
+            loadingSceneTask.Wait();
 #endif
         }
 
@@ -225,44 +223,7 @@ namespace Emotion.Scenography
 
         #region Helpers
 
-#if WEB
-        private static async Task Load(IScene scene)
-#else
-        private static void Load(IScene scene)
-#endif
-        {
-            Engine.Log.Trace($"Loading scene [{scene}].", MessageSource.SceneManager);
-
-            if (Engine.Configuration.DebugMode && Debugger.IsAttached)
-            {
-#if WEB
-                await scene.Load();
-#else
-                scene.Load();
-#endif
-            }
-            else
-            {
-                try
-                {
-#if WEB
-                    await scene.Load();
-#else
-                    scene.Load();
-#endif
-                }
-                catch (Exception ex)
-                {
-                    if (Debugger.IsAttached) throw;
-                    Engine.CriticalError(new Exception($"Couldn't load scene - {scene}.", ex));
-                }
-            }
-
-
-            Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
-        }
-
-        private void Unload(IScene scene)
+        private void Unload(Scene scene)
         {
             // Check if trying to unload the current loading screen.
             if (scene == LoadingScreen) return;
@@ -287,14 +248,24 @@ namespace Emotion.Scenography
         /// </summary>
         /// <param name="toSwapTo">The scene to queue a swap to.</param>
         /// <returns>The previously active scene (the current one).</returns>
-        public IScene QueueSceneSwap(IScene toSwapTo)
+        public Scene QueueSceneSwap(Scene toSwapTo)
         {
+            // Engine is setup but not running. Perform instant swap. This can happen if SetScene loads before Run.
+            // And is usually not a problem unless the SetScene is awaited.
+            if (Engine.Status == EngineStatus.Setup)
+            {
+                Scene old = Current;
+                Current = toSwapTo;
+                return old;
+            }
+
             lock (_swapMutex)
             {
-                // The scene is swapped on the next update.
+                // Check if already waiting on a swap.
+                // Can happen if a scene loads in before the loading screen swap is complete.
                 if (_swapScene != null)
                 {
-                    IScene old = _swapScene;
+                    Scene old = _swapScene;
                     _swapScene = toSwapTo;
                     return old;
                 }
@@ -310,11 +281,6 @@ namespace Emotion.Scenography
         /// </summary>
         private void SwapCheck()
         {
-#if WEB
-            if (AssetBlobLoadingTask != null && !AssetBlobLoadingTask.IsCompleted) return;
-#endif
-            if (_sceneLoadingTask != null && _sceneLoadingTask.Status == TaskStatus.Created) _sceneLoadingTask.Start();
-
             lock (_swapMutex)
             {
                 if (_swapScene == null) return;
@@ -322,7 +288,7 @@ namespace Emotion.Scenography
                 _swapScene = null;
             }
 
-            SceneChanged?.Invoke(this, EventArgs.Empty);
+            SceneChanged?.Invoke();
         }
 
         #endregion
