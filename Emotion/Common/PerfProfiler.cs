@@ -1,4 +1,5 @@
-﻿#region Using
+﻿#if !Superluminal
+#region Using
 
 using System;
 using System.Collections.Concurrent;
@@ -127,3 +128,4 @@ namespace Emotion.Common
         }
     }
 }
+#endif

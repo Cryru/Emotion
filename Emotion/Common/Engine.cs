@@ -377,7 +377,6 @@ namespace Emotion.Common
 #endif
 
             PerfProfiler.FrameStart();
-            SuperluminalProfiler.FrameStart();
 
             // Reset cached bound state, because on some drivers SwapBuffers unbinds all objects.
             // Added in c1b965c3741d6cfb4c7f6174a95860deb9867e5f
@@ -420,7 +419,6 @@ namespace Emotion.Common
             PerfProfiler.FrameEventEnd("BufferSwap");
 
             PerfProfiler.FrameEnd();
-            SuperluminalProfiler.FrameEnd();
         }
 
         #endregion
