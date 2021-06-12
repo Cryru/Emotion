@@ -58,7 +58,10 @@ namespace Emotion.Common
         /// todo: Should probably deprecate this at some point.
         /// </summary>
         [Obsolete("Use Engine.Host")]
-        public static PlatformBase InputManager { get => Host; }
+        public static PlatformBase InputManager
+        {
+            get => Host;
+        }
 
         /// <summary>
         /// Module which manages loading and unloading of scenes.
@@ -178,6 +181,7 @@ namespace Emotion.Common
                 CriticalError(new Exception("Platform couldn't initialize."));
                 return;
             }
+
             Audio = new AudioContext(Host.Audio);
             if (Status == EngineStatus.Stopped) return; // Errors in host initialization can cause this.
             PerfProfiler.ProfilerEventEnd("Platform Creation", "Loading");
@@ -373,6 +377,7 @@ namespace Emotion.Common
 #endif
 
             PerfProfiler.FrameStart();
+            SuperluminalProfiler.FrameStart();
 
             // Reset cached bound state, because on some drivers SwapBuffers unbinds all objects.
             // Added in c1b965c3741d6cfb4c7f6174a95860deb9867e5f
@@ -415,6 +420,7 @@ namespace Emotion.Common
             PerfProfiler.FrameEventEnd("BufferSwap");
 
             PerfProfiler.FrameEnd();
+            SuperluminalProfiler.FrameEnd();
         }
 
         #endregion
@@ -432,8 +438,6 @@ namespace Emotion.Common
 
             // Flush logs.
             Log?.Dispose();
-
-            Audio?.Dispose();
 
             // Dispose of plugins.
             foreach (IPlugin p in Configuration.Plugins)

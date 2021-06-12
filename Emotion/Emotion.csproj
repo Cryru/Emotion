@@ -101,6 +101,9 @@
     <None Update="AssetsNativeLibs\OpenAL\win64\openal32.dll" Condition="$(DefineConstants.Contains('OpenAL'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="AssetsNativeLibs\Superluminal\PerformanceAPI.dll" Condition="$(DefineConstants.Contains('Superluminal'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('FreeType'))">
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
