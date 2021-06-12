@@ -144,17 +144,19 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="matrix4">The matrix value to set it to.</param>
-        public void SetUniformMatrix4(string name, Matrix4x4 matrix4)
+        public bool SetUniformMatrix4(string name, Matrix4x4 matrix4)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             unsafe
             {
                 float* matrixPtr = &matrix4.M11;
                 Gl.UniformMatrix4(id, 1, false, matrixPtr);
             }
+
+            return true;
         }
 
         /// <summary>
@@ -162,13 +164,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The int value to set it to.</param>
-        public void SetUniformInt(string name, int data)
+        public bool SetUniformInt(string name, int data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform1(id, data);
+            return true;
         }
 
         /// <summary>
@@ -176,13 +179,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The float value to set it to.</param>
-        public void SetUniformFloat(string name, float data)
+        public bool SetUniformFloat(string name, float data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform1(id, data);
+            return true;
         }
 
         /// <summary>
@@ -191,13 +195,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The color value to set it to.</param>
-        public void SetUniformColor(string name, Color data)
+        public bool SetUniformColor(string name, Color data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform4(id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f);
+            return true;
         }
 
         /// <summary>
@@ -205,13 +210,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The int array value to set it to.</param>
-        public void SetUniformIntArray(string name, int[] data)
+        public bool SetUniformIntArray(string name, int[] data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform1(id, data);
+            return true;
         }
 
         /// <summary>
@@ -219,13 +225,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The vector 2 to set it to.</param>
-        public void SetUniformVector2(string name, Vector2 data)
+        public bool SetUniformVector2(string name, Vector2 data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform2f(id, 1, data);
+            return true;
         }
 
         /// <summary>
@@ -233,13 +240,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The vector 3 to set it to.</param>
-        public void SetUniformVector3(string name, Vector3 data)
+        public bool SetUniformVector3(string name, Vector3 data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform3f(id, 1, data);
+            return true;
         }
 
         /// <summary>
@@ -247,13 +255,14 @@ namespace Emotion.Graphics.Shading
         /// </summary>
         /// <param name="name">The name of the uniform to upload to.</param>
         /// <param name="data">The vector4 to set it to.</param>
-        public void SetUniformVector4(string name, Vector4 data)
+        public bool SetUniformVector4(string name, Vector4 data)
         {
             int id = GetUniformLocation(name);
             // Check if the id exists.
-            if (id == -1) return;
+            if (id == -1) return false;
 
             Gl.Uniform4f(id, 1, data);
+            return true;
         }
 
         #endregion

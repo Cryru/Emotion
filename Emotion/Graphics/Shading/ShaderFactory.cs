@@ -94,7 +94,8 @@ namespace Emotion.Graphics.Shading
                     ShaderProgram.EnsureBound(newShader.Pointer);
                     for (var i = 0; i < uniformDefaults.Count; i++)
                     {
-                        uniformDefaults[i].ApplySelf(newShader);
+                        ShaderUniform uniDefault = uniformDefaults[i];
+                        uniDefault.ApplySelf(newShader);
                     }
                 }
 
@@ -207,7 +208,7 @@ namespace Emotion.Graphics.Shading
             code.Insert(5, "#line 2\n");
 
             var dependencyIdx = 1;
-            for (var i = 5; i < code.Count; i++)
+            for (var i = 6; i < code.Count; i++)
             {
                 // Legacy texture uniform definitions.
                 if (code[i].Trim() == "uniform sampler2D textures[16];") code[i] = "uniform sampler2D textures[TEXTURE_COUNT];";
@@ -238,7 +239,7 @@ namespace Emotion.Graphics.Shading
                     string file = line.Replace("#using \"", "");
                     file = file[..^1];
 
-                    code[i] = $"#line 0 {dependencyIdx} // {file}\n{ResolveShaderDependency(file)}\n// End";
+                    code[i] = $"#line 0 {dependencyIdx} \n// {file}\n{ResolveShaderDependency(file)}\n// End";
                     codeAdded = true;
                     dependencyIdx++;
                 }

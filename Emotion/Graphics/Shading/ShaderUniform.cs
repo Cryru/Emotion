@@ -109,27 +109,35 @@ namespace Emotion.Graphics.Shading
         /// <param name="program">The shader to apply to.</param>
         public void ApplySelf(ShaderProgram program)
         {
+            var applied = false;
             switch (Type)
             {
                 case "float":
-                    program.SetUniformFloat(Name, (float) Value);
+                    applied = program.SetUniformFloat(Name, (float) Value);
                     break;
                 case "int":
-                    program.SetUniformInt(Name, (int) Value);
+                    applied = program.SetUniformInt(Name, (int) Value);
                     break;
                 case "vec2":
-                    program.SetUniformVector2(Name, (Vector2) Value);
+                    applied = program.SetUniformVector2(Name, (Vector2) Value);
                     break;
                 case "vec3":
-                    program.SetUniformVector3(Name, (Vector3) Value);
+                    applied = program.SetUniformVector3(Name, (Vector3) Value);
                     break;
                 case "vec4":
-                    program.SetUniformVector4(Name, (Vector4) Value);
+                    applied = program.SetUniformVector4(Name, (Vector4) Value);
                     break;
                 default:
                     Engine.Log.Warning($"Unknown shader uniform type {Type}. Default value will probably be missing.", MessageSource.Renderer);
-                    break;
+                    return;
             }
+
+            if (!applied && Engine.Configuration.GlDebugMode) Engine.Log.Info($"Couldn't apply shader uniform {this}", MessageSource.Renderer);
+        }
+
+        public override string ToString()
+        {
+            return $"{Type} {Name} {Value}";
         }
     }
 }
