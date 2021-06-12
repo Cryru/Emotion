@@ -223,7 +223,7 @@ namespace Emotion.Graphics.Batches
             uint mappedBytes = _memory.CurrentBufferOffset - _mapOffsetStart;
             uint mappedBytesIndices = _memoryIndices.CurrentBufferOffset - _indexMapOffsetStart;
 
-            PerfProfiler.FrameEventStart($"Stream Render {mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+            PerfProfiler.FrameEventStart("Stream Render", $"{mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
 
             // Remap UVs to be within the atlas, if using the atlas.
             if (_currentTexture == _atlas?.AtlasPointer) _atlas.RemapBatchUVs(_dataPointer, mappedBytes, _structByteSize, _memory.CurrentBuffer.VAO.UVByteOffset);
@@ -267,7 +267,7 @@ namespace Emotion.Graphics.Batches
                 Gl.DrawElements(primitiveType, count, DrawElementsType.UnsignedShort, startIndexInt);
             }
 
-            PerfProfiler.FrameEventEnd($"Stream Render {mappedBytes / _structByteSize} Vertices with {mappedBytesIndices / _indexByteSize} Indices");
+            PerfProfiler.FrameEventEnd("Stream Render");
 
             // Reset mapping.
             _dataPointer = IntPtr.Zero;

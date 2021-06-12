@@ -112,7 +112,7 @@ namespace Emotion.Common
         }
 
         [Conditional("PROFILER")]
-        public static void FrameEventStart(string name)
+        public static void FrameEventStart(string name, string desc = "")
         {
             if (!_profileFrame && !LagSpikeMonitor) return;
             _captureSoFar.Append(GetEventJSON(name, $"Frame Capture {_capturedFrames}", true, _frameTimer.GetElapsedMicroseconds()));

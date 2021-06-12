@@ -181,21 +181,17 @@ namespace Emotion.IO
             }
 
             PerfProfiler.ProfilerEventStart($"Loading {name}", "Loading");
-            PerfProfiler.ProfilerEventStart($"SourceLoading {name}", "Loading");
 
             // Load it from the source.
             ReadOnlyMemory<byte> data = source.GetAsset(name);
             if (data.IsEmpty) return default;
 
-            PerfProfiler.ProfilerEventEnd($"SourceLoading {name}", "Loading");
-            PerfProfiler.ProfilerEventStart($"InternalLoading {name}", "Loading");
 
             // Load the asset.
             asset = new T {Name = name};
             asset.Create(data);
             if (cache) _loadedAssets.AddOrUpdate(name, asset, (_, ___) => asset);
 
-            PerfProfiler.ProfilerEventEnd($"InternalLoading {name}", "Loading");
             PerfProfiler.ProfilerEventEnd($"Loading {name}", "Loading");
 
             return (T) asset;
@@ -228,7 +224,7 @@ namespace Emotion.IO
                     }
 
                     store = _storage.FirstOrDefault().Value;
-                    Engine.Log.Warning($"Tried to store asset {name} but there's no store to service its folder. Saving to debug store \"{store.Folder}\".", MessageSource.AssetLoader);
+                    Engine.Log.Warning($"Tried to store asset {name} but there's no store that services that folder. Saving to debug store \"{store.Folder}\".", MessageSource.AssetLoader);
                     if (store == null) return false;
                 }
 

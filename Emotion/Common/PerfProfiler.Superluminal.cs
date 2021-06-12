@@ -89,7 +89,7 @@ namespace Emotion.Common
         public static void ProfilerEventStart(string eventName, string eventGroup)
         {
             EnsureAPILoaded();
-            _superluminal.BeginEvent(eventName, eventGroup);
+            _superluminal.BeginEvent(eventGroup, eventName);
         }
 
         public static void ProfilerEventEnd(string eventName, string eventGroup)
@@ -97,9 +97,9 @@ namespace Emotion.Common
             _superluminal.EndEvent();
         }
 
-        public static void FrameEventStart(string name)
+        public static void FrameEventStart(string name, string desc = "")
         {
-            _superluminal.BeginEvent(name, "");
+            _superluminal.BeginEvent(name, desc);
         }
 
         public static void FrameEventEnd(string name)
